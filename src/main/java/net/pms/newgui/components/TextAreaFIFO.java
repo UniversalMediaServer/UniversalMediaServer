@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -25,9 +25,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
+import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.configuration.PmsConfiguration;
 
 
 /**

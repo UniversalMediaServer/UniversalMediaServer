@@ -44,7 +44,7 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	public VideoLanVideoStreaming() {
-	}	
+	}
 
 	@Override
 	public int purpose() {
@@ -114,7 +114,7 @@ public class VideoLanVideoStreaming extends Player {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		boolean isWindows = Platform.isWindows();
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
 		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
 

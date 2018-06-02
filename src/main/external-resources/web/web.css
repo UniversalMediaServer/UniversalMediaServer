@@ -133,6 +133,13 @@ ul#Folders li a:hover {
 ul#Folders li span {
 	display: block;
 	margin-bottom: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+ul#Media {
+	overflow-y: auto;
 }
 
 ul#Media li {
@@ -169,11 +176,12 @@ ul#Media .thumb {
 	width: auto;
 	display: block;
 	margin: 0 auto;
+	object-fit: contain;
 }
 
 ul#Media .caption {
 	display: block;
-	max-width: 273px;
+	max-width: 263px;
 	height: 16px;
 	overflow: hidden;
 	float: left;
@@ -276,7 +284,7 @@ ul#Media .caption:hover {
 }
 
 .bumpIcon {
-	width: 16px;
+	width: 24px;
 	height: 16px;
 	display: block;
 	float: right;

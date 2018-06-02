@@ -22,7 +22,7 @@ function changeMargins() {
 
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
-					var caption_w = cell_w - 49;
+					var caption_w = cell_w - 43;
 					$(cells[c]).find('.caption').css({
 						width : caption_w + 'px',
 						maxWidth : caption_w + 'px',
@@ -86,6 +86,7 @@ function changeMargins() {
 
 function scrollActions() {
 	if ($(window).width() > 1080) {
+		$("#Menu, #ContentPage #Menu #HomeButton, ul#Folders, ul#Media").stop();
 		if ($(window).scrollTop() === 0) {
 			$("#Menu").animate({height: 95}, 200);
 			$("#ContentPage #Menu #HomeButton").animate({height: 93}, 200);
@@ -98,6 +99,7 @@ function scrollActions() {
 //			$("ul#Media").animate({paddingTop: 73}, 200);
 		}
 	} else {
+		$("#Menu, #ContentPage #Menu #HomeButton, ul#Media").stop();
 		$("#Menu").animate({height: 53}, 200);
 		$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
 //		$("ul#Media").animate({paddingTop: 20}, 200);
@@ -183,7 +185,7 @@ function chooseView(view) {
 }
 
 function setPadColor(cycle) {
-	var pad = Cookies.get('pad') || 'PadGrey';
+	var pad = Cookies.get('pad') || 'PadBlack';
 	if (cycle) {
 		pad = pad === 'PadBlack' ? 'PadGrey' : pad === 'PadGrey' ? 'PadNone' : 'PadBlack';
 	}

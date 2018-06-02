@@ -2,9 +2,16 @@ package net.pms.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.SwingUtilities;
+import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
@@ -13,12 +20,6 @@ import static net.pms.network.UPNPHelper.unescape;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.regex.Matcher;
-import net.pms.PMS;
-import javax.swing.SwingUtilities;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.util.regex.Pattern;
 
 public interface BasicPlayer extends ActionListener {
 	public class State {
@@ -90,12 +91,12 @@ public interface BasicPlayer extends ActionListener {
 
 		public DeviceConfiguration renderer;
 		protected State state;
-		protected LinkedHashSet<ActionListener> listeners;
+		protected final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
+		protected final LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
 
 		public Minimal(DeviceConfiguration renderer) {
 			this.renderer = renderer;
 			state = new State();
-			listeners = new LinkedHashSet<>();
 			if (renderer.gui != null) {
 				connect(renderer.gui);
 			}
@@ -119,22 +120,37 @@ public interface BasicPlayer extends ActionListener {
 		@Override
 		public void connect(ActionListener listener) {
 			if (listener != null) {
-				listeners.add(listener);
+				listenersLock.writeLock().lock();
+				try {
+					listeners.add(listener);
+				} finally {
+					listenersLock.writeLock().unlock();
+				}
 			}
 		}
 
 		@Override
 		public void disconnect(ActionListener listener) {
-			listeners.remove(listener);
-			if (listeners.isEmpty()) {
-				close();
+			listenersLock.writeLock().lock();
+			try {
+				listeners.remove(listener);
+				if (listeners.isEmpty()) {
+					close();
+				}
+			} finally {
+				listenersLock.writeLock().unlock();
 			}
 		}
 
 		@Override
 		public void alert() {
-			for (ActionListener l : listeners) {
-				l.actionPerformed(new ActionEvent(this, 0, null));
+			listenersLock.readLock().lock();
+			try {
+				for (ActionListener l : listeners) {
+					l.actionPerformed(new ActionEvent(this, 0, null));
+				}
+			} finally {
+				listenersLock.readLock().unlock();
 			}
 		}
 
@@ -145,7 +161,13 @@ public interface BasicPlayer extends ActionListener {
 
 		@Override
 		public void close() {
-			listeners.clear();
+			listenersLock.writeLock().lock();
+			try {
+				listeners.clear();
+			} finally {
+				listenersLock.writeLock().unlock();
+			}
+
 			renderer.setPlayer(null);
 		}
 
@@ -263,9 +285,9 @@ public interface BasicPlayer extends ActionListener {
 				} else {
 					// It's new to us, find or create the resource as required.
 					// Note: here metadata (if any) is actually the resource name
-					DLNAResource d = DLNAResource.getValidResource(uri, metadata, renderer);
-					if (d != null) {
-						return new Playlist.Item(d.getURL("", true), d.getDisplayName(), d.getDidlString(renderer));
+					DLNAResource resource = DLNAResource.getValidResource(uri, metadata, renderer);
+					if (resource != null) {
+						return new Playlist.Item(resource.getURL("", true), resource.getDisplayName(renderer), resource.getDidlString(renderer));
 					}
 				}
 			}
@@ -400,7 +422,7 @@ public interface BasicPlayer extends ActionListener {
 						while(PMS.get().getServer().getHost() == null) {
 							try {
 								Thread.sleep(1000);
-							} catch (Exception e) {
+							} catch (InterruptedException e) {
 								return;
 							}
 						}
@@ -422,6 +444,7 @@ public interface BasicPlayer extends ActionListener {
 
 		public static class Playlist extends DefaultComboBoxModel {
 			private static final long serialVersionUID = 5934677633834195753L;
+			private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
 
 			Logical player;
 
@@ -448,10 +471,12 @@ public interface BasicPlayer extends ActionListener {
 						// An alias for the currently selected item
 						StringUtils.isBlank(uri) || uri.equals(selectedName) ? selectedItem :
 						// An item index, e.g. '$i$4'
-						uri.startsWith("$i$") ? getElementAt(Integer.valueOf(uri.substring(3))) :
+						uri.startsWith("$i$") ? getElementAt(Integer.parseInt(uri.substring(3))) :
 						// Or an actual uri
 						get(uri));
 				} catch (Exception e) {
+					LOGGER.error("An error occurred while resolving the item for URI \"{}\": {}", uri, e.getMessage());
+					LOGGER.trace("", e);
 				}
 				return (item != null && isValid(item, player.renderer)) ? item : null;
 			}
@@ -459,7 +484,7 @@ public interface BasicPlayer extends ActionListener {
 			public static boolean isValid(Item item, DeviceConfiguration renderer) {
 				if (DLNAResource.isResourceUrl(item.uri)) {
 					// Check existence for resource uris
-					if (PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
+					if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
 						return true;
 					}
 					// Repair the item if possible
@@ -491,6 +516,7 @@ public interface BasicPlayer extends ActionListener {
 				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
 					SwingUtilities.invokeLater(new Runnable() {
+						@Override
 						public void run() {
 							Item item = resolve(uri);
 							if (item == null) {
@@ -509,6 +535,7 @@ public interface BasicPlayer extends ActionListener {
 				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode
 					SwingUtilities.invokeLater(new Runnable() {
+						@Override
 						public void run() {
 							Item item = resolve(uri);
 							if (item != null) {

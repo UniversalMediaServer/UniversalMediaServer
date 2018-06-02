@@ -26,6 +26,7 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Locale;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -41,9 +42,9 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.CustomJComboBox;
 import net.pms.newgui.components.CustomJTextField;
-import net.pms.util.KeyedStringComboBoxModel;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.KeyedStringComboBoxModel;
 import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -621,6 +622,7 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("TrTab2.8")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		notranscode = new JTextField(configuration.getDisableTranscodeForExtensions());
+		notranscode.setToolTipText(Messages.getString("TrTab2.96"));
 		notranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -631,6 +633,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.9"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		forcetranscode = new JTextField(configuration.getForceTranscodeForExtensions());
+		forcetranscode.setToolTipText(Messages.getString("TrTab2.96"));
 		forcetranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -839,7 +842,7 @@ public class TranscodingTab {
 			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
 			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
 			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
-			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS"
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] values = new String[]{
 			Messages.getString("General.2"),
@@ -882,7 +885,8 @@ public class TranscodingTab {
 			Messages.getString("CharacterSet.IBM420"),
 			Messages.getString("CharacterSet.IBM424"),
 			Messages.getString("CharacterSet.KOI8-R"),
-			Messages.getString("CharacterSet.ShiftJIS")
+			Messages.getString("CharacterSet.ShiftJIS"),
+			Messages.getString("CharacterSet.TIS-620")
 		};
 
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
@@ -914,6 +918,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());
+		defaultfont.setToolTipText(Messages.getString("TrTab2.97"));
 		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -997,21 +1002,29 @@ public class TranscodingTab {
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
-		subColor.setBackground(new Color(configuration.getSubsColor()));
+		subColor.setBackground(configuration.getSubsColor());
 		subColor.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(
-					looksFrame,
-					Messages.getString("MEncoderVideo.125"),
-					subColor.getBackground()
-				);
+				final JColorChooser jColorChooser = new JColorChooser(subColor.getBackground());
+				Locale locale = PMS.getLocale();
+				jColorChooser.setLocale(locale);
+				jColorChooser.setComponentOrientation(ComponentOrientation.getOrientation(locale));
+				JDialog dialog = JColorChooser.createDialog(looksFrame, Messages.getString("MEncoderVideo.125"), true, jColorChooser, new ActionListener() {
 
-				if (newColor != null) {
-					subColor.setBackground(newColor);
-					configuration.setSubsColor(newColor.getRGB());
-					SubtitleUtils.deleteSubs(); // Color has been changed so all temporary subs will be deleted and make new
-				}
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						Color newColor = jColorChooser.getColor();
+						if (newColor != null) {
+							subColor.setBackground(newColor);
+							configuration.setSubsColor(newColor);
+							// Subtitle color has been changed so all temporary subtitles must be deleted
+							SubtitleUtils.deleteSubs();
+						}
+					}
+				}, null);
+				dialog.setVisible(true);
+				dialog.dispose();
 			}
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(13, 14, 3), colSpec, orientation));

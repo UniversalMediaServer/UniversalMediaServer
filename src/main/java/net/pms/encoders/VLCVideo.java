@@ -310,6 +310,13 @@ public class VLCVideo extends Player {
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			LOGGER.trace(
+				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+				"it is lower than the general configuration bitrate limit ({} Mb/s)",
+				params.mediaRenderer.getRendererName(),
+				rendererMaxBitrates[0],
+				defaultMaxBitrates[0]
+			);
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
@@ -317,8 +324,9 @@ public class VLCVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] /= 2;
+			if (params.mediaRenderer.isHalveBitrate()) {
+				defaultMaxBitrates[0] /= 2;
+			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -434,7 +442,7 @@ public class VLCVideo extends Player {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
-		final String filename = dlna.getSystemName();
+		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
 		setAudioAndSubs(filename, media, params);
 
@@ -510,7 +518,7 @@ public class VLCVideo extends Player {
 
 		// Handle subtitle language
 		if (params.sid != null) { // User specified language at the client, acknowledge it
-			if (params.sid.isExternal()) {
+			if (params.sid.isExternal() && !params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) {
 				String externalSubtitlesFileName;
 
 				// External subtitle file
@@ -571,7 +579,7 @@ public class VLCVideo extends Player {
 			encodingArgsBuilder.append(curEntry.getKey());
 
 			if (curEntry.getValue() != null) {
-				encodingArgsBuilder.append("=");
+				encodingArgsBuilder.append('=');
 				encodingArgsBuilder.append(curEntry.getValue());
 			}
 
@@ -660,7 +668,8 @@ public class VLCVideo extends Player {
 		// Only handle local video - not web video or audio
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
 		) {
 			return true;
 		}

@@ -39,6 +39,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -581,16 +582,16 @@ public class TracesTab {
 		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		HashMap<String, String> logFiles = LoggingConfig.getLogFilePaths();
-		for (String loggerName : logFiles.keySet()) {
-			String loggerNameDisplay = loggerName;
-			if (loggerName.toLowerCase().startsWith("default.log")) {
+		for (Map.Entry<String,String> logger : logFiles.entrySet()) {
+			String loggerNameDisplay = logger.getKey();
+			if (logger.getKey().toLowerCase().startsWith("default.log")) {
 				loggerNameDisplay = Messages.getString("TracesTab.5");
 			}
 			CustomJButton b = new CustomJButton(loggerNameDisplay);
-			if (!loggerName.equals(loggerNameDisplay)) {
+			if (!logger.getKey().equals(loggerNameDisplay)) {
 				b.setMnemonic(KeyEvent.VK_O);
 			}
-			b.setToolTipText(logFiles.get(loggerName));
+			b.setToolTipText(logger.getValue());
 			b.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {

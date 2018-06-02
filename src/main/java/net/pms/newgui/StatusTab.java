@@ -70,10 +70,10 @@ public class StatusTab {
 		public String name = " ";
 		private JPanel _panel = null;
 
-		public RendererItem(RendererConfiguration r) {
-			icon = addRendererIcon(r.getRendererIcon());
+		public RendererItem(RendererConfiguration renderer) {
+			icon = addRendererIcon(renderer.getRendererIcon());
 			icon.enableRollover();
-			label = new JLabel(r.getRendererName());
+			label = new JLabel(renderer.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
 //			playingLabel = new GuiUtil.ScrollLabel(" ");
 			playingLabel.setForeground(Color.gray);
@@ -85,7 +85,9 @@ public class StatusTab {
 			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
 			rendererProgressBar.setStringPainted(true);
 			rendererProgressBar.setBorderPainted(false);
-			rendererProgressBar.setString(r.getAddress().getHostAddress());
+			if (renderer.getAddress() != null) {
+				rendererProgressBar.setString(renderer.getAddress().getHostAddress());
+			}
 			rendererProgressBar.setForeground(bufColor);
 		}
 
@@ -391,13 +393,13 @@ public class StatusTab {
 			if (icon.matches(".*\\S+://.*")) {
 				try {
 					bi = ImageIO.read(new URL(icon));
-				} catch (Exception e) {
+				} catch (IOException e) {
 					LOGGER.debug("Error reading icon url: " + e);
 				}
 				if (bi != null) {
 					return bi;
 				} else {
-					LOGGER.debug("Unable to read icon url \"{}\", using '{}' instead.", RendererConfiguration.UNKNOWN_ICON);
+					LOGGER.debug("Unable to read icon url \"{}\", using \"{}\" instead.", icon, RendererConfiguration.UNKNOWN_ICON);
 					icon = RendererConfiguration.UNKNOWN_ICON;
 				}
 			}
@@ -438,9 +440,15 @@ public class StatusTab {
 					is = LooksFrame.class.getResourceAsStream("/renderers/" + icon);
 				}
 
+				if (is == null) {
+					LOGGER.debug("Unable to read icon \"{}\", using \"{}\" instead.", icon, RendererConfiguration.UNKNOWN_ICON);
+					is = LooksFrame.class.getResourceAsStream("/resources/images/clients/" + RendererConfiguration.UNKNOWN_ICON);
+				}
+
 				if (is != null) {
 					bi = ImageIO.read(is);
 				}
+
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
@@ -483,7 +491,7 @@ public class StatusTab {
 					updateMemoryUsage();
 					try {
 						Thread.sleep(2000);
-					} catch (Exception e) {
+					} catch (InterruptedException e) {
 						return;
 					}
 				}

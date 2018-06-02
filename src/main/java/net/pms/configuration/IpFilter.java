@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 /**
  * IP Filter class, which supports multiple wildcards, ranges. For example :
  * 127.0.0.1,192.168.0-1.*
- * 
+ *
  * @author zsombor
- * 
+ *
  */
 public class IpFilter {
 
@@ -92,7 +92,7 @@ public class IpFilter {
 
 			/*
 			 * (non-Javadoc)
-			 * 
+			 *
 			 * @see java.lang.Object#toString()
 			 */
 			@Override
@@ -234,7 +234,7 @@ public class IpFilter {
 		return "IpFilter:" + getNormalizedFilter();
 	}
 
-	public String getNormalizedFilter() {
+	public synchronized String getNormalizedFilter() {
 		StringBuilder b = new StringBuilder();
 		for (Predicate r : matchers) {
 			if (b.length() > 0) {
@@ -246,24 +246,24 @@ public class IpFilter {
 		return b.toString();
 	}
 
-	public boolean allowed(InetAddress addr) {
+	public synchronized boolean allowed(InetAddress addr) {
 		boolean log = isFirstDecision(addr);
 		if (matchers.isEmpty()) {
 			if (log) {
-				LOGGER.info("No IP filter specified, access granted to " + addr);
+				LOGGER.trace("IP Filter: No IP filter specified, access granted to {}", addr.getHostAddress());
 			}
 			return true;
 		}
 		for (Predicate p : matchers) {
 			if (p.match(addr)) {
 				if (log) {
-					LOGGER.info("Access granted to " + addr + " by rule: " + p);
+					LOGGER.trace("IP Filter: Access granted to {} with rule: {}", addr.getHostAddress(), p);
 				}
 				return true;
 			}
 		}
 		if (log) {
-			LOGGER.info("Access denied to " + addr);
+			LOGGER.info("IP Filter: Access denied to {}", addr.getHostName());
 		}
 		return false;
 	}

@@ -1,5 +1,6 @@
 package net.pms.newgui;
 
+import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,9 +19,9 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
@@ -30,7 +31,6 @@ import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 
 public class DbgPacker implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbgPacker.class);
@@ -147,7 +147,7 @@ public class DbgPacker implements ActionListener {
 		// add virtual folders file if it exists
 		String vfolders = configuration.getVirtualFoldersFile(null);
 		if (StringUtils.isNotEmpty(vfolders)) {
-			add(new File(profileDirectory, vfolders.substring(1)));
+			add(new File(profileDirectory, vfolders));
 		}
 
 		add(new File(profileDirectory, "WEB.conf"));

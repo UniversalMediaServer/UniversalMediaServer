@@ -1,7 +1,24 @@
 language: java
+
 addons:
   apt:
     packages:
     - mediainfo 
+
+matrix:
+  include:
+    - os: linux
+      jdk: openjdk7
+    - os: linux
+      dist: precise
+      jdk: oraclejdk7
+    - os: linux
+      jdk: oraclejdk8
+    - os: linux
+      dist: trusty
+      jdk: openjdk8
+    - os: osx
+
 install: mvn external:install 
+
 script: mvn install -Dmaven.javadoc.skip=true -B -V

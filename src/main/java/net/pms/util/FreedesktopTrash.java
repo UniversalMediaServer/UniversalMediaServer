@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -35,29 +35,29 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.util.FileUtil.InvalidFileSystemException;
 import net.pms.util.FileUtil.UnixMountPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class FreedesktopTrash {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreedesktopTrash.class);
 	private static Path homeFolder = null;
 	private static Object homeFolderLock = new Object();
 	private static final String INFO = "info";
 	private static final String FILES = "files";
-    private static final SecureRandom random = new SecureRandom();
+	private static final SecureRandom random = new SecureRandom();
 
-    private static String generateRandomFileName(String fileName) {
-    	if (fileName.contains("/") || fileName.contains("\\")) {
-            throw new IllegalArgumentException("Invalid file name");
-    	}
+	private static String generateRandomFileName(String fileName) {
+		if (fileName.contains("/") || fileName.contains("\\")) {
+			throw new IllegalArgumentException("Invalid file name");
+		}
 
-    	String prefix;
+		String prefix;
 		String suffix;
 		if (fileName.contains(".")) {
-			int i = fileName.lastIndexOf(".");
+			int i = fileName.lastIndexOf('.');
 			prefix = fileName.substring(0, i);
 			suffix = fileName.substring(i);
 		} else {
@@ -65,11 +65,11 @@ public class FreedesktopTrash {
 			suffix = "";
 		}
 
-        long n = random.nextLong();
-        n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n);
-        String newName = prefix + Long.toString(n) + suffix;
-        return newName;
-    }
+		long n = random.nextLong();
+		n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n);
+		String newName = prefix + Long.toString(n) + suffix;
+		return newName;
+	}
 
 	private static Path getVerifiedPath(String location) {
 		if (location != null && !location.trim().isEmpty()) {
@@ -206,7 +206,7 @@ public class FreedesktopTrash {
 		try {
 			trashFolder = Paths.get(pathMountPoint.folder, ".Trash-" + FileUtil.getUnixUID());
 		} catch (IOException e) {
-			throw new IOException ("Could not determine user id while resolving trash folder: " + e.getMessage(), e);
+			throw new IOException("Could not determine user id while resolving trash folder: " + e.getMessage(), e);
 		}
 		if (verifyTrashFolder(trashFolder, true)) {
 			return trashFolder;
@@ -222,6 +222,10 @@ public class FreedesktopTrash {
 	}
 
 	public static void moveToTrash(Path path) throws InvalidFileSystemException, IOException {
+		if (path == null) {
+			throw new NullPointerException("path cannot be null");
+		}
+
 		final int LIMIT = 10;
 		path = path.toAbsolutePath();
 		FilePermissions pathPermissions = new FilePermissions(path);
@@ -246,8 +250,8 @@ public class FreedesktopTrash {
 		infoContent.add("DeletionDate=" + new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss").format(new Date()));
 
 		// Create the trash info file
-		String fileName = path.getFileName().toString();
-		Path infoFile;
+		Path infoFile = path.getFileName();
+		String fileName = infoFile != null ? infoFile.toString() : "";
 		int count = 0;
 		boolean created = false;
 		while (!created && count < LIMIT) {
@@ -285,19 +289,19 @@ public class FreedesktopTrash {
 	}
 
 	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is applicable
-	 * for the given {@link Path}. Support can vary between partitions on the same
-	 * computer. Please note that this check will look for or try to create
-	 * the necessary folder structure, so this can be an expensive operation.
+	 * Tries to determine if FreeDesktop.org Trash specification is
+	 * applicable for the given {@link Path}. Support can vary between
+	 * partitions on the same computer. Please note that this check will
+	 * look for or try to create the necessary folder structure, so this can
+	 * be an expensive operation.
 	 *
 	 * The check could be used to evaluate a systems general ability, but a
 	 * better strategy is to attempt {@link #moveToTrash(Path)} and handle
-	 * a the {@link Exception} if it fails.
+	 * the {@link Exception} if it fails.
 	 *
 	 * @param path the path for which to evaluate trash bin support
 	 * @return The evaluation result
 	 */
-
 	public static boolean hasTrash(Path path) {
 		try {
 			return verifyTrashStructure(getTrashFolder(path));
@@ -309,14 +313,15 @@ public class FreedesktopTrash {
 	}
 
 	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is applicable
-	 * for the given {@link File}. Support can vary between partitions on the same
-	 * computer. Please note that this check will look for or try to create
-	 * the necessary folder structure, so this can be an expensive operation.
+	 * Tries to determine if FreeDesktop.org Trash specification is
+	 * applicable for the given {@link File}. Support can vary between
+	 * partitions on the same computer. Please note that this check will
+	 * look for or try to create the necessary folder structure, so this can
+	 * be an expensive operation.
 	 *
 	 * The check could be used to evaluate a systems general ability, but a
 	 * better strategy is to attempt {@link #moveToTrash(File)} and handle
-	 * a the {@link Exception} if it fails.
+	 * the {@link Exception} if it fails.
 	 *
 	 * @param path the path for which to evaluate trash bin support
 	 * @return The evaluation result
@@ -326,18 +331,20 @@ public class FreedesktopTrash {
 	}
 
 	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is applicable
-	 * for the system root. Support can vary between partitions on the same
-	 * computer. Please note that this check will look for or try to create
-	 * the necessary folder structure, so this can be an expensive operation.
+	 * Tries to determine if FreeDesktop.org Trash specification is
+	 * applicable for the system root. Support can vary between partitions
+	 * on the same computer. Please note that this check will look for or
+	 * try to create the necessary folder structure, so this can be an
+	 * expensive operation.
 	 *
 	 * The check could be used to evaluate a systems general ability, but a
 	 * better strategy is to attempt {@link #moveToTrash(File)} and handle
-	 * a the {@link Exception} if it fails.
+	 * the {@link Exception} if it fails.
 	 *
 	 * @param path the path for which to evaluate trash bin support
 	 * @return The evaluation result
 	 */
+	@SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
 	public static boolean hasTrash() {
 		return hasTrash(Paths.get("/"));
 	}

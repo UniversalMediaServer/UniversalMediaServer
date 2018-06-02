@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -83,7 +83,7 @@ public final class TableCoverArtArchive extends Tables{
 	}
 
 	private static String contructMBIDWhere(final String mBID) {
-		return " WHERE MBID" + nullIfBlank(mBID);
+		return " WHERE MBID" + sqlNullIfBlank(mBID, true, false);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public final class TableCoverArtArchive extends Tables{
 			tableLock.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)){
 				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)){
+				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
 						if (cover != null || result.getBlob("COVER") == null) {
 							if (trace) {
@@ -112,7 +112,7 @@ public final class TableCoverArtArchive extends Tables{
 							}
 							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 							if (cover != null) {
-								result.updateString("COVER", mBID);
+								result.updateBytes("COVER", cover);
 							} else {
 								result.updateNull("COVER");
 							}
@@ -243,6 +243,7 @@ public final class TableCoverArtArchive extends Tables{
 		tableLock.writeLock().lock();
 		try {
 			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					//case 1: Alter table to version 2
 					default:
@@ -259,7 +260,7 @@ public final class TableCoverArtArchive extends Tables{
 	}
 
 	/**
-	 * Must be called in inside a table lock
+	 * Must be called from inside a table lock
 	 */
 	private static void createCoverArtArchiveTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);

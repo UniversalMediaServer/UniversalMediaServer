@@ -5,7 +5,7 @@ LangFile.nsh
 Header file to create langauge files that can be
 included with a single command.
 
-Copyright 2008-2009 Joost Verburg
+Copyright 2008-2015 Joost Verburg
 
 * Either LANGFILE_INCLUDE or LANGFILE_INCLUDE_WITHDEFAULT
   can be called from the script to include a language

@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -20,19 +20,13 @@
 
 package net.pms.util;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.Collator;
 import java.util.*;
 import java.util.List;
-import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.filters.Canvas;
-import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.geometry.Positions;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
@@ -41,7 +35,6 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,6 +93,13 @@ public class UMSUtils {
 	public static final int SORT_RANDOM =    5;
 	public static final int SORT_NO_SORT =   6;
 
+	/**
+	 * Sorts a list of files using a custom method.
+	 *
+	 * @param files
+	 * @param method
+	 * @see #sort(java.util.ArrayList, int)
+	 */
 	public static void sort(List<File> files, int method) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
@@ -160,75 +160,55 @@ public class UMSUtils {
 		}
 	}
 
-	private static int getHW(String[] s, int pos) {
-		if (pos > s.length - 1) {
-			return 0;
-		}
-		try {
-			return Integer.parseInt(s[pos].trim());
-		} catch (NumberFormatException e) {
-			return 0;
-		}
-	}
+	/**
+	 * Sorts a list of strings using a custom method.
+	 *
+	 * @param inputStrings
+	 * @param method 
+	 * @see #sort(java.util.List, int)
+	 */
+	public static void sort(ArrayList<String> inputStrings, int method) {
+		switch (method) {
+			case SORT_NO_SORT: // no sorting
+				break;
+			case SORT_LOC_NAT: // Locale-sensitive natural sort
+				Collections.sort(inputStrings, new Comparator<String>() {
+					@Override
+					public int compare(String s1, String s2){
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
 
-	@SuppressWarnings("deprecation")
-	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
-		if (in == null) {
-			return in;
+						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
+					}
+				});
+				break;
+			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
+				Collections.sort(inputStrings, new Comparator<String>() {
+					@Override
+					public int compare(String s1, String s2) {
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
+					}
+				});
+				break;
+			case SORT_RANDOM: // Random
+				Collections.shuffle(inputStrings, new Random(System.currentTimeMillis()));
+				break;
+			case SORT_LOC_SENS: // Same as default
+			default: // Locale-sensitive A-Z
+				Collections.sort(inputStrings, new Comparator<String>() {
+					@Override
+					public int compare(String s1, String s2) {
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return collator.compare(filename1ToSort, filename2ToSort);
+					}
+				});
+				break;
 		}
-		String ts = r.getThumbSize();
-		if (StringUtils.isEmpty(ts) && StringUtils.isEmpty(r.getThumbBG())) {
-			// no need to convert here
-			return in;
-		}
-		int w;
-		int h;
-		Color col = null;
-		BufferedImage img;
-		try {
-			img = ImageIO.read(in);
-		} catch (Exception e) {
-			// catch whatever is thrown at us
-			// we can at least log it
-			LOGGER.debug("couldn't read thumb to manipulate it " + e);
-			img = null; // to make sure
-		}
-		if (img == null) {
-			return in;
-		}
-		w = img.getWidth();
-		h = img.getHeight();
-		if (StringUtils.isNotEmpty(ts)) {
-			// size limit thumbnail
-			w = getHW(ts.split("x"), 0);
-			h = getHW(ts.split("x"), 1);
-			if (w == 0 || h == 0) {
-				LOGGER.debug("bad thumb size {} skip scaling", ts);
-				w = h = 0; // just to make sure
-			}
-		}
-		if (StringUtils.isNotEmpty(r.getThumbBG())) {
-			try {
-				Field field = Color.class.getField(r.getThumbBG());
-				col = (Color) field.get(null);
-			} catch (Exception e) {
-				LOGGER.debug("bad color name " + r.getThumbBG());
-			}
-		}
-		if (w == 0 && h == 0 && col == null) {
-			return in;
-		}
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = img1.createGraphics();
-		if (col != null) {
-			g.setColor(col);
-		}
-		g.fillRect(0, 0, w, h);
-		g.drawImage(img, 0, 0, w, h, null);
-		ImageIO.write(img1, "jpeg", out);
-		out.flush();
-		return new ByteArrayInputStream(out.toByteArray());
 	}
 
 	public static String playedDurationStr(String current, String duration) {
@@ -259,8 +239,7 @@ public class UMSUtils {
 		String res;
 		if (r != null) {
 			res = r.getSubLanguage();
-		}
-		else {
+		} else {
 			res = PMS.getConfiguration().getSubtitlesLanguages();
 		}
 		if (three) {
@@ -288,7 +267,7 @@ public class UMSUtils {
 
 		public IOList(String uri, int mode) {
 			this.mode = mode;
-			if (! StringUtils.isBlank(uri)) {
+			if (!StringUtils.isBlank(uri)) {
 				file = new File(uri);
 				load(file);
 			} else {
@@ -318,7 +297,7 @@ public class UMSUtils {
 			return (mode & m) == m;
 		}
 
-		public File getFile()  {
+		public File getFile() {
 			return file;
 		}
 
@@ -379,22 +358,21 @@ public class UMSUtils {
 							id = "internal:" + r.getClass().getName();
 						}
 
-						sb.append("master:").append(id).append(";");
+						sb.append("master:").append(id).append(';');
 						if (r.getPlayer() != null) {
-							sb.append("player:").append(r.getPlayer().toString()).append(";");
+							sb.append("player:").append(r.getPlayer().toString()).append(';');
 						}
 						if (r.isResume()) {
 							sb.append("resume");
 							sb.append(r.getResume().getResumeFile().getAbsolutePath());
-							sb.append(";");
+							sb.append(';');
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null
-									&& sub.getId() != -1) {
+							if (sub.getLang() != null && sub.getId() != -1) {
 								sb.append("sub");
 								sb.append(sub.getLang());
-								sb.append(",");
+								sb.append(',');
 								if (sub.isExternal()) {
 									sb.append("file:");
 									sb.append(sub.getExternalFile().getAbsolutePath());
@@ -402,7 +380,7 @@ public class UMSUtils {
 									sb.append("id:");
 									sb.append("").append(sub.getId());
 								}
-								sb.append(";");
+								sb.append(';');
 							}
 						}
 						sb.append(data);
@@ -560,7 +538,7 @@ public class UMSUtils {
 							subData = tmp[1];
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile));
+								s.setExternalFile(new File(sFile), null);
 								s.setId(100);
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
@@ -587,67 +565,5 @@ public class UMSUtils {
 			}
 			return null;
 		}
-	}
-
-	/**
-	 * @see #scaleImage(byte[], int, int, boolean)
-	 * @deprecated
-	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
-		return scaleImage(image, width, height, outputBlank, null);
-	}
-
-	/**
-	 * Creates a black background with the exact dimensions specified, then
-	 * centers the image on the background, preserving the aspect ratio.
-	 *
-	 * @param image
-	 * @param width
-	 * @param height
-	 * @param outputBlank whether to return null or a black image when the
-	 *                    image parameter is null
-	 * @param renderer
-	 *
-	 * @return the scaled image
-	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		ByteArrayInputStream in = null;
-		if (image == null && !outputBlank) {
-			return null;
-		} else if (image != null) {
-			in = new ByteArrayInputStream(image);
-		}
-
-		try {
-			BufferedImage img;
-			if (in != null) {
-				img = ImageIO.read(in);
-			} else {
-				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-			}
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-			if (renderer != null && renderer.isThumbnailPadding()) {
-				Thumbnails.of(img)
-					.size(width, height)
-					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
-					.outputFormat("JPEG")
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-			} else {
-				Thumbnails.of(img)
-					.size(width, height)
-					.outputFormat("JPEG")
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-			}
-
-			return out.toByteArray();
-		} catch (IOException e) {
-			LOGGER.debug("Failed to resize image: {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return null;
 	}
 }

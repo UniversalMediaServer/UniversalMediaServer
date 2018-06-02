@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,18 +19,18 @@
  */
 package net.pms.configuration;
 
-import static org.junit.Assert.*;
-import java.io.File;
-import java.util.Locale;
-import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import java.io.File;
+import java.util.Locale;
 import net.pms.util.FileUtil;
 import net.pms.util.Languages;
+import org.apache.commons.configuration.ConfigurationException;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 public class PmsConfigurationTest {
 

@@ -30,25 +30,22 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
-import net.pms.formats.GIF;
 import net.pms.formats.ISO;
-import net.pms.formats.JPG;
-import net.pms.formats.M4A;
 import net.pms.formats.MKV;
-import net.pms.formats.MP3;
 import net.pms.formats.MPG;
-import net.pms.formats.OGG;
-import net.pms.formats.PNG;
-import net.pms.formats.RAW;
-import net.pms.formats.TIF;
-import net.pms.formats.WAV;
-import net.pms.formats.WEB;
+import net.pms.formats.audio.M4A;
+import net.pms.formats.audio.MP3;
+import net.pms.formats.audio.OGA;
+import net.pms.formats.audio.WAV;
+import net.pms.formats.image.RAW;
 import net.pms.network.HTTPResource;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
@@ -56,22 +53,17 @@ import org.slf4j.LoggerFactory;
  * Test the recognition of formats.
  */
 public class FormatRecognitionTest {
-	private boolean mediaInfoParserIsValid;
+	private final static boolean mediaInfoParserIsValid = LibMediaInfoParser.isValid();
+	private final static PmsConfiguration configuration = new PmsConfiguration(false);
 
-	@Before
-	public void setUp() throws ConfigurationException {
+	@BeforeClass
+	public static void setUpBeforeClass() throws ConfigurationException {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset(); 
-
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		context.reset();
 
 		// Initialize the RendererConfiguration
-		RendererConfiguration.loadRendererConfigurations(pmsConf);
-
-		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
+		RendererConfiguration.loadRendererConfigurations(configuration);
 	}
 
     /**
@@ -84,67 +76,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
 		assertEquals("With nothing provided isCompatible() should return false", false,
-				conf.isCompatible(null, null));
-	}
-
-	/**
-	 * Test the compatibility of the Playstation 3 with the GIF format.
-	 */
-	@Test
-	public void testPlaystationImageGifCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
-		assumeTrue(mediaInfoParserIsValid);
-
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
-		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
-
-		// Construct GIF information
-		DLNAMediaInfo info = new DLNAMediaInfo();
-		info.setContainer("gif");
-		Format format = new GIF();
-		format.match("test.gif");
-		assertEquals("PS3 is compatible with GIF", true,
-				conf.isCompatible(info, format));
-	}
-
-	/**
-	 * Test the compatibility of the Playstation 3 with the PNG format.
-	 */
-	@Test
-	public void testPlaystationImagePngCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
-		assumeTrue(mediaInfoParserIsValid);
-
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
-		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
-
-		// Construct JPG information
-		DLNAMediaInfo info = new DLNAMediaInfo();
-		info.setContainer("png");
-		Format format = new PNG();
-		format.match("test.png");
-		assertEquals("PS3 is compatible with PNG", true,
-				conf.isCompatible(info, format));
-	}
-
-	/**
-	 * Test the compatibility of the Playstation 3 with the TIFF format.
-	 */
-	@Test
-	public void testPlaystationImageTiffCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
-		assumeTrue(mediaInfoParserIsValid);
-
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
-		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
-
-		// Construct JPG information
-		DLNAMediaInfo info = new DLNAMediaInfo();
-		info.setContainer("tiff");
-		Format format = new TIF();
-		format.match("test.tiff");
-		assertEquals("PS3 is compatible with TIFF", true,
-				conf.isCompatible(info, format));
+				conf.isCompatible(null, null, configuration));
 	}
 
 	/**
@@ -170,12 +102,12 @@ public class FormatRecognitionTest {
 		Format format = new MP3();
 		format.match("test.mp3");
 		assertEquals("PS3 is compatible with MP3", true,
-				conf.isCompatible(info, format));
+				conf.isCompatible(info, format, configuration));
 
 		// Construct five channel MP3 that the PS3 does not support natively
 		audio.getAudioProperties().setNumberOfChannels(5);
 		assertEquals("PS3 is incompatible with five channel MP3", false,
-				conf.isCompatible(info, format));
+				conf.isCompatible(info, format, configuration));
 	}
 
 	/**
@@ -202,12 +134,12 @@ public class FormatRecognitionTest {
 		Format format = new MPG();
 		format.match("test.avi");
 		assertEquals("PS3 is compatible with MPG", true,
-				conf.isCompatible(info, format));
+				conf.isCompatible(info, format, configuration));
 
 		// Construct MPG with wmv codec that the PS3 does not support natively
 		info.setCodecV("wmv");
 		assertEquals("PS3 is incompatible with MPG with wmv codec", false,
-				conf.isCompatible(info, format));
+				conf.isCompatible(info, format, configuration));
 	}
 
 	/**
@@ -234,22 +166,19 @@ public class FormatRecognitionTest {
 		Format format = new MPG();
 		format.match("test.mkv");
 		assertEquals("PS3 is incompatible with MKV", false,
-				conf.isCompatible(info, format));
+				conf.isCompatible(info, format, configuration));
 	}
 
 	/**
-	 * Test the backwards compatibility of
-	 * {@link Format#isCompatible(DLNAMediaInfo, RendererConfiguration)} and
-	 * {@link Format#ps3compatible()}.
-	 *
+	 * Test the compatibility of the
+	 * {@link Format#isCompatible(DLNAMediaInfo, RendererConfiguration)} for the
+	 * Playstation 3 renderer.
 	 */
-	@SuppressWarnings("deprecation")
 	@Test
-	public void testBackwardsCompatibility() {
+	public void testPS3Compatibility() {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		// Testing ps3compatible(), so use renderer Playstation 3
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" found.", conf);
 
@@ -258,96 +187,69 @@ public class FormatRecognitionTest {
 		info.setContainer("dvr");
 		Format format = new DVRMS();
 		format.match("test.dvr");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for DVRMS",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertFalse("isCompatible() gives the outcome false for DVRMS",	conf.isCompatible(info, format, configuration));
 
 		// ISO: false
 		info = new DLNAMediaInfo();
 		info.setContainer("iso");
 		format = new ISO();
 		format.match("test.iso");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for ISO",
-				format.ps3compatible(),	conf.isCompatible(info, format));
-
-		// JPG: true
-		info = new DLNAMediaInfo();
-		info.setContainer("jpg");
-		format = new JPG();
-		format.match("test.jpeg");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for JPG",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertFalse("isCompatible() gives the outcome false for ISO", conf.isCompatible(info, format, configuration));
 
 		// M4A: false
 		info = new DLNAMediaInfo();
 		info.setContainer("m4a");
 		format = new M4A();
 		format.match("test.m4a");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for M4A",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertTrue("isCompatible() gives the outcome true for M4A", conf.isCompatible(info, format, configuration));
 
 		// MKV: false
 		info = new DLNAMediaInfo();
 		info.setContainer("mkv");
 		format = new MKV();
 		format.match("test.mkv");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for MKV",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertFalse("isCompatible() gives the outcome false for MKV", conf.isCompatible(info, format, configuration));
 
 		// MP3: true
 		info = new DLNAMediaInfo();
 		info.setContainer("mp3");
 		format = new MP3();
 		format.match("test.mp3");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for MP3",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertTrue("isCompatible() gives the outcome true for MP3", conf.isCompatible(info, format, configuration));
 
 		// MPG: true
 		info = new DLNAMediaInfo();
 		info.setContainer("avi");
 		format = new MPG();
 		format.match("test.mpg");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for MPG",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertTrue("isCompatible() gives the outcome true for MPG", conf.isCompatible(info, format, configuration));
 
 		// OGG: false
 		info = new DLNAMediaInfo();
 		info.setContainer("ogg");
-		format = new OGG();
+		format = new OGA();
 		format.match("test.ogg");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for OGG",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertFalse("isCompatible() gives the outcome false for OGG", conf.isCompatible(info, format, configuration));
 
 		// RAW: false
 		info = new DLNAMediaInfo();
 		info.setContainer("raw");
 		format = new RAW();
 		format.match("test.arw");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for RAW",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertFalse("isCompatible() gives the outcome false for RAW", conf.isCompatible(info, format, configuration));
 
 		// WAV: true
 		info = new DLNAMediaInfo();
 		info.setContainer("wav");
 		format = new WAV();
 		format.match("test.wav");
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for WAV",
-				format.ps3compatible(),	conf.isCompatible(info, format));
-
-		// WEB: type=IMAGE
-		info = new DLNAMediaInfo();
-		info.setContainer("jpg");
-		format = new WEB();
-		format.match("http://test.org/");
-		format.setType(Format.IMAGE);
-		assertEquals("isCompatible() give same outcome as ps3compatible() for WEB image",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertTrue("isCompatible() gives the outcome true for WAV", conf.isCompatible(info, format, configuration));
 
 		// WEB: type=VIDEO
 		info = new DLNAMediaInfo();
 		info.setContainer("avi");
 		format.setType(Format.VIDEO);
-		assertEquals("isCompatible() gives same outcome as ps3compatible() for WEB video",
-				format.ps3compatible(),	conf.isCompatible(info, format));
+		assertTrue("isCompatible() gives the outcome true for WEB video", conf.isCompatible(info, format, configuration));
 	}
 
 	/**

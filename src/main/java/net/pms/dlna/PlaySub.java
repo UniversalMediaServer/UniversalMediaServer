@@ -45,7 +45,7 @@ public class PlaySub extends DLNAResource {
 		}
 		DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 		try {
-			sub.setExternalFile(subFile);
+			sub.setExternalFile(subFile, null);
 		} catch (FileNotFoundException e) {
 			LOGGER.info("Failed to download subtitle file: " + subFile.getName());
 			return;
@@ -69,9 +69,9 @@ public class PlaySub extends DLNAResource {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		try {
-			return getResourceInputStream("images/codes/" + lang + ".png");
+			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("images/codes/" + lang + ".png"));
 		} catch (Exception e) {
 		}
 		return super.getThumbnailInputStream();

@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -22,8 +22,8 @@ package net.pms.newgui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
-import java.awt.Dialog.ModalityType;
 import java.awt.Desktop;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;

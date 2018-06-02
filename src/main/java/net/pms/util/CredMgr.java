@@ -1,24 +1,22 @@
 package net.pms.util;
 
-import net.pms.PMS;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 public class CredMgr {
-	public class Cred {
+	public static class Credential {
 		public String username;
 		public String password;
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CredMgr.class);
-	private HashMap<MultiKey,ArrayList<Cred>> credentials;
+	private HashMap<MultiKey,ArrayList<Credential>> credentials;
 	private HashMap<MultiKey,String> tags;
 	private File credFile;
 
@@ -26,7 +24,7 @@ public class CredMgr {
 		credentials = new HashMap<>();
 		tags = new HashMap<>();
 		credFile = f;
-		PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), reloader, this));
+		FileWatcher.add(new FileWatcher.Watch(f.getPath(), reloader, this));
 		try {
 			readFile();
 		} catch (IOException e) {
@@ -50,8 +48,9 @@ public class CredMgr {
 		credentials.clear();
 		tags.clear();
 
-		if(!credFile.exists())
+		if(!credFile.exists()) {
 			return;
+		}
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(credFile), StandardCharsets.UTF_8))) {
 			String str;
@@ -79,12 +78,13 @@ public class CredMgr {
 					tags.put(tkey, tag);
 				}
 				MultiKey key = new MultiKey(s1[0], tag);
-				Cred val = new Cred();
+				Credential val = new Credential();
 				val.username = s2[0];
 				val.password = s2[1];
-				ArrayList<Cred> old = credentials.get(key);
-				if(old == null)
+				ArrayList<Credential> old = credentials.get(key);
+				if(old == null) {
 					old = new ArrayList<>();
+				}
 				old.add(val);
 				credentials.put(key, old);
 			}
@@ -96,14 +96,14 @@ public class CredMgr {
 		return new MultiKey(owner, (tag == null ? "" : tag));
 	}
 
-	public Cred getCred(String owner) {
+	public Credential getCred(String owner) {
 		return getCred(owner, "");
 	}
 
-	public Cred getCred(String owner, String tag) {
+	public Credential getCred(String owner, String tag) {
 		MultiKey key = createKey(owner, tag);
 		// this asks for first!!
-		ArrayList<Cred> list = credentials.get(key);
+		ArrayList<Credential> list = credentials.get(key);
 		return (list == null ? null : list.get(0));
 	}
 
@@ -118,10 +118,11 @@ public class CredMgr {
 
 	public boolean verify(String owner, String tag, String user, String pwd) {
 		MultiKey key = createKey(owner, tag);
-		ArrayList<Cred> list = credentials.get(key);
-		if(list == null)
+		ArrayList<Credential> list = credentials.get(key);
+		if(list == null) {
 			return false;
-		for(Cred c : list) {
+		}
+		for(Credential c : list) {
 			if(user.equals(c.username)) {
 				// found user compare pwd
 				return pwd.equals(c.password);

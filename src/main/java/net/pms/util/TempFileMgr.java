@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -27,9 +27,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Iterator;
 import net.pms.PMS;
 import org.codehaus.plexus.util.StringUtils;
 

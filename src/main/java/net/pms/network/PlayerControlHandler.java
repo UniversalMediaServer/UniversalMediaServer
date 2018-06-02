@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.net.URLDecoder;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -15,13 +16,14 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
-import net.pms.util.StringUtil;
 import net.pms.util.BasicPlayer.Logical;
+import net.pms.util.StringUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class PlayerControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
@@ -59,15 +61,15 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	@Override
-	public void handle(HttpExchange x) throws IOException {
+	public void handle(HttpExchange httpExchange) throws IOException {
 
-		if (RemoteUtil.deny(x) && !RemoteUtil.bumpAllowed(x)) {
-			LOGGER.debug("Deny " + x);
+		if (RemoteUtil.deny(httpExchange) && !RemoteUtil.bumpAllowed(httpExchange)) {
+			LOGGER.debug("Denying {}", httpExchange);
 			throw new IOException("Denied");
 		}
 
-		String[] p = x.getRequestURI().getPath().split("/");
-		Map<String, String> q = parseQuery(x);
+		String[] p = httpExchange.getRequestURI().getPath().split("/");
+		Map<String, String> query = parseQuery(httpExchange);
 
 		String response = "";
 		String mime = "text/html";
@@ -85,7 +87,7 @@ public class PlayerControlHandler implements HttpHandler {
 					log = false;
 					break;
 				case "play":
-					player.pressPlay(translate(q.get("uri")), q.get("title"));
+					player.pressPlay(translate(query.get("uri")), query.get("title"));
 					break;
 				case "stop":
 					player.pressStop();
@@ -106,24 +108,24 @@ public class PlayerControlHandler implements HttpHandler {
 					player.mute();
 					break;
 				case "setvolume":
-					player.setVolume(Integer.valueOf(q.get("vol")));
+					player.setVolume(Integer.parseInt(query.get("vol")));
 					break;
 				case "add":
-					player.add(-1, translate(q.get("uri")), q.get("title"), null, true);
+					player.add(-1, translate(query.get("uri")), query.get("title"), null, true);
 					break;
 				case "remove":
-					player.remove(translate(q.get("uri")));
+					player.remove(translate(query.get("uri")));
 					break;
 				case "clear":
 					player.clear();
 					break;
 				case "seturi":
-					player.setURI(translate(q.get("uri")), q.get("title"));
+					player.setURI(translate(query.get("uri")), query.get("title"));
 					break;
 			}
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
-			selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
+			selectedPlayers.put(httpExchange.getRemoteAddress().getAddress(), player);
 		} else if (p.length == 2) {
 			response = parent.getResources().read("bump/bump.html")
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
@@ -131,9 +133,9 @@ public class PlayerControlHandler implements HttpHandler {
 			response = getBumpJS();
 			mime = "text/javascript";
 		} else if (p[2].equals("renderers")) {
-			json.add(getRenderers(x.getRemoteAddress().getAddress()));
+			json.add(getRenderers(httpExchange.getRemoteAddress().getAddress()));
 		} else if (p[2].startsWith("skin.")) {
-			RemoteUtil.dumpFile(new File(skindir, p[2].substring(5)), x);
+			RemoteUtil.dumpFile(new File(skindir, p[2].substring(5)), httpExchange);
 			return;
 		}
 
@@ -145,17 +147,17 @@ public class PlayerControlHandler implements HttpHandler {
 		}
 
 		if (log) {
-			LOGGER.debug("Received http player control request from " + x.getRemoteAddress().getAddress() + ": " + x.getRequestURI());
+			LOGGER.debug("Received http player control request from {}: {}", httpExchange.getRemoteAddress().getAddress(), httpExchange.getRequestURI());
 		}
 
-		Headers headers = x.getResponseHeaders();
+		Headers headers = httpExchange.getResponseHeaders();
 		headers.add("Content-Type", mime);
 		// w/o this client may receive response status 0 and no content
 		headers.add("Access-Control-Allow-Origin", "*");
 
-		byte[] bytes = response.getBytes();
-		x.sendResponseHeaders(200, bytes.length);
-		try (OutputStream o = x.getResponseBody()) {
+		byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+		httpExchange.sendResponseHeaders(200, bytes.length);
+		try (OutputStream o = httpExchange.getResponseBody()) {
 			o.write(bytes);
 		}
 	}
@@ -168,11 +170,14 @@ public class PlayerControlHandler implements HttpHandler {
 		Logical player = players.get(uuid);
 		if (player == null) {
 			try {
-				RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
-				player = (Logical)r.getPlayer();
-				players.put(uuid, player);
+				RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByUUID(uuid);
+				if (renderer != null) {
+					player = (Logical) renderer.getPlayer();
+					players.put(uuid, player);
+				}
 			} catch (Exception e) {
-				LOGGER.debug("Error retrieving player " + uuid + ": " + e);
+				LOGGER.debug("Error retrieving player {}: {}", uuid, e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
 		return player;
@@ -200,7 +205,7 @@ public class PlayerControlHandler implements HttpHandler {
 	public String getRenderers(InetAddress client) {
 		Logical player = selectedPlayers.get(client);
 		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
-		ArrayList<String> json = new ArrayList();
+		ArrayList<String> json = new ArrayList<>();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
 			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.uuid : r, r == selected ? 1 : 0, r.uuid));
 		}
@@ -208,7 +213,7 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public String getPlaylist(Logical player) {
-		ArrayList<String> json = new ArrayList();
+		ArrayList<String> json = new ArrayList<>();
 		Logical.Playlist playlist = player.playlist;
 		playlist.validate();
 		Logical.Playlist.Item selected = (Logical.Playlist.Item) playlist.getSelectedItem();
@@ -251,7 +256,7 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	@SuppressWarnings("unused")
-	private String getId(String uri) {
+	private static String getId(String uri) {
 		return uri.startsWith("/play/") ? uri.substring(6) : "";
 	}
 

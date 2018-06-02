@@ -30,14 +30,9 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>6.1.1-SNAPSHOT</version>
+	<version>7.0.2-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
-
-	<!-- this is not required, but is recommended for plugin version checks -->
-	<prerequisites>
-		<maven>2.2.1</maven>
-	</prerequisites>
 
 	<organization>
 		<name>Universal Media Server</name>
@@ -68,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>6.1.1</project.version.short>
+		<project.version.short>7.0.2</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -76,26 +71,41 @@
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
-		<junrar-version>0.7</junrar-version>
-		<mediautil-version>1.0</mediautil-version>
-		<xmlwise-version>1.2.11</xmlwise-version>
-		<slf4j-version>1.7.12</slf4j-version>
-		<!-- This version works only with JDK 7 and above-->
-		<findbugs-version>3.0.3</findbugs-version>
-		<findbugs-annotations-version>3.0.1u2</findbugs-annotations-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
+
+		<twelvemonkeys-imageio-version>3.3.2</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>42</binary-revision>
+		<binary-revision>71</binary-revision>
 
-		<maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.15</git-commit-id-plugin-version>
+		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
+		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
+
+		<!--
+			org.slf4j:slf4j-api is shared with
+				- su.litvak.chromecast:api-v2
+				- fm.last:coverartarchive-api
+				- com.github.oshi:oshi-core
+
+			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+		-->
+		<logback-version>1.2.3</logback-version>
+		<surefire-version>2.20</surefire-version>
+
+		<!--
+			net.java.dev.jna:jna-platform is shared with
+				- com.github.oshi:oshi-core
+
+			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
+		-->
+		<jna-version>4.4.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -113,21 +123,16 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<!-- GSON -->
-		<repository>
-			<id>google-gson</id>
-			<name>google-gson</name>
-			<url>https://google-gson.googlecode.com/svn/mavenrepo/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
 		<repository>
 			<id>4thline-repo</id>
 			<url>http://4thline.org/m2</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
+		</repository>
+		<repository>
+			<id>jaudiotagger-repository</id>
+			<url>https://dl.bintray.com/ijabz/maven</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -138,88 +143,87 @@
 			<version>2.0b4</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>1.10</version>
-		</dependency>
-		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
-			<version>3.2.1</version>
+			<version>3.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
+			<!--
+				commons-logging:commons-logging is shared with
+					- commons-httpclient:commons-httpclient
+					- com.github.junrar:junrar
+					- fm.last:coverartarchive-api
+
+				Check the commons-logging:commons-logging version of the other libraries before upgrading
+			-->
 			<version>1.10</version>
-			<exclusions>
-				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
-				<exclusion>
-					<artifactId>commons-logging</artifactId>
-					<groupId>commons-logging</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
-			<artifactId>commons-httpclient</artifactId>
+			<artifactId>commons-httpclient</artifactId> <!-- TODO this should be changed to org.apache.httpcomponents which is the follower. -->
 			<version>3.1</version>
 			<exclusions>
-				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
-					<artifactId>commons-logging</artifactId>
+					<!--
+						commons-logging:commons-logging is shared with
+							- commons-configuration:commons-configuration
+							- com.github.junrar:junrar
+							- fm.last:coverartarchive-api
+
+						The other libraries use a much newer version since commons-httpclient is ancient and abandoned
+					-->
 					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<!-- fm.last:coverartarchive-api uses a much newer version since commons-httpclient is ancient and abandoned -->
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
+			<!--
+				commons-io:commons-io is shared with
+					- fm.last:coverartarchive-api
+
+				Check the commons-io:commons-io version of the library before upgrading
+			-->
+			<version>2.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.3.2</version>
+			<version>3.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.191</version>
+			<version>1.4.196</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.1.3</version>
+			<version>${logback-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.1.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.sanselan</groupId>
-			<artifactId>sanselan</artifactId>
-			<version>0.97-incubator</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>${slf4j-version}</version>
+			<version>${logback-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.5</version>
+			<version>2.7</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.10.5.Final</version>
+			<version>3.10.6.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -239,15 +243,90 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>[0.4, 0.5)</version>
 		</dependency>
+
+		<!--
+			If any ImageIO plugins are added or removed, corresponding changes
+		 	must be made in src/main/external-resources/META-INF/services
+		 -->
 		<dependency>
-			<groupId>com.github.jai-imageio</groupId>
-			<artifactId>jai-imageio-core</artifactId>
-			<version>1.3.0</version>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-bmp</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org</groupId>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-core</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-icns</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-iff</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-jpeg</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-hdr</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-metadata</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pcx</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pict</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pnm</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-psd</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-sgi</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-tga</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-tiff</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.drewnoakes</groupId>
+			<artifactId>metadata-extractor</artifactId>
+			<version>2.10.1</version>
+		</dependency>
+		<dependency>
+			<groupId>net.jthink</groupId>
 			<artifactId>jaudiotagger</artifactId>
-			<version>2.0.3</version>
+			<version>2.2.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>
@@ -262,7 +341,15 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
-			<version>${junrar-version}</version>
+			<!--
+				commons-logging:commons-logging is shared with
+					- commons-configuration:commons-configuration
+					- commons-httpclient:commons-httpclient
+					- fm.last:coverartarchive-api
+
+				Check the commons-logging:commons-logging version of the other libraries before upgrading
+			-->
+			<version>0.7</version>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
@@ -272,17 +359,10 @@
 			<version>${cuelib-version}</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: http://sourceforge.net/projects/mediachest/ -->
-		<dependency>
-			<groupId>mediautil</groupId>
-			<artifactId>mediautil</artifactId>
-			<version>${mediautil-version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
-			<version>${xmlwise-version}</version>
+			<version>1.2.11</version>
 		</dependency>
 		<dependency>
 			<groupId>sevenzip</groupId>
@@ -309,40 +389,28 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>2.3.0</version>
+			<version>2.5.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<!-- 4.2.0 and 4.2.1 fails on some installations (probably 64 bit JVM). The next JNA release will probably be ok-->
-			<!-- See https://github.com/UniversalMediaServer/UniversalMediaServer/issues/714#issuecomment-168320852 -->
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
-			<version>4.1.0</version>
+			<version>${jna-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna-platform</artifactId>
-			<version>4.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-utils</artifactId>
-			<version>3.0.22</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-			<version>2.0.6</version>
+			<version>${jna-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-core</artifactId>
-			<version>2.1.0</version>
+			<version>2.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-support</artifactId>
-			<version>2.1.0</version>
+			<version>2.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
@@ -362,32 +430,84 @@
 		<dependency>
 			<groupId>com.samskivert</groupId>
 			<artifactId>jmustache</artifactId>
-			<version>1.10</version>
+			<version>1.12</version>
 		</dependency>
 		<dependency>
 			<groupId>su.litvak.chromecast</groupId>
 			<artifactId>api-v2</artifactId>
-			<version>0.0.6</version>
-		</dependency>
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.20.0-GA</version>
+			<!--
+				org.slf4j:slf4j-api is shared with
+					- ch.qos.logback:logback-classic
+					- fm.last:coverartarchive-api
+					- com.github.oshi:oshi-core
+
+				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+			-->
+			<version>0.10.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>56.1</version>
+			<version>59.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>annotations</artifactId>
-			<version>${findbugs-annotations-version}</version>
+			<version>3.0.1u2</version>
 		</dependency>
 		<dependency>
 			<groupId>fm.last</groupId>
 			<artifactId>coverartarchive-api</artifactId>
+			<!--
+				org.slf4j:slf4j-api is shared with
+					- ch.qos.logback:logback-classic
+					- su.litvak.chromecast
+					- com.github.oshi:oshi-core
+
+				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+
+				commons-logging:commons-logging is shared with
+					- commons-configuration:commons-configuration
+					- commons-httpclient:commons-httpclient
+					- com.github.junrar:junrar
+
+				Check the commons-logging:commons-logging version of the other libraries before upgrading
+
+				commons-io:commons-io is shared with
+					- net.pms:ums
+
+				Check the commons-io:commons-io version before upgrading
+			-->
 			<version>2.1.0</version>
+			<exclusions>
+				<!-- This should never have been a dependency in the first place -->
+				<exclusion>
+					<groupId>com.google.code.findbugs</groupId>
+					<artifactId>jsr305</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.github.oshi</groupId>
+			<artifactId>oshi-core</artifactId>
+			<!--
+				org.slf4j:slf4j-api is shared with
+					- ch.qos.logback:logback-classic
+					- su.litvak.chromecast
+					- fm.last:coverartarchive-api
+
+				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+
+				net.java.dev.jna:jna-platform is shared with
+					- net.pms:ums
+
+				Check the net.java.dev.jna:jna-platform version before upgrading
+			-->
+			<version>3.4.3</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -488,17 +608,17 @@
 						-->
 						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
 					</configuration>
-					<version>2.19</version>
+					<version>${surefire-version}</version>
 				</plugin>
 
-				<!-- 
+				<!--
 					This plugin's configuration is used to run crowdin plugin from the command line,
-					it has no influence on the Maven build itself. 
+					it has no influence on the Maven build itself.
 				-->
 				<plugin>
-					<groupId>com.universalmediaserver</groupId>
+					<groupId>org.digitalmediaserver</groupId>
 					<artifactId>crowdin-maven-plugin</artifactId>
-					<version>0.3</version>
+					<version>0.4.1</version>
 					<configuration>
 						<project>${project}</project>
 						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
@@ -570,7 +690,7 @@
 										</artifactId>
 										<versionRange>
 											[0.1,)
-										</versionRange>										
+										</versionRange>
 										<goals>
 											<goal>clean</goal>
 											<goal>deploy</goal>
@@ -611,6 +731,29 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>1.4.1</version>
+				<executions>
+					<execution>
+						<id>enforce</id>
+						<configuration>
+							<rules>
+								<dependencyConvergence/>
+								<!-- this is not required, but is recommended for plugin version checks -->
+								<requireMavenVersion>
+									<version>3.0.0</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!--
 				Plugin to add git commit information properties.
 				These are used in the project.properties files.
@@ -637,12 +780,13 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.3</version>
+				<version>3.6.0</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
 					<testSource>1.7</testSource>
 					<testTarget>1.7</testTarget>
+					<compilerArgument>${compilerArgument}</compilerArgument>
 				</configuration>
 			</plugin>
 
@@ -684,9 +828,10 @@
 			<plugin>
 				<groupId>com.universalmediaserver</groupId>
 				<artifactId>external-maven-plugin</artifactId>
-				<version>0.1</version>
+				<version>0.2</version>
 				<inherited>false</inherited>
 				<configuration>
+					<disableSSLValidation>true</disableSSLValidation>
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
 					<createChecksum>true</createChecksum>
 					<artifactItems>
@@ -706,17 +851,8 @@
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>
 							<version>${cuelib-version}</version>
-							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
+							<downloadUrl>http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/cuelib/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>mediautil</groupId>
-							<artifactId>mediautil</artifactId>
-							<version>${mediautil-version}</version>
-							<downloadUrl>http://downloads.sourceforge.net/project/mediachest/MediaUtil/Version%201.0/mediautil-1.zip</downloadUrl>
-							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
-							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
-							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
 						</artifactItem>
 					</artifactItems>
 				</configuration>
@@ -733,176 +869,142 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.4</version>
+				<version>3.6</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.5</version>
+						<version>1.7</version>
 					</dependency>
 				</dependencies>
-				<configuration>
-					<reportPlugins>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-project-info-reports-plugin</artifactId>
-							<version>2.7</version>
-							<reports>
-								<report>index</report>
-								<report>dependencies</report>
-								<report>dependency-convergence</report>
-								<report>dependency-management</report>
-								<report>plugins</report>
-							</reports>
-						</plugin>
-
-						<!-- PMS tests report -->
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-surefire-report-plugin</artifactId>
-							<version>2.19</version>
-							<configuration>
-								<showSuccess>false</showSuccess>
-							</configuration>
-						</plugin>
-
-						<!-- Javadoc -->
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-javadoc-plugin</artifactId>
-							<version>${maven-javadoc-plugin-version}</version>
-							<configuration>
-								<quiet>true</quiet>
-								<tags>
-									<tag>
-										<name>todo</name>
-										<placement>a</placement>
-										<head>To Do:</head>
-									</tag>
-									<tag>
-										<name>review</name>
-										<placement>a</placement>
-										<head>Review:</head>
-									</tag>
-								</tags>
-								<detectJavaApiLink>false</detectJavaApiLink>
-								<links>
-									<link>http://docs.oracle.com/javase/7/docs/api/</link>
-								</links>
-
-								<!--
-									Doclet to generate class diagrams inside Javadoc.
-									Requires the installation of Graphviz (http://www.graphviz.org/)
-								-->
-								<doclet>org.jboss.apiviz.APIviz</doclet>
-								<docletArtifact>
-									<groupId>org.jboss.apiviz</groupId>
-									<artifactId>apiviz</artifactId>
-									<version>1.3.2.GA</version>
-								</docletArtifact>
-								<useStandardDocletOptions>true</useStandardDocletOptions>
-							</configuration>
-						</plugin>
-
-						<!-- Class dependency report -->
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>jdepend-maven-plugin</artifactId>
-							<version>2.0</version>
-						</plugin>
-
-						<!-- Findbugs report -->
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>${findbugs-version}</version>														
-						</plugin>
-
-						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-checkstyle-plugin</artifactId>
-							<version>2.11</version>
-						</plugin> -->
-
-						<!-- Cobertura Test Coverage report -->
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>cobertura-maven-plugin</artifactId>
-							<version>2.6</version>
-						</plugin>
-
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-pmd-plugin</artifactId>
-							<version>3.4</version>
-							<configuration>
-								<linkXref>false</linkXref>
-								<sourceEncoding>utf-8</sourceEncoding>
-								<minimumTokens>100</minimumTokens>
-								<targetJdk>1.7</targetJdk>
-							</configuration>
-						</plugin>
-
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>l10n-maven-plugin</artifactId>
-							<version>1.0-alpha-2</version>
-							<configuration>
-								<locales>
-									<locale>af</locale>
-									<locale>ar</locale>
-									<locale>bg</locale>
-									<locale>ca</locale>
-									<locale>cs</locale>
-									<locale>da</locale>
-									<locale>de</locale>
-									<locale>el</locale>
-									<locale>en_GB</locale>
-									<locale>es</locale>
-									<locale>fa</locale>
-									<locale>fi</locale>
-									<locale>fr</locale>
-									<locale>hu</locale>
-									<locale>is</locale>
-									<locale>it</locale>
-									<locale>iw</locale>
-									<locale>ja</locale>
-									<locale>ko</locale>
-									<locale>nl</locale>
-									<locale>no</locale>
-									<locale>pl</locale>
-									<locale>pt</locale>
-									<locale>pt_BR</locale>
-									<locale>ro</locale>
-									<locale>ru</locale>
-									<locale>sk</locale>
-									<locale>sl</locale>
-									<locale>sr</locale>
-									<locale>sv</locale>
-									<locale>tr</locale>
-									<locale>uk</locale>
-									<locale>vi</locale>
-									<locale>zh_Hans</locale>
-									<locale>zh_Hant</locale>
-								</locales>
-							</configuration>
-						</plugin>
-					</reportPlugins>
-				</configuration>
 			</plugin>
+		</plugins>
+	</build>
+
+	<!-- Set reports for the maven site plugin -->
+	<reporting>
+		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>2.4</version>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.9</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>index</report>
+							<report>dependencies</report>
+							<report>dependency-convergence</report>
+							<report>dependency-management</report>
+							<report>plugins</report>
+						</reports>
+					</reportSet>
+		        </reportSets>
 			</plugin>
+
+			<!-- PMS tests report -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>${surefire-version}</version>
+				<configuration>
+					<showSuccess>false</showSuccess>
+				</configuration>
+			</plugin>
+
+			<!-- Javadoc -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>${maven-javadoc-plugin-version}</version>
+				<configuration>
+					<quiet>true</quiet>
+					<tags>
+						<tag>
+							<name>todo</name>
+							<placement>a</placement>
+							<head>To Do:</head>
+						</tag>
+						<tag>
+							<name>review</name>
+							<placement>a</placement>
+							<head>Review:</head>
+						</tag>
+					</tags>
+					<detectJavaApiLink>false</detectJavaApiLink>
+					<links>
+						<link>http://docs.oracle.com/javase/7/docs/api/</link>
+					</links>
+
+					<!--
+						Doclet to generate class diagrams inside Javadoc.
+						Requires the installation of Graphviz (http://www.graphviz.org/)
+					-->
+					<doclet>org.jboss.apiviz.APIviz</doclet>
+					<docletArtifact>
+						<groupId>org.jboss.apiviz</groupId>
+						<artifactId>apiviz</artifactId>
+						<version>1.3.2.GA</version>
+					</docletArtifact>
+					<useStandardDocletOptions>true</useStandardDocletOptions>
+				</configuration>
+			</plugin>
+
+			<!-- Class dependency report -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jdepend-maven-plugin</artifactId>
+				<version>2.0</version>
+			</plugin>
+
+			<!-- Findbugs report -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.4</version>
+			</plugin>
+
+			<!-- Checkstyle report -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.17</version>
+				<configuration>
+					<configLocation>CheckStyle.xml</configLocation>
+				</configuration>
+			</plugin>
+
+			<!-- Cobertura Test Coverage report -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.7</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.7</version>
+				<configuration>
+					<linkXref>false</linkXref>
+					<sourceEncoding>utf-8</sourceEncoding>
+					<minimumTokens>100</minimumTokens>
+					<targetJdk>1.7</targetJdk>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.github.jrh3k5</groupId>
+				<artifactId>l10n-maven-plugin</artifactId>
+				<version>1.4</version>
+				<configuration>
+					<failBuild>true</failBuild>
+					<messagesFile>${project.basedir}/src/main/resources/i18n/messages.properties</messagesFile>
+					<translatedMessagesPattern>src/main/resources/i18n/messages*.properties</translatedMessagesPattern>
+				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	</reporting>
+
 	<profiles>
 		<profile>
 			<id>system-makensis</id>
@@ -933,7 +1035,7 @@
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.6</version>
+						<version>${maven-assembly-plugin-version}</version>
 							<configuration>
 								<descriptors>
 									<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
@@ -991,7 +1093,6 @@
 										<mkdir dir="${project.binaries}/win32/fonts" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
-										<mkdir dir="${project.binaries}/win32/fonts" />
 										<mkdir dir="${project.binaries}/win32/interframe" />
 										<mkdir dir="${project.binaries}/win32/mplayer" />
 										<mkdir dir="${project.binaries}/win32/service" />
@@ -1144,7 +1245,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.5.2</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1196,7 +1297,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -1251,7 +1352,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
-						<version>1.4</version>
+						<version>1.4.1</version>
 						<executions>
 							<execution>
 								<id>enforce-java</id>
@@ -1261,7 +1362,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.7.0-80,1.7.0-100]</version>
+											<version>[1.7.0-80,1.7.0-200]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -1274,7 +1375,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>process-resources-osx-java-7</id>
@@ -1344,14 +1445,17 @@
 								<configuration>
 									<target>
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.1.UMS.jar"/>
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.3.UMS.jar"/>
 										<bundleapp outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 										           name="${project.name}"
 										           displayname="${project.name}"
+										           executableName="UMS"
 										           identifier="net.pms.PMS"
-										           shortversion="${project.version}"
+										           shortversion="${project.version.short}"
+										           version="${project.version}"
 										           icon="${project.basedir}/src/main/resources/images/logo.icns"
-										           applicationCategory="public.app-category.developer-tools"
+										           applicationCategory="public.app-category.entertainment"
+										           workingdirectory="$APP_ROOT/Contents/Resources"
 										           mainclassname="net.pms.PMS">
 											<!--<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home"/>-->
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
@@ -1359,6 +1463,7 @@
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=UMS"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -1367,7 +1472,7 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.4</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1389,7 +1494,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before 
+								Assemble the UMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
@@ -1429,7 +1534,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
-						<version>1.4</version>
+						<version>1.4.1</version>
 						<executions>
 							<execution>
 								<id>enforce-java</id>
@@ -1439,7 +1544,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,1.8.0-100]</version>
+											<version>[1.8.0-51,1.8.0-200]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -1452,7 +1557,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
 								<id>process-resources-osx-java-8</id>
@@ -1522,20 +1627,24 @@
 								<configuration>
 									<target>
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.1.UMS.jar"/>
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.3.UMS.jar"/>
 										<bundleapp outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 										           name="${project.name}"
 										           displayname="${project.name}"
+										           executableName="UMS"
 										           identifier="net.pms.PMS"
-										           shortversion="${project.version}"
+										           shortversion="${project.version.short}"
+										           version="${project.version}"
 										           icon="${project.basedir}/src/main/resources/images/logo.icns"
-										           applicationCategory="public.app-category.developer-tools"
+										           applicationCategory="public.app-category.entertainment"
+										           workingdirectory="$APP_ROOT/Contents/Resources"
 										           mainclassname="net.pms.PMS">
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx768M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=UMS"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -1544,7 +1653,7 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.4</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1566,7 +1675,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before 
+								Assemble the UMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
@@ -1615,7 +1724,7 @@
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.4</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>make-jar-with-dependencies-win</id>
@@ -1668,7 +1777,7 @@
 		</profile>
 
 		<!--
-			This profile allows running PMS from inside Eclipse
+			This profile allows running UMS from inside Eclipse
 			(Requires a "mvn clean package" to download the binaries first)
 		-->
 		<profile>
@@ -1678,7 +1787,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.4.0</version>
+						<version>1.5.0</version>
 						<executions>
 							<execution>
 								<phase>test</phase>

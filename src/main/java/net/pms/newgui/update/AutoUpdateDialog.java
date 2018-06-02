@@ -1,5 +1,6 @@
 package net.pms.newgui.update;
 
+import com.sun.jna.Platform;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -9,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
-import com.sun.jna.Platform;
 import net.pms.Messages;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;

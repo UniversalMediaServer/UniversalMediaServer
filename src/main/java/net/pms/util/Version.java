@@ -243,8 +243,7 @@ public final class Version implements Comparable<Version> {
 		}
 
 		for (int i = 1; i < elements.length; ++i) {
-			buf.append(".");
-			buf.append(elements[i]);
+			buf.append('.').append(elements[i]);
 		}
 
 		return buf.toString();

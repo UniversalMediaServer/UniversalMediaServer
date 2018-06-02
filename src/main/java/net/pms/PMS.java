@@ -26,8 +26,12 @@ import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.security.AccessControlException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -37,12 +41,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.imageio.spi.IIORegistry;
+import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageWriterSpi;
 import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
 import net.pms.dlna.*;
@@ -65,9 +72,11 @@ import net.pms.newgui.*;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
+import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
@@ -121,12 +130,22 @@ public class PMS {
 
 	private JmDNS jmDNS;
 
+	private SleepManager sleepManager = null;
+
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
 	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
+	}
+
+	/**
+	 * @return The {@link SleepManager} instance or {@code null} if not
+	 *         instantiated yet.
+	 */
+	public SleepManager getSleepManager() {
+		return sleepManager;
 	}
 
 	/**
@@ -194,11 +213,13 @@ public class PMS {
 	 * @since 1.82.0
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
-		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
-			LOGGER.debug("Adding status button for " + renderer.getRendererName());
-			foundRenderers.add(renderer);
-			frame.addRenderer(renderer);
-			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+		synchronized (foundRenderers) {
+			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+				LOGGER.debug("Adding status button for " + renderer.getRendererName());
+				foundRenderers.add(renderer);
+				frame.addRenderer(renderer);
+				frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+			}
 		}
 	}
 
@@ -246,12 +267,6 @@ public class PMS {
 	public SystemUtils getRegistry() {
 		return registry;
 	}
-
-	/**
-	 * @see System#err
-	 */
-	@SuppressWarnings("unused")
-	private final PrintStream stderr = System.err;
 
 	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
@@ -399,134 +414,74 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+		// Gather and log system information from a separate thread
+		LogSystemInformationMode logSystemInfo = configuration.getLogSystemInformation();
+		if (
+			logSystemInfo == LogSystemInformationMode.ALWAYS ||
+			logSystemInfo == LogSystemInformationMode.TRACE_ONLY &&
+			LOGGER.isTraceEnabled()
+		) {
+			new SystemInformation().start();
+		}
+
 		// Show the language selection dialog before displayBanner();
-		if (configuration.getLanguageRawString() == null || !Languages.isValid(configuration.getLanguageRawString())) {
+		if (
+			!isHeadless() &&
+			(configuration.getLanguageRawString() == null ||
+			!Languages.isValid(configuration.getLanguageRawString()))
+		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
-			if (languageDialog != null) {
-				languageDialog.show();
-				if (languageDialog.isAborted()) {
-					return false;
-				}
+			languageDialog.show();
+			if (languageDialog.isAborted()) {
+				return false;
 			}
 		}
 
-		// call this as early as possible
-		displayBanner();
-
-		// initialize database
-		Tables.checkTables();
-
-		// Wizard
-		if (configuration.isRunWizard() && !isHeadless()) {
-			// Ask the user if they want to run the wizard
-			int whetherToRunWizard = JOptionPane.showConfirmDialog(
-				null,
-				Messages.getString("Wizard.1"),
-				Messages.getString("Dialog.Question"),
-				JOptionPane.YES_NO_OPTION
-			);
-			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
-				// The user has chosen to run the wizard
-
-				// Total number of questions
-				int numberOfQuestions = 3;
-
-				// The current question number
-				int currentQuestionNumber = 1;
-
-				// Ask if they want UMS to start minimized
-				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-					null,
-					Messages.getString("Wizard.3"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION
-				);
-				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-					configuration.setMinimized(true);
-					save();
-				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-					configuration.setMinimized(false);
-					save();
-				}
-
-				// Ask if their network is wired, etc.
-				Object[] options = {
-					Messages.getString("Wizard.8"),
-					Messages.getString("Wizard.9"),
-					Messages.getString("Wizard.10")
-				};
-				int networkType = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("Wizard.7"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_CANCEL_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					options,
-					options[1]
-				);
-				switch (networkType) {
-					case JOptionPane.YES_OPTION:
-						// Wired (Gigabit)
-						configuration.setMaximumBitrate("0");
-						configuration.setMPEG2MainSettings("Automatic (Wired)");
-						configuration.setx264ConstantRateFactor("Automatic (Wired)");
-						save();
-						break;
-					case JOptionPane.NO_OPTION:
-						// Wired (100 Megabit)
-						configuration.setMaximumBitrate("90");
-						configuration.setMPEG2MainSettings("Automatic (Wired)");
-						configuration.setx264ConstantRateFactor("Automatic (Wired)");
-						save();
-						break;
-					case JOptionPane.CANCEL_OPTION:
-						// Wireless
-						configuration.setMaximumBitrate("30");
-						configuration.setMPEG2MainSettings("Automatic (Wireless)");
-						configuration.setx264ConstantRateFactor("Automatic (Wireless)");
-						save();
-						break;
-					default:
-						break;
-				}
-
-				// Ask if they want to hide advanced options
-				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-					null,
-					Messages.getString("Wizard.11"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION
-				);
-				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
-					configuration.setHideAdvancedOptions(true);
-					save();
-				} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
-					configuration.setHideAdvancedOptions(false);
-					save();
-				}
-
-				JOptionPane.showMessageDialog(
-					null,
-					Messages.getString("Wizard.13"),
-					Messages.getString("Wizard.12"),
-					JOptionPane.INFORMATION_MESSAGE
-				);
-
-				configuration.setRunWizard(false);
-				save();
-			} else if (whetherToRunWizard == JOptionPane.NO_OPTION) {
-				// The user has chosen to not run the wizard
-				// Do not ask them again
-				configuration.setRunWizard(false);
-				save();
-			}
-		}
-
-		// Splash
+		// Initialize splash screen
 		Splash splash = null;
 		if (!isHeadless()) {
 			splash = new Splash(configuration);
+		}
+
+		// Call this as early as possible
+		displayBanner();
+
+		// Initialize database
+		Tables.checkTables();
+
+		// Log registered ImageIO plugins
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("");
+			LOGGER.trace("Registered ImageIO reader classes:");
+			Iterator<ImageReaderSpi> readerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageReaderSpi.class, true);
+			while (readerIterator.hasNext()) {
+				ImageReaderSpi reader = readerIterator.next();
+				LOGGER.trace("Reader class: {}", reader.getPluginClassName());
+			}
+			LOGGER.trace("");
+			LOGGER.trace("Registered ImageIO writer classes:");
+			Iterator<ImageWriterSpi> writerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageWriterSpi.class, true);
+			while (writerIterator.hasNext()) {
+				ImageWriterSpi writer = writerIterator.next();
+				LOGGER.trace("Writer class: {}", writer.getPluginClassName());
+			}
+			LOGGER.trace("");
+		}
+
+		// Wizard
+		if (configuration.isRunWizard() && !isHeadless()) {
+			// Hide splash screen
+			if (splash != null) {
+				splash.setVisible(false);
+			}
+			
+			// Run wizard
+			Wizard.run(configuration);
+			
+			// Unhide splash screen
+			if (splash != null) {
+				splash.setVisible(true);
+			}
 		}
 
 		// The public VERSION field is deprecated.
@@ -545,6 +500,9 @@ public class PMS {
 
 		registry = createSystemUtils();
 
+		// Create SleepManager
+		sleepManager = new SleepManager();
+
 		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -553,8 +511,10 @@ public class PMS {
 			frame = new DummyFrame();
 		}
 
+		// Close splash screen
 		if (splash != null) {
 			splash.dispose();
+			splash = null;
 		}
 
 		/*
@@ -588,15 +548,22 @@ public class PMS {
 
 		// Web stuff
 		if (configuration.useWebInterface()) {
-			web = new RemoteWeb(configuration.getWebPort());
+			try {
+				web = new RemoteWeb(configuration.getWebPort());
+			} catch (BindException b) {
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+			}
 		}
-
-		infoDb = new InfoDb();
-		codes = new CodeDb();
-		masterCode = null;
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());
+
+		// init dbs
+		keysDb = new UmsKeysDb();
+		infoDb = new InfoDb();
+		codes = new CodeDb();
+		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -604,7 +571,7 @@ public class PMS {
 
 		// launch ChromecastMgr
 		jmDNS = null;
-		launchJmDNSRenders();
+		launchJmDNSRenderers();
 
 		OutputParams outputParams = new OutputParams(configuration);
 
@@ -811,10 +778,18 @@ public class PMS {
 		});
 
 		configuration.setAutoSave();
+		UPNPHelper.sendByeBye();
+		LOGGER.trace("Waiting 250 milliseconds...");
+		Thread.sleep(250);
 		UPNPHelper.sendAlive();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
+
+		// Initiate a library scan in case files were added to folders while UMS was closed.
+		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {
+			getDatabase().scanLibrary();
+		}
 
 		return true;
 	}
@@ -829,25 +804,23 @@ public class PMS {
 		return mediaLibrary;
 	}
 
-	private SystemUtils createSystemUtils() {
+	private static SystemUtils createSystemUtils() {
 		if (Platform.isWindows()) {
 			return new WinUtils();
-		} else {
-			if (Platform.isMac()) {
-				return new MacSystemUtils();
-			} else {
-				if (Platform.isSolaris()) {
-					return new SolarisUtils();
-				} else {
-					return new BasicSystemUtils();
-				}
-			}
 		}
+		if (Platform.isMac()) {
+			return new MacSystemUtils();
+		}
+		if (Platform.isSolaris()) {
+			return new SolarisUtils();
+		}
+		return new BasicSystemUtils();
 	}
 
 	/**
 	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
 	 */
+	@SuppressWarnings("unused")
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
 		return getSharedFoldersArray(false, getConfiguration());
@@ -906,10 +879,16 @@ public class PMS {
 
 			if (file.exists()) {
 				if (!file.isDirectory()) {
-					LOGGER.warn("The file " + folder + " is not a directory! Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+					LOGGER.warn(
+						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+						folder,  Messages.getString("LooksFrame.22")
+					);
 				}
 			} else {
-				LOGGER.warn("The directory " + folder + " does not exist. Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
+				LOGGER.warn(
+					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
+					folder,  Messages.getString("LooksFrame.22")
+				);
 			}
 
 			// add the file even if there are problems so that the user can update the shared folders as required.
@@ -934,9 +913,11 @@ public class PMS {
 				try {
 					LOGGER.trace("Waiting 1 second...");
 					UPNPHelper.sendByeBye();
-					server.stop();
+					if (server != null) {
+						server.stop();
+					}
 					server = null;
-					RendererConfiguration.resetAllRenderers();
+					RendererConfiguration.loadRendererConfigurations(configuration);
 
 					try {
 						Thread.sleep(1000);
@@ -1042,11 +1023,11 @@ public class PMS {
 		if (serverName == null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(System.getProperty("os.name").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
-			sb.append("-");
+			sb.append('-');
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
-			sb.append(", UPnP/1.0, UMS/").append(getVersion());
+			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
 
@@ -1116,7 +1097,7 @@ public class PMS {
 		if (args.length > 0) {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
-				switch (arg) {
+				switch (arg.trim().toLowerCase(Locale.ROOT)) {
 					case HEADLESS:
 					case CONSOLE:
 						forceHeadless();
@@ -1156,8 +1137,8 @@ public class PMS {
 		if (isHeadless() && denyHeadless) {
 			System.err.println(
 				"Either a graphics environment isn't available or headless " +
-			    "mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
-			    " can't start, exiting."
+				"mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
+				" can't start, exiting."
 			);
 			System.exit(1);
 		} else if (!isHeadless()) {
@@ -1271,10 +1252,64 @@ public class PMS {
 		}
 	}
 
+	/**
+	 * Stores the file in the cache if it doesn't already exist.
+	 *
+	 * @param file the full path to the file.
+	 * @param formatType the type constant defined in {@link Format}.
+	 */
 	public void storeFileInCache(File file, int formatType) {
-		if (getConfiguration().getUseCache() && !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
-			getDatabase().insertData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+		if (
+			getConfiguration().getUseCache() &&
+			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
+		) {
+			try {
+				getDatabase().insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+			} catch (SQLException e) {
+				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
+	}
+
+	/**
+	 * Returns a similar TV series name from the database.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public String getSimilarTVSeriesName(String title) {
+		if (title == null) {
+			return title;
+		}
+
+		title = getSimplifiedShowName(title);
+		title = StringEscapeUtils.escapeSql(title);
+
+		if (getConfiguration().getUseCache()) {
+			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "' LIMIT 1");
+			if (titleList.size() > 0) {
+				return titleList.get(0);
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * This reduces the incoming title to a lowercase, alphanumeric string
+	 * for searching in order to prevent titles like "Word of the Word" and
+	 * "Word Of The Word!" from being seen as different shows.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public String getSimplifiedShowName(String title) {
+		if (title == null) {
+			return null;
+		}
+
+		return title.toLowerCase().replaceAll("[^a-z0-9]", "");
 	}
 
 	/**
@@ -1295,10 +1330,11 @@ public class PMS {
 	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
 	 * is known or can be determined.
 	 *
-	 * @return The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 * @param  renderer The renderer configuration.
+	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
-	public static PmsConfiguration getConfiguration(RendererConfiguration r) {
-		return (r != null && (r instanceof DeviceConfiguration)) ? (DeviceConfiguration)r : configuration;
+	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
+		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
@@ -1338,61 +1374,55 @@ public class PMS {
 	 * only detects the bitness of Java, not of the operating system.
 	 *
 	 * @return The bitness of the operating system.
+	 *
+	 * @deprecated Use {@link SystemInformation#getOSBitness()} instead.
 	 */
+	@Deprecated
 	public static int getOSBitness() {
-		int bitness = 32;
-
-		if (
-			(System.getProperty("os.name").contains("Windows") && System.getenv("ProgramFiles(x86)") != null) ||
-			System.getProperty("os.arch").contains("64")
-		) {
-			bitness = 64;
-		}
-
-		return bitness;
+		return SystemInformation.getOSBitness();
 	}
 
 	/**
 	 * Log system properties identifying Java, the OS and encoding and log
 	 * warnings where appropriate.
 	 */
-	private void logSystemInfo() {
-		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
+	private static void logSystemInfo() {
+		long jvmMemory = Runtime.getRuntime().maxMemory();
 
-		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
-		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
-		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
-		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
-		LOGGER.info("Language: " + WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info(
+			"Java: {} {} ({}-bit) by {}",
+			System.getProperty("java.vm.name"),
+			System.getProperty("java.version"),
+			System.getProperty("sun.arch.data.model"),
+			System.getProperty("java.vendor")
+		);
+		LOGGER.info(
+			"OS: {} {}-bit {}",
+			System.getProperty("os.name"),
+			SystemInformation.getOSBitness(),
+			System.getProperty("os.version")
+		);
+		LOGGER.info(
+			"Maximum JVM Memory: {}",
+			jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true)
+		);
+		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		LOGGER.info("Encoding: {}", System.getProperty("file.encoding"));
 		LOGGER.info("");
 
-		if (Platform.isMac()) {
-			// The binaries shipped with the Mac OS X version of PMS are being
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
+			// The binaries shipped with the Mac OS X version of UMS are being
 			// compiled against specific OS versions, making them incompatible
 			// with older versions. Warn the user about this when necessary.
-			String osVersion = System.getProperty("os.version");
-
-			// Split takes a regular expression, so escape the dot.
-			String[] versionNumbers = osVersion.split("\\.");
-
-			if (versionNumbers.length > 1) {
-				try {
-					int osVersionMinor = Integer.parseInt(versionNumbers[1]);
-
-					if (osVersionMinor < 6) {
-						LOGGER.warn("-----------------------------------------------------------------");
-						LOGGER.warn("WARNING!");
-						LOGGER.warn("UMS ships with binaries compiled for Mac OS X 10.6 or higher.");
-						LOGGER.warn("You are running an older version of Mac OS X so UMS may not work!");
-						LOGGER.warn("More information in the FAQ:");
-						LOGGER.warn("http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=66371#p66371");
-						LOGGER.warn("-----------------------------------------------------------------");
-						LOGGER.warn("");
-					}
-				} catch (NumberFormatException e) {
-					LOGGER.debug("Cannot parse minor os.version number");
-				}
-			}
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("WARNING!");
+			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
+			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
+			LOGGER.warn("that these binaries used for example for transcoding may not work!");
+			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("");
 		}
 	}
 
@@ -1435,7 +1465,7 @@ public class PMS {
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
-		} catch ( IOException e) {
+		} catch (IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
 
@@ -1463,7 +1493,22 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), "cp" + WinUtils.getOEMCP()))) {
+		Charset charset = null;
+		int codepage = WinUtils.getOEMCP();
+		String[] aliases = {"cp" + codepage, "MS" + codepage};
+		for (String alias : aliases) {
+			try {
+				charset = Charset.forName(alias);
+				break;
+			} catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
+				charset = null;
+			}
+		}
+		if (charset == null) {
+			charset = Charset.defaultCharset();
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", aliases, charset);
+		}
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
@@ -1629,9 +1674,8 @@ public class PMS {
 		try {
 			if (locale != null) {
 				return locale;
-			} else {
-				return Locale.getDefault();
 			}
+			return Locale.getDefault();
 		} finally {
 			localeLock.readLock().unlock();
 		}
@@ -1777,6 +1821,7 @@ public class PMS {
 	private CodeDb codes;
 	private CodeEnter masterCode;
 
+	@Deprecated
 	public void infoDbAdd(File f, String formattedName) {
 		infoDb.backgroundAdd(f, formattedName);
 	}
@@ -1839,7 +1884,7 @@ public class PMS {
 		return dynamicPls;
 	}
 
-	private void launchJmDNSRenders() {
+	private void launchJmDNSRenderers() {
 		if (configuration.useChromecastExt()) {
 			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
 				try {
@@ -1850,7 +1895,7 @@ public class PMS {
 				}
 			}
 			else {
-				LOGGER.info("No Chromecast render found. Please enable one and restart.");
+				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
 			}
 		}
 	}
@@ -1877,11 +1922,11 @@ public class PMS {
 
 	private CredMgr credMgr;
 
-	public static CredMgr.Cred getCred(String owner) {
+	public static CredMgr.Credential getCred(String owner) {
 		return instance.credMgr.getCred(owner);
 	}
 
-	public static CredMgr.Cred getCred(String owner, String tag) {
+	public static CredMgr.Credential getCred(String owner, String tag) {
 		return instance.credMgr.getCred(owner, tag);
 	}
 
@@ -1889,7 +1934,17 @@ public class PMS {
 		return instance.credMgr.getTag(owner, username);
 	}
 
-	public static boolean verifyCred(String owner,String tag, String user, String pwd) {
+	public static boolean verifyCred(String owner, String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
+	}
+
+	private UmsKeysDb keysDb;
+
+	public static String getKey(String key) {
+		 return instance.keysDb.get(key);
+	}
+
+	public static void setKey(String key, String val) {
+		instance.keysDb.set(key, val);
 	}
 }

@@ -19,12 +19,14 @@
 package net.pms.io;
 
 import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -36,20 +38,21 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	/** FONTCONFIG_PATH environment variable name */
 	private static final String FONTCONFIG_PATH = "FONTCONFIG_PATH";
+	private static final AtomicInteger PROCESS_COUNTER = new AtomicInteger(1);
 
 	private Process process;
 	private OutputConsumer stdoutConsumer;
 	private OutputConsumer stderrConsumer;
 	private OutputParams params;
-	private boolean destroyed;
+	private volatile boolean destroyed;
 	private String[] cmdArray;
 	private boolean nullable;
 	private ArrayList<ProcessWrapper> attachedProcesses;
 	private BufferedOutputFile bo = null;
 	private boolean keepStdout;
 	private boolean keepStderr;
-	private static int processCounter = 0;
-	private boolean success;
+	private volatile boolean success;
+	private final boolean useByteArrayStdConsumer;
 
 	@Override
 	public String toString() {
@@ -64,12 +67,36 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this(cmdArray, params, false, false);
 	}
 
+	public ProcessWrapperImpl(String cmdArray[], boolean useByteArrayStdConsumer, OutputParams params) {
+		this(cmdArray, useByteArrayStdConsumer, params, false, false);
+	}
+
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepOutput) {
-		this(cmdArray, params, keepOutput, keepOutput);
+		this(cmdArray, false, params, keepOutput, keepOutput);
+	}
+
+	public ProcessWrapperImpl(
+		String cmdArray[],
+		boolean useByteArrayStdConsumer,
+		OutputParams params,
+		boolean keepOutput
+	) {
+		this(cmdArray, useByteArrayStdConsumer, params, keepOutput, keepOutput);
 	}
 
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepStdout, boolean keepStderr) {
+		this(cmdArray, false, params, keepStdout, keepStderr);
+	}
+
+	public ProcessWrapperImpl(
+		String cmdArray[],
+		boolean useByteArrayStdConsumer,
+		OutputParams params,
+		boolean keepStdout,
+		boolean keepStderr
+	) {
 		super();
+		this.useByteArrayStdConsumer = useByteArrayStdConsumer;
 
 		// Determine a suitable thread name for this process:
 		// use the command name, but remove its path first.
@@ -83,7 +110,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			threadName = threadName.substring(threadName.lastIndexOf('\\') + 1);
 		}
 
-		setName(threadName + "-" + getProcessCounter());
+		setName(threadName + "-" + PROCESS_COUNTER.getAndIncrement());
 
 		File exec = new File(cmdArray[0]);
 
@@ -98,10 +125,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		attachedProcesses = new ArrayList<>();
 	}
 
-	private synchronized int getProcessCounter() {
-		return processCounter++;
-	}
-
 	public void attachProcess(ProcessWrapper process) {
 		attachedProcesses.add(process);
 	}
@@ -110,7 +133,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	public void run() {
 		ProcessBuilder pb = new ProcessBuilder(cmdArray);
 		try {
-			LOGGER.debug("Starting " + ProcessUtil.dbgWashCmds(cmdArray));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Starting {}", ProcessUtil.dbgWashCmds(cmdArray));
+			}
 
 			if (params.workDir != null && params.workDir.isDirectory()) {
 				pb.directory(params.workDir);
@@ -174,8 +199,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			stderrConsumer.start();
 			stdoutConsumer = null;
 
-			if (params.input_pipes[0] != null) {
-				LOGGER.debug("Reading pipe: " + params.input_pipes[0].getInputPipe());
+			if (useByteArrayStdConsumer) {
+				stdoutConsumer = new ByteArrayOutputStreamConsumer(process.getInputStream(), params);
+				bo = stdoutConsumer.getBuffer();
+			} else if (params.input_pipes[0] != null) {
+				LOGGER.debug("Reading pipe: {}", params.input_pipes[0].getInputPipe());
 				bo = params.input_pipes[0].getDirectBuffer();
 				if (bo == null || params.losslessaudio || params.lossyaudio || params.no_videoencode) {
 					InputStream is = params.input_pipes[0].getInputStream();
@@ -232,9 +260,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			} catch (InterruptedException e) { }
 		} catch (IOException e) {
 			LOGGER.error("Error initializing process: ", e.getMessage());
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("", e);
-			}
+			LOGGER.trace("", e);
 			stopProcess();
 		} finally {
 			try {
@@ -242,7 +268,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					bo.close();
 				}
 			} catch (IOException ioe) {
-				LOGGER.debug("Error closing buffered output file", ioe.getMessage());
+				LOGGER.debug("Error closing buffered output file: {}", ioe.getMessage());
+				LOGGER.trace("", ioe);
 			}
 
 			if (!destroyed && !params.noexitcheck) {
@@ -253,7 +280,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 						success = false;
 					}
 				} catch (IllegalThreadStateException itse) {
-					LOGGER.error("Error reading process exit value", itse);
+					LOGGER.error("Error reading process exit value: {}", itse.getMessage());
+					LOGGER.trace("", itse);
 				}
 			}
 			if (attachedProcesses != null) {
@@ -283,8 +311,26 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 * @see #runInNewThread()
 	 */
 	@Override
+	@SuppressFBWarnings("RU_INVOKE_RUN")
 	public void runInSameThread() {
+		if (!useByteArrayStdConsumer && !params.log) {
+			LOGGER.warn(
+				"ProcessWrapperImpl.runInSameThread() is called without using " +
+				"byte array standard consumer or a text consumer. This can " +
+				"cause this thread to hang and should be avoided!");
+		}
 		this.run();
+	}
+
+	/**
+	 * This method is only valid if the constructor was called with
+	 * {@code useByteArrayStdConsumer} set to {@code true}. Otherwise returns
+	 * {@code null}.
+	 *
+	 * @return The {@link BufferedOutputByteArrayImpl} or {@code null}.
+	 */
+	public BufferedOutputByteArrayImpl getOutputByteArray() {
+		return bo instanceof BufferedOutputByteArrayImpl ? (BufferedOutputByteArrayImpl) bo : null;
 	}
 
 	@Override

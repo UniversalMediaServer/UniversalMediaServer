@@ -28,7 +28,7 @@
 			}
 
 			function show(device) {
-				var other = device == 'touch' ? 'desktop' : 'touch';
+				var other = device === 'touch' ? 'desktop' : 'touch';
 				document.getElementById(other).style.display = 'none';
 				var s = document.getElementById(other + 'label').style;
 				s.fontWeight = 'normal';
@@ -134,9 +134,11 @@
 							</li>
 							<li>
 								<b>Usage</b>
-								<div class="touch" style="display:none;">
+								<div class="touch">
+									<ul>
 									Type '<span class="mode">bump</span>' in the address bar and select the
 										bookmark from the drop-down list.
+									</ul>
 								</div>
 							</li>
 						</ul>
