@@ -167,15 +167,16 @@ public class RendererConfigurationTest {
 
 		testHeaders("Showtime 4", "User-Agent: Showtime PS3 4.2");
 
-		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");
+		// Sony PlayStation 3:
+		testHeaders("PlayStation 3", "User-Agent: PLAYSTATION 3", "PlayStation 3", "X-AV-Client-Info: av=5.0; cn=\"Sony Computer Entertainment Inc.\"; mn=\"PLAYSTATION 3\"; mv=\"1.0\";");
 
-		testHeaders("Sony Bravia HX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";");
+		// Sony PlayStation 4:
+		testHeaders("PlayStation 4", "User-Agent: MediaPlayer/2.50 UPnP/1.0 DLNADOC/1.50 (PlayStation 4)");
 
-		testHeaders("Sony Bravia W",
-			"X-AV-Physical-Unit-Info: pa=\"BRAVIA KDL-48W600B\";",
-			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-48W600B\"; mv=\"1.7\";"
-		);
+		// Sony PlayStation 4 Pro:
+		testHeaders("PlayStation 4 Pro", "User-Agent: MediaPlayer/3.00 UPnP/1.0 DLNADOC/1.50 (PlayStation 4 Pro)");
 
+		// Sony Xperia:
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
 
 		// Note: This isn't the full user-agent, just a snippet to find it

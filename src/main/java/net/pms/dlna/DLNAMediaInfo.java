@@ -3120,7 +3120,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isDVDResolution() {
-		return (width == 720 && height == 576) || (width == 720 && height == 480);
+		return (width == 720 || width == 704) && (height == 480 || height == 576);
 	}
 
 	/**
