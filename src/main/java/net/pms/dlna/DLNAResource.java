@@ -1322,8 +1322,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		updateId += 1;
-		systemUpdateId += 1;
+		if (this instanceof VirtualFolder) {// workaround for virtual folders
+			updateId = getIntId();
+		} else {
+			updateId += 1;// XXX In accordance with the DLNA specification the updateID should be updated when the browse is requested but to increase by 1 seems not to be correct.
+		}
+		
+		systemUpdateId += 1;// XXX In accordance with the DLNA specification the systemUpdateID should be updated when the browse is requested but to increase by 1 seems not to be correct. The ContainerUpdateIDs can limit the browse requests.
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {

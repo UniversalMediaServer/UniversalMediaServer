@@ -233,7 +233,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 
-		setUpdateId(this.getIntId());
 		//return removedFiles.size() != 0 || addedFiles.size() != 0 || removedString.size() != 0 || addedString.size() != 0;
 	}
 }

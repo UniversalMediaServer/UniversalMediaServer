@@ -387,9 +387,4 @@ public class MediaMonitor extends VirtualFolder {
 			out.flush();
 		}
 	}
-
-	@Override
-	public void doRefreshChildren() {
-		setUpdateId(this.getIntId());
-	}
 }
