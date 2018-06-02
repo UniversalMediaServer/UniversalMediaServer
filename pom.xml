@@ -1032,8 +1032,48 @@
 
 			<build>
 				<plugins>
-					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>2.4.2</version>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<minimizeJar>true</minimizeJar>
+							<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when PMS starts:
+
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
+
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<manifestEntries>
+										<Implementation-Title>${project.name}</Implementation-Title>
+										<Implementation-Version>${project.version}</Implementation-Version>
+										<Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
+										<Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+										<Implementation-URL>${project.url}</Implementation-URL>
+									</manifestEntries>
+								</transformer>
+							</transformers>						
+						</configuration>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<!-- <plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 							<configuration>
@@ -1042,7 +1082,7 @@
 								</descriptors>
 								<archive>
 									<manifest>
-										<mainClass>net.pms.PMS</mainClass>
+										<mainClass>net.pms.PMS</mainClass> -->
 										<!--
 											this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 											without it, the following exception is thrown when PMS starts:
@@ -1053,7 +1093,7 @@
 
 											See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
 										-->
-										<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+										<!-- <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 									</manifest>
 								</archive>
 							</configuration>
@@ -1066,7 +1106,7 @@
 								</goals>
 							</execution>
 						</executions>
-					</plugin>
+					</plugin> -->
 
 					<!--
 						Plugin to move the pms-x.x.x-jar-with-dependencies.jar to pms.jar
