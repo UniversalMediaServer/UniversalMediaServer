@@ -117,6 +117,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
 
 	// Current video transcoding options
+	protected static final String FLVH264AAC = "FLV-H264-AAC";
 	protected static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
 	protected static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
 	protected static final String MPEGTSH265AAC = "MPEGTS-H265-AAC";
@@ -1187,6 +1188,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
+	public boolean isTranscodeToFLVH264AAC() {
+		return getVideoTranscode().equals(FLVH264AAC);
+	}
+
 	public boolean isTranscodeToMPEGTSH265AAC() {
 		return getVideoTranscode().equals(MPEGTSH265AAC);
 	}
@@ -1206,14 +1211,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return whether to use the AAC audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToFLVH264AAC();
 	}
 
 	/**
 	 * @return whether to use the H.264 video codec for transcoded video
 	 */
 	public boolean isTranscodeToH264() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3() || isTranscodeToFLVH264AAC();
 	}
 
 	/**

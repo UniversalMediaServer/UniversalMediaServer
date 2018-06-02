@@ -164,8 +164,14 @@ public class VLCVideo extends Player {
 			}
 
 			if (renderer.isTranscodeToAC3()) {
+				codecConfig.container = "ts";
 				codecConfig.audioCodec = "a52";
+			} else if (renderer.isTranscodeToFLVH264AAC()) {
+				LOGGER.debug("Using H.264 and AAC with FLV container");
+				codecConfig.container = "flv";
+				codecConfig.audioCodec = "mp4a";
 			} else {
+				codecConfig.container = "ts";
 				codecConfig.audioCodec = "mp4a";
 			}
 
