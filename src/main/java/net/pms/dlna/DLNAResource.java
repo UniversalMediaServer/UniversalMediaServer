@@ -773,7 +773,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (resumeRes != null && resumeRes.media != null) {
 						resumeRes.media.setThumbready(false);
 						resumeRes.media.setMimeType(HTTPResource.VIDEO_TRANSCODE);
-						resumeRes.media.setThumbready(false);
 					}
 
 					/**
