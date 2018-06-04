@@ -338,8 +338,8 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
 				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ISTVEPISODE             BOOLEAN)");
-				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", ISTVEPISODE             BOOLEAN");
+				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append("))");
 				if (trace) {
 					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				}
