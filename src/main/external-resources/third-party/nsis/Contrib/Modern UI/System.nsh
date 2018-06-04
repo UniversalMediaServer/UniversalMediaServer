@@ -1,26 +1,21 @@
 /*
 
 NSIS Modern User Interface - Version 1.8
-Copyright 2002-2015 Joost Verburg
+Copyright 2002-2017 Joost Verburg
 
 */
 
-!echo "NSIS Modern User Interface version 1.8 - Copyright 2002-2015 Joost Verburg"
+!ifndef MUI_INCLUDED
+!echo "NSIS Modern User Interface version 1.8 - Copyright 2002-2017 Joost Verburg"
 
 ;--------------------------------
+!verbose push 3
+!define /IfNDef MUI_VERBOSE 3
+!verbose ${MUI_VERBOSE}
 
-!ifndef MUI_INCLUDED
 !define MUI_INCLUDED
-
 !define MUI_SYSVERSION "1.8"
 
-!verbose push
-
-!ifndef MUI_VERBOSE
-  !define MUI_VERBOSE 3
-!endif
-
-!verbose ${MUI_VERBOSE}
 
 ;--------------------------------
 ;HEADER FILES, DECLARATIONS
@@ -133,6 +128,12 @@ Var MUI_TEMP2
     !insertmacro MUI_DEFAULT MUI_UNWELCOMEFINISHPAGE_INI "${NSISDIR}\Contrib\Modern UI\ioSpecial.ini"
     !insertmacro MUI_DEFAULT MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
     !insertmacro MUI_DEFAULT MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
+    !if "${MUI_WELCOMEFINISHPAGE_BITMAP}" == ""
+      !error "Invalid MUI_WELCOMEFINISHPAGE_BITMAP"
+    !endif
+    !if "${MUI_UNWELCOMEFINISHPAGE_BITMAP}" == ""
+      !error "Invalid MUI_UNWELCOMEFINISHPAGE_BITMAP"
+    !endif
 
     !ifdef MUI_HEADERIMAGE
 
@@ -145,12 +146,26 @@ Var MUI_TEMP2
         !endif
       !endif
 
+      !if "${MUI_HEADERIMAGE_BITMAP}" == ""
+        !error "Invalid MUI_HEADERIMAGE_BITMAP"
+      !endif
+      !if "${MUI_HEADERIMAGE_UNBITMAP}" == ""
+        !error "Invalid MUI_HEADERIMAGE_UNBITMAP"
+      !endif
+
       !ifdef MUI_HEADERIMAGE_BITMAP_RTL
         !ifndef MUI_HEADERIMAGE_UNBITMAP_RTL
           !define MUI_HEADERIMAGE_UNBITMAP_RTL "${MUI_HEADERIMAGE_BITMAP_RTL}"
           !ifdef MUI_HEADERIMAGE_BITMAP_RTL_NOSTRETCH
             !insertmacro MUI_SET MUI_HEADERIMAGE_UNBITMAP_RTL_NOSTRETCH
           !endif
+        !endif
+
+        !if "${MUI_HEADERIMAGE_BITMAP_RTL}" == ""
+          !error "Invalid MUI_HEADERIMAGE_BITMAP_RTL"
+        !endif
+        !if "${MUI_HEADERIMAGE_UNBITMAP_RTL}" == ""
+          !error "Invalid MUI_HEADERIMAGE_UNBITMAP_RTL"
         !endif
       !endif
 
@@ -694,6 +709,10 @@ Var MUI_TEMP2
 
 !macro MUI_PAGE_INIT
 
+  !ifdef MUI_INSERT
+    !warning "MUI_[UN]PAGE_* inserted after MUI_LANGUAGE"
+  !endif
+
   !insertmacro MUI_INTERFACE
 
   !insertmacro MUI_DEFAULT MUI_PAGE_UNINSTALLER_PREFIX ""
@@ -1104,6 +1123,10 @@ Var MUI_TEMP2
 
     UninstallText "${MUI_UNCONFIRMPAGE_TEXT_TOP}" "${MUI_UNCONFIRMPAGE_TEXT_LOCATION}"
 
+    !ifdef MUI_UNCONFIRMPAGE_VARIABLE
+      DirVar "${MUI_UNCONFIRMPAGE_VARIABLE}"
+    !endif
+
   PageExEnd
 
   !insertmacro MUI_UNFUNCTION_CONFIRMPAGE un.mui.ConfirmPre_${MUI_UNIQUEID} un.mui.ConfirmShow_${MUI_UNIQUEID} un.mui.ConfirmLeave_${MUI_UNIQUEID}
@@ -1428,8 +1451,8 @@ Var MUI_TEMP2
   !endif
 
   !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
-
   StartMenu::Show
+  !insertmacro MUI_PAGE_FUNCTION_CUSTOM DESTROYED
 
     Pop $MUI_TEMP1
     StrCmp $MUI_TEMP1 "success" 0 +2
@@ -2048,7 +2071,7 @@ Var MUI_TEMP2
   !verbose push
   !verbose ${MUI_VERBOSE}
 
-  ReserveFile "${NSISDIR}\Plugins\InstallOptions.dll"
+  ReserveFile /plugin InstallOptions.dll
 
   !verbose pop
 
@@ -2059,7 +2082,7 @@ Var MUI_TEMP2
   !verbose push
   !verbose ${MUI_VERBOSE}
 
-  ReserveFile "${NSISDIR}\Plugins\LangDLL.dll"
+  ReserveFile /plugin LangDLL.dll
 
   !verbose pop
 
@@ -2068,40 +2091,33 @@ Var MUI_TEMP2
 ;--------------------------------
 ;LANGUAGES
 
-!macro MUI_LANGUAGE LANGUAGE
+!macro MUI_LANGUAGE NLFID
 
   ;Include a language
 
   !verbose push
   !verbose ${MUI_VERBOSE}
 
+  ; MUI_PAGE_UNINSTALLER_PREFIX is undefined by uninstaller pages so we check MUI_UNINSTALLER as well
+  !ifndef MUI_PAGE_UNINSTALLER_PREFIX && MUI_UNINSTALLER
+    !warning "MUI_LANGUAGE should be inserted after the MUI_[UN]PAGE_* macros"
+  !endif
+
   !insertmacro MUI_INSERT
 
-  LoadLanguageFile "${NSISDIR}\Contrib\Language files\${LANGUAGE}.nlf"
+  LoadLanguageFile "${NSISDIR}\Contrib\Language files\${NLFID}.nlf"
 
   ;Include language file
-  !insertmacro LANGFILE_INCLUDE_WITHDEFAULT "${NSISDIR}\Contrib\Language files\${LANGUAGE}.nsh" "${NSISDIR}\Contrib\Language files\English.nsh"
+  !insertmacro LANGFILE_INCLUDE_WITHDEFAULT \
+    "${NSISDIR}\Contrib\Language files\${NLFID}.nsh" "${NSISDIR}\Contrib\Language files\English.nsh"
 
-  ;Add language to list of languages for selection dialog  
-  !ifndef MUI_LANGDLL_LANGUAGES
-    !define MUI_LANGDLL_LANGUAGES "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' "
-    !define MUI_LANGDLL_LANGUAGES_CP "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' '${LANG_${LANGUAGE}_CP}' "
-  !else
-    !ifdef MUI_LANGDLL_LANGUAGES_TEMP
-      !undef MUI_LANGDLL_LANGUAGES_TEMP
-    !endif
-    !define MUI_LANGDLL_LANGUAGES_TEMP "${MUI_LANGDLL_LANGUAGES}"
-    !undef MUI_LANGDLL_LANGUAGES
-
-	!ifdef MUI_LANGDLL_LANGUAGES_CP_TEMP
-      !undef MUI_LANGDLL_LANGUAGES_CP_TEMP
-    !endif
-    !define MUI_LANGDLL_LANGUAGES_CP_TEMP "${MUI_LANGDLL_LANGUAGES_CP}"
-    !undef MUI_LANGDLL_LANGUAGES_CP
-
-    !define MUI_LANGDLL_LANGUAGES "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' ${MUI_LANGDLL_LANGUAGES_TEMP}"
-    !define MUI_LANGDLL_LANGUAGES_CP "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' '${LANG_${LANGUAGE}_CP}' ${MUI_LANGDLL_LANGUAGES_CP_TEMP}"
-  !endif
+  ;Add language to list of languages for selection dialog
+  !define /ifndef MUI_LANGDLL_LANGUAGES ""
+  !define /redef MUI_LANGDLL_LANGUAGES \
+    `"${LANGFILE_${NLFID}_LANGDLL}" "${LANG_${NLFID}}" ${MUI_LANGDLL_LANGUAGES}`
+  !define /ifndef MUI_LANGDLL_LANGUAGES_CP ""
+  !define /redef MUI_LANGDLL_LANGUAGES_CP \
+    `"${LANGFILE_${NLFID}_LANGDLL}" "${LANG_${NLFID}}" "${LANG_${NLFID}_CP}" ${MUI_LANGDLL_LANGUAGES_CP}`
   
   !verbose pop
 
@@ -2114,6 +2130,10 @@ Var MUI_TEMP2
 
   !verbose push
   !verbose ${MUI_VERBOSE}
+
+  !ifndef MUI_LANGDLL_LANGUAGES
+    !warning "MUI_LANGDLL_DISPLAY should only be used after inserting the MUI_LANGUAGE macro(s)"
+  !endif
 
   !insertmacro MUI_DEFAULT MUI_LANGDLL_WINDOWTITLE "Installer Language"
   !insertmacro MUI_DEFAULT MUI_LANGDLL_INFO "Please select a language."
@@ -2172,7 +2192,8 @@ Var MUI_TEMP2
 
 !macro MUI_UNGETLANGUAGE
 
-  !verbose pop
+  !verbose push
+  !verbose ${MUI_VERBOSE}
 
   !ifdef MUI_LANGDLL_REGISTRY_ROOT & MUI_LANGDLL_REGISTRY_KEY & MUI_LANGDLL_REGISTRY_VALUENAME
 
@@ -2201,6 +2222,5 @@ Var MUI_TEMP2
 ;--------------------------------
 ;END
 
-!endif
-
 !verbose pop
+!endif

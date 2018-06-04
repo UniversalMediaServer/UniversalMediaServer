@@ -1,25 +1,21 @@
 /*
 
-NSIS Modern User Interface - Version 2.0
-Copyright 2002-2015 Joost Verburg
+NSIS Modern User Interface - Version 2.1
+Copyright 2002-2017 Joost Verburg
+Contributors: Amir Szekely, Anders Kjersem
 
 */
 
-!echo "NSIS Modern User Interface version 2.0 - Copyright 2002-2015 Joost Verburg"
+!ifndef MUI_INCLUDED
+!verbose push 3
+!define MUI_INCLUDED
+!define MUI_SYSVERSION "2.1"
+!verbose pop
+!echo "NSIS Modern User Interface version ${MUI_SYSVERSION} - Copyright 2002-2017 Joost Verburg"
 
 ;--------------------------------
-
-!ifndef MUI_INCLUDED
-!define MUI_INCLUDED
-
-!define MUI_SYSVERSION "2.0"
-
-!verbose push
-
-!ifndef MUI_VERBOSE
-  !define MUI_VERBOSE 3
-!endif
-
+!verbose push 3
+!define /IfNDef MUI_VERBOSE 3
 !verbose ${MUI_VERBOSE}
 
 !addincludedir "${NSISDIR}\Contrib\Modern UI 2"
@@ -117,6 +113,5 @@ Copyright 2002-2015 Joost Verburg
 
 !macroend
 
-!endif
-
 !verbose pop
+!endif ;~ MUI_INCLUDED

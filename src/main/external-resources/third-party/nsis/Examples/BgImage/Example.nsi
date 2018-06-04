@@ -3,6 +3,7 @@ Name "BgImage.dll test"
 OutFile "BgImage Test.exe"
 
 XPStyle on
+RequestExecutionLevel user
 
 !define DEBUG
 !macro GetReturnValue

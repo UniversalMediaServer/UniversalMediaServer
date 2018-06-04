@@ -17,7 +17,7 @@ ShowInstDetails show
 ;Only useful for BZIP2 compression
 ;Use ReserveFile for your own InstallOptions INI files too!
 
-ReserveFile "${NSISDIR}\Plugins\InstallOptions.dll"
+ReserveFile /plugin InstallOptions.dll
 ReserveFile "test.ini"
 
 ;Order of pages

@@ -1,132 +1,132 @@
-;Language: Polish (1045)
-;By Piotr Murawski & Rafa³ Lampe
+ï»¿;Language: Polish (1045)
+;By Piotr Murawski & RafaÅ‚ Lampe
 ;Updated by cube and SYSTEMsoft Group
-;Updated by Pawe³ Porwisz, http://www.pepesoft.tox.pl
-;Corrected by Mateusz Gola (aka Prozac) - http://www.videopedia.pl/avirecomp
+;Updated by Mateusz Gola (aka Prozac) - http://www.avirecomp.com
+;Updated by PaweÅ‚ Porwisz (http://www.pawelporwisz.pl)
 
-!insertmacro LANGFILE "Polish" "Polski"
+!insertmacro LANGFILE "Polish" = "Polski" =
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Witamy w kreatorze instalacji programu $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Kreator ten pomo¿e Ci zainstalowaæ program $(^NameDA).$\r$\n$\r$\nZalecane jest zamkniêcie wszystkich uruchomionych programów przed rozpoczêciem instalacji. Pozwoli to na uaktualnienie niezbêdnych plików systemowych bez koniecznoœci ponownego uruchamiania komputera.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Witamy w kreatorze instalacji $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Kreator ten pomoÅ¼e Ci zainstalowaÄ‡ $(^NameDA).$\r$\n$\r$\nZalecane jest zamkniÄ™cie wszystkich uruchomionych programÃ³w przed rozpoczÄ™ciem instalacji. Pozwoli to na uaktualnienie niezbÄ™dnych plikÃ³w systemowych bez koniecznoÅ›ci ponownego uruchamiania komputera.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
   ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Witamy w kreatorze deinstalacji $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Kreator poprowadzi Ciê przez proces deinstalacji $(^NameDA).$\r$\n$\r$\nPrzed rozpoczêciem deinstalacji programu, upewnij siê, czy $(^NameDA) NIE jest w³aœnie uruchomiony.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Kreator ten pomoÅ¼e Ci odinstalowaÄ‡ $(^NameDA).$\r$\n$\r$\nPrzed rozpoczÄ™ciem deinstalacji, upewnij siÄ™, Å¼e $(^NameDA) nie jest uruchomiony.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
   ${LangFileString} MUI_TEXT_LICENSE_TITLE "Umowa licencyjna"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Przed instalacj¹ programu $(^NameDA) zapoznaj siê z warunkami licencji."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Je¿eli akceptujesz warunki umowy, wybierz Zgadzam siê, aby kontynuowaæ. Musisz zaakceptowaæ warunki umowy, aby zainstalowaæ $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Je¿eli akceptujesz warunki umowy, zaznacz pole wyboru poni¿ej, aby kontynuowaæ. Musisz zaakceptowaæ warunki umowy, aby zainstalowaæ $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Je¿eli akceptujesz warunki umowy, wybierz pierwsz¹ opcjê poni¿ej, aby kontynuowaæ. Musisz zaakceptowaæ warunki umowy, aby zainstalowaæ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Przed instalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "JeÅ¼eli akceptujesz warunki umowy, kliknij przycisk 'Zgadzam siÄ™', aby kontynuowaÄ‡. Musisz zaakceptowaÄ‡ warunki umowy, aby zainstalowaÄ‡ $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "JeÅ¼eli akceptujesz warunki umowy, zaznacz poniÅ¼sze pole wyboru, aby kontynuowaÄ‡. Musisz zaakceptowaÄ‡ warunki umowy, aby zainstalowaÄ‡ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "JeÅ¼eli akceptujesz warunki umowy, wybierz pierwszÄ… z poniÅ¼szych opcji, aby kontynuowaÄ‡. Musisz zaakceptowaÄ‡ warunki umowy, aby zainstalowaÄ‡ $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
   ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Umowa licencyjna"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Przed deinstalacj¹ programu $(^NameDA) zapoznaj siê z warunkami licencji."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Je¿eli akceptujesz warunki umowy, wybierz Zgadzam siê, aby kontynuowaæ. Musisz zaakceptowaæ warunki umowy, aby odinstalowaæ $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Je¿eli akceptujesz warunki umowy, zaznacz pole wyboru poni¿ej, aby kontynuowaæ. Musisz zaakceptowaæ warunki umowy, aby odinstalowaæ $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Je¿eli akceptujesz warunki umowy, wybierz pierwsz¹ opcjê poni¿ej, aby kontynuowaæ. Musisz zaakceptowaæ warunki umowy, aby odinstalowaæ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Przed deinstalacjÄ… $(^NameDA) zapoznaj siÄ™ z warunkami licencji."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "JeÅ¼eli akceptujesz warunki umowy, kliknij przycisk 'Zgadzam siÄ™', aby kontynuowaÄ‡. Musisz zaakceptowaÄ‡ warunki umowy, aby odinstalowaÄ‡ $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "JeÅ¼eli akceptujesz warunki umowy, zaznacz poniÅ¼sze pole wyboru, aby kontynuowaÄ‡. Musisz zaakceptowaÄ‡ warunki umowy, aby odinstalowaÄ‡ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "JeÅ¼eli akceptujesz warunki umowy, wybierz pierwszÄ… z poniÅ¼szych opcji, aby kontynuowaÄ‡. Musisz zaakceptowaÄ‡ warunki umowy, aby odinstalowaÄ‡ $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Naciœnij klawisz Page Down, aby zobaczyæ resztê umowy."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "NaciÅ›nij klawisz Page Down, aby zobaczyÄ‡ dalszÄ… czÄ™Å›Ä‡ umowy."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
   ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Wybierz komponenty"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Wybierz komponenty programu $(^NameDA), które chcesz zainstalowaæ."
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Wybierz komponenty $(^NameDA), ktÃ³re chcesz zainstalowaÄ‡."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Wybierz komponenty"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Wybierz, które elementy $(^NameDA) chcesz odinstalowaæ."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Wybierz, ktÃ³re elementy $(^NameDA) chcesz odinstalowaÄ‡."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Opis"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Przesuñ kursor myszy nad komponent, aby zobaczyæ jego opis."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "PrzesuÅ„ kursor myszy nad komponent, aby zobaczyÄ‡ jego opis."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Przesuñ kursor myszy nad komponent, aby zobaczyæ jego opis."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Wybierz komponent, aby zobaczyÄ‡ jego opis."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Wybierz lokalizacjê dla instalacji"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Wybierz folder, w którym ma byæ zainstalowany $(^NameDA)."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Wybierz lokalizacjÄ™ dla instalacji"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Wybierz folder, w ktÃ³rym chcesz zainstalowaÄ‡ $(^NameDA)."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Wybór miejsca deinstalacji"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Wybierz folder, z którego chcesz odinstalowaæ $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Wybierz lokalizacjÄ™ dla deinstalacji"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Wybierz folder, z ktÃ³rego chcesz odinstalowaÄ‡ $(^NameDA)."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Instalacja"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Proszê czekaæ, podczas gdy $(^NameDA) jest instalowany."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Zakoñczono instalacjê"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Instalacja zakoñczona pomyœlnie."
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "ProszÄ™ czekaÄ‡, trwa instalacja $(^NameDA)."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "ZakoÅ„czono instalacjÄ™"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Instalacja zakoÅ„czona pomyÅ›lnie."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Instalacja przerwana"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Instalacja nie zosta³a zakoñczona pomyœlnie."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Instalacja nie zostaÅ‚a zakoÅ„czona pomyÅ›lnie."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Deinstalacja"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Proszê czekaæ, $(^NameDA) jest odinstalowywany."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Zakoñczono odinstalowanie"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Odinstalowanie zakoñczone pomyœlnie."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "ProszÄ™ czekaÄ‡, trwa deinstalacja $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "ZakoÅ„czono deinstalacjÄ™"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Odinstalowanie zakoÅ„czone pomyÅ›lnie."
   ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Deinstalacja przerwana"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Deinstalacja nie zosta³a zakoñczona pomyœlnie."
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Deinstalacja nie zostaÅ‚a zakoÅ„czona pomyÅ›lnie."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Koñczenie pracy kreatora instalacji $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) zosta³ pomyœlnie zainstalowany na Twoim komputerze.$\r$\n$\r$\nKliknij Zakoñcz, aby zakoñczyæ dzia³anie kreatora."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Twój komputer musi zostaæ ponownie uruchomiony, aby zakoñczyæ instalacjê programu $(^NameDA). Czy chcesz zrobiæ to teraz?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "KoÅ„czenie pracy kreatora instalacji $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) zostaÅ‚ pomyÅ›lnie zainstalowany na Twoim komputerze.$\r$\n$\r$\nKliknij przycisk 'ZakoÅ„cz', aby zakoÅ„czyÄ‡ dziaÅ‚anie instalatora."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "TwÃ³j komputer musi zostaÄ‡ ponownie uruchomiony, aby zakoÅ„czyÄ‡ instalacjÄ™ $(^NameDA). Czy chcesz teraz ponownie uruchomiÄ‡ komputer?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Koñczenie pracy kreatora deinstalacji $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) zosta³ odinstalowany z Twojego komputera.$\r$\n$\r$\nKliknij Zakoñcz, aby zakoñczyæ dzia³anie kreatora."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Twój komputer musi zostaæ ponownie uruchomiony w celu zakoñczenia deinstalacji programu $(^NameDA). Czy chcesz zrobiæ to teraz?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "KoÅ„czenie pracy kreatora deinstalacji $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) zostaÅ‚ odinstalowany z Twojego komputera.$\r$\n$\r$\nKliknij przycisk 'ZakoÅ„cz', aby zakoÅ„czyÄ‡ dziaÅ‚anie deinstalatora."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "TwÃ³j komputer musi zostaÄ‡ ponownie uruchomiony w celu zakoÅ„czenia deinstalacji $(^NameDA). Czy chcesz teraz ponownie uruchomiÄ‡ komputer?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
   ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Uruchom ponownie teraz"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Sam uruchomiê ponownie komputer póŸniej"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&Uruchom program $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Poka¿ plik ReadMe"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Zakoñcz"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Sam uruchomiÄ™ ponownie komputer pÃ³Åºniej"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&Uruchom $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&PokaÅ¼ plik ReadMe"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&ZakoÅ„cz"
 !endif
 
 !ifdef MUI_STARTMENUPAGE
   ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Wybierz folder w menu Start"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Wybierz folder menu Start, w którym zostan¹ umieszczone skróty do programu"
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Wybierz folder w menu Start, w którym chcia³byœ umieœciæ skróty do programu. Mo¿esz tak¿e utworzyæ nowy folder wpisuj¹c jego nazwê."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Nie twórz skrótów"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Wybierz folder menu Start, w ktÃ³rym zostanÄ… umieszczone skrÃ³ty do $(^NameDA)"
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Wybierz folder w menu Start, w ktÃ³rym chciaÅ‚byÅ› umieÅ›ciÄ‡ skrÃ³ty do programu. MoÅ¼esz takÅ¼e utworzyÄ‡ nowy folder wpisujÄ…c jego nazwÄ™."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Nie twÃ³rz skrÃ³tÃ³w"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
   ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Odinstaluj $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Usuñ $(^NameDA) z Twojego komputera."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "UsuÅ„ $(^NameDA) z Twojego komputera."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Czy na pewno chcesz zakoñczyæ dzia³anie instalatora $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Czy na pewno chcesz zakoÅ„czyÄ‡ dziaÅ‚anie instalatora $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Czy na pewno chcesz przerwaæ proces deinstalacji $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Czy na pewno chcesz przerwaÄ‡ proces deinstalacji $(^Name)?"
 !endif
 
 !ifdef MULTIUSER_INSTALLMODEPAGE
-  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Wybierz u¿ytkowników"
-  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Wybierz, dla których u¿ytkowników chcesz zainstalowaæ program $(^NameDA)."
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Wybierz, czy chcesz zainstalowaæ program $(^NameDA) tylko dla siebie, czy dla wszystkich u¿ytkowników tego komputera. $(^ClickNext)"
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Zainstaluj dla wszystkich u¿ytkowników tego komputera"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Wybierz uÅ¼ytkownikÃ³w"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Wybierz, dla ktÃ³rych uÅ¼ytkownikÃ³w chcesz zainstalowaÄ‡ $(^NameDA)."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Wybierz, czy chcesz zainstalowaÄ‡ $(^NameDA) tylko dla siebie, czy dla wszystkich uÅ¼ytkownikÃ³w tego komputera. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Zainstaluj dla wszystkich uÅ¼ytkownikÃ³w tego komputera"
   ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Zainstaluj tylko dla mnie"
 !endif

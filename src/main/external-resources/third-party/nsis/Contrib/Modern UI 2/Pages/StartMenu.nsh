@@ -141,8 +141,8 @@ Start Menu folder page
     !endif
 
     !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
-
     StartMenu::Show
+    !insertmacro MUI_PAGE_FUNCTION_CUSTOM DESTROYED
 
     Pop $mui.StartMenuPage.Temp
     ${if} $mui.StartMenuPage.Temp ==  "success"

@@ -1,38 +1,38 @@
-;Language: Italian (1040)
+Ôªø;Language: Italian (1040)
 ;By SANFACE Software <sanface@sanface.com> v1.67 accents
 ;Review and update from v1.65 to v1.67 by Alessandro Staltari < staltari (a) geocities.com >
 ;Review and update from v1.67 to v1.68 by Lorenzo Bevilacqua < meow811@libero.it >
 
-!insertmacro LANGFILE "Italian" "Italiano"
+!insertmacro LANGFILE "Italian" = "Italiano" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Benvenuti nel programma di installazione di $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Questo programma installer‡ $(^NameDA) nel vostro computer.$\r$\n$\r$\nSi raccomanda di chiudere tutte le altre applicazioni prima di iniziare l'installazione. Questo permetter‡ al programma di installazione di aggiornare i file di sistema senza dover riavviare il computer.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Questo programma installer√† $(^NameDA) nel vostro computer.$\r$\n$\r$\nSi raccomanda di chiudere tutte le altre applicazioni prima di iniziare l'installazione. Questo permetter√† al programma di installazione di aggiornare i file di sistema senza dover riavviare il computer.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
   ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Benvenuti nella procedura guidata di disinstallazione di $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Questa procedura vi guider‡ nella disinstallazione di $(^NameDA).$\r$\n$\r$\nPrima di iniziare la disinstallazione, assicuratevi che $(^Name) non sia in esecuzione.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Questa procedura vi guider√† nella disinstallazione di $(^NameDA).$\r$\n$\r$\nPrima di iniziare la disinstallazione, assicuratevi che $(^Name) non sia in esecuzione.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
   ${LangFileString} MUI_TEXT_LICENSE_TITLE "Licenza d'uso"
   ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Prego leggere le condizioni della licenza d'uso prima di installare $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Se si accettano i termini della licenza d'uso scegliere Accetto per continuare. » necessario accettare i termini della licenza d'uso per installare $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se si accettano i termini della licenza d'uso, selezionare la casella sottostante. » necessario accettare i termini della licenza d'uso per installare $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se si accettano i termini della licenza d'uso, selezionare la prima opzione sottostante. » necessario accettare i termini della licenza d'uso per installare $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Se si accettano i termini della licenza d'uso scegliere Accetto per continuare. √à necessario accettare i termini della licenza d'uso per installare $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se si accettano i termini della licenza d'uso, selezionare la casella sottostante. √à necessario accettare i termini della licenza d'uso per installare $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se si accettano i termini della licenza d'uso, selezionare la prima opzione sottostante. √à necessario accettare i termini della licenza d'uso per installare $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
   ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Licenza d'uso"
   ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Prego leggere le condizioni della licenza d'uso prima di disinstallare $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Se si accettano i termini della licenza d'uso scegliere Accetto per continuare. » necessario accettare i termini della licenza d'uso per disinstallare $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se si accettano i termini della licenza d'uso, selezionare la casella sottostante. » necessario accettare i termini della licenza d'uso per disinstallare $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se si accettano i termini della licenza d'uso, selezionare la prima opzione sottostante. » necessario accettare i termini della licenza d'uso per disinstallare $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Se si accettano i termini della licenza d'uso scegliere Accetto per continuare. √à necessario accettare i termini della licenza d'uso per disinstallare $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se si accettano i termini della licenza d'uso, selezionare la casella sottostante. √à necessario accettare i termini della licenza d'uso per disinstallare $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se si accettano i termini della licenza d'uso, selezionare la prima opzione sottostante. √à necessario accettare i termini della licenza d'uso per disinstallare $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Premere Page Down per vedere il resto della licenza d'uso."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Premere Pag gi√π per vedere il resto della licenza d'uso."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
@@ -50,7 +50,7 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Posizionare il puntatore del mouse sul componente per vederne la descrizione."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Posizionare il puntatore del mouse sul componente per vederne la descrizione."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Selezionare un componente per vederne la descrizione."
   !endif
 !endif
 
@@ -68,35 +68,35 @@
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Installazione in corso"
   ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Prego attendere mentre $(^NameDA) viene installato."
   ${LangFileString} MUI_TEXT_FINISH_TITLE "Installazione completata"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "L'installazione Ë stata completata con successo."
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "L'installazione √® stata completata con successo."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Installazione interrotta"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "L'installazione non Ë stata completata correttamente."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "L'installazione non √® stata completata correttamente."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Disinstallazione in corso"
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Prego attendere mentre $(^NameDA) viene disinstallato."
   ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Disinstallazione completata"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "La disinstallazione Ë stata completata con successo."
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "La disinstallazione √® stata completata con successo."
   ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Disinstallazione interrotta"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "La disintallazione non Ë stata completata correttamente."
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "La disintallazione non √® stata completata correttamente."
 !endif
 
 !ifdef MUI_FINISHPAGE
   ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Completamento dell'installazione di $(^NameDA)."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) Ë stato installato sul vostro computer.$\r$\n$\r$\nScegliere Fine per chiudere il programma di installazione."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) √® stato installato sul vostro computer.$\r$\n$\r$\nScegliere Fine per chiudere il programma di installazione."
   ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Il computer deve essere riavviato per completare l'installazione di $(^NameDA). Vuoi riavviarlo ora?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
   ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Completamento della disinstallazione di $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) Ë stato disinstallato dal computer.$\r$\n$\r$\nSelezionare Fine per terminare questa procedura."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) √® stato disinstallato dal computer.$\r$\n$\r$\nSelezionare Fine per terminare questa procedura."
   ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Il computer deve essere riavviato per completare l'installazione di $(^NameDA). Vuoi riavviarlo ora?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
   ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Riavvia adesso"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Preferisco riavviarlo manualmente pi˘ tardi"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Preferisco riavviarlo manualmente pi√π tardi"
   ${LangFileString} MUI_TEXT_FINISH_RUN "Esegui $(^NameDA)"
   ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Mostra il file Readme"
   ${LangFileString} MUI_BUTTONTEXT_FINISH "&Fine"
@@ -105,7 +105,7 @@
 !ifdef MUI_STARTMENUPAGE
   ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Scelta della cartella del menu Start"
   ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Scegliere una cartella del menu Start per i collegamenti del programma."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Scegliere la cartella del menu Start in cui verranno creati i collegamenti del programma. » possibile inserire un nome per creare una nuova cartella."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Scegliere la cartella del menu Start in cui verranno creati i collegamenti del programma. √à possibile inserire un nome per creare una nuova cartella."
   ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Non creare i collegamenti al programma."
 !endif
 

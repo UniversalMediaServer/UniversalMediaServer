@@ -1,129 +1,129 @@
-;Language: Albanian (1052)
+ï»¿;Language: Albanian (1052)
 ;Translation Besnik Bleta, besnik@programeshqip.org
 
-!insertmacro LANGFILE "Albanian" "Albanian"
+!insertmacro LANGFILE "Albanian" = "Shqip" =
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Mirësevini te Rregullimi i $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ky do t'ju udhëheqë gjatë instalimit të $(^NameDA).$\r$\n$\r$\nKëshillohet që të mbyllni tërë zbatimet e tjera para se të nisni Rregullimin. Kjo bën të mundur përditësimin e kartelave të rëndësishme të sistemit pa u dashur të riniset kompjuteri juaj.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "MirÃ«sevini te Rregullimi i $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ky do t'ju udhÃ«heqÃ« gjatÃ« instalimit tÃ« $(^NameDA).$\r$\n$\r$\nKÃ«shillohet qÃ« tÃ« mbyllni tÃ«rÃ« zbatimet e tjera para se tÃ« nisni Rregullimin. Kjo bÃ«n tÃ« mundur pÃ«rditÃ«simin e kartelave tÃ« rÃ«ndÃ«sishme tÃ« sistemit pa u dashur tÃ« riniset kompjuteri juaj.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Mirësevini te Çinstalimi i $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ky do t'ju udhëheqë gjatë çinstalimit të $(^NameDA).$\r$\n$\r$\nPara nisjes së çinstalimit, sigurohuni që $(^NameDA) nuk është duke xhiruar.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "MirÃ«sevini te Ã‡instalimi i $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ky do t'ju udhÃ«heqÃ« gjatÃ« Ã§instalimit tÃ« $(^NameDA).$\r$\n$\r$\nPara nisjes sÃ« Ã§instalimit, sigurohuni qÃ« $(^NameDA) nuk Ã«shtÃ« duke xhiruar.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Marrëveshje Licence"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Ju lutem shqyrtoni kushtet e licencës përpara se të instaloni $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Nëse i pranoni kushtet e marrëveshjes, klikoni Pajtohem për të vazhduar. Duhet ta pranoni marrëveshjen për të instaluar $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Nëse pranoni kushtet e marrëveshjes, klikoni kutizën më poshtë. Duhet të pranoni marrëveshjen për të instaluar $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Nëse pranoni kushtet e marrëveshjes, përzgjidhni më poshtë mundësinë e parë. Duhet të pranoni marrëveshjen për të instaluar $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "MarrÃ«veshje Licence"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Ju lutem shqyrtoni kushtet e licencÃ«s pÃ«rpara se tÃ« instaloni $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "NÃ«se i pranoni kushtet e marrÃ«veshjes, klikoni Pajtohem pÃ«r tÃ« vazhduar. Duhet ta pranoni marrÃ«veshjen pÃ«r tÃ« instaluar $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "NÃ«se pranoni kushtet e marrÃ«veshjes, klikoni kutizÃ«n mÃ« poshtÃ«. Duhet tÃ« pranoni marrÃ«veshjen pÃ«r tÃ« instaluar $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "NÃ«se pranoni kushtet e marrÃ«veshjes, pÃ«rzgjidhni mÃ« poshtÃ« mundÃ«sinÃ« e parÃ«. Duhet tÃ« pranoni marrÃ«veshjen pÃ«r tÃ« instaluar $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Marrëveshje Licence"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Ju lutem shqyrtoni kushtet e licencës përpara çinstalimit të $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Nëse i pranoni kushtet e marrëveshjes, klikoni Pajtohem për të vazhduar. Duhet të pranoni marrëveshjen për të çinstaluar $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Nëse pranoni kushtet e marrëveshjes, klikoni kutizën më poshtë. Duhet të pranoni marrëveshjen për të çinstaluar $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Nëse pranoni kushtet e marrëveshjes, përzgjidhni mundësinë e parë më poshtë. Duhet të pranoni marrëveshjen për të çinstaluar $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "MarrÃ«veshje Licence"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Ju lutem shqyrtoni kushtet e licencÃ«s pÃ«rpara Ã§instalimit tÃ« $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "NÃ«se i pranoni kushtet e marrÃ«veshjes, klikoni Pajtohem pÃ«r tÃ« vazhduar. Duhet tÃ« pranoni marrÃ«veshjen pÃ«r tÃ« Ã§instaluar $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "NÃ«se pranoni kushtet e marrÃ«veshjes, klikoni kutizÃ«n mÃ« poshtÃ«. Duhet tÃ« pranoni marrÃ«veshjen pÃ«r tÃ« Ã§instaluar $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "NÃ«se pranoni kushtet e marrÃ«veshjes, pÃ«rzgjidhni mundÃ«sinÃ« e parÃ« mÃ« poshtÃ«. Duhet tÃ« pranoni marrÃ«veshjen pÃ«r tÃ« Ã§instaluar $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Shtypni Page Down për të parë pjesën e mbetur të marrëveshjes."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Shtypni Page Down pÃ«r tÃ« parÃ« pjesÃ«n e mbetur tÃ« marrÃ«veshjes."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Përzgjidhni Përbërës"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Zgjidhni cilat anë të $(^NameDA) doni të instalohen."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "PÃ«rzgjidhni PÃ«rbÃ«rÃ«s"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Zgjidhni cilat anÃ« tÃ« $(^NameDA) doni tÃ« instalohen."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Zgjidhni Përbërësa"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Zgjidhni cilat anë të $(^NameDA) doni të çinstalohen."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Zgjidhni PÃ«rbÃ«rÃ«sa"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Zgjidhni cilat anÃ« tÃ« $(^NameDA) doni tÃ« Ã§instalohen."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Përshkrim"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "PÃ«rshkrim"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Për të parë përshkrimin e një përbërësi, vendosni miun përsipër tij."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "PÃ«r tÃ« parÃ« pÃ«rshkrimin e njÃ« pÃ«rbÃ«rÃ«si, vendosni miun pÃ«rsipÃ«r tij."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Për të parë përshkrimin e një përbërësi, vendosni miun përsipër tij."
+    #FIXME:MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
   ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Zgjidhni Vend Instalimi"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Zgjidhni dosjen tek e cila të instalohet $(^NameDA)."
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Zgjidhni dosjen tek e cila tÃ« instalohet $(^NameDA)."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Zgjidhni Vend Çinstalimi"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Zgjidhni dosjen prej së cilës të çinstalohet $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Zgjidhni Vend Ã‡instalimi"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Zgjidhni dosjen prej sÃ« cilÃ«s tÃ« Ã§instalohet $(^NameDA)."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Po instalohet"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Ju lutem prisni ndërkohë që $(^NameDA) instalohet."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Instalim i Plotësuar"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Rregullimi u plotësua me sukses."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Instalimi u Ndërpre"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Rregullimi nuk u plotësua me sukses."
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Ju lutem prisni ndÃ«rkohÃ« qÃ« $(^NameDA) instalohet."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Instalim i PlotÃ«suar"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Rregullimi u plotÃ«sua me sukses."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "Instalimi u NdÃ«rpre"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Rregullimi nuk u plotÃ«sua me sukses."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Çinstalim"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Ju lutem prisni ndërsa $(^NameDA) çinstalohet."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Çinstalim i Plotë"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Çinstalimi u plotësua me sukses."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Çinstalimi u Ndërpre"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Çinstalimi nuk plotësua me sukses."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Ã‡instalim"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Ju lutem prisni ndÃ«rsa $(^NameDA) Ã§instalohet."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Ã‡instalim i PlotÃ«"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Ã‡instalimi u plotÃ«sua me sukses."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Ã‡instalimi u NdÃ«rpre"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Ã‡instalimi nuk plotÃ«sua me sukses."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Po plotësoj Rregullimin e $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) u instalua në kompjuterin tuaj.$\r$\n$\r$\nPër mbylljen e procesit, klikoni Përfundoje."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Që të mund të plotësohet instalimi i $(^NameDA) kompjuteri juaj duhet të riniset. Doni ta rinisni tani?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Po plotÃ«soj Rregullimin e $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) u instalua nÃ« kompjuterin tuaj.$\r$\n$\r$\nPÃ«r mbylljen e procesit, klikoni PÃ«rfundoje."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "QÃ« tÃ« mund tÃ« plotÃ«sohet instalimi i $(^NameDA) kompjuteri juaj duhet tÃ« riniset. Doni ta rinisni tani?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Po plotësoj Çinstalimin e $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) u çinstalua prej kompjuterit tuaj.$\r$\n$\r$\nPër mbylljen e procesit, klikoni Përfundoje."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Kompjuteri juaj duhet të riniset që të mund të plotësohet çinstalimi i $(^NameDA). Doni ta rinisni tani?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Po plotÃ«soj Ã‡instalimin e $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) u Ã§instalua prej kompjuterit tuaj.$\r$\n$\r$\nPÃ«r mbylljen e procesit, klikoni PÃ«rfundoje."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Kompjuteri juaj duhet tÃ« riniset qÃ« tÃ« mund tÃ« plotÃ«sohet Ã§instalimi i $(^NameDA). Doni ta rinisni tani?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
   ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Rinise tani"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Dua ta rinis dorazi më vonë"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Dua ta rinis dorazi mÃ« vonÃ«"
   ${LangFileString} MUI_TEXT_FINISH_RUN "&Nis $(^NameDA)"
   ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Shfaq Readme"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Përfundoje"  
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&PÃ«rfundoje"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
   ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Zgjidhni Dosje Menuje Start"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Zgjidhni një dosje Menuje Start për shkurtore $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Përzgjidhni dosjen e Menusë Start në të cilën do të donit të krijonit shkurtoret për programin. Mundeni edhe të jepni një emër për të krijuar një dosje të re."
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Zgjidhni njÃ« dosje Menuje Start pÃ«r shkurtore $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "PÃ«rzgjidhni dosjen e MenusÃ« Start nÃ« tÃ« cilÃ«n do tÃ« donit tÃ« krijonit shkurtoret pÃ«r programin. Mundeni edhe tÃ« jepni njÃ« emÃ«r pÃ«r tÃ« krijuar njÃ« dosje tÃ« re."
   ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Mos krijo shkurtore"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Çinstalo $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Ã‡instalo $(^NameDA)"
   ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Hiqeni $(^NameDA) prej kompjuterit tuaj."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Jeni i sigurt që doni të dilni nga Rregullimi i $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Jeni i sigurt qÃ« doni tÃ« dilni nga Rregullimi i $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Jeni i sigurt që doni të dilni nga Çinstalimi i $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Jeni i sigurt qÃ« doni tÃ« dilni nga Ã‡instalimi i $(^Name)?"
 !endif
 
 !ifdef MULTIUSER_INSTALLMODEPAGE
-  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Zgjidhni Përdoruesa"
-  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Zgjidhni për cilët përdoruesa doni të instalohet $(^NameDA)."
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Përzgjidhni në doni të instalohet $(^NameDA) vetëm për veten tuaj apo për tërë përdoruesit e këtij kompjuteri. $(^ClickNext)"
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Instaloje për këdo në këtë kompjuter"
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Instaloje vetëm për mua"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Zgjidhni PÃ«rdoruesa"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Zgjidhni pÃ«r cilÃ«t pÃ«rdoruesa doni tÃ« instalohet $(^NameDA)."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "PÃ«rzgjidhni nÃ« doni tÃ« instalohet $(^NameDA) vetÃ«m pÃ«r veten tuaj apo pÃ«r tÃ«rÃ« pÃ«rdoruesit e kÃ«tij kompjuteri. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Instaloje pÃ«r kÃ«do nÃ« kÃ«tÃ« kompjuter"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Instaloje vetÃ«m pÃ«r mua"
 !endif

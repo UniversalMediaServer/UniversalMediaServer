@@ -1,11 +1,11 @@
-# Header, don't edit
+Ôªø# Header, don't edit
 NLF v6
 # Language ID
 5146
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1250
 # RTL - anything else than RTL means LTR
 -
@@ -17,7 +17,7 @@ $(^Name) Instalacija
 # ^UninstallCaption
 $(^Name) Uklanjanje
 # ^LicenseSubCaption
-: Licencno pravo koriötenja
+: Licencno pravo kori≈°tenja
 # ^ComponentsSubCaption
 : Opcije instalacije
 # ^DirSubCaption
@@ -25,7 +25,7 @@ $(^Name) Uklanjanje
 # ^InstallingSubCaption
 : Instaliranje
 # ^CompletedSubCaption
-: Zavröeno
+: Zavr≈°eno
 # ^UnComponentsSubCaption
 : Opcije uklanjanja
 # ^UnDirSubCaption
@@ -35,7 +35,7 @@ $(^Name) Uklanjanje
 # ^UninstallingSubCaption
 : Uklanjanje
 # ^UnCompletedSubCaption
-: Zavröeno uklanjanje
+: Zavr≈°eno uklanjanje
 # ^BackBtn
 < &Nazad
 # ^NextBtn
@@ -57,75 +57,75 @@ Odustani
 # ^BrowseBtn
 &Pregledaj...
 # ^ShowDetailsBtn
-Prikaûi &detalje
+Prika≈æi &detalje
 # ^ClickNext
 Pritisnite dugme 'Dalje' za nastavak.
 # ^ClickInstall
-Pritisnite dugme 'Instaliraj' za poËetak instalacije.
+Pritisnite dugme 'Instaliraj' za poƒçetak instalacije.
 # ^ClickUninstall
-Pritisnite dugme 'Ukloni' za poËetak uklanjanja.
+Pritisnite dugme 'Ukloni' za poƒçetak uklanjanja.
 # ^Name
 Ime
 # ^Completed
-Zavröeno
+Zavr≈°eno
 # ^LicenseText
-Molim proËitajte licencu prije instaliranja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite 'Prihvatam'.
+Molim proƒçitajte licencu prije instaliranja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite 'Prihvatam'.
 # ^LicenseTextCB
-Molim proËitajte licencu prije instaliranja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, oznaËite donji kvadratiÊ. $_CLICK
+Molim proƒçitajte licencu prije instaliranja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, oznaƒçite donji kvadratiƒá. $_CLICK
 # ^LicenseTextRB
-Molim proËitajte licencu prije instaliranja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite prvu donju opciju. $_CLICK
+Molim proƒçitajte licencu prije instaliranja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite prvu donju opciju. $_CLICK
 # ^UnLicenseText
-Molim proËitajte licencu prije uklanjanja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite 'Prihvatam'.
+Molim proƒçitajte licencu prije uklanjanja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite 'Prihvatam'.
 # ^UnLicenseTextCB
-Molim proËitajte licencu prije uklanjanja programa $(^NameDA). Ako prihvatate sve uvjete ugovora, obiljeûite donji kvadratiÊ. $_CLICK
+Molim proƒçitajte licencu prije uklanjanja programa $(^NameDA). Ako prihvatate sve uvjete ugovora, obilje≈æite donji kvadratiƒá. $_CLICK
 # ^UnLicenseTextRB
-Molim proËitajte licencu prije uklanjanja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite prvu opciju ispod. $_CLICK
+Molim proƒçitajte licencu prije uklanjanja programa $(^NameDA). Ukoliko prihvatate sve uvjete ugovora, odaberite prvu opciju ispod. $_CLICK
 # ^Custom
-Podeöavanje
+Pode≈°avanje
 # ^ComponentsText
-OznaËite komponente koje ûelite instalirati. Instaliraju se samo oznaËene komponente. Uklonite oznaku sa onih koje ne ûelite instalirati. $_CLICK
+Oznaƒçite komponente koje ≈æelite instalirati. Instaliraju se samo oznaƒçene komponente. Uklonite oznaku sa onih koje ne ≈æelite instalirati. $_CLICK
 # ^ComponentsSubText1
 Izaberite tip instalacije:
 # ^ComponentsSubText2_NoInstTypes
 Odaberite komponente za instalaciju:
 # ^ComponentsSubText2
-Ili po izboru oznaËite komponente koje ûelite instalirati:
+Ili po izboru oznaƒçite komponente koje ≈æelite instalirati:
 # ^UnComponentsText
-OznaËite komponente koje ûelite ukloniti. Uklonite oznaku sa onih koje ne ûelite ukloniti. $_CLICK
+Oznaƒçite komponente koje ≈æelite ukloniti. Uklonite oznaku sa onih koje ne ≈æelite ukloniti. $_CLICK
 # ^UnComponentsSubText1
 Izaberite tip uklanjanja:
 # ^UnComponentsSubText2_NoInstTypes
 Izaberite komponente za uklanjanje:
 # ^UnComponentsSubText2
-Ili po izboru odaberite komponente koje ûelite da uklonite:
+Ili po izboru odaberite komponente koje ≈æelite da uklonite:
 # ^DirText
-Program $(^NameDA) Êe biti instaliran u sljedeÊu mapu. Za instalaciju na neku drugu mapu odaberite 'Pregledaj...' i odaberite drugu mapu. $_CLICK
+Program $(^NameDA) ƒáe biti instaliran u sljedeƒáu mapu. Za instalaciju na neku drugu mapu odaberite 'Pregledaj...' i odaberite drugu mapu. $_CLICK
 # ^DirSubText
-Odrediöna mapa
+Odredi≈°na mapa
 # ^DirBrowseText
-Izaberite mapu u koju ûelite instalirati program $(^NameDA):
+Izaberite mapu u koju ≈æelite instalirati program $(^NameDA):
 # ^UnDirText
-Program $(^NameDA) Êe biti uklonjen iz navedene mape. Za uklanjanje iz druge mape odaberite 'Pregledaj...' i oznaËite drugu mapu. $_CLICK
+Program $(^NameDA) ƒáe biti uklonjen iz navedene mape. Za uklanjanje iz druge mape odaberite 'Pregledaj...' i oznaƒçite drugu mapu. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Izaberite mapu iz koje Êete program $(^NameDA) ukloniti:
+Izaberite mapu iz koje ƒáete program $(^NameDA) ukloniti:
 # ^SpaceAvailable
 "Slobodno prostora na disku: "
 # ^SpaceRequired
 "Potrebno prostora na disku: "
 # ^UninstallingText
-Program $(^NameDA) Êe biti uklonjen iz sljedeÊe mape. $_CLICK
+Program $(^NameDA) ƒáe biti uklonjen iz sljedeƒáe mape. $_CLICK
 # ^UninstallingSubText
 Uklanjanje iz:
 # ^FileError
-Greöka prilikom otvaranja datoteke za upisivanje: \r\n\t"$0"\r\n\"Odustani\" za prekid instalacije,\r\n\"Ponovi\" za ponovni pokuöaj upisivanja, ili\r\n\"Ignoriöi\" za zanemarenje te datoteke
+Gre≈°ka prilikom otvaranja datoteke za upisivanje: \r\n\t"$0"\r\n\"Odustani\" za prekid instalacije,\r\n\"Ponovi\" za ponovni poku≈°aj upisivanja, ili\r\n\"Ignori≈°i\" za zanemarenje te datoteke
 # ^FileError_NoIgnore
-Greöka prilikom otvaranja datoteke za upisivanje: \r\n\t"$0"\r\n\"Ponovi\" za ponovni pokuöaj zapisivanja, ili\r\n\"Odustani\" za prekid instalacije
+Gre≈°ka prilikom otvaranja datoteke za upisivanje: \r\n\t"$0"\r\n\"Ponovi\" za ponovni poku≈°aj zapisivanja, ili\r\n\"Odustani\" za prekid instalacije
 # ^CantWrite
-"NemoguÊe upisati: "
+"Nemoguƒáe upisati: "
 # ^CopyFailed
-Greöka prilikom kopiranja
+Gre≈°ka prilikom kopiranja
 # ^CopyTo
 "Kopiraj u "
 # ^Registering
@@ -133,49 +133,49 @@ Greöka prilikom kopiranja
 # ^Unregistering
 "Odjava: "
 # ^SymbolNotFound
-"NemoguÊe naÊi simbol: "
+"Nemoguƒáe naƒái simbol: "
 # ^CouldNotLoad
-"NemoguÊe uËitavanje: "
+"Nemoguƒáe uƒçitavanje: "
 # ^CreateFolder
 "Napravi mapu: "
 # ^CreateShortcut
-"Napravi preËicu: "
+"Napravi preƒçicu: "
 # ^CreatedUninstaller
 "Program za uklanjanje: "
 # ^Delete
-"Obriöi datoteku: "
+"Obri≈°i datoteku: "
 # ^DeleteOnReboot
-"Obriöi prilikom ponovnog pokretanja: "
+"Obri≈°i prilikom ponovnog pokretanja: "
 # ^ErrorCreatingShortcut
-"Greöka prilikom kreiranja preËica: "
+"Gre≈°ka prilikom kreiranja preƒçica: "
 # ^ErrorCreating
-"Greöka prilikom kreiranja: "
+"Gre≈°ka prilikom kreiranja: "
 # ^ErrorDecompressing
-Greöka prilikom otpakivanja podataka! OöteÊen instalacijski program?
+Gre≈°ka prilikom otpakivanja podataka! O≈°teƒáen instalacijski program?
 # ^ErrorRegistering
-Greöka prilikom prijavljivanja DLLa
+Gre≈°ka prilikom prijavljivanja DLLa
 # ^ExecShell
 "ExecShell: "
 # ^Exec
-"Izvröi: "
+"Izvr≈°i: "
 # ^Extract
 "Otpakuj: "
 # ^ErrorWriting
-"Otpakivanje: greöka upisivanja u datoteku "
+"Otpakivanje: gre≈°ka upisivanja u datoteku "
 # ^InvalidOpcode
-OöteÊena instalacijska datoteka: neispravna opkoda
+O≈°teƒáena instalacijska datoteka: neispravna opkoda
 # ^NoOLE
 "Nema OLE za: "
 # ^OutputFolder
 "Izlazna mapa: "
 # ^RemoveFolder
-"Obriöi mapu: "
+"Obri≈°i mapu: "
 # ^RenameOnReboot
 "Preimenuj prilikom ponovnog startovanja: "
 # ^Rename
 "Preimenuj: "
 # ^Skipped
-"PreskoËeno: "
+"Preskoƒçeno: "
 # ^CopyDetails
 Kopiraj detalje na Klembord
 # ^LogInstall
@@ -183,9 +183,9 @@ Logiraj zapisnik procesa instalacije
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G
 

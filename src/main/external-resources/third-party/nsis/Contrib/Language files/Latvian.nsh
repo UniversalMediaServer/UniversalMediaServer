@@ -1,122 +1,122 @@
-;Language: Latvieğu [Latvian] - (1062)
-;By Valdis Griíis
-;Corrections by Kristaps Meòìelis / x-f (x-f 'AT' inbox.lv)
+ï»¿;Language: LatvieÅ¡u [Latvian] - (1062)
+;By Valdis GriÄ·is
+;Corrections by Kristaps MeÅ†Ä£elis / x-f (x-f 'AT' inbox.lv)
 
-!insertmacro LANGFILE "Latvian" "Latvieğu"
+!insertmacro LANGFILE "Latvian" = "LatvieÅ¡u" "Latviesu"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Esiet sveicinâti '$(^NameDA)' uzstâdîğanas vednî"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ğis uzstâdîğanas vednis jums palîdzçs veikt '$(^NameDA)' uzstâdîğanu.$\r$\n$\r$\nÏoti ieteicams aizvçrt citas programmas pirms ğîs programmas uzstâdîğanas veikğanas. Tas ïaus atjaunot svarîgus sistçmas failus bez datora pârstartçğanas.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Esiet sveicinÄti '$(^NameDA)' uzstÄdÄ«Å¡anas vednÄ«"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Å is uzstÄdÄ«Å¡anas vednis jums palÄ«dzÄ“s veikt '$(^NameDA)' uzstÄdÄ«Å¡anu.$\r$\n$\r$\nÄ»oti ieteicams aizvÄ“rt citas programmas pirms Å¡Ä«s programmas uzstÄdÄ«Å¡anas veikÅ¡anas. Tas Ä¼aus atjaunot svarÄ«gus sistÄ“mas failus bez datora pÄrstartÄ“Å¡anas.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Esiet sveicinâti '$(^NameDA)' atinstalçğanas vednî"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ğis vednis jums palîdzçs veikt '$(^NameDA)' atinstalçğanu.$\r$\n$\r$\nPirms sâkt atinstalçğanas procesu, pârliecinieties, vai '$(^NameDA)' pağlaik nedarbojas.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Esiet sveicinÄti '$(^NameDA)' atinstalÄ“Å¡anas vednÄ«"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Å is vednis jums palÄ«dzÄ“s veikt '$(^NameDA)' atinstalÄ“Å¡anu.$\r$\n$\r$\nPirms sÄkt atinstalÄ“Å¡anas procesu, pÄrliecinieties, vai '$(^NameDA)' paÅ¡laik nedarbojas.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Licences lîgums"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' uzstâdîğanas."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ja piekrîtat licences lîguma noteikumiem, spiediet 'Piekrîtu', lai turpinâtu uzstâdîğanu. Jums ir jâpiekrît licences noteikumiem, lai uzstâdîtu '$(^NameDA)'."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ja piekrîtat licences lîguma noteikumiem, tad atzîmçjiet izvçles rûtiòu. Jums ir jâpiekrît licences noteikumiem, lai uzstâdîtu '$(^NameDA)'. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ja piekrîtat licences lîguma noteikumiem, tad izvçlieties pirmo zemâkesoğo opciju. Jums ir jâpiekrît licences noteikumiem, lai uzstâdîtu '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Licences lÄ«gums"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' uzstÄdÄ«Å¡anas."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ja piekrÄ«tat licences lÄ«guma noteikumiem, spiediet 'PiekrÄ«tu', lai turpinÄtu uzstÄdÄ«Å¡anu. Jums ir jÄpiekrÄ«t licences noteikumiem, lai uzstÄdÄ«tu '$(^NameDA)'."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad atzÄ«mÄ“jiet izvÄ“les rÅ«tiÅ†u. Jums ir jÄpiekrÄ«t licences noteikumiem, lai uzstÄdÄ«tu '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad izvÄ“lieties pirmo zemÄkesoÅ¡o opciju. Jums ir jÄpiekrÄ«t licences noteikumiem, lai uzstÄdÄ«tu '$(^NameDA)'. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Licences lîgums"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' atinstalçğanas."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ja piekrîtat licences noteikumiem, spiediet 'Piekrîtu', lai turpinâtu. Jums ir jâpiekrît licences noteikumiem, lai atinstalçtu '$(^NameDA)'."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ja piekrîtat licences lîguma noteikumiem, tad iezîmçjiet izvçles rûtiòu. Jums ir jâpiekrît licences noteikumiem, lai atinstalçtu '$(^NameDA)'. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ja piekrîtat licences lîguma noteikumiem, tad izvçlieties pirmo zemâkesoğo opciju. Jums ir jâpiekrît licences noteikumiem, lai atinstalçtu '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Licences lÄ«gums"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' atinstalÄ“Å¡anas."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ja piekrÄ«tat licences noteikumiem, spiediet 'PiekrÄ«tu', lai turpinÄtu. Jums ir jÄpiekrÄ«t licences noteikumiem, lai atinstalÄ“tu '$(^NameDA)'."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad iezÄ«mÄ“jiet izvÄ“les rÅ«tiÅ†u. Jums ir jÄpiekrÄ«t licences noteikumiem, lai atinstalÄ“tu '$(^NameDA)'. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad izvÄ“lieties pirmo zemÄkesoÅ¡o opciju. Jums ir jÄpiekrÄ«t licences noteikumiem, lai atinstalÄ“tu '$(^NameDA)'. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Spiediet 'Page Down', lai aplûkotu visu lîgumu."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Spiediet 'Page Down', lai aplÅ«kotu visu lÄ«gumu."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Izvçlieties komponentus"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Izvçlieties nepiecieğamâs '$(^NameDA)' sastâvdaïas, kuras uzstâdît."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "IzvÄ“lieties komponentus"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "IzvÄ“lieties nepiecieÅ¡amÄs '$(^NameDA)' sastÄvdaÄ¼as, kuras uzstÄdÄ«t."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Izvçlieties komponentus"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Izvçlieties nepiecieğamâs '$(^NameDA)' sastâvdaïas, kuras atinstalçt."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "IzvÄ“lieties komponentus"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "IzvÄ“lieties nepiecieÅ¡amÄs '$(^NameDA)' sastÄvdaÄ¼as, kuras atinstalÄ“t."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Apraksts"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Novietojiet peles kursoru uz komponenta, lai tiktu parâdîts tâ apraksts."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Novietojiet peles kursoru uz komponenta, lai tiktu parÄdÄ«ts tÄ apraksts."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Novietojiet peles kursoru uz komponenta, lai tiktu parâdîts tâ apraksts."
+    #FIXME:MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO 
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Izvçlieties uzstâdîğanas mapi"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Izvçlieties mapi, kurâ uzstâdît '$(^NameDA)'."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "IzvÄ“lieties uzstÄdÄ«Å¡anas mapi"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "IzvÄ“lieties mapi, kurÄ uzstÄdÄ«t '$(^NameDA)'."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Izvçlieties atinstalçğanas mapi"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Izvçlieties mapi, no kuras notiks '$(^NameDA)' atinstalçğana."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "IzvÄ“lieties atinstalÄ“Å¡anas mapi"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "IzvÄ“lieties mapi, no kuras notiks '$(^NameDA)' atinstalÄ“Å¡ana."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Notiek uzstâdîğana"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Lûdzu uzgaidiet, kamçr notiek '$(^NameDA)' uzstâdîğana."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Uzstâdîğana pabeigta"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Uzstâdîğana noritçja veiksmîgi."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Uzstâdîğana atcelta"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Uzstâdîğana nenoritçja veiksmîgi."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Notiek uzstÄdÄ«Å¡ana"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "LÅ«dzu uzgaidiet, kamÄ“r notiek '$(^NameDA)' uzstÄdÄ«Å¡ana."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "UzstÄdÄ«Å¡ana pabeigta"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "UzstÄdÄ«Å¡ana noritÄ“ja veiksmÄ«gi."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "UzstÄdÄ«Å¡ana atcelta"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "UzstÄdÄ«Å¡ana nenoritÄ“ja veiksmÄ«gi."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Notiek atinstalçğana"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Lûdzu uzgaidiet, kamçr '$(^NameDA)' tiek atinstalçta."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Atinstalçğana pabeigta"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Atinstalçğana noritçja veiksmîgi."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Atinstalçğana atcelta"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Atinstalçğana nenoritçja veiksmîgi."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Notiek atinstalÄ“Å¡ana"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "LÅ«dzu uzgaidiet, kamÄ“r '$(^NameDA)' tiek atinstalÄ“ta."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "AtinstalÄ“Å¡ana pabeigta"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "AtinstalÄ“Å¡ana noritÄ“ja veiksmÄ«gi."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "AtinstalÄ“Å¡ana atcelta"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "AtinstalÄ“Å¡ana nenoritÄ“ja veiksmÄ«gi."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Tiek pabeigta '$(^NameDA)' uzstâdîğana"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "'$(^NameDA)' tika veiksmîgi uzstâdîta jûsu datorâ.$\r$\n$\r$\nNospiediet 'Pabeigt', lai aizvçrtu vedni."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Jûsu datoru ir nepiecieğams pârstartçt, lai pabeigtu '$(^NameDA)' uzstâdîğanu. Vai vçlaties pârstartçt datoru tûlît?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Tiek pabeigta '$(^NameDA)' uzstÄdÄ«Å¡ana"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "'$(^NameDA)' tika veiksmÄ«gi uzstÄdÄ«ta jÅ«su datorÄ.$\r$\n$\r$\nNospiediet 'Pabeigt', lai aizvÄ“rtu vedni."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "JÅ«su datoru ir nepiecieÅ¡ams pÄrstartÄ“t, lai pabeigtu '$(^NameDA)' uzstÄdÄ«Å¡anu. Vai vÄ“laties pÄrstartÄ“t datoru tÅ«lÄ«t?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Tiek pabeigta '$(^NameDA)' atinstalâcija"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "'$(^NameDA)' tika veiksmîgi izdzçsta no jûsu datora.$\r$\n$\r$\nNospiediet 'Pabeigt', lai aizvçrtu vedni."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Jûsu datoru nepiecieğams pârstartçt, lai pabeigtu '$(^NameDA)' atinstalçğanu. Vai vçlaties pârstartçt datoru tûlît?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Tiek pabeigta '$(^NameDA)' atinstalÄcija"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "'$(^NameDA)' tika veiksmÄ«gi izdzÄ“sta no jÅ«su datora.$\r$\n$\r$\nNospiediet 'Pabeigt', lai aizvÄ“rtu vedni."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "JÅ«su datoru nepiecieÅ¡ams pÄrstartÄ“t, lai pabeigtu '$(^NameDA)' atinstalÄ“Å¡anu. Vai vÄ“laties pÄrstartÄ“t datoru tÅ«lÄ«t?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Pârstartçt tûlît"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Es vçlos pârstartçt pats vçlâk"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "PÄrstartÄ“t tÅ«lÄ«t"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Es vÄ“los pÄrstartÄ“t pats vÄ“lÄk"
   ${LangFileString} MUI_TEXT_FINISH_RUN "P&alaist '$(^NameDA)'"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Pa&râdît LasiMani failu"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Pa&rÄdÄ«t LasiMani failu"
   ${LangFileString} MUI_BUTTONTEXT_FINISH "&Pabeigt"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Izvçlieties 'Start Menu' folderi"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Izvçlieties 'Start Menu' mapi '$(^NameDA)' saîsnçm."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Izvçlieties 'Start Menu' mapi, kurâ tiks izveidotas programmas saîsnes. Varat arî pats izveidot jaunu mapi."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Neveidot saîsnes"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "IzvÄ“lieties 'Start Menu' folderi"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "IzvÄ“lieties 'Start Menu' mapi '$(^NameDA)' saÄ«snÄ“m."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "IzvÄ“lieties 'Start Menu' mapi, kurÄ tiks izveidotas programmas saÄ«snes. Varat arÄ« pats izveidot jaunu mapi."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Neveidot saÄ«snes"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "'$(^NameDA)' atinstalçğana"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Dzçst '$(^NameDA)' no jûsu datora."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "'$(^NameDA)' atinstalÄ“Å¡ana"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "DzÄ“st '$(^NameDA)' no jÅ«su datora."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Vai tieğâm vçlaties pârtraukt '$(^Name)' uzstâdîğanu?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Vai tieÅ¡Äm vÄ“laties pÄrtraukt '$(^Name)' uzstÄdÄ«Å¡anu?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Vai tieğâm vçlaties pârtraukt '$(^Name)' atinstalçğanu?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Vai tieÅ¡Äm vÄ“laties pÄrtraukt '$(^Name)' atinstalÄ“Å¡anu?"
 !endif

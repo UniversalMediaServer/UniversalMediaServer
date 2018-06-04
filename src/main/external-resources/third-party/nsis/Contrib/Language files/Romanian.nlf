@@ -1,11 +1,11 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1048
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1250
 # RTL - anything else than RTL means LTR
 -
@@ -14,12 +14,12 @@ NLF v6
 # and Sorin Sbarnea INTERSOL SRL (sorin@intersol.ro) v4
 # New revision by George Radu (georadu@hotmail.com)
 # New revision by Iulian Dogariu (iulian@jayomega.net)
-#   - Use Romanian letters ãâîºş
+#   - Use Romanian letters ÄƒÃ¢Ã®ÅŸÅ£
 #   - Use imperative forms on buttons
 #   - Replace some neologisms
 # New revision by Vlad Rusu (vlad@bitattack.ro)
-#	- "Rasfoieºte" replaced with "Alege" - more appropiate
-#	- "Eliminã" related terms replaced with more appropiate "Dezinstaleazã"
+#	- "RasfoieÅŸte" replaced with "Alege" - more appropiate
+#	- "EliminÄƒ" related terms replaced with more appropiate "DezinstaleazÄƒ"
 #	- Fixed: Wrong translation in ^FileError and ^FileError_NoIgnore -> no translation
 #	  needed Abort/Retry/Ignore, as these are not translated into local language, OS related
 # ^Branding
@@ -29,143 +29,143 @@ Instalare $(^Name)
 # ^UninstallCaption
 Dezinstalare $(^Name)
 # ^LicenseSubCaption
-: Contract de licenşã
+: Contract de licenÅ£Äƒ
 # ^ComponentsSubCaption
-: Opşiuni instalare
+: OpÅ£iuni instalare
 # ^DirSubCaption
-: Directorul destinaşie
+: Directorul destinaÅ£ie
 # ^InstallingSubCaption
-: În curs de instalare
+: Ãn curs de instalare
 # ^CompletedSubCaption
-: Instalare terminatã
+: Instalare terminatÄƒ
 # ^UnComponentsSubCaption
-: Opşiuni dezinstalare
+: OpÅ£iuni dezinstalare
 # ^UnDirSubCaption
 : Directorul de dezinstalare
 # ^ConfirmSubCaption
-: Confirmã
+: ConfirmÄƒ
 # ^UninstallingSubCaption
-: În curs de dezinstalare
+: Ãn curs de dezinstalare
 # ^UnCompletedSubCaption
-: Terminã
+: TerminÄƒ
 # ^BackBtn
-< Îna&poi
+< Ãna&poi
 # ^NextBtn
-Îna&inte >
+Ãna&inte >
 # ^AgreeBtn
 &De acord
 # ^AcceptBtn
-&Accept termenii contractului de licenşã
+&Accept termenii contractului de licenÅ£Äƒ
 # ^DontAcceptBtn
-Nu accept termenii contractului de licenşã
+Nu accept termenii contractului de licenÅ£Äƒ
 # ^InstallBtn
-&Instaleazã
+&InstaleazÄƒ
 # ^UninstallBtn
-&Dezinstaleazã
+&DezinstaleazÄƒ
 # ^CancelBtn
-&Renunşã
+&RenunÅ£Äƒ
 # ^CloseBtn
-În&chide
+Ãn&chide
 # ^BrowseBtn
 &Alege...
 # ^ShowDetailsBtn
-Aratã &detalii
+AratÄƒ &detalii
 # ^ClickNext
-Apãsaşi Înainte pentru a continua.
+ApÄƒsaÅ£i Ãnainte pentru a continua.
 # ^ClickInstall
-Apãsaşi Instaleazã pentru a începe instalarea.
+ApÄƒsaÅ£i InstaleazÄƒ pentru a Ã®ncepe instalarea.
 # ^ClickUninstall
-Apãsaşi Dezinstaleazã pentru a începe dezinstalarea.
+ApÄƒsaÅ£i DezinstaleazÄƒ pentru a Ã®ncepe dezinstalarea.
 # ^Name
 Nume
 # ^Completed
 Terminat
 # ^LicenseText
-Citişi cu atenşie contractul de licenşã înainte de a instala $(^NameDA). Dacã acceptaşi termenii contractului de licenşã, apãsaşi butonul De acord.
+CitiÅ£i cu atenÅ£ie contractul de licenÅ£Äƒ Ã®nainte de a instala $(^NameDA). DacÄƒ acceptaÅ£i termenii contractului de licenÅ£Äƒ, apÄƒsaÅ£i butonul De acord.
 # ^LicenseTextCB
-Citişi cu atenşie contractul de licenşã înainte de a instala $(^NameDA). Dacã acceptaşi termenii contractului de licenşã, bifaşi cãsuşa de mai jos. $_CLICK
+CitiÅ£i cu atenÅ£ie contractul de licenÅ£Äƒ Ã®nainte de a instala $(^NameDA). DacÄƒ acceptaÅ£i termenii contractului de licenÅ£Äƒ, bifaÅ£i cÄƒsuÅ£a de mai jos. $_CLICK
 # ^LicenseTextRB
-Citişi cu atenşie contractul de licenşã înainte de a instala $(^NameDA). Dacã acceptaşi termenii contractului de licenşã, selectaşi prima opşiune de mai jos. $_CLICK
+CitiÅ£i cu atenÅ£ie contractul de licenÅ£Äƒ Ã®nainte de a instala $(^NameDA). DacÄƒ acceptaÅ£i termenii contractului de licenÅ£Äƒ, selectaÅ£i prima opÅ£iune de mai jos. $_CLICK
 # ^UnLicenseText
-Citişi cu atenşie contractul de licenşã înainte de a dezinstala $(^NameDA). Dacã acceptaşi termenii contractului de licenşã, apãsaşi butonul De acord.
+CitiÅ£i cu atenÅ£ie contractul de licenÅ£Äƒ Ã®nainte de a dezinstala $(^NameDA). DacÄƒ acceptaÅ£i termenii contractului de licenÅ£Äƒ, apÄƒsaÅ£i butonul De acord.
 # ^UnLicenseTextCB
-Citişi cu atenşie contractul de licenşã înainte de a dezinstala $(^NameDA). Dacã acceptaşi termenii contractului de licenşã, bifaşi cãsuşa de mai jos. $_CLICK
+CitiÅ£i cu atenÅ£ie contractul de licenÅ£Äƒ Ã®nainte de a dezinstala $(^NameDA). DacÄƒ acceptaÅ£i termenii contractului de licenÅ£Äƒ, bifaÅ£i cÄƒsuÅ£a de mai jos. $_CLICK
 # ^UnLicenseTextRB
-Citişi cu atenşie contractul de licenşã înainte de a dezinstala $(^NameDA). Dacã acceptaşi termenii contractului de licenşã, selectaşi prima opşiune de mai jos. $_CLICK
+CitiÅ£i cu atenÅ£ie contractul de licenÅ£Äƒ Ã®nainte de a dezinstala $(^NameDA). DacÄƒ acceptaÅ£i termenii contractului de licenÅ£Äƒ, selectaÅ£i prima opÅ£iune de mai jos. $_CLICK
 # ^Custom
-Personalizatã
+PersonalizatÄƒ
 # ^ComponentsText
-Alegeşi componentele pe care dorişi sã le instalaşi. $_CLICK
+AlegeÅ£i componentele pe care doriÅ£i sÄƒ le instalaÅ£i. $_CLICK
 # ^ComponentsSubText1
-Alegeşi tipul instalãrii:
+AlegeÅ£i tipul instalÄƒrii:
 # ^ComponentsSubText2_NoInstTypes
-Alegeşi componentele ce urmeazã a fi instalate:
+AlegeÅ£i componentele ce urmeazÄƒ a fi instalate:
 # ^ComponentsSubText2
-Sau, alegeşi componentele opşionale pe care dorişi sã le instalaşi:
+Sau, alegeÅ£i componentele opÅ£ionale pe care doriÅ£i sÄƒ le instalaÅ£i:
 # ^UnComponentsText
-Alegeşi componentele pe care dorişi sã le dezinstalaşi. $_CLICK
+AlegeÅ£i componentele pe care doriÅ£i sÄƒ le dezinstalaÅ£i. $_CLICK
 # ^UnComponentsSubText1
-Alegeşi tipul de dezinstalare:
+AlegeÅ£i tipul de dezinstalare:
 # ^UnComponentsSubText2_NoInstTypes
-Alegeşi componentele ce urmeazã a fi dezinstalate:
+AlegeÅ£i componentele ce urmeazÄƒ a fi dezinstalate:
 # ^UnComponentsSubText2
-Sau, alegeşi componentele opşionale pe care dorişi sã le dezinstalaşi:
+Sau, alegeÅ£i componentele opÅ£ionale pe care doriÅ£i sÄƒ le dezinstalaÅ£i:
 # ^DirText
-$(^NameDA) se va instala în urmãtorul director. Pentru a alege altã destinaşie, apãsaşi Alege ºi alegeşi alt director. $_CLICK
+$(^NameDA) se va instala Ã®n urmÄƒtorul director. Pentru a alege altÄƒ destinaÅ£ie, apÄƒsaÅ£i Alege ÅŸi alegeÅ£i alt director. $_CLICK
 # ^DirSubText
-Director destinaşie
+Director destinaÅ£ie
 # ^DirBrowseText
-Alegeşi directorul în care dorişi sã instalaşi $(^NameDA):
+AlegeÅ£i directorul Ã®n care doriÅ£i sÄƒ instalaÅ£i $(^NameDA):
 # ^UnDirText
-$(^NameDA) se va dezinstala din urmãtorul director. Pentru a dezinstala din alt director, apãsaşi Alege ºi alegeşi alt director. $_CLICK
+$(^NameDA) se va dezinstala din urmÄƒtorul director. Pentru a dezinstala din alt director, apÄƒsaÅ£i Alege ÅŸi alegeÅ£i alt director. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Alegeşi directorul de dezinstalare al $(^NameDA):
+AlegeÅ£i directorul de dezinstalare al $(^NameDA):
 # ^SpaceAvailable
-"Spaşiu disponibil: "
+"SpaÅ£iu disponibil: "
 # ^SpaceRequired
-"Spaşiu necesar: "
+"SpaÅ£iu necesar: "
 # ^UninstallingText
-Aceastã aplicaşie va dezinstala $(^NameDA) din computerul Dv. $_CLICK
+AceastÄƒ aplicaÅ£ie va dezinstala $(^NameDA) din computerul Dv. $_CLICK
 # ^UninstallingSubText
 Dezinstalare din:
 # ^FileError
-Eroare la scrierea fiºierului: \r\n\t"$0"\r\nApãsaşi Abort pentru oprirea instalãrii,\r\nRetry pentru a mai încerca o datã scrierea fiºierului, \r\nIgnore pentru a trece peste acest fiºier.
+Eroare la scrierea fiÅŸierului: \r\n\t"$0"\r\nApÄƒsaÅ£i Abort pentru oprirea instalÄƒrii,\r\nRetry pentru a mai Ã®ncerca o datÄƒ scrierea fiÅŸierului, \r\nIgnore pentru a trece peste acest fiÅŸier.
 # ^FileError_NoIgnore
-Eroare la scrierea fiºierului: \r\n\t"$0"\r\nApãsaşi Retry pentru a mai încerca o datã, sau\r\nAbort pentru oprirea instalãrii.
+Eroare la scrierea fiÅŸierului: \r\n\t"$0"\r\nApÄƒsaÅ£i Retry pentru a mai Ã®ncerca o datÄƒ, sau\r\nAbort pentru oprirea instalÄƒrii.
 # ^CantWrite
 "Nu am putut scrie: "
 # ^CopyFailed
-Copierea a eºuat
+Copierea a eÅŸuat
 # ^CopyTo
-"Copiere în "
+"Copiere Ã®n "
 # ^Registering
-"Se înregistreazã: "
+"Se Ã®nregistreazÄƒ: "
 # ^Unregistering
-"Se dezînregistreazã din registru: "
+"Se dezÃ®nregistreazÄƒ din registru: "
 # ^SymbolNotFound
-"Simbolul nu a fost gãsit: "
+"Simbolul nu a fost gÄƒsit: "
 # ^CouldNotLoad
-"Nu am putut încãrca: "
+"Nu am putut Ã®ncÄƒrca: "
 # ^CreateFolder
 "Creare director: "
 # ^CreateShortcut
-"Creare comandã rapidã: "
+"Creare comandÄƒ rapidÄƒ: "
 # ^CreatedUninstaller
-"S-a creat aplicaşia de dezinstalare: "
+"S-a creat aplicaÅ£ia de dezinstalare: "
 # ^Delete
-"ªtergere fiºier: "
+"Återgere fiÅŸier: "
 # ^DeleteOnReboot
-"ªtergere la repornire: "
+"Återgere la repornire: "
 # ^ErrorCreatingShortcut
 "Eroare la crearea comenzii rapide: "
 # ^ErrorCreating
 "Eroare la creare: "
 # ^ErrorDecompressing
-Eroare la dezarhivarea datelor! Aplicatia de instalare este defectã?
+Eroare la dezarhivarea datelor! Aplicatia de instalare este defectÄƒ?
 # ^ErrorRegistering
-Eroare la Înregistrarea DLL-ului
+Eroare la Ãnregistrarea DLL-ului
 # ^ExecShell
 "ExecShell: "
 # ^Exec
@@ -173,30 +173,30 @@ Eroare la Înregistrarea DLL-ului
 # ^Extract
 "Extragere: "
 # ^ErrorWriting
-"Extragere: eroare la scriere în fiºier "
+"Extragere: eroare la scriere Ã®n fiÅŸier "
 # ^InvalidOpcode
-Aplicaşie de instalare defectã: opcode incorect
+AplicaÅ£ie de instalare defectÄƒ: opcode incorect
 # ^NoOLE
-"Nu existã OLE pentru: "
+"Nu existÄƒ OLE pentru: "
 # ^OutputFolder
-"Directorul destinaşie: "
+"Directorul destinaÅ£ie: "
 # ^RemoveFolder
-"ªtergere destinaşie: "
+"Återgere destinaÅ£ie: "
 # ^RenameOnReboot
 "Redenumire la repornirea computerului: "
 # ^Rename
 "Redenumire: "
 # ^Skipped
-"Sãrite: "
+"SÄƒrite: "
 # ^CopyDetails
-Copiere detalii în clipboard
+Copiere detalii Ã®n clipboard
 # ^LogInstall
 Jurnal proces instalare
 # ^Byte
 O
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

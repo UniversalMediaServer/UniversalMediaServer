@@ -1,7 +1,7 @@
-;Language: Indonesian (1057)
+﻿;Language: Indonesian (1057)
 ;By Ariel825010106@yahoo.com modified by was.uthm@gmail.com in April 2009
 
-!insertmacro LANGFILE "Indonesian" "Indonesian"
+!insertmacro LANGFILE "Indonesian" = "Bahasa Indonesia" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Selamat datang di program instalasi $(^NameDA)"
@@ -48,7 +48,7 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Tunjuk ke salah satu komponen untuk melihat deskripsi tentang komponen itu."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Tunjuk ke salah satu komponen untuk melihat deskripsi tentang komponen itu."
+    #FIXME:MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO
   !endif
 !endif
 

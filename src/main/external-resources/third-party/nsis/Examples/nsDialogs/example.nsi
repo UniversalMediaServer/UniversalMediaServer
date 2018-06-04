@@ -5,9 +5,13 @@ Name "nsDialogs Example"
 OutFile "nsDialogs Example.exe"
 
 XPStyle on
+RequestExecutionLevel user
+
+LicenseText "All the action takes place on the next page..."
 
 Page license
 Page custom nsDialogsPage
+!pragma warning disable 8000 ; "Page instfiles not used, no sections will be executed!"
 
 Var BUTTON
 Var EDIT
@@ -55,7 +59,7 @@ Function OnChange
 
 	Pop $0 # HWND
 
-	System::Call user32::GetWindowText(i$EDIT,t.r0,i${NSIS_MAX_STRLEN})
+	System::Call user32::GetWindowText(p$EDIT,t.r0,i${NSIS_MAX_STRLEN})
 
 	${If} $0 == "hello there"
 		MessageBox MB_OK "right back at ya"

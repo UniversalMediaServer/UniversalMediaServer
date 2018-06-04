@@ -1,121 +1,121 @@
-;Language: Mongolian (1104)
+п»ї;Language: Mongolian (1104)
 ;By Bayarsaikhan Enkhtaivan
 
-!insertmacro LANGFILE "Mongolian" "Mongolian"
+!insertmacro LANGFILE "Mongolian" "Mongolian (Cyrillic)" "РњРѕРЅРіРѕР» РљРёСЂРёР»Р»" "Mongol kirill"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "$(^NameDA) Суулгацад тавтай морил"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "$(^NameDA) суулгацын илбэчинг та шууд ашиглаж болно.$\r$\n$\r$\nЇїнийг суулгахын ємнє бусад бїх програмуудаа хаахыг зєвлєж байна. Системийн файлуудыг шинэчилбэл компьютерээ дахин ачаалахгїй байх боломжтой.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "$(^NameDA) РЎСѓСѓР»РіР°С†Р°Рґ С‚Р°РІС‚Р°Р№ РјРѕСЂРёР»"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "$(^NameDA) СЃСѓСѓР»РіР°С†С‹РЅ РёР»Р±СЌС‡РёРЅРі С‚Р° С€СѓСѓРґ Р°С€РёРіР»Р°Р¶ Р±РѕР»РЅРѕ.$\r$\n$\r$\nР‡С—РЅРёР№Рі СЃСѓСѓР»РіР°С…С‹РЅ С”РјРЅС” Р±СѓСЃР°Рґ Р±С—С… РїСЂРѕРіСЂР°РјСѓСѓРґР°Р° С…Р°Р°С…С‹Рі Р·С”РІР»С”Р¶ Р±Р°Р№РЅР°. РЎРёСЃС‚РµРјРёР№РЅ С„Р°Р№Р»СѓСѓРґС‹Рі С€РёРЅСЌС‡РёР»Р±СЌР» РєРѕРјРїСЊСЋС‚РµСЂСЌСЌ РґР°С…РёРЅ Р°С‡Р°Р°Р»Р°С…РіС—Р№ Р±Р°Р№С… Р±РѕР»РѕРјР¶С‚РѕР№.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "$(^NameDA) Суулгацыг устгах илбэчинд тавтай морил"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "$(^NameDA) устгацын илбэчинг та шууд ашиглаж болно.$\r$\n$\r$\nУстгахын ємнє $(^NameDA) нь ажиллаагїй эсэхийг шалга.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "$(^NameDA) РЎСѓСѓР»РіР°С†С‹Рі СѓСЃС‚РіР°С… РёР»Р±СЌС‡РёРЅРґ С‚Р°РІС‚Р°Р№ РјРѕСЂРёР»"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "$(^NameDA) СѓСЃС‚РіР°С†С‹РЅ РёР»Р±СЌС‡РёРЅРі С‚Р° С€СѓСѓРґ Р°С€РёРіР»Р°Р¶ Р±РѕР»РЅРѕ.$\r$\n$\r$\nРЈСЃС‚РіР°С…С‹РЅ С”РјРЅС” $(^NameDA) РЅСЊ Р°Р¶РёР»Р»Р°Р°РіС—Р№ СЌСЃСЌС…РёР№Рі С€Р°Р»РіР°.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Лицензийн зєвшєєрєл"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "$(^NameDA)-ыг суулгахынхаа ємнє зєвшилцлийн зїйлїїдийг уншина уу."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Хэрэв зєвшилцлийн зїйлсийг зєвшєєрч байвал, Зєвшєєрлєє товчийг даран їргэлжлїїлнэ її. $(^NameDA)-ыг суулгахын тулд заавал зєвшєєрєх шаардлагатай."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Хэрэв зєвшилцлийн зїйлсийг зєвшєєрч байвал, Зєвлєх хайрцгийг даран їргэлжлїїлнэ її. $(^NameDA)-ыг суулгахын тулд заавал зєвшєєрєх шаардлагатай. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Хэрэв зєвшилцлийн зїйлсийг зєвшєєрч байвал, доорхоос эхнийг нь сонгон їргэлжлїїлнэ її. $(^NameDA)-ыг суулгахын тулд заавал зєвшєєрєх шаардлагатай. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Р›РёС†РµРЅР·РёР№РЅ Р·С”РІС€С”С”СЂС”Р»"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "$(^NameDA)-С‹Рі СЃСѓСѓР»РіР°С…С‹РЅС…Р°Р° С”РјРЅС” Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»С—С—РґРёР№Рі СѓРЅС€РёРЅР° СѓСѓ."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "РҐСЌСЂСЌРІ Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»СЃРёР№Рі Р·С”РІС€С”С”СЂС‡ Р±Р°Р№РІР°Р», Р—С”РІС€С”С”СЂР»С”С” С‚РѕРІС‡РёР№Рі РґР°СЂР°РЅ С—СЂРіСЌР»Р¶Р»С—С—Р»РЅСЌ С—С—. $(^NameDA)-С‹Рі СЃСѓСѓР»РіР°С…С‹РЅ С‚СѓР»Рґ Р·Р°Р°РІР°Р» Р·С”РІС€С”С”СЂС”С… С€Р°Р°СЂРґР»Р°РіР°С‚Р°Р№."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "РҐСЌСЂСЌРІ Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»СЃРёР№Рі Р·С”РІС€С”С”СЂС‡ Р±Р°Р№РІР°Р», Р—С”РІР»С”С… С…Р°Р№СЂС†РіРёР№Рі РґР°СЂР°РЅ С—СЂРіСЌР»Р¶Р»С—С—Р»РЅСЌ С—С—. $(^NameDA)-С‹Рі СЃСѓСѓР»РіР°С…С‹РЅ С‚СѓР»Рґ Р·Р°Р°РІР°Р» Р·С”РІС€С”С”СЂС”С… С€Р°Р°СЂРґР»Р°РіР°С‚Р°Р№. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "РҐСЌСЂСЌРІ Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»СЃРёР№Рі Р·С”РІС€С”С”СЂС‡ Р±Р°Р№РІР°Р», РґРѕРѕСЂС…РѕРѕСЃ СЌС…РЅРёР№Рі РЅСЊ СЃРѕРЅРіРѕРЅ С—СЂРіСЌР»Р¶Р»С—С—Р»РЅСЌ С—С—. $(^NameDA)-С‹Рі СЃСѓСѓР»РіР°С…С‹РЅ С‚СѓР»Рґ Р·Р°Р°РІР°Р» Р·С”РІС€С”С”СЂС”С… С€Р°Р°СЂРґР»Р°РіР°С‚Р°Р№. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Лицензийн зєвшєєрєл"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "$(^NameDA) устгахын ємнє зєвшилцлийн зїйлсийг уншина уу."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Хэрэв зєвшилцлийн зїйлсийг зєвшєєрч байвал, Зєвшєєрлєє товчийг даран їргэлжлїїлнэ її. $(^NameDA)-ыг устгахын тулд заавал зєвшєєрєх шаардлагатай."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Хэрэв зєвшилцлийн зїйлсийг зєвшєєрч байвал, Зєвлєх хайрцгийг даран їргэлжлїїлнэ її. $(^NameDA)-ыг устгахын тулд заавал зєвшєєрєх шаардлагатай. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Хэрэв зєвшилцлийн зїйлсийг зєвшєєрч байвал, доорхоос эхнийг нь сонгон їргэлжлїїлнэ її. $(^NameDA)-ыг устгахын тулд заавал зєвшєєрєх шаардлагатай. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Р›РёС†РµРЅР·РёР№РЅ Р·С”РІС€С”С”СЂС”Р»"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "$(^NameDA) СѓСЃС‚РіР°С…С‹РЅ С”РјРЅС” Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»СЃРёР№Рі СѓРЅС€РёРЅР° СѓСѓ."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "РҐСЌСЂСЌРІ Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»СЃРёР№Рі Р·С”РІС€С”С”СЂС‡ Р±Р°Р№РІР°Р», Р—С”РІС€С”С”СЂР»С”С” С‚РѕРІС‡РёР№Рі РґР°СЂР°РЅ С—СЂРіСЌР»Р¶Р»С—С—Р»РЅСЌ С—С—. $(^NameDA)-С‹Рі СѓСЃС‚РіР°С…С‹РЅ С‚СѓР»Рґ Р·Р°Р°РІР°Р» Р·С”РІС€С”С”СЂС”С… С€Р°Р°СЂРґР»Р°РіР°С‚Р°Р№."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "РҐСЌСЂСЌРІ Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»СЃРёР№Рі Р·С”РІС€С”С”СЂС‡ Р±Р°Р№РІР°Р», Р—С”РІР»С”С… С…Р°Р№СЂС†РіРёР№Рі РґР°СЂР°РЅ С—СЂРіСЌР»Р¶Р»С—С—Р»РЅСЌ С—С—. $(^NameDA)-С‹Рі СѓСЃС‚РіР°С…С‹РЅ С‚СѓР»Рґ Р·Р°Р°РІР°Р» Р·С”РІС€С”С”СЂС”С… С€Р°Р°СЂРґР»Р°РіР°С‚Р°Р№. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "РҐСЌСЂСЌРІ Р·С”РІС€РёР»С†Р»РёР№РЅ Р·С—Р№Р»СЃРёР№Рі Р·С”РІС€С”С”СЂС‡ Р±Р°Р№РІР°Р», РґРѕРѕСЂС…РѕРѕСЃ СЌС…РЅРёР№Рі РЅСЊ СЃРѕРЅРіРѕРЅ С—СЂРіСЌР»Р¶Р»С—С—Р»РЅСЌ С—С—. $(^NameDA)-С‹Рі СѓСЃС‚РіР°С…С‹РЅ С‚СѓР»Рґ Р·Р°Р°РІР°Р» Р·С”РІС€С”С”СЂС”С… С€Р°Р°СЂРґР»Р°РіР°С‚Р°Р№. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Page Down товчийг даран зєвшилцлийг доош гїйлгэнэ її."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Page Down С‚РѕРІС‡РёР№Рі РґР°СЂР°РЅ Р·С”РІС€РёР»С†Р»РёР№Рі РґРѕРѕС€ РіС—Р№Р»РіСЌРЅСЌ С—С—."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Нэгдлийг сонгох"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "$(^NameDA)-ыг суулгахад шаардагдах хэсгийг сонгоно уу."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "РќСЌРіРґР»РёР№Рі СЃРѕРЅРіРѕС…"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "$(^NameDA)-С‹Рі СЃСѓСѓР»РіР°С…Р°Рґ С€Р°Р°СЂРґР°РіРґР°С… С…СЌСЃРіРёР№Рі СЃРѕРЅРіРѕРЅРѕ СѓСѓ."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Нэгдлийг сонгох"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "$(^NameDA)-ын устгах шаардлагатай нэгдлийг сонгох."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "РќСЌРіРґР»РёР№Рі СЃРѕРЅРіРѕС…"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "$(^NameDA)-С‹РЅ СѓСЃС‚РіР°С… С€Р°Р°СЂРґР»Р°РіР°С‚Р°Р№ РЅСЌРіРґР»РёР№Рі СЃРѕРЅРіРѕС…."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Тайлбар"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "РўР°Р№Р»Р±Р°СЂ"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Та хулганаараа нэгдлийн дээр очиход тїїний тайлбарыг харуулна."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "РўР° С…СѓР»РіР°РЅР°Р°СЂР°Р° РЅСЌРіРґР»РёР№РЅ РґСЌСЌСЂ РѕС‡РёС…РѕРґ С‚С—С—РЅРёР№ С‚Р°Р№Р»Р±Р°СЂС‹Рі С…Р°СЂСѓСѓР»РЅР°."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Та хулганаараа нэгдлийн дээр очиход тїїний тайлбарыг харуулна."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "РќСЌРіРґР»РёР№Рі СЃРѕРЅРіРѕРІРѕР» С‚С—С—РЅРёР№ С‚Р°Р№Р»Р±Р°СЂС‹Рі С…Р°СЂРЅР°."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Суулгах байрлалыг сонгох"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "$(^NameDA) суулгацын суулгах замыг сонго."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "РЎСѓСѓР»РіР°С… Р±Р°Р№СЂР»Р°Р»С‹Рі СЃРѕРЅРіРѕС…"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "$(^NameDA) СЃСѓСѓР»РіР°С†С‹РЅ СЃСѓСѓР»РіР°С… Р·Р°РјС‹Рі СЃРѕРЅРіРѕ."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Устгацын байрлалыг сонгох"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "$(^NameDA)-ыг устгах хавтсыг сонгох."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "РЈСЃС‚РіР°С†С‹РЅ Р±Р°Р№СЂР»Р°Р»С‹Рі СЃРѕРЅРіРѕС…"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "$(^NameDA)-С‹Рі СѓСЃС‚РіР°С… С…Р°РІС‚СЃС‹Рі СЃРѕРЅРіРѕС…."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Суулгаж байна"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "$(^NameDA)-ыг суулгаж дуустал тїр хїлээнэ її."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Суулгаж дууслаа"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Суулгац амжилттай болов."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Суулгалт таслагдлаа"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Суулгалт амжилтгїй болов."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "РЎСѓСѓР»РіР°Р¶ Р±Р°Р№РЅР°"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "$(^NameDA)-С‹Рі СЃСѓСѓР»РіР°Р¶ РґСѓСѓСЃС‚Р°Р» С‚С—СЂ С…С—Р»СЌСЌРЅСЌ С—С—."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "РЎСѓСѓР»РіР°Р¶ РґСѓСѓСЃР»Р°Р°"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "РЎСѓСѓР»РіР°С† Р°РјР¶РёР»С‚С‚Р°Р№ Р±РѕР»РѕРІ."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "РЎСѓСѓР»РіР°Р»С‚ С‚Р°СЃР»Р°РіРґР»Р°Р°"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "РЎСѓСѓР»РіР°Р»С‚ Р°РјР¶РёР»С‚РіС—Р№ Р±РѕР»РѕРІ."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Устгаж байна"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "$(^NameDA) -ыг зайлуулж дуустал тїр хїлээнэ її."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Устгаж дууслаа"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Устгалт амжилттай дууслаа."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Устгац таслагдлаа"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Устгалт амжилтгїй боллоо."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "РЈСЃС‚РіР°Р¶ Р±Р°Р№РЅР°"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "$(^NameDA) -С‹Рі Р·Р°Р№Р»СѓСѓР»Р¶ РґСѓСѓСЃС‚Р°Р» С‚С—СЂ С…С—Р»СЌСЌРЅСЌ С—С—."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "РЈСЃС‚РіР°Р¶ РґСѓСѓСЃР»Р°Р°"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "РЈСЃС‚РіР°Р»С‚ Р°РјР¶РёР»С‚С‚Р°Р№ РґСѓСѓСЃР»Р°Р°."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "РЈСЃС‚РіР°С† С‚Р°СЃР»Р°РіРґР»Р°Р°"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "РЈСЃС‚РіР°Р»С‚ Р°РјР¶РёР»С‚РіС—Р№ Р±РѕР»Р»РѕРѕ."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "$(^NameDA) Суулгацын илбэчин дууслаа"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) нь таны компьютерт суулаа.$\r$\n$\r$\nТєгсгєл дээр дарвал хаана."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "$(^NameDA)-ын суулгацын дараалалд та компьютерээ дахин ачаалснаар дуусна. Та дахин ачаалахыг хїсэж байна уу?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "$(^NameDA) РЎСѓСѓР»РіР°С†С‹РЅ РёР»Р±СЌС‡РёРЅ РґСѓСѓСЃР»Р°Р°"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) РЅСЊ С‚Р°РЅС‹ РєРѕРјРїСЊСЋС‚РµСЂС‚ СЃСѓСѓР»Р°Р°.$\r$\n$\r$\nРўС”РіСЃРіС”Р» РґСЌСЌСЂ РґР°СЂРІР°Р» С…Р°Р°РЅР°."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "$(^NameDA)-С‹РЅ СЃСѓСѓР»РіР°С†С‹РЅ РґР°СЂР°Р°Р»Р°Р»Рґ С‚Р° РєРѕРјРїСЊСЋС‚РµСЂСЌСЌ РґР°С…РёРЅ Р°С‡Р°Р°Р»СЃРЅР°Р°СЂ РґСѓСѓСЃРЅР°. РўР° РґР°С…РёРЅ Р°С‡Р°Р°Р»Р°С…С‹Рі С…С—СЃСЌР¶ Р±Р°Р№РЅР° СѓСѓ?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "$(^NameDA) Устгацын илбэчин дууслаа"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) нь таны компьютерээс зайлуулагдлаа.$\r$\n$\r$\nТєгсгєл дээр дарвал хаана."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "$(^NameDA) Устгацын дараалалд та компьютерээ дахин ачаалснаар дуусна. Та д.ачаалмаар байна уу?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "$(^NameDA) РЈСЃС‚РіР°С†С‹РЅ РёР»Р±СЌС‡РёРЅ РґСѓСѓСЃР»Р°Р°"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) РЅСЊ С‚Р°РЅС‹ РєРѕРјРїСЊСЋС‚РµСЂСЌСЌСЃ Р·Р°Р№Р»СѓСѓР»Р°РіРґР»Р°Р°.$\r$\n$\r$\nРўС”РіСЃРіС”Р» РґСЌСЌСЂ РґР°СЂРІР°Р» С…Р°Р°РЅР°."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "$(^NameDA) РЈСЃС‚РіР°С†С‹РЅ РґР°СЂР°Р°Р»Р°Р»Рґ С‚Р° РєРѕРјРїСЊСЋС‚РµСЂСЌСЌ РґР°С…РёРЅ Р°С‡Р°Р°Р»СЃРЅР°Р°СЂ РґСѓСѓСЃРЅР°. РўР° Рґ.Р°С‡Р°Р°Р»РјР°Р°СЂ Р±Р°Р№РЅР° СѓСѓ?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Д.Ачаал"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Би дараа д.ачаалахыг хїсэж байна."
-  ${LangFileString} MUI_TEXT_FINISH_RUN "$(^NameDA) ажиллуулах"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Readme харуулах"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Тєгсгєл"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Р”.РђС‡Р°Р°Р»"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Р‘Рё РґР°СЂР°Р° Рґ.Р°С‡Р°Р°Р»Р°С…С‹Рі С…С—СЃСЌР¶ Р±Р°Р№РЅР°."
+  ${LangFileString} MUI_TEXT_FINISH_RUN "$(^NameDA) Р°Р¶РёР»Р»СѓСѓР»Р°С…"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Readme С…Р°СЂСѓСѓР»Р°С…"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&РўС”РіСЃРіС”Р»"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Start цэсний хавтсыг сонго"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Start цэс дэх $(^NameDA) shortcut-ын хавтсыг сонго."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Start цэсэнд програмын shortcut їїсгэх хавтсыг сонго. Эсвэл та шинэ нэрээр їїсгэж болно."
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Start С†СЌСЃРЅРёР№ С…Р°РІС‚СЃС‹Рі СЃРѕРЅРіРѕ"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Start С†СЌСЃ РґСЌС… $(^NameDA) shortcut-С‹РЅ С…Р°РІС‚СЃС‹Рі СЃРѕРЅРіРѕ."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Start С†СЌСЃСЌРЅРґ РїСЂРѕРіСЂР°РјС‹РЅ shortcut С—С—СЃРіСЌС… С…Р°РІС‚СЃС‹Рі СЃРѕРЅРіРѕ. Р­СЃРІСЌР» С‚Р° С€РёРЅСЌ РЅСЌСЂСЌСЌСЂ С—С—СЃРіСЌР¶ Р±РѕР»РЅРѕ."
   ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Do not create shortcuts"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "$(^NameDA)--ын Устгац"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "$(^NameDA) -ыг таны компьютерээс зайлуулах."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "$(^NameDA)--С‹РЅ РЈСЃС‚РіР°С†"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "$(^NameDA) -С‹Рі С‚Р°РЅС‹ РєРѕРјРїСЊСЋС‚РµСЂСЌСЌСЃ Р·Р°Р№Р»СѓСѓР»Р°С…."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "$(^Name) -ын суулгацаас гармаар байна уу?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "$(^Name) -С‹РЅ СЃСѓСѓР»РіР°С†Р°Р°СЃ РіР°СЂРјР°Р°СЂ Р±Р°Р№РЅР° СѓСѓ?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "$(^Name) Устгацаас гармаар байна уу?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "$(^Name) РЈСЃС‚РіР°С†Р°Р°СЃ РіР°СЂРјР°Р°СЂ Р±Р°Р№РЅР° СѓСѓ?"
 !endif

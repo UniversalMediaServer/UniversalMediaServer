@@ -50,26 +50,48 @@ Var mui.Button.Back
     !insertmacro MUI_DEFAULT MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
     !insertmacro MUI_DEFAULT MUI_BGCOLOR "FFFFFF"
 
+    ;Map *_NOSTRETCH legacy define to the correct *_STRETCH value
+    !verbose push 2
+    !insertmacro MUI_LEGACY_MAP_NOSTRETCH MUI_HEADERIMAGE_ ""
+    !insertmacro MUI_LEGACY_MAP_NOSTRETCH MUI_WELCOMEFINISHPAGE_ ""
+    !insertmacro MUI_LEGACY_MAP_NOSTRETCH MUI_UNWELCOMEFINISHPAGE_ ""
+    !verbose pop
+
     ;Default header images
     !ifdef MUI_HEADERIMAGE
 
       !insertmacro MUI_DEFAULT MUI_HEADERIMAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Header\nsis.bmp"
+      !insertmacro MUI_DEFAULT MUI_HEADERIMAGE_BITMAP_STRETCH "FitControl"
+      !insertmacro MUI_DEFAULT MUI_HEADERIMAGE_BITMAP_RTL_STRETCH ${MUI_HEADERIMAGE_BITMAP_STRETCH}
 
       !ifndef MUI_HEADERIMAGE_UNBITMAP
         !define MUI_HEADERIMAGE_UNBITMAP "${MUI_HEADERIMAGE_BITMAP}"
-        !ifdef MUI_HEADERIMAGE_BITMAP_NOSTRETCH
-          !insertmacro MUI_SET MUI_HEADERIMAGE_UNBITMAP_NOSTRETCH ""
-        !endif
+        !insertmacro MUI_SET MUI_HEADERIMAGE_UNBITMAP_STRETCH ${MUI_HEADERIMAGE_BITMAP_STRETCH}
+      !endif
+
+      !if "${MUI_HEADERIMAGE_BITMAP}" == ""
+        !error "Invalid MUI_HEADERIMAGE_BITMAP"
+      !endif
+      !if "${MUI_HEADERIMAGE_UNBITMAP}" == ""
+        !error "Invalid MUI_HEADERIMAGE_UNBITMAP"
       !endif
 
       !ifdef MUI_HEADERIMAGE_BITMAP_RTL
         !ifndef MUI_HEADERIMAGE_UNBITMAP_RTL
           !define MUI_HEADERIMAGE_UNBITMAP_RTL "${MUI_HEADERIMAGE_BITMAP_RTL}"
-          !ifdef MUI_HEADERIMAGE_BITMAP_RTL_NOSTRETCH
-            !insertmacro MUI_SET MUI_HEADERIMAGE_UNBITMAP_RTL_NOSTRETCH ""
-          !endif
+          !insertmacro MUI_SET MUI_HEADERIMAGE_UNBITMAP_RTL_STRETCH ${MUI_HEADERIMAGE_BITMAP_RTL_STRETCH}
+        !endif
+
+        !if "${MUI_HEADERIMAGE_BITMAP_RTL}" == ""
+          !error "Invalid MUI_HEADERIMAGE_BITMAP_RTL"
+        !endif
+        !if "${MUI_HEADERIMAGE_UNBITMAP_RTL}" == ""
+          !error "Invalid MUI_HEADERIMAGE_UNBITMAP_RTL"
         !endif
       !endif
+
+      !insertmacro MUI_DEFAULT MUI_HEADERIMAGE_UNBITMAP_STRETCH ${MUI_HEADERIMAGE_BITMAP_STRETCH}
+      !insertmacro MUI_DEFAULT MUI_HEADERIMAGE_UNBITMAP_RTL_STRETCH ${MUI_HEADERIMAGE_BITMAP_RTL_STRETCH}
 
     !endif
 
@@ -133,7 +155,53 @@ Var mui.Button.Back
 ;--------------------------------
 ;Initialization of GUI
 
-!macro MUI_HEADERIMAGE_INIT UNINSTALLER
+!macro MUI_HEADERIMAGE_INITHELPER_LOADIMAGEWITHMACRO MACRO
+
+  !ifdef MUI_HEADERIMAGE_RIGHT
+    !ifndef MUI_OPTIMIZE_ALWAYSLTR ; Undocumented
+      ${if} $(^RTL) == 1
+        !insertmacro ${MACRO} $mui.Header.Image "${PATH}" Left Leak
+      ${Else}
+        !insertmacro ${MACRO} $mui.Header.Image "${PATH}" Right Leak
+      ${EndIf}
+    !else
+      !insertmacro ${MACRO} $mui.Header.Image "${PATH}" Right Leak
+    !endif
+  !else
+    !insertmacro ${MACRO} $mui.Header.Image "${PATH}" Auto Leak
+  !endif
+
+!macroend
+!macro MUI_HEADERIMAGE_INITHELPER_LOADIMAGE UN RTL IMGRESID PATH
+
+  GetDlgItem $mui.Header.Image $HWNDPARENT ${IMGRESID} ; This variable is not used by every mode but we have to reference it to avoid a compiler warning.
+
+  !if "${MUI_HEADERIMAGE_${UN}BITMAP${RTL}_STRETCH}" == "NoStretchNoCropNoAlign"
+
+    SetBrandingImage /IMGID=${IMGRESID} "${PATH}"
+
+  !else if "${MUI_HEADERIMAGE_${UN}BITMAP${RTL}_STRETCH}" == "NoStretchNoCrop"
+
+    !insertmacro MUI_HEADERIMAGE_INITHELPER_LOADIMAGEWITHMACRO \
+      MUI_LOADANDXALIGNIMAGE
+
+  !else if "${MUI_HEADERIMAGE_${UN}BITMAP${RTL}_STRETCH}" == "AspectFitHeight"
+
+    !insertmacro MUI_HEADERIMAGE_INITHELPER_LOADIMAGEWITHMACRO \
+      MUI_LOADANDASPECTSTRETCHIMAGETOCONTROLHEIGHT
+
+  !else
+
+    !if "${MUI_HEADERIMAGE_${UN}BITMAP${RTL}_STRETCH}" != "FitControl"
+      !warning 'MUI_HEADERIMAGE_${UN}BITMAP${RTL}_STRETCH set to unknown value, defaulting to FitControl'
+    !endif
+    SetBrandingImage /IMGID=${IMGRESID} /RESIZETOFIT "${PATH}"
+
+  !endif
+
+!macroend
+
+!macro MUI_HEADERIMAGE_INIT UN IMGRESID
 
   ;Load and display header image
 
@@ -141,34 +209,20 @@ Var mui.Button.Back
 
     InitPluginsDir
 
-    !ifdef MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_RTL
-
+    !ifdef MUI_HEADERIMAGE_${UN}BITMAP_RTL
       ${if} $(^RTL) == 1
 
-        File "/oname=$PLUGINSDIR\modern-header.bmp" "${MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_RTL}"
-
-        !ifndef MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_RTL_NOSTRETCH
-          SetBrandingImage /IMGID=1046 /RESIZETOFIT "$PLUGINSDIR\modern-header.bmp"
-        !else
-          SetBrandingImage /IMGID=1046 "$PLUGINSDIR\modern-header.bmp"
-        !endif
+        File "/oname=$PLUGINSDIR\modern-header.bmp" "${MUI_HEADERIMAGE_${UN}BITMAP_RTL}"
+        !insertmacro MUI_HEADERIMAGE_INITHELPER_LOADIMAGE "${UN}" "_RTL" ${IMGRESID} "$PLUGINSDIR\modern-header.bmp"
 
       ${else}
-
     !endif
 
-        File "/oname=$PLUGINSDIR\modern-header.bmp" "${MUI_HEADERIMAGE_${UNINSTALLER}BITMAP}"
+        File "/oname=$PLUGINSDIR\modern-header.bmp" "${MUI_HEADERIMAGE_${UN}BITMAP}"
+        !insertmacro MUI_HEADERIMAGE_INITHELPER_LOADIMAGE "${UN}" "" ${IMGRESID} "$PLUGINSDIR\modern-header.bmp"
 
-        !ifndef MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_NOSTRETCH
-          SetBrandingImage /IMGID=1046 /RESIZETOFIT "$PLUGINSDIR\modern-header.bmp"
-        !else
-          SetBrandingImage /IMGID=1046 "$PLUGINSDIR\modern-header.bmp"
-        !endif
-
-    !ifdef MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_RTL
-
+    !ifdef MUI_HEADERIMAGE_${UN}BITMAP_RTL
       ${endif}
-
     !endif
 
   !endif
@@ -183,7 +237,7 @@ Var mui.Button.Back
   GetDlgItem $mui.Header.Text $HWNDPARENT 1037
   CreateFont $mui.Header.Text.Font "$(^Font)" "$(^FontSize)" "700"
   SendMessage $mui.Header.Text ${WM_SETFONT} $mui.Header.Text.Font 0
-  
+
   GetDlgItem $mui.Header.SubText $HWNDPARENT 1038
 
   !ifndef MUI_HEADER_TRANSPARENT_TEXT
@@ -193,17 +247,19 @@ Var mui.Button.Back
     SetCtlColors $mui.Header.Text "" "transparent"
     SetCtlColors $mui.Header.SubText "" "transparent"
   !endif
-  
+
   ;Header image
-  !insertmacro MUI_HEADERIMAGE_INIT "${UNINSTALLER}"
+  !insertmacro MUI_HEADERIMAGE_INIT "${UNINSTALLER}" 1046
 
   ;Header background
   GetDlgItem $mui.Header.Background $HWNDPARENT 1034
   SetCtlColors $mui.Header.Background "" "${MUI_BGCOLOR}"
 
-  ;Header image background
-  GetDlgItem $mui.Header.Image $HWNDPARENT 1039
-  SetCtlColors $mui.Header.Image "" "${MUI_BGCOLOR}"
+  ;Header icon image background
+  !ifndef MUI_HEADERIMAGE
+    GetDlgItem $mui.Header.Image $HWNDPARENT 1039
+    SetCtlColors $mui.Header.Image "" "${MUI_BGCOLOR}"
+  !endif
 
   ;Branding text
   GetDlgItem $mui.Branding.Background $HWNDPARENT 1028
@@ -211,11 +267,11 @@ Var mui.Button.Back
   GetDlgItem $mui.Branding.Text $HWNDPARENT 1256
   SetCtlColors $mui.Branding.Text /BRANDING
   SendMessage $mui.Branding.Text ${WM_SETTEXT} 0 "STR:$(^Branding) "
-  
+
   ;Lines
   GetDlgItem $mui.Line.Standard $HWNDPARENT 1035
   GetDlgItem $mui.Line.FullWindow $HWNDPARENT 1045
-  
+
   ;Buttons
   GetDlgItem $mui.Button.Next $HWNDPARENT 1
   GetDlgItem $mui.Button.Cancel $HWNDPARENT 2

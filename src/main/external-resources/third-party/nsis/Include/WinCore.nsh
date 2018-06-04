@@ -13,8 +13,6 @@ WinCore.nsh & Win\*.nsh - Collection of common windows defines
 !verbose 3
 
 
-!define __WIN_PTRSIZE 4 ;will we ever see a 64 bit version?
-
 
 !include Win\WinDef.nsh
 !include Win\WinError.nsh
@@ -33,10 +31,10 @@ WinCore.nsh & Win\*.nsh - Collection of common windows defines
 WinBase.h
 **************************************************/
 !ifndef __WIN_NOINC_WINBASE
-!define INVALID_HANDLE_VALUE -1
-!define INVALID_FILE_SIZE 0xFFFFFFFF
-!define INVALID_SET_FILE_POINTER -1
-!define INVALID_FILE_ATTRIBUTES -1
+!define /ifndef INVALID_HANDLE_VALUE -1
+!define /ifndef INVALID_FILE_SIZE 0xFFFFFFFF
+!define /ifndef INVALID_SET_FILE_POINTER -1
+!define /ifndef INVALID_FILE_ATTRIBUTES -1
 
 !define WAIT_FAILED 0xFFFFFFFF
 !define WAIT_OBJECT_0       0 ;((STATUS_WAIT_0 ) + 0 )
@@ -207,6 +205,25 @@ ShlObj.h
 !endif /* __WIN_NOSHELLFOLDERCSIDL */
 !endif /* __WIN_NOINC_SHLOBJ */
 
+
+
+
+
+/**************************************************
+Shobjidl.h
+**************************************************/
+!ifndef __WIN_NOINC_SHOBJIDL
+; ASSOCIATIONLEVEL
+!define AL_MACHINE 0
+!define AL_EFFECTIVE 1
+!define AL_USER 2
+
+; ASSOCIATIONTYPE
+!define AT_FILEEXTENSION 0
+!define AT_URLPROTOCOL 1
+!define AT_STARTMENUCLIENT 2
+!define AT_MIMETYPE 3
+!endif /* __WIN_NOINC_SHOBJIDL */
 
 
 

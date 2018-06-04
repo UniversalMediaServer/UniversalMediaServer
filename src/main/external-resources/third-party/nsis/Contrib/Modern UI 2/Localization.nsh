@@ -11,8 +11,8 @@ Localization
 !macro MUI_LANGDLL_VARIABLES
 
   !ifdef MUI_LANGDLL_REGISTRY_ROOT & MUI_LANGDLL_REGISTRY_KEY & MUI_LANGDLL_REGISTRY_VALUENAME
-    !ifndef MUI_LANGDLL_REGISTRY_VARAIBLES
-      !define MUI_LANGDLL_REGISTRY_VARAIBLES
+    !ifndef MUI_LANGDLL_REGISTRY_VARIABLES
+      !define MUI_LANGDLL_REGISTRY_VARIABLES
 
       ;/GLOBAL because the macros are included in a function
       Var /GLOBAL mui.LangDLL.RegistryLanguage
@@ -26,40 +26,40 @@ Localization
 ;--------------------------------
 ;Include langauge files
 
-!macro MUI_LANGUAGE LANGUAGE
+!macro MUI_LANGUAGEEX LangDir NLFID
 
-  ;Include a language
+  !verbose push ${MUI_VERBOSE}
 
-  !verbose push
-  !verbose ${MUI_VERBOSE}
+  !ifndef MUI_PAGE_UNINSTALLER_PREFIX
+    !warning "MUI_LANGUAGE[EX] should be inserted after the MUI_[UN]PAGE_* macros"
+  !endif
 
   !insertmacro MUI_INSERT
 
-  LoadLanguageFile "${NSISDIR}\Contrib\Language files\${LANGUAGE}.nlf"
+  ;Include a language
+  LoadLanguageFile "${LangDir}\${NLFID}.nlf"
 
-  ;Include language file
-  !insertmacro LANGFILE_INCLUDE_WITHDEFAULT "${NSISDIR}\Contrib\Language files\${LANGUAGE}.nsh" "${NSISDIR}\Contrib\Language files\English.nsh"
+  ;Include MUI language file
+  !insertmacro LANGFILE_INCLUDE_WITHDEFAULT \
+    "${LangDir}\${NLFID}.nsh" "${NSISDIR}\Contrib\Language files\English.nsh"
 
   ;Add language to list of languages for selection dialog
-  !ifndef MUI_LANGDLL_LANGUAGES
-    !define MUI_LANGDLL_LANGUAGES "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' "
-    !define MUI_LANGDLL_LANGUAGES_CP "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' '${LANG_${LANGUAGE}_CP}' "
-  !else
-    !ifdef MUI_LANGDLL_LANGUAGES_TEMP
-      !undef MUI_LANGDLL_LANGUAGES_TEMP
-    !endif
-    !define MUI_LANGDLL_LANGUAGES_TEMP "${MUI_LANGDLL_LANGUAGES}"
-    !undef MUI_LANGDLL_LANGUAGES
+  !define /ifndef MUI_LANGDLL_LANGUAGES ""
+  !define /redef MUI_LANGDLL_LANGUAGES \
+    `"${LANGFILE_${NLFID}_LANGDLL}" "${LANG_${NLFID}}" ${MUI_LANGDLL_LANGUAGES}`
+  !define /ifndef MUI_LANGDLL_LANGUAGES_CP ""
+  !define /redef MUI_LANGDLL_LANGUAGES_CP \
+    `"${LANGFILE_${NLFID}_LANGDLL}" "${LANG_${NLFID}}" "${LANG_${NLFID}_CP}" ${MUI_LANGDLL_LANGUAGES_CP}`
 
-    !ifdef MUI_LANGDLL_LANGUAGES_CP_TEMP
-      !undef MUI_LANGDLL_LANGUAGES_CP_TEMP
-    !endif
-    !define MUI_LANGDLL_LANGUAGES_CP_TEMP "${MUI_LANGDLL_LANGUAGES_CP}"
-    !undef MUI_LANGDLL_LANGUAGES_CP
+  !verbose pop
 
-    !define MUI_LANGDLL_LANGUAGES "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' ${MUI_LANGDLL_LANGUAGES_TEMP}"
-    !define MUI_LANGDLL_LANGUAGES_CP "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' '${LANG_${LANGUAGE}_CP}' ${MUI_LANGDLL_LANGUAGES_CP_TEMP}"
-  !endif
+!macroend
+
+!macro MUI_LANGUAGE NLFID
+
+  !verbose push ${MUI_VERBOSE}
+
+  !insertmacro MUI_LANGUAGEEX "${NSISDIR}\Contrib\Language files" "${NLFID}"
 
   !verbose pop
 
@@ -74,12 +74,16 @@ Localization
   !verbose push
   !verbose ${MUI_VERBOSE}
 
+  !ifndef MUI_LANGDLL_LANGUAGES
+    !warning "MUI_LANGDLL_DISPLAY should only be used after inserting the MUI_LANGUAGE macro(s)"
+  !endif
+
   !insertmacro MUI_LANGDLL_VARIABLES
 
   !insertmacro MUI_DEFAULT MUI_LANGDLL_WINDOWTITLE "Installer Language"
   !insertmacro MUI_DEFAULT MUI_LANGDLL_INFO "Please select a language."
 
-  !ifdef MUI_LANGDLL_REGISTRY_VARAIBLES
+  !ifdef MUI_LANGDLL_REGISTRY_VARIABLES
 
     ReadRegStr $mui.LangDLL.RegistryLanguage "${MUI_LANGDLL_REGISTRY_ROOT}" "${MUI_LANGDLL_REGISTRY_KEY}" "${MUI_LANGDLL_REGISTRY_VALUENAME}"
     
@@ -95,7 +99,7 @@ Localization
   !endif
 
   !ifndef MUI_LANGDLL_ALWAYSSHOW
-  !ifdef MUI_LANGDLL_REGISTRY_VARAIBLES
+  !ifdef MUI_LANGDLL_REGISTRY_VARIABLES
     ${if} $mui.LangDLL.RegistryLanguage == ""
   !endif
   !endif
@@ -113,7 +117,7 @@ Localization
     ${endif}
   
   !ifndef MUI_LANGDLL_ALWAYSSHOW
-  !ifdef MUI_LANGDLL_REGISTRY_VARAIBLES
+  !ifdef MUI_LANGDLL_REGISTRY_VARIABLES
     ${endif}
   !endif
   !endif
@@ -185,7 +189,7 @@ Localization
   !verbose push
   !verbose ${MUI_VERBOSE}
 
-  ReserveFile "${NSISDIR}\Plugins\LangDLL.dll"
+  ReserveFile /plugin LangDLL.dll
 
   !verbose pop
 
