@@ -1,3 +1,18 @@
+7.1.0 - 2018-06-??
+
+	General:
+		Aspect ratio is maintained in web interface thumbnails
+		Updated web interface to play OGA audio
+		Cleaned up and fixed DefaultRenderer.conf
+		Display whether video is a sample with prettifying enabled
+		Fixed AAC audio parsing via FFmpeg
+		Fixed movie edition not being displayed
+	Renderers:
+		Improved support for Panasonic DX series TVs
+		Fixed external ASS/SSA subtitles support on Samsung 8 and 9 series TVs
+	Dependencies:
+		Updated MediaInfo to 18.03.1
+
 7.0.1 - 2018-04-15
 
 	General:
