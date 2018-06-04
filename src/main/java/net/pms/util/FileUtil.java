@@ -23,11 +23,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
+import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.WordUtils;
@@ -193,10 +195,6 @@ public class FileUtil {
 		}
 	}
 
-	public static File isFileExists(String f, String ext) {
-		return isFileExists(new File(f), ext);
-	}
-
 	public static boolean isUrl(String filename) {
 		// We're intentionally avoiding stricter URI() methods, which can throw
 		// URISyntaxException for psuedo-urls (e.g. librtmp-style urls containing spaces)
@@ -227,21 +225,82 @@ public class FileUtil {
 		return getExtension(substringBefore(u, "?"));
 	}
 
-	public static String getExtension(File f) {
-		if (f == null || f.getName() == null) {
-			return null;
-		}
-		return getExtension(f.getName());
+	/**
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	public static String getExtension(File file) {
+		return getExtension(file, null, null);
 	}
 
-	public static String getExtension(String f) {
-		int point = f.lastIndexOf('.');
+	/**
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	public static String getExtension(File file, LetterCase convertTo, Locale locale) {
+		if (file == null || file.getName() == null) {
+			return null;
+		}
+		return getExtension(file.getName(), convertTo, locale);
+	}
 
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	public static String getExtension(String fileName) {
+		return getExtension(fileName, null, null);
+	}
+
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	public static String getExtension(String fileName, LetterCase convertTo, Locale locale) {
+		if (fileName == null) {
+			return null;
+		}
+
+		int point = fileName.lastIndexOf('.');
 		if (point == -1) {
 			return null;
 		}
+		if (convertTo != null && locale == null) {
+			locale = Locale.ROOT;
+		}
 
-		return f.substring(point + 1);
+		String extension = fileName.substring(point + 1);
+		if (convertTo == LetterCase.UPPER) {
+			return extension.toUpperCase(locale);
+		}
+		if (convertTo == LetterCase.LOWER) {
+			return extension.toLowerCase(locale);
+		}
+		return extension;
 	}
 
 	public static String getFileNameWithoutExtension(String f) {
@@ -343,20 +402,34 @@ public class FileUtil {
 	 * When we encounter one of these strings, the string and everything after
 	 * them will be removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]2160p.*|[\\s\\.]WEB-DL.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BRRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*|[\\s\\.]60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]2160p.*|.*[\\s\\.]WEB-DL.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BRRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*|.*[\\s\\.]60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
 
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
 	 * false-positive by being case-sensitive.
 	 */
-	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*|[\\s\\.]EXTENDED[\\s\\.].*|[\\s\\.]NEWEDIT[\\s\\.].*|[\\s\\.]WEB[\\s\\.].*";
+	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "\\sPROPER\\s.*|\\siNTERNAL\\s.*|\\sLIMITED\\s.*|\\sLiMiTED\\s.*|\\sFESTiVAL\\s.*|\\sNORDIC\\s.*|\\sREAL\\s.*|\\sSUBBED\\s.*|\\sRETAIL\\s.*|\\sEXTENDED\\s.*|\\sNEWEDIT\\s.*|\\sWEB\\s.*";
 
 	/**
 	 * Editions to be added to the end of the prettified name
 	 */
-	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|IMAX[\\s\\.]Edition|Uncensored|Directors[\\s\\.]Cut|Uncut)(?!\\))";
+	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special\\sEdition|Unrated|Final\\sCut|Remastered|Extended\\sCut|IMAX\\sEdition|Uncensored|Directors\\sCut|Uncut)(?!\\))";
 	private static final Pattern COMMON_FILE_EDITIONS_PATTERN = Pattern.compile(COMMON_FILE_EDITIONS);
+
+	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d)(?:[\\s']|v\\d)";
+	private static final Pattern COMMON_ANIME_EPISODE_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
+
+	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d-\\d\\d)(?:[\\s']|v\\d)";
+	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
+
+	public static String getFileNamePrettified(String f) {
+		return getFileNamePrettified(f, null, null);
+	}
+
+	public static String getFileNamePrettified(String f, File file) {
+		return getFileNamePrettified(f, file, null);
+	}
 
 	/**
 	 * Returns the filename after being "prettified", which involves
@@ -367,83 +440,156 @@ public class FileUtil {
 	 *
 	 * @param f The filename
 	 * @param file The file to possibly be used by the InfoDb
+	 * @param media The DLNAMediaInfo for database access
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, File file) {
-		String fileNameWithoutExtension;
-		String formattedName = "";
-		String formattedNameTemp;
-		String searchFormattedName;
-		String edition = "";
+	public static String getFileNamePrettified(String f, File file, DLNAMediaInfo media) {
+		String formattedName = null;
+
+		String title;
+		String year;
+		String extraInformation;
+		String tvSeason;
+		String tvEpisodeNumber;
+		String tvEpisodeName;
+		boolean isTVEpisode = false;
+
+		// Populate the variables from the data if we can, otherwise from the filename
+		if (media != null && getConfiguration().getUseCache() && StringUtils.isNotBlank(media.getMovieOrShowName())) {
+			title = media.getMovieOrShowName();
+
+			year             = StringUtils.isNotBlank(media.getYear())             ? media.getYear()             : "";
+			extraInformation = StringUtils.isNotBlank(media.getExtraInformation()) ? media.getExtraInformation() : "";
+			tvSeason         = StringUtils.isNotBlank(media.getTVSeason())         ? media.getTVSeason()         : "";
+			tvEpisodeNumber  = StringUtils.isNotBlank(media.getTVEpisodeNumber())  ? media.getTVEpisodeNumber()  : "";
+			tvEpisodeName    = StringUtils.isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
+			isTVEpisode      = StringUtils.isNotBlank(media.getTVSeason());
+		} else {
+			String[] metadataFromFilename = getFileNameMetadata(f);
+
+			title            = StringUtils.isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
+			year             = StringUtils.isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			extraInformation = StringUtils.isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
+			tvSeason         = StringUtils.isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
+			tvEpisodeNumber  = StringUtils.isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
+			tvEpisodeName    = StringUtils.isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
+
+			if (StringUtils.isNotBlank(tvSeason)) {
+				isTVEpisode = true;
+			}
+		}
+
+		if (StringUtils.isBlank(title)) {
+			return basicPrettify(f);
+		}
+
+		// Build the prettified filename from the metadata
+		if (isTVEpisode) {
+			// Make sure the episode number has a leading zero
+			if (tvEpisodeNumber.length() == 1) {
+				tvEpisodeNumber = "0" + tvEpisodeNumber;
+			}
+
+			// If the season is a year, anticipate a "/" for a date
+			if (StringUtils.isNotBlank(tvSeason) && StringUtils.isNotBlank(tvEpisodeNumber)) {
+				if (tvSeason.matches("(19|20)\\d{2}")) {
+					tvSeason += "/";
+				}
+				formattedName = title + " - " + tvSeason + tvEpisodeNumber;
+			}
+
+			if (isNotBlank(tvEpisodeName)) {
+				formattedName += " - " + tvEpisodeName;
+			}
+		} else {
+			formattedName = title;
+			if (StringUtils.isNotBlank(year)) {
+				formattedName += " (" + year + ")";
+			}
+		}
+
+		if (StringUtils.isNotBlank(extraInformation)) {
+			formattedName += " " + extraInformation;
+		}
+
+		return formattedName;
+	}
+
+	/**
+	 * Returns metadata from the filename which we will use to check the
+	 * validity of online lookups.
+	 *
+	 * @param filename The filename to extract metadata from
+	 *
+	 * @return The metadata
+	 */
+	public static String[] getFileNameMetadata(String filename) {
+		if (filename == null) {
+			return new String[] { null, null, null, null, null, null };
+		}
+
+		String formattedName;
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
-		boolean isEpisodeToLookup  = false;
-		boolean isTVSeriesToLookup = false;
-		boolean isMovieToLookup    = false;
 		boolean isMovieWithoutYear = false;
+		boolean isSample = false;
 
-		// Remove file extension
-		fileNameWithoutExtension = getFileNameWithoutExtension(f);
-		formattedName = removeGroupNameFromBeginning(fileNameWithoutExtension);
-		searchFormattedName = "";
+		String movieOrShowName = null;
+		String year            = null;
+		String tvSeason        = null;
+		String tvEpisodeName   = null;
+		String tvEpisodeNumber = null;
+		String edition         = null;
+		
+		// This can contain editions and "Sample" for now
+		String extraInformation = null;
 
-		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
+		Pattern pattern;
+		Matcher matcher;
+
+		formattedName = basicPrettify(filename);
+
+		if (formattedName.toLowerCase(Locale.ENGLISH).endsWith("sample")) {
+			isSample = true;
+		}
+
+		if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
-			isTVSeriesToLookup = true;
+			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)(?:[eE]|-[eE])(\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+				tvEpisodeNumber += "-" + matcher.group(3);
+			}
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3-$5$6");
-			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3-$5$6");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)\\s", " - $1$2$3-$5$6 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
 				edition = result.edition;
 			}
 
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)[\\s\\.]", " - $1$2$3-$5$6 - ");
-			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
-			}
-
-			formattedName = formattedNameTemp;
 			formattedName = removeFilenameEndMetadata(formattedName);
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
-			// This matches scene and most p2p TV episodes after their first 9 seasons that are more than one episode
-			isTVSeriesToLookup = true;
-
-			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3-$5$6");
-			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3-$5$6");
-			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
-			}
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)[\\s\\.]", " - $1$2$3-$5$6 - ");
-			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
-			}
-
-			formattedName = formattedNameTemp;
-			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
+		} else if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
-			isTVSeriesToLookup = true;
+			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+			}
+
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
@@ -452,147 +598,159 @@ public class FileUtil {
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3");
-			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3");
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
-			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s\\d[xX]\\d\\d.*")) {
+			// This matches older scene and most p2p TV episodes within the first 9 seasons
+			pattern = Pattern.compile("\\s(\\d)[xX](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "0" + matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
 			}
 
-			formattedName = formattedNameTemp;
-			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
-			// This matches scene and most p2p TV episodes after their first 9 seasons
-			isTVSeriesToLookup = true;
-
-			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2$3");
-			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2$3");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
 				edition = result.edition;
 			}
 
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
-			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
+			// Rename the season/episode numbers. For example, "1x01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s\\d\\d[xX]\\d\\d.*")) {
+			// This matches older scene and most p2p TV episodes after the first 9 seasons
+			pattern = Pattern.compile("\\s(\\d\\d)[xX](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
 			}
 
-			formattedName = formattedNameTemp;
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Rename the season/episode numbers. For example, "12x01" changes to " - 1201"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
 			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
+		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
-			isTVSeriesToLookup = true;
+			pattern = Pattern.compile("\\s((?:19|20)\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+				tvEpisodeNumber += "/" + matcher.group(3);
+			}
 
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + COMMON_FILE_ENDS + ")", " - $1$2/$3/$4");
-			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", " - $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s", " - $1$2/$3/$4 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
 				edition = result.edition;
 			}
 
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
-			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
-			}
-
-			formattedName = formattedNameTemp;
 			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
+		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s.*")) {
 			// This matches scene and most p2p movies
-			isMovieToLookup = true;
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
+			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)", " ($1$2)");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
 				edition = result.edition;
 			}
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
-			isMovieToLookup = true;
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
 			formattedName = removeFilenameEndMetadata(formattedName);
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
-			isMovieToLookup = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
-			// This matches anime with a hash at the end of the name
-			isTVSeriesToLookup = true;
+			// This matches a single episode anime with a hash at the end of the name
+			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "1";
+				tvEpisodeNumber = matcher.group(1);
 
-			// Remove underscores
-			formattedName = formattedName.replaceAll("_", " ");
+				int showNameIndex = indexOf(COMMON_ANIME_EPISODE_NUMBERS_PATTERN, formattedName);
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
+				}
+			} else {
+				// This matches a multiple episode anime with a hash at the end of the name
+				matcher = COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN.matcher(formattedName);
+				if (matcher.find()) {
+					tvSeason = "1";
+					tvEpisodeNumber = matcher.group(1);
+
+					int showNameIndex = indexOf(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN, formattedName);
+					if (showNameIndex != -1) {
+						movieOrShowName = formattedName.substring(0, showNameIndex);
+					}
+				}
+			}
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
 
-			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
-				isEpisodeToLookup = true;
-				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
-			}
-
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
-			isTVSeriesToLookup = true;
+			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "1";
+				tvEpisodeNumber = matcher.group(1);
 
-			// Remove underscores
-			formattedName = formattedName.replaceAll("_", " ");
+				int showNameIndex = indexOf(COMMON_ANIME_EPISODE_NUMBERS_PATTERN, formattedName);
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
+				}
+			}
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*|\\[h264.*", "");
 
-			if (PMS.getConfiguration().isUseInfoFromIMDb() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
-				isEpisodeToLookup = true;
-				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
-			}
-
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
 			// This is probably a movie that doesn't specify a year
-			isMovieToLookup = true;
 			isMovieWithoutYear = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
@@ -601,77 +759,69 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		}
 
 		// Remove extra spaces
 		formattedName = formattedName.replaceAll("\\s+", " ");
+		formattedName = formattedName.trim();
+		if (movieOrShowName != null) {
+			movieOrShowName = movieOrShowName.trim();
+			String substr = movieOrShowName.substring(Math.max(0, movieOrShowName.length() - 2));
+			if (" -".equals(substr)) {
+				movieOrShowName = movieOrShowName.substring(0, movieOrShowName.length() - 2);
+			}
+		}
 
-		/**
-		 * Add info from IMDb
-		 *
-		 * We use the Jaro Winkler similarity algorithm to make sure that changes to
-		 * movie or TV show names are only made when the difference between the
-		 * original and replacement names is less than 10%.
-		 * This means we get proper case and special characters without worrying about
-		 * incorrect results being used.
-		 *
-		 * TODO: Make the following logic only happen once.
-		 */
-		if (file != null && (isTVSeriesToLookup || isMovieToLookup)) {
-			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
-			if (info == null) {
-				PMS.get().infoDbAdd(file, StringUtil.hasValue(searchFormattedName) ?  searchFormattedName : formattedName);
-			} else if (isTVSeriesToLookup) {
-				int showNameIndex = indexOf(Pattern.compile("(?i) - \\d\\d\\d.*"), formattedName);
-				if (StringUtils.isNotEmpty(info.title) && showNameIndex != -1) {
-					String titleFromFilename = formattedName.substring(0, showNameIndex);
+		if (tvSeason != null) {
+			// Remove leading 0 from the season if it exists
+			tvSeason = StringUtils.stripStart(tvSeason, "0");
 
-					// The following line can run over 100 times in under 1ms
-					double similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
-					if (similarity > 0.91) {
-						formattedName = info.title + formattedName.substring(showNameIndex);
+			pattern = Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
+			int showNameIndex = indexOf(pattern, formattedName);
+			if (StringUtils.isEmpty(movieOrShowName)) {
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
 
-						if (isEpisodeToLookup) {
-							if (StringUtils.isNotEmpty(info.ep_name)) {
-								formattedName += " - " + info.ep_name;
-							}
+					matcher = pattern.matcher(formattedName);
+					if (matcher.find()) {
+						tvEpisodeName = matcher.group(2).trim();
+						if (StringUtils.isEmpty(tvEpisodeName)) {
+							tvEpisodeName = null;
 						}
 					}
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
-				}
-			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.title) && StringUtils.isNotEmpty(info.year)) {
-				double similarity;
-				if (isMovieWithoutYear) {
-					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(formattedName, info.title);
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + formattedName + "' is " + similarity);
 				} else {
-					int yearIndex = indexOf(Pattern.compile("\\s\\(\\d{4}\\)"), formattedName);
-					String titleFromFilename = formattedName.substring(0, yearIndex);
-					similarity = org.apache.commons.lang3.StringUtils.getJaroWinklerDistance(titleFromFilename, info.title);
-					LOGGER.trace("The similarity between '" + info.title + "' and '" + titleFromFilename + "' is " + similarity);
+					showNameIndex = indexOf(Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
+					if (showNameIndex != -1) {
+						movieOrShowName = formattedName.substring(0, showNameIndex);
+					}
 				}
-
-				if (similarity > 0.91) {
-					formattedName = info.title + " (" + info.year + ")";
+			}
+		} else {
+			if (isMovieWithoutYear) {
+				movieOrShowName = formattedName;
+			} else {
+				int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), formattedName);
+				if (yearIndex > -1) {
+					movieOrShowName = formattedName.substring(0, yearIndex);
+					year = formattedName.substring(yearIndex + 2, yearIndex + 6);
 				}
 			}
 		}
-		formattedName = formattedName.trim();
 
-		// Add the edition information if it exists
-		if (!edition.isEmpty()) {
-			String substr = formattedName.substring(Math.max(0, formattedName.length() - 2));
-			if (" -".equals(substr)) {
-				formattedName = formattedName.substring(0, formattedName.length() - 2);
+		// Retain the fact it is a sample clip
+		if (isSample) {
+			if (edition == null) {
+				extraInformation = "";
+			} else {
+				extraInformation = edition + " ";
 			}
-			formattedName += " " + edition;
+			extraInformation += "(Sample)";
+		} else {
+			extraInformation = edition;
 		}
 
-		return formattedName;
+		return new String[] { movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName };
 	}
 
 	/**
@@ -684,10 +834,11 @@ public class FileUtil {
 	 * @return the converted string
 	 */
 	public static String convertLowerCaseStringToTitleCase(String value) {
+		value = value.trim();
 		String convertedValue = "";
 		boolean loopedOnce = false;
 
-		for (String word : value.split(" ")) {
+		for (String word : value.split("\\s+")) {
 			if (loopedOnce) {
 				switch (word) {
 					case "a":
@@ -709,8 +860,8 @@ public class FileUtil {
 			} else {
 				// Always capitalize the first letter of the string
 				convertedValue += word.substring(0, 1).toUpperCase() + word.substring(1);
+				loopedOnce = true;
 			}
-			loopedOnce = true;
 		}
 
 		return convertedValue;
@@ -721,16 +872,20 @@ public class FileUtil {
 		return matcher.find() ? matcher.start() : -1;
 	}
 
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
-		return isFileExists(new File(parent, file.getName()), ext);
+		return replaceExtension(parent, file, ext, true, true);
 	}
 
 	/**
-	 * @deprecated Use {@link #getFileNameWithNewExtension(File, File, String)}.
+	 * @deprecated Use {@link #replaceExtension} instead.
 	 */
 	@Deprecated
 	public static File getFileNameWitNewExtension(File parent, File f, String ext) {
-		return getFileNameWithNewExtension(parent, f, ext);
+		return replaceExtension(parent, f, ext, true, true);
 	}
 
 	public static File getFileNameWithAddedExtension(File parent, File f, String ext) {
@@ -751,24 +906,159 @@ public class FileUtil {
 		return getFileNameWithAddedExtension(parent, file, ext);
 	}
 
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
+	public static File isFileExists(String f, String ext) {
+		return replaceExtension(new File(f), ext, true, true);
+	}
+
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
 	public static File isFileExists(File f, String ext) {
-		int point = f.getName().lastIndexOf('.');
+		return replaceExtension(f, ext, true, true);
+	}
 
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param file the {@link File} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		return replaceExtension(
+			file.getParentFile(),
+			file.getName(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link File} instance representing the folder for the
+	 *            constructed {@link File}. Use {@code null} or an empty string
+	 *            for the current folder.
+	 * @param file the {@link File} for which to replace the extension. Only the
+	 *            file name will be used, its path will be discarded.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File folder,
+		File file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		return replaceExtension(
+			folder,
+			file.getName(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link File} instance representing the folder for the
+	 *            constructed {@link File}. Use {@code null} or an empty string
+	 *            for the current folder.
+	 * @param fileName the {@link String} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File folder,
+		String fileName,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+
+		int point = fileName.lastIndexOf('.');
+
+		String baseFileName;
 		if (point == -1) {
-			point = f.getName().length();
+			baseFileName = fileName;
+		} else {
+			baseFileName = fileName.substring(0, point);
 		}
 
-		File lowerCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toLowerCase());
-		if (lowerCasedFile.exists()) {
-			return lowerCasedFile;
+		if (isBlank(extension)) {
+			File result = new File(folder, baseFileName);
+			return !nullIfNonExisting || result.exists() ? result : null;
 		}
 
-		File upperCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toUpperCase());
-		if (upperCasedFile.exists()) {
-			return upperCasedFile;
+		File result = new File(folder, baseFileName + "." + extension);
+		if (result.exists() || !nullIfNonExisting && !adjustExtensionCase) {
+			return result;
 		}
 
-		return null;
+		if (!Platform.isWindows() && adjustExtensionCase) {
+			File adjustedResult = new File(folder, baseFileName + "." + extension.toLowerCase(Locale.ROOT));
+			if (adjustedResult.exists()) {
+				return adjustedResult;
+			}
+			adjustedResult = new File(folder, baseFileName + "." + extension.toUpperCase(Locale.ROOT));
+			if (adjustedResult.exists()) {
+				return adjustedResult;
+			}
+		}
+
+		return nullIfNonExisting ? null : result;
 	}
 
 	/**
@@ -798,7 +1088,7 @@ public class FileUtil {
 
 		boolean found = false;
 		if (file.exists()) {
-			found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
+			found = browseFolderForSubtitles(file.getAbsoluteFile().getParentFile(), file, media, usecache);
 		}
 		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
 
@@ -851,7 +1141,7 @@ public class FileUtil {
 							if ("sub".equals(ext)) {
 								// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
 								// they'll come in unambiguously as vobsub via the idx file anyway
-								return isFileExists(new File(dir, name), "idx") == null;
+								return replaceExtension(new File(dir, name), "idx", true, true) == null;
 							}
 							return supported.contains(ext);
 						}
@@ -983,14 +1273,13 @@ public class FileUtil {
 				if (Charset.isSupported(match.getName())) {
 					LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 					return Charset.forName(match.getName());
-				} else {
-					LOGGER.debug(
-						"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
-						match.getName(),
-						file.getAbsolutePath()
-					);
-					return null;
 				}
+				LOGGER.debug(
+					"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
+					match.getName(),
+					file.getAbsolutePath()
+				);
+				return null;
 			} catch (IllegalCharsetNameException e) {
 				LOGGER.debug("Illegal charset deteceted \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			}
@@ -1012,10 +1301,9 @@ public class FileUtil {
 		if (match != null) {
 			LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
 			return match.getName().toUpperCase(PMS.getLocale());
-		} else {
-			LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
-			return null;
 		}
+		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		return null;
 	}
 
 	/**
@@ -1207,10 +1495,9 @@ public class FileUtil {
 	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
 		if (path != null) {
 			return new FilePermissions(new File(path));
-		} else {
-			File file = null;
-			return new FilePermissions(file);
 		}
+		File file = null;
+		return new FilePermissions(file);
 	}
 
 	/**
@@ -1225,9 +1512,8 @@ public class FileUtil {
 			} catch (FileNotFoundException | IllegalArgumentException e) {
 				return null;
 			}
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
@@ -1273,7 +1559,7 @@ public class FileUtil {
 				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
 			} else {
 				for (File child : children) {
-					if (ignoreFiles.contains(child.getAbsolutePath())) {
+					if (ignoreFiles != null && ignoreFiles.contains(child.getAbsolutePath())) {
 						continue;
 					}
 
@@ -1292,13 +1578,27 @@ public class FileUtil {
 		return false;
 	}
 
+	/**
+	 * Removes the file extension, fansub group name, and replaces periods
+	 * and underscores with spaces.
+	 *
+	 * @param filename
+	 * @return prettified filename
+	 */
+	public static String basicPrettify(String filename) {
+		// Remove file extension
+		filename = getFileNameWithoutExtension(filename);
+
+		// Remove possible fansub group name
+		filename = removeGroupNameFromBeginning(filename);
+
+		// Replace periods and underscores with spaces
+		return  filename.replaceAll("\\.|_", " ");
+	}
+
 	public static String renameForSorting(String filename) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			// This makes anime sort properly
-			filename = removeGroupNameFromBeginning(filename);
-
-			// Replace periods and underscores with spaces
-			filename = filename.replaceAll("\\.|_", " ");
+			filename = basicPrettify(filename);
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
@@ -1312,16 +1612,44 @@ public class FileUtil {
 		return filename;
 	}
 
+	/**
+	 * @deprecated Use {@link #createBufferedReaderDetectCharset(File, Charset)} instead.
+	 */
+	@Deprecated
 	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
+		return createBufferedReaderDetectCharset(file, StandardCharsets.UTF_8).getBufferedReader();
+	}
+
+	/**
+	 * Attempts to detect the {@link Charset} used in the specified {@link File}
+	 * and creates a {@link BufferedReader} using that {@link Charset}. If the
+	 * {@link Charset} detection fails, the specified default {@link Charset}
+	 * will be used.
+	 *
+	 * @param file the {@link File} to use.
+	 * @param defaultCharset the fallback {@link Charset} it automatic detection
+	 *            fails. If {@code null}, the JVM default {@link Charset} will
+	 *            be used.
+	 * @return The resulting {@link BufferedReaderDetectCharsetResult}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static BufferedReaderDetectCharsetResult createBufferedReaderDetectCharset(File file, Charset defaultCharset) throws IOException {
 		BufferedReader reader;
 		Charset fileCharset = getFileCharset(file);
 		if (fileCharset != null) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), fileCharset));
-		} else {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			LOGGER.warn("Could not detect character encoding for file \"{}\". It will probably be interpreted wrong", file.getAbsolutePath());
+			return new BufferedReaderDetectCharsetResult(reader, fileCharset, true);
 		}
-		return reader;
+		if (defaultCharset == null) {
+			defaultCharset = Charset.defaultCharset();
+		}
+		reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), defaultCharset));
+		LOGGER.warn(
+			"Could not detect character encoding for file \"{}\"; using the default charset \"{}\"",
+			file.getAbsolutePath(),
+			defaultCharset
+		);
+		return new BufferedReaderDetectCharsetResult(reader, defaultCharset, false);
 	}
 
 	/**
@@ -1349,17 +1677,25 @@ public class FileUtil {
 	}
 
 	/**
-	 * Appends a path separator of the same type last in the string if
-	 * it's not already there.
-	 * @param path the path to be modified
-	 * @return the corrected path
+	 * Appends a path separator of the same type last in the string if it's not
+	 * already there.
+	 *
+	 * @param path the path to be modified.
+	 * @return The corrected path or {@code null} of {@code path} is
+	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {
+		if (path == null) {
+			return null;
+		}
+
 		if (!path.endsWith("\\") && !path.endsWith("/")) {
 			if (path.contains("\\")) {
 				path += "\\";
-			} else {
+			} else if (path.contains("/")) {
 				path += "/";
+			} else {
+				path += File.separator;
 			}
 		}
 		return path;
@@ -1546,8 +1882,62 @@ public class FileUtil {
 				}
 				return unixUID;
 			}
-		} else {
-			throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
+		}
+		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
+	}
+
+	/**
+	 * This class holds the results from
+	 * {@link FileUtil#createBufferedReaderDetectCharset}.
+	 *
+	 * @author Nadahar
+	 */
+	public static class BufferedReaderDetectCharsetResult implements Closeable {
+		private final BufferedReader reader;
+		private final Charset charset;
+		private final boolean successfulDetection;
+
+		/**
+		 * Creates a new instance with the given parameters.
+		 *
+		 * @param reader the {@link BufferedReader}.
+		 * @param charset the {@link Charset}.
+		 * @param successfulDetection {@code true} is {@link Charset} detection
+		 *            was successful, {@code false} otherwise.
+		 */
+		public BufferedReaderDetectCharsetResult(BufferedReader reader, Charset charset, boolean successfulDetection) {
+			this.reader = reader;
+			this.charset = charset;
+			this.successfulDetection = successfulDetection;
+		}
+
+		/**
+		 * @return The {@link BufferedReader}.
+		 */
+		public BufferedReader getBufferedReader() {
+			return reader;
+		}
+
+		/**
+		 * @return The {@link Charset} used for the {@link BufferedReader}.
+		 */
+		public Charset getCharset() {
+			return charset;
+		}
+
+		/**
+		 * @return {@code true} if {@link Charset} detection was successful,
+		 *         {@code false} if the default was used..
+		 */
+		public boolean isSuccessfulDetection() {
+			return successfulDetection;
+		}
+
+		@Override
+		public void close() throws IOException {
+			if (reader != null) {
+				reader.close();
+			}
 		}
 	}
 }

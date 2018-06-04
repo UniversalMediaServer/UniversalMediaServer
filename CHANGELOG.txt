@@ -1,3 +1,118 @@
+7.1.0 - 2018-06-??
+
+	General:
+		Aspect ratio is maintained in web interface thumbnails
+		Updated web interface to play OGA audio
+		Cleaned up and fixed DefaultRenderer.conf
+		Display whether video is a sample with prettifying enabled
+		Fixed AAC audio parsing via FFmpeg
+		Fixed movie edition not being displayed
+	Renderers:
+		Improved support for Panasonic DX series TVs
+		Fixed external ASS/SSA subtitles support on Samsung 8 and 9 series TVs
+	Dependencies:
+		Updated MediaInfo to 18.03.1
+
+7.0.1 - 2018-04-15
+
+	General:
+		Improved thumbnail support
+		Improved folder scanning speed
+		Reduced memory use during folder scanning
+		Fixed fully played feature on clean installs
+		Fixed tsMuxeR FFmpeg support
+		Updated UMS.conf with changes from 7.0.0
+	Languages:
+		Updated German, Italian, Norwegian, Russian and Swedish translations via Crowdin
+	Renderers:
+		Added support for Roku TV (NSP 8)
+		Improved support for Roku 3
+
+7.0.0 - 2018-03-27 - Changes since 6.8.0
+
+	General:
+		Added "TV Shows", "Movies", "3D Movies", and "Unsorted" folders to the "Media Library" folder
+		Added right-click menu to navigation pane
+		Renamed "Cache" folder to "Media Library" folder and enabled it by default
+		Changed "Hide" options to "Show", e.g. "Hide Media Library folder" becomes "Show Media Library folder"
+		When a file is added/changed/removed in a shared folder, UMS detects it
+		Fully played tracking is stored in the SQL database
+		Shared folders are scanned for changes on startup (configurable)
+		Made folder scanning up to 10x faster
+		Made Media Library browsing faster
+		Gave folder scanning a lower priority than other UMS functions to make them work more smoothly
+		Fixed some bugs related to sending media metadata (org_pn) to renderers
+		Fixed bug where removing a directory in UMS does not remove its contents from the Media Library.
+		Fixed sorting in dynamic folders
+		Reduced lookups and bandwidth to OpenSubtitles
+		Fixed MusicBrainz bugs
+		Fixed many other bugs
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added Samsung 8 Series config
+		Updated FetchTV config
+		Improved support for Samsung Galaxy S7
+
+7.0.0 - 2018-03-27 - Changes since 7.0.0-rc2
+
+	General:
+		Made folder scanning up to 10x faster
+		Made Media Library browsing faster
+		Gave folder scanning a lower priority than other UMS functions to make it work more smoothly
+		Added configuration option to toggle shared folder scanning on startup
+		Fixed "By Date" virtual folders on joined folders
+		Fixed a database initialization bug
+		Fixed order of "By date" folders, now they go from newest to oldest
+		Fixed some bugs related to sending media metadata (org_pn) to renderers
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added Samsung 8 Series config
+		Updated FetchTV config
+		Improved support for Samsung Galaxy S7
+
+7.0.0-rc2 - 2018-01-04 - Changes since 7.0.0-rc1
+
+	General:
+		Added "Watched" folders to the Media Library, to mirror "Unwatched" functionality
+		Fixed crashing when shared folders don't exist, aren't folders, or access is denied
+		Fixed broken Media Library entries
+		New Media folder is hidden by default (the same functionality exists in Media Library)
+		All changes in 6.7.3, 6.7.4 and 6.8.0
+	Dependencies:
+		Updated h2database to 1.4.196
+
+6.8.0 - 2018-01-04
+
+	General:
+		Added shared folder selection to the wizard
+		Improved matching of results from CoverArtArchive
+		Improved text in the wizard
+		Fixed detection of Java Runtime Environment 9 on Windows
+		Fixed charset handling during subtitle conversions
+		Fixed video not always transcoding when encoded audio passthrough is used
+		Fixed an exception if the renderer replied to GetProtocolInfo but didn't include sink
+		Formatting in UMS.conf
+		Various bug fixes
+	Languages:
+		Added Bengali translation (empty for now, please contribute to it on Crowdin!)
+		Improved support for Japanese characters
+	Renderers:
+		Added 4k support to VLC for iOS
+		Added support for sending 4k MP4 videos to PS4 natively
+
+6.7.4 - 2017-10-03
+
+	General:
+		Fixed a bug where thumbnails wouldn't always be generated when MediaInfo isn't used or available
+		Fixed regression in folder thumbnails on non-Windows platforms
+		Fixed a crash when the web interface's port is occupied, and do not fail restarting the server, if the server hasn't created yet (thanks, Zsombor Gegesy!)
+		Fixed many general bugs
+	Renderers:
+		Added support for HE-AAC audio in MKV and MP4 files on LG BP550
+		Improved detection and file support for LG WebOS TVs
+
 6.7.3 - 2017-08-13
 
 	General:
@@ -21,6 +136,42 @@
 	Dependencies:
 		Updated MediaInfo to 0.7.97, which:
 			Improves support for HEVC (H.265), FLV, MKV, TIFF and more
+
+7.0.0-rc1 - 2017-08-04 - Changes since 7.0.0-b2
+
+	General:
+		Increased speed of Media Library features
+		Fixed sorting of TV seasons
+		Fixed false lookup matches of titles
+		Fixed realtime file adding in new folders
+		Fixed forgetting about a file after moving it
+		Fixed many other bugs
+		Reduced lookups and bandwidth to OpenSubtitles
+		Fixed MusicBrainz bugs
+		All changes in 6.7.0, 6.7.1 and 6.7.2
+		Unreleased changes from v6:
+			Improved support for AVI and MJPEG
+			Improved general DLNA implementation
+			Fixed duplicate entries in transcode folders
+			Fixed logging in macOS
+			Fixed menu name in macOS
+	Renderers:
+		Unreleased changes from v6:
+			Added renderer configuration for conversion of 3D video to 2D
+			Added support for Onkyo TXNR8xx
+			Improved support for Cambridge Audio Azur BD
+			Improved support for OPPO BDP
+			Improved support for Panasonic VIERA TXL32V10E
+			Improved support for Sony BRAVIA 5500 and EX TVs
+			Improved support for Sony SMP-N100
+			Improved support for Sony STR-DA5800ES
+			Fixed album art for Onkyo receivers (and probably others)
+			Fixed support for Xbox 360
+	Dependencies:
+		Updated h2database to 1.4.195
+		Unreleased changes from v6:
+			Updated MediaInfo to 0.7.97, which:
+				Improves support for HEVC (H.265), FLV, MKV, TIFF and more
 
 6.7.2 - 2017-07-09
 

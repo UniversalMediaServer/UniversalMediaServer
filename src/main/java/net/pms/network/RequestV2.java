@@ -331,19 +331,17 @@ public class RequestV2 extends HTTPResource {
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						thumbInputStream = dlna.getGenericThumbnailInputStream(null);
 					} else {
-						if (mediaRenderer.isUseMediaInfo()) {
-							dlna.checkThumbnail();
-						}
+						dlna.checkThumbnail();
 						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
 					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
 						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 					}
 					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
-					if (contentFeatures != null && inputStream instanceof DLNAThumbnailInputStream) {
+					if (contentFeatures != null) {
 						output.headers().set(
 							"ContentFeatures.DLNA.ORG",
-							dlna.getDlnaContentFeatures(((DLNAThumbnailInputStream) inputStream).getDLNAImageProfile())
+							dlna.getDlnaContentFeatures(imageProfile, true)
 						);
 					}
 					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
@@ -394,10 +392,10 @@ public class RequestV2 extends HTTPResource {
 							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
 						} else {
 							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
-							if (contentFeatures != null && inputStream instanceof DLNAImageInputStream) {
+							if (contentFeatures != null) {
 								output.headers().set(
 									"ContentFeatures.DLNA.ORG",
-									dlna.getDlnaContentFeatures(((DLNAImageInputStream) inputStream).getDLNAImageProfile())
+									dlna.getDlnaContentFeatures(imageProfile, false)
 								);
 							}
 							if (inputStream != null && (lowRange > 0 || highRange > 0)) {
@@ -903,12 +901,12 @@ public class RequestV2 extends HTTPResource {
 			output.headers().set("SID", PMS.get().usn());
 
 			/**
- 			 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
- 			 * subscribed UPnP control points. The device must enforce a subscription
- 			 * TIMEOUT value of 5 minutes.
- 			 * The UPnP device behavior of enforcing this 5 minutes TIMEOUT value is
- 			 * implemented by specifying "TIMEOUT: second-300" as an HTTP header/value pair.
- 			 */
+			 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
+			 * subscribed UPnP control points. The device must enforce a subscription
+			 * TIMEOUT value of 5 minutes.
+			 * The UPnP device behavior of enforcing this 5 minutes TIMEOUT value is
+			 * implemented by specifying "TIMEOUT: second-300" as an HTTP header/value pair.
+			 */
 			output.headers().set("TIMEOUT", "Second-300");
 
 			if (!soapaction.isEmpty()) {

@@ -24,12 +24,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
@@ -297,6 +294,409 @@ public class StringUtil {
 
 	public static boolean isZeroTime(String t) {
 		return isBlank(t) || "00:00:00.000".contains(t);
+	}
+
+	/**
+	 * Returns the first four digit number that can look like a year from the
+	 * specified {@link CharSequence}.
+	 *
+	 * @param date the {@link CharSequence} from which to extract the year.
+	 * @return The extracted year or {@code -1} if no valid year is found.
+	 */
+	public static int getYear(CharSequence date) {
+		if (isBlank(date)) {
+			return -1;
+		}
+		Pattern pattern = Pattern.compile("\\b\\d{4}\\b");
+		Matcher matcher = pattern.matcher(date);
+		while (matcher.find()) {
+			int result = Integer.parseInt(matcher.group());
+			if (result > 1600 && result < 2100) {
+				return result;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Extracts the first four digit number that can look like a year from both
+	 * {@link CharSequence}s and compares them.
+	 *
+	 * @param firstDate the first {@link CharSequence} containing a year.
+	 * @param secondDate the second {@link CharSequence} containing a year.
+	 * @return {@code true} if a year can be extracted from both
+	 *         {@link CharSequence}s and they have the same numerical value,
+	 *         {@code false} otherwise.
+	 */
+	public static boolean isSameYear(CharSequence firstDate, CharSequence secondDate) {
+		int first = getYear(firstDate);
+		if (first < 0) {
+			return false;
+		}
+		int second = getYear(secondDate);
+		if (second < 0) {
+			return false;
+		}
+		return first == second;
+	}
+
+	/**
+	 * Compares the specified {@link String}s for equality. Either
+	 * {@link String} can be {@code null}, and they are considered equal if both
+	 * are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @return {@code true} if the two {@link String}s are equal, {@code false}
+	 *         otherwise.
+	 * @throws IllegalArgumentException if an invalid combination of parameters
+	 *             is specified.
+	 * @throws IndexOutOfBoundsException if {@code fromIdx} or {@code toIdx} is
+	 *             positive and outside the bounds of {@code first} or
+	 *             {@code second}.
+	 */
+	public static boolean isEqual(
+		String first,
+		String second
+	) {
+		return isEqual(first, second, false, false, false, null, false, 0, -1, -1);
+	}
+
+	/**
+	 * Compares the specified {@link String}s for equality. Either
+	 * {@link String} can be {@code null}, and they are considered equal if both
+	 * are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @param blankIsNull if {@code true} a blank {@link String} will be equal
+	 *            to any other blank {@link String} or {@code null}.
+	 * @return {@code true} if the two {@link String}s are equal according to
+	 *         the rules set by the parameters, {@code false} otherwise.
+	 * @throws IllegalArgumentException if an invalid combination of parameters
+	 *             is specified.
+	 * @throws IndexOutOfBoundsException if {@code fromIdx} or {@code toIdx} is
+	 *             positive and outside the bounds of {@code first} or
+	 *             {@code second}.
+	 */
+	public static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull
+	) {
+		return isEqual(first, second, blankIsNull, false, false, null, false, 0, -1, -1);
+	}
+
+	/**
+	 * Compares the specified {@link String}s for equality according to the
+	 * rules set by the parameters. Either {@link String} can be {@code null},
+	 * and they are considered equal if both are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @param blankIsNull if {@code true} a blank {@link String} will be equal
+	 *            to any other blank {@link String} or {@code null}.
+	 * @param trim {@code true} to {@link String#trim()} both {@link String}s
+	 *            before comparison, {@code false} otherwise.
+	 * @param ignoreCase {@code true} to convert both {@link String}s to
+	 *            lower-case using the specified {@link Locale} before
+	 *            comparison, {@code false} otherwise.
+	 * @param locale the {@link Locale} to use when converting both
+	 *            {@link String}s to lower-case if {@code ignoreCase} is
+	 *            {@code true}. Ignored if {@code ignoreCase} is {@code false}.
+	 *            If {@code null}, {@link Locale#ROOT} will be used.
+	 * @return {@code true} if the two {@link String}s are equal according to
+	 *         the rules set by the parameters, {@code false} otherwise.
+	 */
+	public static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean trim,
+		boolean ignoreCase,
+		Locale locale
+	) {
+		return isEqual(first, second, blankIsNull, trim, ignoreCase, locale, false, 0, -1, -1);
+	}
+
+	/**
+	 * Compares the specified {@link String}s for equality according to the
+	 * rules set by the parameters. Either {@link String} can be {@code null},
+	 * and they are considered equal if both are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @param blankIsNull if {@code true} a blank {@link String} will be equal
+	 *            to any other blank {@link String} or {@code null}.
+	 * @param trim {@code true} to {@link String#trim()} both {@link String}s
+	 *            before comparison, {@code false} otherwise.
+	 * @param ignoreCase {@code true} to convert both {@link String}s to
+	 *            lower-case using the specified {@link Locale} before
+	 *            comparison, {@code false} otherwise.
+	 * @param locale the {@link Locale} to use when converting both
+	 *            {@link String}s to lower-case if {@code ignoreCase} is
+	 *            {@code true}. Ignored if {@code ignoreCase} is {@code false}.
+	 *            If {@code null}, {@link Locale#ROOT} will be used.
+	 * @param shortest {@code true} to only compare the length of the shortest
+	 *            of the two {@link String}s.
+	 * @param minLength the minimum length to compare if {@code shortest} is
+	 *            true. If this is zero, an empty {@link String} will equal any
+	 *            {@link String}.
+	 * @return {@code true} if the two {@link String}s are equal according to
+	 *         the rules set by the parameters, {@code false} otherwise.
+	 */
+	public static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean trim,
+		boolean ignoreCase,
+		Locale locale,
+		boolean shortest,
+		int minLength
+	) {
+		return isEqual(first, second, blankIsNull, trim, ignoreCase, locale, shortest, minLength, -1, -1);
+	}
+
+	/**
+	 * Compares the specified {@link String}s for equality according to the
+	 * rules set by the parameters. Either {@link String} can be {@code null},
+	 * and they are considered equal if both are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @param blankIsNull if {@code true} a blank {@link String} will be equal
+	 *            to any other blank {@link String} or {@code null}.
+	 * @param ignoreCase {@code true} to convert both {@link String}s to
+	 *            lower-case using the specified {@link Locale} before
+	 *            comparison, {@code false} otherwise.
+	 * @param locale the {@link Locale} to use when converting both
+	 *            {@link String}s to lower-case if {@code ignoreCase} is
+	 *            {@code true}. Ignored if {@code ignoreCase} is {@code false}.
+	 *            If {@code null}, {@link Locale#ROOT} will be used.
+	 * @param fromIdx compare only from the character of this index.
+	 * @return {@code true} if the two {@link String}s are equal according to
+	 *         the rules set by the parameters, {@code false} otherwise.
+	 * @throws IllegalArgumentException {@code toIdx} is positive and is smaller
+	 *             than {@code fromIdx}.
+	 * @throws IndexOutOfBoundsException if {@code fromIdx} or {@code toIdx} is
+	 *             positive and outside the bounds of {@code first} or
+	 *             {@code second}.
+	 */
+	public static boolean isEqualFrom(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean ignoreCase,
+		Locale locale,
+		int fromIdx
+	) {
+		return isEqual(first, second, blankIsNull, false, ignoreCase, locale, false, 0, fromIdx, -1);
+	}
+
+	/**
+	 * Compares the specified {@link String}s for equality according to the
+	 * rules set by the parameters. Either {@link String} can be {@code null},
+	 * and they are considered equal if both are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @param blankIsNull if {@code true} a blank {@link String} will be equal
+	 *            to any other blank {@link String} or {@code null}.
+	 * @param ignoreCase {@code true} to convert both {@link String}s to
+	 *            lower-case using the specified {@link Locale} before
+	 *            comparison, {@code false} otherwise.
+	 * @param locale the {@link Locale} to use when converting both
+	 *            {@link String}s to lower-case if {@code ignoreCase} is
+	 *            {@code true}. Ignored if {@code ignoreCase} is {@code false}.
+	 *            If {@code null}, {@link Locale#ROOT} will be used.
+	 * @param toIdx compare only to (not including) the character of this index.
+	 *            To compare to the end of the {@link String}, use {@code -1} or
+	 *            the index position after the last character (the same as the
+	 *            length).
+	 * @return {@code true} if the two {@link String}s are equal according to
+	 *         the rules set by the parameters, {@code false} otherwise.
+	 * @throws IllegalArgumentException {@code toIdx} is positive and is smaller
+	 *             than {@code fromIdx}.
+	 * @throws IndexOutOfBoundsException if {@code fromIdx} or {@code toIdx} is
+	 *             positive and outside the bounds of {@code first} or
+	 *             {@code second}.
+	 */
+	public static boolean isEqualTo(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean ignoreCase,
+		Locale locale,
+		int toIdx
+	) {
+		return isEqual(first, second, blankIsNull, false, ignoreCase, locale, false, 0, -1, toIdx);
+	}
+
+
+	/**
+	 * Compares the specified {@link String}s for equality according to the
+	 * rules set by the parameters. Either {@link String} can be {@code null},
+	 * and they are considered equal if both are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @param blankIsNull if {@code true} a blank {@link String} will be equal
+	 *            to any other blank {@link String} or {@code null}.
+	 * @param ignoreCase {@code true} to convert both {@link String}s to
+	 *            lower-case using the specified {@link Locale} before
+	 *            comparison, {@code false} otherwise.
+	 * @param locale the {@link Locale} to use when converting both
+	 *            {@link String}s to lower-case if {@code ignoreCase} is
+	 *            {@code true}. Ignored if {@code ignoreCase} is {@code false}.
+	 *            If {@code null}, {@link Locale#ROOT} will be used.
+	 * @param fromIdx compare only from the character of this index.
+	 * @param toIdx compare only to (not including) the character of this index.
+	 *            To compare to the end of the {@link String}, use {@code -1} or
+	 *            the index position after the last character (the same as the
+	 *            length).
+	 * @return {@code true} if the two {@link String}s are equal according to
+	 *         the rules set by the parameters, {@code false} otherwise.
+	 * @throws IllegalArgumentException {@code toIdx} is positive and is smaller
+	 *             than {@code fromIdx}.
+	 * @throws IndexOutOfBoundsException if {@code fromIdx} or {@code toIdx} is
+	 *             positive and outside the bounds of {@code first} or
+	 *             {@code second}.
+	 */
+	public static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean ignoreCase,
+		Locale locale,
+		int fromIdx,
+		int toIdx
+	) {
+		return isEqual(first, second, blankIsNull, false, ignoreCase, locale, false, 0, fromIdx, toIdx);
+	}
+
+	/**
+	 * Compares the specified {@link String}s for equality according to the
+	 * rules set by the parameters. Either {@link String} can be {@code null},
+	 * and they are considered equal if both are {@code null}.
+	 *
+	 * @param first the first {@link String} to compare.
+	 * @param second the second {@link String} to compare.
+	 * @param blankIsNull if {@code true} a blank {@link String} will be equal
+	 *            to any other blank {@link String} or {@code null}.
+	 * @param trim {@code true} to {@link String#trim()} both {@link String}s
+	 *            before comparison, {@code false} otherwise. Cannot be used
+	 *            together with {@code fromIdx} or {@code toIdx}.
+	 * @param ignoreCase {@code true} to convert both {@link String}s to
+	 *            lower-case using the specified {@link Locale} before
+	 *            comparison, {@code false} otherwise.
+	 * @param locale the {@link Locale} to use when converting both
+	 *            {@link String}s to lower-case if {@code ignoreCase} is
+	 *            {@code true}. Ignored if {@code ignoreCase} is {@code false}.
+	 *            If {@code null}, {@link Locale#ROOT} will be used.
+	 * @param shortest {@code true} to only compare the length of the shortest
+	 *            of the two {@link String}s. Cannot be used together with
+	 *            {@code fromIdx} or {@code toIdx}.
+	 * @param minLength the minimum length to compare if {@code shortest} is
+	 *            true. If this is zero, an empty {@link String} will equal any
+	 *            {@link String}.
+	 * @param fromIdx compare only from the character of this index. Cannot be
+	 *            used together with {@code trim} or {@code shortest}.
+	 * @param toIdx compare only to (not including) the character of this index.
+	 *            To compare to the end of the {@link String}, use {@code -1} or
+	 *            the index position after the last character (the same as the
+	 *            length). Cannot be used together with {@code trim} or
+	 *            {@code shortest}.
+	 * @return {@code true} if the two {@link String}s are equal according to
+	 *         the rules set by the parameters, {@code false} otherwise.
+	 * @throws IllegalArgumentException if an invalid combination of parameters
+	 *             is specified.
+	 * @throws IndexOutOfBoundsException if {@code fromIdx} or {@code toIdx} is
+	 *             positive and outside the bounds of {@code first} or
+	 *             {@code second}.
+	 */
+	protected static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean trim,
+		boolean ignoreCase,
+		Locale locale,
+		boolean shortest,
+		int minLength,
+		int fromIdx,
+		int toIdx
+	) {
+		if ((trim || shortest) && (fromIdx >= 0 || toIdx >= 0)) {
+			throw new IllegalArgumentException("trim or shortest and index range can't be used together");
+		}
+		if (blankIsNull) {
+			if (first == null) {
+				first = "";
+			}
+			if (second == null) {
+				second = "";
+			}
+		} else {
+			if (first == null || second == null) {
+				return first == null && second == null;
+			}
+		}
+		// No null after this point
+
+		if (trim) {
+			first = first.trim();
+			second = second.trim();
+		}
+
+		if (ignoreCase) {
+			if (locale == null) {
+				locale = Locale.ROOT;
+			}
+			first = first.toLowerCase(locale);
+			second = second.toLowerCase(locale);
+		}
+
+		if (shortest) {
+			if (first.length() != second.length()) {
+				int shortestIdx = Math.max(Math.min(first.length(), second.length()), minLength);
+				first = first.substring(0, Math.min(shortestIdx, first.length()));
+				second = second.substring(0, Math.min(shortestIdx, second.length()));
+			}
+		} else if (fromIdx >= 0 || toIdx >= 0) {
+			if (fromIdx == toIdx) {
+				return true;
+			}
+			if (fromIdx > toIdx && toIdx >= 0) {
+				throw new IllegalArgumentException("fromIdx (" + fromIdx + ") > toIdx (" + toIdx + ")");
+			}
+			if (fromIdx >= first.length() || fromIdx >= second.length()) {
+				throw new IndexOutOfBoundsException(
+					"fromIdx=" + fromIdx + ", first length=" + first.length() + ", second length=" + second.length()
+				);
+			}
+			if (toIdx > first.length() || toIdx > second.length()) {
+				throw new IndexOutOfBoundsException(
+					"toIdx=" + fromIdx + ", first length=" + first.length() + ", second length=" + second.length()
+				);
+			}
+			if (fromIdx < 0) {
+				fromIdx = 0;
+			}
+			if (toIdx < 0) {
+				first = first.substring(fromIdx);
+				second = second.substring(fromIdx);
+			} else {
+				first = first.substring(fromIdx, toIdx);
+				second = second.substring(fromIdx, toIdx);
+			}
+		}
+
+		if (blankIsNull && (isBlank(first) || isBlank(second))) {
+			return isBlank(first) && isBlank(second);
+		}
+
+		return first.equals(second);
 	}
 
 	/**
@@ -676,5 +1076,17 @@ public class StringUtil {
 			return String.format(locale, "%d %s", bytes / divisor, unit);
 		}
 		return String.format(locale, "%.1f %s", (double) bytes / divisor, unit);
+	}
+
+	/**
+	 * An enum representing letter cases.
+	 */
+	public static enum LetterCase {
+
+		/** Upper-case, uppercase, capital or majuscule */
+		UPPER,
+
+		/** Lower-case, lowercase or minuscule */
+		LOWER
 	}
 }

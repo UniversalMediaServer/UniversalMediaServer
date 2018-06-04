@@ -13,11 +13,11 @@ public class ImdbUtil {
 		return str.replaceAll(IMDB_REG, "").replaceAll(HASH_REG, "");
 	}
 
-	public static String extractOSHash(File file) {
+	public static String extractOSHashFromFileName(File file) {
 		return extract(file, HASH_REG);
 	}
 
-	public static String extractImdb(File file) {
+	public static String extractImdbIdFromFileName(File file) {
 		String ret = extract(file, IMDB_REG);
 		// Opensubtitles requires IMDb ID to be a number only
 		if (!StringUtils.isEmpty(ret) && ret.startsWith("tt") && ret.length() > 2) {
@@ -26,15 +26,15 @@ public class ImdbUtil {
 		return ret;
 	}
 
-	private static String extract(File f, String reg) {
-		String fName = f.getAbsolutePath();
-		Pattern re = Pattern.compile(reg);
-		Matcher m = re.matcher(fName);
-		String ret = "";
-		while (m.find()) {
-			ret = m.group(1);
+	private static String extract(File file, String regex) {
+		String fileName = file.getAbsolutePath();
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(fileName);
+		String result = "";
+		while (matcher.find()) {
+			result = matcher.group(1);
 		}
-		return ret;
+		return result;
 	}
 
 	public static String ensureTT(String s) {

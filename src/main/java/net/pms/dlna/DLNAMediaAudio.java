@@ -248,6 +248,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return whether the audio codec is ER BSAC.
+	 */
+	public boolean isERBSAC() {
+		return FormatConfiguration.ER_BSAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is FLAC.
 	 */
 	public boolean isFLAC() {
@@ -499,6 +506,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "DTS HD";
 		} else if (isEAC3()) {
 			return "Enhanced AC-3";
+		} else if (isERBSAC()) {
+			return "ER BSAC";
 		} else if (isFLAC()) {
 			return "FLAC";
 		} else if (isG729()) {
