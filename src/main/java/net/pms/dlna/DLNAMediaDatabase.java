@@ -340,7 +340,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
 				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", MIMETYPE		             VARCHAR2(").append(SIZE_MAX).append("))");
+				sb.append(", MIMETYPE		     VARCHAR2(").append(SIZE_MAX).append("))");
 				if (trace) {
 					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				}
@@ -582,7 +582,6 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
 					media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
 					media.setImageCount(rs.getInt("IMAGECOUNT"));
-					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
 					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
 					media.setIMDbID(rs.getString("IMDBID"));
 					media.setYear(rs.getString("YEAR"));
