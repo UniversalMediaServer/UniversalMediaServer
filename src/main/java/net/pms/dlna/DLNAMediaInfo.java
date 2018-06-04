@@ -180,6 +180,19 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private volatile DLNAThumbnail thumb = null;
 
+	/**
+	 * Metadata gathered from either the filename or OpenSubtitles.
+	 */
+	private String imdbID;
+	private String year;
+	private String tvShowName;
+	private String simplifiedTvShowName;
+	private String tvSeason;
+	private String tvEpisodeNumber;
+	private String tvEpisodeName;
+	private String extraInformation;
+	private boolean isTVEpisode;
+
 	private volatile ImageInfo imageInfo = null;
 
 	/**
@@ -362,20 +375,26 @@ public class DLNAMediaInfo implements Cloneable {
 	 * core layer. Valid cores include AAC-LC, AAC Scalable (without LTP), ER
 	 * AAC LC, ER AAC Scalable, and ER BSAC.
 	 * <p>
-	 * Since UMS currently only implements AAC-LC among the valid core layer
-	 * codecs, AAC-LC is the only core layer format "approved" by this test. If
+	 * UMS currently only implements AAC-LC and ER BSAC among the valid core layer
+	 * codecs, so only those are "approved" by this test. If
 	 * further codecs are added in the future, this test should be modified
 	 * accordingly.
 	 *
-	 * @return {@code true} is this {@link DLNAMediaInfo} instance has two audio
-	 *         tracks where the first has codec AAC-LC and the second has codec
-	 *         SLS, {@code false} otherwise.
+	 * @return {@code true} if this {@link DLNAMediaInfo} instance has two audio
+	 *         tracks where the first has an approved AAC codec and the second has
+	 *         codec SLS, {@code false} otherwise.
 	 */
 	public boolean isSLS() {
 		if (audioTracks.size() != 2) {
 			return false;
 		}
-		return audioTracks.get(0).isAACLC() && audioTracks.get(1).isSLS();
+
+		return 
+			(
+				audioTracks.get(0).isAACLC() ||
+				audioTracks.get(0).isERBSAC()
+			) &&
+			audioTracks.get(1).isSLS();
 	}
 
 	public MediaType getMediaType() {
@@ -1223,7 +1242,35 @@ public class DLNAMediaInfo implements Cloneable {
 						while (st.hasMoreTokens()) {
 							String token = st.nextToken().trim();
 							if (token.startsWith("Stream")) {
-								audio.setCodecA(token.substring(token.indexOf("Audio: ") + 7));
+								String audioString = "Audio: ";
+								int positionAfterAudioString = token.indexOf(audioString) + audioString.length();
+								String codec;
+
+								/**
+								 * Check whether there are more details after the audio string.
+								 * e.g. "Audio: aac (LC)"
+								 */
+								if (token.indexOf(" ", positionAfterAudioString) != -1) {
+									codec = token.substring(positionAfterAudioString, token.indexOf(" ", positionAfterAudioString)).trim();
+
+									// workaround for AAC audio formats
+									if (codec.equals("aac")) {
+										if (token.contains("(LC)")) { 
+											codec = FormatConfiguration.AAC_LC;
+										} else if (token.contains("(HE-AAC)")) {
+											codec = FormatConfiguration.HE_AAC;
+										}
+									}
+								} else {
+									codec = token.substring(positionAfterAudioString);
+
+									// workaround for AAC audio formats
+									if (codec.equals("aac")) { 
+										codec = FormatConfiguration.AAC_LC;
+									}
+								}
+
+								audio.setCodecA(codec);
 							} else if (token.endsWith("Hz")) {
 								audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
 							} else if (token.equals("mono")) {
@@ -1276,7 +1323,18 @@ public class DLNAMediaInfo implements Cloneable {
 						while (st.hasMoreTokens()) {
 							String token = st.nextToken().trim();
 							if (token.startsWith("Stream")) {
-								codecV = token.substring(token.indexOf("Video: ") + 7);
+								String videoString = "Video: ";
+								int positionAfterVideoString = token.indexOf(videoString) + videoString.length();
+								String codec;
+	
+								// Check whether there are more details after the video string
+								if (token.indexOf(" ", positionAfterVideoString) != -1) {
+									codec = token.substring(positionAfterVideoString, token.indexOf(" ", positionAfterVideoString)).trim();
+								} else {
+									codec = token.substring(positionAfterVideoString);
+								}
+
+								codecV = codec;
 								videoTrackCount++;
 							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {
 								// A/V sync issues with newest FFmpeg, due to the new tbr/tbn/tbc outputs
@@ -2250,6 +2308,91 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
+	}
+
+	public String getIMDbID() {
+		return imdbID;
+	}
+
+	public void setIMDbID(String value) {
+		this.imdbID = value;
+	}
+
+	public String getYear() {
+		return year;
+	}
+
+	public void setYear(String value) {
+		this.year = value;
+	}
+
+	public String getMovieOrShowName() {
+		return tvShowName;
+	}
+
+	public void setMovieOrShowName(String value) {
+		this.tvShowName = value;
+	}
+
+	public String getSimplifiedMovieOrShowName() {
+		return simplifiedTvShowName;
+	}
+
+	public void setSimplifiedMovieOrShowName(String value) {
+		this.simplifiedTvShowName = value;
+	}
+
+	public String getTVSeason() {
+		return tvSeason;
+	}
+
+	public void setTVSeason(String value) {
+		this.tvSeason = value;
+	}
+
+	public String getTVEpisodeNumber() {
+		return tvEpisodeNumber;
+	}
+
+	public void setTVEpisodeNumber(String value) {
+		this.tvEpisodeNumber = value;
+	}
+
+	public String getTVEpisodeName() {
+		return tvEpisodeName;
+	}
+
+	public void setTVEpisodeName(String value) {
+		this.tvEpisodeName = value;
+	}
+
+	public boolean isTVEpisode() {
+		return isTVEpisode;
+	}
+
+	public void setIsTVEpisode(boolean value) {
+		this.isTVEpisode = value;
+	}
+
+	/**
+	 * Any extra information like movie edition or whether it is a
+	 * sample video.
+	 *
+	 * Example: "(Director's Cut) (Sample)"
+	 * @return 
+	 */
+	public String getExtraInformation() {
+		return extraInformation;
+	}
+
+	/**
+	 * Any extra information like movie edition or whether it is a
+	 * sample video.
+	 *
+	 * Example: "(Director's Cut) (Sample)"
+	 */
+	public void setExtraInformation(String value) {
+		this.extraInformation = value;
 	}
 
 	/**

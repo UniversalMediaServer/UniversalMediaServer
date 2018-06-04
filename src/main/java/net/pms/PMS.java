@@ -76,6 +76,7 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
@@ -473,114 +474,10 @@ public class PMS {
 			if (splash != null) {
 				splash.setVisible(false);
 			}
-
-			// Total number of questions
-			int numberOfQuestions = 4;
-
-			// The current question number
-			int currentQuestionNumber = 1;
-
-			// Ask if they want UMS to start minimized
-			int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-				null,
-				Messages.getString("Wizard.3"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION
-			);
-			if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-				configuration.setMinimized(true);
-				save();
-			} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-				configuration.setMinimized(false);
-				save();
-			}
-
-			// Ask if their network is wired, etc.
-			Object[] options = {
-				Messages.getString("Wizard.8"),
-				Messages.getString("Wizard.9"),
-				Messages.getString("Wizard.10")
-			};
-			int networkType = JOptionPane.showOptionDialog(
-				null,
-				Messages.getString("Wizard.7"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_CANCEL_OPTION,
-				JOptionPane.QUESTION_MESSAGE,
-				null,
-				options,
-				options[1]
-			);
-			switch (networkType) {
-				case JOptionPane.YES_OPTION:
-					// Wired (Gigabit)
-					configuration.setMaximumBitrate("0");
-					configuration.setMPEG2MainSettings("Automatic (Wired)");
-					configuration.setx264ConstantRateFactor("Automatic (Wired)");
-					save();
-					break;
-				case JOptionPane.NO_OPTION:
-					// Wired (100 Megabit)
-					configuration.setMaximumBitrate("90");
-					configuration.setMPEG2MainSettings("Automatic (Wired)");
-					configuration.setx264ConstantRateFactor("Automatic (Wired)");
-					save();
-					break;
-				case JOptionPane.CANCEL_OPTION:
-					// Wireless
-					configuration.setMaximumBitrate("30");
-					configuration.setMPEG2MainSettings("Automatic (Wireless)");
-					configuration.setx264ConstantRateFactor("Automatic (Wireless)");
-					save();
-					break;
-				default:
-					break;
-			}
-
-			// Ask if they want to hide advanced options
-			int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-				null,
-				Messages.getString("Wizard.11"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION
-			);
-			if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
-				configuration.setHideAdvancedOptions(true);
-				save();
-			} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
-				configuration.setHideAdvancedOptions(false);
-				save();
-			}
-
-			JOptionPane.showMessageDialog(
-				null,
-				Messages.getString("Wizard.12"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.INFORMATION_MESSAGE
-			);
-				
-			JFileChooser chooser;
-			try {
-				chooser = new JFileChooser();
-			} catch (Exception ee) {
-				chooser = new JFileChooser(new RestrictedFileSystemView());
-			}
-
-			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			chooser.setDialogTitle(Messages.getString("Wizard.12"));
-			chooser.setMultiSelectionEnabled(false);
-			if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-				configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
-			} else {
-				// If user cancel this option set the default directory which depends on the operating system.
-				// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
-				configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
-			}
-
-			// The wizard finished, do not ask them again
-			configuration.setRunWizard(false);
-			save();
-
+			
+			// Run wizard
+			Wizard.run(configuration);
+			
 			// Unhide splash screen
 			if (splash != null) {
 				splash.setVisible(true);
@@ -888,6 +785,11 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
+
+		// Initiate a library scan in case files were added to folders while UMS was closed.
+		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {
+			getDatabase().scanLibrary();
+		}
 
 		return true;
 	}
@@ -1350,6 +1252,12 @@ public class PMS {
 		}
 	}
 
+	/**
+	 * Stores the file in the cache if it doesn't already exist.
+	 *
+	 * @param file the full path to the file.
+	 * @param formatType the type constant defined in {@link Format}.
+	 */
 	public void storeFileInCache(File file, int formatType) {
 		if (
 			getConfiguration().getUseCache() &&
@@ -1362,6 +1270,46 @@ public class PMS {
 				LOGGER.trace("", e);
 			}
 		}
+	}
+
+	/**
+	 * Returns a similar TV series name from the database.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public String getSimilarTVSeriesName(String title) {
+		if (title == null) {
+			return title;
+		}
+
+		title = getSimplifiedShowName(title);
+		title = StringEscapeUtils.escapeSql(title);
+
+		if (getConfiguration().getUseCache()) {
+			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "' LIMIT 1");
+			if (titleList.size() > 0) {
+				return titleList.get(0);
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * This reduces the incoming title to a lowercase, alphanumeric string
+	 * for searching in order to prevent titles like "Word of the Word" and
+	 * "Word Of The Word!" from being seen as different shows.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public String getSimplifiedShowName(String title) {
+		if (title == null) {
+			return null;
+		}
+
+		return title.toLowerCase().replaceAll("[^a-z0-9]", "");
 	}
 
 	/**
@@ -1873,6 +1821,7 @@ public class PMS {
 	private CodeDb codes;
 	private CodeEnter masterCode;
 
+	@Deprecated
 	public void infoDbAdd(File f, String formattedName) {
 		infoDb.backgroundAdd(f, formattedName);
 	}
@@ -1973,11 +1922,11 @@ public class PMS {
 
 	private CredMgr credMgr;
 
-	public static CredMgr.Cred getCred(String owner) {
+	public static CredMgr.Credential getCred(String owner) {
 		return instance.credMgr.getCred(owner);
 	}
 
-	public static CredMgr.Cred getCred(String owner, String tag) {
+	public static CredMgr.Credential getCred(String owner, String tag) {
 		return instance.credMgr.getCred(owner, tag);
 	}
 
