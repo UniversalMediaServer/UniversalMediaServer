@@ -1358,7 +1358,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isShowLiveSubtitlesFolder()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder()) {
 				@Override
 				public boolean enable() {
 					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());
