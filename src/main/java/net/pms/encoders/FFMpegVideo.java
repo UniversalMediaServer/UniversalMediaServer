@@ -951,8 +951,8 @@ public class FFMpegVideo extends Player {
 		// after video input is specified and before output streams are mapped.
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
-		// Map the propper audio stream when there are multiple audio streams.
-		// For video the FFMpeg chooses the stream with the highest resolution.
+		// Map the proper audio stream when there are multiple audio streams.
+		// For video the FFMpeg automatically chooses the stream with the highest resolution.
 		if (media.getAudioTracksList().size() > 1) {
 			cmdList.add("-map");
 			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
