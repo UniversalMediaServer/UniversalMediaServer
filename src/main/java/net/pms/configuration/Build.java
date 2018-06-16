@@ -35,7 +35,7 @@ public class Build {
 	 * The URL of the properties file used by the {@link AutoUpdater} to announce PMS updates.
 	 * Can be null/empty if not used. Not used if IS_UPDATABLE is set to false.
 	 */
-	private static final String UPDATE_SERVER_URL = REPO + "/master/src/main/external-resources/update/latest_version.properties";
+	private static final String UPDATE_SERVER_URL = REPO + "/update_from_fosshub/src/main/external-resources/update/latest_version.properties";
 
 	/**
 	 * If false, manual and automatic update checks are unconditionally disabled.
