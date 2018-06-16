@@ -1,4 +1,4 @@
-7.1.0 - 2018-06-??
+7.1.0 - 2018-06-16
 
 	General:
 		Aspect ratio is maintained in web interface thumbnails
