@@ -443,7 +443,7 @@ public class UPNPHelper extends UPNPControl {
 						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
 
 						if (bindErrorReported) {
-							LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
+							LOGGER.warn("Finally, acquiring port {} was successful!", configuration.getUpnpPort());
 						}
 
 						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
@@ -492,7 +492,7 @@ public class UPNPHelper extends UPNPControl {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
 									if (!redundant && LOGGER.isTraceEnabled()) {
-										LOGGER.trace("Received a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]: " + s);
+										LOGGER.trace("Received a M-SEARCH from [{}:{}]: {}", remoteAddr, remotePort, s);
 									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -527,13 +527,13 @@ public class UPNPHelper extends UPNPControl {
 							+ ", which means that UMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
-							+ "UMS will keep trying to bind to it...[" + e.getMessage() + "]");
+							+ "UMS will keep trying to bind to it...[{}]", e.getMessage());
 						}
 
 						bindErrorReported = true;
 						sleep(5000);
 					} catch (IOException e) {
-						LOGGER.error("UPnP network exception: ", e.getMessage());
+						LOGGER.error("UPnP network exception: {}", e.getMessage());
 						LOGGER.trace("", e);
 						sleep(1000);
 					} finally {
@@ -543,7 +543,7 @@ public class UPNPHelper extends UPNPControl {
 								InetAddress upnpAddress = getUPNPAddress();
 								multicastSocket.leaveGroup(upnpAddress);
 							} catch (IOException e) {
-								LOGGER.trace("Final UPnP network exception: ", e.getMessage());
+								LOGGER.trace("Final UPnP network exception: {}", e.getMessage());
 								LOGGER.trace("", e);
 							}
 

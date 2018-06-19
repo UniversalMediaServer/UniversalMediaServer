@@ -155,7 +155,6 @@ public class LanguageSelection {
 	}
 
 	private class SelectButtonActionListener implements ActionListener {
-
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("select") && keyedModel.getSelectedKey() != null) {
@@ -163,8 +162,8 @@ public class LanguageSelection {
 			}
 		}
 	}
-	private class ApplyButtonActionListener implements ActionListener {
 
+	private class ApplyButtonActionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("apply") && keyedModel.getSelectedKey() != null) {
@@ -180,7 +179,6 @@ public class LanguageSelection {
 	}
 
 	private class LanguageComboBoxActionListener implements ActionListener {
-
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("comboBoxChanged") && keyedModel.getSelectedKey() != null) {
@@ -232,7 +230,6 @@ public class LanguageSelection {
 			)
 		));
 
-
 		String descriptionMessage = parentComponent != null ? "LanguageSelection.7" : "LanguageSelection.2";
 		if (Messages.getString(descriptionMessage, locale).equals(Messages.getRootString(descriptionMessage))) {
 			if (parentComponent != null) {
@@ -273,6 +270,7 @@ public class LanguageSelection {
 		descriptionText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(descriptionText, textWidth));
 
 		keyedModel.setData(Languages.getLanguageTags(locale), Languages.getLanguageNames(locale));
+
 		//Try to find a matching locale
 		String languageTag = Languages.toLanguageTag(locale);
 		int idx;

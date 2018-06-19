@@ -1962,9 +1962,9 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Downloads the subtitles from the specified {@link URI} to the specified
-	 * {@link Path}. It the specified {@link Path} is {@code null} a temporary
-	 * filename is used.
+	 * Downloads the subtitles from the specified {@link URI} to the
+	 * specified {@link Path}. It the specified {@link Path} is {@code null}
+	 * a temporary filename is used.
 	 *
 	 * @param url the {@link URL} from which to download.
 	 * @param output the {@link Path} for the target file.
@@ -4821,7 +4821,6 @@ public class OpenSubtitle {
 						String titleFromFilename           = media.getMovieOrShowName();
 						String titleFromFilenameSimplified = media.getSimplifiedMovieOrShowName();
 						String yearFromFilename            = media.getYear();
-						String editionFromFilename         = media.getEdition();
 						String tvSeasonFromFilename        = media.getTVSeason();
 						String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
 
@@ -4909,7 +4908,6 @@ public class OpenSubtitle {
 									media.setMovieOrShowName(titleFromOpenSubtitles);
 									media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
 									media.setYear(metadataFromOpenSubtitles[5]);
-									media.setEdition(editionFromFilename);
 
 									// If the filename has indicated this is a TV episode
 									if (StringUtils.isNotBlank(tvSeasonFromFilename)) {

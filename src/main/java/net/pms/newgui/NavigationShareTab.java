@@ -406,7 +406,7 @@ public class NavigationShareTab {
 		});
 
 		// Show Server Settings folder
-		isShowFolderServerSettings = new JCheckBox(Messages.getString("FoldTab.38"), configuration.isShowServerSettingsFolder());
+		isShowFolderServerSettings = new JCheckBox(Messages.getString("FoldTab.ShowServerSettingsFolder"), configuration.isShowServerSettingsFolder());
 		isShowFolderServerSettings.setContentAreaFilled(false);
 		isShowFolderServerSettings.addItemListener(new ItemListener() {
 			@Override
@@ -416,7 +416,7 @@ public class NavigationShareTab {
 		});
 
 		// Show #--TRANSCODE--# folder
-		isShowFolderTranscode = new JCheckBox(Messages.getString("FoldTab.33"), configuration.isShowTranscodeFolder());
+		isShowFolderTranscode = new JCheckBox(Messages.getString("FoldTab.ShowTranscodeFolder"), configuration.isShowTranscodeFolder());
 		isShowFolderTranscode.setContentAreaFilled(false);
 		isShowFolderTranscode.addItemListener(new ItemListener() {
 			@Override
@@ -426,7 +426,7 @@ public class NavigationShareTab {
 		});
 
 		// Show Media Library folder
-		isShowFolderMediaLibrary = new JCheckBox(Messages.getString("FoldTab.32"), configuration.isShowMediaLibraryFolder());
+		isShowFolderMediaLibrary = new JCheckBox(Messages.getString("FoldTab.ShowMediaLibraryFolder"), configuration.isShowMediaLibraryFolder());
 		isShowFolderMediaLibrary.setContentAreaFilled(false);
 		isShowFolderMediaLibrary.addItemListener(new ItemListener() {
 			@Override
@@ -445,9 +445,9 @@ public class NavigationShareTab {
 			}
 		});
 
-		// Enable the cache
-		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"), configuration.getUseCache());
-		cacheenable.setToolTipText(Messages.getString("FoldTab.48"));
+		// Enable the Media Library
+		cacheenable = new JCheckBox(Messages.getString("NetworkTab.EnableMediaLibrary"), configuration.getUseCache());
+		cacheenable.setToolTipText(Messages.getString("FoldTab.ShowMediaLibraryFolderTooltip"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.addItemListener(new ItemListener() {
 			@Override
@@ -459,13 +459,13 @@ public class NavigationShareTab {
 		});
 
 		// Reset cache
-		cachereset = new CustomJButton(Messages.getString("NetworkTab.18"));
+		cachereset = new CustomJButton(Messages.getString("NetworkTab.EmptyMediaLibrary"));
 		cachereset.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int option = JOptionPane.showConfirmDialog(
 					looksFrame,
-					Messages.getString("NetworkTab.13") + "\n" + Messages.getString("NetworkTab.19"),
+					Messages.getString("NetworkTab.MediaLibraryEmptiedExceptFullyPlayed") + "\n" + Messages.getString("NetworkTab.19"),
 					Messages.getString("Dialog.Question"),
 					JOptionPane.YES_NO_OPTION);
 				if (option == JOptionPane.YES_OPTION) {
@@ -646,7 +646,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		isShowFolderLiveSubtitles = new JCheckBox(Messages.getString("FoldTab.42"), configuration.isShowLiveSubtitlesFolder());
+		isShowFolderLiveSubtitles = new JCheckBox(Messages.getString("FoldTab.ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder());
 		isShowFolderLiveSubtitles.setContentAreaFilled(false);
 		isShowFolderLiveSubtitles.addItemListener(new ItemListener() {
 			@Override
@@ -680,7 +680,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		isShowFolderNewMedia = new JCheckBox(Messages.getString("FoldTab.54"), configuration.isShowNewMediaFolder());
+		isShowFolderNewMedia = new JCheckBox(Messages.getString("FoldTab.ShowNewMediaFolder"), configuration.isShowNewMediaFolder());
 		isShowFolderNewMedia.setToolTipText(Messages.getString("FoldTab.66"));
 		isShowFolderNewMedia.setContentAreaFilled(false);
 		isShowFolderNewMedia.addItemListener(new ItemListener() {
@@ -700,7 +700,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		isShowFolderRecentlyPlayed = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isShowRecentlyPlayedFolder());
+		isShowFolderRecentlyPlayed = new JCheckBox(Messages.getString("FoldTab.ShowRecentlyPlayedFolder"), configuration.isShowRecentlyPlayedFolder());
 		isShowFolderRecentlyPlayed.setContentAreaFilled(false);
 		isShowFolderRecentlyPlayed.addItemListener(new ItemListener() {
 			@Override

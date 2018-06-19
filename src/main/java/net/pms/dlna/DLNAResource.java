@@ -768,6 +768,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					if (resumeRes != null && resumeRes.media != null) {
 						resumeRes.media.setThumbready(false);
+						resumeRes.media.setMimeType(HTTPResource.VIDEO_TRANSCODE);
 					}
 
 					/**
@@ -5077,13 +5078,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private void setMetadataFromFileName(File file) {
 		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
-		String titleFromFilename           = metadataFromFilename[0];
-		String yearFromFilename            = metadataFromFilename[1];
-		String editionFromFilename         = metadataFromFilename[2];
-		String tvSeasonFromFilename        = metadataFromFilename[3];
-		String tvEpisodeNumberFromFilename = metadataFromFilename[4];
-		String tvEpisodeNameFromFilename   = metadataFromFilename[5];
-		String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
+		String titleFromFilename            = metadataFromFilename[0];
+		String yearFromFilename             = metadataFromFilename[1];
+		String extraInformationFromFilename = metadataFromFilename[2];
+		String tvSeasonFromFilename         = metadataFromFilename[3];
+		String tvEpisodeNumberFromFilename  = metadataFromFilename[4];
+		String tvEpisodeNameFromFilename    = metadataFromFilename[5];
+		String titleFromFilenameSimplified  = FileUtil.getSimplifiedShowName(titleFromFilename);
+
 		media.setMovieOrShowName(titleFromFilename);
 		media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
 		String titleFromDatabase;
@@ -5115,8 +5117,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media.setYear(yearFromFilename);
 		}
 
-		if (editionFromFilename != null) {
-			media.setEdition(editionFromFilename);
+		if (extraInformationFromFilename != null) {
+			media.setExtraInformation(extraInformationFromFilename);
 		}
 
 		try {
