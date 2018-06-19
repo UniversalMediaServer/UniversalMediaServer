@@ -66,7 +66,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final int latestVersion = 14;
+	private final int latestVersion = 15;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -88,7 +88,6 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_TVSEASON = 4;
 	private final int SIZE_TVEPISODENUMBER = 8;
 	private final int SIZE_EXTERNALFILE = 1000;
-	private final int SIZE_CHARSET = 255;
 
 	// Generic constant for the maximum string size: 255 chars
 	private final int SIZE_MAX = 255;
@@ -260,6 +259,15 @@ public class DLNAMediaDatabase implements Runnable {
 							}
 							version = 14;
 							break;
+						case 14:
+							try (Statement statement = conn.createStatement()) {
+								StringBuilder sb = new StringBuilder();
+								sb.append("ALTER TABLE SUBTRACKS ADD EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL");
+								sb.append("ALTER TABLE SUBTRACKS ADD CHARSET VARCHAR2(").append(SIZE_MAX).append(")");
+								statement.execute(sb.toString());
+							}
+							version = 15;
+							break;
 						default:
 							// Do the dumb way
 							forceReInit = true;
@@ -380,7 +388,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", TYPE     INT");
 				sb.append(", EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL");
-				sb.append(", CHARSET VARCHAR2(").append(SIZE_CHARSET).append(")");
+				sb.append(", CHARSET VARCHAR2(").append(SIZE_MAX).append(")");
 				sb.append(", constraint PKSUB primary key (FILEID, ID, EXTERNALFILE))");
 
 				if (trace) {
@@ -707,7 +715,7 @@ public class DLNAMediaDatabase implements Runnable {
 						} else {
 							rs.updateString("EXTERNALFILE", "");
 						}
-						rs.updateString("CHARSET", left(subtitleTrack.getSubCharacterSet(), SIZE_CHARSET));
+						rs.updateString("CHARSET", left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
@@ -721,7 +729,7 @@ public class DLNAMediaDatabase implements Runnable {
 						} else {
 							insertStatement.setString(6, "");
 						}
-						insertStatement.setString(7, left(subtitleTrack.getSubCharacterSet(), SIZE_CHARSET));
+						insertStatement.setString(7, left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
 						insertStatement.executeUpdate();
 					}
 				}
