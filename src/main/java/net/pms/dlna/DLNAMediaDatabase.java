@@ -269,6 +269,7 @@ public class DLNAMediaDatabase implements Runnable {
 								statement.execute(sb.toString());
 								sb = new StringBuilder();
 								sb.append("ALTER TABLE ADD constraint PKSUB primary key (FILEID, ID, EXTERNALFILE))");
+								statement.execute(sb.toString());
 							}
 							version = 15;
 							break;
