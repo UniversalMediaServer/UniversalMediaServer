@@ -262,7 +262,7 @@ public class DLNAMediaDatabase implements Runnable {
 						case 14:
 							try (Statement statement = conn.createStatement()) {
 								StringBuilder sb = new StringBuilder();
-								sb.append("ALTER TABLE SUBTRACKS ADD EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(")");
+								sb.append("ALTER TABLE SUBTRACKS ADD EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(")").append("NOT NULL");
 								statement.execute(sb.toString());
 								sb.setLength(0);
 								sb.append("ALTER TABLE SUBTRACKS ADD CHARSET VARCHAR2(").append(SIZE_MAX).append(")");
