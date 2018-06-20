@@ -264,12 +264,11 @@ public class DLNAMediaDatabase implements Runnable {
 								StringBuilder sb = new StringBuilder();
 								sb.append("ALTER TABLE SUBTRACKS ADD EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(")");
 								statement.execute(sb.toString());
-								sb = new StringBuilder();
+								sb.setLength(0);
 								sb.append("ALTER TABLE SUBTRACKS ADD CHARSET VARCHAR2(").append(SIZE_MAX).append(")");
 								statement.execute(sb.toString());
-								sb = new StringBuilder();
-								sb.append("ALTER TABLE ADD constraint PKSUB primary key (FILEID, ID, EXTERNALFILE))");
-								statement.execute(sb.toString());
+								statement.execute("ALTER TABLE SUBTRACKS DROP constraint PKSUB");
+								statement.execute("ALTER TABLE SUBTRACKS ADD constraint PKSUB primary key (FILEID, ID, EXTERNALFILE)");
 							}
 							version = 15;
 							break;
