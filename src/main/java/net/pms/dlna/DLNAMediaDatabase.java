@@ -223,17 +223,18 @@ public class DLNAMediaDatabase implements Runnable {
 		/**
 		 * If the database is created and is not the latest version, 
 		 * see if we can upgrade it efficiently instead of recreating it.
+		 * When the database version is lower than 11 do not try to update the database
+		 * and simply re init it.
 		 */
-		if (currentVersion != -1 && latestVersion != currentVersion) {
-			// current database version is lower than 11 so do not try to update the database
-			if (currentVersion < 11) {
-				forceReInit = true;
-			}
+		if (currentVersion < 11) {
+			forceReInit = true;
+		}
 
+		if (currentVersion != -1 && latestVersion != currentVersion && !forceReInit) {
 			try {
 				conn = getConnection();
 
-				for (int version = currentVersion; version < latestVersion && !forceReInit; version++) {
+				for (int version = currentVersion; version < latestVersion; version++) {
 					LOGGER.trace("Upgrading table {} from version {} to {}", "FILES", version, version + 1);
 					switch (version) {
 						case 11:
