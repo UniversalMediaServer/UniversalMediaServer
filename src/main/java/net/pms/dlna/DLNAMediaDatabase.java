@@ -225,10 +225,15 @@ public class DLNAMediaDatabase implements Runnable {
 		 * see if we can upgrade it efficiently instead of recreating it.
 		 */
 		if (currentVersion != -1 && latestVersion != currentVersion) {
+			// current database version is lower than 11 so do not try to update the database
+			if (currentVersion < 11) {
+				forceReInit = true;
+			}
+
 			try {
 				conn = getConnection();
 
-				for (int version = currentVersion;version < latestVersion; version++) {
+				for (int version = currentVersion; version < latestVersion && !forceReInit; version++) {
 					LOGGER.trace("Upgrading table {} from version {} to {}", "FILES", version, version + 1);
 					switch (version) {
 						case 11:
@@ -274,7 +279,7 @@ public class DLNAMediaDatabase implements Runnable {
 							break;
 						default:
 							// Do the dumb way
-							forceReInit = true;
+							forceReInit = true; 
 					}
 				}
 
