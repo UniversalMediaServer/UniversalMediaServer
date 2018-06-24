@@ -268,13 +268,20 @@ public class DLNAMediaDatabase implements Runnable {
 						case 14:
 							try (Statement statement = conn.createStatement()) {
 								StringBuilder sb = new StringBuilder();
-								sb.append("ALTER TABLE SUBTRACKS ADD EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(")").append("NOT NULL");
+								// To the table SUBTRACKS is added the EXTERNALFILE collumn and it is used as the key,
+								// than the table must be dropped and construct again because the "NOT NULL" command 
+								// is not implemented in the H2 SQL grammar for the "ALTER TABLE ADD" command.
+								statement.execute("DROP TABLE SUBTRACKS"); 
+								sb.append("CREATE TABLE SUBTRACKS (");
+								sb.append("  ID       INT              NOT NULL");
+								sb.append(", FILEID   BIGINT           NOT NULL");
+								sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
+								sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append(", TYPE     INT");
+								sb.append(", EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL");
+								sb.append(", CHARSET VARCHAR2(").append(SIZE_MAX).append(")");
+								sb.append(", CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE))");
 								statement.execute(sb.toString());
-								sb.setLength(0);
-								sb.append("ALTER TABLE SUBTRACKS ADD CHARSET VARCHAR2(").append(SIZE_MAX).append(")");
-								statement.execute(sb.toString());
-								statement.execute("ALTER TABLE SUBTRACKS DROP constraint PKSUB");
-								statement.execute("ALTER TABLE SUBTRACKS ADD constraint PKSUB primary key (FILEID, ID, EXTERNALFILE)");
 							}
 							version = 15;
 							break;
