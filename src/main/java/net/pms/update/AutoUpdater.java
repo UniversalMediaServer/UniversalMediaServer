@@ -1,9 +1,11 @@
 package net.pms.update;
 
+import java.awt.Desktop;
 import java.io.*;
 import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.UriRetriever;
@@ -29,7 +31,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private final String serverUrl;
 	private final UriRetriever uriRetriever = new UriRetriever();
-	private final AutoUpdaterServerProperties serverProperties = new AutoUpdaterServerProperties();
+	public static final AutoUpdaterServerProperties serverProperties = new AutoUpdaterServerProperties();
 	private final Version currentVersion;
 	private Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
@@ -119,7 +121,20 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private void doRunUpdateAndExit() throws UpdateException {
 		synchronized (stateLock) {
 			if (state != State.DOWNLOAD_FINISHED) {
-				throw new UpdateException("Must download before run");
+				try {
+					// If we are here, the file hasn't downloaded, but check if it's already there from last time
+					File exe = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
+					if (!exe.exists()) {
+						exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
+
+						if (!exe.exists()) {
+							throw new UpdateException("Must download before run");
+						}
+					}
+				} catch (IOException e) {
+					LOGGER.debug("Failed to run update: {}", e);
+					throw new UpdateException("Must download before run");
+				}
 			}
 		}
 
@@ -130,14 +145,16 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void launchExe() throws UpdateException {
 		try {
-			File exe = new File(TARGET_FILENAME);
+			File exe = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
 			if (!exe.exists()) {
 				exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
 			}
-			// Use exec(String[]) to avoid space-quoting issues
-			Runtime.getRuntime().exec(new String[] {exe.getAbsolutePath()});
+
+			Desktop desktop = Desktop.getDesktop();
+			desktop.open(exe);
 		} catch (IOException e) {
-			wrapException("Unable to run update. You may need to manually download it.", e);
+			LOGGER.debug("Failed to run update after downloading: {}", e);
+			wrapException(Messages.getString("AutoUpdate.UnableToRunUpdate"), e);
 		}
 	}
 
@@ -198,7 +215,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	private void writeToDisk(byte[] download) throws IOException {
-		File target = new File(TARGET_FILENAME);
+		File target = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
 		InputStream downloadedFromNetwork = new ByteArrayInputStream(download);
 		FileOutputStream fileOnDisk = null;
 
@@ -208,6 +225,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 				fileOnDisk.write("test".getBytes());
 			} catch (Exception e) {
 				// seems no rights
+				LOGGER.debug("Failed to write file to profile directory, trying temp folder. Error was: {}", e);
 				target = new File(configuration.getTempFolder(), TARGET_FILENAME);
 			} finally {
 				if (fileOnDisk != null) {

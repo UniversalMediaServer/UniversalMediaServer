@@ -44,19 +44,19 @@ public class Build {
 
 	/**
 	 * the name of the subdirectory under which PMS config files are stored for this build.
-	 * the default value is "PMS" e.g.
+	 * the default value is "UMS" e.g.
 	 *
 	 *     Windows:
 	 *
-	 *         %ALLUSERSPROFILE%\PMS
+	 *         %ALLUSERSPROFILE%\UMS
 	 *
 	 *     Mac OS X:
 	 *
-	 *         /home/<username>/Library/Application Support/PMS
+	 *         /home/<username>/Library/Application Support/UMS
 	 *
 	 *     Linux &c.
 	 *
-	 *         /home/<username>/.config/PMS
+	 *         /home/<username>/.config/UMS
 	 *
 	 * a custom build can change this to avoid interfering with the config files of other
 	 * builds e.g.:
@@ -64,7 +64,7 @@ public class Build {
 	 *     PROFILE_DIRECTORY_NAME = "PMS Rendr Edition";
 	 *     PROFILE_DIRECTORY_NAME = "pms-mlx";
 	 *
-	 * Note: custom Windows builds that change this value should change the corresponding "$ALLUSERSPROFILE\PMS"
+	 * Note: custom Windows builds that change this value should change the corresponding "$ALLUSERSPROFILE\UMS"
 	 * value in nsis/setup.nsi
 	 *
 	 * @return The profile directory name
