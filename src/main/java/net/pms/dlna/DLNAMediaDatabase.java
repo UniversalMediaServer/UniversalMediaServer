@@ -267,6 +267,8 @@ public class DLNAMediaDatabase implements Runnable {
 							break;
 						case 14:
 							try (Statement statement = conn.createStatement()) {
+								statement.execute("DELETE FROM SUBTRACKS WHERE ID >= 100");
+
 								StringBuilder sb = new StringBuilder();
 								sb.append("ALTER TABLE SUBTRACKS ADD EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") DEFAULT ''");
 								statement.execute(sb.toString());
