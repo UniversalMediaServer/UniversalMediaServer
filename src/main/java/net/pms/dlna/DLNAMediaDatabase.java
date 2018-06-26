@@ -401,7 +401,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", TYPE     INT");
-				sb.append(", EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL");
+				sb.append(", EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL default ''");
 				sb.append(", CHARSET VARCHAR2(").append(SIZE_MAX).append(")");
 				sb.append(", constraint PKSUB primary key (FILEID, ID, EXTERNALFILE))");
 
