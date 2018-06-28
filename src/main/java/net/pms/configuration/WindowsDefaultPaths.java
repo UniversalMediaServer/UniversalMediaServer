@@ -30,12 +30,36 @@ import org.slf4j.LoggerFactory;
 class WindowsDefaultPaths implements ProgramPaths {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsDefaultPaths.class);
 
+	/**
+	 * Our source for FFmpeg binaries has started to disclose the minimum
+	 * version of Windows they work on, on the download page at
+	 * https://ffmpeg.zeranoe.com/builds/
+	 *
+	 * At the time of writing, it is Windows 7+, so we carry on that logic
+	 * here.
+	 *
+	 * Note: This does not mean the "old" version actually works on Vista
+	 * and XP, rather that the new version is guaranteed not to. This note
+	 * should be removed/changed if XP and Vista are tested.
+	 *
+	 * @return the path to the correct FFmpeg version
+	 */
 	@Override
 	public String getFfmpegPath() {
+		String path = getBinariesPath() + "win32/ffmpeg";
+
 		if (Platform.is64Bit()) {
-			return getBinariesPath() + "win32/ffmpeg64.exe";
+			path += "64";
 		}
-		return getBinariesPath() + "win32/ffmpeg.exe";
+
+		if (
+			System.getProperty("os.name") == "Windows Vista" ||
+			System.getProperty("os.name") == "Windows XP"
+		) {
+			path += "-old";
+		}
+
+		return path + ".exe";
 	}
 
 	@Override
