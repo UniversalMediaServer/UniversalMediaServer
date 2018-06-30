@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
 	
 	<!--
-		This assembly takes care of putting together the pms.jar including 
+		This assembly takes care of putting together the ums.jar including 
 		all dependencies as it was in v1.25.1.
 	-->
 
@@ -19,7 +19,7 @@
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>true</useProjectArtifact>
 			<unpack>true</unpack>
-            <unpackOptions>
+			<unpackOptions>
 				<excludes>
 					<exclude>META-INF/services/javax.imageio.spi.ImageReaderSpi</exclude>
 					<exclude>META-INF/services/javax.imageio.spi.ImageWriterSpi</exclude>
