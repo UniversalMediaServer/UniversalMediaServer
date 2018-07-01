@@ -912,19 +912,15 @@
 							</versionInfo>-->
 							<dontWrapJar>true</dontWrapJar>
 							<icon>src\main\external-resources\icon.ico</icon>
-							<singleInstance>
-							  <mutexName>Universal Media Server</mutexName>
-							  <windowTitle>Universal Media Server</windowTitle>
-							</singleInstance>
 							<jre>
 							  <path>jre</path>
-							  <bundledJre64Bit>true</bundledJre64Bit>
+							  <bundledJre64Bit>false</bundledJre64Bit>
 							  <bundledJreAsFallback>false</bundledJreAsFallback>
 							  <minVersion>1.7.0</minVersion>
 							  <maxVersion>1.8.0</maxVersion>
 							  <jdkPreference>preferJdk</jdkPreference>
-							  <runtimeBits>64/32</runtimeBits>
-							  <opts>-Xmx1280M -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -classpath update.jar;ums.jar net.pms.PMS</opts>
+							  <runtimeBits>32/64</runtimeBits>
+							  <opts>-Xmx768M -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -classpath update.jar;ums.jar net.pms.PMS</opts>
 							</jre>
 						</configuration>
 					</execution>
@@ -1216,15 +1212,6 @@
 										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
-
 										<get src="${project.binaries-base}/win32/jre/COPYRIGHT?p=${binary-revision}" dest="${project.binaries}/jre/COPYRIGHT" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre/LICENSE?p=${binary-revision}" dest="${project.binaries}/jre/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre/README.txt?p=${binary-revision}" dest="${project.binaries}/jre/README.txt" usetimestamp="true" />
@@ -1465,6 +1452,14 @@
 										<get src="${project.binaries-base}/win32/jre/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
 
 										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
 										<mkdir dir="${project.basedir}/win32/service" />
