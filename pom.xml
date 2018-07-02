@@ -890,26 +890,25 @@
 							<goal>launch4j</goal>
 						</goals>
 						<configuration>
+							<errTitle></errTitle>
+							<cmdLine></cmdLine>
+							<chdir>.</chdir>
+							<priority>normal</priority>
+							<downloadUrl>http://java.com/download</downloadUrl>
+							<supportUrl></supportUrl>
+							<stayAlive>false</stayAlive>
+							<restartOnCrash>false</restartOnCrash>
+							<manifest></manifest>
+							<singleInstance>
+								<mutexName>Universal Media Server</mutexName>
+								<windowTitle>Universal Media Server</windowTitle>
+							</singleInstance>
 							<headerType>gui</headerType>
 							<outfile>target/UMS.exe</outfile>
-							<jar>target/ums.jar</jar>
-							<!--<errTitle>encc</errTitle>-->
+							<jar>ums.jar</jar>
 							<classPath>
 								<mainClass>net.pms.PMS</mainClass>
-<!--								<addDependencies>false</addDependencies>
-								<preCp>anything</preCp>-->
 							</classPath>
-<!--							<versionInfo>
-								<fileVersion>${project.version}</fileVersion>
-								<txtFileVersion>txt file version?</txtFileVersion>
-								<fileDescription>a description</fileDescription>
-								<copyright>my copyright</copyright>
-								<productVersion>4.3.2.1</productVersion>
-								<txtProductVersion>txt product version</txtProductVersion>
-								<productName>E-N-C-C</productName>
-								<internalName>ccne</internalName>
-								<originalFilename>original.exe</originalFilename>
-							</versionInfo>-->
 							<dontWrapJar>true</dontWrapJar>
 							<icon>src\main\external-resources\icon.ico</icon>
 							<jre>
