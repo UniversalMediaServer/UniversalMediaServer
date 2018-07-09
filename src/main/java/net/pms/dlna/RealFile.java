@@ -173,8 +173,8 @@ public class RealFile extends MapFile {
 
 						if (medias.size() == 1) {
 							setMedia(medias.get(0));
-							// rescan subtitles to be sure if they are possibly changed
-							// TODO is it needed to store subtitles in the database?
+							// rescan external subtitles to be sure if they are possibly changed
+							// TODO is it needed to store external subtitles in the database?
 							registerExternalSubtitles(false);
 							getMedia().postParse(getType(), input);
 							found = true;
