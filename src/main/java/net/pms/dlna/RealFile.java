@@ -173,12 +173,17 @@ public class RealFile extends MapFile {
 
 						if (medias.size() == 1) {
 							setMedia(medias.get(0));
-							// rescan external subtitles when enabled to be sure if they are possibly changed
-							// TODO is it needed to store external subtitles in the database?
-							if (configuration.isAutoloadExternalSubtitles() && getMedia().isVideo()) {
-								registerExternalSubtitles(false);
+							if (getMedia().isVideo()) {
+								// rescan external subtitles when enabled to be sure if they are possibly changed
+								// TODO is it needed to store external subtitles in the database?
+								if (!configuration.isDisableSubtitles() && configuration.isAutoloadExternalSubtitles()) {
+									registerExternalSubtitles(false);
+								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
+								} else if (configuration.isDisableSubtitles()) {
+									getMedia().getSubtitleTracksList().clear();
+								}
 							}
-
+							
 							getMedia().postParse(getType(), input);
 							found = true;
 						} else if (medias.size() > 1) {
