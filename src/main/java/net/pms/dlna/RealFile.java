@@ -29,6 +29,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,9 +174,12 @@ public class RealFile extends MapFile {
 
 						if (medias.size() == 1) {
 							setMedia(medias.get(0));
-							// rescan external subtitles to be sure if they are possibly changed
+							// rescan external subtitles when enabled to be sure if they are possibly changed
 							// TODO is it needed to store external subtitles in the database?
-							registerExternalSubtitles(false);
+							if (configuration.isAutoloadExternalSubtitles() && getMedia().isVideo()) {
+								registerExternalSubtitles(false);
+							}
+
 							getMedia().postParse(getType(), input);
 							found = true;
 						} else if (medias.size() > 1) {
