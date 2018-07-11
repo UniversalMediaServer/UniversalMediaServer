@@ -4005,9 +4005,35 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return;
 			}
 
-			if (configuration.isAutoloadExternalSubtitles()) {
+			if (!configuration.isDisableSubtitles() && configuration.isAutoloadExternalSubtitles()) {
 				SubtitleUtils.registerExternalSubtitles(file, media, forceRefresh);
+				// update the database if enabled
+				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
+					DLNAMediaDatabase database = PMS.get().getDatabase();
+
+					if (database != null) {
+						try {
+							database.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
+						} catch (SQLException e) {
+							LOGGER.error(
+								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
+								file,
+								e.getMessage());
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("SQL error code: {}", e.getErrorCode());
+								if (
+									e.getCause() instanceof SQLException &&
+									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
+								) {
+									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+								}
+								LOGGER.trace("", e);
+							}
+						}
+					}
+				}
 			}
+
 			List<DLNAMediaSubtitle> subtitlesList = media.getSubtitleTracksList();
 			if (subtitlesList != null) {
 				hasSubtitles = !subtitlesList.isEmpty();
@@ -4018,6 +4044,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 			}
+
 			isExternalSubtitlesParsed = true;
 		}
 	}

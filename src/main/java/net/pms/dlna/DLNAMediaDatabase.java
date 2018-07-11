@@ -656,7 +656,7 @@ public class DLNAMediaDatabase implements Runnable {
 						String fileName = elements.getString("EXTERNALFILE");
 						File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
 						if (externalFile != null && !externalFile.exists()) {
-							LOGGER.trace("Skipping and deleting cached external subtitles because file \"{}\" doesn't exist", externalFile.getPath());
+							LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFile.getPath());
 							deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFile.getPath(), false);
 							continue;
 						}
@@ -1265,31 +1265,31 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Deletes a row or rows in the given {@code tableName}. If {@code useLike} is
-	 * {@code true}, {@code query} must be properly escaped.
+	 * Deletes a row or rows in the given {@code tableName} for the given {@code condition}. If {@code useLike} is
+	 * {@code true}, the {@code condition} must be properly escaped.
 	 *
 	 * @see Tables#sqlLikeEscape(String)
 	 *
 	 * @param tableName the table name in which a row or rows will be deleted
-	 * @param column the column where the query will be executed
-	 * @param query the condition for which the row will be deleted
+	 * @param column the column where the {@code condition} will be queried
+	 * @param condition the condition for which rows will be deleted
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public synchronized void deleteRowsInTable(String tableName, String column, String query, boolean useLike) throws SQLException {
-		if (StringUtils.isEmpty(query)) {
+	public synchronized void deleteRowsInTable(String tableName, String column, String condition, boolean useLike) throws SQLException {
+		if (StringUtils.isEmpty(condition)) {
 			return;
 		}
 
-		LOGGER.trace("Deleting rows from \"{}\" table for given \"{}\" and \"{}\"", tableName, column, query);
+		LOGGER.trace("Deleting rows from \"{}\" table for given column \"{}\" and condition \"{}\"", tableName, column, condition);
 		try (Connection connection = getConnection()) {
 			try (Statement statement = connection.createStatement()) {
 				int rows;
 				if (useLike) {
-					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " LIKE " + Tables.sqlQuote(query));
+					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " LIKE " + Tables.sqlQuote(condition));
 				} else {
-					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " = " + Tables.sqlQuote(query));
+					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " = " + Tables.sqlQuote(condition));
 				}
 				LOGGER.trace("Deleted {} rows from SUBTRACKS", rows);
 			}
