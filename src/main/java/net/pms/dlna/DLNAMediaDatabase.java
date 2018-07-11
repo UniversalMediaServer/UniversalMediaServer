@@ -656,7 +656,8 @@ public class DLNAMediaDatabase implements Runnable {
 						String fileName = elements.getString("EXTERNALFILE");
 						File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
 						if (externalFile != null && !externalFile.exists()) {
-							LOGGER.trace("Skipping cached external subtitles because \"{}\" doesn't exist", externalFile.getPath());
+							LOGGER.trace("Skipping and deleting cached external subtitles because file \"{}\" doesn't exist", externalFile.getPath());
+							deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFile.getPath(), false);
 							continue;
 						}
 						DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
@@ -1262,6 +1263,39 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 		}
 	}
+
+	/**
+	 * Deletes a row or rows in the given {@code tableName}. If {@code useLike} is
+	 * {@code true}, {@code query} must be properly escaped.
+	 *
+	 * @see Tables#sqlLikeEscape(String)
+	 *
+	 * @param tableName the table name in which a row or rows will be deleted
+	 * @param column the column where the query will be executed
+	 * @param query the condition for which the row will be deleted
+	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
+	 *            operator, {@code false} if {@code =} should be used.
+	 * @throws SQLException if an SQL error occurs during the operation.
+	 */
+	public synchronized void deleteRowsInTable(String tableName, String column, String query, boolean useLike) throws SQLException {
+		if (StringUtils.isEmpty(query)) {
+			return;
+		}
+
+		LOGGER.trace("Deleting rows from \"{}\" table for given \"{}\" and \"{}\"", tableName, column, query);
+		try (Connection connection = getConnection()) {
+			try (Statement statement = connection.createStatement()) {
+				int rows;
+				if (useLike) {
+					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " LIKE " + Tables.sqlQuote(query));
+				} else {
+					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " = " + Tables.sqlQuote(query));
+				}
+				LOGGER.trace("Deleted {} rows from SUBTRACKS", rows);
+			}
+		}
+	}
+
 
 	public synchronized void updateThumbnail(String name, long modified, int type, DLNAMediaInfo media) {
 		try (
