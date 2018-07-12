@@ -725,8 +725,6 @@ public class LibMediaInfoParser {
 			if (streamType == StreamType.Audio && !FormatConfiguration.ATRAC.equals(media.getContainer())) {
 				media.setContainer(FormatConfiguration.ATRAC);
 			}
-		} else if (value.equals("nellymoser")) {
-			format = FormatConfiguration.NELLYMOSER;
 		} else if (value.equals("jpeg")) {
 			format = FormatConfiguration.JPG;
 		} else if (value.equals("png")) {
