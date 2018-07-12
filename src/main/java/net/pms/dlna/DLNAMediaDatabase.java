@@ -66,7 +66,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
 	 */
-	private final int latestVersion = 14;
+	private final int latestVersion = 15;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -142,8 +142,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * Initialized the database for use, performing checks and creating a new
 	 * database if necessary.
 	 *
-	 * @param force whether to recreate the database even though it isn't
-	 *            necessary.
+	 * @param force whether to recreate the database regardless of necessity.
 	 */
 	@SuppressFBWarnings("SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE")
 	public synchronized void init(boolean force) {
@@ -216,70 +215,17 @@ public class DLNAMediaDatabase implements Runnable {
 			close(conn);
 		}
 
-		// Recreate database if it is not the latest version.
-		boolean forceReInit = false;
-
 		/**
-		 * If the database is created and is not the latest version, 
-		 * see if we can upgrade it efficiently instead of recreating it.
+		 * In here we could update tables with our changes, but our database
+		 * gets bloated often which causes the update to fail, so do the
+		 * dumb way for now until we have better ways to keep the database
+		 * smaller.
 		 */
 		if (currentVersion != -1 && latestVersion != currentVersion) {
-			try {
-				conn = getConnection();
-
-				for (int version = currentVersion;version < latestVersion; version++) {
-					LOGGER.trace("Upgrading table {} from version {} to {}", "FILES", version, version + 1);
-					switch (version) {
-						case 11:
-							// From version 11 to 12, we added an index
-							try (Statement statement = conn.createStatement()) {
-								statement.execute("CREATE INDEX TYPE_ISTV_SIMPLENAME on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAMESIMPLE)");
-							}
-							version = 12;
-							break;
-						case 12:
-							// From version 12 to 13, we added 7 indexes
-							try (Statement statement = conn.createStatement()) {
-								statement.execute("CREATE INDEX TYPE on FILES (TYPE)");
-								statement.execute("CREATE INDEX TYPE_ISTV on FILES (TYPE, ISTVEPISODE)");
-								statement.execute("CREATE INDEX TYPE_ISTV_NAME on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAME)");
-								statement.execute("CREATE INDEX TYPE_ISTV_NAME_SEASON on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAME, TVSEASON)");
-								statement.execute("CREATE INDEX TYPE_ISTV_YEAR_STEREOSCOPY on FILES (TYPE, ISTVEPISODE, YEAR, STEREOSCOPY)");
-								statement.execute("CREATE INDEX TYPE_WIDTH_HEIGHT on FILES (TYPE, WIDTH, HEIGHT)");
-								statement.execute("CREATE INDEX TYPE_MODIFIED on FILES (TYPE, MODIFIED)");
-							}
-							version = 13;
-							break;
-						case 13:
-							try (Statement statement = conn.createStatement()) {
-								StringBuilder sb = new StringBuilder();
-								sb.append("ALTER TABLE FILES ADD EXTRAINFORMATION VARCHAR2(").append(SIZE_MAX).append(')');
-								statement.execute(sb.toString());
-							}
-							version = 14;
-							break;
-						default:
-							// Do the dumb way
-							forceReInit = true;
-					}
-				}
-
-				if (!forceReInit) {
-					try (Statement statement = conn.createStatement()) {
-						statement.execute("DROP TABLE METADATA");
-						statement.execute("CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
-						statement.execute("INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
-					}
-				}
-			} catch (SQLException se) {
-				LOGGER.error("Error updating tables: " + se.getMessage());
-				LOGGER.trace("", se);
-			} finally {
-				close(conn);
-			}
+			force = true;
 		}
 
-		if (force || dbCount == -1 || forceReInit) {
+		if (force || dbCount == -1) {
 			LOGGER.debug("Database will be (re)initialized");
 			try {
 				conn = getConnection();
