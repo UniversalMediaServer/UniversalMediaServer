@@ -42,7 +42,7 @@ import net.pms.util.ParseException;
  * image with some additional metadata restricted to valid DLNA image media
  * format profiles.
  *
- * @see DLNAThumbnail
+ * @see DLNABinaryThumbnail
  *
  * @author Nadahar
  */
@@ -69,7 +69,7 @@ public class DLNAImage extends Image {
 		boolean copy
 	) throws DLNAProfileException {
 		super(image, copy);
-		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNAThumbnail);
+		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNABinaryThumbnail);
 		if (this.profile == null) {
 			throw new NullPointerException("DLNAImage: profile cannot be null");
 		}
@@ -95,7 +95,7 @@ public class DLNAImage extends Image {
 		boolean copy
 	) throws DLNAProfileException {
 		super(bytes, imageInfo, copy);
-		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNAThumbnail);
+		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNABinaryThumbnail);
 		if (this.profile == null) {
 			throw new NullPointerException("DLNAImage: profile cannot be null");
 		}
@@ -130,7 +130,7 @@ public class DLNAImage extends Image {
 		boolean copy
 	) throws DLNAProfileException, ParseException {
 		super(bytes, width, height, format, colorModel, metadata, true, copy);
-		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNAThumbnail);
+		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNABinaryThumbnail);
 		if (this.profile == null) {
 			throw new NullPointerException("DLNAImage: profile cannot be null");
 		}
@@ -162,7 +162,7 @@ public class DLNAImage extends Image {
 		boolean copy
 	) throws DLNAProfileException, ParseException {
 		super(bytes, format, bufferedImage, metadata, copy);
-		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNAThumbnail);
+		this.profile = profile != null ? profile : findMatchingProfile(this instanceof DLNABinaryThumbnail);
 		if (this.profile == null) {
 			throw new NullPointerException("DLNAImage: profile cannot be null");
 		}
@@ -223,7 +223,7 @@ public class DLNAImage extends Image {
 	}
 
 	/**
-	 * Converts an {@link Image} to a {@link DLNAThumbnail} adhering to
+	 * Converts an {@link Image} to a {@link DLNABinaryThumbnail} adhering to
 	 * {@code outputProfile}. Output format will be the same as the source if
 	 * the source is either GIF, JPEG or PNG. Further restrictions on color
 	 * space and compression is imposed and conversion done if necessary. All
@@ -256,7 +256,7 @@ public class DLNAImage extends Image {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * Converts an image to a {@link DLNABinaryThumbnail} adhering to
 	 * {@code outputProfile}. Format support is limited to that of
 	 * {@link ImageIO}. Output format will be the same as the source if the
 	 * source is either GIF, JPEG or PNG. Further restrictions on color space
@@ -294,7 +294,7 @@ public class DLNAImage extends Image {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * Converts an image to a {@link DLNABinaryThumbnail} adhering to
 	 * {@code outputProfile}. Format support is limited to that of
 	 * {@link ImageIO}. Output format will be the same as the source if the
 	 * source is either GIF, JPEG or PNG. Further restrictions on color space
@@ -467,7 +467,7 @@ public class DLNAImage extends Image {
 	 * @param dlnaThumbnail whether or not the output image should be
 	 *                      restricted to DLNA thumbnail compliance. This also
 	 *                      means that the output can be safely cast to
-	 *                      {@link DLNAThumbnail}.
+	 *                      {@link DLNABinaryThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
 	 * @return The scaled and/or converted thumbnail, {@code null} if the

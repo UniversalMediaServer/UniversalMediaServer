@@ -94,7 +94,7 @@ public class LibMediaInfoParser {
 			value = MI.Get(general, 0, "Cover_Data");
 			if (!value.isEmpty()) {
 				try {
-					media.setThumb(DLNAThumbnail.toThumbnail(
+					media.setThumb(DLNABinaryThumbnail.toThumbnail(
 						new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
 						640,
 						480,

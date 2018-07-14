@@ -209,7 +209,7 @@ public class DVDISOTitle extends DLNAResource {
 
 				if (jpg.exists()) {
 					try (InputStream inputStream = new FileInputStream(jpg)) {
-						getMedia().setThumb(DLNAThumbnail.toThumbnail(
+						getMedia().setThumb(DLNABinaryThumbnail.toThumbnail(
 							inputStream,
 							640,
 							480,

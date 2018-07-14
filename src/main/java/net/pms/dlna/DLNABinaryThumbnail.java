@@ -43,7 +43,7 @@ import net.pms.util.ParseException;
  *
  * @author Nadahar
  */
-public class DLNAThumbnail extends DLNAImage {
+public class DLNABinaryThumbnail extends DLNAImage {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAImage.class);
 	/*
@@ -55,7 +55,7 @@ public class DLNAThumbnail extends DLNAImage {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Creates a new {@link DLNAThumbnail} instance.
+	 * Creates a new {@link DLNABinaryThumbnail} instance.
 	 *
 	 * @param image the source {@link Image} in either JPEG or PNG format
 	 *            adhering to the DLNA restrictions for color space and
@@ -65,7 +65,7 @@ public class DLNAThumbnail extends DLNAImage {
 	 * @param copy whether this instance should be copied or shared.
 	 * @throws DLNAProfileException if the profile compliance check fails.
 	 */
-	public DLNAThumbnail(
+	public DLNABinaryThumbnail(
 		Image image,
 		DLNAImageProfile profile,
 		boolean copy
@@ -74,18 +74,18 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Creates a new {@link DLNAThumbnail} instance.
+	 * Creates a new {@link DLNABinaryThumbnail} instance.
 	 *
 	 * @param bytes the source image in either JPEG or PNG format adhering to
 	 *            the DLNA restrictions for color space and compression.
 	 * @param imageInfo the {@link ImageInfo} to store with this
-	 *            {@link DLNAThumbnail}.
+	 *            {@link DLNABinaryThumbnail}.
 	 * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
 	 *            adheres to.
 	 * @param copy whether this instance should be copied or shared.
 	 * @throws DLNAProfileException if the profile compliance check fails.
 	 */
-	public DLNAThumbnail(
+	public DLNABinaryThumbnail(
 		byte[] bytes,
 		ImageInfo imageInfo,
 		DLNAImageProfile profile,
@@ -95,7 +95,7 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Creates a new {@link DLNAThumbnail} instance.
+	 * Creates a new {@link DLNABinaryThumbnail} instance.
 	 *
 	 * @param bytes the source image in either JPEG or PNG format adhering to
 	 *            the DLNA restrictions for color space and compression.
@@ -111,7 +111,7 @@ public class DLNAThumbnail extends DLNAImage {
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails.
 	 */
-	public DLNAThumbnail(
+	public DLNABinaryThumbnail(
 		byte[] bytes,
 		int width,
 		int height,
@@ -125,7 +125,7 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Creates a new {@link DLNAThumbnail} instance.
+	 * Creates a new {@link DLNABinaryThumbnail} instance.
 	 *
 	 * @param bytes the source image in either JPEG or PNG format adhering to
 	 *            the DLNA restrictions for color space and compression.
@@ -140,7 +140,7 @@ public class DLNAThumbnail extends DLNAImage {
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails.
 	 */
-	public DLNAThumbnail(
+	public DLNABinaryThumbnail(
 		byte[] bytes,
 		ImageFormat format,
 		BufferedImage bufferedImage,
@@ -152,23 +152,23 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Converts an {@link Image} to a {@link DLNAThumbnail}. Output format will
+	 * Converts an {@link Image} to a {@link DLNABinaryThumbnail}. Output format will
 	 * be the same as the source if the source is either JPEG or PNG. Further
 	 * restrictions on color space and compression is imposed and conversion
 	 * done if necessary. All other formats will be converted to a DLNA
 	 * compliant JPEG.
 	 *
 	 * @param inputImage the source {@link Image}.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(Image inputImage) throws IOException {
+	public static DLNABinaryThumbnail toThumbnail(Image inputImage) throws IOException {
 		return toThumbnail(inputImage, 0, 0, null, ImageFormat.SOURCE, false);
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * Converts an image to a {@link DLNABinaryThumbnail}. Format support is limited
 	 * to that of {@link ImageIO}. Output format will be the same as source if
 	 * the source is either JPEG or PNG. Further restrictions on color space and
 	 * compression is imposed and conversion done if necessary. All other
@@ -178,16 +178,16 @@ public class DLNAThumbnail extends DLNAImage {
 	 * <b> This method consumes and closes {@code inputStream}. </b>
 	 *
 	 * @param inputStream the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(InputStream inputStream) throws IOException {
+	public static DLNABinaryThumbnail toThumbnail(InputStream inputStream) throws IOException {
 		return toThumbnail(inputStream, 0, 0, null, ImageFormat.SOURCE, false);
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * Converts an image to a {@link DLNABinaryThumbnail}. Format support is limited
 	 * to that of {@link ImageIO}. Output format will be the same as source if
 	 * the source is either JPEG or PNG. Further restrictions on color space and
 	 * compression is imposed and conversion done if necessary. All other
@@ -195,16 +195,16 @@ public class DLNAThumbnail extends DLNAImage {
 	 * ratio and rotates/flips the image according to Exif orientation.
 	 *
 	 * @param inputByteArray the source image in a supported format.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(byte[] inputByteArray) throws IOException {
+	public static DLNABinaryThumbnail toThumbnail(byte[] inputByteArray) throws IOException {
 		return toThumbnail(inputByteArray, 0, 0, null, ImageFormat.SOURCE, false);
 	}
 
 	/**
-	 * Converts an {@link Image} to a {@link DLNAThumbnail} adhering to
+	 * Converts an {@link Image} to a {@link DLNABinaryThumbnail} adhering to
 	 * {@code outputProfile}. {@code outputProfile} is limited to JPEG or PNG
 	 * profiles. If {@code outputProfile} is a GIF profile, the image will be
 	 * converted to {@link DLNAImageProfile#JPEG_LRG}.
@@ -214,11 +214,11 @@ public class DLNAThumbnail extends DLNAImage {
 	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(
+	public static DLNABinaryThumbnail toThumbnail(
 		Image inputImage,
 		DLNAImageProfile outputProfile,
 		boolean padToSize
@@ -227,7 +227,7 @@ public class DLNAThumbnail extends DLNAImage {
 			return null;
 		}
 
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+		return (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			inputImage,
 			outputProfile,
 			true,
@@ -236,7 +236,7 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * Converts an image to a {@link DLNABinaryThumbnail} adhering to
 	 * {@code outputProfile}. Format support is limited to that of
 	 * {@link ImageIO}. {@code outputProfile} is limited to JPEG or PNG
 	 * profiles. If {@code outputProfile} is a GIF profile, the image will be
@@ -251,11 +251,11 @@ public class DLNAThumbnail extends DLNAImage {
 	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(
+	public static DLNABinaryThumbnail toThumbnail(
 		InputStream inputStream,
 		DLNAImageProfile outputProfile,
 		boolean padToSize
@@ -264,7 +264,7 @@ public class DLNAThumbnail extends DLNAImage {
 			return null;
 		}
 
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+		return (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			inputStream,
 			outputProfile,
 			true,
@@ -273,7 +273,7 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail} adhering to
+	 * Converts an image to a {@link DLNABinaryThumbnail} adhering to
 	 * {@code outputProfile}. Format support is limited to that of
 	 * {@link ImageIO}. {@code outputProfile} is limited to JPEG or PNG
 	 * profiles. If {@code outputProfile} is a GIF profile, the image will be
@@ -285,11 +285,11 @@ public class DLNAThumbnail extends DLNAImage {
 	 *            output.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(
+	public static DLNABinaryThumbnail toThumbnail(
 		byte[] inputByteArray,
 		DLNAImageProfile outputProfile,
 		boolean padToSize
@@ -298,7 +298,7 @@ public class DLNAThumbnail extends DLNAImage {
 			return null;
 		}
 
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+		return (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			inputByteArray,
 			outputProfile,
 			true,
@@ -307,7 +307,7 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Converts an {@link Image} to a {@link DLNAThumbnail}. Format support is
+	 * Converts an {@link Image} to a {@link DLNABinaryThumbnail}. Format support is
 	 * limited to that of {@link ImageIO}. {@code outputFormat} is limited to
 	 * JPEG or PNG format adhering to the DLNA restrictions for color space and
 	 * compression. If {@code outputFormat} doesn't qualify, the image will be
@@ -321,11 +321,11 @@ public class DLNAThumbnail extends DLNAImage {
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(
+	public static DLNABinaryThumbnail toThumbnail(
 		Image inputImage,
 		int width,
 		int height,
@@ -337,7 +337,7 @@ public class DLNAThumbnail extends DLNAImage {
 			return null;
 		}
 
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+		return (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			inputImage,
 			width,
 			height,
@@ -350,7 +350,7 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * Converts an image to a {@link DLNABinaryThumbnail}. Format support is limited
 	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
 	 * PNG format adhering to the DLNA restrictions for color space and
 	 * compression. If {@code outputFormat} doesn't qualify, the image will be
@@ -367,11 +367,11 @@ public class DLNAThumbnail extends DLNAImage {
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(
+	public static DLNABinaryThumbnail toThumbnail(
 		InputStream inputStream,
 		int width,
 		int height,
@@ -383,7 +383,7 @@ public class DLNAThumbnail extends DLNAImage {
 			return null;
 		}
 
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+		return (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			inputStream,
 			width,
 			height,
@@ -396,7 +396,7 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	/**
-	 * Converts an image to a {@link DLNAThumbnail}. Format support is limited
+	 * Converts an image to a {@link DLNABinaryThumbnail}. Format support is limited
 	 * to that of {@link ImageIO}. {@code outputFormat} is limited to JPEG or
 	 * PNG format adhering to the DLNA restrictions for color space and
 	 * compression. If {@code outputFormat} doesn't qualify, the image will be
@@ -411,18 +411,18 @@ public class DLNAThumbnail extends DLNAImage {
 	 *            {@link ImageFormat#SOURCE} to preserve source format.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
-	 * @return The populated {@link DLNAThumbnail} or {@code null} if the source
+	 * @return The populated {@link DLNABinaryThumbnail} or {@code null} if the source
 	 *         image is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public static DLNAThumbnail toThumbnail(
+	public static DLNABinaryThumbnail toThumbnail(
 		byte[] inputByteArray,
 		int width,
 		int height,
 		ScaleType scaleType,
 		ImageFormat outputFormat,
 		boolean padToSize) throws IOException {
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+		return (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			inputByteArray,
 			width,
 			height,
@@ -446,11 +446,11 @@ public class DLNAThumbnail extends DLNAImage {
 	 *         source is {@code null}.
 	 * @exception IOException if the operation fails.
 	 */
-	public DLNAThumbnail transcode(
+	public DLNABinaryThumbnail transcode(
 		DLNAImageProfile outputProfile,
 		boolean padToSize
 	) throws IOException {
-		return (DLNAThumbnail) ImagesUtil.transcodeImage(
+		return (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			this,
 			outputProfile,
 			true,
@@ -458,9 +458,9 @@ public class DLNAThumbnail extends DLNAImage {
 	}
 
 	@Override
-	public DLNAThumbnail copy() {
+	public DLNABinaryThumbnail copy() {
 		try {
-			return new DLNAThumbnail(bytes, imageInfo, profile, true);
+			return new DLNABinaryThumbnail(bytes, imageInfo, profile, true);
 		} catch (DLNAProfileException e) {
 			// Should be impossible
 			LOGGER.error("Impossible situation in DLNAImage.copy(): {}", e.getMessage());

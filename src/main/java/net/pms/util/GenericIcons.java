@@ -42,7 +42,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.DLNABinaryThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
@@ -63,18 +63,18 @@ public enum GenericIcons {
 	private final BufferedImage genericImageIcon = readBufferedImage("formats/image.png");
 	private final BufferedImage genericVideoIcon = readBufferedImage("formats/video.png");
 	private final BufferedImage genericUnknownIcon = readBufferedImage("formats/unknown.png");
-	private final DLNAThumbnail genericFolderThumbnail;
+	private final DLNABinaryThumbnail genericFolderThumbnail;
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	/**
 	 * All access to {@link #cache} must be protected with {@link #cacheLock}.
 	 */
-	private final Map<ImageFormat, Map<IconType, Map<String, DLNAThumbnail>>> cache = new HashMap<>();
+	private final Map<ImageFormat, Map<IconType, Map<String, DLNABinaryThumbnail>>> cache = new HashMap<>();
 	private static final Logger LOGGER = LoggerFactory.getLogger(GenericIcons.class);
 
 	private GenericIcons() {
-		DLNAThumbnail thumbnail;
+		DLNABinaryThumbnail thumbnail;
 		try {
-			thumbnail = DLNAThumbnail.toThumbnail(getResourceAsStream("thumbnail-folder-256.png"));
+			thumbnail = DLNABinaryThumbnail.toThumbnail(getResourceAsStream("thumbnail-folder-256.png"));
 		} catch (IOException e) {
 			thumbnail = null;
 		}
@@ -138,18 +138,18 @@ public enum GenericIcons {
 			}
 		}
 
-		DLNAThumbnail image = null;
+		DLNABinaryThumbnail image = null;
 		cacheLock.lock();
 		try {
 			if (!cache.containsKey(imageFormat)) {
-				cache.put(imageFormat, new HashMap<IconType, Map<String, DLNAThumbnail>>());
+				cache.put(imageFormat, new HashMap<IconType, Map<String, DLNABinaryThumbnail>>());
 			}
-			Map<IconType, Map<String, DLNAThumbnail>> typeCache = cache.get(imageFormat);
+			Map<IconType, Map<String, DLNABinaryThumbnail>> typeCache = cache.get(imageFormat);
 
 			if (!typeCache.containsKey(iconType)) {
-				typeCache.put(iconType, new HashMap<String, DLNAThumbnail>());
+				typeCache.put(iconType, new HashMap<String, DLNABinaryThumbnail>());
 			}
-			Map<String, DLNAThumbnail> imageCache = typeCache.get(iconType);
+			Map<String, DLNABinaryThumbnail> imageCache = typeCache.get(iconType);
 
 			String label = getLabelFromImageFormat(resource.getMedia());
 			if (label == null) {
@@ -264,7 +264,7 @@ public enum GenericIcons {
 	 *         accordance with renderer setting
 	 * @throws IOException If an error occurs during creation.
 	 */
-	private DLNAThumbnail createGenericIcon(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
+	private DLNABinaryThumbnail createGenericIcon(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
 
 		BufferedImage image;
 		switch (iconType) {
@@ -321,7 +321,7 @@ public enum GenericIcons {
 			out = new ByteArrayOutputStream();
 			ImageIOTools.imageIOWrite(image, imageFormat.toString(), out);
 		}
-		return out != null ? DLNAThumbnail.toThumbnail(out.toByteArray(), 0, 0, ScaleType.MAX, imageFormat, false) : null;
+		return out != null ? DLNABinaryThumbnail.toThumbnail(out.toByteArray(), 0, 0, ScaleType.MAX, imageFormat, false) : null;
 	}
 
 	/**

@@ -31,7 +31,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.DLNABinaryThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
 import org.apache.commons.lang3.StringUtils;
@@ -331,7 +331,7 @@ public final class AudioUtils {
 				tag.setArtist(media.getFirstAudioTrack().getArtist());
 			}
 			try {
-				media.setThumb(DLNAThumbnail.toThumbnail(
+				media.setThumb(DLNABinaryThumbnail.toThumbnail(
 					CoverUtil.get().getThumbnail(tag),
 					640,
 					480,
