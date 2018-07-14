@@ -290,8 +290,7 @@ public class DLNAMediaDatabase implements Runnable {
 					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
-				LOGGER.trace("Creating index IDX_FILE");
-				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
+
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
 				sb.append("  ID                INT              NOT NULL");
@@ -332,6 +331,9 @@ public class DLNAMediaDatabase implements Runnable {
 				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+
+				LOGGER.trace("Creating index IDX_FILE");
+				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
 
 				LOGGER.trace("Creating index TYPE");
 				executeUpdate(conn, "CREATE INDEX TYPE on FILES (TYPE)");
