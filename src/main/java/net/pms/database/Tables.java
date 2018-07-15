@@ -70,6 +70,7 @@ public class Tables {
 					TableMusicBrainzReleases.checkTable(connection);
 					TableCoverArtArchive.checkTable(connection);
 					TableFilesStatus.checkTable(connection);
+					TableThumbnails.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
