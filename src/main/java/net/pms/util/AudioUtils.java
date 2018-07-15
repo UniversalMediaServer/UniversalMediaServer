@@ -31,9 +31,6 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNABinaryThumbnail;
-import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil.ScaleType;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
@@ -330,22 +327,7 @@ public final class AudioUtils {
 			if (StringUtils.isNotBlank(media.getFirstAudioTrack().getArtist())) {
 				tag.setArtist(media.getFirstAudioTrack().getArtist());
 			}
-			try {
-				media.setThumb(DLNABinaryThumbnail.toThumbnail(
-					CoverUtil.get().getThumbnail(tag),
-					640,
-					480,
-					ScaleType.MAX,
-					ImageFormat.SOURCE,
-					false
-				));
-			} catch (IOException e) {
-				LOGGER.error(
-					"An error occurred while generating thumbnail for RealAudio source: [\"{}\", \"{}\"]",
-					tag.getFirstTitle(),
-					tag.getFirstArtist()
-				);
-			}
+			media.setThumb(CoverUtil.get().getThumbnail(tag));
 		}
 		media.setThumbready(true);
 		media.setMediaparsed(true);

@@ -33,7 +33,6 @@ import com.drew.metadata.Metadata;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageProfile;
-import net.pms.dlna.DLNABinaryThumbnail;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.ParseException;
 
@@ -47,7 +46,11 @@ public class Image implements Serializable {
 
 	private static final long serialVersionUID = 6878185988106188499L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Image.class);
+
+	/** The byte array containing the image data */
 	protected final byte[] bytes;
+
+	/** The {@link ImageInfo} describing this {@link Image} */
 	protected final ImageInfo imageInfo;
 
 	/**
@@ -201,7 +204,7 @@ public class Image implements Serializable {
 	 * @param inputStream the source image in a supported format.
 	 * @return The populated {@link Image} or {@code null} if the source image
 	 *         is {@code null}.
-	 * @throws IOException
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Image toImage(InputStream inputStream) throws IOException {
 		return toImage(inputStream, 0, 0, null, ImageFormat.SOURCE, false);
@@ -215,7 +218,7 @@ public class Image implements Serializable {
 	 * @param imageByteArray the source image in a supported format.
 	 * @return The populated {@link Image} or {@code null} if the source image
 	 *         is {@code null}.
-	 * @throws IOException
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Image toImage(byte[] imageByteArray) throws IOException {
 		return toImage(imageByteArray, 0, 0, null, ImageFormat.SOURCE, false);
@@ -236,7 +239,7 @@ public class Image implements Serializable {
 	 *            match target aspect.
 	 * @return The populated {@link Image} or {@code null} if the source image
 	 *         is {@code null}.
-	 * @throws IOException
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Image toImage(
 		Image inputImage,
@@ -276,7 +279,7 @@ public class Image implements Serializable {
 	 *            match target aspect.
 	 * @return The populated {@link Image} or {@code null} if the source image
 	 *         is {@code null}.
-	 * @throws IOException
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Image toImage(
 		InputStream inputStream,
@@ -313,7 +316,7 @@ public class Image implements Serializable {
 	 *            match target aspect.
 	 * @return The populated {@link Image} or {@code null} if the source image
 	 *         is {@code null}.
-	 * @throws IOException
+	 * @throws IOException If an error occurs during the operation.
 	 */
 	public static Image toImage(
 			byte[] imageByteArray,
@@ -347,7 +350,7 @@ public class Image implements Serializable {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled {@link Image} or {@code null} if the source is
@@ -358,7 +361,6 @@ public class Image implements Serializable {
 		int width,
 		int height,
 		ScaleType scaleType,
-		boolean updateMetadata,
 		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
 		boolean padToSize
@@ -387,7 +389,7 @@ public class Image implements Serializable {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @return The converted {@link Image} or {@code null} if the source is
 	 *         {@code null}.
 	 * @throws IOException if the operation fails.
@@ -424,7 +426,7 @@ public class Image implements Serializable {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted {@link Image} or {@code null} if the
@@ -465,7 +467,7 @@ public class Image implements Serializable {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted {@link Image} or {@code null} if the
@@ -520,7 +522,6 @@ public class Image implements Serializable {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this image.
 	 */
@@ -528,19 +529,11 @@ public class Image implements Serializable {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
 
-
 	/**
 	 * @return The {@link ImageFormat} for this image.
 	 */
 	public ImageFormat getFormat() {
 		return imageInfo != null ? imageInfo.getFormat() : null;
-	}
-
-	/**
-	 * @return The size of this image in bytes.
-	 */
-	public long getSize() {
-		return bytes != null ? bytes.length : 0;
 	}
 
 	/**
@@ -606,6 +599,7 @@ public class Image implements Serializable {
 	 *
 	 * @param sb the {@link StringBuilder} to add information to.
 	 */
+	@SuppressWarnings("unused")
 	protected void buildToString(StringBuilder sb) {
 	}
 
@@ -616,8 +610,8 @@ public class Image implements Serializable {
 			.append(": [Format = ").append(imageInfo.getFormat())
 			.append(", Resolution = ").append(imageInfo.getWidth())
 			.append("×").append(imageInfo.getHeight());
-		if (getSize() > 0) {
-			sb.append(", Size = ").append(bytes != null ? bytes.length : 0);
+		if (bytes != null) {
+			sb.append(", Size = ").append(bytes.length);
 		}
 		buildToString(sb);
 		sb.append("]");

@@ -488,7 +488,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @return The converted image or {@code null} if the source is {@code null}
 	 *         .
 	 * @throws IOException if the operation fails.
@@ -526,7 +526,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @return The converted image or {@code null} if the source is {@code null}
 	 *         .
 	 * @throws IOException if the operation fails.
@@ -562,7 +562,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @return The converted image or {@code null} if the source is {@code null}
 	 *         .
 	 * @throws IOException if the operation fails.
@@ -599,7 +599,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
@@ -642,7 +642,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
@@ -683,7 +683,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled image or {@code null} if the source is {@code null}.
@@ -721,7 +721,7 @@ public class ImagesUtil {
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The converted image or {@code null} if the source is {@code null}
@@ -749,7 +749,7 @@ public class ImagesUtil {
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The converted image or {@code null} if the source is {@code null}
@@ -775,7 +775,7 @@ public class ImagesUtil {
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The converted image or {@code null} if the source is {@code null}
@@ -810,7 +810,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
@@ -863,7 +863,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
@@ -914,7 +914,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
@@ -964,7 +964,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
@@ -1016,7 +1016,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
@@ -1066,7 +1066,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source
@@ -1124,7 +1124,7 @@ public class ImagesUtil {
 	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
-	 *            can be safely cast to {@link DLNABinaryThumbnail}.
+	 *            can be safely cast to {@link DLNAThumbnail}.
 	 * @param padToSize whether padding should be used if source aspect doesn't
 	 *            match target aspect.
 	 * @return The scaled and/or converted image or {@code null} if the source

@@ -43,7 +43,7 @@ import net.pms.util.ParseException;
  *
  * @author Nadahar
  */
-public class DLNABinaryThumbnail extends DLNAImage {
+public class DLNABinaryThumbnail extends DLNAImage implements DLNAThumbnail {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAImage.class);
 	/*

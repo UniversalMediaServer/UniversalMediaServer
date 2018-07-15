@@ -24,6 +24,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAThumbnail;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,9 +100,10 @@ public abstract class CoverUtil {
 
 	/**
 	 * Convenience method to URL encode a string with {@link #encoding} without
-	 * handling the hypothetical {@link UnsupportedEncodingException}
-	 * @param url {@link String} to encode
-	 * @return The encoded {@link String}
+	 * handling the hypothetical {@link UnsupportedEncodingException}.
+	 *
+	 * @param url {@link String} to encode.
+	 * @return The encoded {@link String}.
 	 */
 	protected String urlEncode(String url) {
 		try {
@@ -113,15 +115,16 @@ public abstract class CoverUtil {
 	}
 
 	/**
-	 * Gets a thumbnail from the configured cover utility based on a {@link Tag}
-	 * @param tag the {@link tag} to use while searching for a cover
-	 * @return The thumbnail or <code>null</code> if none was found
+	 * Gets a thumbnail from the configured cover utility based on a {@link Tag}.
+	 *
+	 * @param tag the {@link tag} to use while searching for a cover.
+	 * @return The {@link DLNAThumbnail} or {@code null} if none was found.
 	 */
-	public final byte[] getThumbnail(Tag tag) {
+	public final DLNAThumbnail getThumbnail(Tag tag) {
 		boolean externalNetwork = PMS.getConfiguration().getExternalNetwork();
 		return doGetThumbnail(tag, externalNetwork);
 	}
 
-	abstract protected byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
+	abstract protected DLNAThumbnail doGetThumbnail(Tag tag, boolean externalNetwork);
 
 }

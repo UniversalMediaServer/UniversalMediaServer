@@ -56,7 +56,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnailInputStream toThumbnailInputStream(byte[] inputByteArray) throws IOException {
-		DLNABinaryThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(inputByteArray);
+		DLNAThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(inputByteArray);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
@@ -76,7 +76,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * @throws IOException if the operation fails.
 	 */
 	public static DLNAThumbnailInputStream toThumbnailInputStream(InputStream inputStream) throws IOException {
-		DLNABinaryThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(inputStream);
+		DLNAThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(inputStream);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
@@ -109,7 +109,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		ImageFormat outputFormat,
 		boolean padToSize
 	) throws IOException {
-		DLNABinaryThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(
+		DLNAThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(
 			inputByteArray,
 			width,
 			height,
@@ -150,7 +150,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		ImageFormat outputFormat,
 		boolean padToSize
 	) throws IOException {
-		DLNABinaryThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(
+		DLNAThumbnail thumbnail = DLNABinaryThumbnail.toThumbnail(
 			inputStream,
 			width,
 			height,
@@ -161,17 +161,17 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
-    /**
-     * Creates a {@link DLNAThumbnailInputStream} where it uses
-     * {@code thumbnail}'s buffer as its buffer array. The buffer array is
-     * not copied.
-     *
-     * @param thumbnail the input thumbnail.
-	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null}
-	 *         if the source thumbnail is {@code null}.
-     */
+	/**
+	 * Creates a {@link DLNAThumbnailInputStream} where it uses
+	 * {@code thumbnail}'s buffer as its buffer array. The buffer array is not
+	 * copied.
+	 *
+	 * @param thumbnail the source {@link DLNAThumbnail}.
+	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null} if
+	 *         the source {@link DLNAThumbnail} is {@code null}.
+	 */
 
-	public static DLNAThumbnailInputStream toThumbnailInputStream(DLNABinaryThumbnail thumbnail) {
+	public static DLNAThumbnailInputStream toThumbnailInputStream(DLNAThumbnail thumbnail) {
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
@@ -184,7 +184,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 *
 	 * @throws NullPointerException if {@code thumbnail} is {@code null}.
 	 */
-    protected DLNAThumbnailInputStream(DLNABinaryThumbnail thumbnail) {
+    protected DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
     	super(thumbnail.getBytes(false));
     	this.imageInfo = thumbnail.getImageInfo();
     	this.profile = thumbnail.getDLNAImageProfile();
@@ -206,7 +206,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		DLNAImageProfile outputProfile,
 		boolean padToSize
 	) throws IOException {
-		DLNABinaryThumbnail thumbnail;
+		DLNAThumbnail thumbnail;
 		thumbnail = (DLNABinaryThumbnail) ImagesUtil.transcodeImage(
 			this.getBytes(false),
 			outputProfile,
@@ -224,19 +224,10 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 			byte[] result = new byte[buf.length];
 			System.arraycopy(buf, 0, result, 0, buf.length);
 			return result;
-		} else {
-			return buf;
 		}
+		return buf;
 	}
 
-
-	/**
-	 * @return A {@link DLNABinaryThumbnail} sharing the the underlying buffer.
-	 * @throws DLNAProfileException
-	 */
-	public DLNABinaryThumbnail getThumbnail() throws DLNAProfileException {
-		return new DLNABinaryThumbnail(buf, imageInfo, profile, false);
-	}
 
 	/**
 	 * @return The {@link ImageInfo} for this thumbnail.

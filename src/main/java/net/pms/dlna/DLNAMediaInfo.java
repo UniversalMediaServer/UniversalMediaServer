@@ -178,7 +178,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 
-	private volatile DLNABinaryThumbnail thumb = null;
+	private volatile DLNAThumbnail thumb = null;
 
 	/**
 	 * Metadata gathered from either the filename or OpenSubtitles.
@@ -389,7 +389,7 @@ public class DLNAMediaInfo implements Cloneable {
 			return false;
 		}
 
-		return 
+		return
 			(
 				audioTracks.get(0).isAACLC() ||
 				audioTracks.get(0).isERBSAC()
@@ -894,14 +894,7 @@ public class DLNAMediaInfo implements Cloneable {
 									false
 								);
 							} else if (!configuration.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
-								thumb = DLNABinaryThumbnail.toThumbnail(
-									CoverUtil.get().getThumbnail(t),
-									640,
-									480,
-									ScaleType.MAX,
-									ImageFormat.SOURCE,
-									false
-								);
+								thumb = CoverUtil.get().getThumbnail(t);
 							}
 							if (thumb != null) {
 								thumbready = true;
@@ -1255,7 +1248,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 									// workaround for AAC audio formats
 									if (codec.equals("aac")) {
-										if (token.contains("(LC)")) { 
+										if (token.contains("(LC)")) {
 											codec = FormatConfiguration.AAC_LC;
 										} else if (token.contains("(HE-AAC)")) {
 											codec = FormatConfiguration.HE_AAC;
@@ -1265,7 +1258,7 @@ public class DLNAMediaInfo implements Cloneable {
 									codec = token.substring(positionAfterAudioString);
 
 									// workaround for AAC audio formats
-									if (codec.equals("aac")) { 
+									if (codec.equals("aac")) {
 										codec = FormatConfiguration.AAC_LC;
 									}
 								}
@@ -1326,7 +1319,7 @@ public class DLNAMediaInfo implements Cloneable {
 								String videoString = "Video: ";
 								int positionAfterVideoString = token.indexOf(videoString) + videoString.length();
 								String codec;
-	
+
 								// Check whether there are more details after the video string
 								if (token.indexOf(" ", positionAfterVideoString) != -1) {
 									codec = token.substring(positionAfterVideoString, token.indexOf(" ", positionAfterVideoString)).trim();
@@ -2379,7 +2372,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * sample video.
 	 *
 	 * Example: "(Director's Cut) (Sample)"
-	 * @return 
+	 * @return
 	 */
 	public String getExtraInformation() {
 		return extraInformation;
@@ -2505,14 +2498,14 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the thumb
 	 * @since 1.50.0
 	 */
-	public DLNABinaryThumbnail getThumb() {
+	public DLNAThumbnail getThumb() {
 		return thumb;
 	}
 
 	/**
 	 * @param thumb the thumb to set
 	 * @since 1.50.0
-	 * @deprecated Use {@link #setThumb(DLNABinaryThumbnail)} instead.
+	 * @deprecated Use {@link #setThumb(DLNAThumbnail)} instead.
 	 */
 	@Deprecated
 	public void setThumb(byte[] thumb) {
@@ -2535,11 +2528,12 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Sets the {@link DLNABinaryThumbnail} instance to use for this {@link DLNAMediaInfo} instance.
+	 * Sets the {@link DLNAThumbnail} instance to use for this
+	 * {@link DLNAMediaInfo} instance.
 	 *
-	 * @param thumbnail the {@link DLNABinaryThumbnail} to set.
+	 * @param thumbnail the {@link DLNAThumbnail} to set.
 	 */
-	public void setThumb(DLNABinaryThumbnail thumbnail) {
+	public void setThumb(DLNAThumbnail thumbnail) {
 		this.thumb = thumbnail;
 		if (thumbnail != null) {
 			thumbready = true;

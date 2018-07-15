@@ -26,8 +26,11 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.h2.api.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNABinaryThumbnail;
+import net.pms.dlna.DLNAThumbnail;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
@@ -57,7 +60,7 @@ public final class TableCoverArtArchive extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	// No instantiation
 	private TableCoverArtArchive() {
@@ -68,17 +71,19 @@ public final class TableCoverArtArchive extends Tables{
 	 * lookup.
 	 */
 	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-	public static class CoverArtArchiveResult {
+	public static class CoverArtArchiveEntry {
 
-		public boolean found = false;
-		public Timestamp modified = null;
-		public byte[] cover = null;
+		public boolean found;
+		public Timestamp modified;
+		public byte[] cover;
+		public DLNABinaryThumbnail thumbnail;
 
 		@SuppressFBWarnings("EI_EXPOSE_REP2")
-		public CoverArtArchiveResult(final boolean found, final Timestamp modified, final byte[] cover) {
+		public CoverArtArchiveEntry(boolean found, Timestamp modified, byte[] cover, DLNABinaryThumbnail thumbnail) {
 			this.found = found;
 			this.modified = modified;
 			this.cover = cover;
+			this.thumbnail = thumbnail;
 		}
 	}
 
@@ -89,10 +94,11 @@ public final class TableCoverArtArchive extends Tables{
 	/**
 	 * Stores the cover {@link Blob} with the given mBID in the database
 	 *
-	 * @param mBID the MBID to store
-	 * @param cover the cover as a {@link Blob}
+	 * @param mBID the MBID to store.
+	 * @param cover the cover as a byte array.
+	 * @param thumbnail the {@link DLNABinaryThumbnail}.
 	 */
-	public static void writeMBID(final String mBID, final byte[] cover) {
+	public static void writeMBID(final String mBID, final byte[] cover, DLNABinaryThumbnail thumbnail) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
@@ -102,7 +108,7 @@ public final class TableCoverArtArchive extends Tables{
 			}
 
 			tableLock.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)){
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
@@ -115,6 +121,11 @@ public final class TableCoverArtArchive extends Tables{
 								result.updateBytes("COVER", cover);
 							} else {
 								result.updateNull("COVER");
+							}
+							if (thumbnail == null) {
+								result.updateNull("THUMBNAIL");
+							} else {
+								result.updateObject("THUMBNAIL", thumbnail);
 							}
 							result.updateRow();
 						} else if (trace) {
@@ -130,6 +141,9 @@ public final class TableCoverArtArchive extends Tables{
 						result.updateString("MBID", mBID);
 						if (cover != null) {
 							result.updateBytes("COVER", cover);
+						}
+						if (thumbnail != null) {
+							result.updateObject("THUMBNAIL", thumbnail);
 						}
 						result.insertRow();
 					}
@@ -153,12 +167,12 @@ public final class TableCoverArtArchive extends Tables{
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static CoverArtArchiveResult findMBID(final String mBID) {
+	public static CoverArtArchiveEntry findMBID(final String mBID) {
 		boolean trace = LOGGER.isTraceEnabled();
-		CoverArtArchiveResult result;
+		CoverArtArchiveEntry result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID);
+			String query = "SELECT COVER, MODIFIED, THUMBNAIL FROM " + TABLE_NAME + contructMBIDWhere(mBID);
 
 			if (trace) {
 				LOGGER.trace("Searching for cover with \"{}\"", query);
@@ -168,9 +182,27 @@ public final class TableCoverArtArchive extends Tables{
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						result = new CoverArtArchiveResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getBytes("COVER"));
+						DLNABinaryThumbnail thumbnail;
+						try {
+							thumbnail = (DLNABinaryThumbnail) resultSet.getObject("THUMBNAIL");
+						} catch (Exception e) {
+							thumbnail = null;
+							if (trace) {
+								LOGGER.trace(
+									"Deserialization failed for MBID \"{}\", returning null: {}",
+									mBID,
+									e.getMessage()
+								);
+							}
+						}
+						result = new CoverArtArchiveEntry(
+							true,
+							resultSet.getTimestamp("MODIFIED"),
+							resultSet.getBytes("COVER"),
+							thumbnail
+						);
 					} else {
-						result = new CoverArtArchiveResult(false, null, null);
+						result = new CoverArtArchiveEntry(false, null, null, null);
 					}
 				}
 			} finally {
@@ -183,10 +215,101 @@ public final class TableCoverArtArchive extends Tables{
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
-			result = new CoverArtArchiveResult(false, null, null);
+			result = new CoverArtArchiveEntry(false, null, null, null);
 		}
 
 		return result;
+	}
+
+	/**
+	 * Looks up thumbnail with the specified {@code MBID}.
+	 *
+	 * @param mBID the MBID to look up.
+	 *
+	 * @return The {@link DLNAThumbnail} or {@code null}.
+	 * @throws SQLException If a SQL error occurs during the operation.
+	 */
+	public static DLNAThumbnail getThumbnail(String mBID) throws SQLException {
+		if (mBID == null) {
+			return null;
+		}
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT THUMBNAIL FROM " + TABLE_NAME + " WHERE MBID = " + sqlQuote(mBID);
+
+			if (trace) {
+				LOGGER.trace("Looking up thumbnail for MBID \"{}\" with \"{}\"", mBID, query);
+			}
+
+			tableLock.readLock().lock();
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query);
+			) {
+				if (resultSet.next()) {
+					try {
+						return (DLNABinaryThumbnail) resultSet.getObject("THUMBNAIL");
+					} catch (Exception e) {
+						if (trace) {
+							LOGGER.trace(
+								"Deserialization failed for MBID \"{}\", returning null: {}",
+								mBID,
+								e.getMessage()
+							);
+						}
+						return null;
+					}
+				}
+				if (trace) {
+					LOGGER.trace("No thumbnail found for MBID \"{}\"", mBID);
+				}
+				return null;
+			} finally {
+				tableLock.readLock().unlock();
+			}
+		}
+	}
+
+	/**
+	 * Looks up thumbnail with the specified {@code MBID}.
+	 *
+	 * @param mBID the MBID to look up.
+	 * @param thumbnail the {@link DLNABinaryThumbnail} to store.
+	 *
+	 * @throws SQLException If a SQL error occurs during the operation.
+	 * @throws IllegalArgumentException If {@code mBID} is {@code null}.
+	 */
+	public static void updateThumbnail(String mBID, DLNABinaryThumbnail thumbnail) throws SQLException {
+		if (mBID == null) {
+			throw new IllegalArgumentException("mBID cannot be null");
+		}
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT * FROM " + TABLE_NAME + " WHERE MBID = " + sqlQuote(mBID);
+			if (trace) {
+				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
+			}
+
+			tableLock.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				try (ResultSet result = statement.executeQuery(query)) {
+					if (result.next()) {
+						if (thumbnail == null) {
+							result.updateNull("THUMBNAIL");
+						} else {
+							result.updateObject("THUMBNAIL", thumbnail);
+						}
+						result.updateRow();
+					} else {
+						throw new SQLException("Row for MBID \"" + mBID + "\" not found", "02000", ErrorCode.NO_DATA_AVAILABLE);
+					}
+				}
+			} finally {
+				tableLock.writeLock().unlock();
+			}
+		}
 	}
 
 	/**
@@ -237,7 +360,6 @@ public final class TableCoverArtArchive extends Tables{
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressWarnings("unused")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		tableLock.writeLock().lock();
@@ -245,7 +367,11 @@ public final class TableCoverArtArchive extends Tables{
 			for (int version = currentVersion;version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
-					//case 1: Alter table to version 2
+					case 1:
+						// Version 2 adds field THUMBNAIL.
+						Statement statement = connection.createStatement();
+						statement.executeUpdate("ALTER TABLE " + TABLE_NAME + " ADD COLUMN THUMBNAIL OTHER");
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
@@ -271,6 +397,7 @@ public final class TableCoverArtArchive extends Tables{
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
 					"COVER BLOB, " +
+					"THUMBNAIL OTHER" +
 				")");
 			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
 		}
