@@ -1283,6 +1283,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"WHERE FILES.FILENAME = FILES_STATUS.FILENAME" +
 				");"
 			);
+			rs = ps.executeQuery();
 
 			/**
 			 * Cleanup of AUDIOTRACKS table
@@ -1296,6 +1297,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"WHERE FILES.ID = AUDIOTRACKS.FILEID" +
 				");"
 			);
+			rs = ps.executeQuery();
 
 			/**
 			 * Cleanup of SUBTRACKS table
