@@ -1283,6 +1283,32 @@ public class DLNAMediaDatabase implements Runnable {
 					"WHERE FILES.FILENAME = FILES_STATUS.FILENAME" +
 				");"
 			);
+
+			/**
+			 * Cleanup of AUDIOTRACKS table
+			 *
+			 * Removes entries that are not referenced by any rows in the FILES table.
+			 */
+			ps = conn.prepareStatement(
+				"DELETE FROM AUDIOTRACKS " +
+				"WHERE NOT EXISTS (" +
+					"SELECT ID FROM FILES " +
+					"WHERE FILES.ID = AUDIOTRACKS.FILEID" +
+				");"
+			);
+
+			/**
+			 * Cleanup of SUBTRACKS table
+			 *
+			 * Removes entries that are not referenced by any rows in the FILES table.
+			 */
+			ps = conn.prepareStatement(
+				"DELETE FROM SUBTRACKS " +
+				"WHERE NOT EXISTS (" +
+					"SELECT ID FROM FILES " +
+					"WHERE FILES.ID = SUBTRACKS.FILEID" +
+				");"
+			);
 			rs = ps.executeQuery();
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
