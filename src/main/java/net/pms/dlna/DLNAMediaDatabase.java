@@ -311,11 +311,16 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", DELAY             INT");
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 				sb.append(", BITRATE           INT");
-				sb.append(", constraint PKAUDIO primary key (FILEID, ID))");
+				sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
+				sb.append("  FOREIGN KEY(ID)");
+				sb.append("    REFERENCES FILES(ID)");
+				sb.append("    ON DELETE CASCADE");
+				sb.append(')');
 				if (trace) {
 					LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
+
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
 				sb.append("  ID       INT              NOT NULL");
@@ -323,12 +328,17 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", TYPE     INT");
-				sb.append(", constraint PKSUB primary key (FILEID, ID))");
+				sb.append(", constraint PKSUB primary key (FILEID, ID)");
+				sb.append("  FOREIGN KEY(ID)");
+				sb.append("    REFERENCES FILES(ID)");
+				sb.append("    ON DELETE CASCADE");
+				sb.append(')');
 
 				if (trace) {
 					LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
+
 				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
@@ -1269,49 +1279,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"WHERE FILES.THUMBID = THUMBNAILS.ID" +
 				");"
 			);
-			rs = ps.executeQuery();
-
-			/**
-			 * Cleanup of FILES_STATUS table
-			 *
-			 * Removes entries that are not referenced by any rows in the FILES table.
-			 */
-			ps = conn.prepareStatement(
-				"DELETE FROM FILES_STATUS " +
-				"WHERE NOT EXISTS (" +
-					"SELECT ID FROM FILES " +
-					"WHERE FILES.FILENAME = FILES_STATUS.FILENAME" +
-				");"
-			);
-			rs = ps.executeQuery();
-
-			/**
-			 * Cleanup of AUDIOTRACKS table
-			 *
-			 * Removes entries that are not referenced by any rows in the FILES table.
-			 */
-			ps = conn.prepareStatement(
-				"DELETE FROM AUDIOTRACKS " +
-				"WHERE NOT EXISTS (" +
-					"SELECT ID FROM FILES " +
-					"WHERE FILES.ID = AUDIOTRACKS.FILEID" +
-				");"
-			);
-			rs = ps.executeQuery();
-
-			/**
-			 * Cleanup of SUBTRACKS table
-			 *
-			 * Removes entries that are not referenced by any rows in the FILES table.
-			 */
-			ps = conn.prepareStatement(
-				"DELETE FROM SUBTRACKS " +
-				"WHERE NOT EXISTS (" +
-					"SELECT ID FROM FILES " +
-					"WHERE FILES.ID = SUBTRACKS.FILEID" +
-				");"
-			);
-			rs = ps.executeQuery();
+			ps.execute();
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {
