@@ -830,20 +830,20 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			} else if (jfifVersion == null) {
 				if (LOGGER.isTraceEnabled()) {
 					complianceResult.failures.add(String.format(
-						"JPEG DLNA compliance failed with too low Exif version \"%s\"",
-						exifVersion
-					));
-				} else {
-					complianceResult.failures.add("Exif version");
-				}
-			} else if (exifVersion == null) {
-				if (LOGGER.isTraceEnabled()) {
-					complianceResult.failures.add(String.format(
 						"JPEG DLNA compliance failed with too low JFIF version \"%s\"",
 						jfifVersion
 					));
 				} else {
 					complianceResult.failures.add("JFIF version");
+				}
+			} else if (exifVersion == null) {
+				if (LOGGER.isTraceEnabled()) {
+					complianceResult.failures.add(String.format(
+						"JPEG DLNA compliance failed with too low Exif version \"%s\"",
+						exifVersion
+					));
+				} else {
+					complianceResult.failures.add("Exif version");
 				}
 			} else {
 				if (LOGGER.isTraceEnabled()) {
