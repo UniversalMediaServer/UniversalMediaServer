@@ -67,7 +67,10 @@ public final class TableThumbnails extends Tables{
 	}
 
 	/**
-	 * Sets whether the file has been fully played.
+	 * Attempts to find a thumbnail in this table by MD5 hash. If not found,
+	 * it writes the new thumbnail to this table.
+	 * Finally, it writes the ID from this table as the THUMBID in the FILES
+	 * table.
 	 *
 	 * @param md5Hash
 	 * @param thumbnail
