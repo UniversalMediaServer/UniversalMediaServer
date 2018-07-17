@@ -312,7 +312,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 				sb.append(", BITRATE           INT");
 				sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
-				sb.append("  FOREIGN KEY(ID)");
+				sb.append(", FOREIGN KEY(FILEID)");
 				sb.append("    REFERENCES FILES(ID)");
 				sb.append("    ON DELETE CASCADE");
 				sb.append(')');
@@ -329,7 +329,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", TYPE     INT");
 				sb.append(", constraint PKSUB primary key (FILEID, ID)");
-				sb.append("  FOREIGN KEY(ID)");
+				sb.append(", FOREIGN KEY(FILEID)");
 				sb.append("    REFERENCES FILES(ID)");
 				sb.append("    ON DELETE CASCADE");
 				sb.append(')');

@@ -1476,11 +1476,10 @@ public class ImagesUtil {
 		}
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		float imageQuality = dlnaThumbnail ? 0.8f : 1.0f;
 		Thumbnails.of(bufferedImage)
 			.scale(1.0d)
 			.outputFormat(outputFormat.toString())
-			.outputQuality(imageQuality)
+			.outputQuality(1.0f)
 			.toOutputStream(outputStream);
 
 		byte[] outputByteArray = outputStream.toByteArray();

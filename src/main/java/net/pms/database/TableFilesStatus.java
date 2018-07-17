@@ -369,9 +369,9 @@ public final class TableFilesStatus extends Tables {
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN  DEFAULT false " +
-					"FOREIGN KEY(ID) " +
-						"REFERENCES FILES(ID) " +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+					"FOREIGN KEY(FILENAME) " +
+						"REFERENCES FILES(FILENAME) " +
 						"ON DELETE CASCADE" +
 				")"
 			);
