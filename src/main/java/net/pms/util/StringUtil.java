@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
-import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
