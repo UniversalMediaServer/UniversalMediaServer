@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -895,10 +895,8 @@ public class StringUtil {
 	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
 		try {
 			// Turn XML string into a document
-			Document xmlDocument =
-				DocumentBuilderFactory.newInstance().
-				newDocumentBuilder().
-				parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+			Document xmlDocument = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder()
+				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
 
 			// Remove whitespaces outside tags
 			xmlDocument.normalize();
@@ -915,7 +913,7 @@ public class StringUtil {
 			}
 
 			// Setup pretty print options
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			TransformerFactory transformerFactory = XmlUtils.xxeDisabledTransformerFactory();
 			transformerFactory.setAttribute("indent-number", indentWidth);
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
