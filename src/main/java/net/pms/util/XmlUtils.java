@@ -23,6 +23,7 @@ package net.pms.util;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.transform.TransformerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,5 +70,18 @@ public class XmlUtils {
 		transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 		transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 		return transformerFactory;
+	}
+
+	/**
+	 * Returns a new {@code XMLInputFactory} instance with XML External Entity (XXE) processing disabled.
+	 *
+	 * @return the new {@code XMLInputFactory} instance with XXE processing disabled
+	 * @see XMLInputFactory
+	 */
+	public static XMLInputFactory xxeDisabledXMLInputFactory() {
+		XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
+		xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+		xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+		return xmlInputFactory;
 	}
 }

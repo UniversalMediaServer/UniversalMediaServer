@@ -55,7 +55,7 @@ public class XMLRPCUtil {
 	public static final XMLOutputFactory OUTPUT_FACTORY = XMLOutputFactory.newFactory();
 
 	/** A static {@link XMLInputFactory} for creating XML readers */
-	public static final XMLInputFactory INPUT_FACTORY = XMLInputFactory.newFactory();
+	public static final XMLInputFactory INPUT_FACTORY = XmlUtils.xxeDisabledXMLInputFactory();
 
 	/**
 	 * Not to be instantiated.
