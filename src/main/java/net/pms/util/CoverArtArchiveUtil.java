@@ -68,7 +68,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverArtArchiveUtil.class);
 	private static final long WAIT_TIMEOUT_MS = 30000;
 	private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000; // 24 hours
-	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = XmlUtils.xxeDisabledDocumentBuilderFactory();
 
 	private static enum ReleaseType {
 		Single,

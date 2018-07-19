@@ -34,7 +34,6 @@ import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -906,10 +905,9 @@ public class StringUtil {
 		}
 		// Turn XML string into a document
 		try {
-			Document xmlDocument =
-				DocumentBuilderFactory.newInstance()
+			Document xmlDocument = XmlUtils.xxeDisabledDocumentBuilderFactory()
 				.newDocumentBuilder()
-				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes(charset))));
+				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
 			return prettifyXML(xmlDocument, indentWidth);
 		} catch (IOException e) {
 			LOGGER.warn("Failed to read XML document, returning the source document: {}", e.getMessage());
@@ -917,6 +915,7 @@ public class StringUtil {
 			return xml;
 		}
 	}
+
 
 	/**
 	 * Formats a XML string to be easier to read with newlines and indentations.
@@ -948,7 +947,7 @@ public class StringUtil {
 			}
 
 			// Setup pretty print options
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			TransformerFactory transformerFactory = XmlUtils.xxeDisabledTransformerFactory();
 			transformerFactory.setAttribute("indent-number", indentWidth);
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
