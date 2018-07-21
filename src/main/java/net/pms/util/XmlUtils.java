@@ -27,9 +27,12 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.transform.TransformerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 
 public class XmlUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
+	private static PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * Returns a new {@code DocumentBuilderFactory} instance with XML External Entity (XXE) processing disabled.
@@ -40,22 +43,25 @@ public class XmlUtils {
 	 */
 	public static DocumentBuilderFactory xxeDisabledDocumentBuilderFactory() {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		String FEATURE = null;
-		try {
-			FEATURE = "http://apache.org/xml/features/disallow-doctype-decl";
-			dbf.setFeature(FEATURE, true);    
-			FEATURE = "http://xml.org/sax/features/external-general-entities";
-			dbf.setFeature(FEATURE, false);   
-			FEATURE = "http://xml.org/sax/features/external-parameter-entities";
-			dbf.setFeature(FEATURE, false);
-			FEATURE = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
-			dbf.setFeature(FEATURE, false);
-		} catch (ParserConfigurationException e) {
-			LOGGER.info("ParserConfigurationException was thrown. The feature '{}' is probably not supported by the XML processor.", FEATURE);
-		}
+		if (!configuration.disableExternalEntities()) {
+			String FEATURE = null;
+			try {
+				FEATURE = "http://apache.org/xml/features/disallow-doctype-decl";
+				dbf.setFeature(FEATURE, true);    
+				FEATURE = "http://xml.org/sax/features/external-general-entities";
+				dbf.setFeature(FEATURE, false);   
+				FEATURE = "http://xml.org/sax/features/external-parameter-entities";
+				dbf.setFeature(FEATURE, false);
+				FEATURE = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+				dbf.setFeature(FEATURE, false);
+			} catch (ParserConfigurationException e) {
+				LOGGER.info("ParserConfigurationException was thrown. The feature '{}' is probably not supported by the XML processor.", FEATURE);
+			}
 
-		dbf.setXIncludeAware(false);
-		dbf.setExpandEntityReferences(false);
+			dbf.setXIncludeAware(false);
+			dbf.setExpandEntityReferences(false);
+		}
+		
 		return dbf;
 	}
 
@@ -67,8 +73,11 @@ public class XmlUtils {
 	 */
 	public static TransformerFactory xxeDisabledTransformerFactory() {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-		transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+		if (!configuration.disableExternalEntities()) {
+			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+		}
+		
 		return transformerFactory;
 	}
 
@@ -80,8 +89,11 @@ public class XmlUtils {
 	 */
 	public static XMLInputFactory xxeDisabledXMLInputFactory() {
 		XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
-		xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-		xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+		if (!configuration.disableExternalEntities()) {
+			xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+			xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+		}
+		
 		return xmlInputFactory;
 	}
 }

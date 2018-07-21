@@ -132,6 +132,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
+	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
@@ -4108,5 +4109,14 @@ public class PmsConfiguration extends RendererConfiguration {
 					return null;
 			}
 		}
+	}
+
+	/**
+	 * Whether to disable connection to external entities to prevent the XML External Entity vurnelability.
+	 *
+	 * @return default {@code true} whether to disable external entities.
+	 */
+	public boolean disableExternalEntities() {
+		return getBoolean(KEY_DISABLE_EXTERNAL_ENTITIES, true);
 	}
 }
