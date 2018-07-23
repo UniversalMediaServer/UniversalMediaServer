@@ -220,6 +220,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is Dolby E.
+	 */
+	public boolean isDolbyE() {
+		return FormatConfiguration.DOLBYE.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is DSD Audio.
 	 */
 	public boolean isDSDAudio() {
@@ -500,6 +507,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "Cook";
 		} else if (isDSDAudio()) {
 			return "DSD Audio";
+		} else if (isDolbyE()) {
+			return "Dolby E";
 		} else if (isDTS()) {
 			return "DTS";
 		} else if (isDTSHD()) {
