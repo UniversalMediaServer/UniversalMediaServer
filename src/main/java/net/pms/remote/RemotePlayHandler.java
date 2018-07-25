@@ -11,7 +11,9 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaType;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -21,8 +23,8 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.util.SubtitleUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +66,7 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 			String pos = step > 0 ? "next" : "prev";
 			vars.put(pos + "Id", next != null ? next.getResourceId() : null);
-			vars.put(pos + "Attr", next != null ? (" title=\"" + StringEscapeUtils.escapeHtml(next.resumeName()) + "\"") : " disabled");
+			vars.put(pos + "Attr", next != null ? (" title=\"" + StringEscapeUtils.escapeHtml3(next.resumeName()) + "\"") : " disabled");
 		}
 	}
 
@@ -81,64 +83,62 @@ public class RemotePlayHandler implements HttpHandler {
 		WebRender renderer = (WebRender) root.getDefaultRenderer();
 		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
-		DLNAResource r = root.getDLNAResource(id, renderer);
-		if (r == null) {
+		DLNAResource resource = root.getDLNAResource(id, renderer);
+		if (resource == null) {
 			LOGGER.debug("Bad web play id: " + id);
 			throw new IOException("Bad Id");
 		}
-		if (!r.isCodeValid(r)) {
+		if (!resource.isCodeValid(resource)) {
 			LOGGER.debug("coded object with invalid code");
 			throw new IOException("Bad code");
 		}
-		if (r instanceof VirtualVideoAction) {
+		if (resource instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
-			if (((VirtualVideoAction) r).enable()) {
-				renderer.notify(renderer.INFO, r.getName() + " enabled");
+			if (((VirtualVideoAction) resource).enable()) {
+				renderer.notify(renderer.INFO, resource.getName() + " enabled");
 			} else {
-				renderer.notify(renderer.INFO, r.getName() + " disabled");
+				renderer.notify(renderer.INFO, resource.getName() + " disabled");
 			}
 			return returnPage();
 		}
 
-		Format format =  r.getFormat();
-		boolean isImage = format.isImage();
-		boolean isVideo = format.isVideo();
-		boolean isAudio = format.isAudio();
+		Format format =  resource.getFormat();
+		DLNAMediaInfo media = resource.getMedia();
+		MediaType mediaType = media == null ? MediaType.UNKNOWN : media.getMediaType();
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
 		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));
-		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
+		boolean flowplayer = mediaType == MediaType.VIDEO && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
 
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String id1 = URLEncoder.encode(id, "UTF-8");
-		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r.mimeType(), r.getMedia());
-		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
+		String name = StringEscapeUtils.escapeHtml3(resource.resumeName());
+		String mimeType = root.getDefaultRenderer().getMimeType(resource.mimeType(), media);
 		String auto = "autoplay";
 		@SuppressWarnings("unused")
 		String coverImage = "";
 
-		if (isVideo) {
-			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
-				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
-					mime = r.getMedia().getMimeType();
+		if (mediaType == MediaType.VIDEO) {
+			if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO)) {
+				if (media != null && media.getMimeType() != null) {
+					mimeType = media.getMimeType();
 				}
 			}
 			if (!flowplayer) {
-				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
-					WebRender render = (WebRender) r.getDefaultRenderer();
-					mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
+				if (!RemoteUtil.directmime(mimeType) || RemoteUtil.transMp4(mimeType, media) || resource.isResume()) {
+					WebRender render = (WebRender) resource.getDefaultRenderer();
+					mimeType = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
 				}
 			}
 		}
-		vars.put("isVideo", isVideo);
+		vars.put("isVideo", mediaType == MediaType.VIDEO);
 		vars.put("name", name);
 		vars.put("id1", id1);
 		vars.put("autoContinue", configuration.getWebAutoCont(format));
 		if (configuration.isDynamicPls()) {
-			if (r.getParent() instanceof Playlist) {
+			if (resource.getParent() instanceof Playlist) {
 				vars.put("plsOp", "del");
 				vars.put("plsSign", "-");
 				vars.put("plsAttr", RemoteUtil.getMsgString("Web.4", t));
@@ -148,8 +148,8 @@ public class RemotePlayHandler implements HttpHandler {
 				vars.put("plsAttr", RemoteUtil.getMsgString("Web.5", t));
 			}
 		}
-		addNextByType(r, vars);
-		if (isImage) {
+		addNextByType(resource, vars);
+		if (mediaType == MediaType.IMAGE) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
 			int delay = configuration.getWebImgSlideDelay() * 1000;
@@ -157,14 +157,14 @@ public class RemotePlayHandler implements HttpHandler {
 				vars.put("delay", delay);
 			}
 		} else {
-			vars.put("mediaType", mediaType);
+			vars.put("mediaType", mediaType.getString());
 			vars.put("auto", auto);
-			vars.put("mime", mime);
+			vars.put("mime", mimeType);
 			if (flowplayer) {
 				if (
-					RemoteUtil.directmime(mime) &&
-					!RemoteUtil.transMp4(mime, r.getMedia()) &&
-					!r.isResume() &&
+					RemoteUtil.directmime(mimeType) &&
+					!RemoteUtil.transMp4(mimeType, media) &&
+					!resource.isResume() &&
 					!forceFlash
 				) {
 					vars.put("src", true);
@@ -178,32 +178,39 @@ public class RemotePlayHandler implements HttpHandler {
 			vars.put("push", true);
 		}
 
-		if (isVideo && configuration.getWebSubs()) {
+		if (mediaType == MediaType.VIDEO && configuration.getWebSubs()) {
 			// only if subs are requested as <track> tags
 			// otherwise we'll transcode them in
 			boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
 			if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
 				configuration.setFFmpegFontConfig(false);
 			}
-			OutputParams p = new OutputParams(configuration);
-			p.sid = r.getMediaSubtitle();
-			Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
-			if (p.sid != null && p.sid.getType().isText()) {
+			OutputParams params = new OutputParams(configuration);
+			params.sid = resource.getMediaSubtitle();
+			Player.setAudioAndSubs(resource.getName(), media, params);
+			if (params.sid != null && params.sid.getType().isText()) {
 				try {
-					File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
-					LOGGER.debug("subFile " + subFile);
+					File subFile = SubtitleUtils.getSubtitles(resource, media, params, configuration, SubtitleType.WEBVTT);
+					LOGGER.debug("Adding subtitles file \"{}\"", subFile);
 					if (subFile != null) {
 						vars.put("sub", parent.getResources().add(subFile));
 					}
 				} catch (Exception e) {
-					LOGGER.debug("error when doing sub file " + e);
+					LOGGER.error(
+						"An error occured while resolving subtitles file for \"{}\": {}",
+						resource.getName(),
+						e.getMessage()
+					);
+					LOGGER.trace("", e);
 				}
 			}
 
 			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 		}
 
-		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(vars);
+		return parent.getResources().getTemplate(
+			mediaType == MediaType.IMAGE ? "image.html" : flowplayer ? "flow.html" : "play.html"
+		).execute(vars);
 	}
 
 	@Override
