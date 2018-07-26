@@ -44,7 +44,7 @@ import net.pms.PMS;
  * @author SubJunk & Nadahar
  * @since 7.0.0
  */
-public final class TableFilesStatus extends Tables{
+public final class TableFilesStatus extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 4;
+	private static final int TABLE_VERSION = 5;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -78,7 +78,7 @@ public final class TableFilesStatus extends Tables{
 		String query;
 
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
@@ -335,6 +335,16 @@ public final class TableFilesStatus extends Tables{
 						}
 						version = 4;
 						break;
+					case 4:
+						/**
+						 * From version 4 to 5, we make the rows in this table automatically delete
+						 * when the corresponding row in the FILES table is deleted.
+						 */
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FOREIGN KEY(ID) REFERENCES FILES(ID) ON DELETE CASCADE");
+						}
+						version = 5;
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
@@ -359,7 +369,10 @@ public final class TableFilesStatus extends Tables{
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN  DEFAULT false" +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+					"FOREIGN KEY(FILENAME) " +
+						"REFERENCES FILES(FILENAME) " +
+						"ON DELETE CASCADE" +
 				")"
 			);
 

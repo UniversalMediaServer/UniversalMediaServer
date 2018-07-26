@@ -29,6 +29,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.database.TableThumbnails;
 import net.pms.database.Tables;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -64,9 +65,9 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * The database version should be incremented when we change anything to
-	 * do with the database since the last released version.
+	 * do with the database since the last merged version.
 	 */
-	private final int latestVersion = 15;
+	private final int latestVersion = 16;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -250,6 +251,7 @@ public class DLNAMediaDatabase implements Runnable {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
 				sb.append("  ID                      IDENTITY PRIMARY KEY");
+				sb.append(", THUMBID                 BIGINT");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
 				sb.append(", TYPE                    INT");
@@ -266,7 +268,6 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", REFRAMES                TINYINT");
 				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
 				sb.append(", IMAGEINFO               OTHER");
-				sb.append(", THUMB                   OTHER");
 				sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
 				sb.append(", MUXINGMODE              VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(')');
@@ -290,8 +291,7 @@ public class DLNAMediaDatabase implements Runnable {
 					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
-				LOGGER.trace("Creating index IDX_FILE");
-				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
+
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
 				sb.append("  ID                INT              NOT NULL");
@@ -311,11 +311,16 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", DELAY             INT");
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 				sb.append(", BITRATE           INT");
-				sb.append(", constraint PKAUDIO primary key (FILEID, ID))");
+				sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
+				sb.append(", FOREIGN KEY(FILEID)");
+				sb.append("    REFERENCES FILES(ID)");
+				sb.append("    ON DELETE CASCADE");
+				sb.append(')');
 				if (trace) {
 					LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
+
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
 				sb.append("  ID       INT              NOT NULL");
@@ -323,15 +328,23 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", TYPE     INT");
-				sb.append(", constraint PKSUB primary key (FILEID, ID))");
+				sb.append(", constraint PKSUB primary key (FILEID, ID)");
+				sb.append(", FOREIGN KEY(FILEID)");
+				sb.append("    REFERENCES FILES(ID)");
+				sb.append("    ON DELETE CASCADE");
+				sb.append(')');
 
 				if (trace) {
 					LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
+
 				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+
+				LOGGER.trace("Creating index IDX_FILE");
+				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
 
 				LOGGER.trace("Creating index TYPE");
 				executeUpdate(conn, "CREATE INDEX TYPE on FILES (TYPE)");
@@ -492,7 +505,10 @@ public class DLNAMediaDatabase implements Runnable {
 		ArrayList<DLNAMediaInfo> list = new ArrayList<>();
 		try (
 			Connection conn = getConnection();
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ?");
+			PreparedStatement stmt = conn.prepareStatement(
+				"SELECT * FROM FILES LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON FILES.THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
+				"WHERE FILENAME = ? AND FILES.MODIFIED = ?"
+			);
 		) {
 			stmt.setString(1, name);
 			stmt.setTimestamp(2, new Timestamp(modified));
@@ -517,7 +533,7 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
 					media.setReferenceFrameCount(rs.getByte("REFRAMES"));
 					media.setAvcLevel(rs.getString("AVCLEVEL"));
-					media.setThumb((DLNAThumbnail) rs.getObject("THUMB"));
+					media.setThumb((DLNAThumbnail) rs.getObject("THUMBNAIL"));
 					media.setContainer(rs.getString("CONTAINER"));
 					media.setMuxingMode(rs.getString("MUXINGMODE"));
 					media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
@@ -747,7 +763,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
 					"ID, FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, " +
-					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, THUMB, " +
+					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, " +
 					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
@@ -793,11 +809,6 @@ public class DLNAMediaDatabase implements Runnable {
 							} else {
 								rs.updateNull("IMAGEINFO");
 							}
-							if (media.getThumb() != null) {
-								rs.updateObject("THUMB", media.getThumb());
-							} else {
-								rs.updateNull("THUMB");
-							}
 							rs.updateString("CONTAINER", left(media.getContainer(), SIZE_CONTAINER));
 							rs.updateString("MUXINGMODE", left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
 							rs.updateString("FRAMERATEMODE", left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
@@ -828,19 +839,22 @@ public class DLNAMediaDatabase implements Runnable {
 					PreparedStatement ps = connection.prepareStatement(
 						"INSERT INTO FILES (FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
 						"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
-						"THUMB, CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
+						"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, " +
 						"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION) VALUES " +
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+					)
 				) {
-					ps.setString(1, name);
-					ps.setTimestamp(2, new Timestamp(modified));
-					ps.setInt(3, type);
+					int databaseColumnIterator = 0;
+
+					ps.setString(++databaseColumnIterator, name);
+					ps.setTimestamp(++databaseColumnIterator, new Timestamp(modified));
+					ps.setInt(++databaseColumnIterator, type);
 					if (media != null) {
 						if (media.getDuration() != null) {
-							ps.setDouble(4, media.getDurationInSeconds());
+							ps.setDouble(++databaseColumnIterator, media.getDurationInSeconds());
 						} else {
-							ps.setNull(4, Types.DOUBLE);
+							ps.setNull(++databaseColumnIterator, Types.DOUBLE);
 						}
 
 						int databaseBitrate = 0;
@@ -850,81 +864,75 @@ public class DLNAMediaDatabase implements Runnable {
 								LOGGER.debug("Could not parse the bitrate for: " + name);
 							}
 						}
-						ps.setInt(5, databaseBitrate);
+						ps.setInt(++databaseColumnIterator, databaseBitrate);
 
-						ps.setInt(6, media.getWidth());
-						ps.setInt(7, media.getHeight());
-						ps.setLong(8, media.getSize());
-						ps.setString(9, left(media.getCodecV(), SIZE_CODECV));
-						ps.setString(10, left(media.getFrameRate(), SIZE_FRAMERATE));
-						ps.setString(11, left(media.getAspectRatioDvdIso(), SIZE_ASPECTRATIO_DVDISO));
-						ps.setString(12, left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
-						ps.setString(13, left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
-						ps.setByte(14, media.getReferenceFrameCount());
-						ps.setString(15, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+						ps.setInt(++databaseColumnIterator, media.getWidth());
+						ps.setInt(++databaseColumnIterator, media.getHeight());
+						ps.setLong(++databaseColumnIterator, media.getSize());
+						ps.setString(++databaseColumnIterator, left(media.getCodecV(), SIZE_CODECV));
+						ps.setString(++databaseColumnIterator, left(media.getFrameRate(), SIZE_FRAMERATE));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), SIZE_ASPECTRATIO_DVDISO));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
+						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
+						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
 						if (media.getImageInfo() != null) {
-							ps.setObject(16, media.getImageInfo());
+							ps.setObject(++databaseColumnIterator, media.getImageInfo());
 						} else {
-							ps.setNull(16, Types.OTHER);
+							ps.setNull(++databaseColumnIterator, Types.OTHER);
 						}
-						if (media.getThumb() != null) {
-							ps.setObject(17, media.getThumb());
-						} else {
-							ps.setNull(17, Types.OTHER);
-						}
-						ps.setString(18, left(media.getContainer(), SIZE_CONTAINER));
-						ps.setString(19, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-						ps.setString(20, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
-						ps.setString(21, left(media.getStereoscopy(), SIZE_MAX));
-						ps.setString(22, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-						ps.setString(23, left(media.getFileTitleFromMetadata(), SIZE_MAX));
-						ps.setString(24, left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
-						ps.setInt(25, media.getVideoTrackCount());
-						ps.setInt(26, media.getImageCount());
-						ps.setInt(27, media.getVideoBitDepth());
-						ps.setString(28, left(media.getIMDbID(), SIZE_IMDBID));
-						ps.setString(29, left(media.getYear(), SIZE_YEAR));
-						ps.setString(30, left(media.getMovieOrShowName(), SIZE_MAX));
-						ps.setString(31, left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-						ps.setString(32, left(media.getTVSeason(), SIZE_TVSEASON));
-						ps.setString(33, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-						ps.setString(34, left(media.getTVEpisodeName(), SIZE_MAX));
-						ps.setBoolean(35, media.isTVEpisode());
-						ps.setString(36, left(media.getExtraInformation(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getContainer(), SIZE_CONTAINER));
+						ps.setString(++databaseColumnIterator, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+						ps.setString(++databaseColumnIterator, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
+						ps.setString(++databaseColumnIterator, left(media.getStereoscopy(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
+						ps.setString(++databaseColumnIterator, left(media.getFileTitleFromMetadata(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
+						ps.setInt(++databaseColumnIterator, media.getVideoTrackCount());
+						ps.setInt(++databaseColumnIterator, media.getImageCount());
+						ps.setInt(++databaseColumnIterator, media.getVideoBitDepth());
+						ps.setString(++databaseColumnIterator, left(media.getIMDbID(), SIZE_IMDBID));
+						ps.setString(++databaseColumnIterator, left(media.getYear(), SIZE_YEAR));
+						ps.setString(++databaseColumnIterator, left(media.getMovieOrShowName(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getTVSeason(), SIZE_TVSEASON));
+						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeName(), SIZE_MAX));
+						ps.setBoolean(++databaseColumnIterator, media.isTVEpisode());
+						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), SIZE_MAX));
 					} else {
-						ps.setString(4, null);
-						ps.setInt(5, 0);
-						ps.setInt(6, 0);
-						ps.setInt(7, 0);
-						ps.setLong(8, 0);
-						ps.setNull(9, Types.VARCHAR);
-						ps.setNull(10, Types.VARCHAR);
-						ps.setNull(11, Types.VARCHAR);
-						ps.setNull(12, Types.VARCHAR);
-						ps.setNull(13, Types.VARCHAR);
-						ps.setByte(14, (byte) -1);
-						ps.setNull(15, Types.VARCHAR);
-						ps.setNull(16, Types.OTHER);
-						ps.setNull(17, Types.OTHER);
-						ps.setNull(18, Types.VARCHAR);
-						ps.setNull(19, Types.VARCHAR);
-						ps.setNull(20, Types.VARCHAR);
-						ps.setNull(21, Types.VARCHAR);
-						ps.setNull(22, Types.VARCHAR);
-						ps.setNull(23, Types.VARCHAR);
-						ps.setNull(24, Types.VARCHAR);
-						ps.setInt(25, 0);
-						ps.setInt(26, 0);
-						ps.setInt(27, 0);
-						ps.setNull(28, Types.VARCHAR);
-						ps.setNull(29, Types.VARCHAR);
-						ps.setNull(30, Types.VARCHAR);
-						ps.setNull(31, Types.VARCHAR);
-						ps.setNull(32, Types.VARCHAR);
-						ps.setNull(33, Types.VARCHAR);
-						ps.setNull(34, Types.VARCHAR);
-						ps.setBoolean(35, false);
-						ps.setNull(36, Types.VARCHAR);
+						ps.setString(++databaseColumnIterator, null);
+						ps.setInt(++databaseColumnIterator, 0);
+						ps.setInt(++databaseColumnIterator, 0);
+						ps.setInt(++databaseColumnIterator, 0);
+						ps.setLong(++databaseColumnIterator, 0);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setByte(++databaseColumnIterator, (byte) -1);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.OTHER);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setInt(++databaseColumnIterator, 0);
+						ps.setInt(++databaseColumnIterator, 0);
+						ps.setInt(++databaseColumnIterator, 0);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						ps.setBoolean(++databaseColumnIterator, false);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 					}
 					ps.executeUpdate();
 					try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -950,6 +958,10 @@ public class DLNAMediaDatabase implements Runnable {
 				), se);
 			}
 			throw se;
+		} finally {
+			if (media.getThumb() != null) {
+				TableThumbnails.setThumbnail(media.getThumb(), name);
+			}
 		}
 	}
 
@@ -1162,21 +1174,17 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
-	public synchronized void updateThumbnail(String name, long modified, int type, DLNAMediaInfo media) {
+	public synchronized void updateThumbnailId(String fullPathToFile, int thumbId) {
 		try (
 			Connection conn = getConnection();
 			PreparedStatement ps = conn.prepareStatement(
-				"UPDATE FILES SET THUMB = ? WHERE FILENAME = ? AND MODIFIED = ?"
+				"UPDATE FILES SET THUMBID = ? WHERE FILENAME = ?"
 			);
 		) {
-			ps.setString(2, name);
-			ps.setTimestamp(3, new Timestamp(modified));
-			if (media != null && media.getThumb() != null) {
-				ps.setObject(1, media.getThumb());
-			} else {
-				ps.setNull(1, Types.OTHER);
-			}
+			ps.setInt(1, thumbId);
+			ps.setString(2, fullPathToFile);
 			ps.executeUpdate();
+			LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
 		} catch (SQLException se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
 			LOGGER.trace("", se);
@@ -1220,6 +1228,12 @@ public class DLNAMediaDatabase implements Runnable {
 
 		try {
 			conn = getConnection();
+
+			/**
+			 * Cleanup of FILES table
+			 *
+			 * Removes entries that are not on the hard drive anymore.
+			 */
 			ps = conn.prepareStatement("SELECT COUNT(*) FROM FILES");
 			rs = ps.executeQuery();
 			dbCount = 0;
@@ -1252,6 +1266,20 @@ public class DLNAMediaDatabase implements Runnable {
 					}
 				}
 			}
+
+			/**
+			 * Cleanup of THUMBNAILS table
+			 *
+			 * Removes entries that are not referenced by any rows in the FILES table.
+			 */
+			ps = conn.prepareStatement(
+				"DELETE FROM THUMBNAILS " +
+				"WHERE NOT EXISTS (" +
+					"SELECT ID FROM FILES " +
+					"WHERE FILES.THUMBID = THUMBNAILS.ID" +
+				");"
+			);
+			ps.execute();
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {
