@@ -65,9 +65,9 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * The database version should be incremented when we change anything to
-	 * do with the database since the last released version.
+	 * do with the database since the last merged version.
 	 */
-	private final int latestVersion = 15;
+	private final int latestVersion = 16;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
