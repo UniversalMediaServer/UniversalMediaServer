@@ -1,4 +1,4 @@
-7.2.0 - 2018-07-??
+7.2.0 - 2018-07-27
 
 	General:
 		Auto-updater no longer requires UMS to be run with admin rights on Windows
@@ -9,6 +9,9 @@
 		Improved documentation
 		Improved database referential integrity
 		Fixed bugs with the auto-updater on Windows
+	Languages:
+		Allow translation of more of the auto-updater
+		Updated translations via Crowdin
 
 7.1.0 - 2018-06-16
 
