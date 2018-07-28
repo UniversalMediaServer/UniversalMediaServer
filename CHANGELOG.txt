@@ -4,7 +4,7 @@
 		Auto-updater no longer requires UMS to be run with admin rights on Windows
 		Improved support for ATRAC and DolbyE formats
 		Reduced size of local database dramatically
-		Use more memory on macOS to match Windows
+		Increased maximum memory limit on macOS to match Windows
 		Disabled Chromecast Extension API by default
 		Improved documentation
 		Improved database referential integrity
