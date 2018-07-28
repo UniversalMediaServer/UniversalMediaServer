@@ -240,6 +240,8 @@ public class DLNAMediaDatabase implements Runnable {
 				executeUpdate(conn, "DROP TABLE AUDIOTRACKS");
 				LOGGER.trace("DROPPING TABLE SUBTRACKS");
 				executeUpdate(conn, "DROP TABLE SUBTRACKS");
+				LOGGER.trace("DROPPING TABLE FILES_STATUS");
+				executeUpdate(conn, "DROP TABLE FILES_STATUS");
 			} catch (SQLException se) {
 				if (se.getErrorCode() != 42102) { // Don't log exception "Table "FILES" not found" which will be corrected in following step
 					LOGGER.error("SQL error while dropping tables: {}", se.getMessage());
