@@ -1,3 +1,10 @@
+7.2.1 - 2018-07-29
+
+	General:
+		Fixed a database upgrade bug
+	Languages:
+		Updated Bulgarian translation via Crowdin
+
 7.2.0 - 2018-07-27
 
 	General:
