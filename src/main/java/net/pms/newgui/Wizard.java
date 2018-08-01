@@ -165,6 +165,24 @@ public class Wizard {
 			configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
 		}
 
+		// Ask if they want to scan shared folders
+		int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
+			null,
+			Messages.getString("Wizard.13"),
+			String.format(status, currentQuestionNumber++),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.QUESTION_MESSAGE,
+			null,
+			yesNoOptions,
+			yesNoOptions[0]
+		);
+
+		if (whetherToScanSharedFolders == JOptionPane.YES_OPTION) {
+			configuration.setScanSharedFoldersOnStartup(true);
+		} else if (whetherToScanSharedFolders == JOptionPane.NO_OPTION) {
+			configuration.setScanSharedFoldersOnStartup(false);
+		}
+
 		// The wizard finished, do not ask them again
 		configuration.setRunWizard(false);
 		
