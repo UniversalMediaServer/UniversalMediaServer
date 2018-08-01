@@ -36,7 +36,7 @@ public class Wizard {
 
 	public static void run(PmsConfiguration configuration) {
 		// Total number of questions
-		int numberOfQuestions = 4;
+		int numberOfQuestions = 5;
 
 		// The current question number
 		int currentQuestionNumber = 1;
