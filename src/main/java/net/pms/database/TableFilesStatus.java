@@ -341,6 +341,15 @@ public final class TableFilesStatus extends Tables {
 						 * when the corresponding row in the FILES table is deleted.
 						 */
 						try (Statement statement = connection.createStatement()) {
+							PreparedStatement ps = connection.prepareStatement(
+								"DELETE FROM " + TABLE_NAME + " " +
+								"WHERE NOT EXISTS (" +
+									"SELECT ID FROM FILES " +
+									"WHERE FILES.FILENAME = " + TABLE_NAME + ".FILENAME" +
+								");"
+							);
+							ps.execute();
+
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FOREIGN KEY(ID) REFERENCES FILES(ID) ON DELETE CASCADE");
 						}
 						version = 5;
