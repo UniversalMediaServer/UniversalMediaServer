@@ -336,6 +336,24 @@ public final class TableFilesStatus extends Tables {
 						version = 4;
 						break;
 					case 4:
+						/**
+						 * From version 4 to 5, we make the rows in this table automatically delete
+						 * when the corresponding row in the FILES table is deleted.
+						 */
+						try (Statement statement = connection.createStatement()) {
+							PreparedStatement ps = connection.prepareStatement(
+								"DELETE FROM " + TABLE_NAME + " " +
+								"WHERE NOT EXISTS (" +
+									"SELECT ID FROM FILES " +
+									"WHERE FILES.FILENAME = " + TABLE_NAME + ".FILENAME" +
+								");"
+							);
+							ps.execute();
+
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FOREIGN KEY(ID) REFERENCES FILES(ID) ON DELETE CASCADE");
+						}
+						version = 5;
+						break;
 					case 5:
 						/**
 						 * From version 5 to 6, we do what we tried to do in version 5...
