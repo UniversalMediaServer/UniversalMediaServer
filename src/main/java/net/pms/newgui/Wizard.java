@@ -135,6 +135,24 @@ public class Wizard {
 			configuration.setHideAdvancedOptions(false);
 		}
 
+		// Ask if they want to scan shared folders
+		int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
+			null,
+			Messages.getString("Wizard.IsStartupScan"),
+			String.format(status, currentQuestionNumber++),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.QUESTION_MESSAGE,
+			null,
+			yesNoOptions,
+			yesNoOptions[0]
+		);
+
+		if (whetherToScanSharedFolders == JOptionPane.YES_OPTION) {
+			configuration.setScanSharedFoldersOnStartup(true);
+		} else if (whetherToScanSharedFolders == JOptionPane.NO_OPTION) {
+			configuration.setScanSharedFoldersOnStartup(false);
+		}
+
 		// Ask to set at least one shared folder
 		JOptionPane.showOptionDialog(
 			null,
@@ -163,24 +181,6 @@ public class Wizard {
 			// If user cancel this option set the default directory which depends on the operating system.
 			// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
 			configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
-		}
-
-		// Ask if they want to scan shared folders
-		int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
-			null,
-			Messages.getString("Wizard.13"),
-			String.format(status, currentQuestionNumber++),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.QUESTION_MESSAGE,
-			null,
-			yesNoOptions,
-			yesNoOptions[0]
-		);
-
-		if (whetherToScanSharedFolders == JOptionPane.YES_OPTION) {
-			configuration.setScanSharedFoldersOnStartup(true);
-		} else if (whetherToScanSharedFolders == JOptionPane.NO_OPTION) {
-			configuration.setScanSharedFoldersOnStartup(false);
 		}
 
 		// The wizard finished, do not ask them again
