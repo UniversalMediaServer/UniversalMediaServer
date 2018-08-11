@@ -95,12 +95,16 @@ Function LockedListLeave
 FunctionEnd
 
 Var Dialog
+Var Text
+Var LabelMemoryLimit
+Var DescMemoryLimit
 Var CheckboxCleanInstall
 Var CheckboxCleanInstallState
 Var DescCleanInstall
+Var MaximumMemoryJava
 
 Function AdvancedSettings
-	!insertmacro MUI_HEADER_TEXT "Advanced Settings" ""
+	!insertmacro MUI_HEADER_TEXT "Advanced Settings" "If you don't understand them, don't change them."
 	nsDialogs::Create 1018
 	Pop $Dialog
 
@@ -108,16 +112,63 @@ Function AdvancedSettings
 		Abort
 	${EndIf}
 
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and font cache."
+	; Choose maximum memory limit based on java type installed
+	ClearErrors
+	${If} ${RunningX64}
+		SetRegView 64
+	${EndIf}
+	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
+	IfErrors 0 CheckMemAmnt
+
+	; This is where the registry entries go in JRE9+
+	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\JRE" "CurrentVersion"
+	IfErrors SetLowMemoryLimit CheckMemAmnt
+
+	; Get the amount of RAM on the computer
+	CheckMemAmnt:
+	System::Alloc 64
+	Pop $1
+	System::Call "*$1(i64)"
+	System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
+	System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
+	System::Free $1
+	System::Int64Op $4 / 1048576
+	Pop $4
+
+	; Choose the maximum amount of RAM we want to use based on installed RAM
+	${If} $4 > 4000 
+		StrCpy $MaximumMemoryJava "1280"
+	${Else}
+		StrCpy $MaximumMemoryJava "768"
+	${EndIf}
+	Goto NSDContinue
+
+	SetLowMemoryLimit:
+	StrCpy $MaximumMemoryJava "768" 
+
+	NSDContinue:
+	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
+	Pop $DescMemoryLimit
+
+	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
+	Pop $LabelMemoryLimit
+
+	${NSD_CreateText} 3% 30% 10% 12u $MaximumMemoryJava
+	Pop $Text
+
+	${NSD_CreateLabel} 0 50% 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and font cache."
 	Pop $DescCleanInstall
 
-	${NSD_CreateCheckbox} 3% 15% 100% 12u "Clean install"
+	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
 	Pop $CheckboxCleanInstall
 
 	nsDialogs::Show
 FunctionEnd
 
 Function AdvancedSettingsAfterwards
+	${NSD_GetText} $Text $0
+	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$0"
+
 	${NSD_GetState} $CheckboxCleanInstall $CheckboxCleanInstallState
 	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
 		ReadENVStr $R1 ALLUSERSPROFILE
@@ -148,7 +199,6 @@ Section "Program Files"
 	File /r /x "*.conf" /x "*.zip" /x "*.dll" /x "third-party" "${PROJECT_BASEDIR}\src\main\external-resources\plugins"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
-	File /r "${PROJECT_BASEDIR}\target\bin\jre"
 	File /r "${PROJECT_BASEDIR}\target\bin\win32"
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.bat"
