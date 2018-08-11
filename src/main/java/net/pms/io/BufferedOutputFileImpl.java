@@ -312,7 +312,10 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				Thread.sleep(CHECK_INTERVAL);
 			} catch (InterruptedException e) {
 			}
+
+			input.close();
 			input = getCurrentInputStream();
+			
 		}
 
 		if (buffer != null) {
@@ -409,6 +412,8 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				//LOGGER.trace("BufferedOutputFile Full");
 			} catch (InterruptedException e) {
 			}
+
+			input.close();
 			input = getCurrentInputStream();
 		}
 		int mb = (int) (writeCount++ % maxMemorySize);
