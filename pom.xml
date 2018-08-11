@@ -82,7 +82,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>75</binary-revision>
+		<binary-revision>80</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
@@ -878,53 +878,6 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-			<plugin>
-				<groupId>com.akathist.maven.plugins.launch4j</groupId>
-				<artifactId>launch4j-maven-plugin</artifactId>
-				<version>1.7.22</version>
-				<executions>
-					<execution>
-						<id>l4j-clui</id>
-						<phase>package</phase>
-						<goals>
-							<goal>launch4j</goal>
-						</goals>
-						<configuration>
-							<errTitle></errTitle>
-							<cmdLine></cmdLine>
-							<chdir>.</chdir>
-							<priority>normal</priority>
-							<downloadUrl>http://java.com/download</downloadUrl>
-							<supportUrl></supportUrl>
-							<stayAlive>false</stayAlive>
-							<restartOnCrash>false</restartOnCrash>
-							<manifest></manifest>
-							<singleInstance>
-								<mutexName>Universal Media Server</mutexName>
-								<windowTitle>Universal Media Server</windowTitle>
-							</singleInstance>
-							<headerType>gui</headerType>
-							<outfile>target/UMS.exe</outfile>
-							<jar>ums.jar</jar>
-							<classPath>
-								<mainClass>net.pms.PMS</mainClass>
-							</classPath>
-							<dontWrapJar>true</dontWrapJar>
-							<icon>src\main\external-resources\icon.ico</icon>
-							<jre>
-							  <path>jre</path>
-							  <bundledJre64Bit>false</bundledJre64Bit>
-							  <bundledJreAsFallback>false</bundledJreAsFallback>
-							  <minVersion>1.7.0</minVersion>
-							  <maxVersion>1.8.0</maxVersion>
-							  <jdkPreference>preferJdk</jdkPreference>
-							  <runtimeBits>32/64</runtimeBits>
-							  <opts>-Xmx768M -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -classpath update.jar;ums.jar net.pms.PMS</opts>
-							</jre>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 
@@ -1083,27 +1036,27 @@
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
-							<configuration>
-								<descriptors>
-									<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-								</descriptors>
-								<archive>
-									<manifest>
-										<mainClass>net.pms.PMS</mainClass>
-										<!--
-											this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
-											without it, the following exception is thrown when PMS starts:
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when PMS starts:
 
-											Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
-												Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
-													java.lang.IllegalArgumentException: vendorName == null!
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
 
-											See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
-										-->
-										<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-									</manifest>
-								</archive>
-							</configuration>
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+							</archive>
+						</configuration>
 						<executions>
 							<execution>
 								<id>make-jar-with-dependencies-win</id>
@@ -1133,25 +1086,6 @@
 									<target unless="offline">
 										<!-- Make sure the download folders exist -->
 										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/jre" />
-										<mkdir dir="${project.binaries}/jre/bin" />
-										<mkdir dir="${project.binaries}/jre/bin/client" />
-										<mkdir dir="${project.binaries}/jre/bin/dtplugin" />
-										<mkdir dir="${project.binaries}/jre/bin/plugin2" />
-										<mkdir dir="${project.binaries}/jre/lib" />
-										<mkdir dir="${project.binaries}/jre/lib/applet" />
-										<mkdir dir="${project.binaries}/jre/lib/cmm" />
-										<mkdir dir="${project.binaries}/jre/lib/deploy" />
-										<mkdir dir="${project.binaries}/jre/lib/ext" />
-										<mkdir dir="${project.binaries}/jre/lib/fonts" />
-										<mkdir dir="${project.binaries}/jre/lib/i386" />
-										<mkdir dir="${project.binaries}/jre/lib/images" />
-										<mkdir dir="${project.binaries}/jre/lib/images/cursors" />
-										<mkdir dir="${project.binaries}/jre/lib/jfr" />
-										<mkdir dir="${project.binaries}/jre/lib/management" />
-										<mkdir dir="${project.binaries}/jre/lib/security" />
-										<mkdir dir="${project.binaries}/jre/lib/security/policy/limited" />
-										<mkdir dir="${project.binaries}/jre/lib/security/policy/unlimited" />
 										<mkdir dir="${project.binaries}/win32" />
 										<mkdir dir="${project.binaries}/win32/avisynth" />
 										<mkdir dir="${project.binaries}/win32/codecs" />
@@ -1211,246 +1145,6 @@
 										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/COPYRIGHT?p=${binary-revision}" dest="${project.binaries}/jre/COPYRIGHT" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/LICENSE?p=${binary-revision}" dest="${project.binaries}/jre/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/README.txt?p=${binary-revision}" dest="${project.binaries}/jre/README.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/release?p=${binary-revision}" dest="${project.binaries}/jre/release" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/THIRDPARTYLICENSEREADME.txt?p=${binary-revision}" dest="${project.binaries}/jre/THIRDPARTYLICENSEREADME.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/THIRDPARTYLICENSEREADME-JAVAFX.txt?p=${binary-revision}" dest="${project.binaries}/jre/THIRDPARTYLICENSEREADME-JAVAFX.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/Welcome.html?p=${binary-revision}" dest="${project.binaries}/jre/Welcome.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-console-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-console-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-datetime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-datetime-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-debug-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-debug-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-errorhandling-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-errorhandling-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-file-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-file-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-file-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-file-l1-2-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-file-l2-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-file-l2-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-handle-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-handle-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-heap-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-interlocked-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-interlocked-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-libraryloader-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-libraryloader-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-localization-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-localization-l1-2-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-memory-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-memory-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-namedpipe-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-namedpipe-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-processenvironment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-processenvironment-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-processthreads-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-processthreads-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-processthreads-l1-1-1.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-processthreads-l1-1-1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-profile-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-profile-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-rtlsupport-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-rtlsupport-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-string-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-synch-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-synch-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-synch-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-synch-l1-2-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-sysinfo-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-sysinfo-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-timezone-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-timezone-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-core-util-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-core-util-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-conio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-conio-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-convert-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-convert-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-environment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-environment-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-filesystem-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-filesystem-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-heap-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-locale-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-locale-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-math-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-math-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-multibyte-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-multibyte-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-private-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-private-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-process-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-process-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-runtime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-runtime-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-stdio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-stdio-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-string-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-time-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-time-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/api-ms-win-crt-utility-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/api-ms-win-crt-utility-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/awt.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/awt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/bci.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/bci.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/concrt140.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/concrt140.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/dcpr.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/dcpr.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/decora_sse.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/decora_sse.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/deploy.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/deploy.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/dt_shmem.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/dt_socket.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/eula.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/eula.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/fontmanager.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/fontmanager.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/fxplugins.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/fxplugins.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/glass.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/glass.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/glib-lite.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/glib-lite.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/gstreamer-lite.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/gstreamer-lite.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/hprof.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/hprof.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/instrument.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/instrument.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/j2pcsc.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/j2pcsc.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/j2pkcs11.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/j2pkcs11.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jaas_nt.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jaas_nt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jabswitch.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/jabswitch.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/java.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/java.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/java.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/java.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/java_crw_demo.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/java_crw_demo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/JavaAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/JavaAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/javacpl.cpl?p=${binary-revision}" dest="${project.binaries}/jre/bin/javacpl.cpl" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/javacpl.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/javacpl.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/javafx_font.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/javafx_font.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/javafx_font_t2k.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/javafx_font_t2k.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/javafx_iio.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/javafx_iio.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/java-rmi.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/java-rmi.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/javaw.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/javaw.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/javaws.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/javaws.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jawt.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jawt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/JAWTAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/JAWTAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jdwp.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jdwp.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jfr.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jfr.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jfxmedia.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jfxmedia.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jfxwebkit.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jfxwebkit.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/jjs.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jli.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jp2iexp.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jp2iexp.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jp2launcher.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/jp2launcher.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jp2native.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jp2native.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jp2ssv.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jp2ssv.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jpeg.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jpeg.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jsdt.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jsdt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jsound.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jsound.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/jsoundds.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/jsoundds.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/kcms.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/kcms.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/keytool.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/keytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/kinit.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/kinit.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/klist.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/ktab.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/lcms.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/management.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/mlib_image.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/mlib_image.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/msvcp140.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/msvcp140.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/msvcr100.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/msvcr100.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/net.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/net.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/nio.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/nio.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/npt.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/npt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/orbd.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/orbd.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/pack200.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/pack200.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/policytool.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/policytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/prism_common.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/prism_common.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/prism_d3d.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/prism_d3d.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/prism_sw.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/prism_sw.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/resource.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/resource.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/rmid.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/rmid.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/rmiregistry.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/rmiregistry.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/servertool.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/servertool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/splashscreen.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/splashscreen.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/ssv.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/ssv.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/ssvagent.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/ssvagent.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/sunec.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/sunec.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/sunmscapi.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/sunmscapi.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/t2k.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/t2k.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/tnameserv.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/tnameserv.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/ucrtbase.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/ucrtbase.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/unpack.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/unpack.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/unpack200.exe?p=${binary-revision}" dest="${project.binaries}/jre/bin/unpack200.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/vcruntime140.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/vcruntime140.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/verify.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/w2k_lsa_auth.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/WindowsAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/WindowsAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/wsdetect.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/wsdetect.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/zip.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/client/classes.jsa?p=${binary-revision}" dest="${project.binaries}/jre/bin/client/classes.jsa" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/client/jvm.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/client/jvm.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/client/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/jre/bin/client/Xusage.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/dtplugin/deployJava1.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/dtplugin/deployJava1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/dtplugin/npdeployJava1.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/dtplugin/npdeployJava1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/plugin2/msvcr100.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/plugin2/msvcr100.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/bin/plugin2/npjp2.dll?p=${binary-revision}" dest="${project.binaries}/jre/bin/plugin2/npjp2.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/accessibility.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/accessibility.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/calendars.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/charsets.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/classlist?p=${binary-revision}" dest="${project.binaries}/jre/lib/classlist" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/content-types.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/content-types.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/currency.data?p=${binary-revision}" dest="${project.binaries}/jre/lib/currency.data" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/flavormap.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/flavormap.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fontconfig.bfc?p=${binary-revision}" dest="${project.binaries}/jre/lib/fontconfig.bfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fontconfig.properties.src?p=${binary-revision}" dest="${project.binaries}/jre/lib/fontconfig.properties.src" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/hijrah-config-umalqura.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/hijrah-config-umalqura.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/javafx.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/javafx.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/javaws.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/javaws.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/jce.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/jce.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/jfr.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/jfr.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/jfxswt.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/jfxswt.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/jsse.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/jsse.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/jvm.hprof.txt?p=${binary-revision}" dest="${project.binaries}/jre/lib/jvm.hprof.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/logging.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/logging.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/management-agent.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/management-agent.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/meta-index?p=${binary-revision}" dest="${project.binaries}/jre/lib/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/net.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/net.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/plugin.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/plugin.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/psfont.properties.ja?p=${binary-revision}" dest="${project.binaries}/jre/lib/psfont.properties.ja" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/psfontj2d.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/psfontj2d.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/resources.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/resources.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/rt.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/sound.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/jre/lib/tzdb.dat" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/tzmappings?p=${binary-revision}" dest="${project.binaries}/jre/lib/tzmappings" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/jre/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/jre/lib/cmm/GRAY.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/jre/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/cmm/PYCC.pf?p=${binary-revision}" dest="${project.binaries}/jre/lib/cmm/PYCC.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/cmm/sRGB.pf?p=${binary-revision}" dest="${project.binaries}/jre/lib/cmm/sRGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/ffjcext.zip?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/ffjcext.zip" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_de.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_de.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_es.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_es.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_fr.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_fr.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_it.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_it.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_ja.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_ja.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_ko.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_ko.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_pt_BR.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_pt_BR.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_sv.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_sv.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_zh_CN.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_zh_CN.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_zh_HK.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_zh_HK.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/messages_zh_TW.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/messages_zh_TW.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/splash.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/splash.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/splash@2x.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/splash@2x.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/splash_11@2x-lic.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/splash_11@2x-lic.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/deploy/splash_11-lic.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/deploy/splash_11-lic.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/access-bridge-32.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/access-bridge-32.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/cldrdata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/dnsns.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/jaccess.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/jaccess.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/jfxrt.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/jfxrt.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/localedata.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/localedata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/meta-index?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/nashorn.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/nashorn.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/sunec.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/sunec.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/sunjce_provider.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/sunmscapi.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/sunmscapi.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/sunpkcs11.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/ext/zipfs.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaBrightDemiBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaBrightDemiBold.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaBrightDemiItalic.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaBrightDemiItalic.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaBrightItalic.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaBrightItalic.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaBrightRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaBrightRegular.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaSansDemiBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaSansDemiBold.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaSansRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaSansRegular.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaTypewriterBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaTypewriterBold.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/fonts/LucidaTypewriterRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre/lib/fonts/LucidaTypewriterRegular.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/i386/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/jre/lib/i386/jvm.cfg" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/cursors.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/win32_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/win32_CopyDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/win32_CopyNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/win32_CopyNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/win32_LinkDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/win32_LinkDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/win32_LinkNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/win32_LinkNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/win32_MoveDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/win32_MoveDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/images/cursors/win32_MoveNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre/lib/images/cursors/win32_MoveNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/jfr/default.jfc?p=${binary-revision}" dest="${project.binaries}/jre/lib/jfr/default.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/jfr/profile.jfc?p=${binary-revision}" dest="${project.binaries}/jre/lib/jfr/profile.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/management/jmxremote.access?p=${binary-revision}" dest="${project.binaries}/jre/lib/management/jmxremote.access" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/management/jmxremote.password.template?p=${binary-revision}" dest="${project.binaries}/jre/lib/management/jmxremote.password.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/management/management.properties?p=${binary-revision}" dest="${project.binaries}/jre/lib/management/management.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/management/snmp.acl.template?p=${binary-revision}" dest="${project.binaries}/jre/lib/management/snmp.acl.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/blacklist?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/blacklist" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/blacklisted.certs?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/blacklisted.certs" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/cacerts?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/cacerts" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/java.policy?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/java.policy" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/java.security?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/javaws.policy?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/javaws.policy" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/trusted.libraries?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/trusted.libraries" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/policy/limited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/policy/limited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
@@ -1507,6 +1201,1010 @@
 									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
 									<setupScript>${project.external-resources}/nsis/setup.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Windows standalone x86 profile: takes care of building the final package for Microsoft Windows
+			that runs its own version of Java Runtime Environment
+		-->
+		<profile>
+			<id>windows-standalone-x86</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+
+			<build>
+				<plugins>
+					<!-- Plugin to create the program executable to use our JRE instead of the system one -->
+					<plugin>
+						<groupId>com.akathist.maven.plugins.launch4j</groupId>
+						<artifactId>launch4j-maven-plugin</artifactId>
+						<version>1.7.22</version>
+						<executions>
+							<execution>
+								<id>l4j-clui</id>
+								<phase>package</phase>
+								<goals>
+									<goal>launch4j</goal>
+								</goals>
+								<configuration>
+									<errTitle></errTitle>
+									<cmdLine></cmdLine>
+									<chdir>.</chdir>
+									<priority>normal</priority>
+									<downloadUrl>http://java.com/download</downloadUrl>
+									<supportUrl></supportUrl>
+									<stayAlive>false</stayAlive>
+									<restartOnCrash>false</restartOnCrash>
+									<manifest></manifest>
+									<singleInstance>
+										<mutexName>Universal Media Server</mutexName>
+										<windowTitle>Universal Media Server</windowTitle>
+									</singleInstance>
+									<headerType>gui</headerType>
+									<outfile>target/UMS.exe</outfile>
+									<jar>ums.jar</jar>
+									<classPath>
+										<mainClass>net.pms.PMS</mainClass>
+									</classPath>
+									<dontWrapJar>true</dontWrapJar>
+									<icon>src\main\external-resources\icon.ico</icon>
+									<jre>
+									  <path>jre-x86</path>
+									  <bundledJre64Bit>false</bundledJre64Bit>
+									  <bundledJreAsFallback>false</bundledJreAsFallback>
+									  <minVersion>1.7.0</minVersion>
+									  <maxVersion>1.8.0</maxVersion>
+									  <jdkPreference>preferJdk</jdkPreference>
+									  <runtimeBits>32/64</runtimeBits>
+									  <opts>-Xmx768M -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -classpath update.jar;ums.jar net.pms.PMS</opts>
+									</jre>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Plugin to assemble ums-x.x.x-jar-with-dependencies.jar -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when PMS starts:
+
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
+
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+							</archive>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to move the ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>process-resources-windows</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the download folders exist -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/jre-x86" />
+										<mkdir dir="${project.binaries}/jre-x86/bin" />
+										<mkdir dir="${project.binaries}/jre-x86/bin/client" />
+										<mkdir dir="${project.binaries}/jre-x86/bin/dtplugin" />
+										<mkdir dir="${project.binaries}/jre-x86/bin/plugin2" />
+										<mkdir dir="${project.binaries}/jre-x86/lib" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/applet" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/cmm" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/deploy" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/ext" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/fonts" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/i386" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/images" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/images/cursors" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/jfr" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/management" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/security" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/security/policy/limited" />
+										<mkdir dir="${project.binaries}/jre-x86/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/win32" />
+										<mkdir dir="${project.binaries}/win32/avisynth" />
+										<mkdir dir="${project.binaries}/win32/codecs" />
+										<mkdir dir="${project.binaries}/win32/dvrms" />
+										<mkdir dir="${project.binaries}/win32/fonts" />
+										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
+										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
+										<mkdir dir="${project.binaries}/win32/interframe" />
+										<mkdir dir="${project.binaries}/win32/mplayer" />
+										<mkdir dir="${project.binaries}/win32/service" />
+
+										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
+										<get src="${project.binaries-base}/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo.dll"  usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/win32/dcrawMS.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/win32/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/win32/flac.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/win32/mencoder.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/win32/mplayer.exe"  usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR-new.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/win32/vcomp100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv43260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drvc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/pncrt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/sipr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/tokr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wma9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmv9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmvdmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/ffmpeg_MPGMUX.exe?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/ffmpeg_MPGMUX.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/pthreadGC2.dll?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/pthreadGC2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/45-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/50-user.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/51-local.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/60-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/README" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/COPYRIGHT?p=${binary-revision}" dest="${project.binaries}/jre-x86/COPYRIGHT" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/LICENSE?p=${binary-revision}" dest="${project.binaries}/jre-x86/LICENSE" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/README.txt?p=${binary-revision}" dest="${project.binaries}/jre-x86/README.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/release?p=${binary-revision}" dest="${project.binaries}/jre-x86/release" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/THIRDPARTYLICENSEREADME.txt?p=${binary-revision}" dest="${project.binaries}/jre-x86/THIRDPARTYLICENSEREADME.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/THIRDPARTYLICENSEREADME-JAVAFX.txt?p=${binary-revision}" dest="${project.binaries}/jre-x86/THIRDPARTYLICENSEREADME-JAVAFX.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/Welcome.html?p=${binary-revision}" dest="${project.binaries}/jre-x86/Welcome.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-console-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-console-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-datetime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-datetime-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-debug-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-debug-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-errorhandling-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-errorhandling-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-file-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-file-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-file-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-file-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-file-l2-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-file-l2-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-handle-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-handle-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-heap-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-interlocked-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-interlocked-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-libraryloader-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-libraryloader-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-localization-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-localization-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-memory-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-memory-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-namedpipe-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-namedpipe-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-processenvironment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-processenvironment-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-processthreads-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-processthreads-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-processthreads-l1-1-1.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-processthreads-l1-1-1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-profile-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-profile-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-rtlsupport-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-rtlsupport-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-string-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-synch-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-synch-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-synch-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-synch-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-sysinfo-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-sysinfo-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-timezone-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-timezone-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-core-util-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-core-util-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-conio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-conio-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-convert-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-convert-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-environment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-environment-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-filesystem-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-filesystem-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-heap-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-locale-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-locale-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-math-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-math-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-multibyte-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-multibyte-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-private-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-private-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-process-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-process-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-runtime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-runtime-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-stdio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-stdio-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-string-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-time-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-time-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/api-ms-win-crt-utility-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/api-ms-win-crt-utility-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/awt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/awt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/bci.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/bci.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/concrt140.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/concrt140.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/dcpr.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/dcpr.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/decora_sse.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/decora_sse.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/deploy.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/deploy.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/dt_shmem.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/dt_socket.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/eula.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/eula.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/fontmanager.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/fontmanager.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/fxplugins.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/fxplugins.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/glass.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/glass.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/glib-lite.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/glib-lite.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/gstreamer-lite.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/gstreamer-lite.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/hprof.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/hprof.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/instrument.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/instrument.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/j2pcsc.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/j2pcsc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/j2pkcs11.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/j2pkcs11.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jaas_nt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jaas_nt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jabswitch.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jabswitch.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/java.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/java.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/java.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/java.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/java_crw_demo.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/java_crw_demo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/JavaAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/JavaAccessBridge-32.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/javacpl.cpl?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/javacpl.cpl" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/javacpl.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/javacpl.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/javafx_font.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/javafx_font.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/javafx_font_t2k.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/javafx_font_t2k.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/javafx_iio.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/javafx_iio.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/java-rmi.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/java-rmi.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/javaw.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/javaw.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/javaws.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/javaws.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jawt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jawt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/JAWTAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/JAWTAccessBridge-32.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jdwp.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jdwp.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jfr.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jfr.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jfxmedia.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jfxmedia.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jfxwebkit.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jfxwebkit.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jjs.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jli.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jp2iexp.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jp2iexp.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jp2launcher.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jp2launcher.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jp2native.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jp2native.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jp2ssv.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jp2ssv.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jpeg.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jpeg.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jsdt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jsdt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jsound.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jsound.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/jsoundds.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/jsoundds.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/kcms.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/kcms.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/keytool.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/keytool.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/kinit.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/kinit.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/klist.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/ktab.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/lcms.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/management.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/mlib_image.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/mlib_image.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/msvcp140.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/msvcp140.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/msvcr100.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/msvcr100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/net.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/net.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/nio.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/nio.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/npt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/npt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/orbd.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/orbd.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/pack200.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/pack200.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/policytool.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/policytool.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/prism_common.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/prism_common.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/prism_d3d.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/prism_d3d.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/prism_sw.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/prism_sw.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/resource.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/resource.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/rmid.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/rmid.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/rmiregistry.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/rmiregistry.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/servertool.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/servertool.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/splashscreen.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/splashscreen.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/ssv.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/ssv.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/ssvagent.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/ssvagent.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/sunec.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/sunec.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/sunmscapi.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/sunmscapi.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/t2k.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/t2k.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/tnameserv.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/tnameserv.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/ucrtbase.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/ucrtbase.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/unpack.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/unpack.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/unpack200.exe?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/unpack200.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/vcruntime140.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/vcruntime140.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/verify.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/w2k_lsa_auth.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/WindowsAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/WindowsAccessBridge-32.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/wsdetect.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/wsdetect.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/zip.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/client/classes.jsa?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/client/classes.jsa" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/client/jvm.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/client/jvm.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/client/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/client/Xusage.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/dtplugin/deployJava1.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/dtplugin/deployJava1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/dtplugin/npdeployJava1.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/dtplugin/npdeployJava1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/plugin2/msvcr100.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/plugin2/msvcr100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/plugin2/npjp2.dll?p=${binary-revision}" dest="${project.binaries}/jre-x86/bin/plugin2/npjp2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/accessibility.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/accessibility.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/calendars.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/charsets.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/classlist?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/classlist" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/content-types.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/content-types.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/currency.data?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/currency.data" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/flavormap.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/flavormap.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fontconfig.bfc?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fontconfig.bfc" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fontconfig.properties.src?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fontconfig.properties.src" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/hijrah-config-umalqura.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/hijrah-config-umalqura.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/javafx.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/javafx.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/javaws.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/javaws.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/jce.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/jce.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/jfr.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/jfr.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/jfxswt.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/jfxswt.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/jsse.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/jsse.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/jvm.hprof.txt?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/jvm.hprof.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/logging.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/logging.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/management-agent.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/management-agent.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/meta-index?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/meta-index" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/net.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/net.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/plugin.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/plugin.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/psfont.properties.ja?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/psfont.properties.ja" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/psfontj2d.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/psfontj2d.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/resources.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/resources.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/rt.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/sound.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/tzdb.dat" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/tzmappings?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/tzmappings" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/cmm/GRAY.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/cmm/PYCC.pf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/cmm/PYCC.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/cmm/sRGB.pf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/cmm/sRGB.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/ffjcext.zip?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/ffjcext.zip" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_de.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_de.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_es.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_es.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_fr.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_fr.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_it.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_it.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_ja.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_ja.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_ko.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_ko.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_pt_BR.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_pt_BR.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_sv.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_sv.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_zh_CN.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_zh_CN.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_zh_HK.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_zh_HK.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/messages_zh_TW.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/messages_zh_TW.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/splash.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/splash.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/splash@2x.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/splash@2x.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/splash_11@2x-lic.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/splash_11@2x-lic.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/splash_11-lic.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/deploy/splash_11-lic.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/access-bridge-32.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/access-bridge-32.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/cldrdata.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/dnsns.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/jaccess.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/jaccess.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/jfxrt.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/jfxrt.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/localedata.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/localedata.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/meta-index?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/meta-index" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/nashorn.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/nashorn.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/sunec.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/sunec.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/sunjce_provider.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/sunmscapi.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/sunmscapi.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/sunpkcs11.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/ext/zipfs.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaBrightDemiBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaBrightDemiBold.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaBrightDemiItalic.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaBrightDemiItalic.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaBrightItalic.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaBrightItalic.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaBrightRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaBrightRegular.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaSansDemiBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaSansDemiBold.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaSansRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaSansRegular.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaTypewriterBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaTypewriterBold.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/fonts/LucidaTypewriterRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/fonts/LucidaTypewriterRegular.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/i386/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/i386/jvm.cfg" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/cursors.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/win32_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/win32_CopyDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/win32_CopyNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/win32_CopyNoDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/win32_LinkDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/win32_LinkDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/win32_LinkNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/win32_LinkNoDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/win32_MoveDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/win32_MoveDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/images/cursors/win32_MoveNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/images/cursors/win32_MoveNoDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/jfr/default.jfc?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/jfr/default.jfc" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/jfr/profile.jfc?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/jfr/profile.jfc" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/management/jmxremote.access?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/management/jmxremote.access" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/management/jmxremote.password.template?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/management/jmxremote.password.template" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/management/management.properties?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/management/management.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/management/snmp.acl.template?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/management/snmp.acl.template" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/blacklist?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/blacklist" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/blacklisted.certs?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/blacklisted.certs" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/cacerts?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/cacerts" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/java.policy?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/java.policy" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/java.security?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/java.security" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/javaws.policy?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/javaws.policy" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/trusted.libraries?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/trusted.libraries" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/policy/limited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/policy/limited/local_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x86/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
+
+										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
+										<mkdir dir="${project.basedir}/win32/service" />
+										<copy todir="${project.basedir}/win32/service" overwrite="true">
+											<fileset dir="${project.binaries}/win32/service" />
+										</copy>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-windows</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Copy the ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+										      tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
+						The "generate-project" goal generates a file "target/project.nsh", which contains the
+						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
+						"pms.nsi" and "setup.nsi" files.
+					-->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>nsis-maven-plugin</artifactId>
+						<version>1.0-SNAPSHOT</version>
+						<executions>
+							<execution>
+								<id>build-setup-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
+									<setupScript>${project.external-resources}/nsis/setup-standalone-x86.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Windows standalone x86 profile: takes care of building the final package for Microsoft Windows
+			that runs its own version of Java Runtime Environment
+		-->
+		<profile>
+			<id>windows-standalone-x64</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+
+			<build>
+				<plugins>
+					<!-- Plugin to create the program executable to use our JRE instead of the system one -->
+					<plugin>
+						<groupId>com.akathist.maven.plugins.launch4j</groupId>
+						<artifactId>launch4j-maven-plugin</artifactId>
+						<version>1.7.22</version>
+						<executions>
+							<execution>
+								<id>l4j-clui</id>
+								<phase>package</phase>
+								<goals>
+									<goal>launch4j</goal>
+								</goals>
+								<configuration>
+									<errTitle></errTitle>
+									<cmdLine></cmdLine>
+									<chdir>.</chdir>
+									<priority>normal</priority>
+									<downloadUrl>http://java.com/download</downloadUrl>
+									<supportUrl></supportUrl>
+									<stayAlive>false</stayAlive>
+									<restartOnCrash>false</restartOnCrash>
+									<manifest></manifest>
+									<singleInstance>
+										<mutexName>Universal Media Server</mutexName>
+										<windowTitle>Universal Media Server</windowTitle>
+									</singleInstance>
+									<headerType>gui</headerType>
+									<outfile>target/UMS.exe</outfile>
+									<jar>ums.jar</jar>
+									<classPath>
+										<mainClass>net.pms.PMS</mainClass>
+									</classPath>
+									<dontWrapJar>true</dontWrapJar>
+									<icon>src\main\external-resources\icon.ico</icon>
+									<jre>
+									  <path>jre-x64</path>
+									  <bundledJre64Bit>true</bundledJre64Bit>
+									  <bundledJreAsFallback>false</bundledJreAsFallback>
+									  <minVersion>1.7.0</minVersion>
+									  <maxVersion>1.8.0</maxVersion>
+									  <jdkPreference>preferJdk</jdkPreference>
+									  <runtimeBits>64/32</runtimeBits>
+									  <opts>-Xmx1280M -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -classpath update.jar;ums.jar net.pms.PMS</opts>
+									</jre>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Plugin to assemble ums-x.x.x-jar-with-dependencies.jar -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when PMS starts:
+
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
+
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+							</archive>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to move the ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>process-resources-windows</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the download folders exist -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/jre-x64" />
+										<mkdir dir="${project.binaries}/jre-x64/bin" />
+										<mkdir dir="${project.binaries}/jre-x64/bin/dtplugin" />
+										<mkdir dir="${project.binaries}/jre-x64/bin/plugin2" />
+										<mkdir dir="${project.binaries}/jre-x64/bin/server" />
+										<mkdir dir="${project.binaries}/jre-x64/lib" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/amd64" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/applet" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/cmm" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/deploy" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/ext" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/fonts" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/images" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/images/cursors" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/jfr" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/management" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/security" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/security/policy/limited" />
+										<mkdir dir="${project.binaries}/jre-x64/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/win32" />
+										<mkdir dir="${project.binaries}/win32/avisynth" />
+										<mkdir dir="${project.binaries}/win32/codecs" />
+										<mkdir dir="${project.binaries}/win32/dvrms" />
+										<mkdir dir="${project.binaries}/win32/fonts" />
+										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
+										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
+										<mkdir dir="${project.binaries}/win32/interframe" />
+										<mkdir dir="${project.binaries}/win32/mplayer" />
+										<mkdir dir="${project.binaries}/win32/service" />
+
+										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/win32/dcrawMS.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/win32/ffmpeg64.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/win32/flac.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/win32/mencoder.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/win32/mplayer.exe"  usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR-new.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/win32/vcomp100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv43260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drvc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/pncrt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/sipr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/tokr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wma9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmv9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmvdmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/ffmpeg_MPGMUX.exe?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/ffmpeg_MPGMUX.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dvrms/pthreadGC2.dll?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/pthreadGC2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/45-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/50-user.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/51-local.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/60-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/README" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/COPYRIGHT?p=${binary-revision}" dest="${project.binaries}/jre-x64/COPYRIGHT" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/LICENSE?p=${binary-revision}" dest="${project.binaries}/jre-x64/LICENSE" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/README.txt?p=${binary-revision}" dest="${project.binaries}/jre-x64/README.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/release?p=${binary-revision}" dest="${project.binaries}/jre-x64/release" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/THIRDPARTYLICENSEREADME.txt?p=${binary-revision}" dest="${project.binaries}/jre-x64/THIRDPARTYLICENSEREADME.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/THIRDPARTYLICENSEREADME-JAVAFX.txt?p=${binary-revision}" dest="${project.binaries}/jre-x64/THIRDPARTYLICENSEREADME-JAVAFX.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/Welcome.html?p=${binary-revision}" dest="${project.binaries}/jre-x64/Welcome.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-console-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-console-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-datetime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-datetime-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-debug-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-debug-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-errorhandling-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-errorhandling-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-file-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-file-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-file-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-file-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-file-l2-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-file-l2-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-handle-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-handle-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-heap-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-interlocked-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-interlocked-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-libraryloader-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-libraryloader-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-localization-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-localization-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-memory-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-memory-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-namedpipe-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-namedpipe-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-processenvironment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-processenvironment-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-processthreads-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-processthreads-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-processthreads-l1-1-1.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-processthreads-l1-1-1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-profile-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-profile-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-rtlsupport-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-rtlsupport-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-string-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-synch-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-synch-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-synch-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-synch-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-sysinfo-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-sysinfo-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-timezone-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-timezone-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-core-util-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-core-util-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-conio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-conio-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-convert-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-convert-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-environment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-environment-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-filesystem-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-filesystem-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-heap-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-locale-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-locale-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-math-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-math-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-multibyte-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-multibyte-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-private-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-private-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-process-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-process-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-runtime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-runtime-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-stdio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-stdio-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-string-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-time-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-time-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/api-ms-win-crt-utility-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/api-ms-win-crt-utility-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/awt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/awt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/bci.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/bci.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/concrt140.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/concrt140.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/dcpr.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/dcpr.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/decora_sse.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/decora_sse.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/deploy.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/deploy.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/dt_shmem.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/dt_socket.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/eula.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/eula.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/fontmanager.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/fontmanager.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/fxplugins.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/fxplugins.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/glass.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/glass.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/glib-lite.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/glib-lite.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/gstreamer-lite.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/gstreamer-lite.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/hprof.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/hprof.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/instrument.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/instrument.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/j2pcsc.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/j2pcsc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/j2pkcs11.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/j2pkcs11.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jaas_nt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jaas_nt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jabswitch.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jabswitch.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/java.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/java.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/java.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/java.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/java_crw_demo.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/java_crw_demo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/JavaAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/JavaAccessBridge-64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/javacpl.cpl?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/javacpl.cpl" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/javacpl.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/javacpl.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/javafx_font.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/javafx_font.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/javafx_font_t2k.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/javafx_font_t2k.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/javafx_iio.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/javafx_iio.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/java-rmi.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/java-rmi.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/javaw.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/javaw.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/javaws.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/javaws.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jawt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jawt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/JAWTAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/JAWTAccessBridge-64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jdwp.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jdwp.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jfr.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jfr.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jfxmedia.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jfxmedia.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jfxwebkit.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jfxwebkit.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jjs.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jli.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jp2iexp.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jp2iexp.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jp2launcher.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jp2launcher.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jp2native.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jp2native.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jp2ssv.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jp2ssv.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jpeg.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jpeg.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jsdt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jsdt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jsound.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jsound.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/jsoundds.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/jsoundds.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/kcms.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/kcms.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/keytool.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/keytool.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/kinit.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/kinit.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/klist.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/ktab.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/lcms.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/management.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/mlib_image.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/mlib_image.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/msvcp140.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/msvcp140.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/msvcr100.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/msvcr100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/net.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/net.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/nio.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/nio.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/npt.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/npt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/orbd.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/orbd.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/pack200.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/pack200.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/policytool.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/policytool.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/prism_common.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/prism_common.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/prism_d3d.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/prism_d3d.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/prism_sw.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/prism_sw.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/resource.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/resource.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/rmid.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/rmid.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/rmiregistry.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/rmiregistry.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/servertool.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/servertool.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/splashscreen.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/splashscreen.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/ssv.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/ssv.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/ssvagent.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/ssvagent.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/sunec.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/sunec.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/sunmscapi.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/sunmscapi.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/t2k.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/t2k.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/tnameserv.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/tnameserv.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/ucrtbase.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/ucrtbase.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/unpack.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/unpack.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/unpack200.exe?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/unpack200.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/vcruntime140.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/vcruntime140.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/verify.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/w2k_lsa_auth.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/WindowsAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/WindowsAccessBridge-64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/wsdetect.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/wsdetect.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/zip.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/dtplugin/deployJava1.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/dtplugin/deployJava1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/dtplugin/npdeployJava1.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/dtplugin/npdeployJava1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/plugin2/msvcr100.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/plugin2/msvcr100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/plugin2/npjp2.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/plugin2/npjp2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/server/classes.jsa?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/server/classes.jsa" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/server/jvm.dll?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/server/jvm.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/bin/server/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/jre-x64/bin/server/Xusage.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/accessibility.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/accessibility.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/calendars.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/charsets.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/classlist?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/classlist" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/content-types.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/content-types.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/currency.data?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/currency.data" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/flavormap.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/flavormap.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fontconfig.bfc?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fontconfig.bfc" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fontconfig.properties.src?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fontconfig.properties.src" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/hijrah-config-umalqura.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/hijrah-config-umalqura.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/javafx.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/javafx.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/javaws.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/javaws.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/jce.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/jce.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/jfr.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/jfr.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/jfxswt.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/jfxswt.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/jsse.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/jsse.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/jvm.hprof.txt?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/jvm.hprof.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/logging.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/logging.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/management-agent.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/management-agent.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/meta-index?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/meta-index" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/net.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/net.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/plugin.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/plugin.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/psfont.properties.ja?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/psfont.properties.ja" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/psfontj2d.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/psfontj2d.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/resources.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/resources.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/rt.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/sound.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/tzdb.dat" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/tzmappings?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/tzmappings" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/cmm/GRAY.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/cmm/PYCC.pf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/cmm/PYCC.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/cmm/sRGB.pf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/cmm/sRGB.pf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/ffjcext.zip?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/ffjcext.zip" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_de.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_de.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_es.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_es.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_fr.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_fr.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_it.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_it.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_ja.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_ja.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_ko.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_ko.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_pt_BR.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_pt_BR.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_sv.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_sv.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_zh_CN.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_zh_CN.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_zh_HK.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_zh_HK.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/messages_zh_TW.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/messages_zh_TW.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/splash.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/splash.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/splash@2x.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/splash@2x.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/splash_11@2x-lic.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/splash_11@2x-lic.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/deploy/splash_11-lic.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/deploy/splash_11-lic.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/access-bridge-64.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/access-bridge-64.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/cldrdata.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/dnsns.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/jaccess.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/jaccess.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/jfxrt.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/jfxrt.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/localedata.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/localedata.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/meta-index?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/meta-index" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/nashorn.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/nashorn.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/sunec.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/sunec.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/sunjce_provider.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/sunmscapi.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/sunmscapi.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/sunpkcs11.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/ext/zipfs.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaBrightDemiBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaBrightDemiBold.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaBrightDemiItalic.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaBrightDemiItalic.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaBrightItalic.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaBrightItalic.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaBrightRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaBrightRegular.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaSansDemiBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaSansDemiBold.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaSansRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaSansRegular.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaTypewriterBold.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaTypewriterBold.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/fonts/LucidaTypewriterRegular.ttf?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/fonts/LucidaTypewriterRegular.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/amd64/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/amd64/jvm.cfg" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/cursors.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/win32_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/win32_CopyDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/win32_CopyNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/win32_CopyNoDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/win32_LinkDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/win32_LinkDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/win32_LinkNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/win32_LinkNoDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/win32_MoveDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/win32_MoveDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/images/cursors/win32_MoveNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/images/cursors/win32_MoveNoDrop32x32.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/jfr/default.jfc?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/jfr/default.jfc" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/jfr/profile.jfc?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/jfr/profile.jfc" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/management/jmxremote.access?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/management/jmxremote.access" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/management/jmxremote.password.template?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/management/jmxremote.password.template" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/management/management.properties?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/management/management.properties" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/management/snmp.acl.template?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/management/snmp.acl.template" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/blacklist?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/blacklist" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/blacklisted.certs?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/blacklisted.certs" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/cacerts?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/cacerts" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/java.policy?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/java.policy" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/java.security?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/java.security" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/javaws.policy?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/javaws.policy" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/trusted.libraries?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/trusted.libraries" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/policy/limited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/policy/limited/local_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x64/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/jre-x64/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
+
+										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
+										<mkdir dir="${project.basedir}/win32/service" />
+										<copy todir="${project.basedir}/win32/service" overwrite="true">
+											<fileset dir="${project.binaries}/win32/service" />
+										</copy>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-windows</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Copy the ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+										      tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
+						The "generate-project" goal generates a file "target/project.nsh", which contains the
+						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
+						"pms.nsi" and "setup.nsi" files.
+					-->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>nsis-maven-plugin</artifactId>
+						<version>1.0-SNAPSHOT</version>
+						<executions>
+							<execution>
+								<id>build-setup-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
+									<setupScript>${project.external-resources}/nsis/setup-standalone-x64.nsi</setupScript>
 								</configuration>
 								<phase>package</phase>
 								<goals>
