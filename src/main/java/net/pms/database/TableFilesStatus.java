@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 5;
+	private static final int TABLE_VERSION = 6;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -341,9 +341,37 @@ public final class TableFilesStatus extends Tables {
 						 * when the corresponding row in the FILES table is deleted.
 						 */
 						try (Statement statement = connection.createStatement()) {
+							PreparedStatement ps = connection.prepareStatement(
+								"DELETE FROM " + TABLE_NAME + " " +
+								"WHERE NOT EXISTS (" +
+									"SELECT ID FROM FILES " +
+									"WHERE FILES.FILENAME = " + TABLE_NAME + ".FILENAME" +
+								");"
+							);
+							ps.execute();
+
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FOREIGN KEY(ID) REFERENCES FILES(ID) ON DELETE CASCADE");
 						}
 						version = 5;
+						break;
+					case 5:
+						/**
+						 * From version 5 to 6, we do what we tried to do in version 5...
+						 */
+						try (Statement statement = connection.createStatement()) {
+							PreparedStatement ps = connection.prepareStatement(
+								"DELETE FROM " + TABLE_NAME + " " +
+								"WHERE NOT EXISTS (" +
+									"SELECT ID FROM FILES " +
+									"WHERE FILES.FILENAME = " + TABLE_NAME + ".FILENAME" +
+								");"
+							);
+							ps.execute();
+
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT CONSTRAINT_ED");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FOREIGN KEY(FILENAME) REFERENCES FILES(FILENAME) ON DELETE CASCADE");
+						}
+						version = 6;
 						break;
 					default:
 						throw new IllegalStateException(

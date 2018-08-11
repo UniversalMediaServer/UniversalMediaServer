@@ -1357,7 +1357,7 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.info("Cannot start library scanner: A scan is already in progress");
 		} else {
 			scanner = new Thread(this, "Library Scanner");
-			scanner.setPriority(scanner.getPriority() - 1);
+			scanner.setPriority(scanner.MIN_PRIORITY);
 			scanner.start();
 		}
 	}
