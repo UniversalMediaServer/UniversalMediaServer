@@ -315,7 +315,6 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 			input.close();
 			input = getCurrentInputStream();
-			
 		}
 
 		if (buffer != null) {
@@ -416,6 +415,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			input.close();
 			input = getCurrentInputStream();
 		}
+
 		int mb = (int) (writeCount++ % maxMemorySize);
 		if (buffer != null) {
 			buffer[mb] = (byte) b;
