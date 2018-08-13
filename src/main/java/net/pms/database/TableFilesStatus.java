@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 6;
+	private static final int TABLE_VERSION = 7;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -336,25 +336,8 @@ public final class TableFilesStatus extends Tables {
 						version = 4;
 						break;
 					case 4:
-						/**
-						 * From version 4 to 5, we make the rows in this table automatically delete
-						 * when the corresponding row in the FILES table is deleted.
-						 */
-						try (Statement statement = connection.createStatement()) {
-							PreparedStatement ps = connection.prepareStatement(
-								"DELETE FROM " + TABLE_NAME + " " +
-								"WHERE NOT EXISTS (" +
-									"SELECT ID FROM FILES " +
-									"WHERE FILES.FILENAME = " + TABLE_NAME + ".FILENAME" +
-								");"
-							);
-							ps.execute();
-
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FOREIGN KEY(ID) REFERENCES FILES(ID) ON DELETE CASCADE");
-						}
-						version = 5;
-						break;
 					case 5:
+					case 6:
 						/**
 						 * From version 5 to 6, we do what we tried to do in version 5...
 						 */
@@ -368,10 +351,10 @@ public final class TableFilesStatus extends Tables {
 							);
 							ps.execute();
 
-							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT CONSTRAINT_ED");
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FOREIGN KEY(FILENAME) REFERENCES FILES(FILENAME) ON DELETE CASCADE");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS CONSTRAINT_ED");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT IF NOT EXISTS filename_match FOREIGN KEY(FILENAME) REFERENCES FILES(FILENAME) ON DELETE CASCADE");
 						}
-						version = 6;
+						version = 7;
 						break;
 					default:
 						throw new IllegalStateException(
@@ -398,7 +381,7 @@ public final class TableFilesStatus extends Tables {
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
 					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
-					"FOREIGN KEY(FILENAME) " +
+					"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
 						"REFERENCES FILES(FILENAME) " +
 						"ON DELETE CASCADE" +
 				")"
