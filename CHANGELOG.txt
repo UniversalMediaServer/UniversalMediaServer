@@ -1,6 +1,7 @@
 7.3.0 - 2018-08-13
 
 	General:
+		Started to release standalone builds for Windows (no Java installation required)
 		Added option to disable startup folder scanning in the first-run wizard
 		Fixed fully played status sometimes not saving
 	Languages:
