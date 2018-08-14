@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
  * file-change notifications as opposed to directly polling or examining files.
+ * 
+ * @see https://docs.oracle.com/javase/tutorial/essential/io/examples/WatchDir.java
  */
 public class FileWatcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcher.class);
