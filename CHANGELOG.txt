@@ -1,3 +1,34 @@
+7.3.0 - 2018-08-13
+
+	General:
+		Started to release standalone builds for Windows (no Java installation required)
+		Added option to disable startup folder scanning in the first-run wizard
+		Fixed fully played status sometimes not saving
+	Languages:
+		Updated translations via Crowdin
+
+7.2.1 - 2018-07-29
+
+	General:
+		Fixed a database upgrade bug
+	Languages:
+		Updated Bulgarian translation via Crowdin
+
+7.2.0 - 2018-07-27
+
+	General:
+		Auto-updater no longer requires UMS to be run with admin rights on Windows
+		Improved support for ATRAC and DolbyE formats
+		Reduced size of local database dramatically
+		Increased maximum memory limit on macOS to match Windows
+		Disabled Chromecast Extension API by default
+		Improved documentation
+		Improved database referential integrity
+		Fixed bugs with the auto-updater on Windows
+	Languages:
+		Allow translation of more of the auto-updater
+		Updated translations via Crowdin
+
 7.1.0 - 2018-06-16
 
 	General:
