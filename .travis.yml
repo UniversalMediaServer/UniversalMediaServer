@@ -1,5 +1,9 @@
 language: java
 
+cache:
+  directories:
+  - $HOME/.m2
+
 addons:
   apt:
     packages:
@@ -14,7 +18,8 @@ matrix:
     - os: linux
       jdk: openjdk8
     - os: osx
+      osx_image: xcode9.3
 
 install: mvn external:install 
 
-script: mvn install -Dmaven.javadoc.skip=true -B -V
+script: mvn verify -B -V
