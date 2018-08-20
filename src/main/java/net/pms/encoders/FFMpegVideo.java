@@ -956,7 +956,7 @@ public class FFMpegVideo extends Player {
 		if (media.getAudioTracksList().size() > 1) {
 			// Set the video stream
 			cmdList.add("-map");
-			cmdList.add("0:v:0"); //TODO find a way how to automatically select propper stream when media includes multiple video streams
+			cmdList.add("0:v"); //TODO find a way how to automatically select propper stream when media includes multiple video streams
 
 			cmdList.add("-map");
 			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
