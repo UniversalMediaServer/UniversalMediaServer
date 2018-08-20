@@ -1280,6 +1280,20 @@ public class DLNAMediaDatabase implements Runnable {
 				");"
 			);
 			ps.execute();
+
+			/**
+			 * Cleanup of FILES_STATUS table
+			 *
+			 * Removes entries that are not referenced by any rows in the FILES table.
+			 */
+			ps = conn.prepareStatement(
+				"DELETE FROM FILES_STATUS " +
+				"WHERE NOT EXISTS (" +
+					"SELECT ID FROM FILES " +
+					"WHERE FILES.FILENAME = FILES_STATUS.FILENAME" +
+				");"
+			);
+			ps.execute();
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {
