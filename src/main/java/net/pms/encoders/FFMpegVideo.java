@@ -954,9 +954,16 @@ public class FFMpegVideo extends Player {
 		// Map the proper audio stream when there are multiple audio streams.
 		// For video the FFMpeg automatically chooses the stream with the highest resolution.
 		if (media.getAudioTracksList().size() > 1) {
-			// Set the video stream
+			/**
+			 * Use the first video stream that is not an attached picture, video
+			 * thumbnail or cover art.
+			 *
+			 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
+			 * @todo find a way to automatically select proper stream when media
+			 *       includes multiple video streams
+			 */
 			cmdList.add("-map");
-			cmdList.add("0:v"); //TODO find a way how to automatically select propper stream when media includes multiple video streams
+			cmdList.add("0:V");
 
 			cmdList.add("-map");
 			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
