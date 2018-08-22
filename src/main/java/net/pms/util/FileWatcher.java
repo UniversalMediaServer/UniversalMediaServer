@@ -3,6 +3,7 @@ package net.pms.util;
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
@@ -298,7 +299,13 @@ public class FileWatcher {
 								// Determine the actual file
 								Path dir = (Path) key.watchable();
 								final Path filename = dir.resolve(event.context());
-								final boolean isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/);
+								final boolean isDir;
+								if (!Files.exists(filename)) {
+									isDir = FileUtil.isDirectory(filename.toString());
+								} else {
+									isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/); 
+								}
+
 								// See if we're watching for this specific file
 								for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
 									final Watch w = iterator.next();
