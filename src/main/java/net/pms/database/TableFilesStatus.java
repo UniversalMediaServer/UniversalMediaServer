@@ -345,7 +345,7 @@ public final class TableFilesStatus extends Tables {
 						PreparedStatement stmt = connection.prepareStatement(
 							"SELECT constraint_name " +
 							"FROM information_schema.constraints " +
-							"WHERE table_name = " + TABLE_NAME + " AND constraint_type = REFERENTIAL"
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
 						);
 						ResultSet rs = stmt.executeQuery();
 
