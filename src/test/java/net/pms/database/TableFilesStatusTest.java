@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2012  I. Sokolov
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -20,8 +21,10 @@ package net.pms.database;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import java.sql.Connection;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaDatabase;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
@@ -49,7 +52,10 @@ public class TableFilesStatusTest {
 	 */
 	@Test
 	public void testUpgrade() throws Exception {
-		Tables.checkTables();
+		DLNAMediaDatabase database = PMS.get().getDatabase();
+		try (Connection connection = database.getConnection()) {
+			TableFilesStatus.checkTable(connection);
+		}
 	}
 
 	@Test
