@@ -861,7 +861,7 @@ public class FFMpegVideo extends Player {
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			params.sid != null &&
 			!(
-				!configuration.getHideTranscodeEnabled() &&
+				configuration.isShowTranscodeFolder() &&
 				dlna.isNoName() &&
 				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
 			) &&
@@ -885,7 +885,7 @@ public class FFMpegVideo extends Player {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			boolean deferToTsmuxer = true;
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			if (deferToTsmuxer == true && configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
 			}
@@ -955,13 +955,20 @@ public class FFMpegVideo extends Player {
 		// after video input is specified and before output streams are mapped.
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
-		// Map the output streams if necessary
+		// Map the proper audio stream when there are multiple audio streams.
+		// For video the FFMpeg automatically chooses the stream with the highest resolution.
 		if (media.getAudioTracksList().size() > 1) {
-			// Set the video stream
+			/**
+			 * Use the first video stream that is not an attached picture, video
+			 * thumbnail or cover art.
+			 *
+			 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
+			 * @todo find a way to automatically select proper stream when media
+			 *       includes multiple video streams
+			 */
 			cmdList.add("-map");
-			cmdList.add("0:v");
+			cmdList.add("0:V");
 
-			// Set the proper audio stream
 			cmdList.add("-map");
 			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
 		}
@@ -1430,32 +1437,6 @@ public class FFMpegVideo extends Player {
 				};
 				ffParser.setFiltered(true);
 				pw.setStderrConsumer(ffParser);
-			}
-		}
-	}
-
-	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
-		String line;
-		boolean resolved = false;
-		while ((line = input.readLine()) != null) {
-			if (line.contains("[Script Info]")) {
-				while ((line = input.readLine()) != null) {
-					if (isNotBlank(line)) {
-						if (line.contains("PlayResX:")) {
-							subtitlesWidth = Integer.parseInt(line.substring(9).trim());
-						} else if (line.contains("PlayResY:")) {
-							subtitlesHeight = Integer.parseInt(line.substring(9).trim());
-						}
-					} else {
-						resolved = true;
-						break;
-					}
-				}
-			}
-			if (resolved) {
-				input.close();
-				break;
 			}
 		}
 	}

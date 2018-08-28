@@ -44,6 +44,7 @@ import net.pms.formats.image.JPG;
 import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
+import net.pms.network.HTTPResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
@@ -279,9 +280,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	public String getVideoMimeType() {
 		if (isChromeTrick()) {
-			return RemoteUtil.MIME_WEBM;
+			return HTTPResource.WEBM_TYPEMIME;
 		} else if (isFirefoxLinuxMp4()) {
-			return RemoteUtil.MIME_MP4;
+			return HTTPResource.MP4_TYPEMIME;
 		}
 		return defaultMime;
 	}
@@ -319,13 +320,13 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				} else {
 					String mimeType = getVideoMimeType();
 					switch (mimeType) {
-						case RemoteUtil.MIME_OGG:
+						case HTTPResource.OGG_TYPEMIME:
 							ffOggCmd(cmdList);
 							break;
-						case RemoteUtil.MIME_MP4:
+						case HTTPResource.MP4_TYPEMIME:
 							ffMp4Cmd(cmdList);
 							break;
-						case RemoteUtil.MIME_WEBM:
+						case HTTPResource.WEBM_TYPEMIME:
 							if (isChromeTrick()) {
 								ffChromeCmd(cmdList);
 							} else {

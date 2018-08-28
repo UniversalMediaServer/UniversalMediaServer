@@ -2,18 +2,25 @@ package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.util.ArrayList;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES = 0;
 	public static final int TEXTS = 1;
 	public static final int PLAYLISTS = 2;
 	public static final int ISOS = 3;
+	public static final int SEASONS = 4;
+	public static final int FILES_NOSORT = 5;
+	public static final int TEXTS_NOSORT = 6;
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -26,6 +33,20 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this.database = PMS.get().getDatabase();
 	}
 
+	public MediaLibraryFolder(String name, String sql, int expectedOutput, String nameToDisplay) {
+		this(name, new String[]{sql}, new int[]{expectedOutput}, nameToDisplay);
+	}
+
+	public MediaLibraryFolder(String name, String sql[], int expectedOutput[], String nameToDisplay) {
+		super(name, null);
+		this.sqls = sql;
+		this.expectedOutputs = expectedOutput;
+		this.database = PMS.get().getDatabase();
+		if (nameToDisplay != null) {
+			this.displayNameOverride = nameToDisplay;
+		}
+	}
+
 	@Override
 	public void discoverChildren() {
 		if (sqls.length > 0) {
@@ -36,7 +57,14 @@ public class MediaLibraryFolder extends VirtualFolder {
 				if (expectedOutput == FILES) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						for (File f : list) {
+							addChild(new RealFile(f));
+						}
+					}
+				} else if (expectedOutput == FILES_NOSORT) {
+					ArrayList<File> list = database.getFiles(sql);
+					if (list != null) {
 						for (File f : list) {
 							addChild(new RealFile(f));
 						}
@@ -44,7 +72,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				} else if (expectedOutput == PLAYLISTS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						for (File f : list) {
 							addChild(new PlaylistFolder(f));
 						}
@@ -52,12 +80,24 @@ public class MediaLibraryFolder extends VirtualFolder {
 				} else if (expectedOutput == ISOS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						for (File f : list) {
 							addChild(new DVDISOFile(f));
 						}
 					}
 				} else if (expectedOutput == TEXTS) {
+					ArrayList<String> list = database.getStrings(sql);
+					if (list != null) {
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						for (String s : list) {
+							String sqls2[] = new String[sqls.length - 1];
+							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
+							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
+							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
+							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
+						}
+					}
+				} else if (expectedOutput == TEXTS_NOSORT) {
 					ArrayList<String> list = database.getStrings(sql);
 					if (list != null) {
 						for (String s : list) {
@@ -66,6 +106,24 @@ public class MediaLibraryFolder extends VirtualFolder {
 							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
 							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
+						}
+					}
+				} else if (expectedOutput == SEASONS) {
+					String nameToDisplay;
+					ArrayList<String> list = database.getStrings(sql);
+					if (list != null) {
+						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						for (String s : list) {
+							nameToDisplay = null;
+							if (s.length() != 4) {
+								nameToDisplay = Messages.getString("VirtualFolder.6") + " " + s;
+							}
+
+							String sqls2[] = new String[sqls.length - 1];
+							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
+							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
+							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
+							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2, nameToDisplay));
 						}
 					}
 				}
@@ -103,6 +161,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 		return true;
 	}
 
+	/**
+	 * Removes all children and re-adds them
+	 */
 	@Override
 	public void doRefreshChildren() {
 		ArrayList<File> list = null;
@@ -113,9 +174,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 			expectedOutput = expectedOutputs[0];
 			if (sql != null) {
 				sql = transformSQL(sql);
-				if (expectedOutput == FILES || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
+				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					list = database.getFiles(sql);
-				} else if (expectedOutput == TEXTS) {
+				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
 					strings = database.getStrings(sql);
 				}
 			}
@@ -124,55 +185,26 @@ public class MediaLibraryFolder extends VirtualFolder {
 		ArrayList<String> addedString = new ArrayList<>();
 		ArrayList<DLNAResource> removedFiles = new ArrayList<>();
 		ArrayList<DLNAResource> removedString = new ArrayList<>();
-		int i = 0;
+
 		if (list != null) {
+			UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+
 			for (File file : list) {
-				boolean present = false;
-
-				for (DLNAResource dlna : getChildren()) {
-					if (i == 0 && (!(dlna instanceof VirtualFolder) || (dlna instanceof MediaLibraryFolder))) {
-						removedFiles.add(dlna);
-					}
-
-					String name = dlna.getName();
-					long lm = dlna.getLastModified();
-					boolean videoTSHack = false;
-
-					if (dlna instanceof DVDISOFile) {
-						DVDISOFile dvdISOFile = (DVDISOFile) dlna;
-						// XXX DVDISOFile has inconsistent ideas of what constitutes a VIDEO_TS folder
-						videoTSHack = dvdISOFile.getFileName().equals(file.getName());
-					}
-
-					if ((file.getName().equals(name) || videoTSHack) && file.lastModified() == lm) {
-						removedFiles.remove(dlna);
-						present = true;
-					}
+				for (DLNAResource child : getChildren()) {
+					removedFiles.add(child);
 				}
-				i++;
-				if (!present) {
-					addedFiles.add(file);
-				}
+				addedFiles.add(file);
 			}
 		}
-		i = 0;
+
 		if (strings != null) {
+			UMSUtils.sort(strings, PMS.getConfiguration().getSortMethod(null));
+
 			for (String f : strings) {
-				boolean present = false;
-				for (DLNAResource d : getChildren()) {
-					if (i == 0 && (!(d instanceof VirtualFolder) || (d instanceof MediaLibraryFolder))) {
-						removedString.add(d);
-					}
-					String name = d.getName();
-					if (f.equals(name)) {
-						removedString.remove(d);
-						present = true;
-					}
+				for (DLNAResource child : getChildren()) {
+					removedString.add(child);
 				}
-				i++;
-				if (!present) {
-					addedString.add(f);
-				}
+				addedString.add(f);
 			}
 		}
 
@@ -192,7 +224,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 		for (String f : addedString) {
-			if (expectedOutput == TEXTS) {
+			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
 				String sqls2[] = new String[sqls.length - 1];
 				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);

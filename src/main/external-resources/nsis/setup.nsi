@@ -118,8 +118,11 @@ Function AdvancedSettings
 		SetRegView 64
 	${EndIf}
 	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
-	IfErrors SetMinMem
 	IfErrors 0 CheckMemAmnt
+
+	; This is where the registry entries go in JRE9+
+	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\JRE" "CurrentVersion"
+	IfErrors SetLowMemoryLimit CheckMemAmnt
 
 	; Get the amount of RAM on the computer
 	CheckMemAmnt:
@@ -132,16 +135,15 @@ Function AdvancedSettings
 	System::Int64Op $4 / 1048576
 	Pop $4
 
-	; Choose the maximum amount of RAM we want to use based on installed ram
+	; Choose the maximum amount of RAM we want to use based on installed RAM
 	${If} $4 > 4000 
 		StrCpy $MaximumMemoryJava "1280"
-		Goto NSDContinue
 	${Else}
 		StrCpy $MaximumMemoryJava "768"
-		Goto NSDContinue
 	${EndIf}
+	Goto NSDContinue
 
-	SetMinMem:
+	SetLowMemoryLimit:
 	StrCpy $MaximumMemoryJava "768" 
 
 	NSDContinue:
@@ -417,6 +419,9 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Realtek.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-5.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-6-7.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-TV8.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-8series.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-9series.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-BDC6800.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-BDH6500.conf"
@@ -434,6 +439,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-F5505.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-F5900.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-GalaxyS5.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-GalaxyS7.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-H4500.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-H6203.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-H6400.conf"
