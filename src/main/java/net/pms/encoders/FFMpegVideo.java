@@ -1011,7 +1011,7 @@ public class FFMpegVideo extends Player {
 					channels = configuration.getAudioChannelCount();
 				}
 
-				if (!customFFmpegOptions.contains("-ac ") && channels > 0 && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+				if (!customFFmpegOptions.contains("-ac ") && channels > 0 && params.aid.getAudioProperties().getNumberOfChannels() > channels) {
 					cmdList.add("-ac");
 					cmdList.add(String.valueOf(channels));
 				}
