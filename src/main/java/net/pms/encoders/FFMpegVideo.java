@@ -357,7 +357,7 @@ public class FFMpegVideo extends Player {
 				} else if (type() == Format.AUDIO) {
 					// Skip
 				} else {
-					if (!customFFmpegOptions.matches(".* -(c:a|codec:a|acodec) .*")) {
+					if (!customFFmpegOptions.matches(".*-(c:a|codec:a|acodec).*")) {
 						if (renderer.isTranscodeToAAC()) {
 							transcodeOptions.add("-c:a");
 							transcodeOptions.add("aac");
