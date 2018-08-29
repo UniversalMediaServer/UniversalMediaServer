@@ -43,29 +43,40 @@ public class ResumeObj {
 		return path.listFiles();
 	}
 
-	public static ResumeObj create(DLNAResource r) {
-		if (!r.configuration.isResumeEnabled()) {
-			// resume is off bail early
+	/**
+	 * Creates a "Resume" version of the incoming resource, which is a
+	 * video that has a particular starting point past the beginning.
+	 *
+	 * @param originalResource
+	 * @return
+	 */
+	public static ResumeObj create(DLNAResource originalResource) {
+		// resume is off bail early
+		if (!originalResource.configuration.isResumeEnabled()) {
 			return null;
 		}
-		File f = resumeFile(r);
-		if (!f.exists()) {
-			// no file no resume
+
+		// no file no resume
+		File resumeFile = resumeFile(originalResource);
+		if (!resumeFile.exists()) {
 			return null;
 		}
-		ResumeObj res = new ResumeObj(f);
+
+		ResumeObj res = new ResumeObj(resumeFile);
 		res.read();
 		if (res.noResume()) {
 			return null;
 		}
 
-		if (r.getMedia() != null) {
-			double dur = r.getMedia().getDurationInSeconds();
+		if (originalResource.getMedia() != null) {
+			double dur = originalResource.getMedia().getDurationInSeconds();
 			if (dur == 0.0 || dur == DLNAMediaInfo.TRANS_SIZE) {
-				r.getMedia().setDuration(res.resDuration / 1000.0);
+				originalResource.getMedia().setDuration(res.resDuration / 1000.0);
 			}
 		}
-		res.setMinDuration(r.minPlayTime());
+
+		res.setMinDuration(originalResource.minPlayTime());
+
 		return res;
 	}
 

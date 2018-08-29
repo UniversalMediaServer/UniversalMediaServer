@@ -44,7 +44,7 @@ import net.pms.PMS;
  * @author SubJunk & Nadahar
  * @since 7.0.0
  */
-public final class TableFilesStatus extends Tables{
+public final class TableFilesStatus extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 3;
+	private static final int TABLE_VERSION = 7;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -78,7 +78,7 @@ public final class TableFilesStatus extends Tables{
 		String query;
 
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
@@ -95,7 +95,7 @@ public final class TableFilesStatus extends Tables{
 						} else {
 							if (trace) {
 								LOGGER.trace(
-									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to \"{}\"",
+									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
 									fullPathToFile,
 									isFullyPlayed
 								);
@@ -107,7 +107,7 @@ public final class TableFilesStatus extends Tables{
 					} else {
 						if (trace) {
 							LOGGER.trace(
-								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to \"{}\"",
+								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
 								fullPathToFile,
 								isFullyPlayed
 							);
@@ -326,11 +326,35 @@ public final class TableFilesStatus extends Tables{
 						version = 2;
 						break;
 					case 2:
+					case 3:
 						// From version 2 to 3, we added an index for the ISFULLYPLAYED column
+						// From version 3 to 4, we make sure the previous index was created correctly
 						try (Statement statement = connection.createStatement()) {
+							statement.execute("DROP INDEX IF EXISTS ISFULLYPLAYED_IDX");
 							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 						}
-						version = 3;
+						version = 4;
+						break;
+					case 4:
+					case 5:
+					case 6:
+						/**
+						 * From version 5 to 6, we do what we tried to do in version 5...
+						 */
+						try (Statement statement = connection.createStatement()) {
+							PreparedStatement ps = connection.prepareStatement(
+								"DELETE FROM " + TABLE_NAME + " " +
+								"WHERE NOT EXISTS (" +
+									"SELECT ID FROM FILES " +
+									"WHERE FILES.FILENAME = " + TABLE_NAME + ".FILENAME" +
+								");"
+							);
+							ps.execute();
+
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS CONSTRAINT_ED");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT IF NOT EXISTS filename_match FOREIGN KEY(FILENAME) REFERENCES FILES(FILENAME) ON DELETE CASCADE");
+						}
+						version = 7;
 						break;
 					default:
 						throw new IllegalStateException(
@@ -356,12 +380,15 @@ public final class TableFilesStatus extends Tables{
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN  DEFAULT false" +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+					"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
+						"REFERENCES FILES(FILENAME) " +
+						"ON DELETE CASCADE" +
 				")"
 			);
 
 			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-			statement.execute("CREATE UNIQUE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
+			statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 		}
 	}
 }

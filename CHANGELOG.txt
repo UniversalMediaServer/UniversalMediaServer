@@ -1,3 +1,116 @@
+7.3.0 - 2018-08-13
+
+	General:
+		Started to release standalone builds for Windows (no Java installation required)
+		Added option to disable startup folder scanning in the first-run wizard
+		Fixed fully played status sometimes not saving
+	Languages:
+		Updated translations via Crowdin
+
+7.2.1 - 2018-07-29
+
+	General:
+		Fixed a database upgrade bug
+	Languages:
+		Updated Bulgarian translation via Crowdin
+
+7.2.0 - 2018-07-27
+
+	General:
+		Auto-updater no longer requires UMS to be run with admin rights on Windows
+		Improved support for ATRAC and DolbyE formats
+		Reduced size of local database dramatically
+		Increased maximum memory limit on macOS to match Windows
+		Disabled Chromecast Extension API by default
+		Improved documentation
+		Improved database referential integrity
+		Fixed bugs with the auto-updater on Windows
+	Languages:
+		Allow translation of more of the auto-updater
+		Updated translations via Crowdin
+
+7.1.0 - 2018-06-16
+
+	General:
+		Aspect ratio is maintained in web interface thumbnails
+		Updated web interface to play OGA audio
+		Cleaned up and fixed DefaultRenderer.conf
+		Display whether video is a sample with prettifying enabled
+		Fixed AAC audio parsing via FFmpeg
+		Fixed movie edition not being displayed
+		Fixed handling of multiple video streams while transcoding
+		Improved logging
+		Fixed Resume file support on some renderers
+		Fixed maximum memory setting on Java 9+
+	Languages:
+		Added Croatian translation (thanks, Ram Demon!)
+		Updated translations via Crowdin
+		Fixed incorrect translations being applied to some settings
+	Renderers:
+		Improved support for Panasonic DX series TVs
+		Fixed external ASS/SSA subtitles support on Samsung 8 and 9 series TVs
+	Dependencies:
+		Updated MediaInfo to 18.03.1
+
+7.0.1 - 2018-04-15
+
+	General:
+		Improved thumbnail support
+		Improved folder scanning speed
+		Reduced memory use during folder scanning
+		Fixed fully played feature on clean installs
+		Fixed tsMuxeR FFmpeg support
+		Updated UMS.conf with changes from 7.0.0
+	Languages:
+		Updated German, Italian, Norwegian, Russian and Swedish translations via Crowdin
+	Renderers:
+		Added support for Roku TV (NSP 8)
+		Improved support for Roku 3
+
+7.0.0 - 2018-03-27 - Changes since 6.8.0
+
+	General:
+		Added "TV Shows", "Movies", "3D Movies", and "Unsorted" folders to the "Media Library" folder
+		Added right-click menu to navigation pane
+		Renamed "Cache" folder to "Media Library" folder and enabled it by default
+		Changed "Hide" options to "Show", e.g. "Hide Media Library folder" becomes "Show Media Library folder"
+		When a file is added/changed/removed in a shared folder, UMS detects it
+		Fully played tracking is stored in the SQL database
+		Shared folders are scanned for changes on startup (configurable)
+		Made folder scanning up to 10x faster
+		Made Media Library browsing faster
+		Gave folder scanning a lower priority than other UMS functions to make them work more smoothly
+		Fixed some bugs related to sending media metadata (org_pn) to renderers
+		Fixed bug where removing a directory in UMS does not remove its contents from the Media Library.
+		Fixed sorting in dynamic folders
+		Reduced lookups and bandwidth to OpenSubtitles
+		Fixed MusicBrainz bugs
+		Fixed many other bugs
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added Samsung 8 Series config
+		Updated FetchTV config
+		Improved support for Samsung Galaxy S7
+
+7.0.0 - 2018-03-27 - Changes since 7.0.0-rc2
+
+	General:
+		Made folder scanning up to 10x faster
+		Made Media Library browsing faster
+		Gave folder scanning a lower priority than other UMS functions to make it work more smoothly
+		Added configuration option to toggle shared folder scanning on startup
+		Fixed "By Date" virtual folders on joined folders
+		Fixed a database initialization bug
+		Fixed order of "By date" folders, now they go from newest to oldest
+		Fixed some bugs related to sending media metadata (org_pn) to renderers
+	Languages:
+		Synchronized translations with Crowdin
+	Renderers:
+		Added Samsung 8 Series config
+		Updated FetchTV config
+		Improved support for Samsung Galaxy S7
+
 7.0.0-rc2 - 2018-01-04 - Changes since 7.0.0-rc1
 
 	General:

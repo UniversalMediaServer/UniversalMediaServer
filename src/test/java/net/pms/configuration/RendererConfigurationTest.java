@@ -122,7 +122,23 @@ public class RendererConfigurationTest {
 
 		// FIXME: Actual conflict here! Popcorn Hour is returned...
 		//testHeaders("Realtek", "User-Agent: POSIX UPnP/1.0 Intel MicroStack/1.0.2718, RealtekMediaCenter, DLNADOC/1.50");
-		testHeaders("Realtek", "User-Agent: RealtekVOD neon/0.27.2", "RealtekMediaCenter: RealtekVOD");
+		testHeaders(
+			"Realtek",
+			"User-Agent: RealtekVOD neon/0.27.2",
+			"RealtekMediaCenter: RealtekVOD"
+		);
+
+		testHeaders(
+			"Roku 3 (NSP 6-7)",
+			"User-Agent: Roku/DVP-6.x",
+			"User-Agent: Roku/DVP-7.x"
+		);
+
+		testHeaders(
+			"Roku TV (NSP 8)",
+			"User-Agent: Roku/DVP-8.0 (308.00E04156A)",
+			"User-Agent: Roku/DVP-8.1 (508.01E04018A)"
+		);
 
 		testHeaders(
 			"Samsung C/D Series",
