@@ -848,7 +848,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Output silent audio for rennderers not supportinng for a movie without audio
-		if ( params.mediaRenderer.isOutputSilentAudio() && params.aid == null) {
+		if ((configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio()) && params.aid == null) {
 			cmdList.add("-f");
 			cmdList.add("lavfi");
 			cmdList.add("-i");
