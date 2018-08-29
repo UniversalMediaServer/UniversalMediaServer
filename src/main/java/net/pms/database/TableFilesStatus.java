@@ -354,6 +354,18 @@ public final class TableFilesStatus extends Tables {
 								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("constraint_name"));
 							}
 						}
+
+						stmt = connection.prepareStatement(
+							"SELECT constraint_name " +
+							"FROM information_schema.constraints " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+						);
+						rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
+						}
+
 						stmt.close();
 						rs.close();
 

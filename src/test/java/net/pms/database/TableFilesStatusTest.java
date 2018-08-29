@@ -22,6 +22,7 @@ package net.pms.database;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import java.sql.Connection;
+import java.sql.Statement;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
@@ -57,6 +58,31 @@ public class TableFilesStatusTest {
 			if (!Tables.tableExists(connection, "TABLES")) {
 				Tables.createTablesTable(connection);
 			}
+
+			try (Statement statement = connection.createStatement()) {
+				statement.execute("DROP TABLE IF EXISTS " + TableFilesStatus.TABLE_NAME);
+
+				// Create version 7 of this table
+				statement.execute(
+					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
+						"ID            IDENTITY PRIMARY KEY, " +
+						"FILENAME      VARCHAR2(1024)        NOT NULL, " +
+						"MODIFIED      DATETIME, " +
+						"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+						"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
+							"REFERENCES FILES(FILENAME) " +
+							"ON DELETE CASCADE" +
+					")"
+				);
+	
+				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TableFilesStatus.TABLE_NAME + "(FILENAME)");
+				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
+			}
+
+			/*
+			 * Version 7 is created, so now we can update to the latest version
+			 * and any errors that occur along the way will cause the test to fail.
+			 */
 			TableFilesStatus.checkTable(connection);
 		}
 	}
