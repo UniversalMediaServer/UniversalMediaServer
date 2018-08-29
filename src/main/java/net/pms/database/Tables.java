@@ -216,7 +216,7 @@ public class Tables {
 		}
 	}
 
-	private final static void createTablesTable(final Connection connection) throws SQLException {
+	protected final static void createTablesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"TABLES\"");
 		try (Statement statement = connection.createStatement()) {
 			statement.execute("CREATE TABLE TABLES(NAME VARCHAR(50) PRIMARY KEY, VERSION INT NOT NULL)");

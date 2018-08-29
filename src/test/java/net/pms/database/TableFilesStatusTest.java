@@ -54,6 +54,9 @@ public class TableFilesStatusTest {
 	public void testUpgrade() throws Exception {
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 		try (Connection connection = database.getConnection()) {
+			if (!Tables.tableExists(connection, "TABLES")) {
+				Tables.createTablesTable(connection);
+			}
 			TableFilesStatus.checkTable(connection);
 		}
 	}
