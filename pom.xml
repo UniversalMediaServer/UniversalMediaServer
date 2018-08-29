@@ -84,7 +84,7 @@
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>67</binary-revision>
 
-		<maven-javadoc-plugin-version>3.0.0</maven-javadoc-plugin-version>
+		<maven-javadoc-plugin-version>3.0.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.4</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
 
@@ -97,7 +97,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<logback-version>1.2.3</logback-version>
-		<surefire-version>2.20.1</surefire-version>
+		<surefire-version>2.22.0</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
