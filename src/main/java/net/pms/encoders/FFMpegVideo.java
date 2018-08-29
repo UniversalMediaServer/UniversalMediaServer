@@ -1032,6 +1032,17 @@ public class FFMpegVideo extends Player {
 					cmdList.add("-ar");
 					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
 				}
+
+				// Use high quality resampler
+				// The parameters of http://forum.minimserver.com/showthread.php?tid=4181&pid=27185 are used.
+				if (params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate() && configuration.isFFmpegSoxr() && !customFFmpegOptions.contains("--resampler")) {
+					cmdList.add("-resampler");
+					cmdList.add("soxr");
+					cmdList.add("-precision");
+					cmdList.add("33");
+					cmdList.add("-cheby");
+					cmdList.add("1");
+				}
 			}
 
 			// Add the output options (-f, -c:a, -c:v, etc.)
@@ -1269,7 +1280,8 @@ public class FFMpegVideo extends Player {
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
-
+	private JCheckBox FFmpegSoxr;
+	
 	@Override
 	public JComponent config() {
 		return config("NetworkTab.5");
@@ -1278,7 +1290,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1331,6 +1343,17 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
+
+		FFmpegSoxr = new JCheckBox(Messages.getString("FFmpeg.4"), configuration.isFFmpegSoxr());
+		FFmpegSoxr.setContentAreaFilled(false);
+		FFmpegSoxr.setToolTipText(Messages.getString("FFmpeg.5"));
+		FFmpegSoxr.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegSoxr(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegSoxr), cc.xy(2, 11));
 
 		return builder.getPanel();
 	}
