@@ -166,6 +166,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
 	protected static final String OFFER_SUBTITLES_AS_SOURCE = "OfferSubtitlesAsSource";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
+	protected static final String OUTPUT_SILENT_AUDIO= "OutputSilentAudio";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
 	protected static final String PUSH_METADATA = "PushMetadata";
@@ -1777,6 +1778,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
+	}
+
+	public boolean isOutputSilentAudio() {
+		return getBoolean(OUTPUT_SILENT_AUDIO, false);
 	}
 
 	public boolean isMuxNonMod4Resolution() {

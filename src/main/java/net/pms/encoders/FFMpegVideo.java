@@ -847,6 +847,15 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		// Output silent audio for rennderers not supportinng for a movie without audio
+		if ( params.mediaRenderer.isOutputSilentAudio() && params.aid == null) {
+			cmdList.add("-f");
+			cmdList.add("lavfi");
+			cmdList.add("-i");
+ 			cmdList.add("anullsrc=cl=mono:=r="+String.valueOf(params.mediaRenderer.getTranscodedVideoAudioSampleRate()));
+			cmdList.add("-shortest");
+		}
+
 		/**
 		 * Defer to MEncoder for subtitles if:
 		 * - The setting is enabled
