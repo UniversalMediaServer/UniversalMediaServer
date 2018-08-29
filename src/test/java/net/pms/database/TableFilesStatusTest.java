@@ -60,7 +60,7 @@ public class TableFilesStatusTest {
 			}
 
 			try (Statement statement = connection.createStatement()) {
-				statement.execute("DROP TABLE IF EXISTS " + TableFilesStatus.TABLE_NAME);
+				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
 
 				// Create version 7 of this table
 				statement.execute(
@@ -77,6 +77,8 @@ public class TableFilesStatusTest {
 	
 				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TableFilesStatus.TABLE_NAME + "(FILENAME)");
 				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
+
+				Tables.setTableVersion(connection, TableFilesStatus.TABLE_NAME, 7);
 			}
 
 			/*
