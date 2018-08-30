@@ -210,9 +210,9 @@ public class Tables {
 	 * @throws SQLException
 	 */
 	protected final static void dropTable(final Connection connection, final String tableName) throws SQLException {
-		LOGGER.debug("Dropping database table \"{}\"", tableName);
+		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
 		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE " + tableName);
+			statement.execute("DROP TABLE IF EXISTS " + tableName);
 		}
 	}
 
