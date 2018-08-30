@@ -59,6 +59,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 
 /*
  * Pure FFmpeg video player.
@@ -1278,6 +1279,8 @@ public class FFMpegVideo extends Player {
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
+	private JCheckBox FFmpegLibfdkEncoder;
+	private JCheckBox FFmpegAudiotoolboxEncoder;
 
 	@Override
 	public JComponent config() {
@@ -1287,7 +1290,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1340,6 +1343,33 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
+
+		FFmpegLibfdkEncoder = new JCheckBox(Messages.getString("FFmpeg.4"), configuration.isFFmpegLibfdkEncoder());
+		FFmpegLibfdkEncoder.setContentAreaFilled(false);
+		FFmpegLibfdkEncoder.setToolTipText(Messages.getString("FFmpeg.5"));
+		FFmpegLibfdkEncoder.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegLibfdkEncoder(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegLibfdkEncoder), cc.xy(2, 11));
+
+		if (Platform.isMac()) {
+			FFmpegAudiotoolboxEncoder = new JCheckBox(Messages.getString("FFmpeg.6"), configuration.isFFmpegAudiotoolboxEncoder());
+			FFmpegAudiotoolboxEncoder.setContentAreaFilled(false);
+			FFmpegAudiotoolboxEncoder.setToolTipText(Messages.getString("FFmpeg.7"));
+			FFmpegAudiotoolboxEncoder.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setFFmpegAudiotoolboxEncoder(e.getStateChange() == ItemEvent.SELECTED);
+					configuration.setFFmpegLibfdkEncoder(e.getStateChange() != ItemEvent.SELECTED);
+					FFmpegLibfdkEncoder.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+				}
+			});
+		}
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegAudiotoolboxEncoder), cc.xy(2, 13));
+
 
 		return builder.getPanel();
 	}
