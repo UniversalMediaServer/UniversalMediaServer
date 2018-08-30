@@ -91,11 +91,11 @@ public class Build {
 
 	/**
 	 * Returns the {@link #PROFILE_DIRECTORY_NAME} where configuration files
-	 * for this version of PMS are stored.
+	 * for this version of UMS are stored.
 	 *
 	 * @return The profile directory name
 	 */
 	public static String getProfileDirectoryName() {
-		return PROFILE_DIRECTORY_NAME;
+		return System.getProperty("surefire.real.class.path") == null ? PROFILE_DIRECTORY_NAME : "UMS-tests";
 	}
 }
