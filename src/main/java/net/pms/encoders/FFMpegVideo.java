@@ -357,8 +357,17 @@ public class FFMpegVideo extends Player {
 				} else if (type() == Format.AUDIO) {
 					// Skip
 				} else if (renderer.isTranscodeToAAC()) {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("aac");
+				    // If mac users specify both AudioToolBox and Libfdk , AudioToolBox is selected. If the others do so, Libfdk is selected.
+				    if (configuration.isFFmpegAudiotoolboxEncoder()){
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("aac_at");
+				    } else if (configuration.isFFmpegLibfdkEncoder() && !configuration.isFFmpegAudiotoolboxEncoder()){
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("libfdk_aac");
+				    } else {
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("aac");
+					}
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
