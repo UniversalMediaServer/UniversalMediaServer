@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 7;
+	private static final int TABLE_VERSION = 8;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -316,6 +316,8 @@ public final class TableFilesStatus extends Tables {
 									LOGGER.info("Updating fully played entry for " + filename);
 								}
 							}
+							stmt.close();
+							rs.close();
 
 							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
@@ -338,23 +340,36 @@ public final class TableFilesStatus extends Tables {
 					case 4:
 					case 5:
 					case 6:
-						/**
-						 * From version 5 to 6, we do what we tried to do in version 5...
-						 */
-						try (Statement statement = connection.createStatement()) {
-							PreparedStatement ps = connection.prepareStatement(
-								"DELETE FROM " + TABLE_NAME + " " +
-								"WHERE NOT EXISTS (" +
-									"SELECT ID FROM FILES " +
-									"WHERE FILES.FILENAME = " + TABLE_NAME + ".FILENAME" +
-								");"
-							);
-							ps.execute();
+					case 7:
+						// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
+						PreparedStatement stmt = connection.prepareStatement(
+							"SELECT constraint_name " +
+							"FROM information_schema.constraints " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+						);
+						ResultSet rs = stmt.executeQuery();
 
-							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS CONSTRAINT_ED");
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT IF NOT EXISTS filename_match FOREIGN KEY(FILENAME) REFERENCES FILES(FILENAME) ON DELETE CASCADE");
+						while (rs.next()) {
+							try (Statement statement = connection.createStatement()) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("constraint_name"));
+							}
 						}
-						version = 7;
+
+						stmt = connection.prepareStatement(
+							"SELECT constraint_name " +
+							"FROM information_schema.constraints " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+						);
+						rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
+						}
+
+						stmt.close();
+						rs.close();
+
+						version = 8;
 						break;
 					default:
 						throw new IllegalStateException(
@@ -380,10 +395,7 @@ public final class TableFilesStatus extends Tables {
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
-					"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
-						"REFERENCES FILES(FILENAME) " +
-						"ON DELETE CASCADE" +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false" +
 				")"
 			);
 
