@@ -21,6 +21,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
@@ -96,6 +97,6 @@ public class Build {
 	 * @return The profile directory name
 	 */
 	public static String getProfileDirectoryName() {
-		return System.getProperty("surefire.real.class.path") == null ? PROFILE_DIRECTORY_NAME : "UMS-tests";
+		return PMS.isRunningTests() ? "UMS-tests" : PROFILE_DIRECTORY_NAME;
 	}
 }

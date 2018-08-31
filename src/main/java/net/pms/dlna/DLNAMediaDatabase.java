@@ -92,10 +92,17 @@ public class DLNAMediaDatabase implements Runnable {
 	// Generic constant for the maximum string size: 255 chars
 	private final int SIZE_MAX = 255;
 
+	/**
+	 * Initializes the database connection pool for the current profile.
+	 *
+	 * Will create the "UMS-tests" profile directory and put the database
+	 * in there if it doesn't exist, in order to prevent overwriting
+	 * real databases.
+	 */
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
 		File profileDirectory = new File(configuration.getProfileDirectory());
-		dbDir = new File(profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
+		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
 		url = Constants.START_URL + dbDir + File.separator + dbName;
 		LOGGER.debug("Using database URL: " + url);
 		LOGGER.info("Using database located at: " + dbDir);
