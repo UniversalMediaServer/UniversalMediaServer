@@ -1,3 +1,18 @@
+7.3.1 - 2018-09-??
+
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Simplified translation completed
+			French translation completed and validated
+			Italian translation updated
+			German translation completed
+			Polish translation completed and validated
+			Portuguese translation completed
+			Portuguese (Brazilian) translation updated
+			Romanian translation completed
+			Russian translation completed
+			Spanish translation completed
+
 7.3.0 - 2018-08-13
 
 	General:
