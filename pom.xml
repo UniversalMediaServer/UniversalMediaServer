@@ -507,7 +507,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>3.4.3</version>
+			<version>3.8.0</version>
 		</dependency>
 	</dependencies>
 	<build>
