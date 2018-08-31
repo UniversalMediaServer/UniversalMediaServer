@@ -1940,4 +1940,16 @@ public class FileUtil {
 			}
 		}
 	}
+
+	/**
+	 * Check if the provided {@code filename} string can be a directory
+	 * by checking if the string contains extension. 
+	 *
+	 * @param filename the string represented the directory
+	 * @return {@code true} if the string doesn't contain the extension
+	 * {@code false} otherwise.
+	 */
+	public static boolean isDirectory(String filename) {
+		return FileUtil.getExtension(filename) == null;
+	}
 }

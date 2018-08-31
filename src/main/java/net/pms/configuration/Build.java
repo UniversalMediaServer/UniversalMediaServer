@@ -21,6 +21,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
@@ -91,11 +92,11 @@ public class Build {
 
 	/**
 	 * Returns the {@link #PROFILE_DIRECTORY_NAME} where configuration files
-	 * for this version of PMS are stored.
+	 * for this version of UMS are stored.
 	 *
 	 * @return The profile directory name
 	 */
 	public static String getProfileDirectoryName() {
-		return PROFILE_DIRECTORY_NAME;
+		return PMS.isRunningTests() ? "UMS-tests" : PROFILE_DIRECTORY_NAME;
 	}
 }
