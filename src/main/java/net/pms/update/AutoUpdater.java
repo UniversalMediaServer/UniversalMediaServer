@@ -1,5 +1,6 @@
 package net.pms.update;
 
+import com.sun.jna.Platform;
 import java.awt.Desktop;
 import java.io.*;
 import java.util.Observable;
@@ -205,6 +206,12 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void downloadUpdate() throws UpdateException {
 		String downloadUrl = serverProperties.getDownloadUrl();
+
+		if (Platform.is64Bit()) {
+			downloadUrl = downloadUrl.replace(".exe", "-standalone-x64.exe");
+		} else {
+			downloadUrl = downloadUrl.replace(".exe", "-standalone-x86.exe");
+		}
 
 		try {
 			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
