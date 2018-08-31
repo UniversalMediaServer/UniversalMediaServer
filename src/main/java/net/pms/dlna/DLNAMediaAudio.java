@@ -220,6 +220,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is Dolby E.
+	 */
+	public boolean isDolbyE() {
+		return FormatConfiguration.DOLBYE.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is DSD Audio.
 	 */
 	public boolean isDSDAudio() {
@@ -245,6 +252,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isEAC3() {
 		return FormatConfiguration.EAC3.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return whether the audio codec is ER BSAC.
+	 */
+	public boolean isERBSAC() {
+		return FormatConfiguration.ER_BSAC.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -493,12 +507,16 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "Cook";
 		} else if (isDSDAudio()) {
 			return "DSD Audio";
+		} else if (isDolbyE()) {
+			return "Dolby E";
 		} else if (isDTS()) {
 			return "DTS";
 		} else if (isDTSHD()) {
 			return "DTS HD";
 		} else if (isEAC3()) {
 			return "Enhanced AC-3";
+		} else if (isERBSAC()) {
+			return "ER BSAC";
 		} else if (isFLAC()) {
 			return "FLAC";
 		} else if (isG729()) {

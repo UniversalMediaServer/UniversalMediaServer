@@ -25,7 +25,7 @@ public class MediaLibrary extends VirtualFolder {
 	}
 
 	public MediaLibrary() {
-		super(Messages.getString("PMS.2"), null);
+		super(Messages.getString("PMS.MediaLibrary"), null);
 		init();
 	}
 

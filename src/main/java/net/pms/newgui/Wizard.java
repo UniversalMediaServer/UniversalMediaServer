@@ -36,7 +36,7 @@ public class Wizard {
 
 	public static void run(PmsConfiguration configuration) {
 		// Total number of questions
-		int numberOfQuestions = 4;
+		int numberOfQuestions = 5;
 
 		// The current question number
 		int currentQuestionNumber = 1;
@@ -133,6 +133,24 @@ public class Wizard {
 			configuration.setHideAdvancedOptions(true);
 		} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
 			configuration.setHideAdvancedOptions(false);
+		}
+
+		// Ask if they want to scan shared folders
+		int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
+			null,
+			Messages.getString("Wizard.IsStartupScan"),
+			String.format(status, currentQuestionNumber++),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.QUESTION_MESSAGE,
+			null,
+			yesNoOptions,
+			yesNoOptions[0]
+		);
+
+		if (whetherToScanSharedFolders == JOptionPane.YES_OPTION) {
+			configuration.setScanSharedFoldersOnStartup(true);
+		} else if (whetherToScanSharedFolders == JOptionPane.NO_OPTION) {
+			configuration.setScanSharedFoldersOnStartup(false);
 		}
 
 		// Ask to set at least one shared folder

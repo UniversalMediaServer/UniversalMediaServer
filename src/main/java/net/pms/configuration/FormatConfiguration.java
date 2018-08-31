@@ -63,11 +63,13 @@ public class FormatConfiguration {
 	public static final String CUR = "cur";
 	public static final String DIVX = "divx";
 	/** Direct Stream Digital / Super Audio CD tracks */
+	public static final String DOLBYE = "dolbye";
 	public static final String DSD = "dsd";
 	public static final String DTS = "dts";
 	public static final String DTSHD = "dtshd";
 	public static final String DV = "dv";
 	public static final String EAC3 = "eac3";
+	public static final String ER_BSAC = "erbsac";
 	public static final String FLAC = "flac";
 	public static final String FLV = "flv";
 	public static final String G729 = "g729";
