@@ -9,19 +9,16 @@ To see a comparison of popular media servers, [click here][2]
 
 Universal Media Server supports all major operating systems, with versions for Windows, Linux and macOS.
 The program streams or transcodes many different media formats with little or no configuration.
-It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC, [OpenSubtitles.org][25] and more, which combine to offer support for a wide range of media formats.
+It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][29], [MEncoder][26], tsMuxeR, AviSynth, VLC and more, which combine to offer support for a wide range of media formats.
 
 ## Current Project Developers
 
-* [infidel][6]
-* [Nadahar][15]
-* [SharkHunter][4]
 * [SubJunk][3]
 * [valib][5]
 
 ## Current Forum Moderators
 
-* [DeFlanko][8] 
+* [DeFlanko][8]
 * [Optimus_prime][7]
 
 ## Links
@@ -42,9 +39,12 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC, [OpenSubti
 * ditlew
 * ExSport
 * happy.neko
+* [infidel][6]
+* [Nadahar][15]
 * Raptor399
 * Redlum
 * renszarv
+* [SharkHunter][4]
 * taconaut
 * tcox
 * tomeko
@@ -98,3 +98,7 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC, [OpenSubti
   [23]: https://github.com/K4r0lSz
   [24]: https://github.com/prescott66
   [25]: http://www.opensubtitles.org/
+  [26]: http://www.mplayerhq.hu/
+  [27]: https://www.ffmpeg.org/
+  [28]: https://mediaarea.net/en/MediaInfo
+  [29]: https://crowdin.com/
