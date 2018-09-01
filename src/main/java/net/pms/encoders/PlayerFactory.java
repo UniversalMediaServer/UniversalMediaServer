@@ -243,6 +243,26 @@ public final class PlayerFactory {
 	}
 
 	/**
+	 * Returns the {@link Player} that matches the given class if it is enabled.
+	 * If no {@link Player} is found or it is disabled, {@code null} is
+	 * returned.
+	 *
+	 * @param clazz The {@link Class} to match.
+	 * @return The {@link Player} or {@code null}.
+	 */
+	public static Player getEnabledPlayer(final Class<? extends Player> clazz) {
+		if (clazz == null) {
+			throw new IllegalArgumentException("clazz cannot be null");
+		}
+		for (Player player : players) {
+			if (clazz.equals(player.getClass())) {
+				return configuration.getEnginesAsList(utils).contains(player.id()) ? player : null;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead.
 	 *
 	 * Returns the player that matches the given class and format.

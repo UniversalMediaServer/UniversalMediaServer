@@ -20,11 +20,13 @@
 
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.google.gson.Gson;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,8 +34,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DVDISOTitle;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
@@ -342,8 +346,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				// nothing here yet
 			}
 			return true;
-//		} else if (player instanceof MEncoderVideo) {
-//			// nothing here yet
+		} else if (player instanceof MEncoderVideo) { //TODO: (Nad) Hook to manipulate commands
+			if (resource != null && resource.getFormat() != null && resource.getMedia().isVideo()) {
+				//mencoderMP4Cmd(cmdList); //TODO: (Nad) Disabled
+				return true;
+			}
+			// nothing here yet
 		}
 		return false;
 	}
@@ -370,6 +378,63 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 		cmdList.add("-f");
 		cmdList.add("flv");
+	}
+
+	private static boolean removeMEncoderOption(List<String> cmdList, String option) {
+		if (isBlank(option) || cmdList == null) {
+			return false;
+		}
+		if (!option.startsWith("-")) {
+			option = "-" + option;
+		}
+		if (cmdList.contains(option)) {
+			Iterator<String> iterator = cmdList.iterator();
+			boolean found = false;
+			while (iterator.hasNext()) {
+				String cmd = iterator.next();
+				if (found) {
+					if (cmd.startsWith("-")) {
+						return true;
+					}
+					iterator.remove();
+				} else if (option.equals(cmd)) {
+					iterator.remove();
+					found = true;
+				}
+			}
+			return found;
+		}
+		return false;
+	}
+
+	private static void mencoderMP4Cmd(List<String> cmdList) { //TODO: (Nad) Manipulate cmds
+		removeMEncoderOption(cmdList, "-oac");
+		removeMEncoderOption(cmdList, "-faacopts");
+		removeMEncoderOption(cmdList, "-of");
+		removeMEncoderOption(cmdList, "-lavfopts");
+		removeMEncoderOption(cmdList, "-mpegopts");
+		removeMEncoderOption(cmdList, "-x264encopts");
+		cmdList.add("-oac");
+		cmdList.add("faac");
+		cmdList.add("-faacopts");
+		cmdList.add("mpeg=4:tns:object=2:raw:br=128");
+		cmdList.add("-x264encopts");
+		cmdList.add("preset=ultrafast:profile=baseline:bitrate=700:global_header:aglobal=1:vglobal=1:threads=auto:turbo=1");
+		//removeMEncoderOption(cmdList, "-channels");
+		//removeMEncoderOption(cmdList, "-lavdopts");
+		//cmdList.add("-lavdopts");
+		//cmdList.add("debug=0:threads=1:o=strict=-2");
+		//cmdList.add("vqscale=10");
+		//cmdList.add("-oac");
+		//cmdList.add("lavc");
+		//cmdList.add("-lavcopts");
+		//cmdList.add("acodec=vorbis");
+		cmdList.add("-of");
+		cmdList.add("lavf");
+		cmdList.add("-lavfopts");
+		cmdList.add("format=mp4");
+
+
 	}
 
 	private static void ffOggCmd(List<String> cmdList) {
@@ -507,6 +572,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 		DLNAMediaInfo media = dlna.getMedia();
 		return
+			dlna instanceof DVDISOTitle || //TODO: (Nad) Makes web player accept DVD titles
 			media != null && RemoteUtil.directmime(media.getMimeType()) ||
 			supportedFormat(dlna.getFormat()) ||
 			dlna.getPlayer() instanceof FFMpegVideo;
