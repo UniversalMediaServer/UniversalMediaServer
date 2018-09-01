@@ -147,6 +147,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	protected static final String KEY_FFMPEG_DEINTERLACE_MODE = "ffmpeg_deinterlace_mode";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
@@ -2715,6 +2716,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isFFmpegFontConfig() {
 		return getBoolean(KEY_FFMPEG_FONTCONFIG, false);
+	}
+
+	public void setFFmpegDeinterlaceMode(String value) {
+		configuration.setProperty(KEY_FFMPEG_DEINTERLACE_MODE, value);
+	}
+
+	public String getFFmpegDeinterlaceMode() {
+		return getString(KEY_FFMPEG_DEINTERLACE_MODE, "disable");
 	}
 
 	public void setMuxAllAudioTracks(boolean value) {
