@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -37,7 +38,6 @@ import net.pms.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +54,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static RendererConfiguration defaultConf;
 	protected static final Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
-	protected RootFolder rootFolder;
+	protected volatile RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
 	protected PmsConfiguration pmsConfiguration = _pmsConfiguration;
@@ -64,7 +64,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected Matcher sortedHeaderMatcher;
 	protected List<String> identifiers = null;
 
-	public StatusTab.RendererItem gui;
+	public volatile StatusTab.RendererItem gui;
 	public boolean loaded, fileless = false;
 	protected BasicPlayer player;
 
@@ -262,29 +262,31 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				LOGGER.info("Loading renderer configurations from " + renderersDir.getAbsolutePath());
 
 				File[] confs = renderersDir.listFiles();
-				Arrays.sort(confs);
-				int rank = 1;
+				if (confs != null) {
+					Arrays.sort(confs);
+					int rank = 1;
 
-				List<String> selectedRenderers = pmsConf.getSelectedRenderers();
-				for (File f : confs) {
-					if (f.getName().endsWith(".conf")) {
-						try {
-							RendererConfiguration r = new RendererConfiguration(f);
-							r.rank = rank++;
-							String rendererName = r.getConfName();
-							allRenderersNames.add(rendererName);
-							String renderersGroup = null;
-							if (rendererName.indexOf(' ') > 0) {
-								renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
-							}
+					List<String> selectedRenderers = pmsConf.getSelectedRenderers();
+					for (File f : confs) {
+						if (f.getName().endsWith(".conf")) {
+							try {
+								RendererConfiguration r = new RendererConfiguration(f);
+								r.rank = rank++;
+								String rendererName = r.getConfName();
+								allRenderersNames.add(rendererName);
+								String renderersGroup = null;
+								if (rendererName.indexOf(' ') > 0) {
+									renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
+								}
 
-							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
-								enabledRendererConfs.add(r);
-							} else {
-								LOGGER.debug("Ignored \"{}\" configuration", rendererName);
+								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
+									enabledRendererConfs.add(r);
+								} else {
+									LOGGER.debug("Ignored \"{}\" configuration", rendererName);
+								}
+							} catch (ConfigurationException ce) {
+								LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 							}
-						} catch (ConfigurationException ce) {
-							LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 						}
 					}
 				}
@@ -393,7 +395,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The list of enabled renderers.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
+		return enabledRendererConfs != null ? new ArrayList<RendererConfiguration>(enabledRendererConfs) : null;
 	}
 
 	/**
@@ -493,13 +495,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void resetAllRenderers() {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			r.rootFolder = null;
+		for (RendererConfiguration renderer : getConnectedRenderersConfigurations()) {
+			renderer.rootFolder = null;
 		}
 		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since
 		// these are now for reference only and never actually populate their root folders.
-		for (RendererConfiguration r : enabledRendererConfs) {
-			r.rootFolder = null;
+		for (RendererConfiguration renderer : enabledRendererConfs) {
+			renderer.rootFolder = null;
 		}
 	}
 
@@ -507,9 +509,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (rootFolder == null) {
 			ArrayList<String> tags = new ArrayList<>();
 			tags.add(getRendererName());
-			for (InetAddress sa : addressAssociation.keySet()) {
-				if (addressAssociation.get(sa) == this) {
-					tags.add(sa.getHostAddress());
+			for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+				if (entry.getValue() == this) {
+					tags.add(entry.getKey().getHostAddress());
 				}
 			}
 
@@ -528,8 +530,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
-	public void setRootFolder(RootFolder r) {
-		rootFolder = r;
+	public void setRootFolder(RootFolder rootFolder) {
+		this.rootFolder = rootFolder;
 	}
 
 	/**
@@ -573,13 +575,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void calculateAllSpeeds() {
-		for (InetAddress sa : addressAssociation.keySet()) {
-			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			if (entry.getKey().isLoopbackAddress() || entry.getKey().isAnyLocalAddress()) {
 				continue;
 			}
-			RendererConfiguration r = addressAssociation.get(sa);
-			if (!r.isOffline()) {
-				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+			RendererConfiguration renderer = entry.getValue();
+			if (!renderer.isOffline()) {
+				SpeedStats.getInstance().getSpeedInMBits(entry.getKey(), renderer.getRendererName());
 			}
 		}
 	}
@@ -813,7 +815,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
 					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
 				boolean header = true;
-				for (String line : FileUtils.readLines(ref, Charsets.UTF_8)) {
+				for (String line : FileUtils.readLines(ref, StandardCharsets.UTF_8)) {
 					if (
 						skip.reset(line).matches() ||
 						(
@@ -1013,7 +1015,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			boolean addWatch = file != f;
 			file = f;
 			if (addWatch) {
-				PMS.getFileWatcher().add(new FileWatcher.Watch(getFile().getPath(), reloader, this));
+				FileWatcher.add(new FileWatcher.Watch(getFile().getPath(), reloader, this));
 			}
 			return true;
 		}
@@ -1120,13 +1122,25 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			loaded = false;
 			init(f);
 			// update gui
-			for (RendererConfiguration d : DeviceConfiguration.getInheritors(this)) {
-				PMS.get().updateRenderer(d);
+			for (RendererConfiguration device : DeviceConfiguration.getInheritors(this)) {
+				PMS.get().updateRenderer(device);
 			}
 		} catch (Exception e) {
-			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
-			e.printStackTrace();
+			LOGGER.debug("Error reloading renderer configuration \"{}\": {}", f, e.getMessage());
+			LOGGER.trace("", e);
 		}
+	}
+
+	public void cleanup() {
+
+		PMS.get().getFoundRenderers().remove(this);
+		UPNPHelper.getInstance().removeRenderer(this);
+		InetAddress inetAddress = getAddress();
+		if (addressAssociation.get(inetAddress) == this) {
+			addressAssociation.remove(inetAddress);
+		}
+		gui = null;
+		rootFolder = null;
 	}
 
 	public String getDLNAPN(String old) {
@@ -1558,9 +1572,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		// Otherwise check the address association
-		for (InetAddress sa : addressAssociation.keySet()) {
-			if (addressAssociation.get(sa) == this) {
-				return sa;
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			if (entry.getValue() == this) {
+				return entry.getKey();
 			}
 		}
 		return null;
@@ -1609,30 +1623,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		delete(this, delay);
 	}
 
-	public static void delete(final RendererConfiguration r, int delay) {
-		r.setActive(false);
-		// Using javax.swing.Timer because of gui (this works in headless mode too).
-		javax.swing.Timer t = new javax.swing.Timer(delay, new ActionListener() {
+	public static void delete(final RendererConfiguration renderer, int delay) {
+		renderer.setActive(false);
+		// Using javax.swing.Timer because so it will run in the Swing event dispatcher thread (this works in headless mode too).
+		javax.swing.Timer timer = new javax.swing.Timer(delay, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				// Make sure we haven't been reactivated while asleep
-				if (! r.isActive()) {
-					LOGGER.debug("Deleting renderer " + r);
-					if (r.gui != null) {
-						r.gui.delete();
+				if (!renderer.isActive()) {
+					LOGGER.debug("Deleting renderer \"{}\"", renderer);
+					if (renderer.gui != null) {
+						renderer.gui.delete();
 					}
-					PMS.get().getFoundRenderers().remove(r);
-					UPNPHelper.getInstance().removeRenderer(r);
-					InetAddress ia = r.getAddress();
-					if (addressAssociation.get(ia) == r) {
-						addressAssociation.remove(ia);
-					}
-					// TODO: actually delete rootfolder, etc.
+					renderer.cleanup();
 				}
 			}
 		});
-		t.setRepeats(false);
-		t.start();
+		timer.setRepeats(false);
+		timer.start();
 	}
 
 	public void setGuiComponents(StatusTab.RendererItem item) {
@@ -2385,9 +2393,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		// Substitute
-		for (String s : charMap.keySet()) {
-			String repl = charMap.get(s).replaceAll("###e", "");
-			name = name.replaceAll(s, repl);
+		for (Entry<String, String> entry : charMap.entrySet()) {
+			String repl = entry.getValue().replaceAll("###e", "");
+			name = name.replaceAll(entry.getKey(), repl);
 		}
 
 		return name;
@@ -2404,7 +2412,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static int getIntAt(String s, String key, int fallback) {
 		try {
-			return Integer.valueOf((s + " ").split(key)[1].split("\\D")[0]);
+			return Integer.parseInt((s + " ").split(key)[1].split("\\D")[0]);
 		} catch (Exception e) {
 			return fallback;
 		}
