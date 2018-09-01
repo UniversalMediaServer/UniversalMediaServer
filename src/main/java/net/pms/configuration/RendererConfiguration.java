@@ -166,7 +166,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
 	protected static final String OFFER_SUBTITLES_AS_SOURCE = "OfferSubtitlesAsSource";
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
-	protected static final String OUTPUT_SILENT_AUDIO= "OutputSilentAudio";
+	protected static final String OUTPUT_SILENT_AUDIO = "OutputSilentAudio";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String PREPEND_TRACK_NUMBERS = "PrependTrackNumbers";
 	protected static final String PUSH_METADATA = "PushMetadata";
