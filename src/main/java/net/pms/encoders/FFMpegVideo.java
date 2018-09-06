@@ -60,6 +60,24 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+
+
+import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJComboBox;
+import net.pms.newgui.components.CustomJTextField;
+import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.KeyedStringComboBoxModel;
+
+import net.pms.util.FormLayoutUtil;
+import java.awt.ComponentOrientation;
+
 /*
  * Pure FFmpeg video player.
  *
@@ -798,11 +816,37 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(params.timeseek));
 		}
 
-		// Decoder threads
-		if (nThreads > 0) {
-			cmdList.add("-threads");
-			cmdList.add(String.valueOf(nThreads));
-		}
+		// Deccoding threads and GPU deccding
+		if (nThreads > 0 && !configuration.isGPUAcceleration()) {
+				cmdList.add("-threads");
+				cmdList.add(String.valueOf(nThreads));
+		} else if (configuration.isGPUAcceleration() && !avisynth) {
+		
+			// GPU deccding method
+			cmdList.add("-hwaccel");
+			if (configuration.getFFmpegGPUAccelationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
+				cmdList.add("-hwaccel");
+				cmdList.add(configuration.getFFmpegGPUAccelationMethod().trim());
+			 } else {
+				if (configuration.getFFmpegGPUAccelationMethod().matches(".*-hwaccel +[a-z]+.*")) {
+					cmdList.add(configuration.getFFmpegGPUAccelationMethod());
+				} else {
+					cmdList.add("-hwaccel");
+					cmdList.add("auto");
+			    }
+			}
+
+			// GPU deccding threads
+			if (configuration.getFFmpegGPUAccelationThreadNumber().trim().matches("^[0-9]+$")) {
+				if (Integer.parseInt(configuration.getFFmpegGPUAccelationThreadNumber().trim()) > 0) {
+					cmdList.add("-threads");
+					cmdList.add(String.valueOf(configuration.getFFmpegGPUAccelationThreadNumber().trim()));
+				}
+			} else {
+				cmdList.add("-threads");
+				cmdList.add("1");
+			}
+		} 
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
@@ -1269,6 +1313,8 @@ public class FFMpegVideo extends Player {
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
+	private JComboBox<String> FFmpegGPUAccelationMethod;
+	private JComboBox<String> FFmpegGPUAccelationThreadNumber;
 
 	@Override
 	public JComponent config() {
@@ -1278,7 +1324,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1331,6 +1377,50 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
+
+		builder.add(new JLabel(Messages.getString("FFmpeg.4")), cc.xy(2, 11));
+		String[] keys = new String[] {
+			"auto",
+			"cuvid",
+			"cuda",
+			"d3d11va",
+			"d3d11va2",
+			"dxva2",
+			"vaapi",
+			"vdpau",
+			"videotoolbox",
+			"qsv",
+		};
+
+		FFmpegGPUAccelationMethod = new JComboBox<>(keys);
+		FFmpegGPUAccelationMethod.setSelectedItem(configuration.getFFmpegGPUAccelationMethod());
+		FFmpegGPUAccelationMethod.setToolTipText(Messages.getString("FFmpeg.5"));
+		FFmpegGPUAccelationMethod.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					configuration.setFFmpegGPUAccelationMethod((String) e.getItem());
+				}
+			}
+		});
+		FFmpegGPUAccelationMethod.setEditable(true);
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUAccelationMethod), cc.xy(2, 13));
+
+		builder.addLabel(Messages.getString("FFmpeg.6"), cc.xy(2, 15));
+		String[] threads = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
+
+		FFmpegGPUAccelationThreadNumber = new JComboBox<>(threads);
+		FFmpegGPUAccelationThreadNumber.setSelectedItem(configuration.getFFmpegGPUAccelationThreadNumber());
+		FFmpegGPUAccelationThreadNumber.setToolTipText(Messages.getString("FFmpeg.7"));
+
+		FFmpegGPUAccelationThreadNumber.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegGPUAccelationThreadNumber((String) e.getItem());
+			}
+		});
+		FFmpegGPUAccelationThreadNumber.setEditable(true);
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUAccelationThreadNumber), cc.xy(2, 17));
 
 		return builder.getPanel();
 	}
