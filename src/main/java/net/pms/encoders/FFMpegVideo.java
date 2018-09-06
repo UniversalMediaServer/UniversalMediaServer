@@ -853,7 +853,6 @@ public class FFMpegVideo extends Player {
 			cmdList.add("lavfi");
 			cmdList.add("-i");
  			cmdList.add("anullsrc=cl=mono:=r="+String.valueOf(params.mediaRenderer.getTranscodedVideoAudioSampleRate()));
-			cmdList.add("-shortest");
 		}
 
 		/**
@@ -1041,6 +1040,11 @@ public class FFMpegVideo extends Player {
 					cmdList.add("-ar");
 					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
 				}
+			}
+
+			// Adjust stream length when outputting silent audio for rennderers not supportinng for a movie without audio
+			if ((configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio()) && params.aid == null) {
+				cmdList.add("-shortest");
 			}
 
 			// Add the output options (-f, -c:a, -c:v, etc.)
