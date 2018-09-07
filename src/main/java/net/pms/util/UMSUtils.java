@@ -608,9 +608,9 @@ public class UMSUtils {
 					availableMethods.add(line);
 				}
 			}
-
-			configuration.setAvailableGPUAccelerationMethods(availableMethods);
-			configuration.save();
 		}
+
+		configuration.setAvailableGPUAccelerationMethods(availableMethods);
+		configuration.save();
 	}
 }
