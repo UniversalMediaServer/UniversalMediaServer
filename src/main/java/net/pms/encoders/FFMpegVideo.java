@@ -54,6 +54,7 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -823,13 +824,13 @@ public class FFMpegVideo extends Player {
 		} else if (configuration.isGPUAcceleration() && !avisynth) {
 		
 			// GPU deccding method
-			cmdList.add("-hwaccel");
-			if (configuration.getFFmpegGPUAccelationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
+//			cmdList.add("-hwaccel");
+			if (configuration.getFFmpegGPUAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
 				cmdList.add("-hwaccel");
-				cmdList.add(configuration.getFFmpegGPUAccelationMethod().trim());
+				cmdList.add(configuration.getFFmpegGPUAccelerationMethod().trim());
 			 } else {
-				if (configuration.getFFmpegGPUAccelationMethod().matches(".*-hwaccel +[a-z]+.*")) {
-					cmdList.add(configuration.getFFmpegGPUAccelationMethod());
+				if (configuration.getFFmpegGPUAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
+					cmdList.add(configuration.getFFmpegGPUAccelerationMethod());
 				} else {
 					cmdList.add("-hwaccel");
 					cmdList.add("auto");
@@ -1379,27 +1380,17 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
 
 		builder.add(new JLabel(Messages.getString("FFmpeg.4")), cc.xy(2, 11));
-		String[] keys = new String[] {
-			"auto",
-			"cuvid",
-			"cuda",
-			"d3d11va",
-			"d3d11va2",
-			"dxva2",
-			"vaapi",
-			"vdpau",
-			"videotoolbox",
-			"qsv",
-		};
+		
+		String[] keys = configuration.getAvailableGPUAccelerationMethods();
 
 		FFmpegGPUAccelationMethod = new JComboBox<>(keys);
-		FFmpegGPUAccelationMethod.setSelectedItem(configuration.getFFmpegGPUAccelationMethod());
+		FFmpegGPUAccelationMethod.setSelectedItem(configuration.getFFmpegGPUAccelerationMethod());
 		FFmpegGPUAccelationMethod.setToolTipText(Messages.getString("FFmpeg.5"));
 		FFmpegGPUAccelationMethod.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setFFmpegGPUAccelationMethod((String) e.getItem());
+					configuration.setFFmpegGPUAccelerationMethod((String) e.getItem());
 				}
 			}
 		});

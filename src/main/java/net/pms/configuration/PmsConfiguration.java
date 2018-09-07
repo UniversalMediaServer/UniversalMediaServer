@@ -109,6 +109,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
+	protected static final String KEY_AVAILABLE_FFMPEG_GPU_ACCELERATION_METHODS = "available_ffmpeg_gpu_acceleration_methods";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
 	protected static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
 	protected static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
@@ -148,8 +149,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
-	protected static final String KEY_FFMPEG_GPU_ACCELATION_METHOD = "ffmpeg_gpu_accelation_method";
-	protected static final String KEY_FFMPEG_GPU_ACCELATION_THREAD_NUMBER = "ffmpeg_gpu_accelation_thread_number";
+	protected static final String KEY_FFMPEG_GPU_ACCELERATION_METHOD = "ffmpeg_gpu_acceleration_method";
+	protected static final String KEY_FFMPEG_GPU_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_acceleration_thread_number";
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
@@ -2132,20 +2133,28 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
 	}
 
-	public String getFFmpegGPUAccelationMethod() {
-		return getString(KEY_FFMPEG_GPU_ACCELATION_METHOD, "auto");
+	public String getFFmpegGPUAccelerationMethod() {
+		return getString(KEY_FFMPEG_GPU_ACCELERATION_METHOD, "auto");
 	}
 
-	public void setFFmpegGPUAccelationMethod(String value) {
-		configuration.setProperty(KEY_FFMPEG_GPU_ACCELATION_METHOD, value);
+	public void setFFmpegGPUAccelerationMethod(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_ACCELERATION_METHOD, value);
 	}
 
 	public String getFFmpegGPUAccelationThreadNumber() {
-		return getString(KEY_FFMPEG_GPU_ACCELATION_THREAD_NUMBER,"1");
+		return getString(KEY_FFMPEG_GPU_ACCELERATION_THREAD_NUMBER,"1");
 	}
 
 	public void setFFmpegGPUAccelationThreadNumber(String value) {
-		configuration.setProperty(KEY_FFMPEG_GPU_ACCELATION_THREAD_NUMBER, value);
+		configuration.setProperty(KEY_FFMPEG_GPU_ACCELERATION_THREAD_NUMBER, value);
+	}
+
+	public String[] getAvailableGPUAccelerationMethods() {
+		return getString(KEY_AVAILABLE_FFMPEG_GPU_ACCELERATION_METHODS, "auto").split(",");
+	}
+
+	public void setAvailableGPUAccelerationMethods(List<String> methods) {
+		configuration.setProperty(KEY_AVAILABLE_FFMPEG_GPU_ACCELERATION_METHODS, listToString(methods));
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {

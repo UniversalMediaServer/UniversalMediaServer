@@ -27,6 +27,7 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
@@ -35,6 +36,9 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapperImpl;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -564,6 +568,49 @@ public class UMSUtils {
 				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
 			}
 			return null;
+		}
+	}
+
+	/**
+	 *  Check available GPU acceleration methods possibly used by FFmpeg.
+	 *  
+	 *  @param configuration in which the available GPU acceleration methods will be stored
+	 * @throws ConfigurationException 
+	 */
+	public static void CheckGPUAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+		OutputParams outputParams = new OutputParams(configuration);
+		outputParams.waitbeforestart = 0;
+		outputParams.log = true;
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-hwaccels"}, false, outputParams, true, false);
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e) { }
+
+				pw.stopProcess();
+			}
+		};
+
+		Thread failsafe = new Thread(r, "Get GPU acceleration methods used by FFmpeg");
+		failsafe.start();
+		pw.run();
+		List<String> result = pw.getOtherResults();
+		List<String> availableMethods = new ArrayList<String>(1);
+		availableMethods.addAll(Arrays.asList("auto"));
+		if (result != null) {
+			for (String line : result) {
+				line = line.trim();
+				if (line.equals("Hardware acceleration methods:")) {
+					continue;
+				} else {
+					availableMethods.add(line);
+				}
+			}
+
+			configuration.setAvailableGPUAccelerationMethods(availableMethods);
+			configuration.save();
 		}
 	}
 }
