@@ -20,6 +20,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 
 * [DeFlanko][8]
 * [Optimus_prime][7]
+* [squadjot][30]
 
 ## Links
 
@@ -102,3 +103,4 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [27]: https://www.ffmpeg.org/
   [28]: https://mediaarea.net/en/MediaInfo
   [29]: https://crowdin.com/
+  [30]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=55
