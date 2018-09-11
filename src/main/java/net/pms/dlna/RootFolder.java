@@ -1510,6 +1510,9 @@ public class RootFolder extends DLNAResource {
 							} else {
 								LOGGER.trace("Folder {} is empty", filename);
 							}
+						} else if ("ENTRY_DELETE".equals(event)) {
+							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
+							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {

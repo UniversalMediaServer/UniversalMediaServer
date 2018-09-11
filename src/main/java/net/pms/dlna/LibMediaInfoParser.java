@@ -668,6 +668,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.ADTS;
 		} else if (value.startsWith("amr")) {
 			format = FormatConfiguration.AMR;
+		} else if (value.equals("dolby e")) {
+			format = FormatConfiguration.DOLBYE;
 		} else if (
 			value.equals("ac-3") ||
 			value.equals("a_ac3") ||

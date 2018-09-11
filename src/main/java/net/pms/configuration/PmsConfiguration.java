@@ -3975,7 +3975,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean useChromecastExt() {
-		return getBoolean(KEY_CHROMECAST_EXT, true);
+		return getBoolean(KEY_CHROMECAST_EXT, false);
 	}
 
 	public boolean isChromecastDbg() {
