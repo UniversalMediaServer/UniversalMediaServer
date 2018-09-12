@@ -160,7 +160,6 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		ResultSet rs = null;
 		Statement stmt = null;
-		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
 			conn = getConnection();
@@ -295,9 +294,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
 				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append("))");
-				if (trace) {
-					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
-				}
+				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 
 				sb = new StringBuilder();
@@ -324,9 +321,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("    REFERENCES FILES(ID)");
 				sb.append("    ON DELETE CASCADE");
 				sb.append(')');
-				if (trace) {
-					LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
-				}
+				LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 
 				sb = new StringBuilder();
@@ -343,10 +338,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("    REFERENCES FILES(ID)");
 				sb.append("    ON DELETE CASCADE");
 				sb.append(')');
-
-				if (trace) {
-					LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
-				}
+				LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 
 				LOGGER.trace("Creating table METADATA");
