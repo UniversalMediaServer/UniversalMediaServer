@@ -60,6 +60,24 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+
+
+import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.CustomJComboBox;
+import net.pms.newgui.components.CustomJTextField;
+import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.KeyedStringComboBoxModel;
+
+import net.pms.util.FormLayoutUtil;
+import java.awt.ComponentOrientation;
+
 /*
  * Pure FFmpeg video player.
  *
@@ -114,6 +132,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
+		ArrayList<String> deinterlaceFilterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
 		final RendererConfiguration renderer = params.mediaRenderer;
 
@@ -126,6 +145,72 @@ public class FFMpegVideo extends Player {
 			scaleWidth = media.getWidth();
 			scaleHeight = media.getHeight();
 		}
+
+		// Deinterlace Filter
+		if (configuration.getFFmpegDeinterlaceMode().equals("0")) {
+			deinterlaceFilterChain.add("idet=analyze_interlaced_flag=1");
+			deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=auto:deint=interlaced");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("1")) {
+			deinterlaceFilterChain.add("setfield=bff");
+			deinterlaceFilterChain.add("idet=analyze_interlaced_flag=1");
+			deinterlaceFilterChain.add("setfield=tff");
+			deinterlaceFilterChain.add("idet=analyze_interlaced_flag=1");
+			deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=auto:deint=interlaced");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("2")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=auto:deint=interlaced");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("3")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=tff:deint=interlaced");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("4")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=bff:deint=interlaced");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("5")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=tff:deint=all");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("6")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=bff:deint=all");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("7")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_field:parity=tff:deint=all");
+			deinterlaceFilterChain.add("mcdeint=mode=fast:parity=tff");
+			deinterlaceFilterChain.add("framestep=2");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("8")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_field:parity=bff:deint=all");
+			deinterlaceFilterChain.add("mcdeint=mode=fast:parity=bff");
+			deinterlaceFilterChain.add("framestep=2");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("9")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_field:parity=tff:deint=all");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("10")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_field:parity=bff:deint=all");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("11")) {
+			deinterlaceFilterChain.add("bwdif=mode=send_field:parity=tff:deint=all");
+			deinterlaceFilterChain.add("mcdeint=mode=fast:parity=tff");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("12")) {
+		deinterlaceFilterChain.add("bwdif=mode=send_field:parity=bff:deint=all");
+			deinterlaceFilterChain.add("mcdeint=mode=fast:parity=bff");
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("13")) {
+			if (scaleHeight <= 576) {
+				deinterlaceFilterChain.add("bwdif=mode=send_field:parity=tff:deint=all");
+				deinterlaceFilterChain.add("mcdeint=mode=fast:parity=tff");
+				deinterlaceFilterChain.add("framestep=2");
+			} else {
+				deinterlaceFilterChain.add("setfield=bff");
+				deinterlaceFilterChain.add("idet=analyze_interlaced_flag=1");
+				deinterlaceFilterChain.add("setfield=tff");
+				deinterlaceFilterChain.add("idet=analyze_interlaced_flag=1");
+				deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=auto:deint=interlaced");
+			}
+		} else if (configuration.getFFmpegDeinterlaceMode().equals("14")) {
+			if (scaleHeight <= 576) {
+				deinterlaceFilterChain.add("bwdif=mode=send_field:parity=bff:deint=all");
+				deinterlaceFilterChain.add("mcdeint=mode=fast:parity=bff");
+				deinterlaceFilterChain.add("framestep=2");
+			} else {
+				deinterlaceFilterChain.add("setfield=bff");
+				 deinterlaceFilterChain.add("idet=analyze_interlaced_flag=1");
+				deinterlaceFilterChain.add("setfield=tff");
+				deinterlaceFilterChain.add("idet=analyze_interlaced_flag=1");
+				deinterlaceFilterChain.add("bwdif=mode=send_frame:parity=auto:deint=interlaced");
+			}
+		}
+
+		filterChain.addAll(deinterlaceFilterChain);
 
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 
@@ -1269,6 +1354,7 @@ public class FFMpegVideo extends Player {
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
+	private JComboBox<String> FFmpegDeinterlaceMode;
 
 	@Override
 	public JComponent config() {
@@ -1278,7 +1364,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1331,6 +1417,39 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
+
+		builder.addLabel(Messages.getString("FFmpeg.4"), cc.xy(2, 11));	
+		String[] mode = new String[] {
+			"disable",
+			"0",
+			"1",
+			"2",
+			"3",
+			"4",
+			"5",
+			"6",
+			"7",
+			"8",
+			"9",
+			"10",
+			"11",
+			"12",
+			"13",
+		};
+		FFmpegDeinterlaceMode = new JComboBox<>(mode);
+		FFmpegDeinterlaceMode.setToolTipText(Messages.getString("FFmpeg.5"));
+		FFmpegDeinterlaceMode.setSelectedItem(configuration.getFFmpegDeinterlaceMode());
+		FFmpegDeinterlaceMode.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					configuration.setFFmpegDeinterlaceMode((String) e.getItem());
+				}
+			}
+		});
+		FFmpegDeinterlaceMode.setEditable(false);
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegDeinterlaceMode), cc.xy(2,13));
+
 
 		return builder.getPanel();
 	}
