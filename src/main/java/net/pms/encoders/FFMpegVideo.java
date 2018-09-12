@@ -852,7 +852,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add("-f");
 			cmdList.add("lavfi");
 			cmdList.add("-i");
- 			cmdList.add("anullsrc=cl=mono:=r="+String.valueOf(params.mediaRenderer.getTranscodedVideoAudioSampleRate()));
+ 			cmdList.add("anullsrc=cl=mono:r="+String.valueOf(params.mediaRenderer.getTranscodedVideoAudioSampleRate()));
 		}
 
 		/**
