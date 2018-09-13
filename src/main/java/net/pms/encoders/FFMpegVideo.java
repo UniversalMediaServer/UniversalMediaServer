@@ -59,6 +59,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 
 /*
  * Pure FFmpeg video player.
@@ -357,8 +358,17 @@ public class FFMpegVideo extends Player {
 				} else if (type() == Format.AUDIO) {
 					// Skip
 				} else if (renderer.isTranscodeToAAC()) {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("aac");
+				    // If mac users specify both AudioToolBox and Libfdk , AudioToolBox is selected. If the others do so, Libfdk is selected.
+				    if (configuration.isFFmpegAudiotoolboxEncoder()){
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("aac_at");
+				    } else if (configuration.isFFmpegLibfdkEncoder() && !configuration.isFFmpegAudiotoolboxEncoder()){
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("libfdk_aac");
+				    } else {
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("aac");
+					}
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
@@ -1269,6 +1279,7 @@ public class FFMpegVideo extends Player {
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
+	private JCheckBox FFmpegAudiotoolboxEncoder;
 
 	@Override
 	public JComponent config() {
@@ -1278,7 +1289,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1331,6 +1342,20 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
+
+		if (Platform.isMac()) {
+			FFmpegAudiotoolboxEncoder = new JCheckBox(Messages.getString("FFmpeg.4"), configuration.isFFmpegAudiotoolboxEncoder());
+			FFmpegAudiotoolboxEncoder.setContentAreaFilled(false);
+			FFmpegAudiotoolboxEncoder.setToolTipText(Messages.getString("FFmpeg.5"));
+			FFmpegAudiotoolboxEncoder.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setFFmpegAudiotoolboxEncoder(e.getStateChange() == ItemEvent.SELECTED);
+				}
+			});
+		}
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegAudiotoolboxEncoder), cc.xy(2, 13));
+
 
 		return builder.getPanel();
 	}

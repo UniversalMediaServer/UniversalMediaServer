@@ -143,11 +143,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
+	protected static final String KEY_FFMPEG_AUDIOTOOLBOX_ENCODER = "ffmpeg_audiotoolbox_encoder";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
+	protected static final String KEY_FFMPEG_LIBFDK_ENCODER = "ffmpeg_libfdk_encoder";
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
@@ -1664,6 +1666,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setAudioBitrate(int value) {
 		configuration.setProperty(KEY_AUDIO_BITRATE, value);
+	}
+
+	public void setFFmpegAudiotoolboxEncoder(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AUDIOTOOLBOX_ENCODER, value);
+	}
+
+	public boolean isFFmpegAudiotoolboxEncoder() {
+		return getBoolean(KEY_FFMPEG_AUDIOTOOLBOX_ENCODER, false) && Platform.isMac();
+	}
+
+	public void setFFmpegLibfdkEncoder(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_LIBFDK_ENCODER, value);
+	}
+	public boolean isFFmpegLibfdkEncoder() {
+		return getBoolean(KEY_FFMPEG_LIBFDK_ENCODER, false);
 	}
 
 	/**
