@@ -41,7 +41,11 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.newgui.components.AnimatedIcon;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.components.JAnimatedButton;
+import net.pms.newgui.components.JImageButton;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
@@ -59,7 +63,6 @@ public class NavigationShareTab {
 	private JCheckBox hideextensions;
 	private JCheckBox hideemptyfolders;
 	private JCheckBox hideengines;
-	private CustomJButton but5;
 	private JTextField seekpos;
 	private JCheckBox thumbgenCheckBox;
 	private JCheckBox mplayer_thumb;
@@ -81,9 +84,30 @@ public class NavigationShareTab {
 	private JCheckBox episodeTitles;
 	private JCheckBox resume;
 	private JCheckBox isScanSharedFoldersOnStartup;
-	private JComboBox fullyPlayedAction;
+	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
+	private final JAnimatedButton scanButton = new JAnimatedButton("button-scan.png");
+	private final AnimatedIcon scanNormalIcon = (AnimatedIcon) scanButton.getIcon();
+	private final AnimatedIcon scanRolloverIcon = (AnimatedIcon) scanButton.getRolloverIcon();
+	private final AnimatedIcon scanPressedIcon = (AnimatedIcon) scanButton.getPressedIcon();
+	private final AnimatedIcon scanDisabledIcon = (AnimatedIcon) scanButton.getDisabledIcon();
+	private final AnimatedIcon scanBusyIcon = new AnimatedIcon(
+		scanButton, true, AnimatedIcon.buildAnimation(
+			"button-scan-busyF%d.png", 0, 14, false, 35, 35, 35
+		)
+	);
+	private final AnimatedIcon scanBusyRolloverIcon = new AnimatedIcon(
+		scanButton, false, new AnimatedIconFrame(LooksFrame.readImageIcon("button-cancel.png"), 0)
+	);
+	private final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(
+		scanButton, false, new AnimatedIconFrame(LooksFrame.readImageIcon("button-cancel_pressed.png"), 0)
+	);
+	private final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(
+		scanButton, true, AnimatedIcon.buildAnimation(
+			"button-scan-busyF%d_disabled.png", 0, 14, false, 35, 35, 35
+		)
+	);
 
 	// Settings for the visibility of virtual folders
 	private JCheckBox isShowFolderServerSettings;
@@ -196,46 +220,46 @@ public class NavigationShareTab {
 
 		// Build gui with initialized components
 		if (!configuration.isHideAdvancedOptions()) {
-			JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"),      FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
+			JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(thumbgenCheckBox),             FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("NetworkTab.16"),                        FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
-			builder.add(seekpos,                                                         FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(image_thumb),                  FormLayoutUtil.flip(cc.xyw(9, 3, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(thumbgenCheckBox),        FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkTab.16"),                   FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
+			builder.add(seekpos,                                                    FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(image_thumb),             FormLayoutUtil.flip(cc.xyw(9, 3, 4), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.26"),                           FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
-			builder.add(audiothumbnail,                                                  FormLayoutUtil.flip(cc.xyw(4, 5, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(mplayer_thumb),                FormLayoutUtil.flip(cc.xyw(9, 5, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.26"),                      FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
+			builder.add(audiothumbnail,                                             FormLayoutUtil.flip(cc.xyw(4, 5, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(mplayer_thumb),           FormLayoutUtil.flip(cc.xyw(9, 5, 4), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.27"),                           FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
-			builder.add(defaultThumbFolder,                                              FormLayoutUtil.flip(cc.xyw(4, 7, 2), colSpec, orientation));
-			builder.add(select,                                                          FormLayoutUtil.flip(cc.xy(6, 7), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(dvdiso_thumb),                 FormLayoutUtil.flip(cc.xyw(9, 7, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.27"),                      FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+			builder.add(defaultThumbFolder,                                         FormLayoutUtil.flip(cc.xyw(4, 7, 2), colSpec, orientation));
+			builder.add(select,                                                     FormLayoutUtil.flip(cc.xy(6, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(dvdiso_thumb),            FormLayoutUtil.flip(cc.xyw(9, 7, 4), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"),              FormLayoutUtil.flip(cc.xyw(1, 9, 12), colSpec, orientation));
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"),         FormLayoutUtil.flip(cc.xyw(1, 9, 12), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.addLabel(Messages.getString("FoldTab.18"),                           FormLayoutUtil.flip(cc.xyw(1, 11, 3), colSpec, orientation));
-			builder.add(sortmethod,                                                      FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(ignorethewordthe),             FormLayoutUtil.flip(cc.xyw(9, 11, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.18"),                      FormLayoutUtil.flip(cc.xyw(1, 11, 3), colSpec, orientation));
+			builder.add(sortmethod,                                                 FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(ignorethewordthe),        FormLayoutUtil.flip(cc.xyw(9, 11, 4), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),            FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),                FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),       FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),           FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),              FormLayoutUtil.flip(cc.xyw(1, 15, 12), colSpec, orientation));
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),         FormLayoutUtil.flip(cc.xyw(1, 15, 12), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),               FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),                  FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),             FormLayoutUtil.flip(cc.xyw(9, 17, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),        FormLayoutUtil.flip(cc.xyw(9, 17, 4), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                       FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                       FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                     FormLayoutUtil.flip(cc.xyw(9, 19, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                  FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                  FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                FormLayoutUtil.flip(cc.xyw(9, 19, 4), colSpec, orientation));
 
 			builder.add(GuiUtil.getPreferredSizeComponent(cacheenable),                  FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 			builder.add(cachereset,                                                      FormLayoutUtil.flip(cc.xyw(4, 21, 3), colSpec, orientation));
@@ -253,12 +277,12 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(resume),                       FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xyw(9, 27, 4), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1,  29   ), colSpec, orientation));
-			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(4,  29, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xyw(9,  29, 2), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(11, 29, 2), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.72"),                      FormLayoutUtil.flip(cc.xy (1,  29   ), colSpec, orientation));
+			builder.add(fullyPlayedAction,                                         FormLayoutUtil.flip(cc.xyw(4,  29, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(9,  29, 2), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory,                          FormLayoutUtil.flip(cc.xyw(11, 29, 2), colSpec, orientation));
 
-			builder.add(builderSharedFolder.getPanel(),                                FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
+			builder.add(builderSharedFolder.getPanel(),                             FormLayoutUtil.flip(cc.xyw(1, 31, 12), colSpec, orientation));
 		} else {
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 		}
@@ -790,7 +814,7 @@ public class NavigationShareTab {
 		FList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		FList.setIntercellSpacing(new Dimension(8, 2));
 
-		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
+		JImageButton but = new JImageButton("button-add-folder.png");
 		but.setToolTipText(Messages.getString("FoldTab.9"));
 		but.addActionListener(new ActionListener() {
 			@Override
@@ -814,7 +838,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
+		JImageButton but2 = new JImageButton("button-remove-folder.png");
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
 		but2.addActionListener(new ActionListener() {
 			@Override
@@ -832,7 +856,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
+		JImageButton but3 = new JImageButton("button-arrow-down.png");
 		but3.setToolTipText(Messages.getString("FoldTab.12"));
 		but3.addActionListener(new ActionListener() {
 			@Override
@@ -855,7 +879,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		CustomJButton but4 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
+		JImageButton but4 = new JImageButton("button-arrow-up.png");
 		but4.setToolTipText(Messages.getString("FoldTab.12"));
 		but4.addActionListener(new ActionListener() {
 			@Override
@@ -879,16 +903,31 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		but5 = new CustomJButton(LooksFrame.readImageIcon("button-scan.png"));
-		but5.setToolTipText(Messages.getString("FoldTab.2"));
-		but5.addActionListener(new ActionListener() {
+		scanButton.setToolTipText(Messages.getString("FoldTab.2"));
+		scanBusyIcon.start();
+		scanBusyDisabledIcon.start();
+		scanButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (configuration.getUseCache()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
-						if (database.isScanLibraryRunning()) {
+						if (!database.isScanLibraryRunning()) {
+							int option = JOptionPane.showConfirmDialog(
+								looksFrame,
+								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
+								Messages.getString("Dialog.Question"),
+								JOptionPane.YES_NO_OPTION);
+							if (option == JOptionPane.YES_OPTION) {
+								database.scanLibrary();
+								scanButton.setIcon(scanBusyIcon);
+								scanButton.setRolloverIcon(scanBusyRolloverIcon);
+								scanButton.setPressedIcon(scanBusyPressedIcon);
+								scanButton.setDisabledIcon(scanBusyDisabledIcon);
+								scanButton.setToolTipText(Messages.getString("FoldTab.40"));
+							}
+						} else {
 							int option = JOptionPane.showConfirmDialog(
 								looksFrame,
 								Messages.getString("FoldTab.10"),
@@ -897,28 +936,24 @@ public class NavigationShareTab {
 							if (option == JOptionPane.YES_OPTION) {
 								database.stopScanLibrary();
 								looksFrame.setStatusLine(Messages.getString("FoldTab.41"));
-								setScanLibraryEnabled(false);
-								but5.setToolTipText(Messages.getString("FoldTab.41"));
+								scanButton.setEnabled(false);
+								scanButton.setToolTipText(Messages.getString("FoldTab.41"));
 							}
-						} else {
-							database.scanLibrary();
-							but5.setIcon(LooksFrame.readImageIcon("button-scan-busy.gif"));
-							but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan-cancel.png"));
-							but5.setToolTipText(Messages.getString("FoldTab.40"));
 						}
 					}
 				}
 			}
 		});
 
-		/**
-		 * Hide the scan button in basic mode since we do it automatically now.
+		/*
+		 * Hide the scan button in basic mode since it's better to let it be done in
+		 * realtime.
 		 */
 		if (!configuration.isHideAdvancedOptions()) {
-			builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+			builderFolder.add(scanButton, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 		}
 
-		but5.setEnabled(configuration.getUseCache());
+		scanButton.setEnabled(configuration.getUseCache());
 
 		isScanSharedFoldersOnStartup = new JCheckBox(Messages.getString("NetworkTab.StartupScan"), configuration.isScanSharedFoldersOnStartup());
 		isScanSharedFoldersOnStartup.setToolTipText(Messages.getString("NetworkTab.StartupScanTooltip"));
@@ -959,10 +994,12 @@ public class NavigationShareTab {
 	}
 
 	public void setScanLibraryEnabled(boolean enabled) {
-		but5.setEnabled(enabled);
-		but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
-		but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
-		but5.setToolTipText(Messages.getString("FoldTab.2"));
+		scanButton.setEnabled(enabled);
+		scanButton.setIcon(scanNormalIcon);
+		scanButton.setRolloverIcon(scanRolloverIcon);
+		scanButton.setPressedIcon(scanPressedIcon);
+		scanButton.setDisabledIcon(scanDisabledIcon);
+		scanButton.setToolTipText(Messages.getString("FoldTab.2"));
 	}
 
 	public class SharedFoldersTableModel extends DefaultTableModel {
