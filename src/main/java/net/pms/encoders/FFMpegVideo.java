@@ -247,7 +247,12 @@ public class FFMpegVideo extends Player {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
-					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+
+					if (params.aid == null && (configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio())) {
+						subsFilter.append("[0:v][2:s]overlay"); // this assumes the sub file is single-language
+					} else {
+						subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+					}
 				}
 			}
 			if (isNotBlank(subsFilter)) {
@@ -848,7 +853,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Output silent audio for rennderers not supportinng for a movie without audio
-		if ((configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio()) && params.aid == null) {
+		if (params.aid == null && (configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio())) {
 			cmdList.add("-f");
 			cmdList.add("lavfi");
 			cmdList.add("-i");
@@ -1043,7 +1048,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Adjust stream length when outputting silent audio for rennderers not supportinng for a movie without audio
-			if ((configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio()) && params.aid == null) {
+			if (params.aid == null && (configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio())) {
 				cmdList.add("-shortest");
 			}
 
