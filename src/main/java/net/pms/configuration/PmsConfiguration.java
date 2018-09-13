@@ -151,6 +151,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	protected static final String KEY_FFMPEG_SOXR = "ffmpeg_soxr";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	protected static final String KEY_FOLDERS = "folders";
@@ -2447,6 +2448,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isAudioRemuxAC3() {
 		return getBoolean(KEY_AUDIO_REMUX_AC3, true);
+	}
+
+	public void setFFmpegSoxr(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_SOXR, value);
+	}
+
+	public boolean isFFmpegSoxr() {
+		return getBoolean(KEY_FFMPEG_SOXR, false);
 	}
 
 	public void setMencoderRemuxMPEG2(boolean value) {
