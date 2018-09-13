@@ -356,17 +356,13 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
-				} else {
-					if (!customFFmpegOptions.matches(".*-(c:a|codec:a|acodec).*")) {
-						if (renderer.isTranscodeToAAC()) {
-							transcodeOptions.add("-c:a");
-							transcodeOptions.add("aac");
-						} else {
-							if (!customFFmpegOptions.contains("-c:a ")) {
-								transcodeOptions.add("-c:a");
-								transcodeOptions.add("ac3");
-							}
-						}
+				} else if (!customFFmpegOptions.matches(".*-(c:a|codec:a|acodec).*")) {
+					if (renderer.isTranscodeToAAC()) {
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("aac");
+					} else if (!customFFmpegOptions.contains("-c:a ")) {
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("ac3");
 					}
 				}
 			}
@@ -1039,7 +1035,11 @@ public class FFMpegVideo extends Player {
 
 				// Use high quality resampler
 				// The parameters of http://forum.minimserver.com/showthread.php?tid=4181&pid=27185 are used.
-				if (params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate() && configuration.isFFmpegSoxr() && !customFFmpegOptions.contains("--resampler")) {
+				if (
+					params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate() &&
+					configuration.isFFmpegSoX() &&
+					!customFFmpegOptions.contains("--resampler")
+				) {
 					cmdList.add("-resampler");
 					cmdList.add("soxr");
 					cmdList.add("-precision");
@@ -1284,7 +1284,7 @@ public class FFMpegVideo extends Player {
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
-	private JCheckBox FFmpegSoxr;
+	private JCheckBox isFFmpegSoX;
 	
 	@Override
 	public JComponent config() {
@@ -1348,16 +1348,16 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
 
-		FFmpegSoxr = new JCheckBox(Messages.getString("FFmpeg.4"), configuration.isFFmpegSoxr());
-		FFmpegSoxr.setContentAreaFilled(false);
-		FFmpegSoxr.setToolTipText(Messages.getString("FFmpeg.5"));
-		FFmpegSoxr.addItemListener(new ItemListener() {
+		isFFmpegSoX = new JCheckBox(Messages.getString("FFmpeg.Sox"), configuration.isFFmpegSoX());
+		isFFmpegSoX.setContentAreaFilled(false);
+		isFFmpegSoX.setToolTipText(Messages.getString("FFmpeg.SoxTooltip"));
+		isFFmpegSoX.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegSoxr(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setFFmpegSoX(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegSoxr), cc.xy(2, 11));
+		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(2, 11));
 
 		return builder.getPanel();
 	}
