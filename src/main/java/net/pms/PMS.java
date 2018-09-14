@@ -1950,4 +1950,11 @@ public class PMS {
 	public static void setKey(String key, String val) {
 		instance.keysDb.set(key, val);
 	}
+
+	/**
+	 * @return whether UMS is being run by Surefire
+	 */
+	public static boolean isRunningTests() {
+		return System.getProperty("surefire.real.class.path") != null;
+	}
 }
