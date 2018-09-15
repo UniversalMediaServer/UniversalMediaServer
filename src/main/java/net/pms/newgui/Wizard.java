@@ -20,6 +20,7 @@
 
 package net.pms.newgui;
 
+import com.sun.jna.Platform;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import org.apache.commons.configuration.ConfigurationException;
@@ -36,7 +37,7 @@ public class Wizard {
 
 	public static void run(PmsConfiguration configuration) {
 		// Total number of questions
-		int numberOfQuestions = 5;
+		int numberOfQuestions = Platform.isMac() ? 4 : 5;
 
 		// The current question number
 		int currentQuestionNumber = 1;
@@ -64,22 +65,24 @@ public class Wizard {
 				Messages.getString("Wizard.10")
 			};
 
-		// Ask if they want UMS to start minimized
-		int whetherToStartMinimized = JOptionPane.showOptionDialog(
-			null,
-			Messages.getString("Wizard.3"),
-			String.format(status, currentQuestionNumber++),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.QUESTION_MESSAGE,
-			null,
-			yesNoOptions,
-			yesNoOptions[0]
-		);
+		if (!Platform.isMac()) {
+			// Ask if they want UMS to start minimized
+			int whetherToStartMinimized = JOptionPane.showOptionDialog(
+				null,
+				Messages.getString("Wizard.3"),
+				String.format(status, currentQuestionNumber++),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				yesNoOptions,
+				yesNoOptions[1]
+			);
 
-		if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-			configuration.setMinimized(true);
-		} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-			configuration.setMinimized(false);
+			if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
+				configuration.setMinimized(true);
+			} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
+				configuration.setMinimized(false);
+			}
 		}
 
 		// Ask if their network is wired, etc.
