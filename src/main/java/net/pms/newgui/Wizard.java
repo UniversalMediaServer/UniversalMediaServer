@@ -21,8 +21,10 @@
 package net.pms.newgui;
 
 import com.sun.jna.Platform;
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +37,7 @@ import net.pms.configuration.PmsConfiguration;
 public class Wizard {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Wizard.class);
 
-	public static void run(PmsConfiguration configuration) {
+	public static void run(final PmsConfiguration configuration) {
 		// Total number of questions
 		int numberOfQuestions = Platform.isMac() ? 4 : 5;
 
@@ -168,27 +170,36 @@ public class Wizard {
 			okOptions[0]
 		);
 
-		JFileChooser chooser;
 		try {
-			chooser = new JFileChooser();
-		} catch (Exception ee) {
-			chooser = new JFileChooser(new RestrictedFileSystemView());
-		}
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					JFileChooser chooser;
+					try {
+						chooser = new JFileChooser();
+					} catch (Exception ee) {
+						chooser = new JFileChooser(new RestrictedFileSystemView());
+					}
 
-		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		chooser.setDialogTitle(Messages.getString("Wizard.12"));
-		chooser.setMultiSelectionEnabled(false);
-		if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-			configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
-		} else {
-			// If user cancel this option set the default directory which depends on the operating system.
-			// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
-			configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					chooser.setDialogTitle(Messages.getString("Wizard.12"));
+					chooser.setMultiSelectionEnabled(false);
+					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+						configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
+					} else {
+						// If user cancel this option set the default directory which depends on the operating system.
+						// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
+						configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
+					}
+				}
+			});
+		} catch (InterruptedException | InvocationTargetException e) {
+			LOGGER.error("Error when saving folders: ", e);
 		}
 
 		// The wizard finished, do not ask them again
 		configuration.setRunWizard(false);
-		
+
 		// Save all changes
 		try {
 			configuration.save();

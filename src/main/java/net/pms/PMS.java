@@ -474,10 +474,10 @@ public class PMS {
 			if (splash != null) {
 				splash.setVisible(false);
 			}
-			
+
 			// Run wizard
 			Wizard.run(configuration);
-			
+
 			// Unhide splash screen
 			if (splash != null) {
 				splash.setVisible(true);
