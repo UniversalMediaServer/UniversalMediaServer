@@ -361,11 +361,11 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
-				} else if (renderer.isTranscodeToAAC()) {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("aac");
-				} else {
-					if (!customFFmpegOptions.contains("-c:a ")) {
+				} else if (!customFFmpegOptions.matches(".*-(c:a|codec:a|acodec).*")) {
+					if (renderer.isTranscodeToAAC()) {
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("aac");
+					} else if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
 						transcodeOptions.add("ac3");
 					}
@@ -1032,7 +1032,7 @@ public class FFMpegVideo extends Player {
 					cmdList.add(String.valueOf(channels));
 				}
 
-				if (!customFFmpegOptions.contains("-ab ")) {
+				if (!customFFmpegOptions.matches(".* -(-ab|b:a) .*")) {
 					cmdList.add("-ab");
 					if (renderer.isTranscodeToAAC()) {
 						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
@@ -1041,9 +1041,24 @@ public class FFMpegVideo extends Player {
 					}
 				}
 
-				if (!customFFmpegOptions.contains("-ar ")) {
+				if (!customFFmpegOptions.contains("-ar ") && params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate()) {
 					cmdList.add("-ar");
 					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
+				}
+
+				// Use high quality resampler
+				// The parameters of http://forum.minimserver.com/showthread.php?tid=4181&pid=27185 are used.
+				if (
+					params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate() &&
+					configuration.isFFmpegSoX() &&
+					!customFFmpegOptions.contains("--resampler")
+				) {
+					cmdList.add("-resampler");
+					cmdList.add("soxr");
+					cmdList.add("-precision");
+					cmdList.add("33");
+					cmdList.add("-cheby");
+					cmdList.add("1");
 				}
 			}
 
@@ -1287,6 +1302,7 @@ public class FFMpegVideo extends Player {
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
+	private JCheckBox isFFmpegSoX;
 	private JCheckBox OutputSilentAudio;
 
 	@Override
@@ -1361,6 +1377,17 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(OutputSilentAudio), cc.xy(2, 11));
+
+		isFFmpegSoX = new JCheckBox(Messages.getString("FFmpeg.Sox"), configuration.isFFmpegSoX());
+		isFFmpegSoX.setContentAreaFilled(false);
+		isFFmpegSoX.setToolTipText(Messages.getString("FFmpeg.SoxTooltip"));
+		isFFmpegSoX.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegSoX(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(2, 13));
 
 		return builder.getPanel();
 	}

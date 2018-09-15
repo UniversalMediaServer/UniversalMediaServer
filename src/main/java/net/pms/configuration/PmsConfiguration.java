@@ -152,6 +152,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	protected static final String KEY_FFMPEG_OUTPUT_SILENT_AUDIO= "ffmpeg_output_silent_audio";
+	protected static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	protected static final String KEY_FOLDERS = "folders";
@@ -2456,6 +2457,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isFFmpegOutputSilentAudio() {
 		return getBoolean(KEY_FFMPEG_OUTPUT_SILENT_AUDIO, false);
+	}
+  
+	public void setFFmpegSoX(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_SOX, value);
+	}
+
+	public boolean isFFmpegSoX() {
+		return getBoolean(KEY_FFMPEG_SOX, false);
 	}
 
 	public void setMencoderRemuxMPEG2(boolean value) {
