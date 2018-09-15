@@ -600,8 +600,8 @@ public class PMS {
 			}
 		}
 
-		// Check available GPU HW acceleration methods used in FFmpeg
-		UMSUtils.CheckGPUAccelerationMethodsForFFmpeg(configuration);
+		// Check available GPU HW decoding acceleration methods used in FFmpeg
+		UMSUtils.CheckGPUDecodngAccelerationMethodsForFFmpeg(configuration);
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
