@@ -1330,7 +1330,7 @@ public class FFMpegVideo extends Player {
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
 	private JCheckBox isFFmpegSoX;
-	private JComboBox<String> FFmpegGPUconfigurationDecodingAccelationMethod;
+	private JComboBox<String> FFmpegGPUDecodingAccelationMethod;
 	private JComboBox<String> FFmpegGPUDecodingAccelationThreadNumber;
 
 	@Override
