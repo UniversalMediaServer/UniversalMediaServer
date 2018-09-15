@@ -572,12 +572,12 @@ public class UMSUtils {
 	}
 
 	/**
-	 *  Check available GPU acceleration methods possibly used by FFmpeg.
+	 *  Check available GPU decoding acceleration methods possibly used by FFmpeg.
 	 *  
 	 *  @param configuration in which the available GPU acceleration methods will be stored
 	 * @throws ConfigurationException 
 	 */
-	public static void CheckGPUAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+	public static void CheckGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.waitbeforestart = 0;
 		outputParams.log = true;
@@ -610,7 +610,7 @@ public class UMSUtils {
 			}
 		}
 
-		configuration.setAvailableGPUAccelerationMethods(availableMethods);
+		configuration.setFFmpegAvailableGPUDecodingAccelerationMethods(availableMethods);
 		configuration.save();
 	}
 }
