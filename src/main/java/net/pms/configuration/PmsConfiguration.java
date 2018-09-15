@@ -2146,7 +2146,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER,"1");
 	}
 
-	public void setFFmpegGPUADecodingAccelerationThreadNumber(String value) {
+	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
 		configuration.setProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, value);
 	}
 
