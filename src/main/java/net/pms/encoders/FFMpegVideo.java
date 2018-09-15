@@ -1405,6 +1405,7 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(2, 11));
+		
 		builder.add(new JLabel(Messages.getString("FFmpeg.GPUDecodingAccelerationMethod")), cc.xy(2, 13));
 		
 		String[] keys = configuration.getFFmpegAvailableGPUDecodingAccelerationMethods();
@@ -1423,12 +1424,12 @@ public class FFMpegVideo extends Player {
 		FFmpegGPUDecodingAccelerationMethod.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUDecodingAccelerationMethod), cc.xy(2, 15));
 
-		builder.addLabel(Messages.getString("FFmpeg.GPUDecodingAccelerationCount"), cc.xy(2, 17));
+		builder.addLabel(Messages.getString("FFmpeg.GPUDecodingThreadCount"), cc.xy(2, 17));
 		String[] threads = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
 
 		FFmpegGPUDecodingAccelerationThreadNumber = new JComboBox<>(threads);
 		FFmpegGPUDecodingAccelerationThreadNumber.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationThreadNumber());
-		FFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("FFmpeg.GPUThreadCountTooltip"));
+		FFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("FFmpeg.GPUDecodingThreadCountTooltip"));
 
 		FFmpegGPUDecodingAccelerationThreadNumber.addItemListener(new ItemListener() {
 			@Override
