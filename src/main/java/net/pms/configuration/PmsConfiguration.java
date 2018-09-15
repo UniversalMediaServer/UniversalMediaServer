@@ -2311,8 +2311,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (enabledEnginesBuilt) {
 			return;
 		}
-		String engines = configuration.getString(KEY_ENGINES).trim();
-		enabledEnginesLock.writeLock().lock();
+
+		String engines = getString(KEY_ENGINES, "").trim();
+		enabledEnginesLock.writeLock().lock();                            
+
 		try {
 			// Not a bug, using double checked locking
 			if (enabledEnginesBuilt) {
