@@ -1,3 +1,11 @@
+7.4.0 - 2018-09-??
+
+	General:
+		Added support for using GPU (video cards) for decoding via FFmpeg (thanks, onon765trb!)
+		Added option for higher quality audio resampling via FFmpeg (thanks, onon765trb!)
+		Files downloaded via the web interface have the correct filename (thanks, js-kyle!)
+		Improved stability when using custom FFmpeg settings (thanks, onon765trb!)
+
 7.3.1 - 2018-09-01
 
 	General:
