@@ -600,6 +600,9 @@ public class PMS {
 			}
 		}
 
+		// Check available GPU HW decoding acceleration methods used in FFmpeg
+		UMSUtils.CheckGPUDecodingAccelerationMethodsForFFmpeg(configuration);
+
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
 		// Check the existence of VSFilter / DirectVobSub
