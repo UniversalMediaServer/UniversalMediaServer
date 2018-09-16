@@ -572,10 +572,10 @@ public class UMSUtils {
 	}
 
 	/**
-	 *  Check available GPU decoding acceleration methods possibly used by FFmpeg.
-	 *  
-	 *  @param configuration in which the available GPU acceleration methods will be stored
-	 * @throws ConfigurationException 
+	 * Check available GPU decoding acceleration methods possibly used by FFmpeg.
+	 *
+	 * @param configuration in which the available GPU acceleration methods will be stored
+	 * @throws ConfigurationException
 	 */
 	public static void CheckGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);

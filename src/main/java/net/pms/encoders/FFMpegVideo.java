@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.*;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
@@ -54,30 +55,11 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
-import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-
-
-import net.pms.newgui.components.CustomJButton;
-import net.pms.newgui.components.CustomJComboBox;
-import net.pms.newgui.components.CustomJTextField;
-import net.pms.util.KeyedComboBoxModel;
-import net.pms.util.KeyedStringComboBoxModel;
-
-import net.pms.util.FormLayoutUtil;
-import java.awt.ComponentOrientation;
 
 /*
  * Pure FFmpeg video player.
@@ -817,14 +799,12 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(params.timeseek));
 		}
 
-		// Deccoding threads and GPU deccding
+		// Decoding threads and GPU deccding
 		if (nThreads > 0 && !configuration.isGPUAcceleration()) {
 				cmdList.add("-threads");
 				cmdList.add(String.valueOf(nThreads));
 		} else if (configuration.isGPUAcceleration() && !avisynth) {
-		
-			// GPU deccding method
-//			cmdList.add("-hwaccel");
+			// GPU decoding method
 			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
 				cmdList.add("-hwaccel");
 				cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
@@ -837,7 +817,7 @@ public class FFMpegVideo extends Player {
 			    }
 			}
 
-			// GPU deccding threads
+			// GPU decoding threads
 			if (configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim().matches("^[0-9]+$")) {
 				if (Integer.parseInt(configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim()) > 0) {
 					cmdList.add("-threads");
