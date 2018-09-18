@@ -600,6 +600,9 @@ public class PMS {
 			}
 		}
 
+		// Check available GPU HW decoding acceleration methods used in FFmpeg
+		UMSUtils.CheckGPUDecodingAccelerationMethodsForFFmpeg(configuration);
+
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
 		// Check the existence of VSFilter / DirectVobSub
@@ -1946,5 +1949,12 @@ public class PMS {
 
 	public static void setKey(String key, String val) {
 		instance.keysDb.set(key, val);
+	}
+
+	/**
+	 * @return whether UMS is being run by Surefire
+	 */
+	public static boolean isRunningTests() {
+		return System.getProperty("surefire.real.class.path") != null;
 	}
 }
