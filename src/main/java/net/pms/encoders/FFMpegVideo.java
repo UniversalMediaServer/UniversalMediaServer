@@ -397,8 +397,8 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("31");
 				}
 				if (!customFFmpegOptions.contains("-pix_fmt")) {
-    				transcodeOptions.add("-pix_fmt");
-    				transcodeOptions.add("yuv420p");
+    					transcodeOptions.add("-pix_fmt");
+    					transcodeOptions.add("yuv420p");
 				}
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
@@ -462,7 +462,7 @@ public class FFMpegVideo extends Player {
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
+		if ((params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) || (!customFFmpegOptions.matches(".*-(maxrate|bufsize)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(vbv-maxrate=|vbv-bufsize=).*")) {
 			if (rendererMaxBitrates[0] < 0) {
 				// odd special case here
 				// this is -1 so we guess that 3000 kbps is good
@@ -578,7 +578,7 @@ public class FFMpegVideo extends Player {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
 
-			if (!(customFFmpegOptions.contains("-crf") || customFFmpegOptions.contains("-b:v") || customFFmpegOptions.contains("-b ") || ((customFFmpegOptions.contains("-x264opts") || customFFmpegOptions.contains("-x264-params")) && (customFFmpegOptions.contains("crf=") || customFFmpegOptions.contains("bitrate=") || customFFmpegOptions.contains("B="))))) {
+			if (!customFFmpegOptions.matches(".*-(crf|b:v|b)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(crf=|bitrate=|B=).*") {
 				// Remove comment from the value
 				if (x264CRF.contains("/*")) {
 					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
