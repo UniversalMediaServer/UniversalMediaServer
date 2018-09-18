@@ -603,6 +603,9 @@ public class PMS {
 			}
 		}
 
+		// Check available GPU HW decoding acceleration methods used in FFmpeg
+		UMSUtils.CheckGPUDecodingAccelerationMethodsForFFmpeg(configuration);
+
 		frame.setConnectionState(ConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
