@@ -366,7 +366,6 @@ public class FFMpegVideo extends Player {
 						transcodeOptions.add("-c:a");
 						transcodeOptions.add("ac3");
 	  			}
-        }
 			}
 
 			InputFile newInput = null;
