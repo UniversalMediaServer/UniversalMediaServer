@@ -578,7 +578,7 @@ public class FFMpegVideo extends Player {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
 
-			if (!customFFmpegOptions.matches(".*-(crf|b:v|b)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(crf=|bitrate=|B=).*") {
+			if (!customFFmpegOptions.matches(".*-(crf|b:v|b)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(crf=|bitrate=|B=).*")) {
 				// Remove comment from the value
 				if (x264CRF.contains("/*")) {
 					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
