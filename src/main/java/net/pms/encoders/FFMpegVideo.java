@@ -462,7 +462,7 @@ public class FFMpegVideo extends Player {
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if ((params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) || (!customFFmpegOptions.matches(".*-(maxrate|bufsize)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(vbv-maxrate=|vbv-bufsize=).*")) {
+		if ((params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) || (!customFFmpegOptions.matches(".*-(maxrate|bufsize)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(vbv-maxrate=|vbv-bufsize=).*"))) {
 			if (rendererMaxBitrates[0] < 0) {
 				// odd special case here
 				// this is -1 so we guess that 3000 kbps is good
