@@ -252,7 +252,7 @@ public class FFMpegVideo extends Player {
 					if (audioRemuxMode) {
 						videoFilterOptions.add("-seek_timestamp");
 						videoFilterOptions.add("1");
-				    }
+					}
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
 					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
@@ -357,14 +357,15 @@ public class FFMpegVideo extends Player {
 					// Skip
 				} else if (!customFFmpegOptions.matches(".*-(c:a|codec:a|acodec).*")) {
 					if (!lpcmUse && renderer.isTranscodeToAAC()) {
-		  			transcodeOptions.add("-c:a");
-			  		transcodeOptions.add("aac");
-				  } else if (lpcmUse) {
-			  		transcodeOptions.add("-c:a");
-			  		transcodeOptions.add("pcm_s16le");
-	  			} else {
+		  				transcodeOptions.add("-c:a");
+			  			transcodeOptions.add("aac");
+				  	} else if (lpcmUse) {
+			  			transcodeOptions.add("-c:a");
+			  			transcodeOptions.add("pcm_s16le");
+	  				} else {
 						transcodeOptions.add("-c:a");
 						transcodeOptions.add("ac3");
+	  				}
 	  			}
 			}
 
@@ -798,9 +799,9 @@ public class FFMpegVideo extends Player {
 
 		if (params.timeseek > 0) {
 			if (audioRemuxMode) {
-    			cmdList.add("-seek_timestamp");
-    			cmdList.add("1");
-		    }
+    				cmdList.add("-seek_timestamp");
+    				cmdList.add("1");
+			}
 			cmdList.add("-ss");
 			cmdList.add(String.valueOf(params.timeseek));
 		}
