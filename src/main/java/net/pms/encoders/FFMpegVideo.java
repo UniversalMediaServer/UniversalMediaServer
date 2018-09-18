@@ -245,6 +245,13 @@ public class FFMpegVideo extends Player {
 					isSubsManualTiming = false;
 				} else {
 					// External
+
+					isAudioRemuxMode(dlna, media, params);
+
+					if (audioRemuxMode) {
+						videoFilterOptions.add("-seek_timestamp");
+						videoFilterOptions.add("1");
+				    }
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
 					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
@@ -332,20 +339,11 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
 		} else { // MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
-			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
-			// Output audio codec
-			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isAudioEmbedDtsInPcm() &&
-				params.aid != null &&
-				params.aid.isDTS() &&
-				!avisynth() &&
-				renderer.isDTSPlayable();
+			isAudioRemuxMode(dlna, media, params);
 
-			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
-
-			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
-				// AC-3 remux
+			if (audioRemuxMode) {
+				// AAudio remux mode
 				if (!customFFmpegOptions.contains("-c:a ")) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("copy");
@@ -356,9 +354,12 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
-				} else if (renderer.isTranscodeToAAC()) {
+				} else if (!lpcmUse && renderer.isTranscodeToAAC()) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("aac");
+				} else if (lpcmUse) {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("pcm_s16le");
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
@@ -514,7 +515,10 @@ public class FFMpegVideo extends Player {
 
 			if (!bitrateLevel41Limited) {
 				// Make room for audio
-				if (dtsRemux) {
+
+				isAudioRemuxMode(dlna, media, params);
+
+				if (dtsRemux || lpcmUse) {
 					defaultMaxBitrates[0] -= 1510;
 				} else {
 					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
@@ -625,9 +629,6 @@ public class FFMpegVideo extends Player {
 
 		return audioBitrateOptions;
 	}
-
-	protected boolean dtsRemux;
-	protected boolean ac3Remux;
 
 	@Override
 	public int purpose() {
@@ -793,42 +794,21 @@ public class FFMpegVideo extends Player {
 			cmdList.add("fatal");
 		}
 
-		if (params.timeseek > 0) {
-			cmdList.add("-ss");
-			cmdList.add(String.valueOf(params.timeseek));
-		}
-
 		// Decoder threads
 		if (nThreads > 0) {
 			cmdList.add("-threads");
 			cmdList.add(String.valueOf(nThreads));
 		}
 
-		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
-		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		isAudioRemuxMode(dlna, media, params);
 
-		ac3Remux = false;
-		dtsRemux = false;
-
-		if (
-			configuration.isAudioRemuxAC3() &&
-			params.aid != null &&
-			params.aid.isAC3() &&
-			!avisynth() &&
-			renderer.isTranscodeToAC3() &&
-			!isXboxOneWebVideo &&
-			params.aid.getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
-		) {
-			// AC-3 remux takes priority
-			ac3Remux = true;
-		} else {
-			// Now check for DTS remux and LPCM streaming
-			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isAudioEmbedDtsInPcm() &&
-				params.aid != null &&
-				params.aid.isDTS() &&
-				!avisynth() &&
-				params.mediaRenderer.isDTSPlayable();
+		if (params.timeseek > 0) {
+			if (audioRemuxMode) {
+    			cmdList.add("-seek_timestamp");
+    			cmdList.add("1");
+		    }
+			cmdList.add("-ss");
+			cmdList.add(String.valueOf(params.timeseek));
 		}
 
 		String frameRateRatio = media.getValidFps(true);
@@ -997,7 +977,7 @@ public class FFMpegVideo extends Player {
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
 			// Audio bitrate
-			if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
+			if (!audioRemuxMode && !dtsRemux && !(type() == Format.AUDIO)) {
 				int channels = 0;
 				if (
 					(
@@ -1019,7 +999,7 @@ public class FFMpegVideo extends Player {
 					cmdList.add(String.valueOf(channels));
 				}
 
-				if (!customFFmpegOptions.contains("-ab ")) {
+				if (!customFFmpegOptions.contains("-ab ") && !lpcmUse) {
 					cmdList.add("-ab");
 					if (renderer.isTranscodeToAAC()) {
 						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
@@ -1407,6 +1387,79 @@ public class FFMpegVideo extends Player {
 
 		return false;
 	}
+
+
+	/**
+	* Wheather remux audio or not, use LPCM or not
+	* This decisionn considers avisynth, XboxOneWebVideo, TsMuxeR for dts,
+	* seeking, subtitles, the number of audio channel, the sample rate of audio.
+	* This makes the implement of other ccodecs easy.
+	* TO DO
+	* This decisionn is repeated. This may be neeeless, apparently.
+	* Examine the below for compatibilty.
+	* public FFMpegVideo(PmsConfiguration configuration, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+	* this();
+	* }
+	* 
+	*/
+	public boolean ac3Remux = false;
+	public boolean aacRemux = false;
+	public boolean ac3ForceRemux = false;
+	public boolean aacForceRemux = false;
+	public boolean lpcmRemux = false;
+	public boolean mp2Remux = false;
+	public boolean mp3Remux = false;
+	public boolean dtsRemux  = false;
+	public boolean audioRemuxMode = false;
+	public boolean lpcmUse = false;
+
+	public void isAudioRemuxMode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params){
+	
+		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
+		if (params.aid != null && !avisynth() && !isXboxOneWebVideo) {
+			ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && params.mediaRenderer.isTranscodeToAC3();
+			aacRemux = params.aid.isAAC() && configuration.isAudioRemuxAAC() && params.mediaRenderer.isTranscodeToAAC();
+			ac3ForceRemux = params.aid.isAC3() && configuration.isAudioForceRemuxAC3() && params.mediaRenderer.isForceMuxAC3ToMpeg();
+			aacForceRemux = params.aid.isAAC() && configuration.isAudioForceRemuxAAC() && params.mediaRenderer.isForceMuxAACToMpeg();
+			lpcmRemux = params.aid.isPCM() && (configuration.isAudioUsePCM() || configuration.isAudioRemuxLPCM())&& params.mediaRenderer.isMuxLPCMToMpeg();
+			mp2Remux = params.aid.isMpegAudio() && configuration.isAudioRemuxMP2() && params.mediaRenderer.isMuxMP2ToMpeg();
+			mp3Remux = params.aid.isMP3() && configuration.isAudioRemuxMP3() && params.mediaRenderer.isMuxMP3ToMpeg();
+			dtsRemux = isTsMuxeRVideoEngineEnabled && configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
+		}
+	
+		audioRemuxMode = ac3Remux || ac3ForceRemux || aacRemux || aacForceRemux || lpcmRemux || mp2Remux || mp3Remux;
+		
+		if (audioRemuxMode) {
+			if (params.timeseek > 0 && !configuration.isAudioIgnoreSeekingInAudioRemux()) {
+			    audioRemuxMode = false;
+				LOGGER.trace("Disable audio remux by examing seeking. Use audio_ignore_seeking_in_audio_remux = true in UMS.conf if wanting audio remux.");
+			} else if (!isDisableSubtitles(params) && !configuration.isAudioIgnoreSubtitlesInAudioRemux()) {
+			    audioRemuxMode = false;
+				LOGGER.trace("Disable audio remux by examing subtitles. Use audio_ignore_subtitles_in_audio_remux = true in UMS.conf if wanting audio remux.");
+			} else if ((params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) && !params.mediaRenderer.isIgnoreNumberOfChannelInAudioRemux()) {
+			    audioRemuxMode = false;
+				LOGGER.trace("Disable audio remux by examing a audio channel number. Use IgnoreNumberOfChannelInAudioRemux = true in renderer.conf if wanting audio remux.");
+			} else if ((params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate()) && !params.mediaRenderer.isIgnoreSampleRateInAudioRemux()) {
+			    audioRemuxMode = false;
+				LOGGER.trace("Disable audio remux by examing a sample rate. Use IgnoreSampleRateInAudioRemux = true in renderer.conf if wanting audio remux.");
+			}
+		}
+
+		if (!(audioRemuxMode || dtsRemux)) {//Remux mode overrides encoding to LPCM
+			lpcmUse = params.aid != null && configuration.isAudioUsePCM() && params.mediaRenderer.isMuxLPCMToMpeg();
+		}
+
+		if (audioRemuxMode || dtsRemux) {
+			LOGGER.trace("Enable audio remux.");
+		}
+
+		if (lpcmUse) {
+			LOGGER.trace("Output LPCM audio.");
+		}
+
+	} 
 
 	// matches 'Duration: 00:17:17.00' but not 'Duration: N/A'
 	static final Matcher reDuration = Pattern.compile("Duration:\\s+([\\d:.]+),").matcher("");
