@@ -2481,6 +2481,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_AUDIO_FORCE_REMUX_AAC, value);
 	}
 
+	public void setFFmpegSoX(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_SOX, value);
+	}
+
+	public boolean isFFmpegSoX() {
+		return getBoolean(KEY_FFMPEG_SOX, false);
+	}
+	
 	public boolean isAudioForceRemuxAAC() {
 		return getBoolean(KEY_AUDIO_FORCE_REMUX_AAC, false);
 	}
@@ -2509,14 +2517,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_AUDIO_REMUX_AC3, true);
 	}
 
-	public void setFFmpegSoX(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_SOX, value);
-	}
-
-	public boolean isFFmpegSoX() {
-		return getBoolean(KEY_FFMPEG_SOX, false);
-	}
-
 	public void setAudioRemuxLPCM(boolean value) {
 		configuration.setProperty(KEY_AUDIO_REMUX_LPCM, value);
 	}
@@ -2539,7 +2539,8 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isAudioRemuxMP3() {
 		 return getBoolean(KEY_AUDIO_REMUX_MP3, false);
-  
+	}
+	
 	public void setMencoderRemuxMPEG2(boolean value) {
 		configuration.setProperty(KEY_MENCODER_REMUX_MPEG2, value);
 	}
