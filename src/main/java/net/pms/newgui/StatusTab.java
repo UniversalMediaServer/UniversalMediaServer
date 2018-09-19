@@ -173,64 +173,22 @@ public class StatusTab {
 	private final JAnimatedButton connectionStatus = new JAnimatedButton();
 	private final AnimatedIcon searchingIcon;
 	private final AnimatedIcon connectedIcon;
-	private final AnimatedIcon connectedIntroIcon;
 	private final AnimatedIcon disconnectedIcon;
 	private final AnimatedIcon blockedIcon;
 
+	/**
+	 * Shows a simple visual status of the server.
+	 *
+	 * @todo choose better icons for these
+	 * @param configuration 
+	 */
 	StatusTab(PmsConfiguration configuration) {
 		// Build Animations
-		searchingIcon = new AnimatedIcon(
-			connectionStatus, true, AnimatedIcon.buildAnimation("icon-status-connecting_%02d.png", 0, 50, false, 40, 40, 40)
-		);
+		searchingIcon = new AnimatedIcon(connectionStatus, "icon-status-connecting.png");
 
-		final Icon connectedLeft = LooksFrame.readImageIcon("icon-status-connected_89.png");
-		final Icon connectedBoth = LooksFrame.readImageIcon("icon-status-connected_90.png");
-		final Icon connectedNone = LooksFrame.readImageIcon("icon-status-connected_92.png");
-		final Icon disconnectedNone = LooksFrame.readImageIcon("icon-status-disconnected_00.png");
-		final Icon disconnectedLeft = LooksFrame.readImageIcon("icon-status-disconnected_01.png");
-		final Icon disconnectedBoth = LooksFrame.readImageIcon("icon-status-disconnected_02.png");
-		final Icon disconnectedRight = LooksFrame.readImageIcon("icon-status-disconnected_03.png");
+		connectedIcon = new AnimatedIcon(connectionStatus, "icon-status-connected.png");
 
-		List<AnimatedIconFrame> connectedIntroFrames = new ArrayList<>(Arrays.asList(
-			AnimatedIcon.buildAnimation("icon-status-connected_%02d.png", 0, 88, false, 40, 500, 40)
-		));
-		connectedIntroFrames.add(new AnimatedIconFrame(connectedNone, 200));
-
-		connectedIcon = new AnimatedIcon(connectionStatus, true,
-			new AnimatedIconFrame(connectedLeft, 500, 800),
-			new AnimatedIconFrame(connectedBoth, 80),
-			new AnimatedIconFrame(connectedLeft, 80, 600),
-			new AnimatedIconFrame(connectedBoth, 80),
-			new AnimatedIconFrame(connectedLeft, 100),
-			new AnimatedIconFrame(connectedBoth, 80),
-			new AnimatedIconFrame(connectedLeft, 600),
-			new AnimatedIconFrame(connectedBoth, 80),
-			new AnimatedIconFrame(connectedLeft, 50, 400),
-			new AnimatedIconFrame(connectedBoth, 80),
-			new AnimatedIconFrame(connectedLeft, 100),
-			new AnimatedIconFrame(connectedBoth, 80),
-			new AnimatedIconFrame(connectedLeft, 50, 200),
-			new AnimatedIconFrame(connectedBoth, 80),
-			new AnimatedIconFrame(connectedLeft, 100, 1000),
-			new AnimatedIconFrame(connectedBoth, 80)
-		);
-
-		connectedIntroIcon = new AnimatedIcon(connectionStatus, new AnimatedIconStage(AnimatedIconType.DEFAULTICON, connectedIcon, true), connectedIntroFrames);
-
-		disconnectedIcon = new AnimatedIcon(connectionStatus, true,
-			new AnimatedIconFrame(disconnectedNone, 200, 800),
-			new AnimatedIconFrame(disconnectedLeft, 300),
-			new AnimatedIconFrame(disconnectedRight, 300),
-			new AnimatedIconFrame(disconnectedNone, 50, 150),
-			new AnimatedIconFrame(disconnectedBoth, 80, 600),
-			new AnimatedIconFrame(disconnectedNone, 10, 600),
-			new AnimatedIconFrame(disconnectedBoth, 80),
-			new AnimatedIconFrame(disconnectedNone, 50, 200),
-			new AnimatedIconFrame(disconnectedBoth, 50, 160),
-			new AnimatedIconFrame(disconnectedNone, 100, 500),
-			new AnimatedIconFrame(disconnectedRight, 150),
-			new AnimatedIconFrame(disconnectedLeft, 150)
-		);
+		disconnectedIcon = new AnimatedIcon(connectionStatus, "icon-status-disconnected.png");
 
 		blockedIcon = new AnimatedIcon(connectionStatus, "icon-status-warning.png");
 
@@ -256,12 +214,11 @@ public class StatusTab {
 					break;
 				case CONNECTED:
 					connectionStatus.setToolTipText(Messages.getString("PMS.18"));
-					connectedIntroIcon.restartArm();
 					connectedIcon.restartArm();
 					if (oldIcon != null) {
-						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, connectedIntroIcon, false));
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, connectedIcon, false));
 					} else {
-						connectionStatus.setIcon(connectedIntroIcon);
+						connectionStatus.setIcon(connectedIcon);
 					}
 					break;
 				case DISCONNECTED:
@@ -351,7 +308,6 @@ public class StatusTab {
 		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
 
 		connectedIcon.start();
-		connectedIntroIcon.start();
 		searchingIcon.start();
 		disconnectedIcon.start();
 		connectionStatus.setFocusable(false);
