@@ -143,8 +143,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
+	protected static final String FORCE_MUX_AC3_TO_MPEG = "ForceMuxAC3ToMpeg";
+	protected static final String FORCE_MUX_AAC_TO_MPEG = "ForceMuxAACToMpeg";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
+	protected static final String IGNORE_NUMBER_OF_CHANNE_IN_AUDIO_REMUX = "IgnoreNumberOfChannelInAudioRemux";
+	protected static final String IGNORE_SAMPLE_RATE_IN_AUDIO_REMUX = "IgnoreSampleRateInAudioRemux";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
@@ -158,6 +162,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MEDIAPARSERV2 = "MediaInfo";
 	protected static final String MEDIAPARSERV2_THUMB = "MediaParserV2_ThumbnailGeneration";
 	protected static final String MIME_TYPES_CHANGES = "MimeTypesChanges";
+	protected static final String MUX_MP2_TO_MPEG = "MuxMP2ToMpeg";
+	protected static final String MUX_MP3_TO_MPEG = "MuxMP3ToMpeg";
 	protected static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	protected static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	protected static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
@@ -1777,6 +1783,29 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
+	}
+
+	public boolean isForceMuxAC3ToMpeg() {
+		return getBoolean(FORCE_MUX_AC3_TO_MPEG, false);
+	}
+
+	public boolean isForceMuxAACToMpeg() {
+		return getBoolean(FORCE_MUX_AAC_TO_MPEG, false);
+	}
+	public boolean isMuxMP2ToMpeg() {
+		return getBoolean(MUX_MP2_TO_MPEG, false);
+	}
+
+	public boolean isMuxMP3ToMpeg() {
+		return getBoolean(MUX_MP3_TO_MPEG, false);
+	}
+
+	public boolean isIgnoreNumberOfChannelInAudioRemux() {
+		return getBoolean(IGNORE_NUMBER_OF_CHANNE_IN_AUDIO_REMUX, false);
+	}
+
+	public boolean isIgnoreSampleRateInAudioRemux() {
+		return getBoolean(IGNORE_SAMPLE_RATE_IN_AUDIO_REMUX, false);
 	}
 
 	public boolean isMuxNonMod4Resolution() {

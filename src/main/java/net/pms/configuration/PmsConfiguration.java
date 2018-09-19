@@ -101,11 +101,19 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_BITRATE = "audio_bitrate";
 	protected static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
+	protected static final String KEY_AUDIO_FORCE_REMUX_AAC= "audio_force_remux_aac";
+	protected static final String KEY_AUDIO_FORCE_REMUX_AC3 = "audio_force_remux_ac3";
 	protected static final String KEY_AUDIO_LANGUAGES = "audio_languages";
+	protected static final String KEY_AUDIO_REMUX_AAC= "audio_remux_aac";
 	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
+	protected static final String KEY_AUDIO_REMUX_LPCM = "audio_remux_lpcm";
+	protected static final String KEY_AUDIO_REMUX_MP2 = "audio_remux_mp2";
+	protected static final String KEY_AUDIO_REMUX_MP3 = "audio_remux_mp3";
 	protected static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
 	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
+	protected static final String KEY_AUDIO_IGNORE_SEEKING_IN_AUDIO_REMUX = "audio_ignore_seeking_in_audio_remux";
+	protected static final String KEY_AUDIO_IGNORE_SUBTITLES_IN_AUDIO_REMUX = "audio_ignore_subtitles_in_audio_remux";
 	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
@@ -2473,12 +2481,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_MENCODER_MT, isMultiCore);
 	}
 
-	public void setAudioRemuxAC3(boolean value) {
-		configuration.setProperty(KEY_AUDIO_REMUX_AC3, value);
-	}
-
-	public boolean isAudioRemuxAC3() {
-		return getBoolean(KEY_AUDIO_REMUX_AC3, true);
+	public void setAudioForceRemuxAAC(boolean value) {
+		configuration.setProperty(KEY_AUDIO_FORCE_REMUX_AAC, value);
 	}
 
 	public void setFFmpegSoX(boolean value) {
@@ -2488,13 +2492,81 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean isFFmpegSoX() {
 		return getBoolean(KEY_FFMPEG_SOX, false);
 	}
+	
+	public boolean isAudioForceRemuxAAC() {
+		return getBoolean(KEY_AUDIO_FORCE_REMUX_AAC, false);
+	}
 
+	public void setAudioForceRemuxAC3(boolean value) {
+		configuration.setProperty(KEY_AUDIO_FORCE_REMUX_AC3, value);
+	}
+
+	public boolean isAudioForceRemuxAC3() {
+		return getBoolean(KEY_AUDIO_FORCE_REMUX_AC3, false);
+	}
+
+	public void setAudioRemuxAAC(boolean value) {
+		configuration.setProperty(KEY_AUDIO_REMUX_AAC, value);
+	}
+
+	public boolean isAudioRemuxAAC() {
+		return getBoolean(KEY_AUDIO_REMUX_AAC, false);
+	}
+
+	public void setAudioRemuxAC3(boolean value) {
+		configuration.setProperty(KEY_AUDIO_REMUX_AC3, value);
+	}
+
+	public boolean isAudioRemuxAC3() {
+		return getBoolean(KEY_AUDIO_REMUX_AC3, true);
+	}
+
+	public void setAudioRemuxLPCM(boolean value) {
+		configuration.setProperty(KEY_AUDIO_REMUX_LPCM, value);
+	}
+
+	public boolean isAudioRemuxLPCM() {
+		 return getBoolean(KEY_AUDIO_REMUX_LPCM, false);
+	}
+
+	public void setAudioRemuxMP2(boolean value) {
+		configuration.setProperty(KEY_AUDIO_REMUX_MP2, value);
+	}
+
+	public boolean isAudioRemuxMP2() {
+		 return getBoolean(KEY_AUDIO_REMUX_MP2, false);
+	}
+
+	public void setAudioRemuxMP3(boolean value) {
+		configuration.setProperty(KEY_AUDIO_REMUX_MP3, value);
+	}
+
+	public boolean isAudioRemuxMP3() {
+		 return getBoolean(KEY_AUDIO_REMUX_MP3, false);
+	}
+	
 	public void setMencoderRemuxMPEG2(boolean value) {
 		configuration.setProperty(KEY_MENCODER_REMUX_MPEG2, value);
 	}
 
 	public boolean isMencoderRemuxMPEG2() {
 		return getBoolean(KEY_MENCODER_REMUX_MPEG2, true);
+	}
+
+	public void setAudioIgnoreSeekingInAudioRemux(boolean value) {
+		configuration.setProperty(KEY_AUDIO_IGNORE_SEEKING_IN_AUDIO_REMUX, value);
+	}
+
+	public boolean isAudioIgnoreSeekingInAudioRemux() {
+		return getBoolean(KEY_AUDIO_IGNORE_SEEKING_IN_AUDIO_REMUX, false);
+	}
+
+	public void setAudioIgnoreSubtitlesInAudioRemux(boolean value) {
+		configuration.setProperty(KEY_AUDIO_IGNORE_SUBTITLES_IN_AUDIO_REMUX, value);
+	}
+
+	public boolean isAudioIgnoreSubtitlesInAudioRemux() {
+		return getBoolean(KEY_AUDIO_IGNORE_SUBTITLES_IN_AUDIO_REMUX, false);
 	}
 
 	public void setDisableFakeSize(boolean value) {

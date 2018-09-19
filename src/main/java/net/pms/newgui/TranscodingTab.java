@@ -112,6 +112,12 @@ public class TranscodingTab {
 	private JCheckBox forceExternalSubtitles;
 	private JCheckBox useEmbeddedSubtitlesStyle;
 	private JComboBox<Integer> depth3D;
+	private JCheckBox AudioForceRemuxAC3;
+	private JCheckBox AudioRemuxAAC;
+	private JCheckBox AudioForceRemuxAAC;
+	private JCheckBox AudioRemuxLPCM;
+	private JCheckBox AudioRemuxMP2;
+	private JCheckBox AudioRemuxMP3;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -650,7 +656,7 @@ public class TranscodingTab {
 
 	private JComponent buildAudioSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 7*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
@@ -675,54 +681,8 @@ public class TranscodingTab {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(channels), FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
-		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isAudioUsePCM());
-		forcePCM.setToolTipText(Messages.getString("TrTab2.83"));
-		forcePCM.setContentAreaFilled(false);
-		forcePCM.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(forcePCM), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
-		ac3remux = new JCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
-		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
-		ac3remux.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(ac3remux), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
-
-		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
-		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
-		forceDTSinPCM.setContentAreaFilled(false);
-		forceDTSinPCM.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(forceDTSinPCM), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
-
-		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
-		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		encodedAudioPassthrough.setContentAreaFilled(false);
-		encodedAudioPassthrough.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
-				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
-				forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(encodedAudioPassthrough), cc.xyw(1, 10, 3));
-
-		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 		abitrate = new JTextField("" + configuration.getAudioBitrate());
 		abitrate.addKeyListener(new KeyAdapter() {
 			@Override
@@ -735,9 +695,9 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 4), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
 		langs.setToolTipText(Messages.getString("TrTab2.75"));
 		langs.addKeyListener(new KeyAdapter() {
@@ -746,7 +706,119 @@ public class TranscodingTab {
 				configuration.setAudioLanguages(langs.getText());
 			}
 		});
-		builder.add(langs, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
+		builder.add(langs, FormLayoutUtil.flip(cc.xy(3, 6), colSpec, orientation));
+
+		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isAudioUsePCM());
+		forcePCM.setToolTipText(Messages.getString("TrTab2.83"));
+		forcePCM.setContentAreaFilled(false);
+		forcePCM.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED);
+				AudioRemuxLPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(forcePCM), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+
+		AudioRemuxLPCM = new JCheckBox(Messages.getString("TrTab2.30"), configuration.isAudioRemuxLPCM());
+		AudioRemuxLPCM.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		AudioRemuxLPCM.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioRemuxLPCM((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(AudioRemuxLPCM), FormLayoutUtil.flip(cc.xy(3, 8), colSpec, orientation));
+
+		ac3remux = new JCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
+		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
+		ac3remux.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(ac3remux), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+
+		AudioForceRemuxAC3 = new JCheckBox(Messages.getString("TrTab2.31"), configuration.isAudioForceRemuxAC3());
+		AudioForceRemuxAC3.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		AudioForceRemuxAC3.setEnabled(!configuration.isEncodedAudioPassthrough());
+		AudioForceRemuxAC3.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioForceRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
+				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(AudioForceRemuxAC3), FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
+
+		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
+		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
+		forceDTSinPCM.setContentAreaFilled(false);
+		forceDTSinPCM.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(forceDTSinPCM), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+
+		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
+		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		encodedAudioPassthrough.setContentAreaFilled(false);
+		encodedAudioPassthrough.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
+				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+				forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(encodedAudioPassthrough), cc.xyw(1, 12, 3));
+
+		AudioRemuxAAC = new JCheckBox(Messages.getString("TrTab2.33"), configuration.isAudioRemuxAAC());
+		AudioRemuxAAC.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		AudioRemuxAAC.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioRemuxAAC((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(AudioRemuxAAC), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+
+		AudioForceRemuxAAC = new JCheckBox(Messages.getString("TrTab2.34"), configuration.isAudioForceRemuxAAC());
+		AudioForceRemuxAAC.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		AudioRemuxAAC.setEnabled(!configuration.isAudioRemuxAAC());
+		AudioForceRemuxAAC.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioForceRemuxAAC((e.getStateChange() == ItemEvent.SELECTED));
+				AudioRemuxAAC.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(AudioForceRemuxAAC), FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
+
+		AudioRemuxMP2 = new JCheckBox(Messages.getString("TrTab2.35"), configuration.isAudioRemuxMP2());
+		AudioRemuxMP2.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		AudioRemuxMP2.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioRemuxMP2((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(AudioRemuxMP2), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
+
+		AudioRemuxMP3 = new JCheckBox(Messages.getString("TrTab2.36"), configuration.isAudioRemuxMP3());
+		AudioRemuxMP3.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		AudioRemuxMP3.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAudioRemuxMP3((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(AudioRemuxMP3), FormLayoutUtil.flip(cc.xy(1, 18), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);
