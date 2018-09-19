@@ -187,9 +187,10 @@ public class Wizard {
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 						configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
 					} else {
-						// If user cancel this option set the default directory which depends on the operating system.
-						// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
-						configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
+						/*
+						 * If the user canceled here, the default media folders
+						 * for the operating system will be used.
+						 */
 					}
 				}
 			});
@@ -199,7 +200,7 @@ public class Wizard {
 
 		// The wizard finished, do not ask them again
 		configuration.setRunWizard(false);
-
+		
 		// Save all changes
 		try {
 			configuration.save();
