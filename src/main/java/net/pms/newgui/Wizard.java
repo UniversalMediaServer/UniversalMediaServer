@@ -200,7 +200,7 @@ public class Wizard {
 
 		// The wizard finished, do not ask them again
 		configuration.setRunWizard(false);
-		
+
 		// Save all changes
 		try {
 			configuration.save();

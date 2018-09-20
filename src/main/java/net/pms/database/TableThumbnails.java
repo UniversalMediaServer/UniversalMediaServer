@@ -43,7 +43,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * @author SubJunk & Nadahar
  * @since 7.1.1
  */
-public final class TableThumbnails extends Tables{
+public final class TableThumbnails extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -72,8 +72,8 @@ public final class TableThumbnails extends Tables{
 	 * Finally, it writes the ID from this table as the THUMBID in the FILES
 	 * table.
 	 *
-	 * @param md5Hash
 	 * @param thumbnail
+	 * @param fullPathToFile
 	 */
 	public static void setThumbnail(final DLNAThumbnail thumbnail, final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
@@ -152,9 +152,9 @@ public final class TableThumbnails extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
 							database.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
