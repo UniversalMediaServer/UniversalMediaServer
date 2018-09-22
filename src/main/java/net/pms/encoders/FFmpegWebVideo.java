@@ -20,10 +20,14 @@ package net.pms.encoders;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
@@ -39,6 +43,7 @@ import net.pms.io.OutputTextLogger;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.FilePermissions;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -48,10 +53,59 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
-	private static List<String> protocols;
-	public static final PatternMap<Object> excludes = new PatternMap<>();
 
-	public static final PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+	/**
+	 * Must be used to protect all access to {@link #excludes}, {@link #autoOptions} and {@link #replacements}
+	 */
+	protected static final ReentrantReadWriteLock filtersLock = new ReentrantReadWriteLock();
+
+	/**
+	 * Must be used to protect all access to {@link #protocols}
+	 */
+	protected static final ReentrantReadWriteLock protocolsLock = new ReentrantReadWriteLock();
+
+	/**
+	 * All access must be protected with {@link #protocolsLock}
+	 */
+	protected static final List<String> protocols = new ArrayList<String>();
+
+	static {
+		readWebFilters(_configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
+
+		Path executable = Paths.get(_configuration.getFfmpegPath());
+		try {
+			FilePermissions permissions = new FilePermissions(executable);
+			if (permissions.isExecutable()) {
+				protocolsLock.writeLock().lock();
+				try {
+					FFmpegOptions.getSupportedProtocols(protocols, executable.toString());
+					if (protocols.contains("mmsh")) {
+						// Workaround an FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+						// Also see launchTranscode()
+						protocols.add("mms");
+					}
+					LOGGER.debug("FFmpeg supported protocols: {}", protocols);
+				} finally {
+					protocolsLock.writeLock().unlock();
+				}
+			} else {
+				LOGGER.warn("Can't check FFmpeg supported protocols, insufficient permission run FFmpeg ({})", executable.toAbsolutePath().toString());
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.warn("Can't check FFmpeg supported protocols, FFmpeg binary \"{}\" not found: {}", executable.toAbsolutePath().toString(), e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * All access must be protected with {@link #filtersLock}
+	 */
+	protected static final PatternMap<Object> excludes = new PatternMap<>();
+
+	/**
+	 * All access must be protected with {@link #filtersLock}
+	 */
+	protected static final PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
 		@Override
@@ -60,12 +114,46 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 	};
 
-	public static final PatternMap<String> replacements = new PatternMap<>();
-	private static boolean init = false;
+	/**
+	 * All access must be protected with {@link #filtersLock}
+	 */
+	protected static final PatternMap<String> replacements = new PatternMap<>();
 
-	// FIXME we have an id() accessor for this; no need for the field to be public
-	@Deprecated
-	public static final String ID = "ffmpegwebvideo";
+	protected static boolean readWebFilters(String filename) {
+		String line;
+		try {
+			LineIterator it = FileUtils.lineIterator(new File(filename));
+			filtersLock.writeLock().lock();
+			try {
+				PatternMap<?> filter = null;
+				while (it.hasNext()) {
+					line = it.nextLine().trim();
+					if (line.isEmpty() || line.startsWith("#")) {
+						// continue
+					} else if (line.equals("EXCLUDE")) {
+						filter = excludes;
+					} else if (line.equals("OPTIONS")) {
+						filter = autoOptions;
+					} else if (line.equals("REPLACE")) {
+						filter = replacements;
+					} else if (filter != null) {
+						String[] var = line.split(" \\| ", 2);
+						filter.add(var[0], var.length > 1 ? var[1] : null);
+					}
+				}
+				return true;
+			} finally {
+				filtersLock.writeLock().unlock();
+				it.close();
+			}
+		} catch (IOException e) {
+			LOGGER.debug("Error reading ffmpeg web filters from file \"{}\": {}", filename, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return false;
+	}
+
+	public static final String ID = "FFmpegWebVideo";
 
 	@Override
 	public JComponent config() {
@@ -87,24 +175,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
-	@Deprecated
-	public FFmpegWebVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public FFmpegWebVideo() {
-		if (!init) {
-			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
-			protocols = FFmpegOptions.getSupportedProtocols(configuration);
-			if (protocols.contains("mmsh")) {
-				// see XXX workaround below
-				protocols.add("mms");
-			}
-			LOGGER.debug("FFmpeg supported protocols: " + protocols);
-			init = true;
-		}
-	}
-
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
@@ -120,28 +190,39 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		String filename = dlna.getFileName();
 		setAudioAndSubs(filename, media, params);
 
-		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+		// Workaround an FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+		// Also see static init
 		if (filename.startsWith("mms:")) {
 			filename = "mmsh:" + filename.substring(4);
 		}
 
 		// check if we have modifier for this url
-		String r = replacements.match(filename);
-		if (r != null) {
-			filename = filename.replaceAll(r, replacements.get(r));
-			LOGGER.debug("modified url: " + filename);
+		filtersLock.readLock().lock();
+		try {
+			String r = replacements.match(filename);
+			if (r != null) {
+				filename = filename.replaceAll(r, replacements.get(r));
+				LOGGER.debug("Modified url: {}", filename);
+			}
+		} finally {
+			filtersLock.readLock().unlock();
 		}
 
 		FFmpegOptions customOptions = new FFmpegOptions();
 
 		// Gather custom options from various sources in ascending priority:
 		// - automatic options
-		String match = autoOptions.match(filename);
-		if (match != null) {
-			List<String> opts = autoOptions.get(match);
-			if (opts != null) {
-				customOptions.addAll(opts);
+		filtersLock.readLock().lock();
+		try {
+			String match = autoOptions.match(filename);
+			if (match != null) {
+				List<String> opts = autoOptions.get(match);
+				if (opts != null) {
+					customOptions.addAll(opts);
+				}
 			}
+		} finally {
+			filtersLock.readLock().unlock();
 		}
 		// - (http) header options
 		if (params.header != null && params.header.length > 0) {
@@ -347,40 +428,24 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public boolean isCompatible(DLNAResource resource) {
 		if (PlayerUtil.isWebVideo(resource)) {
 			String url = resource.getFileName();
-			return protocols.contains(url.split(":")[0]) && excludes.match(url) == null;
-		}
-
-		return false;
-	}
-
-	public boolean readWebFilters(String filename) {
-		PatternMap filter = null;
-		String line;
-		try {
-			LineIterator it = FileUtils.lineIterator(new File(filename));
+			protocolsLock.readLock().lock();
 			try {
-				while (it.hasNext()) {
-					line = it.nextLine().trim();
-					if (line.isEmpty() || line.startsWith("#")) {
-						// continue
-					} else if (line.equals("EXCLUDE")) {
-						filter = excludes;
-					} else if (line.equals("OPTIONS")) {
-						filter = autoOptions;
-					} else if (line.equals("REPLACE")) {
-						filter = replacements;
-					} else if (filter != null) {
-						String[] var = line.split(" \\| ", 2);
-						filter.add(var[0], var.length > 1 ? var[1] : null);
-					}
+				if (!protocols.contains(url.split(":")[0])) {
+					return false;
 				}
-				return true;
 			} finally {
-				it.close();
+				protocolsLock.readLock().unlock();
 			}
-		} catch (Exception e) {
-			LOGGER.debug("Error reading ffmpeg web filters: " + e.getLocalizedMessage());
+			filtersLock.readLock().lock();
+			try {
+				if (excludes.match(url) == null) {
+					return true;
+				}
+			} finally {
+				filtersLock.readLock().unlock();
+			}
 		}
+
 		return false;
 	}
 

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.JComponent;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -61,6 +62,24 @@ public abstract class Player {
 	public abstract String id();
 	public abstract String name();
 	public abstract int type();
+	/**
+	 * Must be used to control all access to {@link #available}
+	 */
+	protected final ReentrantReadWriteLock availableLock = new ReentrantReadWriteLock();
+	/**
+	 * Used to determine if the player can be used, e.g if the binary is
+	 * accessible. All access must be guarded with {@link #availableLock}.
+	 */
+	boolean available = false;
+
+	/**
+	 * Must be used to control all access to {@link #enabled}
+	 */
+	protected final ReentrantReadWriteLock enabledLock = new ReentrantReadWriteLock();
+	/**
+	 * All access must be guarded with {@link #enabledLock}.
+	 */
+	boolean enabled = false;
 
 	// FIXME this is an implementation detail (and not a very good one).
 	// it's entirely up to engines how they construct their command lines.
@@ -103,6 +122,67 @@ public abstract class Player {
 
 	public boolean isTimeSeekable() {
 		return false;
+	}
+
+	/**
+	 * Used to determine if the player can be used, e.g if the binary is
+	 * accessible. Threadsafe.
+	 */
+	public boolean isAvailable() {
+		availableLock.readLock().lock();
+		try {
+			return available == true;
+		} finally {
+			availableLock.readLock().unlock();
+		}
+	}
+
+	void setAvailable(boolean available) {
+		availableLock.writeLock().lock();
+		try {
+			this.available = available;
+		} finally {
+			availableLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Threadsafe.
+	 */
+	public boolean isEnabled() {
+		enabledLock.readLock().lock();
+		try {
+			return enabled == true;
+		} finally {
+			enabledLock.readLock().unlock();
+		}
+	}
+
+	void setEnabled(boolean enabled) {
+		enabledLock.writeLock().lock();
+		try {
+			this.enabled = enabled;
+		} finally {
+			enabledLock.writeLock().unlock();
+		}
+		_configuration.setEngineEnabled(id(), enabled);
+	}
+
+	public void toggleEnabled() {
+		enabledLock.writeLock().lock();
+		try {
+			enabled = !enabled;
+		} finally {
+			enabledLock.writeLock().unlock();
+		}
+		_configuration.setEngineEnabled(id(), enabled);
+	}
+
+	/**
+	 * Convenience method to check that a player is both available and enabled
+	 */
+	public boolean isActive() {
+		return isAvailable() && isEnabled();
 	}
 
 	/**

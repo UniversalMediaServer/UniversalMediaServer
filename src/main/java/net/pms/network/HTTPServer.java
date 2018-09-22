@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.newgui.StatusTab.ConnectionState;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -136,7 +137,7 @@ public class HTTPServer implements Runnable {
 				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
 				LOGGER.trace("The error was: " + e);
-				PMS.get().getFrame().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
+				PMS.get().getFrame().setConnectionState(ConnectionState.BLOCKED);
 			}
 
 			if (hostname == null && iafinal != null) {
