@@ -1,3 +1,24 @@
+7.4.0 - 2018-09-22
+
+	General:
+		Uses the media folders by default on Windows and macOS instead of the whole user directory
+		Added support for using GPU (video cards) for decoding via FFmpeg (thanks, onon765trb!)
+		Added option for higher quality audio resampling via FFmpeg (thanks, onon765trb!)
+		Files downloaded via the web interface have the correct filename (thanks, js-kyle!)
+		Improved stability when using custom FFmpeg settings (thanks, onon765trb!)
+		Made plugin web queries use SSL/HTTPS
+		Stop sometimes throwing errors when downgrading versions
+		Disabled the broken minimization on macOS
+		Fixed the wizard file chooser not working on macOS
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Traditional translation completed
+			French translation completed and validated
+			Italian translation updated
+			Polish translation completed and validated
+	Renderers:
+		Fixed aspect ratio of transcoded videos on Panasonic ST60 TVs
+
 7.3.1 - 2018-09-01
 
 	General:

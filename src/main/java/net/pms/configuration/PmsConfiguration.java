@@ -143,14 +143,18 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
+	protected static final String KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS = "fmpeg_available_fgpu_decoding_acceleration_methods";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
+	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
+	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	protected static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	protected static final String KEY_FOLDERS = "folders";
@@ -1806,20 +1810,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if PMS should start minimized, i.e. without its window
-	 * opened. Default value false: to start with a window.
+	 * Whether we should start minimized, i.e. without its window opened.
+	 * Always returns false on macOS since it makes it impossible(?) for the
+	 * program to open.
 	 *
-	 * @return True if PMS should start minimized, false otherwise.
+	 * @return whether we should start minimized
 	 */
 	public boolean isMinimized() {
+		if (Platform.isMac()) {
+			return false;
+		}
+
 		return getBoolean(KEY_MINIMIZED, false);
 	}
 
 	/**
-	 * Set to true if PMS should start minimized, i.e. without its window
-	 * opened.
+	 * Whether we should start minimized, i.e. without its window opened.
 	 *
-	 * @param value True if PMS should start minimized, false otherwise.
+	 * @param value whether we should start minimized, false otherwise.
 	 */
 	public void setMinimized(boolean value) {
 		configuration.setProperty(KEY_MINIMIZED, value);
@@ -2128,6 +2136,30 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean isFfmpegMultithreading() {
 		boolean isMultiCore = getNumberOfCpuCores() > 1;
 		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
+	}
+
+	public String getFFmpegGPUDecodingAccelerationMethod() {
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "auto");
+	}
+
+	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, value);
+	}
+
+	public String getFFmpegGPUDecodingAccelerationThreadNumber() {
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER,"1");
+	}
+
+	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, value);
+	}
+
+	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, "auto").split(",");
+	}
+
+	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
+		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, listToString(methods));
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {
@@ -2447,6 +2479,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isAudioRemuxAC3() {
 		return getBoolean(KEY_AUDIO_REMUX_AC3, true);
+	}
+
+	public void setFFmpegSoX(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_SOX, value);
+	}
+
+	public boolean isFFmpegSoX() {
+		return getBoolean(KEY_FFMPEG_SOX, false);
 	}
 
 	public void setMencoderRemuxMPEG2(boolean value) {

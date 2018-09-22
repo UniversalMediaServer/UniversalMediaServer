@@ -156,7 +156,11 @@ public class GeneralTab {
 			ypos += 2;
 		}
 
-		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		int xpos = 1;
+		if (!Platform.isMac()) {
+			builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
+			xpos += 2;
+		}
 
 		if (Platform.isWindows()) {
 			autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
@@ -167,7 +171,8 @@ public class GeneralTab {
 					configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
+			xpos += 2;
 		}
 
 		showSplashScreen = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.isShowSplashScreen());
@@ -179,8 +184,9 @@ public class GeneralTab {
 			}
 		});
 
-		builder.add(GuiUtil.getPreferredSizeComponent(showSplashScreen), FormLayoutUtil.flip(cc.xy(5, ypos), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(showSplashScreen), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 		ypos += 2;
+		xpos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
 			installService = new CustomJButton();
