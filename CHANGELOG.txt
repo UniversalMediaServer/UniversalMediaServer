@@ -1,4 +1,4 @@
-7.4.0 - 2018-09-??
+7.4.0 - 2018-09-22
 
 	General:
 		Uses the media folders by default on Windows and macOS instead of the whole user directory
