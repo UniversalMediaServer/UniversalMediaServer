@@ -1833,20 +1833,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if PMS should start minimized, i.e. without its window
-	 * opened. Default value false: to start with a window.
+	 * Whether we should start minimized, i.e. without its window opened.
+	 * Always returns false on macOS since it makes it impossible(?) for the
+	 * program to open.
 	 *
-	 * @return True if PMS should start minimized, false otherwise.
+	 * @return whether we should start minimized
 	 */
 	public boolean isMinimized() {
+		if (Platform.isMac()) {
+			return false;
+		}
+
 		return getBoolean(KEY_MINIMIZED, false);
 	}
 
 	/**
-	 * Set to true if PMS should start minimized, i.e. without its window
-	 * opened.
+	 * Whether we should start minimized, i.e. without its window opened.
 	 *
-	 * @param value True if PMS should start minimized, false otherwise.
+	 * @param value whether we should start minimized, false otherwise.
 	 */
 	public void setMinimized(boolean value) {
 		configuration.setProperty(KEY_MINIMIZED, value);
