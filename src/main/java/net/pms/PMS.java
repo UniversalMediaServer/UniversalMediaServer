@@ -22,6 +22,9 @@ package net.pms;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
+import com.sun.jna.platform.win32.Shell32;
+import com.sun.jna.platform.win32.ShlObj;
+import com.sun.jna.platform.win32.WinDef;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
@@ -76,6 +79,7 @@ import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -595,6 +599,9 @@ public class PMS {
 			}
 		}
 
+		// Check available GPU HW decoding acceleration methods used in FFmpeg
+		UMSUtils.CheckGPUDecodingAccelerationMethodsForFFmpeg(configuration);
+
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
 		// Check the existence of VSFilter / DirectVobSub
@@ -833,6 +840,7 @@ public class PMS {
 	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 *
+	 * @param monitored whether to return only monitored directories
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
@@ -843,12 +851,54 @@ public class PMS {
 		return getSharedFoldersArray(monitored, null, configuration);
 	}
 
+	/**
+	 * Returns the folders to be shared. Either configured by the user, or
+	 * uses the default media directories on the operating system, e.g.
+	 * Pictures, Music, Movies/Videos on macOS and Windows.
+	 *
+	 * @param monitored whether to return only directories that are monitored
+	 * @param tags
+	 * @param configuration
+	 * @return 
+	 */
 	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
 		String folders;
 		if (monitored) {
 			folders = configuration.getFoldersMonitored();
 		} else {
 			folders = configuration.getFolders(tags);
+
+			if (StringUtils.isEmpty(folders)) {
+				String userHomeDirectory;
+				if (Platform.isMac()) {
+					userHomeDirectory = System.getProperty("user.home");
+					folders = userHomeDirectory + "/Movies";
+					folders += "," + userHomeDirectory + "/Music";
+					folders += "," + userHomeDirectory + "/Pictures";
+				} else if (Platform.isWindows()) {
+					/*
+					 * A shell script to get the paths on Windows even if
+					 * they have been changed.
+					 * From https://stackoverflow.com/questions/44136342/how-do-i-get-the-users-music-directory/44146651
+					 */
+					char[] pszPath = new char[WinDef.MAX_PATH];
+					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYMUSIC, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
+					File f = new File(String.valueOf(pszPath).trim());
+					folders = f.getAbsolutePath();
+
+					pszPath = new char[WinDef.MAX_PATH];
+					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYPICTURES, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
+					f = new File(String.valueOf(pszPath).trim());
+					folders += "," + f.getAbsolutePath();
+
+					pszPath = new char[WinDef.MAX_PATH];
+					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYVIDEO, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
+					f = new File(String.valueOf(pszPath).trim());
+					folders += "," + f.getAbsolutePath();
+				} else {
+					folders = System.getProperty("user.home");
+				}
+			}
 		}
 
 		if (folders == null || folders.length() == 0) {

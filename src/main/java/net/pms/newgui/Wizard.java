@@ -20,8 +20,11 @@
 
 package net.pms.newgui;
 
+import com.sun.jna.Platform;
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +37,9 @@ import net.pms.configuration.PmsConfiguration;
 public class Wizard {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Wizard.class);
 
-	public static void run(PmsConfiguration configuration) {
+	public static void run(final PmsConfiguration configuration) {
 		// Total number of questions
-		int numberOfQuestions = 5;
+		int numberOfQuestions = Platform.isMac() ? 4 : 5;
 
 		// The current question number
 		int currentQuestionNumber = 1;
@@ -64,22 +67,24 @@ public class Wizard {
 				Messages.getString("Wizard.10")
 			};
 
-		// Ask if they want UMS to start minimized
-		int whetherToStartMinimized = JOptionPane.showOptionDialog(
-			null,
-			Messages.getString("Wizard.3"),
-			String.format(status, currentQuestionNumber++),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.QUESTION_MESSAGE,
-			null,
-			yesNoOptions,
-			yesNoOptions[0]
-		);
+		if (!Platform.isMac()) {
+			// Ask if they want UMS to start minimized
+			int whetherToStartMinimized = JOptionPane.showOptionDialog(
+				null,
+				Messages.getString("Wizard.3"),
+				String.format(status, currentQuestionNumber++),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				yesNoOptions,
+				yesNoOptions[1]
+			);
 
-		if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-			configuration.setMinimized(true);
-		} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-			configuration.setMinimized(false);
+			if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
+				configuration.setMinimized(true);
+			} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
+				configuration.setMinimized(false);
+			}
 		}
 
 		// Ask if their network is wired, etc.
@@ -165,27 +170,37 @@ public class Wizard {
 			okOptions[0]
 		);
 
-		JFileChooser chooser;
 		try {
-			chooser = new JFileChooser();
-		} catch (Exception ee) {
-			chooser = new JFileChooser(new RestrictedFileSystemView());
-		}
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					JFileChooser chooser;
+					try {
+						chooser = new JFileChooser();
+					} catch (Exception ee) {
+						chooser = new JFileChooser(new RestrictedFileSystemView());
+					}
 
-		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		chooser.setDialogTitle(Messages.getString("Wizard.12"));
-		chooser.setMultiSelectionEnabled(false);
-		if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-			configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
-		} else {
-			// If user cancel this option set the default directory which depends on the operating system.
-			// It is typically the "My Documents" folder on Windows, and the user's home directory on Unix.
-			configuration.setFolders(chooser.getCurrentDirectory().getAbsolutePath());
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					chooser.setDialogTitle(Messages.getString("Wizard.12"));
+					chooser.setMultiSelectionEnabled(false);
+					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+						configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
+					} else {
+						/*
+						 * If the user canceled here, the default media folders
+						 * for the operating system will be used.
+						 */
+					}
+				}
+			});
+		} catch (InterruptedException | InvocationTargetException e) {
+			LOGGER.error("Error when saving folders: ", e);
 		}
 
 		// The wizard finished, do not ask them again
 		configuration.setRunWizard(false);
-		
+
 		// Save all changes
 		try {
 			configuration.save();
