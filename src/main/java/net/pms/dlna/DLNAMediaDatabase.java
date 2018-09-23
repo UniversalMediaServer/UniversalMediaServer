@@ -44,6 +44,7 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.newgui.NavigationShareTab;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -1380,6 +1381,7 @@ public class DLNAMediaDatabase implements Runnable {
 			scanner = new Thread(this, "Library Scanner");
 			scanner.setPriority(scanner.MIN_PRIORITY);
 			scanner.start();
+			NavigationShareTab.setScanLibraryBusy();
 		}
 	}
 
