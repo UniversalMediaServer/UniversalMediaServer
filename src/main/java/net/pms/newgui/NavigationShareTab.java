@@ -92,22 +92,10 @@ public class NavigationShareTab {
 	private final AnimatedIcon scanRolloverIcon = (AnimatedIcon) scanButton.getRolloverIcon();
 	private final AnimatedIcon scanPressedIcon = (AnimatedIcon) scanButton.getPressedIcon();
 	private final AnimatedIcon scanDisabledIcon = (AnimatedIcon) scanButton.getDisabledIcon();
-	private final AnimatedIcon scanBusyIcon = new AnimatedIcon(
-		scanButton, true, AnimatedIcon.buildAnimation(
-			"button-scan-busyF%d.png", 0, 14, false, 35, 35, 35
-		)
-	);
-	private final AnimatedIcon scanBusyRolloverIcon = new AnimatedIcon(
-		scanButton, false, new AnimatedIconFrame(LooksFrame.readImageIcon("button-cancel.png"), 0)
-	);
-	private final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(
-		scanButton, false, new AnimatedIconFrame(LooksFrame.readImageIcon("button-cancel_pressed.png"), 0)
-	);
-	private final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(
-		scanButton, true, AnimatedIcon.buildAnimation(
-			"button-scan-busyF%d_disabled.png", 0, 14, false, 35, 35, 35
-		)
-	);
+	private final AnimatedIcon scanBusyIcon = new AnimatedIcon(scanButton, "button-scan-busy.png");
+	private final AnimatedIcon scanBusyRolloverIcon = new AnimatedIcon(scanButton, "button-cancel.png");
+	private final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(scanButton, "button-cancel_pressed.png");
+	private final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(scanButton, "button-scan-busy_disabled.png");
 
 	// Settings for the visibility of virtual folders
 	private JCheckBox isShowFolderServerSettings;
