@@ -913,21 +913,7 @@ public class NavigationShareTab {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
-						if (!database.isScanLibraryRunning()) {
-							int option = JOptionPane.showConfirmDialog(
-								looksFrame,
-								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
-								Messages.getString("Dialog.Question"),
-								JOptionPane.YES_NO_OPTION);
-							if (option == JOptionPane.YES_OPTION) {
-								database.scanLibrary();
-								scanButton.setIcon(scanBusyIcon);
-								scanButton.setRolloverIcon(scanBusyRolloverIcon);
-								scanButton.setPressedIcon(scanBusyPressedIcon);
-								scanButton.setDisabledIcon(scanBusyDisabledIcon);
-								scanButton.setToolTipText(Messages.getString("FoldTab.40"));
-							}
-						} else {
+						if (database.isScanLibraryRunning()) {
 							int option = JOptionPane.showConfirmDialog(
 								looksFrame,
 								Messages.getString("FoldTab.10"),
@@ -939,6 +925,13 @@ public class NavigationShareTab {
 								scanButton.setEnabled(false);
 								scanButton.setToolTipText(Messages.getString("FoldTab.41"));
 							}
+						} else {
+							database.scanLibrary();
+							scanButton.setIcon(scanBusyIcon);
+							scanButton.setRolloverIcon(scanBusyRolloverIcon);
+							scanButton.setPressedIcon(scanBusyPressedIcon);
+							scanButton.setDisabledIcon(scanBusyDisabledIcon);
+							scanButton.setToolTipText(Messages.getString("FoldTab.40"));
 						}
 					}
 				}
