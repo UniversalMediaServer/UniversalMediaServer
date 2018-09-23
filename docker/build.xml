@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<project name="Build script for building docker image" default="build" basedir=".">
+	<property name="ums.jar">../target/ums.jar</property>
+	<available file="${ums.jar}" property="jar.present"></available>
+	
+	<target name="build">
+		<antcall target="build.ums"></antcall>
+		<antcall target="build.docker"></antcall>
+	</target>
+	
+	<target name="build.ums" unless="jar.present">
+		<echo>Checking if UMS jar exists</echo>
+		<fail>Run a UMS build first</fail>
+	</target>
+	
+	<target name="build.docker">
+		<copy todir="renderers">
+			<fileset dir="../src/main/external-resources/renderers" />
+		</copy>
+		<copy todir="web">
+			<fileset dir="../src/main/external-resources/web" />
+		</copy>
+		<copy file="../src/main/external-resources/logback.headless.xml" todir="."/>
+		<copy file="${ums.jar}" todir="."/>
+		<exec executable="docker">
+			<arg line="build -t ums ."/>
+		</exec>
+	</target>
+</project>
