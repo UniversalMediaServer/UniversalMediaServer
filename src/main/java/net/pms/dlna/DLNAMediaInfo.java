@@ -1462,7 +1462,7 @@ public class DLNAMediaInfo implements Cloneable {
 								LOGGER.debug("Could not parse height from \"" + aspectRatioContainer.replaceFirst("[0-9]+:", ""));
 							}
 			
-							double exactaspectRatioContainer = tmp_width / tmp_height ;
+							double exactAspectRatioVideoTrack = tmp_width / tmp_height ;
 							if (exactAspectRatioVideoTrack > 1.77 && exactAspectRatioVideoTrack <= 1.78) {
 								aspectRatioVideoTrack = "16:9";
 							} else if (exactAspectRatioVideoTrack > 1.33 && exactAspectRatioVideoTrack < 1.34) {
