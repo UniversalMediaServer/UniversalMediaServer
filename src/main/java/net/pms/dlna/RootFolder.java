@@ -209,7 +209,6 @@ public class RootFolder extends DLNAResource {
 				}
 		}
 
-
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
 			addChild(r);
 		}
@@ -240,14 +239,15 @@ public class RootFolder extends DLNAResource {
 		}
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
-		LOGGER.trace("Starting scan of: {}", this.getName());
+		LOGGER.debug("Starting scan of: {}", this.getName());
 		scan(this);
 
 		// Running might have been set false during scan
 		if (running) {
-			frame.setScanLibraryEnabled(true);
 			PMS.get().getDatabase().cleanup();
 		}
+		frame.setScanLibraryEnabled(true);
+		frame.setStatusLine(null);
 	}
 
 	/*

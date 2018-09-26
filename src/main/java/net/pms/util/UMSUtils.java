@@ -416,10 +416,10 @@ public class UMSUtils {
 			return null;
 		}
 
-		private static Player findPlayer(String playerName) {
-			for (Player p : PlayerFactory.getPlayers()) {
-				if (playerName.equals(p.name())) {
-					return p;
+		private static Player findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
+			for (Player player : PlayerFactory.getPlayers(onlyEnabled, onlyAvailable)) {
+				if (playerName.equals(player.name())) {
+					return player;
 				}
 			}
 			return null;
@@ -506,7 +506,7 @@ public class UMSUtils {
 					while (pos != -1) {
 						if (str.startsWith("player:")) {
 							// find last player
-							player = findPlayer(str.substring(7, pos));
+							player = findPlayerByName(str.substring(7, pos), true, true);
 						}
 						if (str.startsWith("resume")) {
 							// resume data

@@ -60,7 +60,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	public AviSynthMEncoder() {
 	}
 
-	public static final String ID = "avsmencoder";
+	public static final String ID = "AvSMEncoder";
 
 	private JTextArea textArea;
 	private JCheckBox convertfps;

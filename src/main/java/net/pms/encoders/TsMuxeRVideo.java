@@ -52,7 +52,7 @@ public class TsMuxeRVideo extends Player {
 	private static final String COL_SPEC = "left:pref, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow";
 
-	public static final String ID = "tsmuxer";
+	public static final String ID = "TSMuxer";
 
 	@Deprecated
 	public TsMuxeRVideo(PmsConfiguration configuration) {

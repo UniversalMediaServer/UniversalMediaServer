@@ -42,6 +42,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
@@ -70,6 +72,7 @@ import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
+import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
@@ -217,16 +220,16 @@ public class PMS {
 	public void setRendererFound(RendererConfiguration renderer) {
 		synchronized (foundRenderers) {
 			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
-				LOGGER.debug("Adding status button for " + renderer.getRendererName());
+				LOGGER.debug("Adding status button for {}", renderer.getRendererName());
 				foundRenderers.add(renderer);
 				frame.addRenderer(renderer);
-				frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+				frame.setConnectionState(ConnectionState.CONNECTED);
 			}
 		}
 	}
 
 	public void updateRenderer(RendererConfiguration renderer) {
-		LOGGER.debug("Updating status button for " + renderer.getRendererName());
+		LOGGER.debug("Updating status button for {}", renderer.getRendererName());
 		frame.updateRenderer(renderer);
 	}
 
@@ -602,7 +605,7 @@ public class PMS {
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
 		UMSUtils.CheckGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
-		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
+		frame.setConnectionState(ConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
 		if (registry.isAvis() && registry.getAvsPluginsDir() != null) {
@@ -707,9 +710,9 @@ public class PMS {
 				}
 
 				if (foundRenderers.isEmpty()) {
-					frame.setStatusCode(0, Messages.getString("PMS.0"), "icon-status-notconnected.png");
+					frame.setConnectionState(ConnectionState.DISCONNECTED);
 				} else {
-					frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
+					frame.setConnectionState(ConnectionState.CONNECTED);
 				}
 			}
 		}.start();
@@ -1081,8 +1084,10 @@ public class PMS {
 
 	/**
 	 * Returns the PMS instance.
+	 *
 	 * @return {@link net.pms.PMS}
 	 */
+	@Nonnull
 	public static PMS get() {
 		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
 		// However, plugin tests may need access to a PMS instance without going
@@ -1629,11 +1634,6 @@ public class PMS {
 		tfm.add(f, cleanTime);
 	}
 
-	@Deprecated
-	public void registerPlayer(Player player) {
-		PlayerFactory.registerPlayer(player);
-	}
-
 	private static ReadWriteLock headlessLock = new ReentrantReadWriteLock();
 	private static Boolean headless = null;
 
@@ -1775,6 +1775,7 @@ public class PMS {
 
 	private RemoteWeb web;
 
+	@Nullable
 	public RemoteWeb getWebInterface() {
 		return web;
 	}
