@@ -88,27 +88,15 @@ public class NavigationShareTab {
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
-	private final JAnimatedButton scanButton = new JAnimatedButton("button-scan.png");
+	private static final JAnimatedButton scanButton = new JAnimatedButton("button-scan.png");
 	private final AnimatedIcon scanNormalIcon = (AnimatedIcon) scanButton.getIcon();
 	private final AnimatedIcon scanRolloverIcon = (AnimatedIcon) scanButton.getRolloverIcon();
 	private final AnimatedIcon scanPressedIcon = (AnimatedIcon) scanButton.getPressedIcon();
 	private final AnimatedIcon scanDisabledIcon = (AnimatedIcon) scanButton.getDisabledIcon();
-	private final AnimatedIcon scanBusyIcon = new AnimatedIcon(
-		scanButton, true, AnimatedIcon.buildAnimation(
-			"button-scan-busyF%d.png", 0, 14, false, 35, 35, 35
-		)
-	);
-	private final AnimatedIcon scanBusyRolloverIcon = new AnimatedIcon(
-		scanButton, false, new AnimatedIconFrame(LooksFrame.readImageIcon("button-cancel.png"), 0)
-	);
-	private final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(
-		scanButton, false, new AnimatedIconFrame(LooksFrame.readImageIcon("button-cancel_pressed.png"), 0)
-	);
-	private final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(
-		scanButton, true, AnimatedIcon.buildAnimation(
-			"button-scan-busyF%d_disabled.png", 0, 14, false, 35, 35, 35
-		)
-	);
+	private static final AnimatedIcon scanBusyIcon = new AnimatedIcon(scanButton, "button-scan-busy.png");
+	private static final AnimatedIcon scanBusyRolloverIcon = new AnimatedIcon(scanButton, "button-cancel.png");
+	private static final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(scanButton, "button-cancel_pressed.png");
+	private static final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(scanButton, "button-scan-busy_disabled.png");
 
 	private JComboBox<String> addVideoSuffix;
 
@@ -952,21 +940,7 @@ public class NavigationShareTab {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
-						if (!database.isScanLibraryRunning()) {
-							int option = JOptionPane.showConfirmDialog(
-								looksFrame,
-								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
-								Messages.getString("Dialog.Question"),
-								JOptionPane.YES_NO_OPTION);
-							if (option == JOptionPane.YES_OPTION) {
-								database.scanLibrary();
-								scanButton.setIcon(scanBusyIcon);
-								scanButton.setRolloverIcon(scanBusyRolloverIcon);
-								scanButton.setPressedIcon(scanBusyPressedIcon);
-								scanButton.setDisabledIcon(scanBusyDisabledIcon);
-								scanButton.setToolTipText(Messages.getString("FoldTab.40"));
-							}
-						} else {
+						if (database.isScanLibraryRunning()) {
 							int option = JOptionPane.showConfirmDialog(
 								looksFrame,
 								Messages.getString("FoldTab.10"),
@@ -978,6 +952,13 @@ public class NavigationShareTab {
 								scanButton.setEnabled(false);
 								scanButton.setToolTipText(Messages.getString("FoldTab.41"));
 							}
+						} else {
+							database.scanLibrary();
+							scanButton.setIcon(scanBusyIcon);
+							scanButton.setRolloverIcon(scanBusyRolloverIcon);
+							scanButton.setPressedIcon(scanBusyPressedIcon);
+							scanButton.setDisabledIcon(scanBusyDisabledIcon);
+							scanButton.setToolTipText(Messages.getString("FoldTab.40"));
 						}
 					}
 				}
@@ -1039,6 +1020,17 @@ public class NavigationShareTab {
 		scanButton.setPressedIcon(scanPressedIcon);
 		scanButton.setDisabledIcon(scanDisabledIcon);
 		scanButton.setToolTipText(Messages.getString("FoldTab.2"));
+	}
+
+	/**
+	 * @todo combine with setScanLibraryEnabled after we are in sync with DMS
+	 */
+	public static void setScanLibraryBusy() {
+		scanButton.setIcon(scanBusyIcon);
+		scanButton.setRolloverIcon(scanBusyRolloverIcon);
+		scanButton.setPressedIcon(scanBusyPressedIcon);
+		scanButton.setDisabledIcon(scanBusyDisabledIcon);
+		scanButton.setToolTipText(Messages.getString("FoldTab.40"));
 	}
 
 	public class SharedFoldersTableModel extends DefaultTableModel {
