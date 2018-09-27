@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -44,6 +46,11 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.newgui.components.AnimatedIcon;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
+import net.pms.newgui.components.JAnimatedButton;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
@@ -147,9 +154,7 @@ public class StatusTab {
 		}
 	}
 
-	private ImagePanel imagePanel;
 	private JPanel renderers;
-	private JLabel jl;
 	private JProgressBar memoryProgressBar;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
 	private JLabel bitrateLabel;
@@ -161,9 +166,83 @@ public class StatusTab {
 	private long peak;
 	private static DecimalFormat formatter = new DecimalFormat("#,###");
 	private static int bufferSize;
+	public enum ConnectionState {
+		SEARCHING, CONNECTED, DISCONNECTED, BLOCKED, UNKNOWN
+	};
+	private ConnectionState connectionState = ConnectionState.UNKNOWN;
+	private final JAnimatedButton connectionStatus = new JAnimatedButton();
+	private final AnimatedIcon searchingIcon;
+	private final AnimatedIcon connectedIcon;
+	private final AnimatedIcon disconnectedIcon;
+	private final AnimatedIcon blockedIcon;
 
+	/**
+	 * Shows a simple visual status of the server.
+	 *
+	 * @todo choose better icons for these
+	 * @param configuration 
+	 */
 	StatusTab(PmsConfiguration configuration) {
+		// Build Animations
+		searchingIcon = new AnimatedIcon(connectionStatus, "icon-status-connecting.png");
+
+		connectedIcon = new AnimatedIcon(connectionStatus, "icon-status-connected.png");
+
+		disconnectedIcon = new AnimatedIcon(connectionStatus, "icon-status-disconnected.png");
+
+		blockedIcon = new AnimatedIcon(connectionStatus, "icon-status-warning.png");
+
 		bufferSize = configuration.getMaxMemoryBufferSize();
+	}
+
+	void setConnectionState(ConnectionState connectionState) {
+		if (connectionState == null) {
+			throw new IllegalArgumentException("connectionState cannot be null");
+		}
+		if (!connectionState.equals(this.connectionState)) {
+			this.connectionState = connectionState;
+			AnimatedIcon oldIcon = (AnimatedIcon) connectionStatus.getIcon();
+			switch (connectionState) {
+				case SEARCHING:
+					connectionStatus.setToolTipText(Messages.getString("PMS.130"));
+					searchingIcon.restartArm();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, searchingIcon, false));
+					} else {
+						connectionStatus.setIcon(searchingIcon);
+					}
+					break;
+				case CONNECTED:
+					connectionStatus.setToolTipText(Messages.getString("PMS.18"));
+					connectedIcon.restartArm();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, connectedIcon, false));
+					} else {
+						connectionStatus.setIcon(connectedIcon);
+					}
+					break;
+				case DISCONNECTED:
+					connectionStatus.setToolTipText(Messages.getString("PMS.0"));
+					disconnectedIcon.restartArm();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, disconnectedIcon, false));
+					} else {
+						connectionStatus.setIcon(disconnectedIcon);
+					}
+					break;
+				case BLOCKED:
+					connectionStatus.setToolTipText(Messages.getString("PMS.141"));
+					blockedIcon.reset();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, blockedIcon, false));
+					} else {
+						connectionStatus.setIcon(blockedIcon);
+					}
+					break;
+				default:
+					connectionStatus.setIcon(null);
+			}
+		}
 	}
 
 	public void updateCurrentBitrate() {
@@ -179,14 +258,6 @@ public class StatusTab {
 		}
 	}
 
-	public JLabel getJl() {
-		return jl;
-	}
-
-	public ImagePanel getImagePanel() {
-		return imagePanel;
-	}
-
 	public JComponent build() {
 		// Apply the orientation for the locale
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
@@ -194,6 +265,7 @@ public class StatusTab {
 		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
 		//                                             1     2          3           4     5
 
+		//RowSpec.decode("bottom:max(50dlu;pref)");
 		FormLayout layout = new FormLayout(colSpec,
 			//                          1     2          3            4     5
 			//                   //////////////////////////////////////////////////
@@ -202,10 +274,11 @@ public class StatusTab {
 			+ "fill:p:grow,"     //                 <renderers>                  //  3
 			+ "3dlu,"            //                                              //
 			+ "p,"               // ---------------------------------------------//  5
+			+ "10dlu,"           //           |                       |          //
+			+ "[10pt,p],"        // Connected |  Memory Usage         |<bitrate> //  7
+			+ "1dlu,"            //           |                       |          //
+			+ "[30pt,p],"        //  <icon>   |  <statusbar>          |          //  9
 			+ "3dlu,"            //           |                       |          //
-			+ "p,"               // Connected |  Memory Usage         |<bitrate> //  7
-			+ "3dlu,"            //           |                       |          //
-			+ "p,"               //  <icon>   |  <statusbar>          |          //  9
 			                     //////////////////////////////////////////////////
 		);
 
@@ -234,14 +307,14 @@ public class StatusTab {
 
 		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
 
-		// Connected
-		jl = new JLabel(Messages.getString("StatusTab.3"));
-		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 7,  "center, top"), colSpec, orientation));
-		jl.setFont(bold);
-		jl.setForeground(fgColor);
+		connectedIcon.start();
+		searchingIcon.start();
+		disconnectedIcon.start();
+		connectionStatus.setFocusable(false);
+		builder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, CellConstraints.CENTER, CellConstraints.TOP), colSpec, orientation));
 
-		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
-		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+		// Set initial connection state
+		setConnectionState(ConnectionState.SEARCHING);
 
 		// Memory
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
@@ -313,20 +386,6 @@ public class StatusTab {
 			peakBitrate.setText(formatter.format(peak));
 			rc = v;
 		}
-	}
-
-	public ImagePanel buildImagePanel(String url) {
-		BufferedImage bi = null;
-
-		if (url != null) {
-			try {
-				bi = ImageIO.read(LooksFrame.class.getResourceAsStream(url));
-			} catch (IOException e) {
-				LOGGER.debug("Caught exception", e);
-			}
-		}
-
-		return new ImagePanel(bi);
 	}
 
 	public void addRenderer(final RendererConfiguration renderer) {

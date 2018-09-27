@@ -213,7 +213,6 @@ public class RootFolder extends DLNAResource {
 				}
 		}
 
-
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
 			addChild(r, true, isAddGlobally);
 		}
@@ -244,14 +243,15 @@ public class RootFolder extends DLNAResource {
 		}
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
-		LOGGER.trace("Starting scan of: {}", this.getName());
+		LOGGER.debug("Starting scan of: {}", this.getName());
 		scan(this);
 
 		// Running might have been set false during scan
 		if (running) {
-			frame.setScanLibraryEnabled(true);
 			PMS.get().getDatabase().cleanup();
 		}
+		frame.setScanLibraryEnabled(true);
+		frame.setStatusLine(null);
 	}
 
 	/*
@@ -1358,7 +1358,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), configuration.isShowLiveSubtitlesFolder()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder()) {
 				@Override
 				public boolean enable() {
 					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());
@@ -1514,6 +1514,9 @@ public class RootFolder extends DLNAResource {
 							} else {
 								LOGGER.trace("Folder {} is empty", filename);
 							}
+						} else if ("ENTRY_DELETE".equals(event)) {
+							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
+							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {

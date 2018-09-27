@@ -32,7 +32,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
 public class MEncoderWebVideo extends Player {
-	public static final String ID = "mencoderwebvideo";
+	public static final String ID = "MEncoderWebVideo";
 
 	@Override
 	public JComponent config() {

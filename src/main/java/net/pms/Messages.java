@@ -25,6 +25,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.annotation.Nonnull;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
@@ -99,6 +100,7 @@ public class Messages {
 	 * @return Descriptive string if key is found or a copy of the key string if
 	 *         it is not.
 	 */
+	@Nonnull
 	public static String getString(String key) {
 		resourceBundleLock.readLock().lock();
 		try {
@@ -108,6 +110,7 @@ public class Messages {
 		}
 	}
 
+	@Nonnull
 	public static String getString(String key, Locale locale) {
 		if (locale == null) {
 			return getString(key);
@@ -136,10 +139,12 @@ public class Messages {
 	 *
 	 * For parameter and return value see {@link #getString(String)}
 	 */
+	@Nonnull
 	public static String getRootString(String key) {
 		return getString(key, ROOT_RESOURCE_BUNDLE);
 	}
 
+	@Nonnull
 	private static String getString(String key, ResourceBundle rb) {
 		try {
 			return rb.getString(key);

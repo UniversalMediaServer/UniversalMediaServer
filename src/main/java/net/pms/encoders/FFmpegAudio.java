@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
-	public static final String ID = "ffmpegaudio";
+	public static final String ID = "FFmpegAudio";
 
 	// should be private
 	@Deprecated

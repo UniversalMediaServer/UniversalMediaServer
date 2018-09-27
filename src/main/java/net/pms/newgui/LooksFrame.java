@@ -18,6 +18,7 @@
  */
 package net.pms.newgui;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.jgoodies.looks.windows.WindowsLookAndFeel;
@@ -31,7 +32,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -45,7 +45,12 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
-import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.components.AnimatedIcon;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
+import net.pms.newgui.components.JAnimatedButton;
+import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
@@ -90,7 +95,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private GeneralTab gt;
 	private HelpTab ht;
 	private PluginTab pt;
-	private AbstractButton reload;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");;
+	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
+		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
+	);
+	private AnimatedIcon restartIcon;
 	private AbstractButton webinterface;
 	private JLabel status;
 	private static Object lookAndFeelInitializedLock = new Object();
@@ -126,10 +135,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public PluginTab getPt() {
 		return pt;
-	}
-
-	public AbstractButton getReload() {
-		return reload;
 	}
 
 	public static void initializeLookAndFeel() {
@@ -387,7 +392,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public static ImageIcon readImageIcon(String filename) {
 		URL url = LooksFrame.class.getResource("/resources/images/" + filename);
-		return new ImageIcon(url);
+		return url == null ? null : new ImageIcon(url);
 	}
 
 	public JComponent buildContent() {
@@ -399,26 +404,52 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebInterface()) {
-			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-webinterface.png");
+			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png");
 			webinterface.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					try {
-						Desktop.getDesktop().browse(new URI(PMS.get().getWebInterface().getUrl()));
-					} catch (IOException | URISyntaxException e2) {
-						LOGGER.trace("Unable to open the given URI: " + PMS.get().getWebInterface().getUrl() + ".");
+					String error = null;
+					if (PMS.get().getWebInterface() != null && isNotBlank(PMS.get().getWebInterface().getUrl())) {
+						try {
+							URI uri = new URI(PMS.get().getWebInterface().getUrl());
+							try {
+								Desktop.getDesktop().browse(uri);
+							} catch (RuntimeException | IOException be) {
+								LOGGER.error("Cound not open the default web browser: {}", be.getMessage());
+								LOGGER.trace("", be);
+								error = Messages.getString("LooksFrame.BrowserError") + "\n" + be.getMessage();
+							}
+						} catch (URISyntaxException se) {
+							LOGGER.error(
+								"Could not form a valid web interface URI from \"{}\": {}",
+								PMS.get().getWebInterface().getUrl(),
+								se.getMessage()
+							);
+							LOGGER.trace("", se);
+							error = Messages.getString("LooksFrame.URIError");
+						}
+					}
+					else {
+						error = Messages.getString("LooksFrame.URIError");
+					}
+					if (error != null) {
+						JOptionPane.showMessageDialog(null, error, Messages.getString("Dialog.Error"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			});
 			webinterface.setToolTipText(Messages.getString("LooksFrame.30"));
+			webinterface.setEnabled(configuration.useWebInterface());
 			toolBar.add(webinterface);
 			toolBar.addSeparator(new Dimension(20, 1));
 		}
 
-		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
+		restartIcon = (AnimatedIcon) reload.getIcon();
+		restartRequredIcon.start();
+		setReloadable(false);
 		reload.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				reload.setEnabled(false);
 				PMS.get().reset();
 			}
 		});
@@ -511,15 +542,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tabbedPane;
 	}
 
-	protected AbstractButton createToolBarButton(String text, String iconName) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+	protected JImageButton createToolBarButton(String text, String iconName) {
+		JImageButton button = new JImageButton(text, iconName);
 		button.setFocusable(false);
-		button.setBorderPainted(false);
 		return button;
 	}
 
-	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+	protected JAnimatedButton createAnimatedToolBarButton(String text, String iconName) {
+		JAnimatedButton button = new JAnimatedButton(text, iconName);
+		button.setFocusable(false);
+		return button;
+	}
+
+	protected JImageButton createToolBarButton(String text, String iconName, String toolTipText) {
+		JImageButton button = new JImageButton(text, iconName);
 		button.setToolTipText(toolTipText);
 		button.setFocusable(false);
 		button.setBorderPainted(false);
@@ -567,14 +603,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setStatusCode(int code, String msg, String icon) {
-		st.getJl().setText(msg);
+	public void setConnectionState(final ConnectionState connectionState) {
+		SwingUtilities.invokeLater(new Runnable() {
 
-		try {
-			st.getImagePanel().set(ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/" + icon)));
-		} catch (IOException e) {
-			LOGGER.error(null, e);
-		}
+			@Override
+			public void run() {
+				st.setConnectionState(connectionState);
+			}
+		});
 	}
 
 	@Override
@@ -590,17 +626,28 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * changed.<br>
 	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
 	 *
-	 * @param bool true if the server has to be restarted, false otherwise
+	 * @param required true if the server has to be restarted, false otherwise
 	 */
 	@Override
-	public void setReloadable(boolean bool) {
-		if (bool) {
-			reload.setIcon(readImageIcon("button-restart-required.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.13"));
-		} else {
-			reload.setIcon(readImageIcon("button-restart.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.28"));
-		}
+	public void setReloadable(final boolean required) {
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				if (required) {
+					if (reload.getIcon() == restartIcon) {
+						restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
+						reload.setToolTipText(Messages.getString("LooksFrame.13"));
+					}
+				} else {
+					reload.setEnabled(true);
+					if (restartRequredIcon == reload.getIcon()) {
+						reload.setToolTipText(Messages.getString("LooksFrame.28"));
+						restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
+					}
+				}
+			}
+		});
 	}
 
 	@Override
