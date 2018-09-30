@@ -145,6 +145,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
+	protected static final String GET_EXACT_ASPECT_RATIO_BY_FFMPEG = "GetExactAspectRatioByFFmpeg";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
@@ -2128,6 +2129,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isMediaInfoThumbnailGeneration() {
 		return getBoolean(MEDIAPARSERV2_THUMB, false) && LibMediaInfoParser.isValid();
+	}
+
+	public boolean isGetExactAspectRatioByFFmpeg() {
+		return getBoolean(GET_EXACT_ASPECT_RATIO_BY_FFMPEG, false);
 	}
 
 	public boolean isShowAudioMetadata() {

@@ -78,7 +78,8 @@ import org.slf4j.LoggerFactory;
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-
+	private static RendererConfiguration mediaRenderer = PMS.getConfiguration();
+	
 	public static final long ENDFILE_POS = 99999475712L;
 
 	/**
@@ -1371,6 +1372,106 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 						}
+
+						/** Get aspect ratio
+						 * A movie can have the info of display aspect ratio in a video stream and a container, respetively
+						 * The former is as sample (pixel) aspect ratio and the latter is as display aspect ratio.
+						 * Display aspect ratio = Resolution ratio x Sample aspect ratio
+						 * Both of them can be gotten by ffmpeg. ffmpeg displays the below four kinds on aspect ratio
+						 * 1st:  sample aspect ratio and display aspect ratio do not exist in a video stream and a container, respectively.
+						 *  ..., 720x480, ...
+						 * 2nd:  sample aspect ratio does not exist in a video stream but display aspect ratio does in a container.
+						 *  ..., 720x480, ..., SAR 40:33 DAR 20:11, ...
+						 * 3rd:  sample aspect ratio exists in a video stream and cannot know whether or not display aspect ratio does in a container.
+						 *  ..., 720x480 [SAR 32:27 DAR 16:9], ...
+						 * 4th:  sample aspect ratio and display aspect ratio exist in a video stream and a container, respectively.
+						 *  ..., 720x480 [SAR 1:1 DAR 3:2], ..., SAR 32:27 DAR 16:9, ...
+						 */
+						// Get the display aspect ratio of a video stream
+						if (line.matches(".*\\[SAR [0-9]+:[0-9]+ DAR [0-9]+:[0-9]+\\],.*")) {
+							// 3rd and 4th
+							aspectRatioVideoTrack = line.replaceFirst(".*\\[SAR [0-9]+:[0-9]+ DAR ", "").replaceFirst("\\].*", "").trim();
+						} else {
+							// 1st and 2nd
+							// Resolution ratio is used as display aspect ratio of a video stream/
+							// Greatest common divisor of resolution
+							int GCD = 1;
+							if (width != 0 && height != 0) {
+								int a;
+								int b;
+								int remainder;
+								if (width > height) {
+									a = width;
+									b = height;
+								} else {
+									a = height;
+									b = width;
+								}
+								while ((remainder = a % b) != 0) {
+									a = b;
+									b = remainder;
+								}
+								GCD = b;
+							}
+							aspectRatioVideoTrack =String.valueOf( width / GCD) + ":" + String.valueOf(height / GCD).trim();
+						}
+						if (!mediaRenderer.isGetExactAspectRatioByFFmpeg()) {
+							Double tmp_width = 0.0;
+							Double tmp_height = 0.0;
+							try {
+								tmp_width = Double.parseDouble(aspectRatioVideoTrack.replaceFirst(":[0-9]+", ""));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse width from \"" + aspectRatioVideoTrack.replaceFirst(":[0-9]+", ""));
+							}
+							try {
+								tmp_height = Double.parseDouble(aspectRatioVideoTrack.replaceFirst("[0-9]+:", ""));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse height from \"" + aspectRatioVideoTrack.replaceFirst("[0-9]+:", ""));
+							}
+			
+							double exactAspectRatioVideoTrack = tmp_width / tmp_height ;
+							if (exactAspectRatioVideoTrack > 1.77 && exactAspectRatioVideoTrack <= 1.78) {
+								aspectRatioVideoTrack = "16:9";
+							} else if (exactAspectRatioVideoTrack > 1.33 && exactAspectRatioVideoTrack < 1.34) {
+								aspectRatioVideoTrack = "4:3";
+							} else if (exactAspectRatioVideoTrack > 1.22 && exactAspectRatioVideoTrack < 1.23) {
+								aspectRatioVideoTrack = "5:4";
+							}
+						}
+
+						// Get the display aspect ratio of a ccontainer
+						if (line.matches(".*, SAR [0-9]+:[0-9]+ DAR [0-9]+:[0-9]+, .*")) {
+							// 2nd and 4th
+							aspectRatioContainer = line.replaceFirst(".* SAR [0-9]+:[0-9]+ DAR ", "").replaceFirst(",.*", "").trim();
+						} else {
+							// 1st and 3rd
+							// In these case, the display aspect rate of the above video stream is used.
+							aspectRatioContainer = aspectRatioVideoTrack;
+						}
+						if (!mediaRenderer.isGetExactAspectRatioByFFmpeg()) {
+							Double tmp_width = 0.0;
+							Double tmp_height = 0.0;
+							try {
+								tmp_width = Double.parseDouble(aspectRatioContainer.replaceFirst(":[0-9]+", ""));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse width from \"" + aspectRatioContainer.replaceFirst(":[0-9]+", ""));
+							}
+							try {
+								tmp_height = Double.parseDouble(aspectRatioContainer.replaceFirst("[0-9]+:", ""));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse height from \"" + aspectRatioContainer.replaceFirst("[0-9]+:", ""));
+							}
+			
+							double exactAspectRatioVideoTrack = tmp_width / tmp_height ;
+							if (exactAspectRatioVideoTrack > 1.77 && exactAspectRatioVideoTrack <= 1.78) {
+								aspectRatioVideoTrack = "16:9";
+							} else if (exactAspectRatioVideoTrack > 1.33 && exactAspectRatioVideoTrack < 1.34) {
+								aspectRatioVideoTrack = "4:3";
+							} else if (exactAspectRatioVideoTrack > 1.22 && exactAspectRatioVideoTrack < 1.23) {
+								aspectRatioVideoTrack = "5:4";
+							}
+						}
+
 					} else if (line.contains("Subtitle:")) {
 						DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
 
@@ -2451,7 +2552,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioContainer(String aspect) {
-		this.aspectRatioContainer = getFormattedAspectRatio(aspect);
+		this.aspectRatioContainer = aspectRatioContainer != null && aspectRatioContainer.contains(":") ? aspectRatioContainer : getFormattedAspectRatio(aspect);
 	}
 
 	/**
@@ -2470,7 +2571,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioVideoTrack(String aspect) {
-		this.aspectRatioVideoTrack = getFormattedAspectRatio(aspect);
+		this.aspectRatioVideoTrack = aspectRatioVideoTrack != null && aspectRatioVideoTrack.contains(":") ? aspectRatioVideoTrack : getFormattedAspectRatio(aspect);
 	}
 
 	/**

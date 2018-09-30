@@ -127,6 +127,10 @@ public class FFMpegVideo extends Player {
 
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 
+	// LOGGER for tesr and review. This is deleted soon.
+	LOGGER.trace("media.getAspectRatioContainer() " + media.getAspectRatioContainer());
+	LOGGER.trace("media.getAspectRatioVideoTrack " + media.getAspectRatioVideoTrack());
+
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&
 				!media.is3dFullSbsOrOu() &&
