@@ -374,26 +374,30 @@ public class FFMpegVideo extends Player {
 
 			// Output video codec
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
-				if (!customFFmpegOptions.contains("-c:v")) {
+				if (!customFFmpegOptions.matches(".*-(c:v|codec:v|vcodec).*")) {
 					transcodeOptions.add("-c:v");
 					if (renderer.isTranscodeToH264()) {
 						transcodeOptions.add("libx264");
 					} else {
 						transcodeOptions.add("libx265");
 					}
-					transcodeOptions.add("-tune");
-					transcodeOptions.add("zerolatency");
-				}
-				if (!customFFmpegOptions.contains("-preset")) {
-					transcodeOptions.add("-preset");
-					transcodeOptions.add("ultrafast");
+					if (!customFFmpegOptions.contains("-tune")) {
+    					transcodeOptions.add("-tune");
+    					transcodeOptions.add("zerolatency");
+					}
+    				if (!customFFmpegOptions.contains("-preset")) {
+    					transcodeOptions.add("-preset");
+    					transcodeOptions.add("ultrafast");
+    				}
 				}
 				if (!customFFmpegOptions.contains("-level")) {
 					transcodeOptions.add("-level");
 					transcodeOptions.add("31");
 				}
-				transcodeOptions.add("-pix_fmt");
-				transcodeOptions.add("yuv420p");
+				if (!customFFmpegOptions.contains("-pix_fmt")) {
+    					transcodeOptions.add("-pix_fmt");
+    					transcodeOptions.add("yuv420p");
+				}
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
@@ -427,6 +431,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
+		String customFFmpegOptions = params.mediaRenderer.getCustomFFmpegOptions();
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -455,7 +460,7 @@ public class FFMpegVideo extends Player {
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
+		if ((params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) || (!customFFmpegOptions.matches(".*-(maxrate|bufsize)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(vbv-maxrate=|vbv-bufsize=).*"))) {
 			if (rendererMaxBitrates[0] < 0) {
 				// odd special case here
 				// this is -1 so we guess that 3000 kbps is good
@@ -571,32 +576,34 @@ public class FFMpegVideo extends Player {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
 
-			// Remove comment from the value
-			if (x264CRF.contains("/*")) {
-				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
-			}
-
-			if (x264CRF.contains("Automatic")) {
-				if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
-					x264CRF = "19";
-					// Lower quality for 720p+ content
-					if (media.getWidth() > 1280) {
-						x264CRF = "23";
-					} else if (media.getWidth() > 720) {
-						x264CRF = "22";
-					}
-				} else {
-					x264CRF = "16";
-
-					// Lower quality for 720p+ content
-					if (media.getWidth() > 720) {
+			if (!customFFmpegOptions.matches(".*-(crf|b:v|b)") && !customFFmpegOptions.matches(".*-(x264opts|x264-params) .*(crf=|bitrate=|B=).*")) {
+				// Remove comment from the value
+				if (x264CRF.contains("/*")) {
+					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+				}
+	
+				if (x264CRF.contains("Automatic")) {
+					if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
 						x264CRF = "19";
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							x264CRF = "23";
+						} else if (media.getWidth() > 720) {
+							x264CRF = "22";
+						}
+					} else {
+						x264CRF = "16";
+	
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 720) {
+							x264CRF = "19";
+						}
 					}
 				}
-			}
-			if (isNotBlank(x264CRF) && !params.mediaRenderer.nox264()) {
-				videoBitrateOptions.add("-crf");
-				videoBitrateOptions.add(x264CRF);
+				if (isNotBlank(x264CRF) && !params.mediaRenderer.nox264()) {
+					videoBitrateOptions.add("-crf");
+					videoBitrateOptions.add(x264CRF);
+				}
 			}
 		}
 
