@@ -178,6 +178,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	protected static final String KEY_FFMPEG_OUTPUT_SILENT_AUDIO= "ffmpeg_output_silent_audio";
 	protected static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
@@ -2779,6 +2780,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_AUDIO_REMUX_AC3, true);
 	}
 
+	public void setFFmpegOutputSilentAudio(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_OUTPUT_SILENT_AUDIO, value);
+	}
+
+	public boolean isFFmpegOutputSilentAudio() {
+		return getBoolean(KEY_FFMPEG_OUTPUT_SILENT_AUDIO, false);
+	}
+  
 	public void setFFmpegSoX(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_SOX, value);
 	}

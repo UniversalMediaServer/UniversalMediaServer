@@ -245,7 +245,12 @@ public class FFMpegVideo extends Player {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
-					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+
+					if (params.aid == null && (configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio())) {
+						subsFilter.append("[0:v][2:s]overlay"); // this assumes the sub file is single-language
+					} else {
+						subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+					}
 				}
 			}
 			if (isNotBlank(subsFilter)) {
@@ -868,6 +873,14 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		// Output silent audio for rennderers not supportinng for a movie without audio
+		if (params.aid == null && (configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio())) {
+			cmdList.add("-f");
+			cmdList.add("lavfi");
+			cmdList.add("-i");
+ 			cmdList.add("anullsrc=cl=mono:r="+String.valueOf(params.mediaRenderer.getTranscodedVideoAudioSampleRate()));
+		}
+
 		/**
 		 * Defer to MEncoder for subtitles if:
 		 * - The setting is enabled
@@ -1068,6 +1081,11 @@ public class FFMpegVideo extends Player {
 					cmdList.add("-cheby");
 					cmdList.add("1");
 				}
+			}
+
+			// Adjust stream length when outputting silent audio for rennderers not supportinng for a movie without audio
+			if (params.aid == null && (configuration.isFFmpegOutputSilentAudio() || params.mediaRenderer.isOutputSilentAudio())) {
+				cmdList.add("-shortest");
 			}
 
 			// Add the output options (-f, -c:a, -c:v, etc.)
@@ -1306,6 +1324,7 @@ public class FFMpegVideo extends Player {
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
 	private JCheckBox isFFmpegSoX;
+	private JCheckBox OutputSilentAudio;
 	private JComboBox<String> FFmpegGPUDecodingAccelerationMethod;
 	private JComboBox<String> FFmpegGPUDecodingAccelerationThreadNumber;
 
@@ -1317,7 +1336,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1371,6 +1390,17 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(2, 9));
 
+		OutputSilentAudio = new JCheckBox(Messages.getString("FFmpeg.4"), configuration.isFFmpegOutputSilentAudio());
+		OutputSilentAudio.setContentAreaFilled(false);
+		OutputSilentAudio.setToolTipText(Messages.getString("FFmpeg.5"));
+		OutputSilentAudio.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegOutputSilentAudio(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(OutputSilentAudio), cc.xy(2, 11));
+
 		isFFmpegSoX = new JCheckBox(Messages.getString("FFmpeg.Sox"), configuration.isFFmpegSoX());
 		isFFmpegSoX.setContentAreaFilled(false);
 		isFFmpegSoX.setToolTipText(Messages.getString("FFmpeg.SoxTooltip"));
@@ -1380,9 +1410,9 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegSoX(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(2, 11));
+		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(2, 13));
 		
-		builder.add(new JLabel(Messages.getString("FFmpeg.GPUDecodingAccelerationMethod")), cc.xy(2, 13));
+		builder.add(new JLabel(Messages.getString("FFmpeg.GPUDecodingAccelerationMethod")), cc.xy(2, 15));
 		
 		String[] keys = configuration.getFFmpegAvailableGPUDecodingAccelerationMethods();
 
@@ -1398,9 +1428,9 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		FFmpegGPUDecodingAccelerationMethod.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUDecodingAccelerationMethod), cc.xy(2, 15));
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUDecodingAccelerationMethod), cc.xy(2, 17));
 
-		builder.addLabel(Messages.getString("FFmpeg.GPUDecodingThreadCount"), cc.xy(2, 17));
+		builder.addLabel(Messages.getString("FFmpeg.GPUDecodingThreadCount"), cc.xy(2, 19));
 		String[] threads = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
 
 		FFmpegGPUDecodingAccelerationThreadNumber = new JComboBox<>(threads);
@@ -1414,7 +1444,7 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		FFmpegGPUDecodingAccelerationThreadNumber.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUDecodingAccelerationThreadNumber), cc.xy(2, 19));
+		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUDecodingAccelerationThreadNumber), cc.xy(2, 21));
 
 		return builder.getPanel();
 	}
