@@ -1,3 +1,14 @@
+7.5.0 - 2018-??-??
+
+	General:
+		Added animated Restart Server button when a restart is needed to apply a new setting (thanks, Nadahar!)
+		Added hover and push effects to buttons (thanks, Nadahar!)
+		Added Docker build files (thanks, atamariya!)
+		Fixed the state of scan buttons while startup scan is running
+		Fixed a lot of minor bugs
+	Renderers:
+		Fixed FLAC playback on Xbox One (thanks, 25233Guyver!)
+
 7.4.0 - 2018-09-22
 
 	General:
