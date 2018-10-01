@@ -615,7 +615,11 @@ public class UMSUtils {
 				if (line.equals("Hardware acceleration methods:")) {
 					continue;
 				} else {
-					availableMethods.add(line);
+					// fix duplicating GPU acceleration methods reported in 
+					// https://github.com/UniversalMediaServer/UniversalMediaServer/issues/1592
+					if (!availableMethods.contains(line)) {
+						availableMethods.add(line);
+					}
 				}
 			}
 		}

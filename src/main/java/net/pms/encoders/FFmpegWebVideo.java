@@ -146,6 +146,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				filtersLock.writeLock().unlock();
 				it.close();
 			}
+		} catch (FileNotFoundException e) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.info("FFmpeg web filters \"{}\" not found, web filters ignored: {}", filename, e.getMessage());
+			} else {
+				LOGGER.info("FFmpeg web filters \"{}\" not found, web filters ignored", filename);
+			}
 		} catch (IOException e) {
 			LOGGER.debug("Error reading ffmpeg web filters from file \"{}\": {}", filename, e.getMessage());
 			LOGGER.trace("", e);

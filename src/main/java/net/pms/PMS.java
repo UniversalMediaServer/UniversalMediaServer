@@ -19,6 +19,7 @@
 
 package net.pms;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
@@ -138,8 +139,8 @@ public class PMS {
 	private SleepManager sleepManager = null;
 
 	/**
-	 * Returns a pointer to the PMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
+	 * Returns a pointer to the DMS GUI's main window.
+	 * @return {@link net.pms.newgui.IFrame} Main DMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -172,17 +173,16 @@ public class PMS {
 	}
 
 	/**
-	 * Pointer to a running PMS server.
+	 * Pointer to a running DMS server.
 	 */
 	private static PMS instance = null;
 
 	/**
-	 * Array of {@link net.pms.configuration.RendererConfiguration} that have
-	 * been found by UMS.<br><br>
-	 *
+	 * An array of {@link RendererConfiguration}s that have been found by DMS.
+	 * <p>
 	 * Important! If iteration is done on this list it's not thread safe unless
-	 * the iteration loop is enclosed by a <code>synchronized</code> block on
-	 * the <code>List itself</code>.
+	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
+	 * {@link List} itself</b>.
 	 */
 	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<RendererConfiguration>());
 
@@ -256,7 +256,7 @@ public class PMS {
 	}
 
 	/**
-	 * {@link net.pms.newgui.IFrame} object that represents the PMS GUI.
+	 * {@link net.pms.newgui.IFrame} object that represents the DMS GUI.
 	 */
 	private IFrame frame;
 
@@ -409,7 +409,7 @@ public class PMS {
 	}
 
 	/**
-	 * Initialization procedure for UMS.
+	 * Initialization procedure for DMS.
 	 *
 	 * @return <code>true</code> if the server has been initialized correctly.
 	 *         <code>false</code> if initialization was aborted.
@@ -802,8 +802,10 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by PMS.
-	 * @return (MediaLibrary) Used mediaLibrary, if any. null if none is in use.
+	 * Returns the MediaLibrary used by DMS.
+	 *
+	 * @return The current {@link MediaLibrary} or {@code null} if none is in
+	 *         use.
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
@@ -843,7 +845,6 @@ public class PMS {
 	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 *
-	 * @param monitored whether to return only monitored directories
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
@@ -949,7 +950,7 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main PMS window or via
+	 * Restarts the server. The trigger is either a button on the main DMS window or via
 	 * an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
@@ -985,7 +986,7 @@ public class PMS {
 	}
 
 	// Cannot remove these methods because of backwards compatibility;
-	// none of the PMS code uses it, but some plugins still do.
+	// none of the DMS code uses it, but some plugins still do.
 
 	/**
 	 * @deprecated Use the SLF4J logging API instead.
@@ -1089,9 +1090,9 @@ public class PMS {
 	 */
 	@Nonnull
 	public static PMS get() {
-		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
-		// However, plugin tests may need access to a PMS instance without going
-		// to the trouble of launching the PMS application, so we provide a fallback
+		// XXX when DMS is run as an application, the instance is initialized via the createInstance call in main().
+		// However, plugin tests may need access to a DMS instance without going
+		// to the trouble of launching the DMS application, so we provide a fallback
 		// initialization here. Either way, createInstance() should only be called once (see below)
 		if (instance == null) {
 			createInstance();
@@ -1132,9 +1133,12 @@ public class PMS {
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
 		File profilePath = null;
+
+		// This must be called before JNA is used
+		configureJNA();
+
+		// Start caching log messages until the logger is configured
 		CacheLogger.startCaching();
-		// Make sure that no other versions of JNA found on the system is used
-		System.setProperty("jna.nosys", "true");
 
 		// Set headless options if given as a system property when launching the JVM
 		if (System.getProperty(CONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
@@ -1348,8 +1352,8 @@ public class PMS {
 
 	/**
 	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for PMS. The object provides getters for all
-	 * configurable PMS settings.
+	 * that contains all configured settings for DMS. The object provides getters for all
+	 * configurable DMS settings.
 	 *
 	 * @return The configuration object
 	 */
@@ -1382,8 +1386,8 @@ public class PMS {
 
 	/**
 	 * Sets the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for PMS. The object provides getters for all
-	 * configurable PMS settings.
+	 * that contains all configured settings for DMS. The object provides getters for all
+	 * configurable DMS settings.
 	 *
 	 * @param conf The configuration object.
 	 */
@@ -1392,7 +1396,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the project version for PMS.
+	 * Returns the project version for DMS.
 	 *
 	 * @return The project version.
 	 */
@@ -1445,7 +1449,7 @@ public class PMS {
 		LOGGER.info("");
 
 		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of UMS are being
+			// The binaries shipped with the Mac OS X version of DMS are being
 			// compiled against specific OS versions, making them incompatible
 			// with older versions. Warn the user about this when necessary.
 			LOGGER.warn("-----------------------------------------------------------------");
@@ -1499,7 +1503,7 @@ public class PMS {
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
-		} catch (IOException e) {
+		} catch ( IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
 
@@ -1638,8 +1642,9 @@ public class PMS {
 	private static Boolean headless = null;
 
 	/**
-	 * Checks if UMS is running in headless (console) mode, since some Linux
-	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
+	 * Checks if DMS is running in headless (console) mode, since some Linux
+	 * distributions seem to not use java.awt.GraphicsEnvironment.isHeadless()
+	 * properly.
 	 */
 	public static boolean isHeadless() {
 		headlessLock.readLock().lock();
@@ -1666,7 +1671,7 @@ public class PMS {
 	}
 
 	/**
-	 * Forces UMS to run in headless (console) mode whether a graphics
+	 * Forces DMS to run in headless (console) mode whether a graphics
 	 * environment is available or not.
 	 */
 	public static void forceHeadless() {
@@ -1682,7 +1687,7 @@ public class PMS {
 	private static ReadWriteLock localeLock = new ReentrantReadWriteLock();
 
 	/**
-	 * Gets UMS' current {@link Locale} to be used in any {@link Locale}
+	 * Gets DMS' current {@link Locale} to be used in any {@link Locale}
 	 * sensitive operations. If <code>null</code> the default {@link Locale}
 	 * is returned.
 	 */
@@ -1700,7 +1705,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale}.
+	 * Sets DMS' {@link Locale}.
 	 * @param aLocale the {@link Locale} to set
 	 */
 
@@ -1715,7 +1720,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the
+	 * Sets DMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1745,7 +1750,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the
+	 * Sets DMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1761,7 +1766,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * Sets DMS' {@link Locale} with the same parameters as the {@link Locale}
 	 * class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1975,5 +1980,37 @@ public class PMS {
 	 */
 	public static boolean isRunningTests() {
 		return System.getProperty("surefire.real.class.path") != null;
+	}
+
+	/**
+	 * Configures JNA according to the environment. This must be called before
+	 * JNA is first initialized to have any effect.
+	 */
+	public static void configureJNA() {
+		// Set JNA "jnidispatch" resolution rules
+		try {
+			if (
+				System.getProperty("os.name") != null &&
+				System.getProperty("os.name").startsWith("Windows") &&
+				isNotBlank(System.getProperty("os.version")) &&
+				Double.parseDouble(System.getProperty("os.version")) < 5.2
+			) {
+				String developmentPath = "src\\main\\external-resources\\lib\\winxp";
+				if (new File(developmentPath).exists()) {
+					System.setProperty("jna.boot.library.path", developmentPath);
+				} else {
+					System.setProperty("jna.boot.library.path", "win32\\winxp");
+				}
+			} else {
+				System.setProperty("jna.nosys", "true");
+			}
+		} catch (NullPointerException | NumberFormatException e) {
+			System.setProperty("jna.nosys", "true");
+			System.err.println(
+				"Could not determine Windows version from " +
+				System.getProperty("os.version") +
+				". Not applying Windows XP hack"
+			);
+		}
 	}
 }

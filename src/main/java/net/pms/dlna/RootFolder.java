@@ -639,13 +639,14 @@ public class RootFolder extends DLNAResource {
 						// If the result code is not read by parent. The process might turn into a zombie (they are real!)
 						process.waitFor();
 					} catch (InterruptedException e) {
-						LOGGER.warn("Interrupted while waiting for stream for process" + e.getMessage());
+						LOGGER.warn("Interrupted while waiting for stream for process");
 					}
 
 					try {
 						process.getErrorStream().close();
 					} catch (Exception e) {
-						LOGGER.warn("Could not close stream for output process", e);
+						LOGGER.warn("Could not close process output stream: {}", e.getMessage());
+						LOGGER.trace("", e);
 					}
 
 					try {

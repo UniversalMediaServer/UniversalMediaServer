@@ -169,7 +169,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ENGINES = "engines";
 	protected static final String KEY_ENGINES_PRIORITY = "engines_priority";
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
-	protected static final String KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS = "fmpeg_available_fgpu_decoding_acceleration_methods";
+	protected static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
@@ -223,6 +223,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
+	protected static final String KEY_LOGGING_DATABASE = "logging_database";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -2184,11 +2185,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, "auto").split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, "auto").split(",");
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
-		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, listToString(methods));
+		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, listToString(methods));
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {
@@ -3866,6 +3867,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setLoggingUseSyslog(boolean value) {
 		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
+	}
+
+	public boolean getLoggingDatabase() {
+		return getBoolean(KEY_LOGGING_DATABASE, false) || PMS.getTraceMode() == 2;
 	}
 
 	public boolean isVlcUseHardwareAccel() {
