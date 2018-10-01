@@ -568,8 +568,8 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getExtras(),
-				null,
-				false
+				media.getSubtitleTracksList().size() != 0 ? media.getSubtitleTracksList().get(0).getType().toString() : null,
+				media.getSubtitleTracksList().size() != 0 ? media.isExternalSubsExist() : false
 			);
 		} else {
 			String finalMimeType = null;
@@ -595,8 +595,8 @@ public class FormatConfiguration {
 					media.getWidth(),
 					media.getHeight(),
 					media.getExtras(),
-					null,
-					false
+					media.getSubtitleTracksList().size() != 0 ? media.getSubtitleTracksList().get(0).getType().toString() : null,
+					media.getSubtitleTracksList().size() != 0 ? media.isExternalSubsExist() : false
 				);
 			}
 
@@ -611,8 +611,8 @@ public class FormatConfiguration {
 					media.getWidth(),
 					media.getHeight(),
 					media.getExtras(),
-					null,
-					false
+					media.getSubtitleTracksList().size() != 0 ? media.getSubtitleTracksList().get(0).getType().toString() : null,
+					media.getSubtitleTracksList().size() != 0 ? media.isExternalSubsExist() : false
 				);
 
 				finalMimeType = mimeType;
