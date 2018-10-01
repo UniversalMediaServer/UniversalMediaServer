@@ -23,11 +23,15 @@ import ch.qos.logback.classic.LoggerContext;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.LibMediaInfoParser;
+import net.pms.encoders.Player;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
 import net.pms.formats.ISO;
@@ -38,7 +42,10 @@ import net.pms.formats.audio.MP3;
 import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
+import net.pms.formats.v2.SubtitleType;
+import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -302,4 +309,50 @@ public class FormatRecognitionTest {
 				true, format.isCompatible(info, null));
 	}
 
+
+	/**
+	 * Test the compatibility of the
+	 * {@link Format#isCompatible(DLNAMediaInfo, RendererConfiguration)} for
+	 * given subtitles formats
+	 * @throws ConfigurationException 
+	 */
+	@Test
+	public void testSubtitlesRecognition() throws ConfigurationException {
+    	// This test is only useful if the MediaInfo library is available
+		assumeTrue(mediaInfoParserIsValid);
+		RendererConfiguration conf = new RendererConfiguration();
+		conf.getConfiguration().addProperty("MediaInfo", true);
+		conf.getConfiguration().addProperty("Supported", "f:mpeg v:h264 a:aac-lc si:SUBRIP m:video/mpeg");
+		conf.getConfiguration().addProperty("Supported", "f:mp4 se:ASS m:video/mp4");;
+
+		// SUBRIP: true
+		DLNAMediaInfo info = new DLNAMediaInfo();
+		info.setContainer("mpeg");
+		DLNAMediaSubtitle subs = new DLNAMediaSubtitle();
+		subs.setId(1);
+		subs.setType(SubtitleType.SUBRIP);
+		info.getSubtitleTracksList().add(subs);
+		info.setExternalSubsExist(true);
+		Format format = new MPG();
+		format.match("test.mpg");
+		assertTrue("isCompatible() gives the outcome tru for SUBRIP and f:mpeg",	conf.isCompatible(info, format, configuration));
+		
+		//ASS: true
+		info.setContainer("mp4");
+		subs = new DLNAMediaSubtitle();
+		subs.setId(1);
+		subs.setType(SubtitleType.ASS);
+		info.getSubtitleTracksList().add(subs);
+		info.setExternalSubsExist(false);
+		assertTrue("isCompatible() gives the outcome true for ASS and f:mp4",	conf.isCompatible(info, format, configuration));
+		
+		//ASS: true
+		info.setContainer("mp4");
+		subs = new DLNAMediaSubtitle();
+		subs.setId(1);
+		subs.setType(SubtitleType.ASS);
+		info.getSubtitleTracksList().add(subs);
+		info.setExternalSubsExist(true);
+		assertTrue("isCompatible() gives the outcome false for SUBRIP and f:mp4",	conf.isCompatible(info, format, configuration));
+	}
 }
