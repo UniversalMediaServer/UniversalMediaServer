@@ -2309,7 +2309,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 																LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
 															}
 
-															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
+															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) { //TODO change the logic for isExternalSubtitlesFormatSupported
 																sub.setSubsStreamable(true);
 															}
 															params.sid = sub;
