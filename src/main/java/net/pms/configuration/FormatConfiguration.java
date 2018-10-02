@@ -388,7 +388,6 @@ public class FormatConfiguration {
 				}
 				
 			}
-			
 
 			if (extras != null && miExtras != null) {
 				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();

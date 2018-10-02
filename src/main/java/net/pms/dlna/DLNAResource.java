@@ -706,7 +706,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						// If no preferred player could be determined from the name, try to
 						// match a player based on media information and format.
-						if (playerTranscoding == null || (hasExternalSubtitles() && defaultRenderer.isSubtitlesStreamingSupported())) {
+						if (playerTranscoding == null || hasExternalSubtitles()) {
 							playerTranscoding = child.resolvePlayer(defaultRenderer);
 						}
 						child.setPlayer(playerTranscoding);
