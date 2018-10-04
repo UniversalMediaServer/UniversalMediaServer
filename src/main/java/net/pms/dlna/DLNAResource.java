@@ -887,17 +887,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (params.sid != null) {
 					if (params.sid.isExternal()) {
 						if (renderer != null) {
-							boolean subsMatched = renderer.getFormatConfiguration().match(media.getContainer(),
-									media.getCodecV(),
-									null,
-									0,
-									0,
-									0,
-									media.getWidth(),
-									media.getHeight(),
-									null,
-									params.sid.getType().name(),
-									params.sid.isExternal()) != null;
+							boolean subsMatched = renderer.getFormatConfiguration().match(params.sid) != null;
 							if (subsMatched) {
 								media_subtitle = params.sid;
 								media_subtitle.setSubsStreamable(true);
@@ -910,17 +900,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					} else {
 						if (renderer != null) {
-							boolean subsMatched = renderer.getFormatConfiguration().match(media.getContainer(),
-									media.getCodecV(),
-									null,
-									0,
-									0,
-									0,
-									media.getWidth(),
-									media.getHeight(),
-									null,
-									params.sid.getType().name(),
-									params.sid.isExternal()) != null;
+							boolean subsMatched = renderer.getFormatConfiguration().match(params.sid) != null;
 							if (subsMatched) {
 								media_subtitle = params.sid;
 								media_subtitle.setSubsStreamable(true);

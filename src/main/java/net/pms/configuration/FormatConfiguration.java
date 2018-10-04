@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
@@ -327,7 +328,7 @@ public class FormatConfiguration {
 		) {
 
 			// Satisfy a minimum threshold
-			if (format == null && videoCodec == null && audioCodec == null) {
+			if (format == null && videoCodec == null && audioCodec == null && subsFormat == null) {
 				// We have no matchable info. This can happen with unparsed
 				// mediainfo objects (e.g. from WEB.conf or plugins).
 				return false;
@@ -638,6 +639,22 @@ public class FormatConfiguration {
 			null,
 			null,
 			false
+		);
+	}
+
+	public String match(DLNAMediaSubtitle subs) {
+		return match(
+			null,
+			null,
+			null,
+			0,
+			0,
+			0,
+			0,
+			0,
+			null,
+			subs.getType().name(),
+			subs.isExternal()
 		);
 	}
 
