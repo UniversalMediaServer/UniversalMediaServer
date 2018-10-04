@@ -35,6 +35,7 @@ import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
+import net.pms.io.OutputParams;
 import net.pms.util.AudioUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -642,19 +643,30 @@ public class FormatConfiguration {
 		);
 	}
 
-	public String match(DLNAMediaSubtitle subs) {
+	/**
+	 * Match media information and subtitles type supported by the renderer and
+	 * return media MIME-type if the match is successful. Returns null if the
+	 * media or subtitles are not natively supported by the renderer, which means it has
+	 * to be transcoded.
+	 *
+	 * @param media The MediaInfo metadata
+	 * @param params Output params defining audio a subtitles streams to be
+	 * send to renderer
+	 * @return The MIME type or null if no match was found.
+	 */
+	public String match(DLNAMediaInfo media, OutputParams params) {
 		return match(
-			null,
-			null,
-			null,
+			media.getContainer(),
+			media.getCodecV(),
+			params.aid != null ? params.aid.getCodecA() : null,
 			0,
 			0,
 			0,
 			0,
 			0,
 			null,
-			subs.getType().name(),
-			subs.isExternal()
+			params.sid.getType().name(),
+			params.sid.isExternal()
 		);
 	}
 

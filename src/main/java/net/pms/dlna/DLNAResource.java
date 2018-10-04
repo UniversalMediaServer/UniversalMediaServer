@@ -885,9 +885,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				OutputParams params = new OutputParams(configurationSpecificToRenderer);
 				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
 				if (params.sid != null) {
+					boolean subsMatched = false;
 					if (params.sid.isExternal()) {
 						if (renderer != null) {
-							boolean subsMatched = renderer.getFormatConfiguration().match(params.sid) != null;
+							if (parserV2) {
+								subsMatched = renderer.getFormatConfiguration().match(media, params) != null;
+							} else {
+								subsMatched = renderer.isExternalSubtitlesFormatSupported(params.sid, media);
+							}
+							
 							if (subsMatched) {
 								media_subtitle = params.sid;
 								media_subtitle.setSubsStreamable(true);
@@ -900,7 +906,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					} else {
 						if (renderer != null) {
-							boolean subsMatched = renderer.getFormatConfiguration().match(params.sid) != null;
+							if (parserV2) {
+								subsMatched = renderer.getFormatConfiguration().match(media, params) != null;
+							} else {
+								subsMatched = renderer.isExternalSubtitlesFormatSupported(params.sid, media);
+							}
 							if (subsMatched) {
 								media_subtitle = params.sid;
 								media_subtitle.setSubsStreamable(true);
