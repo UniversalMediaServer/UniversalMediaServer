@@ -88,13 +88,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		null
 	};
 
-	private NavigationShareTab nt;
+	private NavigationShareTab navigationSettingsTab;
+	private SharedContentTab sharedContentTab;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
-	private GeneralTab gt;
+	private GeneralTab generalSettingsTab;
 	private HelpTab ht;
-	private PluginTab pt;
+	private PluginTab pluginsTab;
 	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");;
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
@@ -121,24 +122,27 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tt;
 	}
 
-	public NavigationShareTab getNt() {
-		return nt;
+	public NavigationShareTab getNavigationSettingsTab() {
+		return navigationSettingsTab;
+	}
+
+	public SharedContentTab getSharedContentTab() {
+		return sharedContentTab;
 	}
 
 	public TranscodingTab getTr() {
 		return tr;
 	}
 
-	public GeneralTab getGt() {
-		return gt;
+	public GeneralTab getGeneralSettingsTab() {
+		return generalSettingsTab;
 	}
 
-	public PluginTab getPt() {
-		return pt;
+	public PluginTab getPluginsTab() {
+		return pluginsTab;
 	}
 
 	public static void initializeLookAndFeel() {
-
 		synchronized (lookAndFeelInitializedLock) {
 			if (lookAndFeelInitialized) {
 				return;
@@ -496,17 +500,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration, this);
-		gt = new GeneralTab(configuration, this);
-		pt = new PluginTab(configuration, this);
-		nt = new NavigationShareTab(configuration, this);
+		generalSettingsTab = new GeneralTab(configuration, this);
+		pluginsTab = new PluginTab(configuration, this);
+		navigationSettingsTab = new NavigationShareTab(configuration, this);
+		sharedContentTab = new SharedContentTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabGeneralSettings"), generalSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabPlugins"), pluginsTab.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabNavigationSettings"), navigationSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabSharedContent"), sharedContentTab.build());
 		if (!configuration.isDisableTranscoding()) {
 			tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		} else {
@@ -703,13 +709,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void serverReady() {
 		st.updateMemoryUsage();
-		gt.addRenderers();
-		pt.addPlugins();
+		generalSettingsTab.addRenderers();
+		pluginsTab.addPlugins();
 	}
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
-		getNt().setScanLibraryEnabled(flag);
+		getSharedContentTab().setScanLibraryEnabled(flag);
 	}
 
 	@Override
