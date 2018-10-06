@@ -43,6 +43,7 @@ import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.io.StreamGobbler;
 import net.pms.newgui.IFrame;
+import net.pms.newgui.SharedContentTab;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
@@ -371,7 +372,11 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
-	private void loadWebConf() {
+	/**
+	 * Removes all web folders, re-parses the web config file, and adds a
+	 * file watcher for the file.
+	 */
+	public void loadWebConf() {
 		for (DLNAResource d : webFolders) {
 			getChildren().remove(d);
 		}
@@ -379,14 +384,22 @@ public class RootFolder extends DLNAResource {
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
 		if (webConf.exists() && configuration.getExternalNetwork() && !configuration.isHideWebFolder(tags)) {
-			addWebFolder(webConf);
+			parseWebConf(webConf);
 			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
 		}
 		setLastModified(1);
 	}
 
-	private void addWebFolder(File webConf) {
+	/**
+	 * This parses the web config and populates the virtual Web folder.
+	 *
+	 * @param webConf
+	 */
+	private void parseWebConf(File webConf) {
 		try {
+			// Remove any existing rows from the Web content GUI
+			((SharedContentTab.WebContentTableModel) SharedContentTab.webContentList.getModel()).setRowCount(0);
+
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
 				while ((line = br.readLine()) != null) {
@@ -396,20 +409,23 @@ public class RootFolder extends DLNAResource {
 						String key = line.substring(0, line.indexOf('='));
 						String value = line.substring(line.indexOf('=') + 1);
 						String[] keys = parseFeedKey(key);
+						String sourceType = keys[0];
+						String folderName = keys[1] == null ? null : keys[1];
 
 						try {
 							if (
-								keys[0].equals("imagefeed") ||
-								keys[0].equals("audiofeed") ||
-								keys[0].equals("videofeed") ||
-								keys[0].equals("audiostream") ||
-								keys[0].equals("videostream")
+								sourceType.equals("imagefeed") ||
+								sourceType.equals("audiofeed") ||
+								sourceType.equals("videofeed") ||
+								sourceType.equals("audiostream") ||
+								sourceType.equals("videostream")
 							) {
 								String[] values = parseFeedValue(value);
+								String uri = values[0];
 								DLNAResource parent = null;
 
-								if (keys[1] != null) {
-									StringTokenizer st = new StringTokenizer(keys[1], ",");
+								if (folderName != null) {
+									StringTokenizer st = new StringTokenizer(folderName, ",");
 									DLNAResource currentRoot = this;
 
 									while (st.hasMoreTokens()) {
@@ -432,33 +448,44 @@ public class RootFolder extends DLNAResource {
 								if (parent == null) {
 									parent = this;
 								}
-								if (keys[0].endsWith("stream")) {
-									int type = keys[0].startsWith("audio") ? Format.AUDIO : Format.VIDEO;
-									DLNAResource playlist = PlaylistFolder.getPlaylist(values[0], values[1], type);
+
+								if (sourceType.endsWith("stream")) {
+									int type = sourceType.startsWith("audio") ? Format.AUDIO : Format.VIDEO;
+									DLNAResource playlist = PlaylistFolder.getPlaylist(uri, values[1], type);
 									if (playlist != null) {
 										parent.addChild(playlist);
 										continue;
 									}
 								}
-								switch (keys[0]) {
+
+								String readableType = "";
+								switch (sourceType) {
 									case "imagefeed":
-										parent.addChild(new ImagesFeed(values[0]));
+										readableType = "Image feed";
+										parent.addChild(new ImagesFeed(uri));
 										break;
 									case "videofeed":
-										parent.addChild(new VideosFeed(values[0]));
+										readableType = "Video feed";
+										parent.addChild(new VideosFeed(uri));
 										break;
 									case "audiofeed":
-										parent.addChild(new AudiosFeed(values[0]));
+										readableType = "Podcast";
+										parent.addChild(new AudiosFeed(uri));
 										break;
 									case "audiostream":
-										parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
+										readableType = "Audio stream";
+										parent.addChild(new WebAudioStream(uri, values[1], values[2]));
 										break;
 									case "videostream":
-										parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+										readableType = "Video stream";
+										parent.addChild(new WebVideoStream(uri, values[1], values[2]));
 										break;
 									default:
 										break;
 								}
+
+								// Update the GUI on the Shared Content tab
+								SharedContentTab.webContentTableModel.addRow(new Object[]{readableType, folderName, uri});
 							}
 						} catch (ArrayIndexOutOfBoundsException e) {
 							// catch exception here and go with parsing
@@ -483,7 +510,7 @@ public class RootFolder extends DLNAResource {
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
-	private String[] parseFeedKey(String spec) {
+	public static String[] parseFeedKey(String spec) {
 		String[] pair = StringUtils.split(spec, ".", 2);
 
 		if (pair == null || pair.length < 2) {
@@ -504,7 +531,7 @@ public class RootFolder extends DLNAResource {
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
-	private String[] parseFeedValue(String spec) {
+	public static String[] parseFeedValue(String spec) {
 		StringTokenizer st = new StringTokenizer(spec, ",");
 		String[] triple = new String[3];
 		int i = 0;

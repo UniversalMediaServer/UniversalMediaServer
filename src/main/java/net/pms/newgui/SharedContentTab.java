@@ -25,11 +25,21 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -40,6 +50,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.RootFolder;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
@@ -51,9 +62,10 @@ public class SharedContentTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 
-	private JTable FList;
+	private JTable sharedFoldersList;
+	public static JTable webContentList;
 	private SharedFoldersTableModel folderTableModel;
-	private WebContentTableModel webContentTableModel;
+	public static WebContentTableModel webContentTableModel;
 	public static JCheckBox itunes;
 	private JCheckBox isScanSharedFoldersOnStartup;
 	private static final JAnimatedButton scanButton = new JAnimatedButton("button-scan.png");
@@ -114,37 +126,43 @@ public class SharedContentTab {
 	}
 
 	private void updateWebContentModel() {
-		if (folderTableModel.getRowCount() == 1 && folderTableModel.getValueAt(0, 0).equals(ALL_DRIVES)) {
-			configuration.setFolders("");
+		if (webContentTableModel.getRowCount() == 0) {
+			configuration.writeWebConfigurationFile();
 		} else {
-			StringBuilder folders = new StringBuilder();
-			StringBuilder foldersMonitored = new StringBuilder();
+			List<String> entries = new ArrayList<>();
 
-			int i2 = 0;
-			for (int i = 0; i < folderTableModel.getRowCount(); i++) {
-				if (i > 0) {
-					folders.append(',');
+			for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
+				String readableType = (String) webContentTableModel.getValueAt(i, 0);
+				String folders = (String) webContentTableModel.getValueAt(i, 1);
+				String configType = "";
+				switch (readableType) {
+					case "Image feed":
+						configType = "imagefeed";
+						break;
+					case "Video feed":
+						configType = "videofeed";
+						break;
+					case "Podcast":
+						configType = "audiofeed";
+						break;
+					case "Audio stream":
+						configType = "audiostream";
+						break;
+					case "Video stream":
+						configType = "videostream";
+						break;
+					default:
+						break;
 				}
 
-				String directory = (String) folderTableModel.getValueAt(i, 0);
-				boolean monitored = (boolean) folderTableModel.getValueAt(i, 1);
+				String source = (String) webContentTableModel.getValueAt(i, 2);
 
-				// escape embedded commas. note: backslashing isn't safe as it conflicts with
-				// Windows path separators:
-				// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
-				folders.append(directory.replace(",", "&comma;"));
-				if (monitored) {
-					if (i2 > 0) {
-						foldersMonitored.append(',');
-					}
-					i2++;
-
-					foldersMonitored.append(directory.replace(",", "&comma;"));
-				}
+				StringBuilder entryToAdd = new StringBuilder();
+				entryToAdd.append(configType).append(".").append(folders).append("=").append(source);
+				entries.add(entryToAdd.toString());
 			}
 
-			configuration.setFolders(folders.toString());
-			configuration.setFoldersMonitored(foldersMonitored.toString());
+			configuration.writeWebConfigurationFile(entries);
 		}
 	}
 
@@ -202,8 +220,8 @@ public class SharedContentTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		folderTableModel = new SharedFoldersTableModel();
-		FList = new JTable(folderTableModel);
-		TableColumn column = FList.getColumnModel().getColumn(0);
+		sharedFoldersList = new JTable(folderTableModel);
+		TableColumn column = sharedFoldersList.getColumnModel().getColumn(0);
 		column.setMinWidth(650);
 
 		JPopupMenu popupMenu = new JPopupMenu();
@@ -213,7 +231,7 @@ public class SharedContentTab {
 		menuItemMarkPlayed.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
+				String path = (String) sharedFoldersList.getValueAt(sharedFoldersList.getSelectedRow(), 0);
 				TableFilesStatus.setDirectoryFullyPlayed(path, true);
 			}
 		});
@@ -221,7 +239,7 @@ public class SharedContentTab {
 		menuItemMarkUnplayed.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String path = (String) FList.getValueAt(FList.getSelectedRow(), 0);
+				String path = (String) sharedFoldersList.getValueAt(sharedFoldersList.getSelectedRow(), 0);
 				TableFilesStatus.setDirectoryFullyPlayed(path, false);
 			}
 		});
@@ -229,16 +247,16 @@ public class SharedContentTab {
 		popupMenu.add(menuItemMarkPlayed);
 		popupMenu.add(menuItemMarkUnplayed);
 
-		FList.setComponentPopupMenu(popupMenu);
-		FList.addMouseListener(new TableMouseListener(FList));
+		sharedFoldersList.setComponentPopupMenu(popupMenu);
+		sharedFoldersList.addMouseListener(new TableMouseListener(sharedFoldersList));
 
 		/* An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) FList.getCellRenderer(0,0);
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) sharedFoldersList.getCellRenderer(0,0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		FList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-		FList.setIntercellSpacing(new Dimension(8, 2));
+		sharedFoldersList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+		sharedFoldersList.setIntercellSpacing(new Dimension(8, 2));
 
 		JImageButton but = new JImageButton("button-add-folder.png");
 		but.setToolTipText(Messages.getString("FoldTab.9"));
@@ -254,9 +272,9 @@ public class SharedContentTab {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					((SharedFoldersTableModel) FList.getModel()).addRow(new Object[]{chooser.getSelectedFile().getAbsolutePath(), true});
-					if (FList.getModel().getValueAt(0, 0).equals(ALL_DRIVES)) {
-						((SharedFoldersTableModel) FList.getModel()).removeRow(0);
+					((SharedFoldersTableModel) sharedFoldersList.getModel()).addRow(new Object[]{chooser.getSelectedFile().getAbsolutePath(), true});
+					if (sharedFoldersList.getModel().getValueAt(0, 0).equals(ALL_DRIVES)) {
+						((SharedFoldersTableModel) sharedFoldersList.getModel()).removeRow(0);
 					}
 					updateSharedFoldersModel();
 				}
@@ -269,13 +287,13 @@ public class SharedContentTab {
 		but2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (FList.getSelectedRow() > -1) {
-					if (FList.getModel().getRowCount() == 0) {
+				if (sharedFoldersList.getSelectedRow() > -1) {
+					if (sharedFoldersList.getModel().getRowCount() == 0) {
 						folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
 					} else {
-						PMS.get().getDatabase().removeMediaEntriesInFolder((String) FList.getValueAt(FList.getSelectedRow(), 0));
+						PMS.get().getDatabase().removeMediaEntriesInFolder((String) sharedFoldersList.getValueAt(sharedFoldersList.getSelectedRow(), 0));
 					}
-					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
+					((SharedFoldersTableModel) sharedFoldersList.getModel()).removeRow(sharedFoldersList.getSelectedRow());
 					updateSharedFoldersModel();
 				}
 			}
@@ -287,16 +305,16 @@ public class SharedContentTab {
 		but3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i < FList.getRowCount() - 1; i++) {
-					if (FList.isRowSelected(i)) {
-						Object  value1 = FList.getValueAt(i, 0);
-						boolean value2 = (boolean) FList.getValueAt(i, 1);
+				for (int i = 0; i < sharedFoldersList.getRowCount() - 1; i++) {
+					if (sharedFoldersList.isRowSelected(i)) {
+						Object  value1 = sharedFoldersList.getValueAt(i, 0);
+						boolean value2 = (boolean) sharedFoldersList.getValueAt(i, 1);
 
-						FList.setValueAt(FList.getValueAt(i + 1, 0), i    , 0);
-						FList.setValueAt(value1                    , i + 1, 0);
-						FList.setValueAt(FList.getValueAt(i + 1, 1), i    , 1);
-						FList.setValueAt(value2                    , i + 1, 1);
-						FList.changeSelection(i + 1, 1, false, false);
+						sharedFoldersList.setValueAt(sharedFoldersList.getValueAt(i + 1, 0), i    , 0);
+						sharedFoldersList.setValueAt(value1                     , i + 1, 0);
+						sharedFoldersList.setValueAt(sharedFoldersList.getValueAt(i + 1, 1), i    , 1);
+						sharedFoldersList.setValueAt(value2                     , i + 1, 1);
+						sharedFoldersList.changeSelection(i + 1, 1, false, false);
 
 						break;
 					}
@@ -310,16 +328,16 @@ public class SharedContentTab {
 		but4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 1; i < FList.getRowCount(); i++) {
-					if (FList.isRowSelected(i)) {
-						Object  value1 = FList.getValueAt(i, 0);
-						boolean value2 = (boolean) FList.getValueAt(i, 1);
+				for (int i = 1; i < sharedFoldersList.getRowCount(); i++) {
+					if (sharedFoldersList.isRowSelected(i)) {
+						Object  value1 = sharedFoldersList.getValueAt(i, 0);
+						boolean value2 = (boolean) sharedFoldersList.getValueAt(i, 1);
 
-						FList.setValueAt(FList.getValueAt(i - 1, 0), i    , 0);
-						FList.setValueAt(value1                    , i - 1, 0);
-						FList.setValueAt(FList.getValueAt(i - 1, 1), i    , 1);
-						FList.setValueAt(value2                    , i - 1, 1);
-						FList.changeSelection(i - 1, 1, false, false);
+						sharedFoldersList.setValueAt(sharedFoldersList.getValueAt(i - 1, 0), i    , 0);
+						sharedFoldersList.setValueAt(value1                     , i - 1, 0);
+						sharedFoldersList.setValueAt(sharedFoldersList.getValueAt(i - 1, 1), i    , 1);
+						sharedFoldersList.setValueAt(value2                     , i - 1, 1);
+						sharedFoldersList.changeSelection(i - 1, 1, false, false);
 
 						break;
 
@@ -404,9 +422,9 @@ public class SharedContentTab {
 			folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
 		}
 
-		JScrollPane pane = new JScrollPane(FList);
-		Dimension d = FList.getPreferredSize();
-		pane.setPreferredSize(new Dimension(d.width, FList.getRowHeight() * 2));
+		JScrollPane pane = new JScrollPane(sharedFoldersList);
+		Dimension d = sharedFoldersList.getPreferredSize();
+		pane.setPreferredSize(new Dimension(d.width, sharedFoldersList.getRowHeight() * 2));
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;
@@ -426,38 +444,49 @@ public class SharedContentTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		webContentTableModel = new WebContentTableModel();
-		FList = new JTable(webContentTableModel);
-		TableColumn column = FList.getColumnModel().getColumn(0);
-		column.setMinWidth(650);
+		webContentList = new JTable(webContentTableModel);
+		TableColumn column = webContentList.getColumnModel().getColumn(2);
+		column.setMinWidth(500);
 
-		FList.addMouseListener(new TableMouseListener(FList));
+		webContentList.addMouseListener(new TableMouseListener(webContentList));
 
 		/* An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) FList.getCellRenderer(0,0);
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) webContentList.getCellRenderer(0,0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		FList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-		FList.setIntercellSpacing(new Dimension(8, 2));
+		webContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+		webContentList.setIntercellSpacing(new Dimension(8, 2));
 
 		JImageButton but = new JImageButton("button-add-folder.png");
 		but.setToolTipText(Messages.getString("FoldTab.9"));
 		but.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser;
-				try {
-					chooser = new JFileChooser();
-				} catch (Exception ee) {
-					chooser = new JFileChooser(new RestrictedFileSystemView());
-				}
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showOpenDialog((Component) e.getSource());
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					((WebContentTableModel) FList.getModel()).addRow(new Object[]{chooser.getSelectedFile().getAbsolutePath(), true});
-					if (FList.getModel().getValueAt(0, 0).equals(ALL_DRIVES)) {
-						((WebContentTableModel) FList.getModel()).removeRow(0);
-					}
+				String[] availableTypes = new String[]{"Image feed", "Video feed", "Podcast", "Audio stream", "Video stream"};
+				JComboBox newEntryType = new JComboBox<>(availableTypes);
+				newEntryType.setEditable(false);
+
+				JTextField newEntryFolders = new JTextField(25);
+				newEntryFolders.setText("Web,");
+				JTextField newEntrySource = new JTextField(25);
+
+				JPanel myPanel = new JPanel();
+				myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
+				myPanel.add(new JLabel("Type:"));
+				myPanel.add(newEntryType);
+//				myPanel.add(Box.createVerticalStrut(15)); // a spacer
+				myPanel.add(new JLabel("Folders: (comma-delimited)"));
+				myPanel.add(newEntryFolders);
+//				myPanel.add(Box.createVerticalStrut(15)); // a spacer
+				myPanel.add(new JLabel("Source/URL:"));
+				myPanel.add(newEntrySource);
+
+				int result = JOptionPane.showConfirmDialog(null, myPanel, 
+					"Please enter the details for your web content", JOptionPane.OK_CANCEL_OPTION);
+
+				if (result == JOptionPane.OK_OPTION) {
+					((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
 					updateWebContentModel();
 				}
 			}
@@ -469,13 +498,9 @@ public class SharedContentTab {
 		but2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (FList.getSelectedRow() > -1) {
-					if (FList.getModel().getRowCount() == 0) {
-						webContentTableModel.addRow(new Object[]{ALL_DRIVES, false});
-					} else {
-						PMS.get().getDatabase().removeMediaEntriesInFolder((String) FList.getValueAt(FList.getSelectedRow(), 0));
-					}
-					((WebContentTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
+				if (webContentList.getSelectedRow() > -1) {
+					PMS.get().getDatabase().removeMediaEntriesInFolder((String) webContentList.getValueAt(webContentList.getSelectedRow(), 0));
+					((WebContentTableModel) webContentList.getModel()).removeRow(webContentList.getSelectedRow());
 					updateWebContentModel();
 				}
 			}
@@ -487,16 +512,19 @@ public class SharedContentTab {
 		but3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i < FList.getRowCount() - 1; i++) {
-					if (FList.isRowSelected(i)) {
-						Object  value1 = FList.getValueAt(i, 0);
-						boolean value2 = (boolean) FList.getValueAt(i, 1);
+				for (int i = 0; i < webContentList.getRowCount() - 1; i++) {
+					if (webContentList.isRowSelected(i)) {
+						Object type   = webContentList.getValueAt(i, 0);
+						Object folder = webContentList.getValueAt(i, 1);
+						Object source = webContentList.getValueAt(i, 2);
 
-						FList.setValueAt(FList.getValueAt(i + 1, 0), i    , 0);
-						FList.setValueAt(value1                    , i + 1, 0);
-						FList.setValueAt(FList.getValueAt(i + 1, 1), i    , 1);
-						FList.setValueAt(value2                    , i + 1, 1);
-						FList.changeSelection(i + 1, 1, false, false);
+						webContentList.setValueAt(webContentList.getValueAt(i + 1, 0), i    , 0);
+						webContentList.setValueAt(type                      , i + 1, 0);
+						webContentList.setValueAt(webContentList.getValueAt(i + 1, 1), i    , 1);
+						webContentList.setValueAt(folder                    , i + 1, 1);
+						webContentList.setValueAt(webContentList.getValueAt(i + 1, 2), i    , 2);
+						webContentList.setValueAt(source                    , i + 1, 2);
+						webContentList.changeSelection(i + 1, 1, false, false);
 
 						break;
 					}
@@ -510,44 +538,30 @@ public class SharedContentTab {
 		but4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 1; i < FList.getRowCount(); i++) {
-					if (FList.isRowSelected(i)) {
-						Object  value1 = FList.getValueAt(i, 0);
-						boolean value2 = (boolean) FList.getValueAt(i, 1);
+				for (int i = 1; i < webContentList.getRowCount(); i++) {
+					if (webContentList.isRowSelected(i)) {
+						Object type   = webContentList.getValueAt(i, 0);
+						Object folder = webContentList.getValueAt(i, 1);
+						Object source = webContentList.getValueAt(i, 2);
 
-						FList.setValueAt(FList.getValueAt(i - 1, 0), i    , 0);
-						FList.setValueAt(value1                    , i - 1, 0);
-						FList.setValueAt(FList.getValueAt(i - 1, 1), i    , 1);
-						FList.setValueAt(value2                    , i - 1, 1);
-						FList.changeSelection(i - 1, 1, false, false);
+						webContentList.setValueAt(webContentList.getValueAt(i - 1, 0), i    , 0);
+						webContentList.setValueAt(type                      , i - 1, 0);
+						webContentList.setValueAt(webContentList.getValueAt(i - 1, 1), i    , 1);
+						webContentList.setValueAt(folder                    , i - 1, 1);
+						webContentList.setValueAt(webContentList.getValueAt(i - 1, 2), i    , 2);
+						webContentList.setValueAt(source                    , i - 1, 2);
+						webContentList.changeSelection(i - 1, 1, false, false);
 
 						break;
-
 					}
 				}
 			}
 		});
 		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		File[] folders = PMS.get().getSharedFoldersArray(false);
-		if (folders != null && folders.length > 0) {
-			File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
-			for (File folder : folders) {
-				boolean isMonitored = false;
-				if (foldersMonitored != null && foldersMonitored.length > 0) {
-					for (File folderMonitored : foldersMonitored) {
-						if (folderMonitored.getAbsolutePath().equals(folder.getAbsolutePath())) {
-							isMonitored = true;
-						}
-					}
-				}
-				webContentTableModel.addRow(new Object[]{folder.getAbsolutePath(), isMonitored});
-			}
-		}
-
-		JScrollPane pane = new JScrollPane(FList);
-		Dimension d = FList.getPreferredSize();
-		pane.setPreferredSize(new Dimension(d.width, FList.getRowHeight() * 2));
+		JScrollPane pane = new JScrollPane(webContentList);
+		Dimension d = webContentList.getPreferredSize();
+		pane.setPreferredSize(new Dimension(d.width, webContentList.getRowHeight() * 2));
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;
@@ -615,35 +629,28 @@ public class SharedContentTab {
 		private static final long serialVersionUID = -4247839506937958655L;
 
 		public WebContentTableModel() {
-			super(new String[]{Messages.getString("SharedContentTab.Source"), Messages.getString("FoldTab.65")}, 0);
+			// Column headings
+			super(new String[]{
+				Messages.getString("SharedContentTab.Type"),
+				Messages.getString("SharedContentTab.FolderName"),
+				Messages.getString("SharedContentTab.Source"),
+			}, 0);
 		}
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
-			Class clazz = String.class;
-			switch (columnIndex) {
-				case 1:
-					clazz = Boolean.class;
-					break;
-				default:
-					break;
-			}
-			return clazz;
+			return String.class;
 		}
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			return column == 1;
+			return false;
 		}
 
 		@Override
 		public void setValueAt(Object aValue, int row, int column) {
 			Vector rowVector = (Vector) dataVector.elementAt(row);
-			if (aValue instanceof Boolean && column == 1) {
-				rowVector.setElementAt((boolean) aValue, 1);
-			} else {
-				rowVector.setElementAt(aValue, column);
-			}
+			rowVector.setElementAt(aValue, column);
 			fireTableCellUpdated(row, column);
 			updateWebContentModel();
 		}
