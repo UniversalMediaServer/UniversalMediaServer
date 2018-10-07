@@ -78,6 +78,14 @@ public class SharedContentTab {
 	private static final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(scanButton, "button-cancel_pressed.png");
 	private static final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(scanButton, "button-scan-busy_disabled.png");
 
+	private static final String[] TYPES_READABLE = new String[]{
+		Messages.getString("SharedContentTab.AudioFeed"),
+		Messages.getString("SharedContentTab.VideoFeed"),
+		Messages.getString("SharedContentTab.ImageFeed"),
+		Messages.getString("SharedContentTab.AudioStream"),
+		Messages.getString("SharedContentTab.VideoStream"),
+	};
+
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
 	}
@@ -134,25 +142,27 @@ public class SharedContentTab {
 			for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
 				String readableType = (String) webContentTableModel.getValueAt(i, 0);
 				String folders = (String) webContentTableModel.getValueAt(i, 1);
-				String configType = "";
-				switch (readableType) {
-					case "Image feed":
-						configType = "imagefeed";
-						break;
-					case "Video feed":
-						configType = "videofeed";
-						break;
-					case "Podcast":
-						configType = "audiofeed";
-						break;
-					case "Audio stream":
-						configType = "audiostream";
-						break;
-					case "Video stream":
-						configType = "videostream";
-						break;
-					default:
-						break;
+				String configType;
+
+				String readableTypeImageFeed   = TYPES_READABLE[2];
+				String readableTypeVideoFeed   = TYPES_READABLE[1];
+				String readableTypeAudioFeed   = TYPES_READABLE[0];
+				String readableTypeAudioStream = TYPES_READABLE[3];
+				String readableTypeVideoStream = TYPES_READABLE[4];
+
+				if (readableType.equals(readableTypeImageFeed)) {
+					configType = "imagefeed";
+				} else if (readableType.equals(readableTypeVideoFeed)) {
+					configType = "videofeed";
+				} else if (readableType.equals(readableTypeAudioFeed)) {
+					configType = "audiofeed";
+				} else if (readableType.equals(readableTypeAudioStream)) {
+					configType = "audiostream";
+				} else if (readableType.equals(readableTypeVideoStream)) {
+					configType = "videostream";
+				} else {
+					// Skip the whole row if another value was used
+					continue;
 				}
 
 				String source = (String) webContentTableModel.getValueAt(i, 2);
@@ -463,28 +473,101 @@ public class SharedContentTab {
 		but.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String[] availableTypes = new String[]{"Image feed", "Video feed", "Podcast", "Audio stream", "Video stream"};
-				JComboBox newEntryType = new JComboBox<>(availableTypes);
+				JComboBox newEntryType = new JComboBox<>(TYPES_READABLE);
 				newEntryType.setEditable(false);
 
 				JTextField newEntryFolders = new JTextField(25);
 				newEntryFolders.setText("Web,");
+
 				JTextField newEntrySource = new JTextField(25);
 
-				JPanel myPanel = new JPanel();
-				myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
-				myPanel.add(new JLabel("Type:"));
-				myPanel.add(newEntryType);
-//				myPanel.add(Box.createVerticalStrut(15)); // a spacer
-				myPanel.add(new JLabel("Folders: (comma-delimited)"));
-				myPanel.add(newEntryFolders);
-//				myPanel.add(Box.createVerticalStrut(15)); // a spacer
-				myPanel.add(new JLabel("Source/URL:"));
-				myPanel.add(newEntrySource);
+				JPanel addNewWebContentPanel = new JPanel();
 
-				int result = JOptionPane.showConfirmDialog(null, myPanel, 
-					"Please enter the details for your web content", JOptionPane.OK_CANCEL_OPTION);
+				JLabel labelType = new JLabel(Messages.getString("SharedContentTab.TypeColon"));
+				JLabel labelFolders = new JLabel(Messages.getString("SharedContentTab.FoldersColon"));
+				JLabel labelSource = new JLabel(Messages.getString("SharedContentTab.SourceURLColon"));
 
+				labelType.setLabelFor(newEntryType);
+				labelFolders.setLabelFor(newEntryFolders);
+				labelSource.setLabelFor(newEntrySource);
+
+				JLabel jLabel1;
+				JTextField jTextField1;
+
+				jLabel1 = new javax.swing.JLabel();
+				jTextField1 = new javax.swing.JTextField();
+
+				jLabel1.setText("jLabel1");
+
+				jTextField1.setText("jTextField1");
+
+				GroupLayout layout = new javax.swing.GroupLayout(addNewWebContentPanel);
+				addNewWebContentPanel.setLayout(layout);
+		
+				layout.setHorizontalGroup(
+					layout
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addGroup(
+									layout
+										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(labelType)
+										.addComponent(newEntryType)
+								)
+								.addContainerGap()
+								.addGroup(
+									layout
+										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(labelFolders)
+										.addComponent(newEntryFolders)
+								)
+								.addContainerGap()
+								.addGroup(
+									layout
+										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(labelSource)
+										.addComponent(newEntrySource)
+								)
+								.addContainerGap()
+					)
+				);
+		
+				layout.setVerticalGroup(
+					layout
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(labelType)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(newEntryType)
+								.addContainerGap()
+						)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(labelFolders)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(newEntryFolders)
+								.addContainerGap()
+						)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(labelSource)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(newEntrySource)
+								.addContainerGap()
+						)
+				);
+		
+				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebFeedStream"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
 					((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
 					updateWebContentModel();
