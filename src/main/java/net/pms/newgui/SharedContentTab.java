@@ -460,7 +460,7 @@ public class SharedContentTab {
 		webContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		webContentList.setIntercellSpacing(new Dimension(8, 2));
 
-		JImageButton but = new JImageButton("button-add-folder.png");
+		JImageButton but = new JImageButton("button-add-webcontent.png");
 		but.setToolTipText(Messages.getString("FoldTab.9"));
 		but.addActionListener(new ActionListener() {
 			@Override
