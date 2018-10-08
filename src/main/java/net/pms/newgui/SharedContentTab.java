@@ -31,6 +31,7 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import javax.swing.*;
@@ -482,16 +483,6 @@ public class SharedContentTab {
 				labelFolders.setLabelFor(newEntryFolders);
 				labelSource.setLabelFor(newEntrySource);
 
-				JLabel jLabel1;
-				JTextField jTextField1;
-
-				jLabel1 = new javax.swing.JLabel();
-				jTextField1 = new javax.swing.JTextField();
-
-				jLabel1.setText("jLabel1");
-
-				jTextField1.setText("jTextField1");
-
 				GroupLayout layout = new javax.swing.GroupLayout(addNewWebContentPanel);
 				addNewWebContentPanel.setLayout(layout);
 		
@@ -743,6 +734,109 @@ public class SharedContentTab {
 			Point point = event.getPoint();
 			int currentRow = table.rowAtPoint(point);
 			table.setRowSelectionInterval(currentRow, currentRow);
+
+			// more than one click in the same event triggers edit mode
+			if (event.getClickCount() == 2) {
+				String currentType    = (String) webContentList.getValueAt(currentRow, 0);
+				String currentFolders = (String) webContentList.getValueAt(currentRow, 1);
+				String currentSource  = (String) webContentList.getValueAt(currentRow, 2);
+
+				int currentTypeIndex = Arrays.asList(TYPES_READABLE).indexOf(currentType);
+
+				JComboBox newEntryType = new JComboBox<>(TYPES_READABLE);
+				newEntryType.setEditable(false);
+				newEntryType.setSelectedIndex(currentTypeIndex);
+
+				JTextField newEntryFolders = new JTextField(25);
+				newEntryFolders.setText(currentFolders);
+
+				JTextField newEntrySource = new JTextField(25);
+				newEntrySource.setText(currentSource);
+
+				JPanel addNewWebContentPanel = new JPanel();
+
+				JLabel labelType = new JLabel(Messages.getString("SharedContentTab.TypeColon"));
+				JLabel labelFolders = new JLabel(Messages.getString("SharedContentTab.FoldersColon"));
+				JLabel labelSource = new JLabel(Messages.getString("SharedContentTab.SourceURLColon"));
+
+				labelType.setLabelFor(newEntryType);
+				labelFolders.setLabelFor(newEntryFolders);
+				labelSource.setLabelFor(newEntrySource);
+
+				GroupLayout layout = new javax.swing.GroupLayout(addNewWebContentPanel);
+				addNewWebContentPanel.setLayout(layout);
+		
+				layout.setHorizontalGroup(
+					layout
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addGroup(
+									layout
+										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(labelType)
+										.addComponent(newEntryType)
+								)
+								.addContainerGap()
+								.addGroup(
+									layout
+										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(labelFolders)
+										.addComponent(newEntryFolders)
+								)
+								.addContainerGap()
+								.addGroup(
+									layout
+										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(labelSource)
+										.addComponent(newEntrySource)
+								)
+								.addContainerGap()
+					)
+				);
+		
+				layout.setVerticalGroup(
+					layout
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(labelType)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(newEntryType)
+								.addContainerGap()
+						)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(labelFolders)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(newEntryFolders)
+								.addContainerGap()
+						)
+						.addGroup(
+							layout
+								.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(labelSource)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(newEntrySource)
+								.addContainerGap()
+						)
+				);
+		
+				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebFeedStream"), JOptionPane.OK_CANCEL_OPTION);
+				if (result == JOptionPane.OK_OPTION) {
+					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 0);
+					webContentList.setValueAt(newEntryFolders.getText(),      currentRow, 1);
+					webContentList.setValueAt(newEntrySource.getText(),       currentRow, 2);
+					updateWebContentModel();
+				}
+			}
 		}
 	}
 }
