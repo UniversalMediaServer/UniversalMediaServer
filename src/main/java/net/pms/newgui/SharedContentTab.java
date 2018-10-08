@@ -465,13 +465,13 @@ public class SharedContentTab {
 		but.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JComboBox newEntryType = new JComboBox<>(TYPES_READABLE);
+				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 				newEntryType.setEditable(false);
 
 				JTextField newEntryFolders = new JTextField(25);
 				newEntryFolders.setText("Web,");
 
-				JTextField newEntrySource = new JTextField(25);
+				JTextField newEntrySource = new JTextField(65);
 
 				JPanel addNewWebContentPanel = new JPanel();
 
@@ -483,33 +483,23 @@ public class SharedContentTab {
 				labelFolders.setLabelFor(newEntryFolders);
 				labelSource.setLabelFor(newEntrySource);
 
-				GroupLayout layout = new javax.swing.GroupLayout(addNewWebContentPanel);
+				GroupLayout layout = new GroupLayout(addNewWebContentPanel);
 				addNewWebContentPanel.setLayout(layout);
 		
 				layout.setHorizontalGroup(
 					layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addGroup(
 							layout
 								.createSequentialGroup()
 								.addContainerGap()
 								.addGroup(
 									layout
-										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.createParallelGroup()
 										.addComponent(labelType)
-										.addComponent(newEntryType)
-								)
-								.addContainerGap()
-								.addGroup(
-									layout
-										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelFolders)
-										.addComponent(newEntryFolders)
-								)
-								.addContainerGap()
-								.addGroup(
-									layout
-										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelSource)
 										.addComponent(newEntrySource)
 								)
@@ -519,31 +509,18 @@ public class SharedContentTab {
 		
 				layout.setVerticalGroup(
 					layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addGroup(
 							layout
 								.createSequentialGroup()
 								.addContainerGap()
 								.addComponent(labelType)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(newEntryType)
-								.addContainerGap()
-						)
-						.addGroup(
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
+								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelFolders)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(newEntryFolders)
-								.addContainerGap()
-						)
-						.addGroup(
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
+								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelSource)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(newEntrySource)
 								.addContainerGap()
 						)
@@ -743,14 +720,14 @@ public class SharedContentTab {
 
 				int currentTypeIndex = Arrays.asList(TYPES_READABLE).indexOf(currentType);
 
-				JComboBox newEntryType = new JComboBox<>(TYPES_READABLE);
+				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 				newEntryType.setEditable(false);
 				newEntryType.setSelectedIndex(currentTypeIndex);
 
 				JTextField newEntryFolders = new JTextField(25);
 				newEntryFolders.setText(currentFolders);
 
-				JTextField newEntrySource = new JTextField(25);
+				JTextField newEntrySource = new JTextField(65);
 				newEntrySource.setText(currentSource);
 
 				JPanel addNewWebContentPanel = new JPanel();
@@ -763,33 +740,23 @@ public class SharedContentTab {
 				labelFolders.setLabelFor(newEntryFolders);
 				labelSource.setLabelFor(newEntrySource);
 
-				GroupLayout layout = new javax.swing.GroupLayout(addNewWebContentPanel);
+				GroupLayout layout = new GroupLayout(addNewWebContentPanel);
 				addNewWebContentPanel.setLayout(layout);
 		
 				layout.setHorizontalGroup(
 					layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addGroup(
 							layout
 								.createSequentialGroup()
 								.addContainerGap()
 								.addGroup(
 									layout
-										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.createParallelGroup()
 										.addComponent(labelType)
-										.addComponent(newEntryType)
-								)
-								.addContainerGap()
-								.addGroup(
-									layout
-										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelFolders)
-										.addComponent(newEntryFolders)
-								)
-								.addContainerGap()
-								.addGroup(
-									layout
-										.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelSource)
 										.addComponent(newEntrySource)
 								)
@@ -799,31 +766,18 @@ public class SharedContentTab {
 		
 				layout.setVerticalGroup(
 					layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addGroup(
 							layout
 								.createSequentialGroup()
 								.addContainerGap()
 								.addComponent(labelType)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(newEntryType)
-								.addContainerGap()
-						)
-						.addGroup(
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
+								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelFolders)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(newEntryFolders)
-								.addContainerGap()
-						)
-						.addGroup(
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
+								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelSource)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(newEntrySource)
 								.addContainerGap()
 						)
