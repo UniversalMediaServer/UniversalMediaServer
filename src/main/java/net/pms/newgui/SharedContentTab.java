@@ -461,7 +461,7 @@ public class SharedContentTab {
 		webContentList.setIntercellSpacing(new Dimension(8, 2));
 
 		JImageButton but = new JImageButton("button-add-webcontent.png");
-		but.setToolTipText(Messages.getString("FoldTab.9"));
+		but.setToolTipText(Messages.getString("SharedContentTab.AddNewWebContent"));
 		but.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -471,7 +471,7 @@ public class SharedContentTab {
 				JTextField newEntryFolders = new JTextField(25);
 				newEntryFolders.setText("Web,");
 
-				JTextField newEntrySource = new JTextField(65);
+				JTextField newEntrySource = new JTextField(50);
 
 				JPanel addNewWebContentPanel = new JPanel();
 
@@ -536,7 +536,7 @@ public class SharedContentTab {
 		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		JImageButton but2 = new JImageButton("button-remove-folder.png");
-		but2.setToolTipText(Messages.getString("FoldTab.36"));
+		but2.setToolTipText(Messages.getString("SharedContentTab.RemoveSelectedWebContent"));
 		but2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -550,7 +550,7 @@ public class SharedContentTab {
 		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		JImageButton but3 = new JImageButton("button-arrow-down.png");
-		but3.setToolTipText(Messages.getString("FoldTab.12"));
+		but3.setToolTipText(Messages.getString("SharedContentTab.MoveSelectedWebContentDown"));
 		but3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -576,7 +576,7 @@ public class SharedContentTab {
 		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
 		JImageButton but4 = new JImageButton("button-arrow-up.png");
-		but4.setToolTipText(Messages.getString("FoldTab.12"));
+		but4.setToolTipText(Messages.getString("SharedContentTab.MoveSelectedWebContentUp"));
 		but4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -727,7 +727,7 @@ public class SharedContentTab {
 				JTextField newEntryFolders = new JTextField(25);
 				newEntryFolders.setText(currentFolders);
 
-				JTextField newEntrySource = new JTextField(65);
+				JTextField newEntrySource = new JTextField(50);
 				newEntrySource.setText(currentSource);
 
 				JPanel addNewWebContentPanel = new JPanel();
@@ -783,7 +783,7 @@ public class SharedContentTab {
 						)
 				);
 		
-				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebFeedStream"), JOptionPane.OK_CANCEL_OPTION);
+				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
 					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 0);
 					webContentList.setValueAt(newEntryFolders.getText(),      currentRow, 1);
