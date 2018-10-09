@@ -797,20 +797,20 @@ public class FFMpegVideo extends Player {
 
 		// Decoding threads and GPU deccding
 		if (nThreads > 0 && !configuration.isGPUAcceleration()) {
-				cmdList.add("-threads");
-				cmdList.add(String.valueOf(nThreads));
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
 		} else if (configuration.isGPUAcceleration() && !avisynth) {
 			// GPU decoding method
 			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
 				cmdList.add("-hwaccel");
 				cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
-			 } else {
+			} else {
 				if (configuration.getFFmpegGPUDecodingAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
 					cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod());
 				} else {
 					cmdList.add("-hwaccel");
 					cmdList.add("auto");
-			    }
+				}
 			}
 
 			// GPU decoding threads
@@ -823,7 +823,7 @@ public class FFMpegVideo extends Player {
 				cmdList.add("-threads");
 				cmdList.add("1");
 			}
-		} 
+		}
 
 		final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
 		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
