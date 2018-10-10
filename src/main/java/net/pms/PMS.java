@@ -694,7 +694,7 @@ public class PMS {
 		// file AFTER plugins are started
 		if (!isHeadless()) {
 			// but only if we got a GUI of course
-			((LooksFrame)frame).getPt().init();
+			((LooksFrame) frame).getPluginsTab().init();
 		}
 
 		boolean binding = false;
@@ -935,13 +935,13 @@ public class PMS {
 				if (!file.isDirectory()) {
 					LOGGER.warn(
 						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-						folder,  Messages.getString("LooksFrame.22")
+						folder,  Messages.getString("LooksFrame.TabSharedContent")
 					);
 				}
 			} else {
 				LOGGER.warn(
 					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-					folder,  Messages.getString("LooksFrame.22")
+					folder,  Messages.getString("LooksFrame.TabSharedContent")
 				);
 			}
 
