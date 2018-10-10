@@ -44,7 +44,7 @@ import net.pms.PMS;
  * @author SubJunk & Nadahar
  * @since 7.0.0
  */
-public final class TableFilesStatus extends Tables{
+public final class TableFilesStatus extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 4;
+	private static final int TABLE_VERSION = 8;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -78,7 +78,7 @@ public final class TableFilesStatus extends Tables{
 		String query;
 
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
@@ -254,9 +254,9 @@ public final class TableFilesStatus extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
 							database.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
@@ -316,6 +316,8 @@ public final class TableFilesStatus extends Tables{
 									LOGGER.info("Updating fully played entry for " + filename);
 								}
 							}
+							stmt.close();
+							rs.close();
 
 							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
@@ -334,6 +336,40 @@ public final class TableFilesStatus extends Tables{
 							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 						}
 						version = 4;
+						break;
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+						// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
+						PreparedStatement stmt = connection.prepareStatement(
+							"SELECT constraint_name " +
+							"FROM information_schema.constraints " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+						);
+						ResultSet rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							try (Statement statement = connection.createStatement()) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("constraint_name"));
+							}
+						}
+
+						stmt = connection.prepareStatement(
+							"SELECT constraint_name " +
+							"FROM information_schema.constraints " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+						);
+						rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
+						}
+
+						stmt.close();
+						rs.close();
+
+						version = 8;
 						break;
 					default:
 						throw new IllegalStateException(
@@ -359,7 +395,7 @@ public final class TableFilesStatus extends Tables{
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN  DEFAULT false" +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false" +
 				")"
 			);
 

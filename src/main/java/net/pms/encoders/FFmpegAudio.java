@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
-	public static final String ID = "ffmpegaudio";
+	public static final String ID = "FFmpegAudio";
 
 	// should be private
 	@Deprecated
@@ -258,7 +258,8 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.APE) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.ATRAC) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.AU) ||
-			PlayerUtil.isAudio(resource, Format.Identifier.DSD) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.DFF) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.DSF) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.DTS) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.EAC3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||

@@ -27,6 +27,7 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
@@ -35,6 +36,9 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapperImpl;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -401,10 +405,10 @@ public class UMSUtils {
 			return null;
 		}
 
-		private static Player findPlayer(String playerName) {
-			for (Player p : PlayerFactory.getPlayers()) {
-				if (playerName.equals(p.name())) {
-					return p;
+		private static Player findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
+			for (Player player : PlayerFactory.getPlayers(onlyEnabled, onlyAvailable)) {
+				if (playerName.equals(player.name())) {
+					return player;
 				}
 			}
 			return null;
@@ -491,7 +495,7 @@ public class UMSUtils {
 					while (pos != -1) {
 						if (str.startsWith("player:")) {
 							// find last player
-							player = findPlayer(str.substring(7, pos));
+							player = findPlayerByName(str.substring(7, pos), true, true);
 						}
 						if (str.startsWith("resume")) {
 							// resume data
@@ -565,5 +569,52 @@ public class UMSUtils {
 			}
 			return null;
 		}
+	}
+
+	/**
+	 * Check available GPU decoding acceleration methods possibly used by FFmpeg.
+	 *
+	 * @param configuration in which the available GPU acceleration methods will be stored
+	 * @throws ConfigurationException
+	 */
+	public static void CheckGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+		OutputParams outputParams = new OutputParams(configuration);
+		outputParams.waitbeforestart = 0;
+		outputParams.log = true;
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-hwaccels"}, false, outputParams, true, false);
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e) { }
+
+				pw.stopProcess();
+			}
+		};
+
+		Thread failsafe = new Thread(r, "Get GPU acceleration methods used by FFmpeg");
+		failsafe.start();
+		pw.run();
+		List<String> result = pw.getOtherResults();
+		List<String> availableMethods = new ArrayList<String>(1);
+		availableMethods.addAll(Arrays.asList("auto"));
+		if (result != null) {
+			for (String line : result) {
+				line = line.trim();
+				if (line.equals("Hardware acceleration methods:")) {
+					continue;
+				} else {
+					// fix duplicating GPU acceleration methods reported in 
+					// https://github.com/UniversalMediaServer/UniversalMediaServer/issues/1592
+					if (!availableMethods.contains(line)) {
+						availableMethods.add(line);
+					}
+				}
+			}
+		}
+
+		configuration.setFFmpegAvailableGPUDecodingAccelerationMethods(availableMethods);
+		configuration.save();
 	}
 }

@@ -51,13 +51,14 @@ public class HTTPResource {
 	public static final String AUDIO_APE_TYPEMIME = "audio/x-ape";
 	public static final String AUDIO_ATRAC_TYPEMIME = "audio/x-sony-oma";
 	public static final String AUDIO_AU_TYPEMIME = "audio/basic";
-	public static final String AUDIO_DSD_TYPEMIME = "audio/x-dsf";
+	public static final String AUDIO_DSF_TYPEMIME = "audio/x-dsf";
+	public static final String AUDIO_DFF_TYPEMIME = "audio/x-dff";
 	public static final String AUDIO_DTS_TYPEMIME = "audio/vnd.dts";
 	public static final String AUDIO_DTSHD_TYPEMIME = "audio/vnd.dts.hd";
 	public static final String AUDIO_EAC3_TYPEMIME = "audio/eac3";
 	public static final String AUDIO_FLAC_TYPEMIME = "audio/x-flac";
 	public static final String AUDIO_LPCM_TYPEMIME = "audio/L16";
-	public static final String AUDIO_M4A_TYPEMIME = "audio/x-m4a";
+	public static final String AUDIO_M4A_TYPEMIME = "audio/mp4";
 	public static final String AUDIO_MKA_TYPEMIME = "audio/x-matroska";
 	public static final String AUDIO_MLP_TYPEMIME = "audio/vnd.dolby.mlp";
 	public static final String AUDIO_MP3_TYPEMIME = "audio/mpeg";
@@ -72,7 +73,7 @@ public class HTTPResource {
 	public static final String AUDIO_TRUEHD_TYPEMIME = "audio/vnd.dolby.mlp";
 	public static final String AUDIO_TTA_TYPEMIME = "audio/x-tta";
 	public static final String AUDIO_VORBIS_TYPEMIME = "audio/ogg";
-	public static final String AUDIO_WAV_TYPEMIME = "audio/x-wav";
+	public static final String AUDIO_WAV_TYPEMIME = "audio/wav";
 	public static final String AUDIO_WEBM_TYPEMIME = "audio/webm";
 	public static final String AUDIO_WMA_TYPEMIME = "audio/x-ms-wma";
 	public static final String AUDIO_WV_TYPEMIME = "audio/x-wavpack";

@@ -19,9 +19,18 @@
 package net.pms.dlna;
 
 import static org.assertj.core.api.Assertions.*;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import net.pms.PMS;
+
 public class LibMediaInfoParserTest {
+	@BeforeClass
+	public static void SetUPClass() {
+		PMS.configureJNA();
+	}
+	
 	@Test
 	public void testGetReferenceFrameCount() throws Exception {
 		assertThat(LibMediaInfoParser.getReferenceFrameCount("-5 6")).isEqualTo((byte) -5);
