@@ -1,4 +1,4 @@
-7.5.0 - 2018-??-??
+7.5.0 - 2018-10-13
 
 	General:
 		Added animated Restart Server button when a restart is needed to apply a new setting (thanks, Nadahar!)
