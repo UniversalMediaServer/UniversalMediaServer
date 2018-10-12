@@ -18,6 +18,13 @@
 		Improved support for Samsung UHD (4k) TVs (thanks, SurfaceS!)
 		Improved support for Samsung Galaxy Note Tab (thanks, Sami32!)
 		Fixed FLAC playback on Xbox One (thanks, 25233Guyver!)
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Simplified translation completed
+			Czech translation completed and validated
+			Portuguese (Brazilian) translation updated
+			Slovak translation updated
+			Spanish translation completed
 	Dependencies:
 		Updated Maven Assembly plugin to 3.1.0
 		Updated Maven Compiler plugin to 3.7.0
