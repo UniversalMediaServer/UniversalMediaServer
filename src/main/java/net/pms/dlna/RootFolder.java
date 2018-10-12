@@ -213,7 +213,6 @@ public class RootFolder extends DLNAResource {
 				}
 		}
 
-
 		for (DLNAResource r : getAdditionalFoldersAtRoot()) {
 			addChild(r, true, isAddGlobally);
 		}
@@ -244,14 +243,15 @@ public class RootFolder extends DLNAResource {
 		}
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
-		LOGGER.trace("Starting scan of: {}", this.getName());
+		LOGGER.debug("Starting scan of: {}", this.getName());
 		scan(this);
 
 		// Running might have been set false during scan
 		if (running) {
-			frame.setScanLibraryEnabled(true);
 			PMS.get().getDatabase().cleanup();
 		}
+		frame.setScanLibraryEnabled(true);
+		frame.setStatusLine(null);
 	}
 
 	/*
@@ -643,13 +643,14 @@ public class RootFolder extends DLNAResource {
 						// If the result code is not read by parent. The process might turn into a zombie (they are real!)
 						process.waitFor();
 					} catch (InterruptedException e) {
-						LOGGER.warn("Interrupted while waiting for stream for process" + e.getMessage());
+						LOGGER.warn("Interrupted while waiting for stream for process");
 					}
 
 					try {
 						process.getErrorStream().close();
 					} catch (Exception e) {
-						LOGGER.warn("Could not close stream for output process", e);
+						LOGGER.warn("Could not close process output stream: {}", e.getMessage());
+						LOGGER.trace("", e);
 					}
 
 					try {

@@ -63,7 +63,7 @@ public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
-	public static final String ID = "vlctranscoder";
+	public static final String ID = "VLCTranscoder";
 	protected JTextField scale;
 	protected JCheckBox experimentalCodecs;
 	protected JCheckBox audioSyncEnabled;

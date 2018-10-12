@@ -44,6 +44,7 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.newgui.NavigationShareTab;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -103,7 +104,7 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(configuration.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + File.separator + dbName;
+		url = Constants.START_URL + dbDir + File.separator + dbName + (configuration.getLoggingDatabase() ? ";TRACE_LEVEL_FILE=4" : "");
 		LOGGER.debug("Using database URL: " + url);
 		LOGGER.info("Using database located at: " + dbDir);
 
@@ -121,7 +122,7 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Gets the name of the database file.
+	 * Gets the name of the database file
 	 *
 	 * @return The filename
 	 */
@@ -140,7 +141,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * <strong>Important: Every connection must be closed after use</strong>
 	 *
 	 * @return the new connection
-	 * @throws SQLException if an SQL error occurs during the operation.
+	 * @throws SQLException
 	 */
 	public Connection getConnection() throws SQLException {
 		return cp.getConnection();
@@ -253,7 +254,6 @@ public class DLNAMediaDatabase implements Runnable {
 					LOGGER.trace("", se);
 				}
 			}
-
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
@@ -298,7 +298,6 @@ public class DLNAMediaDatabase implements Runnable {
 					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
-
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
 				sb.append("  ID                INT              NOT NULL");
@@ -327,7 +326,6 @@ public class DLNAMediaDatabase implements Runnable {
 					LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
 				}
 				executeUpdate(conn, sb.toString());
-
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
 				sb.append("  ID       INT              NOT NULL");
@@ -1380,6 +1378,7 @@ public class DLNAMediaDatabase implements Runnable {
 			scanner = new Thread(this, "Library Scanner");
 			scanner.setPriority(scanner.MIN_PRIORITY);
 			scanner.start();
+			NavigationShareTab.setScanLibraryBusy();
 		}
 	}
 

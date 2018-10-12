@@ -26,7 +26,6 @@ import javax.swing.JTree;
 import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
 
 public class TreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 8830634234336247114L;
@@ -57,13 +56,12 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
 		if (leaf && value instanceof TreeNodeSettings) {
-			if (((TreeNodeSettings) value).getPlayer() == null) {
+			Player player = ((TreeNodeSettings) value).getPlayer();
+			if (player == null) {
 				setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
 			} else {
-				if (((TreeNodeSettings) value).isEnable()) {
-					Player p = ((TreeNodeSettings) value).getPlayer();
-
-					if (PlayerFactory.getPlayers().contains(p)) {
+				if (player.isEnabled()) {
+					if (player.isAvailable()) {
 						setIcon(LooksFrame.readImageIcon("icon-treemenu-engineenabled.png"));
 					} else {
 						setIcon(LooksFrame.readImageIcon("icon-treemenu-enginewarning.png"));
@@ -73,7 +71,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 				}
 			}
 
-			if (((TreeNodeSettings) value).getPlayer() != null && ((TreeNodeSettings) value).getParent().getIndex((TreeNodeSettings) value) == 0) {
+			if (player != null && ((TreeNodeSettings) value).getParent().getIndex((TreeNodeSettings) value) == 0) {
 				setFont(getFont().deriveFont(Font.BOLD));
 			} else {
 				setFont(getFont().deriveFont(Font.PLAIN));

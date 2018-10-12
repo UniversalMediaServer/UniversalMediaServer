@@ -33,13 +33,30 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.encoders.AviSynthFFmpeg;
+import net.pms.encoders.AviSynthMEncoder;
+import net.pms.encoders.DCRaw;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.FFmpegAudio;
+import net.pms.encoders.FFmpegDVRMSRemux;
+import net.pms.encoders.FFmpegWebVideo;
+import net.pms.encoders.MEncoderVideo;
+import net.pms.encoders.MEncoderWebVideo;
+import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.TsMuxeRAudio;
+import net.pms.encoders.TsMuxeRVideo;
+import net.pms.encoders.VLCVideo;
+import net.pms.encoders.VLCWebVideo;
+import net.pms.encoders.VideoLanAudioStreaming;
+import net.pms.encoders.VideoLanVideoStreaming;
 import net.pms.formats.Format;
-import net.pms.io.SystemUtils;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
@@ -50,6 +67,7 @@ import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
 import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
@@ -79,6 +97,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
+	private static volatile boolean enabledEnginesBuilt = false;
+	private static final ReentrantReadWriteLock enabledEnginesLock = new ReentrantReadWriteLock();
+	private static List<String> enabledEngines;
+
+	private static volatile boolean enginesPriorityBuilt = false;
+	private static final ReentrantReadWriteLock enginesPriorityLock = new ReentrantReadWriteLock();
+	private static List<String> enginesPriority;
+
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
 	 * for -lavdopts.
@@ -86,9 +112,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * for compatibility with other operating systems.
 	 */
 	protected static final int MENCODER_MAX_THREADS = 8;
-
-	// TODO: Get this out of here
-	protected static boolean avsHackLogged = false;
 
 	protected static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
 	protected static final String KEY_ALIVE_DELAY = "ALIVE_delay";
@@ -142,8 +165,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_DYNAMIC_PLS_SAVE_PATH = "dynamic_playlist_save_path";
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
+	protected static final String KEY_ENGINES_PRIORITY = "engines_priority";
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
-	protected static final String KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS = "fmpeg_available_fgpu_decoding_acceleration_methods";
+	protected static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
@@ -194,6 +218,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
+	protected static final String KEY_LOGGING_DATABASE = "logging_database";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -296,8 +321,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
 	protected static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
 	protected static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
-	protected static final String KEY_TOOLTIP_BACKGROUND_COLOR = "tooltip_background";
-	protected static final String KEY_TOOLTIP_FOREGROUND_COLOR = "tooltip_foreground";
 	protected static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
 	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
@@ -386,7 +409,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_CHAPTER_SUPPORT,
 			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_DISABLE_TRANSCODING,
-			KEY_ENGINES,
 			KEY_FOLDERS,
 			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_HIDE_EMPTY_FOLDERS,
@@ -2155,11 +2177,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, "auto").split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, "auto").split(",");
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
-		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, listToString(methods));
+		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, listToString(methods));
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {
@@ -2312,49 +2334,343 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT, value);
 	}
 
-	public void setEnginesAsList(ArrayList<String> enginesAsList) {
-		configuration.setProperty(KEY_ENGINES, listToString(enginesAsList));
+	/**
+	 * Lazy implementation, call before accessing {@link #enabledEngines}
+	 */
+	private void buildEnabledEngines() {
+		if (enabledEnginesBuilt) {
+			return;
+		}
+
+		String engines = getString(KEY_ENGINES, "").trim();
+		enabledEnginesLock.writeLock().lock();                            
+
+		try {
+			// Not a bug, using double checked locking
+			if (enabledEnginesBuilt) {
+				return;
+			}
+			if (!StringUtil.hasValue(engines)) {
+				// Set default
+				// boolean includeAviSynth = Platform.isWindows() && PMS.get().getRegistry().isAvis();
+				enabledEngines = new ArrayList<>(12);
+				enabledEngines.add(FFMpegVideo.ID);
+				enabledEngines.add(MEncoderVideo.ID);
+				enabledEngines.add(TsMuxeRVideo.ID);
+				enabledEngines.add(FFmpegAudio.ID);
+				enabledEngines.add(TsMuxeRAudio.ID);
+				enabledEngines.add(FFmpegWebVideo.ID);
+				enabledEngines.add(VLCWebVideo.ID);
+				enabledEngines.add(VideoLanVideoStreaming.ID);
+				enabledEngines.add(MEncoderWebVideo.ID);
+				enabledEngines.add(VideoLanAudioStreaming.ID);
+				if (Platform.isWindows()) {
+					enabledEngines.add(FFmpegDVRMSRemux.ID);
+				}
+				enabledEngines.add(DCRaw.ID);
+				configuration.setProperty(KEY_ENGINES, listToString(enabledEngines));
+			} else if (engines.equalsIgnoreCase("None")) {
+				enabledEngines = new ArrayList<>();
+			} else {
+				enabledEngines = stringToList(engines.trim());
+			}
+			enabledEnginesBuilt = true;
+		} finally {
+			enabledEnginesLock.writeLock().unlock();
+		}
 	}
 
 	/**
-	 * TODO look at the changes that were made to this in PMS and if they seem
-	 * stable, merge them.
+	 * Get a {@link List} of the enabled engines IDs in no particular order.
+	 * Returns a new instance, any modifications won't be stored in the
+	 * original list. Threadsafe.
 	 */
-	public List<String> getEnginesAsList(SystemUtils registry) {
-		String defaultEngines = StringUtils.join(
-			new String[] {
-				"ffmpegvideo",
-				"mencoder",
-				"tsmuxer",
-				"ffmpegaudio",
-				"tsmuxeraudio",
-				"ffmpegwebvideo",
-				"vlcwebvideo", // (VLCWebVideo)
-				"vlcvideo", // (VideoLanVideoStreaming) TODO (legacy web video engine): remove
-				"mencoderwebvideo",
-				"vlcaudio", // (VideoLanAudioStreaming) TODO (legacy web audio engine): remove
-				"ffmpegdvrmsremux",
-				"dcraw"
-			},
-			","
-		);
-		List<String> engines = stringToList(
-			// Possibly blank: An empty string means: disable all engines
-			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15416
-			configurationReader.getPossiblyBlankConfigurationString(
-				KEY_ENGINES,
-				defaultEngines
-			)
-		);
+	public List<String> getEnabledEngines() {
+		buildEnabledEngines();
+		enabledEnginesLock.readLock().lock();
+		try {
+			return new ArrayList<String>(enabledEngines);
+		} finally {
+			enabledEnginesLock.readLock().unlock();
+		}
+	}
 
-		engines = hackAvs(registry, engines);
-		// Backwards compatibility, can be removed when sufficient time has passed - 2017-01
-		int i = engines.indexOf("rawthumbs");
-		if (i >= 0) {
-			engines.set(i, "dcraw");
+	public boolean isEngineEnabled(String id) {
+		if (id == null) {
+			throw new NullPointerException("id cannot be null");
+		}
+		buildEnabledEngines();
+		enabledEnginesLock.readLock().lock();
+		try {
+			return enabledEngines.contains(id);
+		} finally {
+			enabledEnginesLock.readLock().unlock();
+		}
+	}
+
+	public boolean isEngineEnabled(Player player) {
+		if (player == null) {
+			throw new NullPointerException("player cannot be null");
 		}
 
-		return engines;
+		return isEngineEnabled(player.id());
+	}
+
+	public void setEngineEnabled(String id, boolean enabled) {
+		if (!StringUtil.hasValue(id)) {
+			throw new IllegalArgumentException("id cannot be null or blank");
+		}
+
+		enabledEnginesLock.writeLock().lock();
+		try {
+			buildEnabledEngines();
+			if (enabledEngines.contains(id)) {
+				if (!enabled) {
+					enabledEngines.remove(id);
+				}
+			} else {
+				if (enabled) {
+					enabledEngines.add(id);
+				}
+			}
+			configuration.setProperty(KEY_ENGINES, listToString(enabledEngines));
+		} finally {
+			enabledEnginesLock.writeLock().unlock();
+		}
+	}
+
+	public void setEngineEnabled(Player player, boolean enabled) {
+		setEngineEnabled(player.id(), enabled);
+	}
+
+	/**
+	 * This is to make sure that any incorrect capitalization in the
+	 * configuration file is corrected. This should only need to be called
+	 * from {@link PlayerFactory#registerPlayer(Player)}.
+	 * @param player the engine for which to assure correct capitalization
+	 */
+	public void capitalizeEngineId(Player player) {
+		if (player == null) {
+			throw new NullPointerException("player cannot be null");
+		}
+		final String id = player.id();
+
+		boolean changed = false;
+		enabledEnginesLock.writeLock().lock();
+		try {
+			buildEnabledEngines();
+			for (int i = 0; i < enabledEngines.size(); i++) {
+				if (enabledEngines.get(i).equalsIgnoreCase(id) && !enabledEngines.get(i).equals(id)) {
+					enabledEngines.set(i, id);
+					changed = true;
+				}
+			}
+			if (changed) {
+				configuration.setProperty(KEY_ENGINES, listToString(enabledEngines));
+			}
+		} finally {
+			enabledEnginesLock.writeLock().unlock();
+		}
+
+		changed = false;
+		enginesPriorityLock.writeLock().lock();
+		try {
+			buildEnginesPriority();
+			for (int i = 0; i < enginesPriority.size(); i++) {
+				if (enginesPriority.get(i).equalsIgnoreCase(id) && !enginesPriority.get(i).equals(id)) {
+					enginesPriority.set(i, id);
+					changed = true;
+				}
+			}
+			if (changed) {
+				configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
+			}
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Lazy implementation, call before accessing {@link #enginesPriority}
+	 */
+	private void buildEnginesPriority() {
+		if (enginesPriorityBuilt) {
+			return;
+		}
+		String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
+		enginesPriorityLock.writeLock().lock();
+		try {
+			// Not a bug, using double checked locking
+			if (enginesPriorityBuilt) {
+				return;
+			}
+			if (!StringUtil.hasValue(enginesPriorityString)) {
+				// Set default
+				enginesPriority = new ArrayList<>(12);
+				enginesPriority.add(FFMpegVideo.ID);
+				enginesPriority.add(MEncoderVideo.ID);
+				enginesPriority.add(TsMuxeRVideo.ID);
+				if (Platform.isWindows()) {
+					enginesPriority.add(AviSynthFFmpeg.ID);
+					enginesPriority.add(AviSynthMEncoder.ID);
+				}
+				enginesPriority.add(FFmpegAudio.ID);
+				enginesPriority.add(TsMuxeRAudio.ID);
+				enginesPriority.add(FFmpegWebVideo.ID);
+				enginesPriority.add(VLCWebVideo.ID);
+				enginesPriority.add(VideoLanVideoStreaming.ID);
+				enginesPriority.add(MEncoderWebVideo.ID);
+				enginesPriority.add(VideoLanAudioStreaming.ID);
+				if (Platform.isWindows()) {
+					enginesPriority.add(FFmpegDVRMSRemux.ID);
+				}
+				enginesPriority.add(VLCVideo.ID);
+				enginesPriority.add(DCRaw.ID);
+
+				configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
+			} else {
+				enginesPriority = stringToList(enginesPriorityString.trim());
+			}
+			enginesPriorityBuilt = true;
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Get a {@link List} of the engines IDs ordered by priority. Returns a new
+	 * instance, any modifications won't be stored in the original list.
+	 * Threadsafe.
+	 */
+	public List<String> getEnginesPriority() {
+		buildEnginesPriority();
+		enginesPriorityLock.readLock().lock();
+		try {
+			return new ArrayList<String>(enginesPriority);
+		} finally {
+			enginesPriorityLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns the priority index according to the rules of {@link List#indexOf(String)}
+	 */
+	public int getEnginePriority(String id) {
+		if (id == null) {
+			throw new NullPointerException("id cannot be null");
+		}
+
+		buildEnginesPriority();
+		enginesPriorityLock.readLock().lock();
+		try {
+			return enginesPriority.indexOf(id);
+		} finally {
+			enginesPriorityLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns the priority index according to the rules of {@link List#indexOf(String)}
+	 */
+	public int getEnginePriority(Player player) {
+		if (player == null) {
+			throw new NullPointerException("player cannot be null");
+		}
+		return getEnginePriority(player.id());
+	}
+
+	/**
+	 * Moves or inserts a engine id directly above another engine id in the
+	 * priority list. If {@link aboveId} is <code>null</code> {@link id} will
+	 * be placed first in the list. If {@link aboveId} is blank or not found,
+	 * {@link id} will be placed last in the list.
+	 * @param id the engine id to move or insert in the priority list
+	 * @param aboveId the engine id to place {@link id} relative to
+	 */
+	public void setEnginePriorityAbove(String id, String aboveId) {
+		if (!StringUtil.hasValue(id)) {
+			throw new IllegalArgumentException("id cannot be null or blank");
+		}
+
+		enginesPriorityLock.writeLock().lock();
+		try {
+			buildEnginesPriority();
+
+			if (enginesPriority.indexOf(id) > -1) {
+				enginesPriority.remove(id);
+			}
+
+			int newPosition;
+			if (aboveId == null) {
+				newPosition = 0;
+			} else {
+				newPosition = enginesPriority.indexOf(aboveId);
+				if (newPosition < 0) {
+					newPosition = enginesPriority.size();
+				}
+			}
+			enginesPriority.add(newPosition, id);
+			configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+		PlayerFactory.sortPlayers();
+	}
+
+	/**
+	 * @see #setEnginePriorityAbove(String, String)
+	 * @param player the engine to move or insert in the priority list
+	 * @param abovePlayer the engine to place {@link player} relative to
+	 */
+	public void setEnginePriorityAbove(Player player, Player abovePlayer) {
+		setEnginePriorityAbove(player.id(), abovePlayer.id());
+	}
+
+	/**
+	 * Moves or inserts a engine id directly below another engine id in the
+	 * priority list. If {@link belowId} is <code>null</code> {@link id} will
+	 * be placed last in the list. If {@link belowId} is blank or not found,
+	 * {@link id} will also be placed last in the list.
+	 * @param id the engine id to move or insert in the priority list
+	 * @param belowId the engine id to place {@link id} relative to
+	 */
+	public void setEnginePriorityBelow(String id, String belowId) {
+		if (!StringUtil.hasValue(id)) {
+			throw new IllegalArgumentException("id cannot be null or blank");
+		}
+
+		enginesPriorityLock.writeLock().lock();
+		try {
+			buildEnginesPriority();
+
+			if (enginesPriority.indexOf(id) > -1) {
+				enginesPriority.remove(id);
+			}
+
+			int newPosition;
+			if (belowId == null) {
+				newPosition = enginesPriority.size();
+			} else {
+				newPosition = enginesPriority.indexOf(belowId) + 1;
+				if (newPosition < 0) {
+					newPosition = enginesPriority.size();
+				}
+			}
+			enginesPriority.add(newPosition, id);
+			configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+		PlayerFactory.sortPlayers();
+	}
+
+	/**
+	 * @see #setEnginePriorityBelow(String, String)
+	 * @param player the engine to move or insert in the priority list
+	 * @param belowPlayer the engine to place {@link player} relative to
+	 */
+	public void setEnginePriorityBelow(Player player, Player belowPlayer) {
+		setEnginePriorityBelow(player.id(), belowPlayer.id());
 	}
 
 	private static String listToString(List<String> enginesAsList) {
@@ -2364,26 +2680,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	private static List<String> stringToList(String input) {
 		List<String> output = new ArrayList<>();
 		Collections.addAll(output, StringUtils.split(input, LIST_SEPARATOR));
-		return output;
-	}
-
-	// TODO: Get this out of here
-	private static List<String> hackAvs(SystemUtils registry, List<String> input) {
-		List<String> toBeRemoved = new ArrayList<>();
-		for (String engineId : input) {
-			if (engineId.startsWith("avs") && !registry.isAvis() && Platform.isWindows()) {
-				if (!avsHackLogged) {
-					LOGGER.info("AviSynth is not installed. You cannot use " + engineId + " as a transcoding engine.");
-					avsHackLogged = true;
-				}
-
-				toBeRemoved.add(engineId);
-			}
-		}
-
-		List<String> output = new ArrayList<>();
-		output.addAll(input);
-		output.removeAll(toBeRemoved);
 		return output;
 	}
 
@@ -3530,6 +3826,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}
 
+	public boolean getLoggingDatabase() {
+		return getBoolean(KEY_LOGGING_DATABASE, false) || PMS.getTraceMode() == 2;
+	}
+
 	public boolean isVlcUseHardwareAccel() {
 		return getBoolean(KEY_VLC_USE_HW_ACCELERATION, false);
 	}
@@ -3983,14 +4283,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
-	}
-
-	public Color getToolTipForegroundColor() {
-		return getColor(KEY_TOOLTIP_FOREGROUND_COLOR, "255,255,255");
-	}
-
-	public Color getToolTipBackgroundColor() {
-		return getColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
 	}
 
 	/**

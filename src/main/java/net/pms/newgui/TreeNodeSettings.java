@@ -32,41 +32,30 @@ import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import net.pms.Messages;
 import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TreeNodeSettings extends DefaultMutableTreeNode {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeNodeSettings.class);
 	private static final long serialVersionUID = -337606760204027449L;
-	private Player p;
+	private Player player;
 	private JComponent otherConfigPanel;
-	private boolean enable = true;
 	private JPanel warningPanel;
 
-	public boolean isEnable() {
-		return enable;
-	}
-
-	public void setEnable(boolean enable) {
-		this.enable = enable;
-
-	}
-
 	public Player getPlayer() {
-		return p;
+		return player;
 	}
 
 	public TreeNodeSettings(String name, Player p, JComponent otherConfigPanel) {
 		super(name);
-		this.p = p;
+		this.player = p;
 		this.otherConfigPanel = otherConfigPanel;
 
 	}
 
 	public String id() {
-		if (p != null) {
-			return p.id();
+		if (player != null) {
+			return player.id();
 		} else if (otherConfigPanel != null) {
 			return "" + otherConfigPanel.hashCode();
 		} else {
@@ -75,9 +64,9 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 	}
 
 	public JComponent getConfigPanel() {
-		if (p != null) {
-			if (PlayerFactory.getPlayers().contains(p)) {
-				return p.config();
+		if (player != null) {
+			if (player.isAvailable()) {
+				return player.config();
 			} else {
 				return getWarningPanel();
 			}
@@ -95,7 +84,8 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 			try {
 				bi = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/icon-status-warning.png"));
 			} catch (IOException e) {
-				LOGGER.debug("Caught exception", e);
+				LOGGER.debug("Error reading icon-status-warning: ", e.getMessage());
+				LOGGER.trace("", e);
 			}
 
 			ImagePanel ip = new ImagePanel(bi);

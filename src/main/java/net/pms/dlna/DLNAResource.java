@@ -798,7 +798,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!newChild.format.isCompatible(newChild.media, defaultRenderer)) {
 							Player playerTranscoding = PlayerFactory.getPlayer(newChild);
 							newChild.setPlayer(playerTranscoding);
-							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(), newChild.getPlayer().name(), newChild.getName());
+							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(), player == null ? "null" : player.name(), newChild.getName());
 						}
 
 						if (child.media != null && child.media.isSecondaryFormatValid()) {
@@ -4597,8 +4597,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// A general-purpose free-floating folder
-	public static class unattachedFolder extends VirtualFolder {
-		public unattachedFolder(String name) {
+	public static class UnattachedFolder extends VirtualFolder {
+		public UnattachedFolder(String name) {
 			super(name, null);
 			setId(name);
 		}
@@ -4673,7 +4673,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// A temp folder for non-xmb items
-	public static final unattachedFolder Temp = new unattachedFolder("Temp");
+	public static final UnattachedFolder Temp = new UnattachedFolder("Temp");
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {

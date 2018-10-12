@@ -22,7 +22,6 @@ package net.pms.newgui.components;
 import java.util.Vector;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
-import javax.swing.JToolTip;
 
 /**
  * A subclass of {@link javax.swing.JComboBox} with a custom <code>ToolTip</code> handler
@@ -46,11 +45,5 @@ public class CustomJComboBox<E> extends JComboBox<E> {
 
 	public CustomJComboBox(Vector<E> items) {
 	    super(items);
-	}
-
-	public JToolTip createToolTip() {
-	    JToolTip tip = new HyperLinkToolTip();
-	    tip.setComponent(this);
-	    return tip;
 	}
 }

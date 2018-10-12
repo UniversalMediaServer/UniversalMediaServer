@@ -668,8 +668,19 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				"PAUSED".equals(s) ? PAUSED : -1;
 			state.mute = "0".equals(data.get("mute")) ? false : true;
 			s = data.get("volume");
-			state.volume = s == null ? 0 : Integer.valueOf(s);
-			long seconds = Integer.valueOf(data.get("position"));
+			try {
+				state.volume = StringUtil.hasValue(s) ? Integer.valueOf(s) : 0;
+			} catch (NumberFormatException e) {
+				LOGGER.debug("Unexpected volume value \"{}\"", data.get("volume"));
+			}
+			long seconds = 0;
+			if (data.get("position") != null) {
+				try {
+					seconds = Integer.valueOf(data.get("position"));
+				} catch (NumberFormatException e) {
+					LOGGER.debug("Unexpected position value \"{}\"", data.get("position"));
+				}
+			}
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
 			alert();
 			if (state.playback == STOPPED) {

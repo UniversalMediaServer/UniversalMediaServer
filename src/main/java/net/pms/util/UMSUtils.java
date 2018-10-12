@@ -405,10 +405,10 @@ public class UMSUtils {
 			return null;
 		}
 
-		private static Player findPlayer(String playerName) {
-			for (Player p : PlayerFactory.getPlayers()) {
-				if (playerName.equals(p.name())) {
-					return p;
+		private static Player findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
+			for (Player player : PlayerFactory.getPlayers(onlyEnabled, onlyAvailable)) {
+				if (playerName.equals(player.name())) {
+					return player;
 				}
 			}
 			return null;
@@ -495,7 +495,7 @@ public class UMSUtils {
 					while (pos != -1) {
 						if (str.startsWith("player:")) {
 							// find last player
-							player = findPlayer(str.substring(7, pos));
+							player = findPlayerByName(str.substring(7, pos), true, true);
 						}
 						if (str.startsWith("resume")) {
 							// resume data
@@ -577,7 +577,7 @@ public class UMSUtils {
 	 * @param configuration in which the available GPU acceleration methods will be stored
 	 * @throws ConfigurationException
 	 */
-	public static void CheckGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.waitbeforestart = 0;
 		outputParams.log = true;
@@ -605,7 +605,11 @@ public class UMSUtils {
 				if (line.equals("Hardware acceleration methods:")) {
 					continue;
 				} else {
-					availableMethods.add(line);
+					// fix duplicating GPU acceleration methods reported in 
+					// https://github.com/UniversalMediaServer/UniversalMediaServer/issues/1592
+					if (!availableMethods.contains(line)) {
+						availableMethods.add(line);
+					}
 				}
 			}
 		}
