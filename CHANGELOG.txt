@@ -11,6 +11,7 @@
 		Fixed duplicate hardware acceleration options
 		Fixed the state of scan buttons while startup scan is running
 		Fixed the display of the web interface on Safari
+		Fixed MEncoder not transcoding to H.264 on macOS
 		Fixed a lot of minor bugs
 	Renderers:
 		Added detection of more Samsung mobile devices (thanks, Sami32!)
