@@ -290,7 +290,23 @@ public class UPNPHelper extends UPNPControl {
 
 		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
 		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
-		ssdpSocket.setNetworkInterface(networkInterface);
+
+        try {
+            LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
+            ssdpSocket.setNetworkInterface(networkInterface);
+        } catch (SocketException ex) {
+            LOGGER.warn("Setting SSDP network interface failed: {}", ex);
+            NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+            if (confIntf != null) {
+                LOGGER.trace("Setting SSDP network interface from configuration: {}", confIntf);
+                try {
+                    ssdpSocket.setNetworkInterface(confIntf);
+                } catch (SocketException ex2){
+                    LOGGER.warn("Setting SSDP network interface failed: {}", ex2);
+                }
+            }
+        }
+
 		ssdpSocket.setReuseAddress(true);
 		ssdpSocket.setTimeToLive(32);
 
