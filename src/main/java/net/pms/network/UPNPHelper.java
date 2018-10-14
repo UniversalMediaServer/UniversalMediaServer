@@ -281,7 +281,7 @@ public class UPNPHelper extends UPNPControl {
 
 		try {
 			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
-			ssdpSocket.setNetworkInterface(networkInterface);;
+			ssdpSocket.setNetworkInterface(networkInterface);
 		} catch (SocketException ex) {
 			LOGGER.warn("Setting SSDP network interface failed: {}", ex);
 			NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
