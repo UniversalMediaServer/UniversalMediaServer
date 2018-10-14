@@ -275,25 +275,13 @@ public class UPNPHelper extends UPNPControl {
 			throw new IOException("No usable network interface found for UPnP multicast");
 		}
 
-		List<InetAddress> usableAddresses = new ArrayList<>();
-		List<InetAddress> networkInterfaceAddresses = Collections.list(networkInterface.getInetAddresses());
-
-		for (InetAddress inetAddress : networkInterfaceAddresses) {
-			if (inetAddress != null && inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
-				usableAddresses.add(inetAddress);
-			}
-		}
-
-		if (usableAddresses.isEmpty()) {
-			throw new IOException("No usable addresses found for UPnP multicast");
-		}
-
-		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
-		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
+		MulticastSocket ssdpSocket = new MulticastSocket();
+		ssdpSocket.setReuseAddress(true);
+		ssdpSocket.setTimeToLive(32);
 
 		try {
 			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
-			ssdpSocket.setNetworkInterface(networkInterface);
+			ssdpSocket.setNetworkInterface(networkInterface);;
 		} catch (SocketException ex) {
 			LOGGER.warn("Setting SSDP network interface failed: {}", ex);
 			NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
@@ -306,9 +294,6 @@ public class UPNPHelper extends UPNPControl {
 				}
 			}
 		}
-
-		ssdpSocket.setReuseAddress(true);
-		ssdpSocket.setTimeToLive(32);
 
 		if (multicastLog) {
 			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
