@@ -355,14 +355,14 @@ public class DLNAMediaInfo implements Cloneable {
 	 * core layer. Valid cores include AAC-LC, AAC Scalable (without LTP), ER
 	 * AAC LC, ER AAC Scalable, and ER BSAC.
 	 * <p>
-	 * UMS currently only implements AAC-LC and ER BSAC among the valid core layer
-	 * codecs, so only those are "approved" by this test. If
+	 * Since DMS currently only implements AAC-LC among the valid core layer
+	 * codecs, AAC-LC is the only core layer format "approved" by this test. If
 	 * further codecs are added in the future, this test should be modified
 	 * accordingly.
 	 *
-	 * @return {@code true} if this {@link DLNAMediaInfo} instance has two audio
-	 *         tracks where the first has an approved AAC codec and the second has
-	 *         codec SLS, {@code false} otherwise.
+	 * @return {@code true} is this {@link DLNAMediaInfo} instance has two audio
+	 *         tracks where the first has codec AAC-LC and the second has codec
+	 *         SLS, {@code false} otherwise.
 	 */
 	public boolean isSLS() {
 		if (audioTracks.size() != 2) {
@@ -564,13 +564,13 @@ public class DLNAMediaInfo implements Cloneable {
 		thumbready = true;
 	}
 
-	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume, RendererConfiguration renderer) {
+	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume) {
 		/**
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
 		 * minimize the amount of text given by FFmpeg here
 		 */
-		String args[] = new String[14];
+		String args[] = new String[15];
 		args[0] = getFfmpegPath();
 		File file = media.getFile();
 		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
@@ -595,42 +595,22 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[5] = "-an";
-		args[6] = "-an";
+		args[6] = "-dn";
+		args[7] = "-sn";
+		args[8] = "-vf";
+		args[9] = "scale=320:-2";
+		args[10] = "-vframes";
+		args[11] = "1";
+		args[12] = "-f";
+		args[13] = "image2";
+		args[14] = "pipe:";
 
-		// Thumbnail resolution
-		int thumbnailWidth  = 320;
-		int thumbnailHeight = 180;
-		double thumbnailRatio  = 1.78;
-		boolean isThumbnailPadding = true;
-		if (renderer != null) {
-			thumbnailWidth     = renderer.getThumbnailWidth();
-			thumbnailHeight    = renderer.getThumbnailHeight();
-			thumbnailRatio     = renderer.getThumbnailRatio();
-			isThumbnailPadding = renderer.isThumbnailPadding();
-		}
-
-		if (isThumbnailPadding) {
-			args[7] = "-vf";
-			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")', pad=" + thumbnailWidth + ":" + thumbnailHeight + ":(" + thumbnailWidth + "-iw)/2:(" + thumbnailHeight + "-ih)/2";
-		} else {
-			args[7] = "-vf";
-			args[8] = "scale='if(gt(a," + thumbnailRatio + ")," + thumbnailWidth + ",-1)':'if(gt(a," + thumbnailRatio + "),-1," + thumbnailHeight + ")'";
-		}
-
-		args[9] = "-vframes";
-		args[10] = "1";
-		args[11] = "-f";
-		args[12] = "image2";
-		args[13] = "pipe:";
-
-		// FIXME MPlayer should not be used if thumbnail generation is disabled
 		if (
 			!configuration.isThumbnailGenerationEnabled() ||
-			renderer != null && !renderer.isThumbnails() ||
 			configuration.isUseMplayerForVideoThumbs() && !dvrms
 		) {
 			args[2] = "0";
-			for (int i = 5; i <= 13; i++) {
+			for (int i = 8; i <= 14; i++) {
 				args[i] = "-an";
 			}
 		}
@@ -673,7 +653,7 @@ public class DLNAMediaInfo implements Cloneable {
 		return pw;
 	}
 
-	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume, RendererConfiguration renderer) throws IOException {
+	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
 		File file = media.getFile();
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
@@ -694,23 +674,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args[5] = "-msglevel";
 		args[6] = "all=4";
-
-		int thumbnailWidth  = 320;
-		int thumbnailHeight = 180;
-		boolean isThumbnailPadding = true;
-		if (renderer != null) {
-			thumbnailWidth     = renderer.getThumbnailWidth();
-			thumbnailHeight    = renderer.getThumbnailHeight();
-			isThumbnailPadding = renderer.isThumbnailPadding();
-		}
-		if (isThumbnailPadding) {
-			args[7] = "-vf";
-			args[8] = "scale=" + thumbnailWidth + ":-2,expand=:" + thumbnailHeight;
-		} else {
-			args[7] = "-vf";
-			args[8] = "scale=" + thumbnailWidth + ":-2";
-		}
-
+		args[7] = "-vf";
+		args[8] = "scale=320:-2";
 		args[9] = "-frames";
 		args[10] = "1";
 		args[11] = "-vo";
@@ -1019,7 +984,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 			if (ffmpeg_parsing) {
 				if (!thumbOnly || (type == Format.VIDEO && !configuration.isUseMplayerForVideoThumbs())) {
-					pw = getFFmpegThumbnail(inputFile, resume, renderer);
+					pw = getFFmpegThumbnail(inputFile, resume);
 				}
 
 				boolean dvrms = false;
@@ -1057,7 +1022,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
 					try {
-						getMplayerThumbnail(inputFile, resume, renderer);
+						getMplayerThumbnail(inputFile, resume);
 						String frameName = "" + inputFile.hashCode();
 						frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
 						frameName = frameName.replace(',', '_');

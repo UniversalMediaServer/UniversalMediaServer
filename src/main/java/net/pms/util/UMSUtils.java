@@ -587,7 +587,7 @@ public class UMSUtils {
 	 * @param configuration in which the available GPU acceleration methods will be stored
 	 * @throws ConfigurationException
 	 */
-	public static void CheckGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.waitbeforestart = 0;
 		outputParams.log = true;

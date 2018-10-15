@@ -1,13 +1,38 @@
-7.5.0 - 2018-??-??
+7.5.0 - 2018-10-13
 
 	General:
 		Added animated Restart Server button when a restart is needed to apply a new setting (thanks, Nadahar!)
 		Added hover and push effects to buttons (thanks, Nadahar!)
 		Added Docker build files (thanks, atamariya!)
+		Added ability to specify supported framerates in renderer configs (thanks, Nadahar!)
+		Improved support for Windows XP (thanks, Nadahar!)
+		Improved support for DFF, DSF, MP4 and WAV files (thanks, Sami32!)
+		Updated the GUI for FFmpeg options
+		Fixed duplicate hardware acceleration options
 		Fixed the state of scan buttons while startup scan is running
+		Fixed the display of the web interface on Safari
+		Fixed MEncoder not transcoding to H.264 on macOS
 		Fixed a lot of minor bugs
 	Renderers:
+		Added detection of more Samsung mobile devices (thanks, Sami32!)
+		Improved support for Onkyo audio receivers
+		Improved support for Samsung UHD (4k) TVs (thanks, SurfaceS!)
+		Improved support for Samsung Galaxy Note Tab (thanks, Sami32!)
 		Fixed FLAC playback on Xbox One (thanks, 25233Guyver!)
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Simplified translation completed
+			Czech translation completed and validated
+			Portuguese (Brazilian) translation updated
+			Slovak translation updated
+			Spanish translation completed
+	Dependencies:
+		Updated Maven Assembly plugin to 3.1.0
+		Updated Maven Compiler plugin to 3.7.0
+		Updated Maven Enforcer plugin to 1.4.1
+		Updated Maven Findbugs plugin to 3.0.5
+		Updated Git Commit ID plugin to 2.2.3
+		Updated gson to 2.8.2
 
 7.4.0 - 2018-09-22
 

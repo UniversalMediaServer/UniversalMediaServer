@@ -61,9 +61,9 @@ import org.slf4j.LoggerFactory;
 public class TracesTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
 	private PmsConfiguration configuration;
-	private CustomJTextField jSearchBox, jSyslogHost;
-	private CustomJComboBox<String> jTracesFilter, jSyslogFacility;
-	private CustomJCheckBox jCSSearch, jRESearch, jMLSearch, jShowOptions, jBuffered, jUseSyslog;
+	private JTextField jSearchBox, jSyslogHost;
+	private JComboBox<String> jTracesFilter, jSyslogFacility;
+	private JCheckBox jCSSearch, jRESearch, jMLSearch, jShowOptions, jBuffered, jUseSyslog;
 	private JSpinner jLineBuffer, jSyslogPort;
 	private Pattern searchPattern = null;
 	private JLabel jSearchOutput = new JLabel();
@@ -275,7 +275,7 @@ public class TracesTab {
 		JLabel jFilterLabel = new JLabel(Messages.getString("TracesTab.24") + ":");
 		jFilterLabel.setDisplayedMnemonic(KeyEvent.VK_F);
 		jFilterLabel.setToolTipText(Messages.getString("TracesTab.33"));
-		jTracesFilter = new CustomJComboBox<>(levelStrings);
+		jTracesFilter = new JComboBox<>(levelStrings);
 		jTracesFilter.setSelectedIndex(findLevelsIdx(configuration.getLoggingFilterLogsTab()));
 		jFilterLabel.setLabelFor(jTracesFilter);
 		jTracesFilter.setToolTipText(Messages.getString("TracesTab.33"));
@@ -292,7 +292,7 @@ public class TracesTab {
 
 		jSearchPanel.add(Box.createRigidArea(new Dimension(5,0)));
 
-		jSearchBox = new CustomJTextField();
+		jSearchBox = new JTextField();
 		jSearchBox.setBackground(new Color(248,248,248));
 		jSearchBox.setToolTipText(Messages.getString("TracesTab.34"));
 		jSearchPanel.add(jSearchBox);
@@ -303,17 +303,17 @@ public class TracesTab {
 		jSearchButton.setToolTipText(Messages.getString("TracesTab.34"));
 		jSearchPanel.add(jSearchButton);
 		jSearchPanel.add(jCSSpace = Box.createRigidArea(new Dimension(5,0)));
-		jCSSearch = new CustomJCheckBox(Messages.getString("TracesTab.19"), configuration.getGUILogSearchCaseSensitive());
+		jCSSearch = new JCheckBox(Messages.getString("TracesTab.19"), configuration.getGUILogSearchCaseSensitive());
 		jCSSearch.setMnemonic(KeyEvent.VK_C);
 		jCSSearch.setToolTipText(Messages.getString("TracesTab.35"));
 		jSearchPanel.add(jCSSearch);
 		jSearchPanel.add(jRESpace = Box.createRigidArea(new Dimension(5,0)));
-		jRESearch = new CustomJCheckBox("RegEx",configuration.getGUILogSearchRegEx());
+		jRESearch = new JCheckBox("RegEx",configuration.getGUILogSearchRegEx());
 		jRESearch.setMnemonic(KeyEvent.VK_R);
 		jRESearch.setToolTipText(Messages.getString("TracesTab.36"));
 		jSearchPanel.add(jRESearch);
 		jSearchPanel.add(jMLSpace = Box.createRigidArea(new Dimension(5,0)));
-		jMLSearch = new CustomJCheckBox(Messages.getString("TracesTab.20"),configuration.getGUILogSearchMultiLine());
+		jMLSearch = new JCheckBox(Messages.getString("TracesTab.20"),configuration.getGUILogSearchMultiLine());
 		jMLSearch.setMnemonic(KeyEvent.VK_M);
 		jMLSearch.setToolTipText(Messages.getString("TracesTab.37"));
 		jSearchPanel.add(jMLSearch);
@@ -435,7 +435,7 @@ public class TracesTab {
 			)
 		));
 
-		jBuffered = new CustomJCheckBox(Messages.getString("TracesTab.25"), configuration.getLoggingBuffered());
+		jBuffered = new JCheckBox(Messages.getString("TracesTab.25"), configuration.getLoggingBuffered());
 		jBuffered.setMnemonic(KeyEvent.VK_U);
 		jBuffered.setToolTipText(Messages.getString("TracesTab.43"));
 		jBuffered.setHorizontalTextPosition(SwingConstants.LEADING);
@@ -454,7 +454,7 @@ public class TracesTab {
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
 		boolean useSyslog = configuration.getLoggingUseSyslog();
-		jUseSyslog = new CustomJCheckBox(Messages.getString("TracesTab.27"), useSyslog);
+		jUseSyslog = new JCheckBox(Messages.getString("TracesTab.27"), useSyslog);
 		jUseSyslog.setMnemonic(KeyEvent.VK_Y);
 		jUseSyslog.setToolTipText(Messages.getString("TracesTab.44"));
 		jUseSyslog.setHorizontalTextPosition(SwingConstants.LEADING);
@@ -486,7 +486,7 @@ public class TracesTab {
 		jSyslogHostLabel.setToolTipText(Messages.getString("TracesTab.45"));
 		jOptionsPanel.add(jSyslogHostLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
-		jSyslogHost = new CustomJTextField(configuration.getLoggingSyslogHost(),10);
+		jSyslogHost = new JTextField(configuration.getLoggingSyslogHost(),10);
 		jSyslogHostLabel.setLabelFor(jSyslogHost);
 		jSyslogHost.setToolTipText(Messages.getString("TracesTab.45"));
 		jSyslogHost.setEnabled(!useSyslog);
@@ -507,7 +507,7 @@ public class TracesTab {
 		jSyslogHost.setInputVerifier(new InputVerifier() {
 			@Override
 			public boolean verify(JComponent input) {
-				String s = ((CustomJTextField) input).getText().trim();
+				String s = ((JTextField) input).getText().trim();
 				if (!s.isEmpty() && !(
 					// Hostname or IPv4
 					s.matches("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$") ||
@@ -547,7 +547,7 @@ public class TracesTab {
 		jSyslogFacilityLabel.setToolTipText(Messages.getString("TracesTab.47"));
 		jOptionsPanel.add(jSyslogFacilityLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4,0)));
-		jSyslogFacility = new CustomJComboBox<>(syslogFacilities);
+		jSyslogFacility = new JComboBox<>(syslogFacilities);
 		jSyslogFacility.setToolTipText(Messages.getString("TracesTab.47"));
 		jSyslogFacility.setEnabled(!useSyslog);
 		jSyslogFacility.setSelectedIndex(findSyslogFacilityIdx(configuration.getLoggingSyslogFacility()));
@@ -563,7 +563,7 @@ public class TracesTab {
 		jOptionsPanel.setFocusTraversalPolicyProvider(true);
 		builder.add(jOptionsPanel, cc.xyw(1, 3, cols));
 
-		jShowOptions = new CustomJCheckBox(Messages.getString("TracesTab.18"), PMS.getTraceMode() != 2 && configuration.getLoggingUseSyslog());
+		jShowOptions = new JCheckBox(Messages.getString("TracesTab.18"), PMS.getTraceMode() != 2 && configuration.getLoggingUseSyslog());
 		jShowOptions.setHorizontalTextPosition(SwingConstants.LEADING);
 		jShowOptions.setToolTipText(Messages.getString("TracesTab.41"));
 		jShowOptions.setMnemonic(KeyEvent.VK_G);
@@ -613,14 +613,14 @@ public class TracesTab {
 		rootLevelLabel.setDisplayedMnemonic(KeyEvent.VK_L);
 		rootLevelLabel.setToolTipText(Messages.getString("TracesTab.42"));
 
-		CustomJComboBox<String> rootLevel = new CustomJComboBox<>(levelStrings);
+		JComboBox<String> rootLevel = new JComboBox<>(levelStrings);
 		rootLevelLabel.setLabelFor(rootLevel);
 		rootLevel.setSelectedIndex(findLevelsIdx(rootLogger.getLevel()));
 		rootLevel.setToolTipText(Messages.getString("TracesTab.42"));
 		rootLevel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				CustomJComboBox<?> cb = (CustomJComboBox<?>)e.getSource();
+				JComboBox<?> cb = (JComboBox<?>)e.getSource();
 				rootLogger.setLevel(logLevels[cb.getSelectedIndex()]);
 				Level newLevel = rootLogger.getLevel();
 				if (newLevel.toInt() > Level.INFO_INT) {

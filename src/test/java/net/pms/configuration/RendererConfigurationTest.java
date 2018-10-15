@@ -167,6 +167,9 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
+		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung LED UHD", "modelName=UE88KS9810");
+
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
 
 		testHeaders("Showtime 3", "User-Agent: Showtime 3.0", "X-AV-Client-Info: Showtime 3.0");

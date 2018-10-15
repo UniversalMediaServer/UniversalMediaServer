@@ -41,10 +41,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
-import net.pms.newgui.components.CustomJComboBox;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.CustomJSpinner;
-import net.pms.newgui.components.CustomJTextField;
 import net.pms.newgui.components.SpinnerIntModel;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
@@ -792,7 +790,7 @@ public class TranscodingTab {
 		CellConstraints cc = new CellConstraints();
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
-		defaultsubs = new CustomJTextField(configuration.getSubtitlesLanguages());
+		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
 		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
@@ -920,7 +918,7 @@ public class TranscodingTab {
 		};
 
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
-		subtitleCodePage = new CustomJComboBox<>(subtitleCodePageModel);
+		subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
 		subtitleCodePage.setToolTipText(Messages.getString("TrTab2.94"));
 		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener(new ItemListener() {
