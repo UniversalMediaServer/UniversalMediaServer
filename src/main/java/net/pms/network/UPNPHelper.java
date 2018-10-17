@@ -294,7 +294,6 @@ public class UPNPHelper extends UPNPControl {
 				}
 			}
 		}
-
 		if (multicastLog) {
 			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
 			LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
