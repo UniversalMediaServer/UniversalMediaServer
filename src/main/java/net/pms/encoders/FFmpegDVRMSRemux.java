@@ -160,14 +160,6 @@ public class FFmpegDVRMSRemux extends Player {
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
-
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 

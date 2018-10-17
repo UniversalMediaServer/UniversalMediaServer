@@ -22,9 +22,6 @@ import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.external.DebugPacker;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FileUtil;
@@ -113,17 +110,6 @@ public class DbgPacker implements ActionListener {
 
 	private void poll() {
 		// call the client callbacks
-		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (listener instanceof DebugPacker) {
-				LOGGER.debug("Found client {}",listener.name());
-				Object obj = ((DebugPacker) listener).dbgpack_cb();
-				if (obj instanceof String) {
-					add(((String) obj).split(","));
-				} else if (obj instanceof String[]) {
-					add((String[]) obj);
-				}
-			}
-		}
 		PmsConfiguration configuration = PMS.getConfiguration();
 
 		// check dbgpack property in UMS.conf
