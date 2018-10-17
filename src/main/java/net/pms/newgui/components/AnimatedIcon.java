@@ -477,7 +477,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 	 *  icon needs to be aligned appropriately. Calculate the offset to be used
 	 *  when painting the icon to achieve the proper alignment.
 	 */
-	private int getOffset(int maxValue, int iconValue, float alignment) {
+	private static int getOffset(int maxValue, int iconValue, float alignment) {
 		float offset = (maxValue - iconValue) * alignment;
 		return Math.round(offset);
 	}
@@ -509,13 +509,11 @@ public class AnimatedIcon implements Icon, ActionListener {
 	private int getNextFrameIndex(int currentIndex) {
 		if (repeat && nextStage == null) {
 			return ++currentIndex % frames.size();
-		} else {
-			if (currentIndex >= frames.size() - 1) {
-				return -1;
-			} else {
-				return ++currentIndex;
-			}
 		}
+		if (currentIndex >= frames.size() - 1) {
+			return -1;
+		}
+		return ++currentIndex;
 	}
 
 	/**

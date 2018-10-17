@@ -3,17 +3,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
-		UMS consists of two major parts: UMS itself and the third party software needed to
-		run it. While UMS itself is 100% pure Java, some of the third party software is
+		DMS consists of two major parts: DMS itself and the third party software needed to
+		run it. While DMS itself is 100% pure Java, some of the third party software is
 		not. This means building a platform specific distribution boils down to first
-		building the pms.jar and then assembling all application resources.
+		building the dms.jar and then assembling all application resources.
 
 		Note that Maven 3 does not automatically install all dependencies, unlike Maven 2.
 		To install external dependencies to your local repository, run the following commands:
 
 		mvn external:install
 
-		To build UMS, do:
+		To build DMS, do:
 
 			mvn clean package
 
@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>7.4.1-SNAPSHOT</version>
+	<version>7.5.1-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>7.4.1</project.version.short>
+		<project.version.short>7.5.1</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -85,8 +85,9 @@
 		<binary-revision>71</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
+		<git-commit-id-plugin-version>2.2.3</git-commit-id-plugin-version>
+		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
+		<maven-enforcer-plugin-version>1.4.1</maven-enforcer-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -152,7 +153,6 @@
 			<artifactId>commons-configuration</artifactId>
 			<!--
 				commons-logging:commons-logging is shared with
-					- commons-httpclient:commons-httpclient
 					- com.github.junrar:junrar
 					- fm.last:coverartarchive-api
 
@@ -218,7 +218,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.7</version>
+			<version>2.8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -344,7 +344,6 @@
 			<!--
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
-					- commons-httpclient:commons-httpclient
 					- fm.last:coverartarchive-api
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
@@ -468,13 +467,12 @@
 
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
-					- commons-httpclient:commons-httpclient
 					- com.github.junrar:junrar
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 
 				commons-io:commons-io is shared with
-					- net.pms:ums
+					- net.pms:dms
 
 				Check the commons-io:commons-io version before upgrading
 			-->
@@ -503,7 +501,7 @@
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 
 				net.java.dev.jna:jna-platform is shared with
-					- net.pms:ums
+					- net.pms:dms
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
@@ -528,7 +526,7 @@
 
 						/example.res
 
-					The old PMS ant build packaged them in a "resources" directory
+					The old DMS ant build packaged them in a "resources" directory
 					e.g:
 
 						/resources/example.res
@@ -780,7 +778,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.7.0</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -901,7 +899,7 @@
 		        </reportSets>
 			</plugin>
 
-			<!-- PMS tests report -->
+			<!-- DMS tests report -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
@@ -960,7 +958,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.4</version>
+				<version>3.0.5</version>
 			</plugin>
 
 			<!-- Checkstyle report -->
@@ -1045,7 +1043,7 @@
 										<mainClass>net.pms.PMS</mainClass>
 										<!--
 											this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
-											without it, the following exception is thrown when PMS starts:
+											without it, the following exception is thrown when DMS starts:
 
 											Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
 												Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
@@ -1069,7 +1067,7 @@
 					</plugin>
 
 					<!--
-						Plugin to move the pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						Plugin to move the dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1148,17 +1146,6 @@
 										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
-
-										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
-										<mkdir dir="${project.basedir}/win32/service" />
-										<copy todir="${project.basedir}/win32/service" overwrite="true">
-											<fileset dir="${project.binaries}/win32/service" />
-										</copy>
 									</target>
 								</configuration>
 							</execution>
@@ -1170,7 +1157,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<!-- Copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar -->
+										<!-- Copy the dms-x.x.x-jar-with-dependencies.jar to dms.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 										      tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
@@ -1178,6 +1165,16 @@
 										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
 										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
 										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Copy the wrapper to its destination -->
+										<mkdir dir="${project.basedir}/win32/service" />
+										<copy todir="${project.basedir}/win32/service" overwrite="true">
+											<fileset dir="${project.external-resources}/third-party/wrapper" />
+										</copy>
+
+										<!-- Copy the custom jnidispatch.dll for Windows XP -->
+										<mkdir dir="${project.basedir}/win32/winxp" />
+										<copy file="${project.external-resources}/lib/winxp/jnidispatch.dll" todir="${project.basedir}/win32/winxp" />
 									</target>
 								</configuration>
 							</execution>
@@ -1188,7 +1185,7 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"pms.nsi" and "setup.nsi" files.
+						"dms.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
@@ -1267,7 +1264,7 @@
 								</configuration>
 							</execution>
 
-							<!-- Assemble the PMS distribution file. -->
+							<!-- Assemble the DMS distribution file. -->
 							<execution>
 								<id>build-pms-linux</id>
 								<phase>package</phase>
@@ -1292,7 +1289,7 @@
 						Use the antrun plugin to:
 
 						Download the tsMuxeR binary to ${project.binaries}/tsMuxeR
-						Copy the pms-x.x.x-jar-with-dependencies.jar to ums.jar
+						Copy the dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1494,7 +1491,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before
+								Assemble the DMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
@@ -1675,7 +1672,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before
+								Assemble the DMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
@@ -1702,7 +1699,7 @@
 			</build>
 		</profile>
 		<!--
-			Hudson (windows-jar): minimal profile that builds pms.jar with the
+			Hudson (windows-jar): minimal profile that builds dms.jar with the
 			Windows JNA. The POSIX JNA causes snapshot builds to crash the JVM on
 			Windows, whereas the Windows JNA only disables MediaInfo for Ubuntu
 			users, who can still use ffmpeg.
@@ -1749,7 +1746,7 @@
 
 					<!--
 						Use the antrun plugin to: copy the
-						pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1777,7 +1774,7 @@
 		</profile>
 
 		<!--
-			This profile allows running UMS from inside Eclipse
+			This profile allows running DMS from inside Eclipse
 			(Requires a "mvn clean package" to download the binaries first)
 		-->
 		<profile>

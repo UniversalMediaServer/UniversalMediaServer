@@ -1355,8 +1355,13 @@ public class MEncoderVideo extends Player {
 				}
 
 				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
-					":threads=" + configuration.getMencoderMaxThreads() +
-					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+					":threads=" + configuration.getMencoderMaxThreads();
+
+				// Start building the options for lavc to pass to libx264
+				encodeSettings += ":o=qcomp=0.6";
+				if (!Platform.isMac()) {
+					encodeSettings += ":preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+				}
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
 			}
@@ -2448,13 +2453,6 @@ public class MEncoderVideo extends Player {
 
 			String[] cmdArray = new String[cmdList.size()];
 			cmdList.toArray(cmdArray);
-			cmdArray = finalizeTranscoderArgs(
-				filename,
-				dlna,
-				media,
-				params,
-				cmdArray
-			);
 
 			pw = new ProcessWrapperImpl(cmdArray, params);
 

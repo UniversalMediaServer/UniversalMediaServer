@@ -167,7 +167,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ENGINES = "engines";
 	protected static final String KEY_ENGINES_PRIORITY = "engines_priority";
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
-	protected static final String KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS = "fmpeg_available_fgpu_decoding_acceleration_methods";
+	protected static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
@@ -321,8 +321,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
 	protected static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
 	protected static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
-	protected static final String KEY_TOOLTIP_BACKGROUND_COLOR = "tooltip_background";
-	protected static final String KEY_TOOLTIP_FOREGROUND_COLOR = "tooltip_foreground";
 	protected static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
 	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
@@ -2179,11 +2177,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, "auto").split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, "auto").split(",");
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
-		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_DECODING_ACCELERATION_METHODS, listToString(methods));
+		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, listToString(methods));
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {
@@ -4285,14 +4283,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
-	}
-
-	public Color getToolTipForegroundColor() {
-		return getColor(KEY_TOOLTIP_FOREGROUND_COLOR, "255,255,255");
-	}
-
-	public Color getToolTipBackgroundColor() {
-		return getColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
 	}
 
 	/**
