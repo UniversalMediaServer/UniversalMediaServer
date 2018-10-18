@@ -1578,10 +1578,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * Returns the "engine"/player part of the display name or {@code null} if
+	 * none should be displayed.
 	 * Returns the display name for the default renderer.
 	 *
-	 * @return The display name.
-	 * @see #getDisplayName(RendererConfiguration, boolean)
+	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @return The engine display name or {@code null}.
 	 */
 	protected String getDisplayNameEngine(PmsConfiguration configuration) {
 		String engineName = null;
@@ -1599,9 +1601,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @param mediaRenderer Media Renderer for which to show information.
-	 * @return String representing the item.
-	 * @see #getDisplayName(RendererConfiguration, boolean)
+	  * Returns the "base" part of the display name or an empty {@link String} if
+	 * none should be displayed. The "base" name is the name of this
+	 * {@link DLNAResource} without any prefix or suffix.
+	 *
+	 * @return The base display name or {@code ""}.
 	 */
 	protected String getDisplayNameBase() {
 		// this unescape trick is to solve the problem of a name containing
@@ -1611,13 +1615,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the DisplayName that is shown to the Renderer.
-	 * Extra info might be appended depending on the settings, like item duration.
-	 * This is based on {@link #getName()}.
+	 * Returns the suffix part of the display name or an empty {@link String} if
+	 * none should be displayed.
 	 *
-	 * @param mediaRenderer Media Renderer for which to show information.
-	 * @param withSuffix Whether to include additional media info
-	 * @return String representing the item.
+	 * @param renderer the {@link RendererConfiguration} to use.
+	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @return The display name suffix or {@code ""}.
 	 */
 	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
 		if (media == null) {
@@ -2055,7 +2058,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								)
 							)
 						) {
-							/**
+							/*
 							 * Media renderer needs ORG_PN to be accurate.
 							 * If the value does not match the media, it won't play the media.
 							 * Often we can lazily predict the correct value to send, but due to
@@ -2272,7 +2275,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		endTag(sb);
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
 
-		/**
+		/*
 		 * Use the track title for audio files, otherwise use the filename.
 		 */
 		String title;

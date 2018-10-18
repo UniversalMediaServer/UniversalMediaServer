@@ -95,7 +95,7 @@ public class RootFolder extends DLNAResource {
 		return true;
 	}
 
-	public void discoverChildren(boolean isAddGlobally) {
+	public void discoverChildren() {
 		if (isDiscovered()) {
 			return;
 		}
@@ -143,7 +143,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getConfiguredFolders()) {
-			addChild(r, true, isAddGlobally);
+			addChild(r, true);
 		}
 
 		/**
@@ -170,7 +170,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getVirtualFolders()) {
-			addChild(r, true, isAddGlobally);
+			addChild(r, true);
 		}
 
 		loadWebConf();
@@ -197,11 +197,11 @@ public class RootFolder extends DLNAResource {
 					}
 				}
 		}
-
+			
 		if (configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
+				addChild(libraryRes, true);
 			}
 		}
 
