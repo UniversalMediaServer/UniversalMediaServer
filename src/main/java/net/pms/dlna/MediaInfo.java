@@ -82,7 +82,6 @@ public class MediaInfo {
 			}
 		});
 
-
 		@SuppressWarnings("cast")
 		MediaInfoDLL_Internal INSTANCE = (MediaInfoDLL_Internal) Native.loadLibrary(
 			libraryName,
@@ -112,104 +111,164 @@ public class MediaInfo {
 		// Options
 		WString Option(Pointer Handle, WString option, WString value);
 	}
+
 	private Pointer Handle;
 
-	@Deprecated
-	public enum StreamKind {
-		General,
-		Video,
-		Audio,
-		Text,
-		Chapters,
-		Image,
-		Menu;
-	}
-
+	/**
+	 * An enum representing the C++ enum {@code stream_t} defined in
+	 * {@code MediaInfoDLL.h}, "Kinds of Stream".
+	 *
+	 * @author Nadahar
+	 */
 	public enum StreamType {
-		General,
-		Video,
-		Audio,
-		Text,
-		Chapters,
-		Image,
-		Menu,
-		Other;
+
+		/** StreamKind = General */
+		General(0),
+
+		/** StreamKind = Video */
+		Video(1),
+
+		/** StreamKind = Audio */
+		Audio(2),
+
+		/** StreamKind = Text */
+		Text(3),
+
+		/** StreamKind = Other */
+		Other(4),
+
+		/** StreamKind = Image */
+		Image(5),
+
+		/** StreamKind = Menu */
+		Menu(6);
+
+		private final int value;
+
+		private StreamType(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
 	}
 
-	// Enums
-	@Deprecated
-	public enum InfoKind {
-		/**
-		 * Unique name of parameter.
-		 */
-		Name,
-		/**
-		 * Value of parameter.
-		 */
-		Text,
-		/**
-		 * Unique name of measure unit of parameter.
-		 */
-		Measure,
-		Options,
-		/**
-		 * Translated name of parameter.
-		 */
-		Name_Text,
-		/**
-		 * Translated name of measure unit.
-		 */
-		Measure_Text,
-		/**
-		 * More information about the parameter.
-		 */
-		Info,
-		/**
-		 * How this parameter is supported, could be N (No), B (Beta), R (Read only), W
-		 * (Read/Write).
-		 */
-		HowTo,
-		/**
-		 * Domain of this piece of information.
-		 */
-		Domain;
-	}
-
+	/**
+	 * An enum representing the C++ enum {@code info_t} defined in
+	 * {@code MediaInfoDLL.h}, "Kind of information".
+	 *
+	 * @author Nadahar
+	 */
 	public enum InfoType {
+
+		/** InfoKind = Unique name of parameter */
+		Name(0),
+
+		/** InfoKind = Value of parameter */
+		Text(1),
+
+		/** InfoKind = Unique name of measure unit of parameter */
+		Measure(2),
+
+		/** InfoKind = See {@link InfoOptionsType} */
+		Options(3),
+
+		/** InfoKind = Translated name of parameter */
+		Name_Text(4),
+
+		/** InfoKind = Translated name of measure unit */
+		Measure_Text(5),
+
+		/** InfoKind = More information about the parameter */
+		Info(6),
+
+		/** InfoKind = Information : how data is found */
+		HowTo(7);
+
+		private final int value;
+
+		private InfoType(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
+	}
+
+	/**
+	 * An enum representing the C++ enum {@code infooptions_t} defined in
+	 * {@code MediaInfoDLL.h}, "Option if InfoKind = Info_Options".
+	 * <p>
+	 * Get(...)[infooptions_t] return a string like "YNYN...". Use this
+	 * {@code enum} to know at what correspond the {@code Y} (Yes) or {@code N}
+	 * (No).
+	 * <p>
+	 * If {@code Get(...)[0]==Y, then : }
+	 *
+	 * @author Nadahar
+	 */
+	public enum InfoOptionsType {
+
+		/** Show this parameter in {@link MediaInfo#Inform()} */
+		ShowInInform(0),
+
+		/** Reserved for future use */
+		Reserved(1),
+
 		/**
-		 * Unique name of parameter.
+		 * Internal use only (info : Must be showed in
+		 * {@code Info_Capacities()})
 		 */
-		Name,
+		ShowInSupported(2),
+
 		/**
-		 * Value of parameter.
+		 * Value return by a standard {@link MediaInfo#get}() can be : {@code T}
+		 * (Text), {@code I} (Integer, warning up to 64 bits), {@code F}
+		 * (Float), {@code D} (Date), {@code B} (Binary datas coded Base64)
+		 * (Numbers are in Base 10)
 		 */
-		Text,
-		/**
-		 * Unique name of measure unit of parameter.
-		 */
-		Measure,
-		Options,
-		/**
-		 * Translated name of parameter.
-		 */
-		Name_Text,
-		/**
-		 * Translated name of measure unit.
-		 */
-		Measure_Text,
-		/**
-		 * More information about the parameter.
-		 */
-		Info,
-		/**
-		 * How this parameter is supported, could be N (No), B (Beta), R (Read only), W
-		 * (Read/Write).
-		 */
-		HowTo,
-		/**
-		 * Domain of this piece of information.
-		 */
-		Domain;
+		TypeOfValue(3);
+
+		private final int value;
+
+		private InfoOptionsType(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
+	}
+
+
+	/**
+	 * An enum representing the C++ enum {@code fileoptions_t} defined in
+	 * {@code MediaInfoDLL.h}, "File opening options".
+	 *
+	 * @author Nadahar
+	 */
+	public enum FileOptionsType {
+
+		/** No options */
+		Nothing(0x00),
+
+		/** Do not browse folders recursively */
+		NoRecursive(0x01),
+
+		/** Close all files before open */
+		CloseAll(0x02);
+
+		private final int value;
+
+		private FileOptionsType(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
 	}
 
 	// Constructor/Destructor
@@ -329,11 +388,11 @@ public class MediaInfo {
 	public String Get(StreamType streamType, int streamNumber, String parameter, InfoType infoType, InfoType searchType) {
 		return MediaInfoDLL_Internal.INSTANCE.Get(
 			Handle,
-			streamType.ordinal(),
+			streamType.getValue(),
 			streamNumber,
 			new WString(parameter),
-			infoType.ordinal(),
-			searchType.ordinal()).toString();
+			infoType.getValue(),
+			searchType.getValue()).toString();
 	}
 
 	/**
@@ -363,10 +422,10 @@ public class MediaInfo {
 	public String Get(StreamType streamType, int streamNumber, int parameterIndex, InfoType infoType) {
 		return MediaInfoDLL_Internal.INSTANCE.GetI(
 			Handle,
-			streamType.ordinal(),
+			streamType.getValue(),
 			streamNumber,
 			parameterIndex,
-			infoType.ordinal()).toString();
+			infoType.getValue()).toString();
 	}
 
 	/**
@@ -377,7 +436,7 @@ public class MediaInfo {
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int Count_Get(StreamType streamType) {
-		return MediaInfoDLL_Internal.INSTANCE.Count_Get(Handle, streamType.ordinal(), -1);
+		return MediaInfoDLL_Internal.INSTANCE.Count_Get(Handle, streamType.getValue(), -1);
 	}
 
 	/**
@@ -389,7 +448,7 @@ public class MediaInfo {
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int Count_Get(StreamType streamType, int streamNumber) {
-		return MediaInfoDLL_Internal.INSTANCE.Count_Get(Handle, streamType.ordinal(), streamNumber);
+		return MediaInfoDLL_Internal.INSTANCE.Count_Get(Handle, streamType.getValue(), streamNumber);
 	}
 
 	// Options

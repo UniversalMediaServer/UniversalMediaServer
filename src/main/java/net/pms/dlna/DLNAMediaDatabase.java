@@ -66,7 +66,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * The database version should be incremented when we change anything to
-	 * do with the database since the last merged version.
+	 * do with the database since the last released version.
 	 */
 	private final int latestVersion = 16;
 
@@ -104,9 +104,15 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(configuration.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + File.separator + dbName + (configuration.getLoggingDatabase() ? ";TRACE_LEVEL_FILE=4" : "");
-		LOGGER.debug("Using database URL: " + url);
-		LOGGER.info("Using database located at: " + dbDir);
+		boolean logDB = configuration.getDatabaseLogging();
+		url = Constants.START_URL + dbDir + File.separator + dbName + (logDB ? ";TRACE_LEVEL_FILE=4" : "");
+		LOGGER.debug("Using database URL: {}", url);
+		LOGGER.info("Using database located at: \"{}\"", dbDir);
+		if (logDB) {
+			LOGGER.info("Database logging is enabled");
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Database logging is disabled");
+		}
 
 		try {
 			Class.forName("org.h2.Driver");
