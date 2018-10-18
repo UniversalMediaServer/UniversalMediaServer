@@ -5,7 +5,6 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.external.ExternalListener;
 import net.pms.util.UMSUtils;
 import net.pms.util.UMSUtils.IOList;
 import org.apache.commons.lang.StringUtils;
@@ -38,33 +37,33 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		return list.getFile();
 	}
 
-	public void add(DLNAResource res) {
+	public void add(DLNAResource resource) {
 		DLNAResource res1;
-		LOGGER.debug("Adding \"{}\" to playlist \"{}\"", res.getName(), getName());
-		if (res instanceof VirtualVideoAction) {
+		LOGGER.debug("Adding \"{}\" to playlist \"{}\"", resource.getDisplayName(), getName());
+		if (resource instanceof VirtualVideoAction) {
 			// don't add these
 			return;
 		}
-		if (res.getParent() == this) {
-			res1 = res; // best guess
+		if (resource.getParent() == this) {
+			res1 = resource; // best guess
 			for (DLNAResource r : list) {
-				if (r.getName().equals(res.getName())
-					&& r.getSystemName().equals(res.getSystemName())) {
+				if (r.getName().equals(resource.getName())
+					&& r.getSystemName().equals(resource.getSystemName())) {
 					res1 = r;
 					break;
 				}
 			}
 		} else {
-			String data = res.write();
-			if (!StringUtils.isEmpty(data) && res.getMasterParent() != null) {
-				res1 = IOList.resolveCreateMethod(res.getMasterParent(), data);
-				res1.setMasterParent(res.getMasterParent());
-				res1.setMediaAudio(res.getMediaAudio());
-				res1.setMediaSubtitle(res.getMediaSubtitle());
-				res1.setResume(res.getResume());
+			String data = resource.write();
+			if (!StringUtils.isEmpty(data) && resource.getMasterParent() != null) {
+				res1 = IOList.resolveCreateMethod(resource.getMasterParent(), data);
+				res1.setMasterParent(resource.getMasterParent());
+				res1.setMediaAudio(resource.getMediaAudio());
+				res1.setMediaSubtitle(resource.getMediaSubtitle());
+				res1.setResume(resource.getResume());
 			} else {
-				res1 = res.clone();
-				res1.setResume(res.getResume());
+				res1 = resource.clone();
+				res1.setResume(resource.getResume());
 			}
 		}
 		list.remove(res1);
@@ -115,17 +114,12 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 			});
 		}
 		for (DLNAResource r : list) {
-			// addchild might clear the masterparent
-			// so fetch it first and readd
-			ExternalListener master = r.getMasterParent();
 			addChild(r);
-			r.setMasterParent(master);
 			if (r.isResume()) {
 				// add this non resume after
 				DLNAResource clone = r.clone();
 				clone.setResume(null);
 				addChild(clone);
-				clone.setMasterParent(master);
 			}
 		}
 	}

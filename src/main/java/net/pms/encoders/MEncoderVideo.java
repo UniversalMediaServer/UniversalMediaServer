@@ -2461,13 +2461,6 @@ public class MEncoderVideo extends Player {
 
 			String[] cmdArray = new String[cmdList.size()];
 			cmdList.toArray(cmdArray);
-			cmdArray = finalizeTranscoderArgs(
-				filename,
-				dlna,
-				media,
-				params,
-				cmdArray
-			);
 
 			pw = new ProcessWrapperImpl(cmdArray, params);
 

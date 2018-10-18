@@ -632,14 +632,6 @@ public class TsMuxeRVideo extends Player {
 			tsPipe.getInputPipe()
 		};
 
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
-
 		ProcessWrapperImpl p = new ProcessWrapperImpl(cmdArray, params);
 		params.maxBufferSize = 100;
 		params.input_pipes[0] = tsPipe;

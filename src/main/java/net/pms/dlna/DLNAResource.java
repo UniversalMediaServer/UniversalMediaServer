@@ -42,10 +42,6 @@ import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.*;
-import net.pms.external.AdditionalResourceFolderListener;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
-import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.image.BufferedImageFilterChain;
@@ -66,6 +62,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.external.ExternalListener;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory service.
@@ -523,7 +520,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		this.children = new DLNAList();
 		this.updateId = 1;
 		resHash = 0;
-		masterParent = null;
 	}
 
 	public DLNAResource(int specificType) {
@@ -601,15 +597,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		child.parent = this;
-		child.masterParent = masterParent;
 
 		if (parent != null) {
 			defaultRenderer = parent.getDefaultRenderer();
-		}
-
-		if (PMS.filter(defaultRenderer, child)) {
-			LOGGER.debug("Resource \"{}\" is filtered out for render {}", child.getName(), defaultRenderer.getRendererName());
-			return;
 		}
 
 		if (configuration.useCode() && !PMS.get().masterCodeValid()) {
@@ -750,16 +740,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								defaultRenderer != null &&
 								!defaultRenderer.isNoDynPlsFolder()) {
 								addDynamicPls(child);
-							}
-
-							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-								if (listener instanceof AdditionalResourceFolderListener) {
-									try {
-										((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
-									} catch (Throwable t) {
-										LOGGER.error("Failed to add additional folder for listener of type: \"{}\"", listener.getClass(), t);
-									}
-								}
 							}
 						} else if (!child.format.isCompatible(child.media, defaultRenderer) && !child.isFolder()) {
 							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
@@ -1189,12 +1169,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		if (PMS.filter(renderer, dlna)) {
-			// apply filter to make sure we're not bypassing it...
-			LOGGER.debug("Resource " + dlna.getName() + " is filtered out for render " + renderer.getRendererName());
-			return null;
-		}
-
 		return dlna;
 	}
 
@@ -1604,11 +1578,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the "engine"/player part of the display name or {@code null} if
-	 * none should be displayed.
+	 * Returns the display name for the default renderer.
 	 *
-	 * @param configuration the {@link PmsConfiguration} to use.
-	 * @return The engine display name or {@code null}.
+	 * @return The display name.
+	 * @see #getDisplayName(RendererConfiguration, boolean)
 	 */
 	protected String getDisplayNameEngine(PmsConfiguration configuration) {
 		String engineName = null;
@@ -1626,11 +1599,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the "base" part of the display name or an empty {@link String} if
-	 * none should be displayed. The "base" name is the name of this
-	 * {@link DLNAResource} without any prefix or suffix.
-	 *
-	 * @return The base display name or {@code ""}.
+	 * @param mediaRenderer Media Renderer for which to show information.
+	 * @return String representing the item.
+	 * @see #getDisplayName(RendererConfiguration, boolean)
 	 */
 	protected String getDisplayNameBase() {
 		// this unescape trick is to solve the problem of a name containing
@@ -1640,12 +1611,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the suffix part of the display name or an empty {@link String} if
-	 * none should be displayed.
+	 * Returns the DisplayName that is shown to the Renderer.
+	 * Extra info might be appended depending on the settings, like item duration.
+	 * This is based on {@link #getName()}.
 	 *
-	 * @param renderer the {@link RendererConfiguration} to use.
-	 * @param configuration the {@link PmsConfiguration} to use.
-	 * @return The display name suffix or {@code ""}.
+	 * @param mediaRenderer Media Renderer for which to show information.
+	 * @param withSuffix Whether to include additional media info
+	 * @return String representing the item.
 	 */
 	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
 		if (media == null) {
@@ -2030,7 +2002,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param localizationValue
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
-	@SuppressWarnings("deprecation")
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
 		// Use device-specific pms conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
@@ -2084,7 +2055,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								)
 							)
 						) {
-							/*
+							/**
 							 * Media renderer needs ORG_PN to be accurate.
 							 * If the value does not match the media, it won't play the media.
 							 * Often we can lazily predict the correct value to send, but due to
@@ -2301,7 +2272,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		endTag(sb);
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
 
-		/*
+		/**
 		 * Use the track title for audio files, otherwise use the filename.
 		 */
 		String title;
@@ -2401,6 +2372,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (firstAudioTrack.getSampleFrequency() != null) {
 							addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
 						}
+					}
+					if (media.getVideoBitDepth() > 0) {
+						addAttribute(sb, "colorDepth", media.getVideoBitDepth());
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (media != null && media.isMediaparsed()) {
@@ -2980,23 +2954,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						startTime = System.currentTimeMillis();
-						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-							if (listener instanceof StartStopListener) {
-								// run these asynchronously for slow handlers (e.g. logging, scrobbling)
-								Runnable fireStartStopEvent = new Runnable() {
-									@Override
-									public void run() {
-										try {
-											((StartStopListener) listener).nowPlaying(media, self);
-										} catch (Throwable t) {
-											LOGGER.error("Notification of startPlaying event failed for StartStopListener {}", listener.getClass(), t);
-										}
-									}
-								};
-
-								new Thread(fireStartStopEvent, "StartPlaying Event for " + listener.name()).start();
-							}
-						}
 					}
 				};
 
@@ -3070,23 +3027,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 
 								internalStop();
-								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-									if (listener instanceof StartStopListener) {
-										// run these asynchronously for slow handlers (e.g. logging, scrobbling)
-										Runnable fireStartStopEvent = new Runnable() {
-											@Override
-											public void run() {
-												try {
-													((StartStopListener) listener).donePlaying(media, self);
-												} catch (Throwable t) {
-													LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
-												}
-											}
-										};
-
-										new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
-									}
-								}
 							}
 						}
 					};
@@ -3249,10 +3189,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			params.stdin = (IPushOutput) this;
 		}
 
-		if (resume != null) {
-			if (range.isTimeRange()) {
-				resume.update((Range.Time) range, this);
-			}
+			if (resume != null) {
+				if (range.isTimeRange()) {
+					resume.update((Range.Time) range, this);
+				}
 
 			params.timeseek = resume.getTimeOffset() / 1000d;
 			if (player == null) {
@@ -3260,95 +3200,95 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (System.currentTimeMillis() - lastStartSystemTime < 500) {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				LOGGER.error(null, e);
-			}
-		}
-
-		// (Re)start transcoding process if necessary
-		if (externalProcess == null || externalProcess.isDestroyed()) {
-			// First playback attempt => start new transcoding process
-			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
-			lastStartSystemTime = System.currentTimeMillis();
-			externalProcess = player.launchTranscode(this, media, params);
-			if (params.waitbeforestart > 0) {
-				LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
+			if (System.currentTimeMillis() - lastStartSystemTime < 500) {
 				try {
-					Thread.sleep(params.waitbeforestart);
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
+				}
+			}
+
+			// (Re)start transcoding process if necessary
+			if (externalProcess == null || externalProcess.isDestroyed()) {
+				// First playback attempt => start new transcoding process
+				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
+				lastStartSystemTime = System.currentTimeMillis();
+				externalProcess = player.launchTranscode(this, media, params);
+				if (params.waitbeforestart > 0) {
+					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
+					try {
+						Thread.sleep(params.waitbeforestart);
+					} catch (InterruptedException e) {
+						LOGGER.error(null, e);
+					}
+
+					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
+				}
+			} else if (
+				params.timeseek > 0 &&
+				media != null &&
+				media.isMediaparsed() &&
+				media.getDurationInSeconds() > 0
+			) {
+				// Time seek request => stop running transcode process and start a new one
+				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
+				params.minBufferSize = 1;
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						externalProcess.stopProcess();
+					}
+				};
+
+				new Thread(r, "External Process Stopper").start();
+				lastStartSystemTime = System.currentTimeMillis();
+				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
+				try {
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					LOGGER.error(null, e);
 				}
 
-				LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
-			}
-		} else if (
-			params.timeseek > 0 &&
-			media != null &&
-			media.isMediaparsed() &&
-			media.getDurationInSeconds() > 0
-		) {
-			// Time seek request => stop running transcode process and start a new one
-			LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
-			params.minBufferSize = 1;
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					externalProcess.stopProcess();
+				if (newExternalProcess == null) {
+					LOGGER.trace("External process instance is null... sounds not good");
 				}
-			};
 
-			new Thread(r, "External Process Stopper").start();
-			lastStartSystemTime = System.currentTimeMillis();
-			ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				LOGGER.error(null, e);
+				externalProcess = newExternalProcess;
 			}
 
-			if (newExternalProcess == null) {
-				LOGGER.trace("External process instance is null... sounds not good");
+			if (externalProcess == null) {
+				return null;
 			}
 
-			externalProcess = newExternalProcess;
-		}
-
-		if (externalProcess == null) {
-			return null;
-		}
-
-		InputStream is = null;
-		int timer = 0;
-		while (is == null && timer < 10) {
-			is = externalProcess.getInputStream(low);
-			timer++;
-			if (is == null) {
-				LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
+			InputStream is = null;
+			int timer = 0;
+			while (is == null && timer < 10) {
+				is = externalProcess.getInputStream(low);
+				timer++;
+				if (is == null) {
+					LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+					}
 				}
 			}
-		}
 
-		// fail fast: don't leave a process running indefinitely if it's
-		// not producing output after params.waitbeforestart milliseconds + 5 seconds
-		// this cleans up lingering MEncoder web video transcode processes that hang
-		// instead of exiting
-		if (is == null && !externalProcess.isDestroyed()) {
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					LOGGER.error("External input stream instance is null... stopping process");
-					externalProcess.stopProcess();
-				}
-			};
+			// fail fast: don't leave a process running indefinitely if it's
+			// not producing output after params.waitbeforestart milliseconds + 5 seconds
+			// this cleans up lingering MEncoder web video transcode processes that hang
+			// instead of exiting
+			if (is == null && !externalProcess.isDestroyed()) {
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						LOGGER.error("External input stream instance is null... stopping process");
+						externalProcess.stopProcess();
+					}
+				};
 
-			new Thread(r, "Hanging External Process Stopper").start();
-		}
+				new Thread(r, "Hanging External Process Stopper").start();
+			}
 
 		return is;
 	}
@@ -3888,23 +3828,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Determines whether this resource has external subtitles.
-	 *
-	 * @return {@code true} if this resource has external subtitles,
-	 *         {@code false} otherwise.
+	 * @Deprecated use {@link #hasExternalSubtitles()} instead
 	 */
 	public boolean hasExternalSubtitles() {
 		return hasExternalSubtitles(false);
 	}
 
 	/**
-	 * Determines whether this resource has external subtitles.
-	 *
-	 * @param forceRefresh if {@code true} forces a new scan for external
-	 *            subtitles instead of relying on cached information (if it
-	 *            exists).
-	 * @return {@code true} if this resource has external subtitles,
-	 *         {@code false} otherwise.
+	 * @Deprecated use {@link #hasExternalSubtitles()} instead
 	 */
 	public boolean hasExternalSubtitles(boolean forceRefresh) {
 		if (media == null || !media.isVideo()) {
@@ -3917,23 +3848,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Determines whether this resource has subtitles.
+	 * Whether this resource has external subtitles.
 	 *
-	 * @return {@code true} if this resource has subtitles, {@code false}
-	 *         otherwise.
+	 * @return whether this resource has external subtitles
 	 */
 	public boolean hasSubtitles() {
 		return hasSubtitles(false);
 	}
 
 	/**
-	 * Determines whether this resource has subtitles.
-	 *
-	 * @param forceRefresh if {@code true} forces a new scan for external
-	 *            subtitles instead of relying on cached information (if it
-	 *            exists).
-	 * @return {@code true} if this resource has subtitles, {@code false}
-	 *         otherwise.
+	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
 	 */
 	public boolean hasSubtitles(boolean forceRefresh) {
 		if (media == null || !media.isVideo()) {
@@ -3946,10 +3870,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Determines whether this resource has internal/embedded subtitles.
-	 *
-	 * @return {@code true} if this resource has internal/embedded subtitles,
-	 *         {@code false} otherwise.
+	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
 	 */
 	public boolean hasEmbeddedSubtitles() {
 		if (media == null || !media.isVideo()) {
@@ -3986,9 +3907,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * sets the cached subtitles information for this resource after
 	 * registration.
 	 *
-	 * @param forceRefresh if {@code true} forces a new scan for external
-	 *            subtitles instead of relying on cached information (if it
-	 *            exists).
+	 * @param value whether this resource has external subtitles
 	 */
 	public void registerExternalSubtitles(boolean forceRefresh) {
 		if (media == null || !media.isVideo()) {

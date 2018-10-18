@@ -24,7 +24,6 @@ import net.pms.formats.*;
 import net.pms.formats.audio.AIFF;
 import net.pms.formats.audio.FLAC;
 import net.pms.formats.audio.MP3;
-import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.audio.WMA;
 import net.pms.formats.image.GIF;

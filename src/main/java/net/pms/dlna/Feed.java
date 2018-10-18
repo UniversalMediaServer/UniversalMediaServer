@@ -144,7 +144,6 @@ public class Feed extends DLNAResource {
 		setLastModified(System.currentTimeMillis());
 	}
 
-	@SuppressWarnings("unchecked")
 	private void parseElement(Element elt, boolean parseLink) {
 		if ("content".equals(elt.getName()) && "media".equals(elt.getNamespacePrefix())) {
 			if (parseLink) {

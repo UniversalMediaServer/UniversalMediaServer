@@ -23,7 +23,6 @@ import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Frame;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -223,7 +222,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
-	protected static final String KEY_LOGGING_DATABASE = "logging_database";
+	protected static final String KEY_LOG_DATABASE = "log_database";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -293,7 +292,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
 	protected static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
-	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -375,8 +373,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
-	protected static final String KEY_WINDOW_EXTENDED_STATE = "window_extended_state";
-	protected static final String KEY_WINDOW_GEOMETRY = "window_geometry";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// Deprecated settings
@@ -2694,12 +2690,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		LOGGER.info("Configuration saved to: " + PROFILE_PATH);
 	}
 
-	public String getFolders(ArrayList<String> tags) {
-		return tagLoop(tags, ".folders", KEY_FOLDERS);
+	public String getFolders() {
+		return getString(KEY_FOLDERS, "");
 	}
 
-	public String getFoldersIgnored(ArrayList<String> tags) {
-		return tagLoop(tags, ".ignore", KEY_FOLDERS_IGNORED);
+	public String getFoldersIgnored() {
+		return getString(KEY_FOLDERS_IGNORED, null);
 	}
 
 	public void setFolders(String value) {
@@ -3445,12 +3441,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
 	}
 
-	public String getVirtualFolders(ArrayList<String> tags) {
-		return tagLoop(tags, ".vfolders", KEY_VIRTUAL_FOLDERS);
+	public String getVirtualFolders() {
+		return getString(KEY_VIRTUAL_FOLDERS, "");
 	}
 
-	public String getVirtualFoldersFile(ArrayList<String> tags) {
-		return tagLoop(tags, ".vfolders.file", KEY_VIRTUAL_FOLDERS_FILE);
+	public String getVirtualFoldersFile() {
+		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
 	}
 
 	public String getProfilePath() {
@@ -3867,8 +3863,17 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
 	}
 
-	public boolean getLoggingDatabase() {
-		return getBoolean(KEY_LOGGING_DATABASE, false) || PMS.getTraceMode() == 2;
+	/**
+	 * Returns whether database logging is enabled. The returned value is
+	 * {@code true} if either the value is {@code true} or a command line
+	 * argument has forced it to {@code true}.
+	 *
+	 * @return {@code true} if database logging is enabled, {@code false}
+	 *         otherwise.
+	 */
+	public boolean getDatabaseLogging() {
+		boolean dbLog = getBoolean(KEY_LOG_DATABASE, false);
+		return dbLog || PMS.getLogDB();
 	}
 
 	public boolean isVlcUseHardwareAccel() {
@@ -3975,41 +3980,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
 	}
 
-	public String getPlugins(ArrayList<String> tags) {
-		return tagLoop(tags, ".plugins", "dummy");
-	}
-
-	public boolean isHideWebFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".web", "dummy", false);
-	}
-
-	private String tagLoop(ArrayList<String> tags, String suff, String fallback) {
-		if (tags == null || tags.isEmpty()) {
-			// no tags use fallback
-			return getString(fallback, "");
-		}
-
-		for (String tag : tags) {
-			String x = (tag.toLowerCase() + suff).replaceAll(" ", "_");
-			String res = getString(x, "");
-			if (StringUtils.isNotBlank(res)) {
-				// use first tag found
-				return res;
-			}
-		}
-
-		// down here no matching tag was found
-		// return fallback
-		return getString(fallback, "");
-	}
-
-	private boolean tagLoopBool(ArrayList<String> tags, String suff, String fallback, boolean def) {
-		String b = tagLoop(tags, suff, fallback);
-		if (StringUtils.isBlank(b)) {
-			return def;
-		}
-
-		return b.trim().equalsIgnoreCase("true");
+	public boolean hideSubsInfo() {
+		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 
 	/**
@@ -4340,30 +4312,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setRootLogLevel(ch.qos.logback.classic.Level level) {
 		configuration.setProperty(KEY_ROOT_LOG_LEVEL, level.toString());
-	}
-
-	public void setWindowGeometry(String value) {
-		configuration.setProperty(KEY_WINDOW_GEOMETRY, value);
-	}
-
-	public String getWindowGeometry() {
-		return getString(KEY_WINDOW_GEOMETRY, "x=-1,y=-1,width=1000,height=750");
-	}
-
-	public void setScreenSize(String value) {
-		configuration.setProperty(KEY_SCREEN_SIZE, value);
-	}
-
-	public String getScreenSize() {
-		return getString(KEY_SCREEN_SIZE, "-1x-1");
-	}
-
-	public void setWindowExtendedState(int value) {
-		configuration.setProperty(KEY_WINDOW_EXTENDED_STATE, value);
-	}
-
-	public int getWindowExtendedState() {
-		return getInt(KEY_WINDOW_EXTENDED_STATE, Frame.NORMAL);
 	}
 
 	public boolean isShowSplashScreen() {

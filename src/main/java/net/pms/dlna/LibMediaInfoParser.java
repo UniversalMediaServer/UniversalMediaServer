@@ -264,7 +264,7 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder/FFmpeg does not
+					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 					value = MI.Get(audio, i, "ID/String");
 					if (!value.isEmpty()) {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
@@ -291,14 +291,12 @@ public class LibMediaInfoParser {
 							LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
 						}
 					}
-					
+
 					addAudio(currentAudioTrack, media);
 					if (parseLogger != null) {
 						parseLogger.logAudioTrackColumns(i);
 					}
 				}
-
-
 			}
 
 			// set Image
@@ -392,63 +390,88 @@ public class LibMediaInfoParser {
 				media.setContainer(media.getAudioVariantFormatConfigurationString());
 			}
 
-			/*
-			 * Recognize 3D layout from the filename.
-			 *
-			 * First we check for our custom naming convention, for which the filename
-			 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
-			 * or "3DOULF" or "3DOURF" for over-under layout.
-			 * For anaglyph 3D video can be used following combination:
-			 * 		3DARCG 	anaglyph_red_cyan_gray
-			 *		3DARCH 	anaglyph_red_cyan_half_color
-			 *		3DARCC 	anaglyph_red_cyan_color
-			 *		3DARCD 	anaglyph_red_cyan_dubois
-			 *		3DAGMG 	anaglyph_green_magenta_gray
-			 *		3DAGMH 	anaglyph_green_magenta_half_color
-			 *		3DAGMC 	anaglyph_green_magenta_color
-			 *		3DAGMD 	anaglyph_green_magenta_dubois
-			 *		3DAYBG 	anaglyph_yellow_blue_gray
-			 *		3DAYBH 	anaglyph_yellow_blue_half_color
-			 *		3DAYBC 	anaglyph_yellow_blue_color
-			 *		3DAYBD 	anaglyph_yellow_blue_dubois
-			 *
-			 * Next we check for common naming conventions.
-			 */
-			if (!media.is3d()) {
-				String upperCaseFileName = file.getName().toUpperCase();
-				if (upperCaseFileName.startsWith("3DSBS")) {
-					LOGGER.debug("3D format SBS detected for " + file.getName());
-					media.setStereoscopy(file.getName().substring(2, 7));
-				} else if (upperCaseFileName.startsWith("3DOU")) {
-					LOGGER.debug("3D format OU detected for " + file.getName());
-					media.setStereoscopy(file.getName().substring(2, 6));
-				} else if (upperCaseFileName.startsWith("3DA")) {
-					LOGGER.debug("3D format Anaglyph detected for " + file.getName());
-					media.setStereoscopy(file.getName().substring(2, 6));
-				} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
-					LOGGER.debug("3D format HSBS detected for " + file.getName());
-					media.setStereoscopy("half side by side (left eye first)");
-				} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
-					LOGGER.debug("3D format HOU detected for " + file.getName());
-					media.setStereoscopy("half top-bottom (left eye first)");
-				} else if (upperCaseFileName.matches(".*[\\s\\.]SBS[\\s\\.].*")) {
-					if (media.getWidth() > 1920) {
-						LOGGER.debug("3D format SBS detected for " + file.getName());
-						media.setStereoscopy("side by side (left eye first)");
+				// Separate ASF from WMV
+				if (FormatConfiguration.WMV.equals(media.getContainer())) {
+					if (
+						media.getCodecV() != null &&
+						!media.getCodecV().equals(FormatConfiguration.WMV) &&
+						!media.getCodecV().equals(FormatConfiguration.VC1)
+					) {
+						media.setContainer(FormatConfiguration.ASF);
 					} else {
-						LOGGER.debug("3D format HSBS detected based on width for " + file.getName());
-						media.setStereoscopy("half side by side (left eye first)");
-					}
-				} else if (upperCaseFileName.matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
-					if (media.getHeight() > 1080) {
-						LOGGER.debug("3D format OU detected for " + file.getName());
-						media.setStereoscopy("top-bottom (left eye first)");
-					} else {
-						LOGGER.debug("3D format HOU detected based on height for " + file.getName());
-						media.setStereoscopy("half top-bottom (left eye first)");
+						for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
+							if (
+								audioTrack.getCodecA() != null &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMA) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMAPRO) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMALOSSLESS) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMAVOICE) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMA10)
+							) {
+								media.setContainer(FormatConfiguration.ASF);
+								break;
+							}
+						}
 					}
 				}
-			}
+
+				/*
+				 * Recognize 3D layout from the filename.
+				 *
+				 * First we check for our custom naming convention, for which the filename
+				 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
+				 * or "3DOULF" or "3DOURF" for over-under layout.
+				 * For anaglyph 3D video can be used following combination:
+				 * 		3DARCG 	anaglyph_red_cyan_gray
+				 *		3DARCH 	anaglyph_red_cyan_half_color
+				 *		3DARCC 	anaglyph_red_cyan_color
+				 *		3DARCD 	anaglyph_red_cyan_dubois
+				 *		3DAGMG 	anaglyph_green_magenta_gray
+				 *		3DAGMH 	anaglyph_green_magenta_half_color
+				 *		3DAGMC 	anaglyph_green_magenta_color
+				 *		3DAGMD 	anaglyph_green_magenta_dubois
+				 *		3DAYBG 	anaglyph_yellow_blue_gray
+				 *		3DAYBH 	anaglyph_yellow_blue_half_color
+				 *		3DAYBC 	anaglyph_yellow_blue_color
+				 *		3DAYBD 	anaglyph_yellow_blue_dubois
+				 *
+				 * Next we check for common naming conventions.
+				 */
+				if (!media.is3d()) {
+					String upperCaseFileName = file.getName().toUpperCase();
+					if (upperCaseFileName.startsWith("3DSBS")) {
+						LOGGER.debug("3D format SBS detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 7));
+					} else if (upperCaseFileName.startsWith("3DOU")) {
+						LOGGER.debug("3D format OU detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 6));
+					} else if (upperCaseFileName.startsWith("3DA")) {
+						LOGGER.debug("3D format Anaglyph detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 6));
+					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
+						LOGGER.debug("3D format HSBS detected for " + file.getName());
+						media.setStereoscopy("half side by side (left eye first)");
+					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
+						LOGGER.debug("3D format HOU detected for " + file.getName());
+						media.setStereoscopy("half top-bottom (left eye first)");
+					} else if (upperCaseFileName.matches(".*[\\s\\.]SBS[\\s\\.].*")) {
+						if (media.getWidth() > 1920) {
+							LOGGER.debug("3D format SBS detected for " + file.getName());
+							media.setStereoscopy("side by side (left eye first)");
+						} else {
+							LOGGER.debug("3D format HSBS detected based on width for " + file.getName());
+							media.setStereoscopy("half side by side (left eye first)");
+						}
+					} else if (upperCaseFileName.matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
+						if (media.getHeight() > 1080) {
+							LOGGER.debug("3D format OU detected for " + file.getName());
+							media.setStereoscopy("top-bottom (left eye first)");
+						} else {
+							LOGGER.debug("3D format HOU detected based on height for " + file.getName());
+							media.setStereoscopy("half top-bottom (left eye first)");
+						}
+					}
+				}
 
 			media.postParse(type, inputFile);
 			if (parseLogger != null) {
@@ -558,6 +581,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MPEGPS;
 		} else if (value.contains("mpeg-ts") || value.equals("bdav")) {
 			format = FormatConfiguration.MPEGTS;
+		} else if (value.equals("caf")) {
+			format = FormatConfiguration.CAF;
 		} else if (value.contains("aiff")) {
 			format = FormatConfiguration.AIFF;
 		} else if (value.startsWith("atmos") || value.equals("131")) {
@@ -622,22 +647,36 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.YUV;
 		} else if (streamType == StreamType.Video && (value.equals("rgb") || value.equals("rgba"))) {
 			format = FormatConfiguration.RGB;
+		} else if (streamType == StreamType.Video && value.equals("rle")) {
+			format = FormatConfiguration.RLE;
+		} else if (value.equals("mac3")) {
+			format = FormatConfiguration.MACE3;
+		} else if (value.equals("mac6")) {
+			format = FormatConfiguration.MACE6;
+		} else if (streamType == StreamType.Video && value.startsWith("tga")) {
+			format = FormatConfiguration.TGA;
+		} else if (value.equals("ffv1")) {
+			format = FormatConfiguration.FFV1;
+		} else if (value.equals("celp")) {
+			format = FormatConfiguration.CELP;
+		} else if (value.equals("qcelp")) {
+			format = FormatConfiguration.QCELP;
 		} else if (value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)")) {
 			format = FormatConfiguration.DV;
 		} else if (value.contains("mpeg video")) {
 			format = FormatConfiguration.MPEG2;
-		} else if (
-			value.equals("vc-1") ||
-			value.equals("wvc1") ||
-			value.equals("wmv3") ||
-			value.equals("wmvp") ||
-			value.equals("wmva")
-		) {
-			format = FormatConfiguration.VC1;
 		} else if (value.startsWith("version 1")) {
 			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
 				format = FormatConfiguration.MPEG1;
 			}
+		} else if (
+				value.equals("vc-1") ||
+				value.equals("wvc1") ||
+				value.equals("wmv3") ||
+				value.equals("wmvp") ||
+				value.equals("wmva")
+			) {
+				format = FormatConfiguration.VC1;
 		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
 			format = FormatConfiguration.AU;
 		} else if (value.equals("layer 3")) {
@@ -690,7 +729,14 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TTA;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
-		} else if (value.equals("lc")) {
+		} else if (
+			value.equals("lc") ||
+			value.equals("00001000-0000-FF00-8000-00AA00389B71") ||
+			(
+				value.equals("aac") &&
+				FormatConfiguration.AVI.equals(media.getContainer())
+			)
+		) {
 			format = FormatConfiguration.AAC_LC;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.HE_AAC;
@@ -737,16 +783,19 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.DTS;
 		} else if (value.equals("mpeg audio")) {
 			format = FormatConfiguration.MPA;
-		} else if (value.startsWith("wma")) {
+		} else if (value.equals("wma")) {
 			format = FormatConfiguration.WMA;
 			if (media.getCodecV() == null) {
 				media.setContainer(format);
 			}
 		} else if (
-			streamType == StreamType.Audio && media.getCodecV() == null && audio != null && audio.getCodecA() != null &&
-			audio.getCodecA() == FormatConfiguration.WMA &&
-			(value.equals("160") || value.equals("161") || value.equals("162") || value.equals("163") || value.equalsIgnoreCase("A") || value.equals("wma10"))
-		) {
+			streamType == StreamType.Audio &&
+			media.getContainer() != null &&
+				(
+					media.getContainer().equals(FormatConfiguration.WMA) ||
+					media.getContainer().equals(FormatConfiguration.WMV)
+				)
+			) {
 			if (value.equals("160") || value.equals("161")) {
 				format = FormatConfiguration.WMA;
 			} else if (value.equals("162")) {
@@ -775,6 +824,8 @@ public class LibMediaInfoParser {
 			if (streamType == StreamType.Audio && !FormatConfiguration.ATRAC.equals(media.getContainer())) {
 				media.setContainer(FormatConfiguration.ATRAC);
 			}
+		} else if (value.equals("nellymoser")) {
+			format = FormatConfiguration.NELLYMOSER;
 		} else if (value.equals("jpeg")) {
 			format = FormatConfiguration.JPG;
 		} else if (value.equals("png")) {

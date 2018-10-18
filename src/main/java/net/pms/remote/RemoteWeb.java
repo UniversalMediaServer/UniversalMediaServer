@@ -184,7 +184,6 @@ public class RemoteWeb {
 	}
 
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
-		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root;
 		synchronized (roots) {
@@ -214,15 +213,7 @@ public class RemoteWeb {
 				return root;
 			}
 
-			ArrayList<String> tag = new ArrayList<>();
-			tag.add(user);
-			if (!groupTag.equals(user)) {
-				tag.add(groupTag);
-			}
-
-			tag.add(t.getRemoteAddress().getHostString());
-			tag.add("web");
-			root = new RootFolder(tag);
+			root = new RootFolder();
 			try {
 				WebRender render = new WebRender(user);
 				root.setDefaultRenderer(render);
@@ -435,8 +426,8 @@ public class RemoteWeb {
 					return;
 				}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("serverName", configuration.getServerDisplayName());
+				HashMap<String, Object> vars = new HashMap<>();
+				vars.put("serverName", configuration.getServerDisplayName());
 
 				try {
 					Template template = parent.getResources().getTemplate("start.html");
@@ -485,11 +476,11 @@ public class RemoteWeb {
 					return;
 				}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("logs", getLogs(true));
-			if (configuration.getUseCache()) {
-				vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
-			}
+				HashMap<String, Object> vars = new HashMap<>();
+				vars.put("logs", getLogs(true));
+				if (configuration.getUseCache()) {
+					vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
+				}
 
 				String response = parent.getResources().getTemplate("doc.html").execute(vars);
 				RemoteUtil.respond(t, response, 200, "text/html");

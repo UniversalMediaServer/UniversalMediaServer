@@ -18,7 +18,6 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,8 +35,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.external.ExternalFactory;
-import net.pms.external.URLResolver.URLResult;
 import net.pms.io.OutputParams;
 import net.pms.io.OutputTextLogger;
 import net.pms.io.PipeProcess;
@@ -248,27 +245,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
-		if (!dlna.isURLResolved()) {
-			URLResult r1 = ExternalFactory.resolveURL(filename);
-			if (r1 != null) {
-				if (r1.precoder != null) {
-					filename = "-";
-					if (Platform.isWindows()) {
-						cmdList.add("cmd.exe");
-						cmdList.add("/C");
-					}
-					cmdList.addAll(r1.precoder);
-					cmdList.add("|");
-				} else {
-					if (StringUtils.isNotEmpty(r1.url)) {
-						filename = r1.url;
-					}
-				}
-				if (r1.args != null && r1.args.size() > 0) {
-					customOptions.addAll(r1.args);
-				}
-			}
-		}
 
 		cmdList.add(executable());
 
@@ -380,15 +356,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// Convert the command list to an array
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-
-		// Hook to allow plugins to customize this command line
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
 
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);

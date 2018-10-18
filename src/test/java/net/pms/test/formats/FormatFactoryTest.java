@@ -156,6 +156,7 @@ public class FormatFactoryTest {
 		testSingleFormat("test.mpeg", "MPG", Format.VIDEO);
 		testSingleFormat("test.mpg", "MPG", Format.VIDEO);
 		testSingleFormat("test.mts", "MPG", Format.VIDEO);
+		testSingleFormat("test.s4ud", "MPG", Format.VIDEO);
 		testSingleFormat("test.tivo", "MPG", Format.VIDEO);
 		testSingleFormat("test.tmf", "MPG", Format.VIDEO);
 		testSingleFormat("test.tp", "MPG", Format.VIDEO);
@@ -163,6 +164,7 @@ public class FormatFactoryTest {
 		testSingleFormat("test.ty", "MPG", Format.VIDEO);
 		testSingleFormat("test.vdr", "MPG", Format.VIDEO);
 		testSingleFormat("test.vob", "MPG", Format.VIDEO);
+		testSingleFormat("test.vro", "MPG", Format.VIDEO);
 		testSingleFormat("test.wm", "MPG", Format.VIDEO);
 		testSingleFormat("test.wmv", "MPG", Format.VIDEO);
 		testSingleFormat("test.wtv", "MPG", Format.VIDEO);

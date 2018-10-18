@@ -32,6 +32,8 @@ import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -52,16 +54,17 @@ import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
-import net.pms.dlna.*;
+import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.GlobalIdRepo;
+import net.pms.dlna.Playlist;
+import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
-import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.*;
@@ -74,6 +77,7 @@ import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
@@ -98,6 +102,9 @@ public class PMS {
 	private static final String PROFILES = "profiles";
 	private static final String PROFILE = "^(?i)profile(?::|=)([^\"*<>?]+)$";
 	private static final String TRACE = "trace";
+	private static final String DBLOG = "dblog";
+	private static final String DBTRACE = "dbtrace";
+
 	public static final String NAME = "Universal Media Server";
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
@@ -131,8 +138,6 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
-
-	private NameFilter filter;
 
 	private JmDNS jmDNS;
 
@@ -297,24 +302,25 @@ public class PMS {
 
 	private void displayBanner() throws IOException {
 		LOGGER.debug("");
-		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
+		LOGGER.info("Starting {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
-		LOGGER.info("http://www.universalmediaserver.com");
+		LOGGER.info("https://www.universalmediaserver.com");
 		LOGGER.info("");
 
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
-		String commitTime = PropertiesUtil.getProjectProperties().get("git.commit.time");
-		String shortCommitId = commitId.substring(0, 9);
-
-		LOGGER.info("Build: " + shortCommitId + " (" + commitTime + ")");
+		LOGGER.info(
+			"Build: {} ({})",
+			commitId.substring(0, 9),
+			PropertiesUtil.getProjectProperties().get("git.commit.time")
+		);
 
 		// Log system properties
 		logSystemInfo();
 
 		String cwd = new File("").getAbsolutePath();
-		LOGGER.info("Working directory: " + cwd);
+		LOGGER.info("Working directory: {}", cwd);
 
-		LOGGER.info("Temporary directory: " + configuration.getTempFolder());
+		LOGGER.info("Temporary directory: {}", configuration.getTempFolder());
 
 		/**
 		 * Verify the java.io.tmpdir is writable; JNA requires it.
@@ -324,12 +330,12 @@ public class PMS {
 		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
 
 		if (!FileUtil.getFilePermissions(javaTmpdir).isWritable()) {
-			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
-			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
+			LOGGER.error("The Java temp directory \"{}\" is not writable by UMS", javaTmpdir.getAbsolutePath());
+			LOGGER.error("Please make sure the directory is writable for user \"{}\"", System.getProperty("user.name"));
 			throw new IOException("Cannot write to Java temp directory: " + javaTmpdir.getAbsolutePath());
 		}
 
-		LOGGER.info("Logging configuration file: " + LoggingConfig.getConfigFilePath());
+		LOGGER.info("Logging configuration file: {}", LoggingConfig.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
@@ -397,12 +403,6 @@ public class PMS {
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
 
-		try {
-			filter = new NameFilter();
-		} catch (ConfigurationException e) {
-			filter = null;
-		}
-
 		// Start this here to let the converison work
 		tfm.schedule();
 
@@ -440,9 +440,13 @@ public class PMS {
 		}
 
 		// Initialize splash screen
+		WindowPropertiesConfiguration windowConfiguration = null;
 		Splash splash = null;
 		if (!isHeadless()) {
-			splash = new Splash(configuration);
+			windowConfiguration = new WindowPropertiesConfiguration(
+				Paths.get(configuration.getProfileDirectory()).resolve("UMS.dat")
+			);
+			splash = new Splash(configuration, windowConfiguration.getGraphicsConfiguration());
 		}
 
 		// Call this as early as possible
@@ -506,7 +510,7 @@ public class PMS {
 		sleepManager = new SleepManager();
 
 		if (!isHeadless()) {
-			frame = new LooksFrame(autoUpdater, configuration);
+			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
@@ -657,40 +661,11 @@ public class PMS {
 
 		server = new HTTPServer(configuration.getServerPort());
 
-		/*
-		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
-		 * can register custom players correctly (e.g. in the GUI) and/or add/replace custom formats
-		 *
-		 * XXX: if a plugin requires initialization/notification even earlier than
-		 * this, then a new external listener implementing a new callback should be added
-		 * e.g. StartupListener.registeredExtensions()
-		 */
-		try {
-			ExternalFactory.lookup();
-		} catch (Exception e) {
-			LOGGER.error("Error loading plugins", e);
-		}
-
 		// Initialize a player factory to register all players
 		PlayerFactory.initialize();
 
-		// Instantiate listeners that require registered players.
-		ExternalFactory.instantiateLateListeners();
-
-		// a static block in Player doesn't work (i.e. is called too late).
-		// this must always be called *after* the plugins have loaded.
-		// here's as good a place as any
-		Player.initializeFinalizeTranscoderArgsListeners();
-
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
-
-		// To make the credentials stuff work cross plugins read credentials
-		// file AFTER plugins are started
-		if (!isHeadless()) {
-			// but only if we got a GUI of course
-			((LooksFrame)frame).getPt().init();
-		}
 
 		boolean binding = false;
 
@@ -745,10 +720,6 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
-					for (ExternalListener l : ExternalFactory.getExternalListeners()) {
-						l.shutdown();
-					}
-
 					UPNPHelper.shutDownListener();
 					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
@@ -830,7 +801,7 @@ public class PMS {
 	@SuppressWarnings("unused")
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false, getConfiguration());
+		return getSharedFoldersArray(false);
 	}
 
 	/**
@@ -838,7 +809,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false, getConfiguration());
+		return getSharedFoldersArray(false);
 	}
 
 	/**
@@ -848,11 +819,7 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, null, getConfiguration());
-	}
-
-	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
-		return getSharedFoldersArray(monitored, null, configuration);
+		return getSharedFoldersArray(monitored, getConfiguration());
 	}
 
 	/**
@@ -865,12 +832,12 @@ public class PMS {
 	 * @param configuration
 	 * @return 
 	 */
-	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
+	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
 		String folders;
 		if (monitored) {
 			folders = configuration.getFoldersMonitored();
 		} else {
-			folders = configuration.getFolders(tags);
+			folders = configuration.getFolders();
 
 			if (StringUtils.isEmpty(folders)) {
 				String userHomeDirectory;
@@ -1170,6 +1137,10 @@ public class PMS {
 						break;
 					case TRACE:
 						traceMode = 2;
+						break;
+					case DBLOG:
+					case DBTRACE:
+						logDB = true;
 						break;
 					default:
 						Matcher matcher = pattern.matcher(arg);
@@ -1813,26 +1784,6 @@ public class PMS {
 		return Platform.isWindows();
 	}
 
-	public static boolean filter(RendererConfiguration render, DLNAResource res) {
-		NameFilter nf = instance.filter;
-		if (nf == null || render == null) {
-			return false;
-		}
-
-		ArrayList<String> tags = render.tags();
-		if (tags == null) {
-			return false;
-		}
-
-		for (String tag : tags) {
-			if (nf.filter(tag, res)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	public static boolean isReady() {
 		return get().ready;
 	}
@@ -1931,6 +1882,7 @@ public class PMS {
 	}
 
 	private static int traceMode = 0;
+	private static boolean logDB;
 
 	/**
 	 * Returns current trace mode state
@@ -1942,6 +1894,16 @@ public class PMS {
 	 */
 	public static int getTraceMode() {
 		return traceMode;
+	}
+
+	/**
+	 * Returns if the database logging is forced by command line arguments.
+	 *
+	 * @return {@code true} if database logging is forced, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean getLogDB() {
+		return logDB;
 	}
 
 	private CredMgr credMgr;
