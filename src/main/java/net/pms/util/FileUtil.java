@@ -31,10 +31,10 @@ import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
+import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
-import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -440,6 +440,7 @@ public class FileUtil {
 	 *
 	 * @param f The filename
 	 * @param file The file to possibly be used by the InfoDb
+	 * @param media The DLNAMediaInfo for database access
 	 *
 	 * @return The prettified filename
 	 */
