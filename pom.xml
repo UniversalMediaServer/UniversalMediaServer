@@ -1383,7 +1383,7 @@
 								</goals>
 								<configuration>
 									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
 									</descriptors>
 									<archive>
 										<manifest>
