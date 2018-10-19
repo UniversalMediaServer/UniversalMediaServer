@@ -9,9 +9,28 @@
 		<script src="/files/jquery.min.js"></script>
 		<script src="/files/jquery.ums.js"></script>
 		<script src="/files/js.cookie-2.1.0.min.js"></script>
+		<!-- New webUI -->
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/keycode.js"></script>
+		<script src="/files/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<!--VideoJS Support -->
+		<link href="/files/util/video-js/video-js.min.css" rel="stylesheet">
+		<script src="/files/util/video-js/video.min.js"></script>
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage">
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a  id="HomeButton" class="navbar-brand onFocus" href="/browse/0" title="UMS"></a>
+			</div>
+		</div>
+	</nav>
 		<script>
 {{#prevId}}
 			function prev() {window.location.replace('/play/{{prevId}}?html5=1');}
@@ -24,34 +43,32 @@
 {{/isVideo}}
 		</script>
 		<div id="Container">
-			<div id="Menu">
-				<a href="/browse/0" id="HomeButton"></a>
-				<a href="/doc" id="DocButton" title="Documentation"></a>
-			</div>
 
 			<div id="VideoContainer">
 {{^isVideo}}
 				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
 				<h2>{{name}}</h2><br>
 {{/isVideo}}
-				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
+				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}} fullscreen class="video-js" poster="/thumb/{{id1}}" data-setup='{}'>
 					<source src="/media/{{id1}}" type="{{mime}}">
 {{#sub}}
 					<track kind="subtitles" src="/files/{{this}}" default>
 {{/sub}}
 				</{{mediaType}}>
-				<div id="toolbar">
-					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
-					<button id="next" onclick="next()"{{nextAttr}}>>></button>
-{{#plsSign}}
-                    <button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;">{{plsSign}}</button>
-{{/plsSign}}
-{{#isVideo}}
-					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
-{{/isVideo}}
-				</div>
+			<div id="toolbar">
+				<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-backward"></i></button>
+				<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-forward"></i></button>
+				{{#plsSign}}
+				<button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;" type="button" class="btn btn-sm btn-playbar">{{plsSign}}</button>
+				{{/plsSign}}
+				{{#isVideo}}
+				<button id="flash" onclick="flash()" title="Switch to flash player" type="button" class="btn btn-sm btn-playbar">Flash</button>
+				{{/isVideo}}
+				<a href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}" class="btn btn-sm btn-playbar"><i class="fa fa-download"></i></a>
 			</div>
-			<a href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}"></a>
+			</div>
+			
+
 		</div>
 		<script>
 			var state = {};
@@ -110,5 +127,6 @@
 {{/push}}			
 		</script>
 	</body>
+	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
 </html>
 
