@@ -95,7 +95,12 @@ public class RootFolder extends DLNAResource {
 		return true;
 	}
 
+ 	@Override
 	public void discoverChildren() {
+		discoverChildren(true);
+	}
+
+ 	public void discoverChildren(boolean isAddGlobally) {
 		if (isDiscovered()) {
 			return;
 		}
@@ -112,7 +117,7 @@ public class RootFolder extends DLNAResource {
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
 				Playlist.PERMANENT|Playlist.AUTOSAVE);
-			addChild(recentlyPlayed);
+			addChild(last, true, isAddGlobally);
 		}
 
 		String m = configuration.getFoldersMonitored();
@@ -125,17 +130,17 @@ public class RootFolder extends DLNAResource {
 			mon = new MediaMonitor(dirs);
 
 			if (configuration.isShowNewMediaFolder()) {
-				addChild(mon);
+				addChild(mon, true, isAddGlobally);
 			}
 		}
 
 		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
 			lim = new FolderLimit();
-			addChild(lim);
+			addChild(lim, true, isAddGlobally);
 		}
 
 		if (configuration.isDynamicPls()) {
-			addChild(PMS.get().getDynamicPls());
+			addChild(PMS.get().getDynamicPls(), true, isAddGlobally);
 			if (!configuration.isHideSavedPlaylistFolder()) {
 				File plsdir = new File(configuration.getDynamicPlsSavePath());
 				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")));
@@ -143,7 +148,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getConfiguredFolders()) {
-			addChild(r, true);
+			addChild(r, true, isAddGlobally);
 		}
 
 		/**
@@ -197,11 +202,11 @@ public class RootFolder extends DLNAResource {
 					}
 				}
 		}
-			
+
 		if (configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes, true);
+				addChild(libraryRes, true, isAddGlobally);
 			}
 		}
 
