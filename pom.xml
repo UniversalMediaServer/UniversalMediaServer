@@ -1336,6 +1336,95 @@
 		</profile>
 
 		<!--
+			Testing profile: For running our automated tests - does not download binaries
+		-->
+		<profile>
+			<id>testing</id>
+			<!--
+				this setting does the right thing on Linux
+				and is needed for the Hudson profile to work
+			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the DMS distribution file. -->
+							<execution>
+								<id>build-pms-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Use the antrun plugin to:
+
+						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>copy-jar-with-dependencies-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
 			Mac OSX Java 7 profile: takes care of building the final package for Mac OSX using Java 7.
 			Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
 		-->
