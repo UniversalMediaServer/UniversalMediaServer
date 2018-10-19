@@ -397,7 +397,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	private static int ALIVE_delay = 10000;
+	private static int ALIVE_delay = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 10000;
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
@@ -412,17 +412,6 @@ public class UPNPHelper extends UPNPControl {
 				while (true) {
 					sleep(ALIVE_delay);
 					sendAlive();
-
-					// If getAliveDelay is 0, there is no custom alive delay
-					if (configuration.getAliveDelay() == 0) {
-						if (PMS.get().getFoundRenderers().size() > 0) {
-							ALIVE_delay = 30000;
-						} else {
-							ALIVE_delay = 10000;
-						}
-					} else {
-						ALIVE_delay = configuration.getAliveDelay();
-					}
 				}
 			}
 		};
