@@ -579,7 +579,7 @@
 				<!-- Enable the use of Maven properties -->
 				<filtering>true</filtering>
 			</testResource>
-			<!--*.srt files to test charset detection and *josn to test filename prettification-->
+			<!--*.srt files to test charset detection and *json to test filename prettification-->
 			<testResource>
 				<directory>src/test/resources/net/pms/util</directory>
 				<includes>
