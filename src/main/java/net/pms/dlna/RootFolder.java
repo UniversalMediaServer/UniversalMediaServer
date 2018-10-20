@@ -57,7 +57,6 @@ public class RootFolder extends DLNAResource {
 	private FolderLimit lim;
 	private MediaMonitor mon;
 	private Playlist recentlyPlayed;
-	private Playlist last;
 	private ArrayList<DLNAResource> webFolders;
 
 	public RootFolder() {
@@ -95,12 +94,12 @@ public class RootFolder extends DLNAResource {
 		return true;
 	}
 
- 	@Override
+	@Override
 	public void discoverChildren() {
 		discoverChildren(true);
 	}
 
- 	public void discoverChildren(boolean isAddGlobally) {
+	public void discoverChildren(boolean isAddGlobally) {
 		if (isDiscovered()) {
 			return;
 		}
@@ -108,7 +107,7 @@ public class RootFolder extends DLNAResource {
 		if (configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes);
+				addChild(libraryRes, true, isAddGlobally);
 			}
 		}
 
@@ -117,7 +116,7 @@ public class RootFolder extends DLNAResource {
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
 				Playlist.PERMANENT|Playlist.AUTOSAVE);
-			addChild(last, true, isAddGlobally);
+			addChild(recentlyPlayed, true, isAddGlobally);
 		}
 
 		String m = configuration.getFoldersMonitored();
@@ -201,13 +200,6 @@ public class RootFolder extends DLNAResource {
 						addChild(iTunesRes);
 					}
 				}
-		}
-
-		if (configuration.isShowMediaLibraryFolder()) {
-			DLNAResource libraryRes = PMS.get().getLibrary();
-			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
-			}
 		}
 
 		if (configuration.isShowServerSettingsFolder()) {
