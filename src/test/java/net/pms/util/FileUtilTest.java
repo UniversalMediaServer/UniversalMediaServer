@@ -20,6 +20,10 @@ package net.pms.util;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,6 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
@@ -91,52 +96,31 @@ public class FileUtilTest {
 	 */
 	@Test
 	public void testGetFileNameWithRewriting() throws Exception {
-		// Video of a TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.720p.mkv")).isEqualTo("Universal Media Server - 102");
+		JsonParser parser = new JsonParser();
+		
+		try {
+	        JsonElement tree = parser.parse(
+					new java.io.FileReader(
+							FileUtils.toFile(
+									CLASS.getResource("prettified_filenames_metadata.json")
+									)
+							)
+					);
 
-		// Video of a TV episode in double-digit seasons
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S12E03.720p.mkv")).isEqualTo("Universal Media Server - 1203");
+	        JsonArray tests = tree.getAsJsonArray();
+	        for( JsonElement test: tests ) {
+	        	JsonObject o = test.getAsJsonObject();
+	        	String original = o.get("filename").getAsString();
+	        	String prettified = o.get("prettified").getAsString();
+	        	assertThat(FileUtil.getFileNamePrettified(original)).isEqualTo(prettified);
+	        }
+		}
+		catch( Exception ex ) {
+			//TODO: Report error in the testcase JSON file 
+			throw( ex );
+		}
+	}		
 
-		// Video spanning two TV episodes
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02E03.720p.mkv")).isEqualTo("Universal Media Server - 102-03");
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02-E03.720p.mkv")).isEqualTo("Universal Media Server - 102-03");
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S12E03-E04.720p.mkv")).isEqualTo("Universal Media Server - 1203-04");
-
-		// Video of an extended TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.EXTENDED.720p.mkv")).isEqualTo("Universal Media Server - 102");
-
-		// Video of a TV episode with the "Mysterious Wordplay" title
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.Mysterious.Wordplay.720p.mkv")).isEqualTo("Universal Media Server - 102 - Mysterious Wordplay");
-
-		// Video of an uncut TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.UNCUT.720p.mkv")).isEqualTo("Universal Media Server - 102 (Uncut)");
-
-		// Video of an extended cut of a TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.Extended.Cut.720p.mkv")).isEqualTo("Universal Media Server - 102 (Extended Cut)");
-
-		// Video of a TV episode that airs very regularly
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.01.23.720p.mkv")).isEqualTo("Universal Media Server - 2015/01/23");
-
-		// Video of a TV episode that airs very regularly and has an episode title
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.01.23.Mysterious.Wordplay.720p.mkv")).isEqualTo("Universal Media Server - 2015/01/23 - Mysterious Wordplay");
-
-		// Video of a movie
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.720p.mkv")).isEqualTo("Universal Media Server (2015)");
-		assertThat(FileUtil.getFileNamePrettified("Universal_Media_Server_(2015)_[720p,BluRay,flac,x264]_-_FANSUBBERS.mkv")).isEqualTo("Universal Media Server (2015)");
-
-		// Video of a special edition of a movie
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.Special.Edition.2015.720p.mkv")).isEqualTo("Universal Media Server (2015) (Special Edition)");
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.Special.Edition.720p.mkv")).isEqualTo("Universal Media Server (2015) (Special Edition)");
-
-		// Video of a sample of a movie
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.720p.Sample.mkv")).isEqualTo("Universal Media Server (2015) (Sample)");
-
-		// Video of an anime episode
-		assertThat(FileUtil.getFileNamePrettified("Universal Media Server - 02 [BD.1080p] [700D423E].mkv")).isEqualTo("Universal Media Server - 102");
-		assertThat(FileUtil.getFileNamePrettified("[FanSubbers]_Universal_Media_Server_02_[700D423E].mp4")).isEqualTo("Universal Media Server - 102");
-		assertThat(FileUtil.getFileNamePrettified("[FanSubbers]_Universal_Media_Server_-_02_[720p][700D423E].mkv")).isEqualTo("Universal Media Server - 102");
-		assertThat(FileUtil.getFileNamePrettified("[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv")).isEqualTo("Universal Media Server - 102");
-	}
 
 	@Test
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
