@@ -115,8 +115,7 @@ public class FileUtilTest {
 	        }
 		}
 		catch( Exception ex ) {
-			//TODO: Report error in the testcase JSON file 
-			throw( ex );
+			throw(new AssertionError(ex));
 		}
 	}		
 

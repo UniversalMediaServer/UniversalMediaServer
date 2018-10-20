@@ -219,5 +219,25 @@
 			"released": { "year": 2015 },
 			"sample": true
 		}
+	},
+	{
+		"comment": "Video of a movie with a year in the title",
+		"filename": "2001.Universal.Media.Server.1968.720p.mkv",
+		"prettified": "2001 Universal Media Server (1968)",
+		"metadata": {
+			"type": "movie",
+			"title": "2001 Universal Media Server",
+			"released": { "year": 1968 }
+		}
+	},
+	{
+		"comment": "Video of a movie with a hyphen and a short year in the title",
+		"filename": "UMS-47.2018.1080p.BRRIP.x264.AAC.mp4",
+		"prettified": "UMS-47 (2018)",
+		"metadata": {
+			"type": "movie",
+			"title": "UMS-47",
+			"released": { "year": 2018 }
+		}
 	}
 ]
