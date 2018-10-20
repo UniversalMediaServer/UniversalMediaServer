@@ -1,0 +1,41 @@
+var VK_ENTER					=  13;//OK
+var VK_RETURN					=  27;//RETURN / RELOAD
+var VK_LEFT						=  37;
+var VK_UP						=  38;
+var VK_RIGHT					=  39;
+var VK_DOWN						=  40;
+var VK_DASH						=  47;//DASH ( - ) o SLASH ( / )
+var VK_0						=  48;
+var VK_1						=  49;
+var VK_2						=  50;
+var VK_3						=  51;
+var VK_4						=  52;
+var VK_5						=  53;
+var VK_6						=  54;
+var VK_7						=  55;
+var VK_8						=  56;
+var VK_9						=  57;
+var VK_REWIND					= 177;//<<
+var VK_STOP						= 178;//STOP
+var VK_PLAY						= 179;//>|
+var VK_FAST_FWD					= 176;//>>
+var VK_RED						= 403;//RED
+var VK_GREEN					= 404;//GREEN
+var VK_YELLOW					= 405;//YELLOW
+var VK_BLUE						= 406;//BLUE
+var VK_CHANNEL_UP				= 427;//CH+
+var VK_CHANNEL_DOWN				= 428;//CH-
+var VK_INFO						= 457;//DISPLAY
+var VK_MENU						= 462;//MENU
+var VK_CHANNEL_LIST				= 475;//CH.LIST
+var VK_ASPECT   				= 483;//ASPECT
+var VK_SOURCE   				= 529;//SOURCE
+var VK_CLOSEDCAPTION			= 530;//CC
+var VK_MTS         				= 536;//MTS
+
+var VK_PAUSE					=  19;//Pause in some remotes
+/*
+ * var VK_PAGE_UP					=  33;
+var VK_PAGE_DOWN				=  34;
+var VK_BACK						= 461;
+*/
