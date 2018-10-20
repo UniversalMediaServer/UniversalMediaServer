@@ -98,7 +98,7 @@ public class FileUtilTest {
 		JsonParser parser = new JsonParser();
 		
 		try {
-	        JsonElement tree = parser.parse(
+			JsonElement tree = parser.parse(
 					new java.io.FileReader(
 							FileUtils.toFile(
 									CLASS.getResource("prettified_filenames_metadata.json")
