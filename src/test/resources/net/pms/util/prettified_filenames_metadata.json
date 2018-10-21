@@ -1,5 +1,6 @@
 [
 	{
+		"id": 0,
 		"comment": "Video of a TV episode",
 		"filename": "Universal.Media.Server.S01E02.720p.mkv",
 		"prettified": "Universal Media Server - 102",
@@ -11,6 +12,7 @@
 		}
 	},
 	{
+		"id": 1,
 		"comment": "Video of a TV episode in double-digit seasons",
 		"filename": "Universal.Media.Server.S12E03.720p.mkv",
 		"prettified": "Universal Media Server - 1203",
@@ -22,6 +24,7 @@
 		}
 	},
 	{
+		"id": 2,
 		"comment": "Video spanning two TV episodes",
 		"filename": "Universal.Media.Server.S01E02E03.720p.mkv",
 		"prettified": "Universal Media Server - 102-03",
@@ -33,6 +36,7 @@
 		}
 	},
 	{
+		"id": 3,
 		"comment": "Video spanning two TV episodes",
 		"filename": "Universal.Media.Server.S01E02-E03.720p.mkv",
 		"prettified": "Universal Media Server - 102-03",
@@ -44,6 +48,7 @@
 		}
 	},
 	{
+		"id": 4,
 		"comment": "Video spanning two TV episodes",
 		"filename": "Universal.Media.Server.S12E03-E04.720p.mkv",
 		"prettified": "Universal Media Server - 1203-04",
@@ -55,18 +60,19 @@
 		}
 	},
 	{
-		"comment": "Video of an extended TV episode",
+		"id": 5,
+		"comment": "Video of a TV episode, noting that EXTENDED is the group and not the edition",
 		"filename": "Universal.Media.Server.S01E02.EXTENDED.720p.mkv",
 		"prettified": "Universal Media Server - 102",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
 			"season": 1,
-			"episodes": [2],
-			"extended": true
+			"episodes": [2]
 		}
 	},
 	{
+		"id": 6,
 		"comment": "Video of a TV episode titled Mysterious Wordplay",
 		"filename": "Universal.Media.Server.S01E02.Mysterious.Wordplay.720p.mkv",
 		"prettified": "Universal Media Server - 102 - Mysterious Wordplay",
@@ -79,6 +85,7 @@
 		}
 	},
 	{
+		"id": 7,
 		"comment": "Video of an uncut TV episode",
 		"filename": "Universal.Media.Server.S01E02.UNCUT.720p.mkv",
 		"prettified": "Universal Media Server - 102 (Uncut)",
@@ -87,10 +94,11 @@
 			"series": "Universal Media Server",
 			"season": 1,
 			"episodes": [2],
-			"uncut": true
+			"extra": ["Uncut"]
 		}
 	},
 	{
+		"id": 8,
 		"comment": "Video of an extended cut of a TV episode",
 		"filename": "Universal.Media.Server.S01E02.Extended.Cut.720p.mkv",
 		"prettified": "Universal Media Server - 102 (Extended Cut)",
@@ -99,10 +107,11 @@
 			"series": "Universal Media Server",
 			"season": 1,
 			"episodes": [2],
-			"extended_cut": true
+			"extra": ["Extended Cut"]
 		}
 	},
 	{
+		"id": 9,
 		"comment": "Video of a TV episode that airs very regularly",
 		"filename": "Universal.Media.Server.2015.01.23.720p.mkv",
 		"prettified": "Universal Media Server - 2015/01/23",
@@ -113,6 +122,7 @@
 		}
 	},
 	{
+		"id": 10,
 		"comment": "Video of a TV episode that airs very regularly and has an episode title",
 		"filename": "Universal.Media.Server.2015.01.23.Mysterious.Wordplay.720p.mkv",
 		"prettified": "Universal Media Server - 2015/01/23 - Mysterious Wordplay",
@@ -124,6 +134,7 @@
 		}
 	},
 	{
+		"id": 11,
 		"comment": "Video of an anime episode",
 		"filename": "Universal Media Server - 02 [BD.1080p] [700D423E].mkv",
 		"prettified": "Universal Media Server - 102",
@@ -135,6 +146,7 @@
 		}
 	},
 	{
+		"id": 12,
 		"comment": "Video of an anime episode",
 		"filename": "[FanSubbers]_Universal_Media_Server_02_[700D423E].mp4",
 		"prettified": "Universal Media Server - 102",
@@ -146,6 +158,7 @@
 		}
 	},
 	{
+		"id": 13,
 		"comment": "Video of an anime episode",
 		"filename": "[FanSubbers]_Universal_Media_Server_-_02_[720p][700D423E].mkv",
 		"prettified": "Universal Media Server - 102",
@@ -157,6 +170,7 @@
 		}
 	},
 	{
+		"id": 14,
 		"comment": "Video of an anime episode",
 		"filename": "[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv",
 		"prettified": "Universal Media Server - 102",
@@ -168,6 +182,7 @@
 		}
 	},
 	{
+		"id": 15,
 		"comment": "Video of a movie",
 		"filename": "Universal.Media.Server.2015.720p.mkv",
 		"prettified": "Universal Media Server (2015)",
@@ -178,6 +193,7 @@
 		}
 	},
 	{
+		"id": 16,
 		"comment": "Video of a movie",
 		"filename": "Universal_Media_Server_(2015)_[720p,BluRay,flac,x264]_-_FANSUBBERS.mkv",
 		"prettified": "Universal Media Server (2015)",
@@ -188,6 +204,7 @@
 		}
 	},
 	{
+		"id": 17,
 		"comment": "Video of a special edition of a movie",
 		"filename": "Universal.Media.Server.Special.Edition.2015.720p.mkv",
 		"prettified": "Universal Media Server (2015) (Special Edition)",
@@ -195,10 +212,11 @@
 			"type": "movie",
 			"title": "Universal Media Server",
 			"released": { "year": 2015 },
-			"special_edition": true
+			"extra": ["Special Edition"]
 		}
 	},
 	{
+		"id": 18,
 		"comment": "Video of a special edition of a movie",
 		"filename": "Universal.Media.Server.2015.Special.Edition.720p.mkv",
 		"prettified": "Universal Media Server (2015) (Special Edition)",
@@ -206,10 +224,11 @@
 			"type": "movie",
 			"title": "Universal Media Server",
 			"released": { "year": 2015 },
-			"special_edition": true
+			"extra": ["Special Edition"]
 		}
 	},
 	{
+		"id": 19,
 		"comment": "Video of a sample of a movie",
 		"filename": "Universal.Media.Server.2015.720p.Sample.mkv",
 		"prettified": "Universal Media Server (2015) (Sample)",
@@ -217,10 +236,11 @@
 			"type": "movie",
 			"title": "Universal Media Server",
 			"released": { "year": 2015 },
-			"sample": true
+			"extra": ["Sample"]
 		}
 	},
 	{
+		"id": 20,
 		"comment": "Video of a movie with a year in the title",
 		"filename": "2001.Universal.Media.Server.1968.720p.mkv",
 		"prettified": "2001 Universal Media Server (1968)",
@@ -231,6 +251,7 @@
 		}
 	},
 	{
+		"id": 21,
 		"comment": "Video of a movie with a hyphen and a short year in the title",
 		"filename": "UMS-47.2018.1080p.BRRIP.x264.AAC.mp4",
 		"prettified": "UMS-47 (2018)",

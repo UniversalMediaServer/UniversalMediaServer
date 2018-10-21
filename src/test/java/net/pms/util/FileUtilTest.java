@@ -120,6 +120,141 @@ public class FileUtilTest {
 	}		
 
 
+	/**
+	 * Note: The method this is testing handles numerous inputs, so this test
+	 * could get very large. It should get much larger than it is now.
+	 *
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testGetFileNameMetadata() throws Exception {
+		JsonParser parser = new JsonParser();
+		
+		try {
+			JsonElement tree = parser.parse(
+					new java.io.FileReader(
+							FileUtils.toFile(
+									CLASS.getResource("prettified_filenames_metadata.json")
+									)
+							)
+					);
+
+	        JsonArray tests = tree.getAsJsonArray();
+	        for( JsonElement test: tests ) {
+	        	JsonObject o = test.getAsJsonObject();
+	        	String original = o.get("filename").getAsString();
+	        	JsonObject metadata = o.get("metadata").getAsJsonObject();
+
+	        	String[] extracted_metadata = FileUtil.getFileNameMetadata(original);
+	        	assert extracted_metadata.length == 6;
+	        	String movieOrShowName = extracted_metadata[0];
+	        	int year = -1;
+	        	try {
+	        		if(extracted_metadata[1]!=null) {
+	        			year = Integer.parseInt(extracted_metadata[1]);
+	        		}
+	        	}
+	        	catch(NumberFormatException ex) {
+        			throw(new AssertionError(ex)); 
+        		}
+	        	String extraInformation = extracted_metadata[2];
+	        	int tvSeason = -1;
+	        	try {
+	        		if(extracted_metadata[3]!=null) {
+	        			tvSeason = Integer.parseInt(extracted_metadata[3]);
+	        		}
+	        	}
+	        	catch(NumberFormatException ex) {
+        			throw(new AssertionError(ex)); 
+        		}
+	        	String tvEpisodeNumber = extracted_metadata[4];
+	        	String tvEpisodeName = extracted_metadata[5];
+
+        		JsonElement elem; 
+        		
+        		elem = metadata.get("extra");
+        		if( elem != null ) {
+        			for( JsonElement extra: elem.getAsJsonArray() ) {
+        				assertThat( extraInformation.indexOf(extra.getAsString()) > -1 );
+        			}
+        		}
+	        	if( "tv-series-episode".equals(metadata.get("type").getAsString()) ) {
+	        		// A single episode, might have episode title and date
+	        		elem = metadata.get("series");
+	        		if( elem != null ) {
+	        			assertThat(movieOrShowName.equals(elem.getAsString()));
+	        		}
+	        		elem = metadata.get("season");
+	        		if( elem != null ) {
+	        			assertThat(tvSeason == elem.getAsInt()); 
+	        		}
+	        		elem = metadata.get("episode");
+	        		if( elem != null ) {
+	    	        	try {
+	    	        		assertThat(Integer.parseInt(extracted_metadata[3]) == elem.getAsInt());
+	    	        	}
+	    	        	catch(NumberFormatException ex) {
+	            			throw(new AssertionError(ex)); 
+	            		}
+	        		}
+		        	if(metadata.has("released")) {
+			        	JsonObject metadata_rel = metadata.get("released").getAsJsonObject();
+			        	String rel_date = Integer.toString(metadata_rel.get("year").getAsInt());
+			        	if(metadata_rel.has("month")) {
+			        		rel_date = rel_date + "-" + Integer.toString(metadata_rel.get("month").getAsInt());
+			        	}
+			        	if(metadata_rel.has("date")) {
+			        		rel_date = rel_date + "-" + Integer.toString(metadata_rel.get("date").getAsInt());
+			        	}
+		        	}
+	        		elem = metadata.get("title");
+	        		if( elem != null ) {
+	        			assertThat( tvEpisodeName.equals(elem.getAsString()) );
+	        		}
+	        	}
+	        	else if( "tv-series-episodes".equals(metadata.get("type").getAsString()) ) {
+	        		// A single episode or an episode range, cannot have episode title or date
+	        		elem = metadata.get("series");
+	        		if( elem != null ) {
+	        			assertThat(movieOrShowName.equals(elem.getAsString()));
+	        		}
+	        		elem = metadata.get("season");
+	        		if( elem != null ) {
+	        			assertThat( tvSeason == elem.getAsInt() ); 
+	        		}
+	        		elem = metadata.get("episodes");
+	        		if( elem != null ) {
+	        			String range = "";
+	        			for( JsonElement elem2: elem.getAsJsonArray() ) {
+	        				range = range + "-" + String.format("%02d",elem2.getAsInt());
+	        			}
+	        			assertThat( range.substring(1).equals(tvEpisodeNumber) );
+	        		}
+	        	}
+	        	else if( "movie".equals(metadata.get("type").getAsString()) ) {
+	        		elem = metadata.get("title");
+	        		if( elem != null ) {
+	        			assertThat(movieOrShowName.equals(elem.getAsString()));
+	        		}
+		        	if(metadata.has("released")) {
+			        	JsonObject metadata_rel = metadata.get("released").getAsJsonObject();
+		        		elem = metadata_rel.get("year");
+		        		if( elem != null ) {
+		        			assertThat( year == elem.getAsInt() );	
+		        		}
+		        	}
+	        	}
+	        	
+	        	//assertThat().isEqualTo(prettified);
+	        }
+		}
+		catch( Exception ex ) {
+			ex.printStackTrace(System.err);
+			throw(new AssertionError(ex));
+		}
+	}		
+
+
 	@Test
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
