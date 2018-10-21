@@ -303,7 +303,6 @@ public class DLNAMediaDatabase implements Runnable {
 				if (trace) {
 					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				}
-				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
