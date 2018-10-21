@@ -854,8 +854,8 @@ public class NavigationShareTab {
 						}
 					}
 					for (int i = rows.length - 1; i >= 0; i--) {
-						((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
 						PMS.get().getDatabase().removeMediaEntriesInFolder((String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
+						((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
 					}
 				}
 			}
