@@ -561,7 +561,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void calculateAllSpeeds() {
-		for (InetAddress sa : addressAssociation.keySet()) {
+		Iterator<Entry<InetAddress, RendererConfiguration>> keyIt = addressAssociation.entrySet().iterator();
+		while (keyIt.hasNext()) {
+			InetAddress sa = keyIt.next().getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
@@ -1529,7 +1531,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		// Otherwise check the address association
-		for (InetAddress sa : addressAssociation.keySet()) {
+		Iterator<Entry<InetAddress, RendererConfiguration>> keyIt = addressAssociation.entrySet().iterator();
+		while (keyIt.hasNext()) {
+			InetAddress sa = keyIt.next().getKey();
 			if (addressAssociation.get(sa) == this) {
 				return sa;
 			}
@@ -2356,7 +2360,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		// Substitute
-		for (String s : charMap.keySet()) {
+		Iterator<Entry<String, String>> keyIt = charMap.entrySet().iterator();
+		while (keyIt.hasNext()) {
+			String s = keyIt.next().getKey();
 			String repl = charMap.get(s).replaceAll("###e", "");
 			name = name.replaceAll(s, repl);
 		}

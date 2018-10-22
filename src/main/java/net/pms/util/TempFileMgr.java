@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import net.pms.PMS;
@@ -65,8 +66,8 @@ public class TempFileMgr {
 
 	private void scan() {
 		long now = System.currentTimeMillis();
-		for (Iterator<File> it = files.keySet().iterator(); it.hasNext();) {
-			File f = it.next();
+		for (Iterator<Entry<File, Integer>> it = files.entrySet().iterator(); it.hasNext();) {
+			File f = it.next().getKey();
 			if (!f.exists()) {
 				it.remove();
 				continue;
@@ -128,7 +129,9 @@ public class TempFileMgr {
 			String n = "## " + now.toString() + "\n";
 			out.write("#########\n".getBytes());
 			out.write(n.getBytes());
-			for (File f : files.keySet()) {
+			Iterator<Entry<File, Integer>> keyIt = files.entrySet().iterator();
+			while (keyIt.hasNext()) {
+				File f = keyIt.next().getKey();
 				String str = f.getAbsolutePath() + "," + files.get(f) + "\n";
 				out.write(str.getBytes());
 			}
