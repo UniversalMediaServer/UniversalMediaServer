@@ -196,8 +196,11 @@ ul#Media .playlist_add{
 ul#Media li {
 	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
 	height: 100% !important;
-	border-bottom-left-radius: 2px;
-	border-bottom-right-radius: 2px;
+	border-radius: 3px;
+	margin: 10px;
+}
+ul#Media .thumb{
+	border-radius: 3px;
 }
 ul#Media li:hover .caption {
 	color: #fff !important;
