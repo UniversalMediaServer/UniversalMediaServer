@@ -1,5 +1,5 @@
 jQuery(document).ready(function($) {
-    jQuery.noConflict();
+    //jQuery.noConflict();  //just uncomment when migrating to jQuery 3+
     // Cuando se presiona una tecla sobre disparo la funcion keyDown
     $('body').keydown(function(event) {
     	keyDown(event);

@@ -59,7 +59,7 @@ body{
 }
 #FrontPage #Menu a h3 {
     color: #FFFFFF;
-    width: 220px;
+    width: 100%;
     font-size: 18px;
     margin-top: 230px;
 }
@@ -79,7 +79,7 @@ body{
 }
 @media screen and (max-width: 1080px) {
     ul#Folders {
-        padding: 0px;
+        padding: 15px 0px 0px 0px;
         margin-top: 50px;
     }
 }
@@ -88,6 +88,72 @@ body{
 }
 ul#Folders>li>a{
     padding: 0px 15px 0px 15px;
+}
+/*SCROLLBAR*/
+/*************Media(Body)**************/
+/* width */
+::-webkit-scrollbar {
+    width: 6px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+/*******Folders**************/
+ul#Folders::-webkit-scrollbar {
+    width: 6px;
+}
+/* Track */
+ul#Folders::-webkit-scrollbar-track {
+    display: none;
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+ul#Folders::-webkit-scrollbar-track {
+    display: none;
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+/* Handle */
+ul#Folders::-webkit-scrollbar-thumb {
+    display: none;
+    background: #888;
+    border-radius: 10px;
+}
+/* Handle on hover */
+ul#Folders::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+ul#Folders:hover::-webkit-scrollbar-thumb{
+    display: block;
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+    filter: alpha(opacity=70);
+    opacity: 0.7;
+    -webkit-transition: opacity 0.2s linear;
+    -moz-transition: opacity 0.2s linear;
+    -o-transition: opacity 0.2s linear;
+    -ms-transition: opacity 0.2s linear;
+    transition: opacity 0.2s linear;
+}
+/*END SCROLLBAR*/
+/*TODO: FIX COLOR ON LI HOVER*/
+ul#Folders>li:hover{
+    background-color: #aec; /*NOT WORKING*/
+
 }
 /*FIX por culpa del bootstrap*/
 #Media.nav>li>a {
