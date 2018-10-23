@@ -73,7 +73,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
-		<sevenzip-version>9.20-2.00beta</sevenzip-version>
+		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
 
 		<twelvemonkeys-imageio-version>3.3.2</twelvemonkeys-imageio-version>
 
@@ -84,8 +84,8 @@
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>71</binary-revision>
 
-		<maven-javadoc-plugin-version>3.0.1</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.2.5</git-commit-id-plugin-version>
+		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.2.3</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>1.4.1</maven-enforcer-plugin-version>
 
@@ -348,13 +348,7 @@
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 			-->
-			<version>3.0.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
+			<version>0.7</version>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
@@ -370,14 +364,14 @@
 			<version>1.2.11</version>
 		</dependency>
 		<dependency>
-		    <groupId>net.sf.sevenzipjbinding</groupId>
-		    <artifactId>sevenzipjbinding</artifactId>
-		    <version>${sevenzip-version}</version>
+			<groupId>sevenzip</groupId>
+			<artifactId>jbinding</artifactId>
+			<version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
-		    <groupId>net.sf.sevenzipjbinding</groupId>
-		    <artifactId>sevenzipjbinding-all-platforms</artifactId>
-		    <version>${sevenzip-version}</version>
+			<groupId>sevenzip-allplatforms</groupId>
+			<artifactId>jbinding-allplatforms</artifactId>
+			<version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -482,7 +476,7 @@
 
 				Check the commons-io:commons-io version before upgrading
 			-->
-			<version>2.1.1</version>
+			<version>2.1.0</version>
 			<exclusions>
 				<!-- This should never have been a dependency in the first place -->
 				<exclusion>
@@ -512,41 +506,6 @@
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
 			<version>3.4.3</version>
-		</dependency>
-		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
-		<dependency>
-		    <groupId>org.codehaus.plexus</groupId>
-		    <artifactId>plexus</artifactId>
-		    <version>5.1</version>
-		    <type>pom</type>
-		</dependency>
-		<dependency>
-		    <groupId>org.codehaus.plexus</groupId>
-		    <artifactId>plexus-utils</artifactId>
-		    <version>3.1.0</version>
-		</dependency>
-		<!-- FIX ERROR: Exception in thread "main" java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument -->
-		<dependency>
-		    <groupId>com.google.guava</groupId>
-		    <artifactId>guava-parent</artifactId>
-		    <version>26.0-jre</version>
-		    <type>pom</type>
-		</dependency>
-		<dependency>
-		    <groupId>org.codehaus</groupId>
-		    <artifactId>codehaus-parent</artifactId>
-		    <version>4</version>
-		    <type>pom</type>
-		</dependency>
-		<dependency>
-		    <groupId>net.lingala.zip4j</groupId>
-		    <artifactId>zip4j</artifactId>
-		    <version>1.3.2</version>
-		</dependency>
-		<dependency>
-		    <groupId>com.github.axet</groupId>
-		    <artifactId>java-unrar</artifactId>
-		    <version>1.7.0-3</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -875,6 +834,18 @@
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
 					<createChecksum>true</createChecksum>
 					<artifactItems>
+						<artifactItem>
+							<groupId>sevenzip</groupId>
+							<artifactId>jbinding</artifactId>
+							<version>${sevenzip-version}</version>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
+						</artifactItem>
+						<artifactItem>
+							<groupId>sevenzip-allplatforms</groupId>
+							<artifactId>jbinding-allplatforms</artifactId>
+							<version>${sevenzip-version}</version>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
+						</artifactItem>
 						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>

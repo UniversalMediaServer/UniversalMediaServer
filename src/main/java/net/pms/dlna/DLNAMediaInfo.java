@@ -2283,14 +2283,14 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return The video bit depth.
+	 * @return the video bit depth
 	 */
 	public int getVideoBitDepth() {
 		return videoBitDepth;
 	}
 
 	/**
-	 * @param value the video bit depth to set.
+	 * @param value the video bit depth to set
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
@@ -2475,9 +2475,9 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * The aspect ratio for a DVD ISO video track.
+	 * The aspect ratio for a DVD ISO video track
 	 *
-	 * @return the aspect ratio.
+	 * @return the aspect
 	 * @since 1.50.0
 	 */
 	public Rational getAspectRatioDvdIso() {
@@ -2485,20 +2485,16 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Sets the aspect ratio for a DVD ISO video track by parsing the specified
-	 * {@link String}.
-	 *
-	 * @param aspectRatio the aspect ratio to set.
-	 * @throws NumberFormatException If {@code aspectRatio} cannot be parsed.
+	 * @deprecated use setAspectRatioDvdIso() for the original
+	 * functionality of this method, or use setAspectRatioContainer() for a
+	 * better default method to set aspect ratios.
 	 */
 	public void setAspectRatioDvdIso(String aspectRatio) {
 		setAspectRatioDvdIso(Rational.valueOf(aspectRatio));
 	}
 
 	/**
-	 * Sets the aspect ratio for a DVD ISO video track.
-	 *
-	 * @param aspectRatio the aspect ratio to set.
+	 * @param aspect the aspect to set
 	 * @since 1.50.0
 	 */
 	public void setAspectRatioDvdIso(Rational aspectRatio) {
@@ -2510,9 +2506,9 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Get the aspect ratio reported by the file/container. This is the aspect
-	 * ratio that the renderer should display the video at, and is usually the
-	 * same as the video track aspect ratio.
+	 * Get the aspect ratio reported by the file/container.
+	 * This is the aspect ratio that the renderer should display the video
+	 * at, and is usually the same as the video track aspect ratio.
 	 *
 	 * @return the aspect ratio reported by the file/container
 	 */
@@ -2521,11 +2517,10 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Sets the aspect ratio reported by the file/container by parsing the
-	 * specified {@link String}.
+	 * Set the aspect ratio reported by the file/container.
 	 *
-	 * @param aspectRatio the aspect ratio to set.
-	 * @throws NumberFormatException If {@code aspectRatio} cannot be parsed.
+	 * @see #getAspectRatioContainer()
+	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioContainer(String aspectRatio) {
 		setAspectRatioContainer(Rational.valueOf(aspectRatio));
@@ -2557,20 +2552,18 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Sets the aspect ratio reported by the video track by parsing the
-	 * specified {@link String}.
-	 *
-	 * @param aspectRatio the aspect ratio to set.
-	 * @throws NumberFormatException If {@code aspectRatio} cannot be parsed.
+	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioVideoTrack(String aspectRatio) {
 		setAspectRatioVideoTrack(Rational.valueOf(aspectRatio));
 	}
 
 	/**
-	 * Sets the aspect ratio reported by the video track.
+	 * Make sure the aspect ratio is formatted, e.g. 16:9 not 1.78
 	 *
-	 * @param aspectRatio the aspect ratio to set
+	 * @param aspect the possibly-unformatted aspect ratio
+	 *
+	 * @return the formatted aspect ratio or null
 	 */
 	public void setAspectRatioVideoTrack(Rational aspectRatio) {
 		if (Rational.isNotBlank(aspectRatio)) {
