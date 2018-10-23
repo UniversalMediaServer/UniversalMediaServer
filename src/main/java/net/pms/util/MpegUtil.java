@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -16,12 +15,11 @@ public class MpegUtil {
 				if (ptsStart != null) {
 					Map<Integer, Integer> ptsEnd = checkRange(raf, 0, 250000, true);
 					if (ptsEnd != null) {
-						Iterator<Entry<Integer, Integer>> iterator = ptsStart.entrySet().iterator();
-						while (iterator.hasNext()) {
-							Integer id = iterator.next().getKey();
+						for (Entry<Integer, Integer> key : ptsStart.entrySet()) {
+							Integer id = key.getKey();
 							if (ptsEnd.get(id) != null) {
 								int dur = ptsEnd.get(id)
-									- ptsStart.get(id);
+									- key.getValue();
 								dur /= 90000;
 								return dur;
 							}
@@ -115,11 +113,10 @@ public class MpegUtil {
 				currentPos = minRangePos + (maxRangePos - minRangePos) / 2;
 				Map<Integer, Integer> ptsEnd = checkRange(raf, currentPos, 250000, false);
 				if (ptsEnd != null) {
-					Iterator<Entry<Integer, Integer>> iterator = ptsStart.entrySet().iterator();
-					while (iterator.hasNext()) {
-						Integer id = iterator.next().getKey();
+					for (Entry<Integer, Integer> key : ptsStart.entrySet()) {
+						Integer id = key.getKey();
 						if (ptsEnd.get(id) != null) {
-							int time = (ptsEnd.get(id) - ptsStart.get(id)) / 90000;
+							int time = (ptsEnd.get(id) - key.getValue()) / 90000;
 
 							if (time == timeS) // found it
 							{

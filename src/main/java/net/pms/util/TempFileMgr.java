@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -64,16 +65,17 @@ public class TempFileMgr {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void scan() {
 		long now = System.currentTimeMillis();
-		for (Iterator<Entry<File, Integer>> it = files.entrySet().iterator(); it.hasNext();) {
-			File f = it.next().getKey();
+		for (Entry<File, Integer> it : files.entrySet()) {
+			File f = it.getKey();
 			if (!f.exists()) {
-				it.remove();
+				((Iterator<Entry<File, Integer>>) it).remove();
 				continue;
 			}
-			if ((now - f.lastModified()) > files.get(f)) {
-				it.remove();
+			if ((now - f.lastModified()) > it.getValue()) {
+				((Iterator<Entry<File, Integer>>) it).remove();
 				f.delete();
 			}
 		}
@@ -129,10 +131,9 @@ public class TempFileMgr {
 			String n = "## " + now.toString() + "\n";
 			out.write("#########\n".getBytes());
 			out.write(n.getBytes());
-			Iterator<Entry<File, Integer>> keyIt = files.entrySet().iterator();
-			while (keyIt.hasNext()) {
-				File f = keyIt.next().getKey();
-				String str = f.getAbsolutePath() + "," + files.get(f) + "\n";
+			for (Entry<File, Integer> key : files.entrySet()) {
+				File f = key.getKey();
+				String str = f.getAbsolutePath() + "," + key.getValue() + "\n";
 				out.write(str.getBytes());
 			}
 			out.flush();

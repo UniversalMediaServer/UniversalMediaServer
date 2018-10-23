@@ -561,13 +561,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void calculateAllSpeeds() {
-		Iterator<Entry<InetAddress, RendererConfiguration>> keyIt = addressAssociation.entrySet().iterator();
-		while (keyIt.hasNext()) {
-			InetAddress sa = keyIt.next().getKey();
+		for (Entry<InetAddress, RendererConfiguration> key : addressAssociation.entrySet()) {
+			InetAddress sa = key.getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
-			RendererConfiguration r = addressAssociation.get(sa);
+			RendererConfiguration r = key.getValue();
 			if (!r.isOffline()) {
 				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
 			}
