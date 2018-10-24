@@ -15,11 +15,11 @@ public class MpegUtil {
 				if (ptsStart != null) {
 					Map<Integer, Integer> ptsEnd = checkRange(raf, 0, 250000, true);
 					if (ptsEnd != null) {
-						for (Entry<Integer, Integer> key : ptsStart.entrySet()) {
-							Integer id = key.getKey();
+						for (Entry<Integer, Integer> entry : ptsStart.entrySet()) {
+							Integer id = entry.getKey();
 							if (ptsEnd.get(id) != null) {
 								int dur = ptsEnd.get(id)
-									- key.getValue();
+									- entry.getValue();
 								dur /= 90000;
 								return dur;
 							}
@@ -113,10 +113,10 @@ public class MpegUtil {
 				currentPos = minRangePos + (maxRangePos - minRangePos) / 2;
 				Map<Integer, Integer> ptsEnd = checkRange(raf, currentPos, 250000, false);
 				if (ptsEnd != null) {
-					for (Entry<Integer, Integer> key : ptsStart.entrySet()) {
-						Integer id = key.getKey();
+					for (Entry<Integer, Integer> entry : ptsStart.entrySet()) {
+						Integer id = entry.getKey();
 						if (ptsEnd.get(id) != null) {
-							int time = (ptsEnd.get(id) - key.getValue()) / 90000;
+							int time = (ptsEnd.get(id) - entry.getValue()) / 90000;
 
 							if (time == timeS) // found it
 							{

@@ -3,7 +3,6 @@ package net.pms.util;
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
-import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
@@ -15,8 +14,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -195,8 +192,8 @@ public class FileWatcher {
 		}
 
 		public boolean remove(Watch w) {
-			for (Entry<WatchKey, ArrayList<Watch>> key : entrySet()) {
-				ArrayList<Watch> a = key.getValue();
+			for (Entry<WatchKey, ArrayList<Watch>> entry : entrySet()) {
+				ArrayList<Watch> a = entry.getValue();
 				if (a.contains(w)) {
 					return a.remove(w);
 				}

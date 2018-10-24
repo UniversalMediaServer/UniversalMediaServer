@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -131,9 +130,9 @@ public class TempFileMgr {
 			String n = "## " + now.toString() + "\n";
 			out.write("#########\n".getBytes());
 			out.write(n.getBytes());
-			for (Entry<File, Integer> key : files.entrySet()) {
-				File f = key.getKey();
-				String str = f.getAbsolutePath() + "," + key.getValue() + "\n";
+			for (Entry<File, Integer> entry : files.entrySet()) {
+				File f = entry.getKey();
+				String str = f.getAbsolutePath() + "," + entry.getValue() + "\n";
 				out.write(str.getBytes());
 			}
 			out.flush();
