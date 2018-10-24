@@ -275,7 +275,7 @@ public class UPNPHelper extends UPNPControl {
 			throw new IOException("No usable network interface found for UPnP multicast");
 		}
 
-		MulticastSocket ssdpSocket = new MulticastSocket();
+		MulticastSocket ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
 		ssdpSocket.setReuseAddress(true);
 		ssdpSocket.setTimeToLive(32);
 
@@ -295,10 +295,10 @@ public class UPNPHelper extends UPNPControl {
 			}
 		}
 		if (multicastLog) {
-			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
-			LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
-			LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
-			LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+			LOGGER.trace("Sending message from multicast socket on network interface: {}", ssdpSocket.getNetworkInterface());
+			LOGGER.trace("Multicast socket is on interface address: {} and local port {}", ssdpSocket.getInterface(), ssdpSocket.getLocalPort());
+			LOGGER.trace("Socket Timeout: {}", ssdpSocket.getSoTimeout());
+			LOGGER.trace("Socket TTL: {}", ssdpSocket.getTimeToLive());
 			multicastLog = false;
 		}
 		return ssdpSocket;

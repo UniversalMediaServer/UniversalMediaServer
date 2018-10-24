@@ -152,6 +152,9 @@ public class LibMediaInfoParser {
 							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
 						}
 
+						media.setPixelAspectRatio(MI.Get(video, i, "PixelAspectRatio"));
+						media.setScanType(MI.Get(video, i, "ScanType"));
+						media.setScanOrder(MI.Get(video, i, "ScanOrder"));
 						media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
 						media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
 						media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
@@ -406,7 +409,8 @@ public class LibMediaInfoParser {
 								!audioTrack.getCodecA().equals(FormatConfiguration.WMAPRO) &&
 								!audioTrack.getCodecA().equals(FormatConfiguration.WMALOSSLESS) &&
 								!audioTrack.getCodecA().equals(FormatConfiguration.WMAVOICE) &&
-								!audioTrack.getCodecA().equals(FormatConfiguration.WMA10)
+								!audioTrack.getCodecA().equals(FormatConfiguration.WMA10) &&
+								!audioTrack.getCodecA().equals(FormatConfiguration.MP3) // up to 128 kbit/s only (WMVSPML_MP3 profile)
 							) {
 								media.setContainer(FormatConfiguration.ASF);
 								break;
@@ -568,7 +572,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MOV;
 		} else if (
 			value.contains("isom") ||
-			(streamType != StreamType.Audio && value.startsWith("mp4")) ||
+			(streamType != StreamType.Audio && value.startsWith("mp4") && !value.startsWith("mp4a")) ||
 			value.equals("20") ||
 			value.equals("isml") ||
 			(value.startsWith("m4a") && !value.startsWith("m4ae")) ||
@@ -738,8 +742,38 @@ public class LibMediaInfoParser {
 			)
 		) {
 			format = FormatConfiguration.AAC_LC;
+		} else if (value.equals("ltp")) {
+			format = FormatConfiguration.AAC_LTP;
 		} else if (value.contains("he-aac")) {
 			format = FormatConfiguration.HE_AAC;
+		} else if (value.equals("main")) {
+			format = FormatConfiguration.AAC_MAIN;
+		} else if (value.equals("ssr")) {
+			format = FormatConfiguration.AAC_SSR;
+		} else if (value.startsWith("a_aac/")) {
+			if (value.equals("a_aac/mpeg2/main")) {
+				format = FormatConfiguration.AAC_MAIN;
+			} else if (value.equals("a_aac/mpeg2/lc")) {
+				format = FormatConfiguration.AAC_LC;
+			} else if (value.equals("a_aac/mpeg2/lc/sbr")) {
+				format = FormatConfiguration.HE_AAC;
+			} else if (value.equals("a_aac/mpeg2/ssr")) {
+				format = FormatConfiguration.AAC_SSR;
+			} else if (value.equals("a_aac/mpeg4/main")) {
+				format = FormatConfiguration.AAC_MAIN;
+			} else if (value.equals("a_aac/mpeg4/lc")) {
+				format = FormatConfiguration.AAC_LC;
+			} else if (value.equals("a_aac/mpeg4/lc/sbr")) {
+				format = FormatConfiguration.HE_AAC;
+			} else if (value.equals("a_aac/mpeg4/lc/sbr/ps")) { // HE-AACv2
+				format = FormatConfiguration.HE_AAC;
+			} else if (value.equals("a_aac/mpeg4/ssr")) {
+				format = FormatConfiguration.AAC_SSR;
+			} else if (value.equals("a_aac/mpeg4/ltp")) {
+				format = FormatConfiguration.AAC_LTP;
+			} else {
+				format = FormatConfiguration.AAC_MAIN;
+			}
 		} else if (
 			value.equals("er bsac") ||
 			value.equals("mp4a-40-22")
@@ -757,7 +791,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WAV;
 		} else if (value.equals("shorten")) {
 			format = FormatConfiguration.SHORTEN;
-		} else if (value.equals("sls")) {
+		} else if (value.equals("sls") || value.equals("SLS non-core")) {
 			format = FormatConfiguration.SLS;
 		} else if (value.equals("acelp")) {
 			format = FormatConfiguration.ACELP;
@@ -923,6 +957,19 @@ public class LibMediaInfoParser {
 		}
 		LOGGER.warn("Could not parse AvcProfile value {}." , value);
 		return null;
+	}
+
+	public static int getVideoBitrate(String value) {
+		if (isBlank(value)) {
+			return 0;
+		}
+
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			LOGGER.trace("Could not parse video bitrate \"{}\": ", value, e.getMessage());
+			return 0;
+		}
 	}
 
 	public static int getBitrate(String value) {
