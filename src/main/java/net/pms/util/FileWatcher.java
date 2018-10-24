@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -192,7 +193,7 @@ public class FileWatcher {
 		}
 
 		public boolean remove(Watch w) {
-			for (Entry<WatchKey, ArrayList<Watch>> entry : entrySet()) {
+			for (Map.Entry<WatchKey, ArrayList<Watch>> entry : entrySet()) {
 				ArrayList<Watch> a = entry.getValue();
 				if (a.contains(w)) {
 					return a.remove(w);
