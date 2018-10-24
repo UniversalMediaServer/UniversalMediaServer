@@ -1530,11 +1530,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		// Otherwise check the address association
-		Iterator<Entry<InetAddress, RendererConfiguration>> keyIt = addressAssociation.entrySet().iterator();
-		while (keyIt.hasNext()) {
-			InetAddress sa = keyIt.next().getKey();
-			if (addressAssociation.get(sa) == this) {
-				return sa;
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			InetAddress address = entry.getKey();
+			if (entry.getValue() == this) {
+				return address;
 			}
 		}
 		return null;
@@ -2359,10 +2358,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		// Substitute
-		Iterator<Entry<String, String>> keyIt = charMap.entrySet().iterator();
-		while (keyIt.hasNext()) {
-			String s = keyIt.next().getKey();
-			String repl = charMap.get(s).replaceAll("###e", "");
+		for (Entry<String, String> entry : charMap.entrySet()) {
+			String s = entry.getKey();
+			String repl = entry.getValue().replaceAll("###e", "");
 			name = name.replaceAll(s, repl);
 		}
 
