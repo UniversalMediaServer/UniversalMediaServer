@@ -64,17 +64,16 @@ public class TempFileMgr {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void scan() {
 		long now = System.currentTimeMillis();
-		for (Entry<File, Integer> it : files.entrySet()) {
-			File f = it.getKey();
+		for (Iterator<File> it = files.keySet().iterator(); it.hasNext();) {
+			File f = it.next();
 			if (!f.exists()) {
-				((Iterator<Entry<File, Integer>>) it).remove();
+				it.remove();
 				continue;
 			}
-			if ((now - f.lastModified()) > it.getValue()) {
-				((Iterator<Entry<File, Integer>>) it).remove();
+			if ((now - f.lastModified()) > files.get(f)) {
+				it.remove();
 				f.delete();
 			}
 		}
