@@ -4,14 +4,65 @@ $(document).ready(function($) {
 	$('body').keydown(function(event) {
 		keyDown(event);
 	});
+	$('input.jQKeyboard').initKeypad({'keyboardLayout': keyboard});
+	/*$(".jQKeyboardBtn").mouseover(function(){	//play sound when key strikes
+		$("audio").get(0).play();
+	});*/
+
 });
+var keyboard = {
+	'layout': [
+		// alphanumeric keyboard type
+		// text displayed on keyboard button, keyboard value, keycode, column span, new row
+		[
+			[
+				['`', '`', 192, 0, true], ['1', '1', 49, 0, false], ['2', '2', 50, 0, false], ['3', '3', 51, 0, false], ['4', '4', 52, 0, false], ['5', '5', 53, 0, false], ['6', '6', 54, 0, false], 
+				['7', '7', 55, 0, false], ['8', '8', 56, 0, false], ['9', '9', 57, 0, false], ['0', '0', 48, 0, false], ['-', '-', 189, 0, false], ['=', '=', 187, 0, false],
+				['q', 'q', 81, 0, true], ['w', 'w', 87, 0, false], ['e', 'e', 69, 0, false], ['r', 'r', 82, 0, false], ['t', 't', 84, 0, false], ['y', 'y', 89, 0, false], ['u', 'u', 85, 0, false], 
+				['i', 'i', 73, 0, false], ['o', 'o', 79, 0, false], ['p', 'p', 80, 0, false], ['[', '[', 219, 0, false], [']', ']', 221, 0, false], ['&#92;', '\\', 220, 0, false],
+				['a', 'a', 65, 0, true], ['s', 's', 83, 0, false], ['d', 'd', 68, 0, false], ['f', 'f', 70, 0, false], ['g', 'g', 71, 0, false], ['h', 'h', 72, 0, false], ['j', 'j', 74, 0, false], 
+				['k', 'k', 75, 0, false], ['l', 'l', 76, 0, false], [';', ';', 186, 0, false], ['&#39;', '\'', 222, 0, false], ['Enter', '13', 13, 3, false],
+				['Shift', '16', 16, 2, true], ['z', 'z', 90, 0, false], ['x', 'x', 88, 0, false], ['c', 'c', 67, 0, false], ['v', 'v', 86, 0, false], ['b', 'b', 66, 0, false], ['n', 'n', 78, 0, false], 
+				['m', 'm', 77, 0, false], [',', ',', 188, 0, false], ['.', '.', 190, 0, false], ['/', '/', 191, 0, false], ['Shift', '16', 16, 2, false],
+				['Bksp', '8', 8, 3, true], ['Space', '32', 32, 12, false], ['Clear', '46', 46, 3, false], ['Cancel', '27', 27, 3, false]
+			]
+		]
+	]
+};
+/*SOUND FEEDBACK TEST
+if(g.sound_redesign){
+	var b={};
+	a.aa({
+		soundDescriptorToSoundIdMap:(
+		b["focus-change"]="airstream_move",
+		b["list-horizontal-nav"]="airstream_move",
+		b["list-vertical-nav"]="airstream_move",
+		b["list-end"]="airstream_thunk",
+		b.enter="airstream_select",
+		b.escape="airstream_move",
+		b["pivot-focus-change"]="airstream_move",
+		b)})}
+else b={},
+	a.aa({
+		soundDescriptorToSoundIdMap:(
+		b["focus-change"]="same-light",
+		b["list-horizontal-nav"]="same-toggle",
+		b["list-vertical-nav"]="same-toggle",
+		b["list-end"]="same-heavy",
+		b.enter="cross-enter",
+		b.escape="cross-back",
+		b["pivot-focus-change"]="same-heavy",
+		b)})
+		})();
+*/
+
 var level = {
 	"HOME"	  	: 0,
 	"BROWSE"	: 1,
 	"MEDIA"	 	: 2,
 	"PLAY"	  	: 3,
-	"VIDEO"	 	: 4/*,
-	"DOCUMENTAL": 5,
+	"VIDEO"	 	: 4,
+	"KEYBOARD"	: 5/*,
 	"SHOW"	  	: 6,
 	"TRAILER"   : 7,
 	"MUSICA"	: 8,
@@ -20,7 +71,7 @@ var level = {
 	"FOOTER"	: 12,
 	"HEADER"	: 13,
 	"MENU"	  	: 14,
-	"KEYBOARD"  : 15*/
+	"DOCUMENTAL"  : 15*/
 };
 var curLevel = level.HOME;
 var status = 0;
@@ -162,6 +213,7 @@ function keyDown(event) {
 			break;
 		}
 		case VK_ENTER: {
+			event.preventDefault(); //prevent default if it is body
 			emuleClick();
 			break;
 		}
@@ -267,13 +319,29 @@ function moveInHome(key) {
 			break;
 		}
 		case VK_RIGHT: {
-			onFocus.removeClass('onFocus');
-			$("#navbar").find("li:first a.dropdown-toggle").addClass('onFocus');
+			if($('#HomeButton').hasClass("onFocus")==true)
+			{
+				onFocus.removeClass('onFocus');
+				$("#trigger-overlay").addClass('onFocus');
+			}
+			else
+			{
+				onFocus.removeClass('onFocus');
+				$("#navbar").find(".dropdown-toggle").addClass('onFocus');
+			}			
 			break;
 		}
 		case VK_LEFT: {
-			onFocus.removeClass('onFocus');
-			$('#HomeButton').addClass('onFocus');
+			if($("#navbar").find(".dropdown-toggle").hasClass("onFocus")==true)
+			{
+				onFocus.removeClass('onFocus');
+				$("#trigger-overlay").addClass('onFocus');
+			}
+			else
+			{				
+				onFocus.removeClass('onFocus');
+				$('#HomeButton').addClass('onFocus');
+			}			
 			break;
 		}
 	}
@@ -538,50 +606,108 @@ function moveInKeyboard(key) {
 	var onFocus = $('.onFocus');
 	switch (key) {
 		case VK_LEFT: {
-			if (onFocus.prev().hasClass('key-btn')) {
+			
+			if (onFocus.prev().hasClass('jQKeyboardBtn')) {
 				changeFocus(onFocus.prev());
-			} else {
-				onFocus.removeClass('onFocus');
-				curLevel = level.BROWSE;
-				$('#tv-Promo').find('.tv-btn:first').addClass('onFocus');
+			}
+			else if(onFocus.parent().hasClass('col-xs-4'))
+			{
+				changeFocus(onFocus.parent().prev().find('.jQKeyboardBtn:first'));
 			}
 			break;
 		}
 		case VK_RIGHT: {
-			if (onFocus.next().hasClass('key-btn')) {
+			if (onFocus.next().hasClass('jQKeyboardBtn')) {
 				changeFocus(onFocus.next());
-			} else {
-				onFocus.removeClass('onFocus');
-				curLevel = level.FOOTER;
-				$('#tv-Footer').find('.tv-btn:first').addClass('onFocus');
+			}
+			else if(onFocus.parent().hasClass('col-xs-4'))
+			{
+				changeFocus(onFocus.parent().next().find('.jQKeyboardBtn:first'));
 			}
 			break;
 		}
 		case VK_UP: {
-			if (onFocus.next().hasClass('key-btn')) {
-				changeFocus(onFocus.next());
-			} else {
-				onFocus.removeClass('onFocus');
-				curLevel = level.FOOTER;
-				$('#tv-Footer').find('.tv-btn:first').addClass('onFocus');
+			if (onFocus.parent().prev().hasClass('jQKeyboardRow')) {
+				var index = onFocus.index()+1;
+				onFocus.parent().prev().find('.jQKeyboardBtn:nth-child('+index+')');
+				if(onFocus.parent().prev().find('.jQKeyboardBtn:nth-child('+index+')').hasClass('jQKeyboardBtn')){
+					changeFocus(onFocus.parent().prev().find('.jQKeyboardBtn:nth-child('+index+')'));
+				}
+				else
+				{
+					changeFocus(onFocus.parent().next().find('.jQKeyboardBtn:first'));
+				}
+			}
+			else if(onFocus.parent().hasClass('col-xs-4'))
+			{
+				changeFocus(onFocus.parent().parent().prev().find('.jQKeyboardBtn:first'));
 			}
 			break;
 		}
 		case VK_DOWN: {
-			if (onFocus.next().hasClass('key-btn')) {
-				changeFocus(onFocus.next());
-			} else {
-				onFocus.removeClass('onFocus');
-				curLevel = level.FOOTER;
-				$('#tv-Footer').find('.tv-btn:first').addClass('onFocus');
+			if (onFocus.parent().next().hasClass('jQKeyboardRow')) {				
+				var index = onFocus.index()+1;
+				onFocus.parent().next().find('.jQKeyboardBtn:nth-child('+index+')');
+				if(onFocus.parent().next().find('.jQKeyboardBtn:nth-child('+index+')').hasClass('jQKeyboardBtn') && !onFocus.parent().next().hasClass('special-keys-container')){
+					changeFocus(onFocus.parent().next().find('.jQKeyboardBtn:nth-child('+index+')'));
+				}
+				else if(onFocus.parent().next().find('.jQKeyboardBtn:last').hasClass('jQKeyboardBtn') && !onFocus.parent().next().hasClass('special-keys-container')){
+					changeFocus(onFocus.parent().next().find('.jQKeyboardBtn:last'));
+				}
+				else if(onFocus.parent().next().hasClass('special-keys-container'))
+				{
+					changeFocus(onFocus.parent().next().find('.col-xs-4:first').find('.jQKeyboardBtn:first'));
+				}
+				else
+				{
+					changeFocus(onFocus.parent().next().find('.jQKeyboardBtn:first'));
+				}
 			}
 			break;
 		}
 	}
 }
+/*case VK_UP: {
+			if (onFocus.parent().prev().hasClass('jQKeyboardRow')) {
+				var index = $('.onFocus').index()+1;
+				if($('.onFocus').parent().prev().find('.jQKeyboardBtn:nth-child('+index+')').hasClass('jQKeyboardBtn')){
+					changeFocus($('.onFocus').parent().prev().find('.jQKeyboardBtn:nth-child('+index+')'));
+				}
+				else if($('.onFocus').parent().prev().find('.jQKeyboardBtn:last').hasClass('jQKeyboardBtn')){
+					changeFocus($('.onFocus').parent().prev().find('.jQKeyboardBtn:last'));
+				}
+				else
+				{
+					changeFocus(onFocus.parent().prev().find('.jQKeyboardBtn:first'));
+				}
+			}
+			else if(onFocus.parent().hasClass('col-xs-4'))
+			{
+				changeFocus(onFocus.parent().parent().prev().find('.jQKeyboardBtn:first'));
+			}
+			break;
+		}
+		case VK_DOWN: {
+			if (onFocus.parent().next().hasClass('jQKeyboardRow')) {
+				var index = $('.onFocus').index()+1;
+				$('.onFocus').parent().next().find('.jQKeyboardBtn:nth-child('+index+')');
+				if($('.onFocus').parent().next().find('.jQKeyboardBtn:nth-child('+index+')').hasClass('jQKeyboardBtn')){
+					changeFocus($('.onFocus').parent().next().find('.jQKeyboardBtn:nth-child('+index+')'));
+				}
+				else if($('.onFocus').parent().next().find('.jQKeyboardBtn:last').hasClass('jQKeyboardBtn')){
+					changeFocus($('.onFocus').parent().next().find('.jQKeyboardBtn:last'));
+				}
+				else
+				{
+					changeFocus(onFocus.parent().next().find('.jQKeyboardBtn:first'));
+				}
+			}
+			break;
+		}*/
 function changeFocus(newfocusOb) {
+	var object = newfocusOb;
 	$('.onFocus').removeClass('onFocus');
-	newfocusOb.addClass('onFocus');
+	object.addClass('onFocus');
 }
 // Funcion que emula cliquear sobre la div en foco.
 function emuleClick() {
@@ -647,8 +773,7 @@ function folderScroll(){
 }
 //Funcion para mostrar teclado virtual en pantalla
 function launchVirtualKeyboard() {
-	$('#myVirtualKeyboard').modal('toggle');
-	$('#search-box').focus();
+	
 }
 
 function jumpingStep()

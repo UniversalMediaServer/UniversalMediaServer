@@ -1,0 +1,174 @@
+.jQKeyboard{
+	background: transparent;
+	color: #FFFFFF;
+}
+
+.jQKeyboard:hover{
+	background: transparent;
+	color: #FFFFFF;
+}
+
+input[type=text].jQKeyboard.focus,
+textarea.jQKeyboard.focus{
+	outline: 0;
+	border-color: #2a67b0;
+	box-shadow: 0 0 10px #2a67b0;
+	transition-property: border-color,box-shadow
+}
+
+div.jQKeyboardContainer{
+	display: table;
+	position: fixed;
+	background-color: transparent;
+	padding-top: 1.75rem;
+	z-index: 1031;
+}
+
+div.jQKeyboardRow{
+    text-align: left;
+    margin-bottom: 6px;
+    width: 460px;
+    margin: auto;
+}
+
+button.jQKeyboardBtn{
+    background: transparent;
+    cursor: pointer;
+    border-radius: 0.125rem;
+    color: #969696;
+    display: inline-block;
+    height: 48px;
+    margin-bottom: 0.25rem;
+    margin-right: 0.25rem;
+    text-align: center;
+    text-transform: uppercase;
+    position: relative;
+    width: 2.5rem;
+    vertical-align: bottom;
+    font-family: Roboto;
+    font-size: 2.75rem;
+    line-height: 3.5rem;
+    font-weight: normal;
+    border: 0;
+}
+
+button.jQKeyboardBtn:hover{
+	background-color:#ebebeb;
+	color:#2f2f2f;
+	-moz-transform:scale(1.1);
+	-webkit-transform:scale(1.1);
+	-o-transform:scale(1.1);
+	transform:scale(1.1);
+	border-radius:0.11364rem;
+	box-shadow:0 0 0.75rem 0 rgba(0,0,0,0.24),0 0.75rem 0.75rem 0 rgba(0,0,0,0.48);
+	-moz-transition: transform 0.2s;
+	-webkit-transition: transform 0.2s;
+    -o-transition: transform 0.2s;    
+    transition: transform 0.2s;
+    transform-origin: 50% 50%;
+}
+
+button.jQKeyboardBtn.onFocus{
+	background-color:#ebebeb !important;
+	color:#2f2f2f !important;
+	-moz-transform:scale(1.1);
+	-webkit-transform:scale(1.1);
+	-o-transform:scale(1.1);
+	transform:scale(1.1);
+	border-radius:0.11364rem;
+	box-shadow:0 0 0.75rem 0 rgba(0,0,0,0.24),0 0.75rem 0.75rem 0 rgba(0,0,0,0.48);
+	-moz-transition: transform 0.2s;
+	-webkit-transition: transform 0.2s;
+    -o-transition: transform 0.2s;    
+    transition: transform 0.2s;
+    transform-origin: 50% 50%;
+}
+
+button.jQKeyboardBtn:active,
+button.jQKeyboardBtn.shift-active{
+	color: #fcfcfc;
+	background: #087dfd !important;
+}
+
+button.jQKeyboardBtn#key16{
+	font-size: 2.25rem;
+    line-height: 2.5rem;
+	font-weight: bold;
+}
+
+div.jQKeyboardRow.special-keys-container {
+	margin: 2rem auto;
+    text-align: center;
+}
+
+button.jQKeyboardBtn.disabled{
+	color: #d9d9d9;
+	background: #5e626e;
+	background-image: -ms-linear-gradient(#939393, #939393);
+	background-image: -webkit-linear-gradient(#939393, #939393);
+	opacity: 0.9;
+	filter: alpha(opacity=90);
+}
+
+button.jQKeyboardBtn.ui-button-colspan-0{
+	width: 48px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-2{
+	width: 72px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-3{
+	width: 96px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-4{
+	width: 100%;
+	font-size: 2.25rem;
+    line-height: 2.5rem;
+	background-color: #373737;
+	height: 35px;
+}
+button.jQKeyboardBtn.ui-button-colspan-4:hover{
+	background-color:#ebebeb;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-5{
+	width: 144px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-6{
+	width: 168px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-7{
+	width: 192px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-8{
+	width: 216px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-8{
+	width: 240px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-9{
+	width: 268px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-10{
+	width: 292px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-11{
+	width: 316px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-12{
+	width: 340px;
+}
+
+button.jQKeyboardBtn.ui-button-colspan-13{
+	width: 440px;
+}

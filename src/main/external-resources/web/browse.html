@@ -25,12 +25,15 @@
 		<!-- New webUI -->
 		<script src="/files/util/bootstrap.min.js"></script>
 		<script src="/files/util/html5.js"></script>
+		<script src="/files/util/modernizr.custom.js"></script>
 		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
 		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/jQKeyboard.js"></script><!--load before keycontroller-->
 		<script src="/files/util/keycode.js"></script>
 		<script src="/files/util/keycontroller.js"></script>
 		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="/files/util/jQKeyboard.css" type="text/css">
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage" class="browsePage">
@@ -47,6 +50,13 @@
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
+						{{#hasFile}}
+							<li id="trigger-overlay">
+								<a role="button" type="button">
+									<i class="fa fa-search" aria-hidden="true"></i>
+								</a>
+							</li>
+						{{/hasFile}}
 						<li class="dropdown">
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="settings"><i class="fa fa-cog"></i></a>
 							<ul class="dropdown-menu">
@@ -57,16 +67,6 @@
 							</ul>
 						</li>
 					</ul>
-					{{#hasFile}}
-					<form  id="SearchForm" method="get" class="navbar-form navbar-right">
-						<div class="input-group">
-							<input type="text" class="form-control" placeholder="Search..." name="str">
-							<span class="input-group-btn">
-								<button class="btn btn-default" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
-							</span>
-						</div>
-					</form>
-					{{/hasFile}}
 				</div>
 			</div>
 		</nav>
@@ -79,19 +79,37 @@
 				</ul>
 			</div>
 			{{#hasFile}}
-			<ul id="Media" class="nav nav-sidebar">
-				{{#media}}
-				<li>
-					{{thumb}}
-					<div class="box-meta">
-					{{bump}}
-					{{caption}}
-					</div>
-				</li>
-				{{/media}}
-			</ul>
-			{{/hasFile}}
+			<div id="MediaContainer">
+				<ul id="Media" class="nav nav-sidebar">
+					{{#media}}
+					<li>
+						{{thumb}}
+						<div class="box-meta">
+						{{bump}}
+						{{caption}}
+						</div>
+					</li>
+					{{/media}}
+				</ul>
+			</div>
+			{{/hasFile}}			
+		</div>
+		<!-- open/close -->
+		<div class="overlay overlay-contentscale">
+			<button type="button" class="overlay-close">Close</button>
+			<nav>
+			<div id="searchbar">
+				{{#hasFile}}
+					<form  id="SearchForm" method="get" class="navbar-form navbar-right">
+						<input type="text" class="form-control jQKeyboard" placeholder="Search..." name="str">
+					</form>
+				{{/hasFile}}
+				
+			</div>
+			</nav>
 		</div>
 	</body>
 	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
+	<script src="/files/util/searchclassie.js"></script>
+	<script src="/files/util/search.js"></script>
 </html>
