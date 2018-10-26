@@ -368,7 +368,9 @@ public class RootFolder extends DLNAResource {
 	private static List<Path> defaultFolders = null;
 
 	/**
-	 * Enumerates and returns the default shared folders if none is configured.
+	 * Enumerates and sets the default shared folders if none is configured.
+	 *
+	 * Note: This is a getter and a setter in one.
 	 *
 	 * @return The default shared folders.
 	 */
@@ -382,23 +384,10 @@ public class RootFolder extends DLNAResource {
 					Double version = PMS.get().getRegistry().getWindowsVersion();
 					if (version != null && version >= 6d) {
 						ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
-//							KnownFolders.FOLDERID_Desktop,
-//							KnownFolders.FOLDERID_Downloads,
 							KnownFolders.FOLDERID_Music,
-//							KnownFolders.FOLDERID_OriginalImages,
-//							KnownFolders.FOLDERID_PhotoAlbums,
 							KnownFolders.FOLDERID_Pictures,
-//							KnownFolders.FOLDERID_Playlists,
-//							KnownFolders.FOLDERID_PublicDownloads,
-//							KnownFolders.FOLDERID_PublicMusic,
-//							KnownFolders.FOLDERID_PublicPictures,
-//							KnownFolders.FOLDERID_PublicVideos,
-//							KnownFolders.FOLDERID_SavedPictures,
 							KnownFolders.FOLDERID_Videos,
 						}));
-//						if (version >= 6.2) { // Windows 8
-//							knownFolders.add(KnownFolders.FOLDERID_Screenshots);
-//						}
 						for (GUID guid : knownFolders) {
 							Path folder = getWindowsKnownFolder(guid);
 							if (folder != null) {
@@ -407,10 +396,6 @@ public class RootFolder extends DLNAResource {
 						}
 					} else {
 						CSIDL[] csidls = {
-//							CSIDL.CSIDL_COMMON_MUSIC,
-//							CSIDL.CSIDL_COMMON_PICTURES,
-//							CSIDL.CSIDL_COMMON_VIDEO,
-//							CSIDL.CSIDL_DESKTOP,
 							CSIDL.CSIDL_MYMUSIC,
 							CSIDL.CSIDL_MYPICTURES,
 							CSIDL.CSIDL_MYVIDEO
@@ -423,16 +408,6 @@ public class RootFolder extends DLNAResource {
 						}
 					}
 				} else if (Platform.isMac()) {
-//					defaultFolders.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-//						NSSearchPathDirectory.NSDesktopDirectory,
-//						NSSearchPathDomainMask.NSAllDomainsMask,
-//						true
-//					));
-//					defaultFolders.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-//						NSSearchPathDirectory.NSDownloadsDirectory,
-//						NSSearchPathDomainMask.NSAllDomainsMask,
-//						true
-//					));
 					defaultFolders.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
 						NSSearchPathDirectory.NSMoviesDirectory,
 						NSSearchPathDomainMask.NSAllDomainsMask,
@@ -448,11 +423,6 @@ public class RootFolder extends DLNAResource {
 						NSSearchPathDomainMask.NSAllDomainsMask,
 						true
 					));
-//					defaultFolders.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-//						NSSearchPathDirectory.NSSharedPublicDirectory,
-//						NSSearchPathDomainMask.NSAllDomainsMask,
-//						true
-//					));
 				} else {
 					defaultFolders.add(Paths.get("").toAbsolutePath());
 					String userHome = System.getProperty("user.home");

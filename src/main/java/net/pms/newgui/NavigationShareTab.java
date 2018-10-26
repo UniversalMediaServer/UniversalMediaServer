@@ -94,7 +94,6 @@ public class NavigationShareTab {
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
-	private final JImageButton customizeButton = new JImageButton();
 	private final JImageButton addButton = new JImageButton("button-add-folder.png");
 	private final JImageButton removeButton = new JImageButton("button-remove-folder.png");
 	private final JImageButton arrowDownButton = new JImageButton("button-arrow-down.png");
@@ -736,7 +735,6 @@ public class NavigationShareTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		boolean defaultSharedFolders = configuration.isDefaultSharedFolders();
 		folderTableModel = new SharedFoldersTableModel();
 		sharedFolders = new JTable(folderTableModel);
 
@@ -772,21 +770,10 @@ public class NavigationShareTab {
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
 		sharedFolders.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		sharedFolders.setIntercellSpacing(new Dimension(8, 2));
-		sharedFolders.setEnabled(!defaultSharedFolders);
 
-		updateCustomizeButton(!defaultSharedFolders);
 		final JPanel tmpsharedPanel = sharedPanel;
-		customizeButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggleCustomizeFolders(tmpsharedPanel);
-			}
-		});
-		builderFolder.add(customizeButton, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		addButton.setToolTipText(Messages.getString("FoldTab.9"));
-		addButton.setEnabled(!defaultSharedFolders);
 		addButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -813,28 +800,9 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		addButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (configuration.isDefaultSharedFolders() && e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() > 1) {
-					if (
-						JOptionPane.showConfirmDialog(
-							tmpsharedPanel,
-							Messages.getString("SharedFolders.EnableModify"),
-							null,
-							JOptionPane.YES_NO_OPTION,
-							JOptionPane.QUESTION_MESSAGE
-						) == JOptionPane.YES_OPTION
-					) {
-						toggleCustomizeFolders(tmpsharedPanel);
-					}
-				}
-			}
-		});
 		builderFolder.add(addButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		removeButton.setToolTipText(Messages.getString("FoldTab.36"));
-		removeButton.setEnabled(!defaultSharedFolders);
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -860,28 +828,9 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		removeButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (configuration.isDefaultSharedFolders() && e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() > 1) {
-					if (
-						JOptionPane.showConfirmDialog(
-							tmpsharedPanel,
-							Messages.getString("SharedFolders.EnableModify"),
-							null,
-							JOptionPane.YES_NO_OPTION,
-							JOptionPane.QUESTION_MESSAGE
-						) == JOptionPane.YES_OPTION
-					) {
-						toggleCustomizeFolders(tmpsharedPanel);
-					}
-				}
-			}
-		});
 		builderFolder.add(removeButton, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
 		arrowDownButton.setToolTipText(Messages.getString("SharedFolders.ArrowDown"));
-		arrowDownButton.setEnabled(!defaultSharedFolders);
 		arrowDownButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -904,7 +853,6 @@ public class NavigationShareTab {
 		builderFolder.add(arrowDownButton, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
 		arrowUpButton.setToolTipText(Messages.getString("SharedFolders.ArrowUp"));
-		arrowUpButton.setEnabled(!defaultSharedFolders);
 		arrowUpButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1026,43 +974,6 @@ public class NavigationShareTab {
 			LooksFrame.readImageIcon(FileUtil.appendToFileName(baseName, suffix));
 
 		return icon == null ? UIManager.getIcon("OptionPane.warningIcon") : icon;
-	}
-
-	private void toggleCustomizeFolders(Component parentComponent) {
-		boolean defaultFolders = !configuration.isDefaultSharedFolders();
-		if (!defaultFolders && configuration.isSharedFoldersEmpty()) {
-			if (
-				JOptionPane.showConfirmDialog(
-					parentComponent,
-					Messages.getString("SharedFolders.CopyDefault"),
-					null,
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE
-				) == JOptionPane.YES_OPTION
-			) {
-				configuration.setSharedFoldersToDefault();
-			}
-		}
-		configuration.setDefaultSharedFolders(defaultFolders);
-		updateCustomizeButton(!defaultFolders);
-		addButton.setEnabled(!defaultFolders);
-		removeButton.setEnabled(!defaultFolders);
-		arrowDownButton.setEnabled(!defaultFolders);
-		arrowUpButton.setEnabled(!defaultFolders);
-		sharedFolders.setEnabled(!defaultFolders);
-		updateSharedFolders();
-	}
-
-	private void updateCustomizeButton(boolean customize) {
-		String baseName = customize ? "button-default.png" : "button-modify.png";
-		customizeButton.setIcon(getIcon(baseName, null));
-		customizeButton.setPressedIcon(getIcon(baseName, "_pressed"));
-		customizeButton.setDisabledIcon(getIcon(baseName, "_disabled"));
-		customizeButton.setRolloverIcon(getIcon(baseName, "_mouseover"));
-		customizeButton.setToolTipText(customize ?
-			Messages.getString("SharedFolders.DefaultFoldersToolTip") :
-			Messages.getString("SharedFolders.ModifyFoldersToolTip")
-		);
 	}
 
 	public void setScanLibraryEnabled(boolean enabled) {

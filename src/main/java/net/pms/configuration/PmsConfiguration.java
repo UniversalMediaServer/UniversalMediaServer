@@ -335,7 +335,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
 	protected static final String KEY_UPNP_PORT = "upnp_port";
 	protected static final String KEY_USE_CACHE = "use_cache";
-	protected static final String KEY_USE_DEFAULT_FOLDERS = "use_default_folders";
 	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
 	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
@@ -438,8 +437,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
 			KEY_SORT_METHOD,
-			KEY_USE_CACHE,
-			KEY_USE_DEFAULT_FOLDERS
+			KEY_USE_CACHE
 		)
 	);
 
@@ -2718,71 +2716,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	@GuardedBy("sharedFoldersLock")
 	private ArrayList<Path> ignoredFolders;
 
-	@GuardedBy("sharedFoldersLock")
-	private boolean defaultSharedFolders;
-
-	@GuardedBy("sharedFoldersLock")
-	private boolean defaultSharedFoldersRead;
-
 	private void readSharedFolders() {
 		synchronized (sharedFoldersLock) {
 			if (!sharedFoldersRead) {
 				sharedFolders = getFolders(KEY_FOLDERS);
 				sharedFoldersRead = true;
-			}
-		}
-	}
-
-	private void readDefaultSharedFolders() {
-		synchronized (sharedFoldersLock) {
-			if (!defaultSharedFoldersRead) {
-				Boolean useDefault;
-				try {
-					useDefault = configuration.getBoolean(KEY_USE_DEFAULT_FOLDERS, null);
-				} catch (ConversionException e) {
-					useDefault = null;
-					String useDefaultString = configuration.getString(KEY_USE_DEFAULT_FOLDERS, null);
-					if (!isBlank(useDefaultString)) {
-						LOGGER.warn(
-							"Invalid configured value for {} \"{}\", using default",
-							KEY_USE_DEFAULT_FOLDERS,
-							useDefaultString
-						);
-					}
-				}
-				if (useDefault != null) {
-					defaultSharedFolders = useDefault.booleanValue();
-				} else {
-					defaultSharedFolders = isSharedFoldersEmpty();
-				}
-				defaultSharedFoldersRead = true;
-			}
-		}
-	}
-
-	/**
-	 * @return {@code true} if the default shared folders are used,
-	 *         {@code false} otherwise.
-	 */
-	public boolean isDefaultSharedFolders() {
-		synchronized (sharedFoldersLock) {
-			readDefaultSharedFolders();
-			return defaultSharedFolders;
-		}
-	}
-
-	/**
-	 * Sets whether to use the default shared folders.
-	 *
-	 * @param useDefaultFolders {@code true} to use the default shared folders,
-	 *            {@code false} otherwise.
-	 */
-	public void setDefaultSharedFolders(boolean useDefaultFolders) {
-		synchronized (sharedFoldersLock) {
-			readDefaultSharedFolders();
-			if (useDefaultFolders != defaultSharedFolders) {
-				configuration.setProperty(KEY_USE_DEFAULT_FOLDERS, useDefaultFolders);
-				defaultSharedFolders = useDefaultFolders;
 			}
 		}
 	}
@@ -2804,8 +2742,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nonnull
 	public List<Path> getSharedFolders() {
 		synchronized (sharedFoldersLock) {
-			if (isDefaultSharedFolders()) {
-				return RootFolder.getDefaultFolders();
+			if (isSharedFoldersEmpty()) {
+				setSharedFoldersToDefault();
 			}
 			readSharedFolders();
 			return new ArrayList<>(sharedFolders);
@@ -2818,8 +2756,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nonnull
 	public List<Path> getMonitoredFolders() {
 		synchronized (sharedFoldersLock) {
-			if (isDefaultSharedFolders()) {
-				return RootFolder.getDefaultFolders();
+			if (isSharedFoldersEmpty()) {
+				setSharedFoldersToDefault();
 			}
 			if (!monitoredFoldersRead) {
 				monitoredFolders = getFolders(KEY_FOLDERS_MONITORED);
