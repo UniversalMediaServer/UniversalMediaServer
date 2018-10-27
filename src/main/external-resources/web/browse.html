@@ -22,76 +22,50 @@
 		<script src="/files/jquery.ums.js"></script>
 		<script src="/files/js.cookie-2.1.0.min.js"></script>
 		<script src="/bump/bump.js"></script>
-		<!-- New webUI -->
-		<script src="/files/util/bootstrap.min.js"></script>
-		<script src="/files/util/html5.js"></script>
-		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
-		<!--TV - REMOTE CONTROL-->
-		<script src="/files/util/keycode.js"></script>
-		<script src="/files/util/keycontroller.js"></script>
-		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage" class="browsePage">
-		<nav class="navbar navbar-inverse navbar-fixed-top">
-			<div class="container-fluid">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-						<span class="sr-only">Toggle navigation</span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a  id="HomeButton" class="navbar-brand onFocus" href="/browse/0" title="UMS"></a>
-				</div>
-				<div id="navbar" class="navbar-collapse collapse">
-					<ul class="nav navbar-nav navbar-right">
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="settings"><i class="fa fa-cog"></i></a>
-							<ul class="dropdown-menu">
-								<li><a href="/doc" title="Documentation"><i class="fa fa-info-circle" aria-hidden="true"></i> Documentation</a></li>
-								<li><a href="javascript:setPadColor(1)" title="Change padding color"><i class="fa fa-paint-brush" aria-hidden="true"></i> Change padding color</a></li>
-								<li><a href="javascript:chooseView('grid')" title="Switch to grid view"><i class="fa fa-th" aria-hidden="true"></i> Switch to grid view</a></li>
-								<li><a href="javascript:chooseView('dynamic')" title="Switch to dynamic view"><i class="fa fa-th-list" aria-hidden="true"></i> Switch to dynamic view</a></li>
-							</ul>
-						</li>
-					</ul>
-					{{#hasFile}}
-					<form  id="SearchForm" method="get" class="navbar-form navbar-right">
-						<div class="input-group">
-							<input type="text" class="form-control" placeholder="Search..." name="str">
-							<span class="input-group-btn">
-								<button class="btn btn-default" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
-							</span>
-						</div>
-					</form>
-					{{/hasFile}}
-				</div>
-			</div>
-		</nav>
 		<div id="Container" class="noHzScroll">
+			<div id="Menu">
+				<div id="OptionsMenu">
+{{#hasFile}}
+					<form id="SearchForm" method="get">
+						<input type="text" id="SearchInput" name="str">
+						<input type="submit" id="SearchSubmit" title="Search" value="&nbsp;">
+					</form>
+{{/hasFile}}
+					<ul class="HoverMenu" title="Settings">
+						<a id="DocButton" title="Settings"></a>
+						<ul id="SettingsMenu">
+							<li><a href="/doc" id="Docs" title="Documentation"></a></li>
+							<li><span><a href="javascript:setPadColor(1)" id="ViewPadColor" title="Change padding color"></a></span></li>
+							<li>
+								<a href="javascript:chooseView('grid')" id="ViewGrid" title="Switch to grid view"></a>
+								<a href="javascript:chooseView('dynamic')" id="ViewDynamic" title="Switch to dynamic view"></a>
+							</li>
+						</ul>
+					</ul>
+				</div>
+				<a href="/browse/0" id="HomeButton"></a>
+			</div>
 			<div id="FoldersContainer">
-				<ul id="Folders" class="nav nav-sidebar">
-					{{#folders}}
+				<ul id="Folders">
+{{#folders}}
 					<li>{{this}}</li>
-					{{/folders}}
+{{/folders}}
 				</ul>
 			</div>
-			{{#hasFile}}
-			<ul id="Media" class="nav nav-sidebar">
-				{{#media}}
+{{#hasFile}}
+			<ul id="Media">
+{{#media}}
 				<li>
 					{{thumb}}
-					<div class="box-meta">
 					{{bump}}
 					{{caption}}
-					</div>
 				</li>
-				{{/media}}
+{{/media}}
 			</ul>
-			{{/hasFile}}
+{{/hasFile}}
 		</div>
 	</body>
-	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
 </html>

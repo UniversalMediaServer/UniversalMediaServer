@@ -49,7 +49,6 @@ import net.pms.encoders.AviSynthMEncoder;
 import net.pms.encoders.DCRaw;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.FFmpegAudio;
-import net.pms.encoders.FFmpegDVRMSRemux;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.MEncoderWebVideo;
@@ -63,6 +62,8 @@ import net.pms.encoders.VideoLanAudioStreaming;
 import net.pms.encoders.VideoLanVideoStreaming;
 import net.pms.formats.Format;
 import net.pms.newgui.NavigationShareTab.SharedFoldersTableModel;
+import net.pms.service.PreventSleepMode;
+import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
@@ -71,7 +72,6 @@ import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
-import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
@@ -772,11 +772,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		return tempFolder.getTempFolder();
 	}
 
-	public String getVlcPath() {
+	public String getVLCPath() {
 		return programPaths.getVlcPath();
 	}
 
-	public String getMencoderPath() {
+	public String getMEncoderPath() {
 		return programPaths.getMencoderPath();
 	}
 
@@ -788,23 +788,23 @@ public class PmsConfiguration extends RendererConfiguration {
 		return programPaths.getDCRaw();
 	}
 
-	public String getFfmpegPath() {
+	public String getFFmpegPath() {
 		return programPaths.getFfmpegPath();
 	}
 
-	public String getMplayerPath() {
+	public String getMPlayerPath() {
 		return programPaths.getMplayerPath();
 	}
 
-	public String getTsmuxerPath() {
+	public String getTsMuxeRPath() {
 		return programPaths.getTsmuxerPath();
 	}
 
-	public String getTsmuxerNewPath() {
+	public String getTsMuxeRNewPath() {
 		return programPaths.getTsmuxerNewPath();
 	}
 
-	public String getFlacPath() {
+	public String getFLACPath() {
 		return programPaths.getFlacPath();
 	}
 
@@ -817,6 +817,20 @@ public class PmsConfiguration extends RendererConfiguration {
 		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
 		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
 		return result != null ? result : defaultValue;
+	}
+
+	public Path getCtrlSenderPath() {
+		if (programPaths instanceof ConfigurationProgramPaths) {
+			return ((ConfigurationProgramPaths) programPaths).getCtrlSender();
+		}
+		return null;
+	}
+
+	public Path getTaskKillPath() {
+		if (programPaths instanceof ConfigurationProgramPaths) {
+			return ((ConfigurationProgramPaths) programPaths).getTaskKill();
+		}
+		return null;
 	}
 
 	/**
@@ -881,9 +895,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getServerDisplayName() {
 		if (isAppendProfileName()) {
 			return String.format("%s [%s]", getString(KEY_SERVER_NAME, PMS.NAME), getProfileName());
-		} else {
-			return getString(KEY_SERVER_NAME, PMS.NAME);
 		}
+		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
 	/**
 	 * The name of the server.
@@ -2267,14 +2280,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	public String getFfmpegAlternativePath() {
-		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
-	}
-
-	public void setFfmpegAlternativePath(String value) {
-		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
-	}
-
 	public boolean getSkipLoopFilterEnabled() {
 		return getBoolean(KEY_SKIP_LOOP_FILTER_ENABLED, false);
 	}
@@ -2372,9 +2377,6 @@ public class PmsConfiguration extends RendererConfiguration {
 				enabledEngines.add(VideoLanVideoStreaming.ID);
 				enabledEngines.add(MEncoderWebVideo.ID);
 				enabledEngines.add(VideoLanAudioStreaming.ID);
-				if (Platform.isWindows()) {
-					enabledEngines.add(FFmpegDVRMSRemux.ID);
-				}
 				enabledEngines.add(DCRaw.ID);
 				configuration.setProperty(KEY_ENGINES, listToString(enabledEngines));
 			} else if (engines.equalsIgnoreCase("None")) {
@@ -2529,9 +2531,6 @@ public class PmsConfiguration extends RendererConfiguration {
 				enginesPriority.add(VideoLanVideoStreaming.ID);
 				enginesPriority.add(MEncoderWebVideo.ID);
 				enginesPriority.add(VideoLanAudioStreaming.ID);
-				if (Platform.isWindows()) {
-					enginesPriority.add(FFmpegDVRMSRemux.ID);
-				}
 				enginesPriority.add(VLCVideo.ID);
 				enginesPriority.add(DCRaw.ID);
 
@@ -2571,9 +2570,21 @@ public class PmsConfiguration extends RendererConfiguration {
 		buildEnginesPriority();
 		enginesPriorityLock.readLock().lock();
 		try {
-			return enginesPriority.indexOf(id);
+			int index = enginesPriority.indexOf(id);
+			if (index >= 0) {
+				return index;
+			}
 		} finally {
 			enginesPriorityLock.readLock().unlock();
+		}
+
+		// The engine isn't listed, add it last
+		enginesPriorityLock.writeLock().lock();
+		try {
+			enginesPriority.add(id);
+			return enginesPriority.indexOf(id);
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
 		}
 	}
 
@@ -3101,7 +3112,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	private int findPathSort(String[] paths, String path) throws NumberFormatException{
+	private static int findPathSort(String[] paths, String path) throws NumberFormatException{
 		for (String path1 : paths) {
 			String[] kv = path1.split(",");
 			if (kv.length < 2) {
@@ -3317,7 +3328,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new NullPointerException("value cannot be null");
 		}
 		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
-		PMS.get().getSleepManager().setMode(value);
+		Services.sleepManager().setMode(value);
 	}
 
 	public PreventSleepMode getPreventSleep() {
@@ -4031,9 +4042,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
 		if (i < 1 || i > 65535) {
 			return 514;
-		} else {
-			return i;
 		}
+		return i;
 	}
 
 	public void setLoggingSyslogPort(int value) {

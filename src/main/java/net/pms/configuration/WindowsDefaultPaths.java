@@ -22,6 +22,12 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import net.pms.util.FilePermissions;
+import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
@@ -123,5 +129,30 @@ class WindowsDefaultPaths implements ProgramPaths {
 			LOGGER.info("Couldn't get the absolute path");
 			return "";
 		}
+	}
+
+	/**
+	 * @return The {@link Path} for {@code ctrlsender.exe}.
+	 */
+	public Path getCtrlSender() {
+		Path tmpCtrlSender = Paths.get("src/main/external-resources/lib/ctrlsender/ctrlsender.exe");
+		if (!Files.exists(tmpCtrlSender)) {
+			tmpCtrlSender =  Paths.get(getBinariesPath(), ("win32/ctrlsender.exe"));
+		}
+		try {
+			if (!new FilePermissions(tmpCtrlSender).isExecutableFile()) {
+				tmpCtrlSender = null;
+			}
+		} catch (FileNotFoundException e) {
+			tmpCtrlSender = null;
+		}
+		return tmpCtrlSender;
+	}
+
+	/**
+	 * @return The {@link Path} for {@code taskkill.exe}.
+	 */
+	public Path getTaskKill() {
+		return FileUtil.findExecutableInOSPath(Paths.get("taskkill.exe"));
 	}
 }

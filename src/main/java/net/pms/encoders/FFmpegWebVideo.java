@@ -69,18 +69,14 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	static {
 		readWebFilters(_configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 
-		Path executable = Paths.get(_configuration.getFfmpegPath());
+		Path executable = Paths.get(_configuration.getFFmpegPath());
 		try {
 			FilePermissions permissions = new FilePermissions(executable);
 			if (permissions.isExecutable()) {
 				protocolsLock.writeLock().lock();
 				try {
-					FFmpegOptions.getSupportedProtocols(protocols, executable.toString());
-					if (protocols.contains("mmsh")) {
-						// Workaround an FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
-						// Also see launchTranscode()
-						protocols.add("mms");
-					}
+					protocols.clear();
+					protocols.addAll(FFmpegOptions.getSupportedProtocols(executable));
 					LOGGER.debug("FFmpeg supported protocols: {}", protocols);
 				} finally {
 					protocolsLock.writeLock().unlock();
@@ -246,7 +242,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
 
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe

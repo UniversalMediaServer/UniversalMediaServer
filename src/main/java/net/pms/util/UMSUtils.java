@@ -556,7 +556,7 @@ public class UMSUtils {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.waitbeforestart = 0;
 		outputParams.log = true;
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-hwaccels"}, false, outputParams, true, false);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFFmpegPath(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {

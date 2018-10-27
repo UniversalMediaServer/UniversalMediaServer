@@ -38,11 +38,6 @@ import net.pms.util.PlayerUtil;
 public class VideoLanVideoStreaming extends Player {
 	public static final String ID = "VLCVideo";
 
-	@Deprecated
-	public VideoLanVideoStreaming(PmsConfiguration configuration) {
-		this();
-	}
-
 	public VideoLanVideoStreaming() {
 	}
 
@@ -77,8 +72,8 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getVlcPath();
+	public String getExecutable() {
+		return configuration.getVLCPath();
 	}
 
 	protected String getEncodingArgs() {
@@ -128,7 +123,7 @@ public class VideoLanVideoStreaming extends Player {
 		params.secondread_minsize = 100000;
 
 		List<String> cmdList = new ArrayList<>();
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
@@ -192,9 +187,6 @@ public class VideoLanVideoStreaming extends Player {
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebVideo(resource);

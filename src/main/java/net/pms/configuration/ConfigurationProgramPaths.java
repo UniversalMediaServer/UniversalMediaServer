@@ -20,6 +20,7 @@
 
 package net.pms.configuration;
 
+import java.nio.file.Path;
 import org.apache.commons.configuration.Configuration;
 
 class ConfigurationProgramPaths implements ProgramPaths {
@@ -97,5 +98,23 @@ class ConfigurationProgramPaths implements ProgramPaths {
 	@Override
 	public String getInterFramePath() {
 		return getString(KEY_INTERFRAME_PATH, defaults.getInterFramePath());
+	}
+
+	/**
+	 * @return The {@link Path} for {@code ctrlsender.exe} for Windows.
+	 */
+	public Path getCtrlSender() {
+		return defaults instanceof WindowsDefaultPaths ?
+			((WindowsDefaultPaths) defaults).getCtrlSender() :
+			null;
+	}
+
+	/**
+	 * @return The {@link Path} for {@code taskkill.exe} for Windows.
+	 */
+	public Path getTaskKill() {
+		return defaults instanceof WindowsDefaultPaths ?
+			((WindowsDefaultPaths) defaults).getTaskKill() :
+			null;
 	}
 }

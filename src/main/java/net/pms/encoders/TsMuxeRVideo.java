@@ -102,8 +102,8 @@ public class TsMuxeRVideo extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getTsmuxerPath();
+	public String getExecutable() {
+		return configuration.getTsMuxeRPath();
 	}
 
 	@Override
@@ -152,7 +152,7 @@ public class TsMuxeRVideo extends Player {
 			}
 
 			ffmpegCommands = new String[] {
-				configuration.getFfmpegPath(),
+				configuration.getFFmpegPath(),
 				timeEndValue1, timeEndValue2,
 				"-loop", "1",
 				"-i", "DummyInput.jpg",
@@ -181,7 +181,7 @@ public class TsMuxeRVideo extends Player {
 				ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "flacaudio", System.currentTimeMillis() + "audioout", false, true);
 
 				String[] flacCmd = new String[] {
-					configuration.getFlacPath(),
+					configuration.getFLACPath(),
 					"--output-name=" + ffAudioPipe[0].getInputPipe(),
 					"-d",
 					"-f",
@@ -208,7 +208,7 @@ public class TsMuxeRVideo extends Player {
 				}
 
 				String[] flacCmd = new String[] {
-					configuration.getFfmpegPath(),
+					configuration.getFFmpegPath(),
 					"-i", filename,
 					"-ar", rate,
 					"-f", "wav",
@@ -229,7 +229,7 @@ public class TsMuxeRVideo extends Player {
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
 
 			ffmpegCommands = new String[] {
-				configuration.getFfmpegPath(),
+				configuration.getFFmpegPath(),
 				"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 				"-i", filename,
 				"-c", "copy",
@@ -327,7 +327,7 @@ public class TsMuxeRVideo extends Player {
 						sm.setBitsPerSample(16);
 
 						ffmpegCommands = new String[] {
-							configuration.getFfmpegPath(),
+							configuration.getFFmpegPath(),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							"-i", filename,
 							"-ac", "" + sm.getNbChannels(),
@@ -344,7 +344,7 @@ public class TsMuxeRVideo extends Player {
 					} else if (!ac3Remux && params.mediaRenderer.isTranscodeToAAC()) {
 						// AAC audio
 						ffmpegCommands = new String[] {
-							configuration.getFfmpegPath(),
+							configuration.getFFmpegPath(),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							"-i", filename,
 							"-ac", "" + channels,
@@ -358,7 +358,7 @@ public class TsMuxeRVideo extends Player {
 					} else {
 						// AC-3 audio
 						ffmpegCommands = new String[] {
-							configuration.getFfmpegPath(),
+							configuration.getFFmpegPath(),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							"-i", filename,
 							"-ac", "" + channels,
@@ -430,7 +430,7 @@ public class TsMuxeRVideo extends Player {
 							}
 
 							ffmpegCommands = new String[] {
-								configuration.getFfmpegPath(),
+								configuration.getFFmpegPath(),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								"-i", filename,
 								"-ac", "" + sm.getNbChannels(),
@@ -443,7 +443,7 @@ public class TsMuxeRVideo extends Player {
 						} else if (!ac3Remux && params.mediaRenderer.isTranscodeToAAC()) {
 							// AAC audio
 							ffmpegCommands = new String[] {
-								configuration.getFfmpegPath(),
+								configuration.getFFmpegPath(),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								"-i", filename,
 								"-ac", "" + channels,
@@ -458,7 +458,7 @@ public class TsMuxeRVideo extends Player {
 						} else {
 							// AC-3 remux or encoding
 							ffmpegCommands = new String[] {
-								configuration.getFfmpegPath(),
+								configuration.getFFmpegPath(),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								"-i", filename,
 								"-ac", "" + channels,
@@ -621,9 +621,9 @@ public class TsMuxeRVideo extends Player {
 		 * Use the newer version of tsMuxeR on PS3 since other renderers
 		 * like Panasonic TVs don't always recognize the new output
 		 */
-		String executable = executable();
+		String executable = getExecutable();
 		if (params.mediaRenderer.isPS3()) {
-			executable = configuration.getTsmuxerNewPath();
+			executable = configuration.getTsMuxeRNewPath();
 		}
 
 		String[] cmdArray = new String[]{

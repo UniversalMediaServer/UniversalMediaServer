@@ -22,7 +22,7 @@ public class MacSystemUtils extends BasicSystemUtils {
 		try {
 			// On OS X, open the given URI with the "open" command.
 			// This will open HTTP URLs in the default browser.
-			Runtime.getRuntime().exec(new String[] { "open", uri });
+			Runtime.getRuntime().exec(new String[] {"open", uri });
 
 		} catch (IOException e) {
 			LOGGER.trace("Unable to open the given URI: {}", uri);
@@ -47,21 +47,24 @@ public class MacSystemUtils extends BasicSystemUtils {
 	public byte[] getHardwareAddress(NetworkInterface ni) throws SocketException {
 		// On Mac OS X, fetch the hardware address from the command line tool "ifconfig".
 		byte[] aHardwareAddress = null;
-		InputStream inputStream = null;
 
 		try {
-			Process process = Runtime.getRuntime().exec(new String[] { "ifconfig", ni.getName(), "ether" });
-			inputStream = process.getInputStream();
-			List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
+			Process process = Runtime.getRuntime().exec(new String[] {"ifconfig", ni.getName(), "ether" });
+			List<String> lines = null;
+			try (InputStream inputStream = process.getInputStream()) {
+				lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
+			}
 			String aMacStr = null;
 			Pattern aMacPattern = Pattern.compile("\\s*ether\\s*([a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2}:[a-d0-9]{2})");
 
-			for (String line : lines) {
-				Matcher aMacMatcher = aMacPattern.matcher(line);
+			if (lines != null) {
+				for (String line : lines) {
+					Matcher aMacMatcher = aMacPattern.matcher(line);
 
-				if (aMacMatcher.find()) {
-					aMacStr = aMacMatcher.group(1);
-					break;
+					if (aMacMatcher.find()) {
+						aMacStr = aMacMatcher.group(1);
+						break;
+					}
 				}
 			}
 
@@ -76,8 +79,6 @@ public class MacSystemUtils extends BasicSystemUtils {
 			}
 		} catch (IOException e) {
 			LOGGER.warn("Failed to execute ifconfig", e);
-		} finally {
-			IOUtils.closeQuietly(inputStream);
 		}
 
 		return aHardwareAddress;
@@ -115,7 +116,7 @@ public class MacSystemUtils extends BasicSystemUtils {
 		String timeString = null;
 
 		if (msPos > -1) {
-			if (line.lastIndexOf('<', msPos) > -1){
+			if (line.lastIndexOf('<', msPos) > -1) {
 				timeString = "0.5";
 			} else {
 				timeString = line.substring(line.lastIndexOf('=', msPos) + 1, msPos).trim();

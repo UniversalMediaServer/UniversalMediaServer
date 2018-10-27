@@ -45,7 +45,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 	protected String vlcp;
 	protected String vlcv;
-	protected boolean avis;
+	protected boolean aviSynth;
 
 	@Override
 	public File getAvsPluginsDir() {
@@ -99,14 +99,9 @@ public class BasicSystemUtils implements SystemUtils {
 		return vlcv;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see net.pms.io.SystemUtils#isAvis()
-	 */
 	@Override
-	public boolean isAvis() {
-		return avis;
+	public boolean isAviSynthAvailable() {
+		return aviSynth;
 	}
 
 	@Override

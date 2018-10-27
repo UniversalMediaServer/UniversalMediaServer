@@ -48,14 +48,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
 	public static final String ID = "FFmpegAudio";
 
-	// should be private
-	@Deprecated
-	JCheckBox noresample;
-
-	@Deprecated
-	public FFmpegAudio(PmsConfiguration configuration) {
-		this();
-	}
+	private JCheckBox noresample;
 
 	public FFmpegAudio() {
 	}
@@ -162,7 +155,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 		List<String> cmdList = new ArrayList<>();
 
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 
 		cmdList.add("-loglevel");
 

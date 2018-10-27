@@ -31,7 +31,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
-public class MEncoderWebVideo extends Player {
+public class MEncoderWebVideo extends MEncoderVideo {
 	public static final String ID = "MEncoderWebVideo";
 
 	@Override
@@ -59,6 +59,7 @@ public class MEncoderWebVideo extends Player {
 		return "video/mpeg";
 	}
 
+	@Override
 	protected String[] getDefaultArgs() {
 		int nThreads = configuration.getMencoderMaxThreads();
 		String acodec = configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3";
@@ -100,7 +101,7 @@ public class MEncoderWebVideo extends Player {
 		params.input_pipes[0] = pipe;
 
 		String cmdArray[] = new String[args().length + 4];
-		cmdArray[0] = executable();
+		cmdArray[0] = getExecutable();
 		final String filename = dlna.getFileName();
 		cmdArray[1] = filename;
 		System.arraycopy(args(), 0, cmdArray, 2, args().length);
@@ -148,8 +149,8 @@ public class MEncoderWebVideo extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getMencoderPath();
+	public String getExecutable() {
+		return configuration.getMEncoderPath();
 	}
 
 	@Override

@@ -228,7 +228,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						// XXX (valib) If the font size is not acceptable it could be calculated better taking in to account the original video size. Unfortunately I don't know how to do that.
-						subsFilter.append(",Fontsize=").append((int) 15 * Double.parseDouble(configuration.getAssScale()));
+						subsFilter.append(",Fontsize=").append(15 * Double.parseDouble(configuration.getAssScale()));
 						subsFilter.append(",PrimaryColour=").append(configuration.getSubsColor().getASSv4StylesHexValue());
 						subsFilter.append(",Outline=").append(configuration.getAssOutline());
 						subsFilter.append(",Shadow=").append(configuration.getAssShadow());
@@ -683,7 +683,7 @@ public class FFMpegVideo extends Player {
 		return defaultArgsArray;
 	}
 
-	private int[] getVideoBitrateConfig(String bitrate) {
+	private static int[] getVideoBitrateConfig(String bitrate) {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
@@ -715,8 +715,8 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getFfmpegPath();
+	public String getExecutable() {
+		return configuration.getFFmpegPath();
 	}
 
 	@Override
@@ -734,7 +734,7 @@ public class FFMpegVideo extends Player {
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
-		// Use device-specific pms conf
+		// Use device-specific DMS conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
@@ -778,7 +778,7 @@ public class FFMpegVideo extends Player {
 
 		setAudioAndSubs(filename, media, params);
 		dlna.setMediaSubtitle(params.sid);
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 
 		// Prevent FFmpeg timeout
 		cmdList.add("-y");
@@ -875,6 +875,7 @@ public class FFMpegVideo extends Player {
 		 * - The file is not being played via the transcode folder
 		 */
 		if (
+			PlayerFactory.isPlayerActive(MEncoderVideo.ID) &&
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			params.sid != null &&
 			!(
@@ -1132,7 +1133,7 @@ public class FFMpegVideo extends Player {
 
 			TsMuxeRVideo ts = new TsMuxeRVideo();
 			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
-			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
+			String cmd[] = new String[]{ ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);
 
 			PipeIPCProcess ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
@@ -1165,7 +1166,7 @@ public class FFMpegVideo extends Player {
 			sm.setNbChannels(2);
 
 			List<String> cmdListDTS = new ArrayList<>();
-			cmdListDTS.add(executable());
+			cmdListDTS.add(getExecutable());
 			cmdListDTS.add("-y");
 			cmdListDTS.add("-ss");
 
@@ -1501,6 +1502,32 @@ public class FFMpegVideo extends Player {
 				};
 				ffParser.setFiltered(true);
 				pw.setStderrConsumer(ffParser);
+			}
+		}
+	}
+
+	private static void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
+		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
+		String line;
+		boolean resolved = false;
+		while ((line = input.readLine()) != null) {
+			if (line.contains("[Script Info]")) {
+				while ((line = input.readLine()) != null) {
+					if (isNotBlank(line)) {
+						if (line.contains("PlayResX:")) {
+							subtitlesWidth = Integer.parseInt(line.substring(9).trim());
+						} else if (line.contains("PlayResY:")) {
+							subtitlesHeight = Integer.parseInt(line.substring(9).trim());
+						}
+					} else {
+						resolved = true;
+						break;
+					}
+				}
+			}
+			if (resolved) {
+				input.close();
+				break;
 			}
 		}
 	}
