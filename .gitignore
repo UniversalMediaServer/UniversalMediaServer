@@ -26,3 +26,4 @@ docker/renderers
 docker/web
 docker/ums.jar
 docker/logback.headless.xml
+/src/main/java/net/pms/Test.java
