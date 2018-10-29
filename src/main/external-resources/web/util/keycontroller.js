@@ -4,31 +4,16 @@ $(document).ready(function($) {
 	$('body').keydown(function(event) {
 		keyDown(event);
 	});
-	$('input.jQKeyboard').initKeypad({'keyboardLayout': keyboard});
-	/*$(".jQKeyboardBtn").mouseover(function(){	//play sound when key strikes
-		$("audio").get(0).play();
-	});*/
-
 });
-var keyboard = {
-	'layout': [
-		// alphanumeric keyboard type
-		// text displayed on keyboard button, keyboard value, keycode, column span, new row
-		[
-			[
-				['`', '`', 192, 0, true], ['1', '1', 49, 0, false], ['2', '2', 50, 0, false], ['3', '3', 51, 0, false], ['4', '4', 52, 0, false], ['5', '5', 53, 0, false], ['6', '6', 54, 0, false], 
-				['7', '7', 55, 0, false], ['8', '8', 56, 0, false], ['9', '9', 57, 0, false], ['0', '0', 48, 0, false], ['-', '-', 189, 0, false], ['=', '=', 187, 0, false],
-				['q', 'q', 81, 0, true], ['w', 'w', 87, 0, false], ['e', 'e', 69, 0, false], ['r', 'r', 82, 0, false], ['t', 't', 84, 0, false], ['y', 'y', 89, 0, false], ['u', 'u', 85, 0, false], 
-				['i', 'i', 73, 0, false], ['o', 'o', 79, 0, false], ['p', 'p', 80, 0, false], ['[', '[', 219, 0, false], [']', ']', 221, 0, false], ['&#92;', '\\', 220, 0, false],
-				['a', 'a', 65, 0, true], ['s', 's', 83, 0, false], ['d', 'd', 68, 0, false], ['f', 'f', 70, 0, false], ['g', 'g', 71, 0, false], ['h', 'h', 72, 0, false], ['j', 'j', 74, 0, false], 
-				['k', 'k', 75, 0, false], ['l', 'l', 76, 0, false], [';', ';', 186, 0, false], ['&#39;', '\'', 222, 0, false], ['Enter', '13', 13, 3, false],
-				['Shift', '16', 16, 2, true], ['z', 'z', 90, 0, false], ['x', 'x', 88, 0, false], ['c', 'c', 67, 0, false], ['v', 'v', 86, 0, false], ['b', 'b', 66, 0, false], ['n', 'n', 78, 0, false], 
-				['m', 'm', 77, 0, false], [',', ',', 188, 0, false], ['.', '.', 190, 0, false], ['/', '/', 191, 0, false], ['Shift', '16', 16, 2, false],
-				['Bksp', '8', 8, 3, true], ['Space', '32', 32, 12, false], ['Clear', '46', 46, 3, false], ['Cancel', '27', 27, 3, false]
-			]
-		]
-	]
-};
+$(document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange', function() {
+	if(IsFullScreenCurrently()) {
+		console.log('Full Screen Mode Enabled');
+	}
+	else {
+		console.log('Full Screen Mode Disabled');
+	}
+});
+var keyboard = {};
 /*SOUND FEEDBACK TEST
 if(g.sound_redesign){
 	var b={};
@@ -214,7 +199,14 @@ function keyDown(event) {
 		}
 		case VK_ENTER: {
 			event.preventDefault(); //prevent default if it is body
-			emuleClick();
+			if (curLevel == level.PLAY) {
+				moveInPlay(event.keyCode);
+				break;
+			}
+			else
+			{
+				emuleClick();
+			}
 			break;
 		}
 		case VK_RETURN: {
@@ -254,13 +246,6 @@ function keyDown(event) {
 			}
 			break;
 		}*/
-		//LANZAR TECLADO VIRTUAL
-		case VK_0: {
-			if (curLevel != level.KEYBOARD) {
-				launchVirtualKeyboard();
-			}
-			break;
-		}
 		//MOSTRAR CONTROLES EN PANTALLA
 		case VK_1/*VK_INFO*/: {
 			showHideControls();
@@ -298,7 +283,17 @@ function moveInHome(key) {
 			}
 			else if($('#VideoContainer').text()!=""){
 				onFocus.removeClass('onFocus');
-				$('#VideoContainer').find('button:first').addClass('onFocus');
+				if($('#toolbar').find('button:first').attr('disabled')!='disabled')
+				{
+                    $('#toolbar').find('button:first').addClass('onFocus');
+				}
+				else if($('#toolbar').find('button:nth-child(2)').attr('disabled')!='disabled')
+				{
+                    $('#toolbar').find('button:nth-child(2)').addClass('onFocus');
+				}
+				else{
+                    $('#toolbar').find('button:nth-child(3)').addClass('onFocus');
+				}
 				curLevel = level.PLAY;
 			}
 			break;
@@ -436,19 +431,25 @@ function moveInMedia(key) {
 function moveInPlay(key) {
 	var onFocus = $('.onFocus');
 	switch (key) {
-		/*case VK_LEFT: {
-			if (onFocus.prev().hasClass('tv-btn')) {
+		case VK_LEFT: {
+			if (onFocus.prev().hasClass('btn') && onFocus.prev().attr('disabled')!='disabled') {
 				changeFocus(onFocus.prev());
 			}
+			else if (onFocus.prev().prev().hasClass('btn') && onFocus.prev().prev().attr('disabled')!='disabled') {
+                changeFocus(onFocus.prev().prev());
+            }
 			break;
 		}
 		case VK_RIGHT: {
-			if (onFocus.next().hasClass('tv-btn')) {
+			if (onFocus.next().hasClass('btn') && onFocus.next().attr('disabled')!='disabled') {
 				changeFocus(onFocus.next());
 			}
+            else if (onFocus.next().next().hasClass('btn') && onFocus.next().next().attr('disabled')!='disabled') {
+                changeFocus(onFocus.next().next());
+            }
 			break;
 		}
-		case VK_UP: {
+		/*case VK_UP: {
 			onFocus.removeClass('onFocus');
 			curLevel = level.MEDIA;
 			$('#tv-Category').find('.tv-btn:last').addClass('onFocus');
@@ -461,10 +462,14 @@ function moveInPlay(key) {
 			break;
 		}*/
 		case VK_STOP: {
-			history.go(-1);
+            history.back();
 			break;
 		}
-		case VK_PLAY: {			
+		case VK_STOP_2: {
+            history.back();
+            break;
+        }
+		case VK_PLAY_PAUSE: {
 			var myPlayer = videojs("player");
 			if (myPlayer.paused()) {
 				myPlayer.play();
@@ -474,63 +479,68 @@ function moveInPlay(key) {
 			  }
 			break;
 		}
+		case VK_PLAY_PAUSE_2:{
+            var myPlayer = videojs("player");
+            if (myPlayer.paused()) {
+                myPlayer.play();
+            }
+            else {
+                myPlayer.pause();
+            }
+            break;
+		}
+		case VK_PLAY: {
+            var myPlayer = videojs("player");
+            myPlayer.play();
+            break;
+        }
 		case VK_PAUSE: {
 			var myPlayer = videojs("player");
 			myPlayer.pause();
 			break;
 		}
+		case VK_TRACK_PREVIOUS:{
+            window.location.replace('/play/{{prevId}}?html5=1');
+            break;
+		}
+		case VK_TRACK_NEXT:{
+            window.location.replace('/play/{{nextId}}?html5=1');
+            break;
+		}
+		case VK_PLAY_PAUSE:{
+            var myPlayer = videojs("player");
+            if (myPlayer.paused()) {
+                myPlayer.play();
+            }
+            else {
+                myPlayer.pause();
+            }
+            break;
+		}
+		case VK_RED:{
+            window.location.replace('/play/{{id1}}?flash=1');
+		}
 		case VK_ASPECT: {
-			 var myPlayer = videojs("player");
-			 if(fullScreen==false) {
-				 if (document.fullscreenEnabled || /* Standard syntax */
-			   	  document.webkitFullscreenEnabled || /* Chrome, Safari and Opera syntax */
-			   	  document.mozFullScreenEnabled ||/* Firefox syntax */
-			   	  document.msFullscreenEnabled/* IE/Edge syntax */) {
-					myPlayer.requestFullscreen();
-					fullScreen = true;
-				  }
-				 break;
-			 }			 
-			 else {
-				 myPlayer.exitFullscreen();
-				 fullScreen = false;
-			 }
-			 break;
+            var myPlayer = videojs("player");
+            if(IsFullScreenCurrently())
+				GoOutFullscreen();
+			else
+				GoInFullscreen(myPlayer);
+            break;
 		}
 		case VK_DASH:{
 			var myPlayer = videojs("player");
-	   	 if(fullScreen==false) {
-	   		 if (document.fullscreenEnabled || /* Standard syntax */
-			  	  document.webkitFullscreenEnabled || /* Chrome, Safari and Opera syntax */
-			  	  document.mozFullScreenEnabled ||/* Firefox syntax */
-			  	  document.msFullscreenEnabled/* IE/Edge syntax */) {
-				   myPlayer.requestFullscreen();
-				   fullScreen = true;
-				 }
-	   		 break;
-	   	 }			 
-			else {
-		   	 myPlayer.exitFullscreen();
-		   	 fullScreen = false;
-			}
+            if(IsFullScreenCurrently())
+				GoOutFullscreen();
+			else
+				GoInFullscreen(myPlayer);
 			break;
 		}
 		case VK_ENTER: {
-			var myPlayer = videojs("player");
-	   	 if(fullScreen==false) {
-	   		 if (document.fullscreenEnabled || /* Standard syntax */
-			  	  document.webkitFullscreenEnabled || /* Chrome, Safari and Opera syntax */
-			  	  document.mozFullScreenEnabled ||/* Firefox syntax */
-			  	  document.msFullscreenEnabled/* IE/Edge syntax */) {
-				   myPlayer.requestFullscreen();
-				   fullScreen = true;
-				 }
-	   		 break;
-	   	 }			 
-			else {
-		   	 myPlayer.exitFullscreen();
-		   	 fullScreen = false;
-			}
+            if(IsFullScreenCurrently())
+				GoOutFullscreen();
+			else
+				emuleClick();
 			break;
 		}
 	}
@@ -645,6 +655,11 @@ function moveInKeyboard(key) {
 			break;
 		}
 		case VK_DOWN: {
+			if(onFocus.hasClass('jQKeyboard')){
+				onFocus.blur();
+				changeFocus($('.jQKeyboardRow:first').find('button:first').addClass("onFocus"));
+				break;
+			}
 			if (onFocus.parent().next().hasClass('jQKeyboardRow')) {				
 				var index = onFocus.index()+1;
 				onFocus.parent().next().find('.jQKeyboardBtn:nth-child('+index+')');
@@ -775,6 +790,80 @@ function folderScroll(){
 function launchVirtualKeyboard() {
 	
 }
+
+/*****************************
+ * PLAYER FUNCTIONS
+ *****************************/
+//Launch fullscreen mode using fullscreen key in player
+function GoInFullscreen(element) {
+	if(element.requestFullscreen)
+		element.requestFullscreen();
+	else if(element.mozRequestFullScreen)
+		element.mozRequestFullScreen();
+	else if(element.webkitRequestFullscreen)
+		element.webkitRequestFullscreen();
+	else if(element.msRequestFullscreen)
+		element.msRequestFullscreen();
+}
+function GoOutFullscreen() {
+	if(document.exitFullscreen)
+		document.exitFullscreen();
+	else if(document.mozCancelFullScreen)
+		document.mozCancelFullScreen();
+	else if(document.webkitExitFullscreen)
+		document.webkitExitFullscreen();
+	else if(document.msExitFullscreen)
+		document.msExitFullscreen();
+}
+// Returns the DOM Node of the element which is in full-screen
+// Returns null if no element in full-screen
+function CurrentFullScreenElement() {
+	return (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null);
+}
+function IsFullScreenCurrently() {
+	var full_screen_element = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null;
+	
+	// If no element is in full-screen
+	if(full_screen_element === null)
+		return false;
+	else
+		return true;
+}
+
+/*function enterFullscreen(){
+    var myPlayer = videojs("player");
+    if (document.fullscreenEnabled || /* Standard syntax */
+        /*document.webkitFullscreenEnabled || /* Chrome, Safari and Opera syntax */
+        /*document.mozFullScreenEnabled ||/* Firefox syntax */
+        /*document.msFullscreenEnabled/* IE/Edge syntax *) {
+        /*myPlayer.requestFullscreen();
+		document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+    }
+}
+function isVideoInFullscreen() {
+    if (window.fullScreen!=false || document.fullscreenElement!=null || document.webkitFullscreenElement!=null || document.msFullscreenElement!=null || document.mozFullScreenElement!=null)
+    {return true;}
+    return false;
+}*/
+function play(){
+    var myPlayer = videojs("player");
+    myPlayer.play();
+}
+function pause(){
+    var myPlayer = videojs("player");
+    myPlayer.pause();
+}
+function playpause(){
+    var myPlayer = videojs("player");
+    if (myPlayer.paused()) {
+        myPlayer.play();
+    }
+    else {
+        myPlayer.pause();
+    }
+}
+
+/* END PLAYER FUNCTIONS*/
 
 function jumpingStep()
 {

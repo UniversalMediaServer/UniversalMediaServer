@@ -304,6 +304,12 @@ body{
 }
 #toolbar{
 	color: #000000;
+    background-color: #111111;
+    padding: 5px 2px;
+}
+#toolbar button{
+    font-weight: 600;
+    height: 30px;
 }
 .navbar{
 	background: url('/files/menu-background-content.png');
@@ -326,20 +332,20 @@ body{
 #ContentPage.Doc {
 	margin: 70px auto;
 }
-@media screen and (min-width: 1081px) {
-	ul#Folders {
-		padding: 15px 0px 0px 0px;
-		top: 50px;
-		width: 260px;
-		background-color: #212121;
-	}
+#bumplist{
+	position: relative;
+    margin-left: 260px;
+    padding: 50px 0 0px 0px;
 }
-@media screen and (max-width: 1080px) {
-	ul#Folders {
-		padding: 15px 0px 0px 0px;
-		margin-top: 50px;
-		background-color: #333;
-	}
+#bumplist div>.alert{
+	margin-bottom: 0px !important;
+}
+#bumpcontainer{
+	margin: 10px;
+}
+#bumpsettings{
+	color: #000000;
+	text-align: left;
 }
 /*****************************
 SCROLLBAR
@@ -418,6 +424,20 @@ body {
 	padding-top: 3px;
     padding-bottom: 1px;
 }
+ul#Folders {
+	padding: 15px 0px 0px 0px;
+	top: 50px;
+	width: 260px;
+	background-color: #212121;
+}
+@media screen and (max-width: 1080px) {
+	ul#Folders {
+		padding: 15px 0px 0px 0px;
+		margin-top: 50px;
+		background-color: #333;
+		width: 100%;
+	}
+}
 ul#Folders>li>a{
 	/*padding: 2px 15px 2px 15px;*/
 	font-weight: 600;
@@ -445,6 +465,15 @@ ul#Folders>li>a:hover{
 	transform-origin: 50% 50%;
 	overflow: hidden;
 }
+@media screen and (max-width: 1080px) {
+	ul#Folders>li>a:hover {
+		-moz-transform: scale(1.02);
+		-webkit-transform: scale(1.02);
+		-o-transform: scale(1.02);
+		transform: scale(1.02);
+	}
+}
+
 ul#Folders>li:hover{
 	overflow: hidden;
 }
@@ -470,6 +499,14 @@ ul#Folders>li.onFocus>a{
 	transition: transform 0.2s;
 	transform-origin: 50% 50%;
 }
+@media screen and (max-width: 1080px) {
+	ul#Folders>li.onFocus>a {
+		-moz-transform: scale(1.02);
+		-webkit-transform: scale(1.02);
+		-o-transform: scale(1.02);
+		transform: scale(1.02);
+	}
+}
 ul#Folders li span {
 	margin-bottom: 0px;
 }
@@ -490,9 +527,18 @@ ul#Folders li span {
 	border-color: #fff;
 	color: #fff;
 }
+.btn-playbar:hover {
+
+}
+@media screen and (max-width: 1080px) {
+	ul#Media{
+		padding: 20px 10px 20px 10px;
+	}
+}
 @media screen and (min-width: 1080px) {
 	ul#Media {
-		padding-top: 70px;
+		padding-top: 0px;
+		margin-top: 0px;
 	}
 }
 ul#Media .caption {
@@ -545,7 +591,36 @@ ul#Media .thumb{
 ul#Media .caption:hover {
 	text-decoration: none;
 }
-
+#toolbar button.onFocus,#toolbar button:hover{
+	background-color:#ebebeb;
+	color:#2f2f2f !important;
+	-moz-transform:scale(1.1);
+	-webkit-transform:scale(1.1);
+	-o-transform:scale(1.1);
+	transform:scale(1.1);
+	border-radius:0.11364rem;
+	box-shadow:0 0 0.75rem 0 rgba(0,0,0,0.24),0 0.75rem 0.75rem 0 rgba(0,0,0,0.48);
+	-moz-transition: transform 0.2s;
+	-webkit-transition: transform 0.2s;
+	-o-transition: transform 0.2s;
+	transition: transform 0.2s;
+	transform-origin: 50% 50%;
+}
+/*
+* VIDEOJS CSS REWRITE
+*/
+/*.video-js .vjs-big-play-button {
+	margin: 0 auto;
+	font-size: 5em !important;
+	top: 31% !important;
+	left: 0 !important;
+	height: 3em !important;
+	line-height: 3em !important;
+	-webkit-border-radius: 3em !important;
+	-moz-border-radius: 3em !important;
+	border-radius: 3em !important;
+	position: relative !important;
+}*/
 /********OVERLAY********/
 #trigger-overlay{
 	border: 0;
@@ -554,8 +629,9 @@ ul#Media .caption:hover {
 #trigger-overlay>a{
 	color: #ffffff;
 }
-div#searchbar {
-    width: 800px;
+#SearchForm {
+    max-width: 530px;
+    padding: 15px;
     margin: 0 auto;
 }
 div#searchbar input{
@@ -576,8 +652,8 @@ div#searchbar input{
 
 /* Overlay closing cross */
 .overlay .overlay-close {
-	width: 80px;
-	height: 80px;
+	width: 40px;
+	height: 40px;
 	position: absolute;
 	right: 20px;
 	top: 20px;
@@ -631,12 +707,8 @@ div#searchbar input{
 }
 
 /* Effects */
-body {
-	background: #ddd;
-}
-
 .container {
-	background: #fff;
+	/*background: #fff;*/
 	-webkit-transition: -webkit-transform 0.5s;
 	transition: transform 0.5s;
 }

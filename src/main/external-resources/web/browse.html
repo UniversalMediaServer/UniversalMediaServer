@@ -80,6 +80,7 @@
 			</div>
 			{{#hasFile}}
 			<div id="MediaContainer">
+				<div id="bumplist"></div>
 				<ul id="Media" class="nav nav-sidebar">
 					{{#media}}
 					<li>
@@ -100,11 +101,10 @@
 			<nav>
 			<div id="searchbar">
 				{{#hasFile}}
-					<form  id="SearchForm" method="get" class="navbar-form navbar-right">
+					<form  id="SearchForm" method="get">
 						<input type="text" class="form-control jQKeyboard" placeholder="Search..." name="str">
 					</form>
-				{{/hasFile}}
-				
+				{{/hasFile}}				
 			</div>
 			</nav>
 		</div>
@@ -112,4 +112,5 @@
 	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
 	<script src="/files/util/searchclassie.js"></script>
 	<script src="/files/util/search.js"></script>
+	<script>$('input.jQKeyboard').initKeypad({'keyboardLayout': keyboard});</script>
 </html>

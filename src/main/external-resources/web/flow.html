@@ -26,6 +26,13 @@
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage">
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a  id="HomeButton" class="navbar-brand onFocus" href="javascript:history.back();" title="UMS"></a>
+			</div>
+		</div>
+	</nav>
 		<script>
 {{#prevId}}
 			function prev() {window.location.replace('/play/{{prevId}}?flash=1');}
@@ -92,10 +99,6 @@
 {{/push}}
 		</script>
 		<div id="Container">
-			<div id="Menu">
-				<a href="/browse/0" id="HomeButton"></a>
-				<a href="/doc" id="DocButton" title="Documentation"></a>
-			</div>
 
 			<div id="VideoContainer">
 				<div class="player">
@@ -110,13 +113,14 @@
 					</{{mediaType}}>
 				</div>
 				<div id="toolbar">
-					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
-					<button id="next" onclick="next()"{{nextAttr}}>>></button>
-					<button id="html5" onclick="html5()" title="Switch to html5 player">html5</button>
+					<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-backward"></i></button>
+					<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-forward"></i></button>
+					<button id="html5" onclick="html5()" title="Switch to html5 player" type="button" class="btn btn-sm btn-playbar">HTML5</button>
 				</div>
 			</div>
 			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 		</div>
+	<input type="hidden" class="jQKeyboard" name="dummy">
 	</body>
 	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
 </html>

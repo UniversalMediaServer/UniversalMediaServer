@@ -40,8 +40,7 @@
 			classie.add( container, 'overlay-open' );
 			$('.onFocus').removeClass("onFocus");
 			$(".jQKeyboard").focus();
-			$('.jQKeyboardRow:first').find('button:first').addClass("onFocus");
-			$(".jQKeyboard").blur();
+			$(".jQKeyboard").addClass("onFocus");
 			curLevel = 5;
 		}
 	}
