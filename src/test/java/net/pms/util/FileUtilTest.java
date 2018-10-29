@@ -53,7 +53,7 @@ public class FileUtilTest {
 	public final void setUp() throws ConfigurationException {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);;
+		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
 		PMS.get();
 		PMS.setConfiguration(new PmsConfiguration(false));
 	}
@@ -128,6 +128,8 @@ public class FileUtilTest {
 	 */
 	@Test
 	public void testGetFileNameMetadata() throws Exception {
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
 		JsonParser parser = new JsonParser();
 		
 		try {
@@ -144,6 +146,8 @@ public class FileUtilTest {
 	        	JsonObject o = test.getAsJsonObject();
 	        	String original = o.get("filename").getAsString();
 	        	JsonObject metadata = o.get("metadata").getAsJsonObject();
+        		boolean todo = false;
+	    		if( o.has("todo") ) { todo = o.get("todo").getAsBoolean(); }
 
 	        	String[] extracted_metadata = FileUtil.getFileNameMetadata(original);
 	        	assert extracted_metadata.length == 6;
@@ -170,23 +174,57 @@ public class FileUtilTest {
 	        	String tvEpisodeNumber = extracted_metadata[4];
 	        	String tvEpisodeName = extracted_metadata[5];
 
-        		JsonElement elem; 
-        		
+        		JsonElement elem;
+
         		elem = metadata.get("extra");
         		if( elem != null ) {
         			for( JsonElement extra: elem.getAsJsonArray() ) {
-        				assertThat( extraInformation.indexOf(extra.getAsString()) > -1 );
+        				try {
+        					assertThat( extraInformation.indexOf(extra.getAsString()) > -1 );
+        				}
+        				catch(NullPointerException ex) {
+        					// There is no extraInformation extracted
+        					if(todo) { logger.warn( "testGetFileNameMetadata/extra would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); }
+        				}
+        				catch(AssertionError err) {
+        					// extraInformation is extracted, but is wrong
+        					if(todo) { logger.warn( "testGetFileNameMetadata/extra would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
         			}
         		}
 	        	if( "tv-series-episode".equals(metadata.get("type").getAsString()) ) {
 	        		// A single episode, might have episode title and date
 	        		elem = metadata.get("series");
 	        		if( elem != null ) {
-	        			assertThat(movieOrShowName.equals(elem.getAsString()));
+	        			try  {
+	        				assertThat(movieOrShowName.equals(elem.getAsString()));
+	        			}
+        				catch(NullPointerException ex) {
+        					// There is no movieOrShowName extracted
+        					if(todo) { logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); }
+        				}
+        				catch(AssertionError err) {
+        					// movieOrShowName is extracted, but is wrong
+        					if(todo) { logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
 	        		}
 	        		elem = metadata.get("season");
 	        		if( elem != null ) {
-	        			assertThat(tvSeason == elem.getAsInt()); 
+	        			try  {
+		        			assertThat(tvSeason == elem.getAsInt()); 
+	        			}
+        				catch(NullPointerException ex) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/season would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); }
+        				}
+        				catch(AssertionError err) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/season would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
 	        		}
 	        		elem = metadata.get("episode");
 	        		if( elem != null ) {
@@ -194,8 +232,17 @@ public class FileUtilTest {
 	    	        		assertThat(Integer.parseInt(extracted_metadata[3]) == elem.getAsInt());
 	    	        	}
 	    	        	catch(NumberFormatException ex) {
-	            			throw(new AssertionError(ex)); 
+        					if(todo) { logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); } 
 	            		}
+        				catch(NullPointerException ex) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); }
+        				}
+        				catch(AssertionError err) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
 	        		}
 		        	if(metadata.has("released")) {
 			        	JsonObject metadata_rel = metadata.get("released").getAsJsonObject();
@@ -209,14 +256,34 @@ public class FileUtilTest {
 		        	}
 	        		elem = metadata.get("title");
 	        		if( elem != null ) {
-	        			assertThat( tvEpisodeName.equals(elem.getAsString()) );
+	        			try {
+	        				assertThat( tvEpisodeName.equals(elem.getAsString()) );
+	        			}
+        				catch(NullPointerException ex) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); }
+        				}
+        				catch(AssertionError err) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
 	        		}
 	        	}
 	        	else if( "tv-series-episodes".equals(metadata.get("type").getAsString()) ) {
 	        		// A single episode or an episode range, cannot have episode title or date
 	        		elem = metadata.get("series");
 	        		if( elem != null ) {
-	        			assertThat(movieOrShowName.equals(elem.getAsString()));
+	        			try {
+	        				assertThat(movieOrShowName.equals(elem.getAsString()));
+	        			}
+        				catch(NullPointerException ex) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); }
+        				}
+        				catch(AssertionError err) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
 	        		}
 	        		elem = metadata.get("season");
 	        		if( elem != null ) {
@@ -228,7 +295,13 @@ public class FileUtilTest {
 	        			for( JsonElement elem2: elem.getAsJsonArray() ) {
 	        				range = range + "-" + String.format("%02d",elem2.getAsInt());
 	        			}
-	        			assertThat( range.substring(1).equals(tvEpisodeNumber) );
+	        			try {
+	        				assertThat( range.substring(1).equals(tvEpisodeNumber) );
+	        			}
+        				catch(AssertionError err) {
+        					if(todo) { logger.warn( "testGetFileNameMetadata/episodes would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
 	        		}
 	        	}
 	        	else if( "movie".equals(metadata.get("type").getAsString()) ) {
@@ -240,7 +313,13 @@ public class FileUtilTest {
 			        	JsonObject metadata_rel = metadata.get("released").getAsJsonObject();
 		        		elem = metadata_rel.get("year");
 		        		if( elem != null ) {
-		        			assertThat( year == elem.getAsInt() );	
+		        			try {
+		        				assertThat( year == elem.getAsInt() );
+		        			}
+	        				catch(AssertionError err) {
+	        					if(todo) { logger.warn( "testGetFileNameMetadata/released would fail for TODO test " + original ); }
+	        					else { throw(err); }
+	        				}
 		        		}
 		        	}
 	        	}
