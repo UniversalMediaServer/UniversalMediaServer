@@ -151,6 +151,7 @@ public class StandardPlayerId extends PlayerId {
 				return FFMPEG_VIDEO;
 			case "FFMPEGWEBVIDEO":
 				return FFMPEG_WEB_VIDEO;
+			case "MENCODER": // old name
 			case "MENCODERVIDEO":
 				return MENCODER_VIDEO;
 			case "MENCODERWEBVIDEO":
@@ -159,12 +160,15 @@ public class StandardPlayerId extends PlayerId {
 				return DCRAW;
 			case "TSMUXERAUDIO":
 				return TSMUXER_AUDIO;
+			case "TSMUXER": // old name
 			case "TSMUXERVIDEO":
 				return TSMUXER_VIDEO;
+			case "VLCAUDIO": // old name
 			case "VLCAUDIOSTREAMING":
 				return VLC_AUDIO_STREAMING;
 			case "VLCVIDEOSTREAMING":
 				return VLC_VIDEO_STREAMING;
+			case "VLCTRANSCODER": // old name
 			case "VLCVIDEO":
 				return VLC_VIDEO;
 			case "VLCWEBVIDEO":
