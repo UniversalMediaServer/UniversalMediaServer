@@ -3,6 +3,7 @@ package net.pms.io;
 import java.io.File;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import javax.annotation.Nullable;
 import net.pms.newgui.LooksFrame;
 
 public interface SystemUtils {
@@ -73,9 +74,16 @@ public interface SystemUtils {
 
 	/**
 	 * This is't an actual but an estimated value assuming default MTU size.
-	 * 
+	 *
 	 * @param packetSize the size of the packet in bytes.
 	 * @return The estimated number of fragments.
 	 */
 	int getPingPacketFragments(int packetSize);
+
+	/**
+	 * @return The Windows (internal) version or {@code null} if the platform
+	 *         isn't Windows or the value could not be parsed.
+	 */
+	@Nullable
+	public Double getWindowsVersion();
 }

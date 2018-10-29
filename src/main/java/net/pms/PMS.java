@@ -23,9 +23,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
-import com.sun.jna.platform.win32.Shell32;
-import com.sun.jna.platform.win32.ShlObj;
-import com.sun.jna.platform.win32.WinDef;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
@@ -88,7 +85,6 @@ import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -797,127 +793,6 @@ public class PMS {
 			return new SolarisUtils();
 		}
 		return new BasicSystemUtils();
-	}
-
-	/**
-	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false);
-	}
-
-	/**
-	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
-	 */
-	@Deprecated
-	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false);
-	}
-
-	/**
-	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
-	 * Checks that the directory exists and is a valid directory.
-	 *
-	 * @return {@link java.io.File}[] Array of directories.
-	 */
-	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, getConfiguration());
-	}
-
-	/**
-	 * Returns the folders to be shared. Either configured by the user, or
-	 * uses the default media directories on the operating system, e.g.
-	 * Pictures, Music, Movies/Videos on macOS and Windows.
-	 *
-	 * @param monitored whether to return only directories that are monitored
-	 * @param tags
-	 * @param configuration
-	 * @return 
-	 */
-	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
-		String folders;
-		if (monitored) {
-			folders = configuration.getFoldersMonitored();
-		} else {
-			folders = configuration.getFolders();
-
-			if (StringUtils.isEmpty(folders)) {
-				String userHomeDirectory;
-				if (Platform.isMac()) {
-					userHomeDirectory = System.getProperty("user.home");
-					folders = userHomeDirectory + "/Movies";
-					folders += "," + userHomeDirectory + "/Music";
-					folders += "," + userHomeDirectory + "/Pictures";
-				} else if (Platform.isWindows()) {
-					/*
-					 * A shell script to get the paths on Windows even if
-					 * they have been changed.
-					 * From https://stackoverflow.com/questions/44136342/how-do-i-get-the-users-music-directory/44146651
-					 */
-					char[] pszPath = new char[WinDef.MAX_PATH];
-					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYMUSIC, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
-					File f = new File(String.valueOf(pszPath).trim());
-					folders = f.getAbsolutePath();
-
-					pszPath = new char[WinDef.MAX_PATH];
-					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYPICTURES, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
-					f = new File(String.valueOf(pszPath).trim());
-					folders += "," + f.getAbsolutePath();
-
-					pszPath = new char[WinDef.MAX_PATH];
-					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYVIDEO, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
-					f = new File(String.valueOf(pszPath).trim());
-					folders += "," + f.getAbsolutePath();
-				} else {
-					folders = System.getProperty("user.home");
-				}
-			}
-		}
-
-		if (folders == null || folders.length() == 0) {
-			return null;
-		}
-
-		ArrayList<File> directories = new ArrayList<>();
-		String[] foldersArray = folders.split(",");
-
-		for (String folder : foldersArray) {
-			folder = folder.trim();
-
-			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
-			// Windows path separators:
-			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
-			folder = folder.replaceAll("&comma;", ",");
-
-			// this is called *way* too often
-			// so log it so we can fix it.
-			LOGGER.info("Checking shared folder: " + folder);
-
-			File file = new File(folder);
-
-			if (file.exists()) {
-				if (!file.isDirectory()) {
-					LOGGER.warn(
-						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-						folder,  Messages.getString("LooksFrame.22")
-					);
-				}
-			} else {
-				LOGGER.warn(
-					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-					folder,  Messages.getString("LooksFrame.22")
-				);
-			}
-
-			// add the file even if there are problems so that the user can update the shared folders as required.
-			directories.add(file);
-		}
-
-		File f[] = new File[directories.size()];
-		directories.toArray(f);
-		return f;
 	}
 
 	/**

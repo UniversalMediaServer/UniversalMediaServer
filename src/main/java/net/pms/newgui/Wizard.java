@@ -185,12 +185,9 @@ public class Wizard {
 					chooser.setDialogTitle(Messages.getString("Wizard.12"));
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-						configuration.setFolders(chooser.getSelectedFile().getAbsolutePath());
+						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
 					} else {
-						/*
-						 * If the user canceled here, the default media folders
-						 * for the operating system will be used.
-						 */
+						// If the user cancels this option, the default directories will be used.
 					}
 				}
 			});
