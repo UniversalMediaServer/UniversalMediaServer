@@ -30,14 +30,11 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 public class TextAreaFIFOTest {
-	private PmsConfiguration configuration;
-
 	@Before
 	public void setUp() throws ConfigurationException, InterruptedException {
 		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
-		configuration = new PmsConfiguration();
 	}
 
 	@Test
@@ -46,8 +43,8 @@ public class TextAreaFIFOTest {
 
 		assertEquals("InitialLines", textArea.getMaxLines(), 950);
 		textArea.setMaxLines(0);
-		assertEquals("MinLines", textArea.getMaxLines(), configuration.LOGGING_LOGS_TAB_LINEBUFFER_MIN);
+		assertEquals("MinLines", textArea.getMaxLines(), PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN);
 		textArea.setMaxLines(1000000);
-		assertEquals("MaxLines", textArea.getMaxLines(), configuration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		assertEquals("MaxLines", textArea.getMaxLines(), PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 	}
 }
