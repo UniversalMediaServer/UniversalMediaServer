@@ -4850,10 +4850,10 @@ public class OpenSubtitle {
 							(
 								StringUtils.isNotBlank(yearFromFilename) &&
 								yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
-								org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+								StringUtils.isNotEmpty(titleFromFilename)
 							) || (
 								StringUtils.isBlank(yearFromFilename) &&
-								org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+								StringUtils.isNotEmpty(titleFromFilename)
 							)
 						) {
 							/**
@@ -4862,7 +4862,21 @@ public class OpenSubtitle {
 							 * This means we get proper case and special characters without worrying about
 							 * incorrect results being used.
 							 */
-							if (titleFromFilenameSimplified.equals(titleFromOpenSubtitlesSimplified)) {
+							if (overTheTopLogging) {
+								LOGGER.info("Found " + file.getName() + " : " + titleFromOpenSubtitles);
+							}
+
+							// Proceed if the years match, or if there is no year then try the movie/show name.
+							if (
+								(
+									StringUtils.isNotBlank(yearFromFilename) &&
+									yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
+									StringUtils.isNotEmpty(titleFromFilename)
+								) || (
+									StringUtils.isBlank(yearFromFilename) &&
+									StringUtils.isNotEmpty(titleFromFilename)
+								)
+							) {
 								/**
 								 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
 								 * number, so we validate those as well.

@@ -30,10 +30,10 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.FormatFactory;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.*;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -775,7 +775,7 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Rename the season/episode numbers. For example, "1x01" changes to " - 101"
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
@@ -1400,9 +1400,15 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
+<<<<<<< rebased_fix_subs_recognition
 	 * @param file the file for which to detect charset/encoding
 	 * @return The detected {@link Charset} or {@code null} if not detected
 	 * @throws IOException
+=======
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The detected {@link Charset} or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static Charset getFileCharset(File file) throws IOException {
 		CharsetMatch match = getFileCharsetMatch(file);
@@ -1497,10 +1503,16 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
+<<<<<<< rebased_fix_subs_recognition
 	 * @param file the {@link File} for which to detect charset/encoding
 	 * @return The name of the detected {@link Charset} or {@code null} if not
 	 *         detected
 	 * @throws IOException
+=======
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The name of the detected charset or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static String getFileCharsetName(File file) throws IOException {
 		CharsetMatch match = getFileCharsetMatch(file);
@@ -1558,10 +1570,18 @@ public class FileUtil {
 	}
 
 	/**
+<<<<<<< rebased_fix_subs_recognition
 	 * Tests if the {@link Charset} is UTF-16.
+=======
+	 * Tests if {@code charset} is {@code UTF-16}.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
 	 * @param charset the {@link Charset} to test.
+<<<<<<< rebased_fix_subs_recognition
 	 * @return {@code true} if the {@link Charset} is UTF-16, {@code false}
+=======
+	 * @return {@code true} if {@code charset} is {@code UTF-16}, {@code false}
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF16(Charset charset) {
@@ -1575,32 +1595,62 @@ public class FileUtil {
 	}
 
 	/**
+<<<<<<< rebased_fix_subs_recognition
 	 * Tests if the charset name is UTF-16.
+=======
+	 * Tests if {@code charset} is {@code UTF-16}.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
+<<<<<<< rebased_fix_subs_recognition
 	 * @param charsetName the charset name to test.
 	 * @return {@code true} if charset is UTF-16, {@code false} otherwise.
+=======
+	 * @param charsetName the charset name to test
+	 * @return {@code true} if {@code charsetName} is {@code UTF-16},
+	 *         {@code false} otherwise.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
+<<<<<<< rebased_fix_subs_recognition
 	 * Tests if the charset name is UTF-32.
+=======
+	 * Tests if {@code charsetName} is {@code UTF-32}.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
 	 * @param charsetName the charset name to test.
+<<<<<<< rebased_fix_subs_recognition
 	 * @return {@code true} if charset name is UTF-32, {@code false} otherwise.
+=======
+	 * @return {@code true} if {@code charsetName} is {@code UTF-32},
+	 *         {@code false} otherwise.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
+<<<<<<< rebased_fix_subs_recognition
 	 * Converts a UTF-16 {@code inputFile} to a UTF-8 {@code outputFile}. Does
 	 * not overwrite existing {@code outputFile}.
+=======
+	 * Converts an {@code UTF-16} input file to an {@code UTF-8} output file.
+	 * Does not overwrite an existing output file.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
+<<<<<<< rebased_fix_subs_recognition
 	 * @param inputFile the UTF-16 {@link File}.
 	 * @param outputFile the UTF-8 {@link File} after conversion.
 	 * @throws IOException
+=======
+	 * @param inputFile an {@code UTF-16} {@link File}.
+	 * @param outputFile the {@code UTF-8} {@link File} after conversion.
+	 * @throws IOException If an IO error occurs during the operation.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
 		Charset charset;
@@ -1623,9 +1673,15 @@ public class FileUtil {
 				 * UTF-16LE should produce UTF-8 without BOM while UTF-16BE
 				 * should produce UTF-8 with BOM.
 				 *
+<<<<<<< rebased_fix_subs_recognition
 				 * For some reason creating a FileInputStream with UTF_16
 				 * produces an UTF-8 outputfile without BOM, while using
 				 * UTF_16LE or UTF_16BE produces an UTF-8 outputfile with BOM.
+=======
+				 * For some reason creating a FileInputStream with UTF_16 produces
+				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
+				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+>>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 				 *
 				 * @author Nadahar
 				 */
@@ -1909,7 +1965,7 @@ public class FileUtil {
 	 * already there.
 	 *
 	 * @param path the path to be modified.
-	 * @return The corrected path or {@code null} of {@code path} is
+	 * @return The corrected path or {@code null} if {@code path} is
 	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {

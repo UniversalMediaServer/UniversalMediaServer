@@ -34,9 +34,9 @@ import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import net.pms.PMS;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 public class TempFileMgr {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFileMgr.class);
