@@ -367,11 +367,12 @@ public class FormatConfiguration {
 		 * <blockquote><pre>
 		 * 	Supported = f:mp4 n:2 se:SUBRIP
 		 *  
-		 * 	match("mp4", null, null, 2, 0, 0, 0, 0, null, null) = true
-		 * 	match("mp4", null, null, 6, 0, 0, 0, 0, null, null) = false 
-		 * 	match("wav", null, null, 2, 0, 0, 0, 0, null, null) = false
-		 * 	match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP") = true
-		 * 	match("mp4", null, null, 2, 0, 0, 0, 0, null, "sub") = false </pre></blockquote>
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, null,     true)  = true
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, null, null,     true)  = false 
+		 * match("wav", null, null, 2, 0, 0, 0, 0, null, null,     true)  = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", true)  = true
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", false) = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "sub",    true)  = false </pre></blockquote>
 		 *
 		 * @param format
 		 * @param videoCodec
@@ -384,6 +385,7 @@ public class FormatConfiguration {
 		 * @param videoHeight
 		 * @param extras
 		 * @param subsFormat
+		 * @param isExternalSubs
 		 * @return False if any of the provided non-null parameters is not a
 		 * 			match, true otherwise.
 		 */
@@ -760,7 +762,8 @@ public class FormatConfiguration {
 			0,
 			0,
 			0,
-			0, null,
+			0,
+			null,
 			params.sid.getType().name(),
 			params.sid.isExternal()
 		);
