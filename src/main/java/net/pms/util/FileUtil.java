@@ -41,10 +41,10 @@ import net.pms.io.BasicSystemUtils;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.*;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1658,10 +1658,12 @@ public class FileUtil {
 	}
 
 	/**
-	 * Appends a path separator of the same type last in the string if
-	 * it's not already there.
-	 * @param path the path to be modified
-	 * @return the corrected path
+	 * Appends a path separator of the same type last in the string if it's not
+	 * already there.
+	 *
+	 * @param path the path to be modified.
+	 * @return The corrected path or {@code null} if {@code path} is
+	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {
 		if (path == null) {
