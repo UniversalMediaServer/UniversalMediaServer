@@ -79,7 +79,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 
 	/**
-	 * The name displayed on the renderer if displayNameFinal is not specified.
+	 * The name displayed on the renderer. Cached the first time getDisplayName(RendererConfiguration) is called.
 	 */
 	private String displayName;
 
@@ -352,9 +352,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * String representing this resource ID. This string is used by the UPNP
 	 * ContentDirectory service. There is no hard spec on the actual numbering
-	 * except for the root container that always has to be "0". In PMS the
+	 * except for the root container that always has to be "0". In DMS the
 	 * format used is <i>number($number)+</i>. A common client that expects a
-	 * different format than the one used here is the XBox360. PMS translates
+	 * different format than the one used here is the XBox360. DMS translates
 	 * the XBox360 queries on the fly. For more info, check
 	 * <ul>
 	 * <li><a href="http://www.mperfect.net/whsUpnp360/">whsUpnp360</a></li>
@@ -604,11 +604,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			defaultRenderer = parent.getDefaultRenderer();
 		}
 
-		if (PMS.filter(defaultRenderer, child)) {
-			LOGGER.debug("Resource " + child.getName() + " is filtered out for render " + defaultRenderer.getRendererName());
-			return;
-		}
-
 		if (configuration.useCode() && !PMS.get().masterCodeValid()) {
 			String code = PMS.get().codeDb().getCode(child);
 			if (StringUtils.isNotEmpty(code)) {
@@ -819,7 +814,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return A player if transcoding or null if streaming
 	 */
 	public Player resolvePlayer(RendererConfiguration renderer) {
-		// Use device-specific pms conf, if any
+		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		Player resolvedPlayer = null;
@@ -1068,7 +1063,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Return the transcode folder for this resource.
-	 * If UMS is configured to hide transcode folders, null is returned.
+	 * If DMS is configured to hide transcode folders, null is returned.
 	 * If no folder exists and the create argument is false, null is returned.
 	 * If no folder exists and the create argument is true, a new transcode folder is created.
 	 * This method is called on the parent folder each time a child is added to that parent
@@ -1118,7 +1113,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *    - otherwise add it as a new child.
 	 *
 	 * @param child the DLNA resource to update
-	 * @param isAddGlobally whether to add to the global ID repository
 	 */
 	public void updateChild(DLNAResource child, boolean isAddGlobally) {
 		DLNAResource found = children.contains(child) ?
@@ -1203,12 +1197,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (dlna == null) {
-			return null;
-		}
-
-		if (PMS.filter(renderer, dlna)) {
-			// apply filter to make sure we're not bypassing it...
-			LOGGER.debug("Resource " + dlna.getName() + " is filtered out for render " + renderer.getRendererName());
 			return null;
 		}
 
@@ -1943,20 +1931,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *    11 - seek by both
 	 *
 	 * See here for an example of how these options can be mapped to keys on the renderer's controller:
-	 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
 	 *
 	 * Note that seek-by-byte is the preferred option for streamed files [1] and seek-by-time is the
 	 * preferred option for transcoded files.
-	 *
-	 * [1] see http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841&p=76201#p76201
 	 *
 	 * seek-by-time requires a) support by the renderer (via the SeekByTime renderer conf option)
 	 * and b) support by the transcode engine.
 	 *
 	 * The seek-by-byte fallback doesn't work well with transcoded files [2], but it's better than
 	 * disabling seeking (and pausing) altogether.
-	 *
-	 * [2] http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=16567#p16567 (bottom post)
 	 *
 	 * @param mediaRenderer
 	 * 			Media Renderer for which to represent this information.
@@ -1969,10 +1952,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			/**
 			 * Some renderers - e.g. the PS3 and Panasonic TVs - behave erratically when
 			 * transcoding if we keep the default seek-by-byte permission on when permitting
-			 * seek-by-time: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841
+			 * seek-by-time.
 			 *
 			 * It's not clear if this is a bug in the DLNA libraries of these renderers or a bug
-			 * in UMS, but setting an option in the renderer conf that disables seek-by-byte when
+			 * in DMS, but setting an option in the renderer conf that disables seek-by-byte when
 			 * we permit seek-by-time - e.g.:
 			 *
 			 *    SeekByTime = exclusive
@@ -2013,7 +1996,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
-		// Use device-specific pms conf, if any
+		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		String mime = getRendererMimeType(mediaRenderer);
 
@@ -2472,7 +2455,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="1">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
-		// Use device-specific pms conf, if any
+		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
@@ -2635,6 +2618,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
 						}
 					}
+					if (media.getVideoBitDepth() > 0) {
+						addAttribute(sb, "colorDepth", media.getVideoBitDepth());
+					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (media != null && media.isMediaparsed()) {
 						wireshark.append(" size=").append(media.getSize());
@@ -2723,7 +2709,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (player != null && media != null) {
 					// Note: Can't use instanceof below because the audio classes inherit the corresponding video class
 					if (media.isVideo()) {
-						if (mediaRenderer.isTranscodeToMPEGTS()) {
+						if (mediaRenderer.getCustomFFmpegOptions().contains("-f avi")) {
+							transcodedExtension = "_transcoded_to.avi";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f flv")) {
+							transcodedExtension = "_transcoded_to.flv";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f matroska")) {
+							transcodedExtension = "_transcoded_to.mkv";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f mov")) {
+							transcodedExtension = "_transcoded_to.mov";
+						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f webm")) {
+							transcodedExtension = "_transcoded_to.webm";
+						} else if (mediaRenderer.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
 						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
 							transcodedExtension = "_transcoded_to.wmv";
@@ -2849,7 +2845,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		/*
 		 * There's no technical difference between the image itself and the
 		 * thumbnail for an object.item.imageItem, they are all simply listed
-		 * as <res> entries. To UMS there is a difference since the thumbnail
+		 * as <res> entries. To DMS there is a difference since the thumbnail
 		 * is cached while the image itself is not. The idea here is therefore
 		 * to offer any size smaller than or equal to the cached thumbnail
 		 * using the cached thumbnail as the source, and offer anything bigger
@@ -2965,6 +2961,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 	}
+
 
 	/**
 	 * Generate and append the thumbnail {@code res} and
@@ -3356,7 +3353,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
-		// Use device-specific pms conf, if any
+		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
 
@@ -3619,7 +3616,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param renderer The renderer profile
 	 */
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
-		// Use device-specific pms conf, if any
+		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		if (
 			media != null &&
@@ -3644,19 +3641,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the input stream for this resource's generic thumbnail, which is
-	 * the first of:
-	 * <ul>
-	 * <li>its Format icon, if any</li>
-	 * <li>the fallback image, if any</li>
-	 * <li>the {@link GenericIcons} icon</li>
-	 * </ul>
-	 * <p>
-	 * This is a wrapper around {@link #getGenericThumbnailInputStreamInternal}
-	 * that stores the {@link ImageInfo} before returning the
+	 * Returns the input stream for this resource's generic thumbnail,
+	 * which is the first of:
+	 *      <li> its Format icon, if any
+	 *      <li> the fallback image, if any
+	 *      <li> the {@link GenericIcons} icon
+	 * <br><br>
+	 * This is a wrapper around {@link #getGenericThumbnailInputStream0()} that
+	 * stores the {@link ImageInfo} before returning the
 	 * {@link InputStream}.
 	 *
-	 * @param fallback the fallback image, or {@code null}.
+	 * @param fallback
+	 *            the fallback image, or {@code null}.
 	 * @return The {@link DLNAThumbnailInputStream}.
 	 * @throws IOException
 	 */
@@ -3712,9 +3708,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the input stream for this resource's thumbnail (or a default
-	 * image if a thumbnail can't be found). Typically overridden by a subclass.
-	 * <p>
+	 * Returns the input stream for this resource's thumbnail
+	 * (or a default image if a thumbnail can't be found).
+	 * Typically overridden by a subclass.<br>
+	 * <br>
 	 * This is a wrapper around {@link #getThumbnailInputStream()} that stores
 	 * the {@link ImageInfo} before returning the {@link InputStream}.
 	 *

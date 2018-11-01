@@ -275,29 +275,30 @@ public class UPNPHelper extends UPNPControl {
 			throw new IOException("No usable network interface found for UPnP multicast");
 		}
 
-		List<InetAddress> usableAddresses = new ArrayList<>();
-		List<InetAddress> networkInterfaceAddresses = Collections.list(networkInterface.getInetAddresses());
-
-		for (InetAddress inetAddress : networkInterfaceAddresses) {
-			if (inetAddress != null && inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
-				usableAddresses.add(inetAddress);
-			}
-		}
-
-		if (usableAddresses.isEmpty()) {
-			throw new IOException("No usable addresses found for UPnP multicast");
-		}
-
-		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
-		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
+		MulticastSocket ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
 		ssdpSocket.setReuseAddress(true);
 		ssdpSocket.setTimeToLive(32);
 
+		try {
+			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
+			ssdpSocket.setNetworkInterface(networkInterface);
+		} catch (SocketException ex) {
+			LOGGER.warn("Setting SSDP network interface failed: {}", ex);
+			NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+			if (confIntf != null) {
+				LOGGER.trace("Setting SSDP network interface from configuration: {}", confIntf);
+				try {
+					ssdpSocket.setNetworkInterface(confIntf);
+				} catch (SocketException ex2) {
+					LOGGER.warn("Setting SSDP network interface from configuration failed: {}", ex2);
+				}
+			}
+		}
 		if (multicastLog) {
-			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
-			LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
-			LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
-			LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+			LOGGER.trace("Sending message from multicast socket on network interface: {}", ssdpSocket.getNetworkInterface());
+			LOGGER.trace("Multicast socket is on interface address: {} and local port {}", ssdpSocket.getInterface(), ssdpSocket.getLocalPort());
+			LOGGER.trace("Socket Timeout: {}", ssdpSocket.getSoTimeout());
+			LOGGER.trace("Socket TTL: {}", ssdpSocket.getTimeToLive());
 			multicastLog = false;
 		}
 		return ssdpSocket;

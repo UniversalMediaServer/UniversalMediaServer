@@ -23,9 +23,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
-import com.sun.jna.platform.win32.Shell32;
-import com.sun.jna.platform.win32.ShlObj;
-import com.sun.jna.platform.win32.WinDef;
 import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
@@ -34,6 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -54,11 +52,15 @@ import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.Tables;
-import net.pms.dlna.*;
+import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.GlobalIdRepo;
+import net.pms.dlna.Playlist;
+import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
@@ -73,6 +75,7 @@ import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
@@ -82,7 +85,6 @@ import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.fest.util.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -97,6 +99,9 @@ public class PMS {
 	private static final String PROFILES = "profiles";
 	private static final String PROFILE = "^(?i)profile(?::|=)([^\"*<>?]+)$";
 	private static final String TRACE = "trace";
+	private static final String DBLOG = "dblog";
+	private static final String DBTRACE = "dbtrace";
+
 	public static final String NAME = "Universal Media Server";
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
@@ -130,8 +135,6 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
-
-	private NameFilter filter;
 
 	private JmDNS jmDNS;
 
@@ -296,24 +299,25 @@ public class PMS {
 
 	private void displayBanner() throws IOException {
 		LOGGER.debug("");
-		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
+		LOGGER.info("Starting {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
-		LOGGER.info("http://www.universalmediaserver.com");
+		LOGGER.info("https://www.universalmediaserver.com");
 		LOGGER.info("");
 
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
-		String commitTime = PropertiesUtil.getProjectProperties().get("git.commit.time");
-		String shortCommitId = commitId.substring(0, 9);
-
-		LOGGER.info("Build: " + shortCommitId + " (" + commitTime + ")");
+		LOGGER.info(
+			"Build: {} ({})",
+			commitId.substring(0, 9),
+			PropertiesUtil.getProjectProperties().get("git.commit.time")
+		);
 
 		// Log system properties
 		logSystemInfo();
 
 		String cwd = new File("").getAbsolutePath();
-		LOGGER.info("Working directory: " + cwd);
+		LOGGER.info("Working directory: {}", cwd);
 
-		LOGGER.info("Temporary directory: " + configuration.getTempFolder());
+		LOGGER.info("Temporary directory: {}", configuration.getTempFolder());
 
 		/**
 		 * Verify the java.io.tmpdir is writable; JNA requires it.
@@ -323,12 +327,12 @@ public class PMS {
 		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
 
 		if (!FileUtil.getFilePermissions(javaTmpdir).isWritable()) {
-			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
-			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
+			LOGGER.error("The Java temp directory \"{}\" is not writable by UMS", javaTmpdir.getAbsolutePath());
+			LOGGER.error("Please make sure the directory is writable for user \"{}\"", System.getProperty("user.name"));
 			throw new IOException("Cannot write to Java temp directory: " + javaTmpdir.getAbsolutePath());
 		}
 
-		LOGGER.info("Logging configuration file: " + LoggingConfig.getConfigFilePath());
+		LOGGER.info("Logging configuration file: {}", LoggingConfig.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
@@ -396,12 +400,6 @@ public class PMS {
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
 
-		try {
-			filter = new NameFilter();
-		} catch (ConfigurationException e) {
-			filter = null;
-		}
-
 		// This should be removed soon
 		OpenSubtitle.convert();
 
@@ -442,9 +440,13 @@ public class PMS {
 		}
 
 		// Initialize splash screen
+		WindowPropertiesConfiguration windowConfiguration = null;
 		Splash splash = null;
 		if (!isHeadless()) {
-			splash = new Splash(configuration);
+			windowConfiguration = new WindowPropertiesConfiguration(
+				Paths.get(configuration.getProfileDirectory()).resolve("UMS.dat")
+			);
+			splash = new Splash(configuration, windowConfiguration.getGraphicsConfiguration());
 		}
 
 		// Call this as early as possible
@@ -508,7 +510,7 @@ public class PMS {
 		sleepManager = new SleepManager();
 
 		if (!isHeadless()) {
-			frame = new LooksFrame(autoUpdater, configuration);
+			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
@@ -794,131 +796,6 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false, getConfiguration());
-	}
-
-	/**
-	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
-	 */
-	@Deprecated
-	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false, getConfiguration());
-	}
-
-	/**
-	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
-	 * Checks that the directory exists and is a valid directory.
-	 *
-	 * @return {@link java.io.File}[] Array of directories.
-	 */
-	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, null, getConfiguration());
-	}
-
-	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
-		return getSharedFoldersArray(monitored, null, configuration);
-	}
-
-	/**
-	 * Returns the folders to be shared. Either configured by the user, or
-	 * uses the default media directories on the operating system, e.g.
-	 * Pictures, Music, Movies/Videos on macOS and Windows.
-	 *
-	 * @param monitored whether to return only directories that are monitored
-	 * @param tags
-	 * @param configuration
-	 * @return 
-	 */
-	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
-		String folders;
-		if (monitored) {
-			folders = configuration.getFoldersMonitored();
-		} else {
-			folders = configuration.getFolders(tags);
-
-			if (StringUtils.isEmpty(folders)) {
-				String userHomeDirectory;
-				if (Platform.isMac()) {
-					userHomeDirectory = System.getProperty("user.home");
-					folders = userHomeDirectory + "/Movies";
-					folders += "," + userHomeDirectory + "/Music";
-					folders += "," + userHomeDirectory + "/Pictures";
-				} else if (Platform.isWindows()) {
-					/*
-					 * A shell script to get the paths on Windows even if
-					 * they have been changed.
-					 * From https://stackoverflow.com/questions/44136342/how-do-i-get-the-users-music-directory/44146651
-					 */
-					char[] pszPath = new char[WinDef.MAX_PATH];
-					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYMUSIC, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
-					File f = new File(String.valueOf(pszPath).trim());
-					folders = f.getAbsolutePath();
-
-					pszPath = new char[WinDef.MAX_PATH];
-					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYPICTURES, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
-					f = new File(String.valueOf(pszPath).trim());
-					folders += "," + f.getAbsolutePath();
-
-					pszPath = new char[WinDef.MAX_PATH];
-					Shell32.INSTANCE.SHGetFolderPath(null, ShlObj.CSIDL_MYVIDEO, null, ShlObj.SHGFP_TYPE_CURRENT, pszPath);
-					f = new File(String.valueOf(pszPath).trim());
-					folders += "," + f.getAbsolutePath();
-				} else {
-					folders = System.getProperty("user.home");
-				}
-			}
-		}
-
-		if (folders == null || folders.length() == 0) {
-			return null;
-		}
-
-		ArrayList<File> directories = new ArrayList<>();
-		String[] foldersArray = folders.split(",");
-
-		for (String folder : foldersArray) {
-			folder = folder.trim();
-
-			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
-			// Windows path separators:
-			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
-			folder = folder.replaceAll("&comma;", ",");
-
-			// this is called *way* too often
-			// so log it so we can fix it.
-			LOGGER.info("Checking shared folder: " + folder);
-
-			File file = new File(folder);
-
-			if (file.exists()) {
-				if (!file.isDirectory()) {
-					LOGGER.warn(
-						"The file \"{}\" is not a folder! Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-						folder,  Messages.getString("LooksFrame.22")
-					);
-				}
-			} else {
-				LOGGER.warn(
-					"The folder \"{}\" does not exist. Please remove it from your shared folders list on the \"{}\" tab or in the configuration file.",
-					folder,  Messages.getString("LooksFrame.22")
-				);
-			}
-
-			// add the file even if there are problems so that the user can update the shared folders as required.
-			directories.add(file);
-		}
-
-		File f[] = new File[directories.size()];
-		directories.toArray(f);
-		return f;
-	}
-
-	/**
 	 * Restarts the server. The trigger is either a button on the main DMS window or via
 	 * an action item.
 	 */
@@ -1139,6 +1016,10 @@ public class PMS {
 						break;
 					case TRACE:
 						traceMode = 2;
+						break;
+					case DBLOG:
+					case DBTRACE:
+						logDB = true;
 						break;
 					default:
 						Matcher matcher = pattern.matcher(arg);
@@ -1809,26 +1690,6 @@ public class PMS {
 		return Platform.isWindows();
 	}
 
-	public static boolean filter(RendererConfiguration render, DLNAResource res) {
-		NameFilter nf = instance.filter;
-		if (nf == null || render == null) {
-			return false;
-		}
-
-		ArrayList<String> tags = render.tags();
-		if (tags == null) {
-			return false;
-		}
-
-		for (String tag : tags) {
-			if (nf.filter(tag, res)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	public static boolean isReady() {
 		return get().ready;
 	}
@@ -1927,6 +1788,7 @@ public class PMS {
 	}
 
 	private static int traceMode = 0;
+	private static boolean logDB;
 
 	/**
 	 * Returns current trace mode state
@@ -1938,6 +1800,16 @@ public class PMS {
 	 */
 	public static int getTraceMode() {
 		return traceMode;
+	}
+
+	/**
+	 * Returns if the database logging is forced by command line arguments.
+	 *
+	 * @return {@code true} if database logging is forced, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean getLogDB() {
+		return logDB;
 	}
 
 	private CredMgr credMgr;

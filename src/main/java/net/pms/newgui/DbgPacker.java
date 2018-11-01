@@ -131,7 +131,7 @@ public class DbgPacker implements ActionListener {
 		String profileDirectory = configuration.getProfileDirectory();
 
 		// add virtual folders file if it exists
-		String vfolders = configuration.getVirtualFoldersFile(null);
+		String vfolders = configuration.getVirtualFoldersFile();
 		if (StringUtils.isNotEmpty(vfolders)) {
 			add(new File(profileDirectory, vfolders));
 		}

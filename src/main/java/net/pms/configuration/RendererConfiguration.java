@@ -501,15 +501,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			ArrayList<String> tags = new ArrayList<>();
-			tags.add(getRendererName());
-			for (InetAddress sa : addressAssociation.keySet()) {
-				if (addressAssociation.get(sa) == this) {
-					tags.add(sa.getHostAddress());
-				}
-			}
-
-			rootFolder = new RootFolder(tags);
+			rootFolder = new RootFolder();
 			if (pmsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
@@ -2499,13 +2491,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isEmbeddedSubtitlesSupported() {
 		return StringUtils.isNotBlank(getSupportedEmbeddedSubtitles());
-	}
-
-	public ArrayList<String> tags() {
-		if (rootFolder != null) {
-			return rootFolder.getTags();
-		}
-		return null;
 	}
 
 	/**
