@@ -359,7 +359,7 @@
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 			-->
-			<version>0.7</version>
+			<version>1.0.1</version>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
