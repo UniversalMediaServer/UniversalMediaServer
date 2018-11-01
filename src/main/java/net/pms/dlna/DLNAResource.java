@@ -893,7 +893,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (parserV2) {
 								subsMatched = renderer.getFormatConfiguration().match(media, params) != null;
 							} else {
-								subsMatched = renderer.isExternalSubtitlesFormatSupported(params.sid, media);
+								subsMatched = renderer.isEmbeddedSubtitlesFormatSupported(params.sid);
 							}
 							if (subsMatched) {
 								media_subtitle = params.sid;
