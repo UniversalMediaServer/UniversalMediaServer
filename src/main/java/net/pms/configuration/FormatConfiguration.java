@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
@@ -364,23 +363,15 @@ public class FormatConfiguration {
 		 * or 0, its value is skipped for making the match. If any of the
 		 * non-null parameters does not match, false is returned. For example,
 		 * assume a configuration that contains only the following line:
-<<<<<<< HEAD
 		 * 
-		 * Supported = f:mp4 n:2 se:SUBRIP
+		 * <blockquote><pre>
+		 * 	Supported = f:mp4 n:2 se:SUBRIP
 		 *  
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, null) = true
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, null, null) = false 
-		 * match("wav", null, null, 2, 0, 0, 0, 0, null, null) = false
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP") = true
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "sub") = false 
-=======
-		 *
-		 * Supported = f:mp4 n:2
-		 *
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null) = true
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, 0, null) = false
-		 * match("wav", null, null, 2, 0, 0, 0, 0, 0, null) = false
->>>>>>> refs/remotes/origin/master
+		 * 	match("mp4", null, null, 2, 0, 0, 0, 0, null, null) = true
+		 * 	match("mp4", null, null, 6, 0, 0, 0, 0, null, null) = false 
+		 * 	match("wav", null, null, 2, 0, 0, 0, 0, null, null) = false
+		 * 	match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP") = true
+		 * 	match("mp4", null, null, 2, 0, 0, 0, 0, null, "sub") = false </pre></blockquote>
 		 *
 		 * @param format
 		 * @param videoCodec
