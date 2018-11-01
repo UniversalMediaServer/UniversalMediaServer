@@ -927,10 +927,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				rendererForceExtensions = renderer.getTranscodedExtensions();
 			}
 
-			if (forceTranscode) {
-				LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", getName());
-			}
-
 			boolean isIncompatible = false;
 
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
@@ -941,7 +937,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace("DVD video track \"{}\" will be transcoded because streaming isn't supported", getName());
 			} else if (!format.isCompatible(media, renderer)) {
 				isIncompatible = true;
-				LOGGER.trace(prependTraceReason + "it is not supported by the renderer", getName());
+				LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", getName(), renderer.getRendererName());
 			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
 				if (
 					getMediaAudio() != null &&
@@ -968,7 +964,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 			}
-			if (!isIncompatible && format.isVideo() && parserV2 && renderer != null) {
+
+			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2 && renderer != null) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
 				if (
