@@ -937,7 +937,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace("DVD video track \"{}\" will be transcoded because streaming isn't supported", getName());
 			} else if (!format.isCompatible(media, renderer)) {
 				isIncompatible = true;
-				LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", getName(), renderer.getRendererName());
+				LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", getName(), renderer != null ? renderer.getRendererName() : "");
 			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
 				if (
 					getMediaAudio() != null &&
