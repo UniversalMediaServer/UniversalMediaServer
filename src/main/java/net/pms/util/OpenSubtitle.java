@@ -673,10 +673,10 @@ public class OpenSubtitle {
 								(
 									StringUtils.isNotBlank(yearFromFilename) &&
 									yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
-									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+									StringUtils.isNotEmpty(titleFromFilename)
 								) || (
 									StringUtils.isBlank(yearFromFilename) &&
-									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+									StringUtils.isNotEmpty(titleFromFilename)
 								)
 							) {
 								/**

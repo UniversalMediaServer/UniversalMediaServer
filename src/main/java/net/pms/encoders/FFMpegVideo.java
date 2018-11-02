@@ -237,17 +237,20 @@ public class FFMpegVideo extends Player {
 					}
 				}
 			} else if (params.sid.getType().isPicture()) {
+				StringBuilder subsPictureFilter = new StringBuilder();
 				if (params.sid.getId() < 100) {
 					// Embedded
-					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
+					subsPictureFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
 					isSubsManualTiming = false;
 				} else {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
-					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
+					subsPictureFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
 				}
+				filterChain.add(0, subsPictureFilter.toString());
 			}
+
 			if (isNotBlank(subsFilter)) {
 				if (params.timeseek > 0 && isSubsManualTiming) {
 					filterChain.add("setpts=PTS+" + params.timeseek + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
