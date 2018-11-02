@@ -19,6 +19,8 @@ matrix:
       jdk: openjdk8
     - os: osx
       osx_image: xcode9.3
+    - os: windows
+      jdk: oraclejdk8
 
 install: mvn external:install 
 
