@@ -256,14 +256,6 @@ public class RootFolder extends DLNAResource {
 		frame.setStatusLine(null);
 	}
 
-	/*
-	 * @deprecated Use {@link #stopScan()} instead.
-	 */
-	@Deprecated
-	public void stopscan() {
-		stopScan();
-	}
-
 	public void stopScan() {
 		running = false;
 	}
