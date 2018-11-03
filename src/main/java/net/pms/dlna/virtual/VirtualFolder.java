@@ -89,18 +89,6 @@ public class VirtualFolder extends DLNAResource {
 		return 0;
 	}
 
-	/**
-	 * Containers are likely not to be modified, so this one returns zero.
-	 * TODO: (botijo) When is this used then? Is this a prototype?
-	 *
-	 * @return Zero
-	 */
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
-	}
-
 	@Override
 	public String getSystemName() {
 		return getName();
