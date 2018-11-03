@@ -1,0 +1,747 @@
+/***********************************
+TV - REMOTE CONTROL
+ ***********************************/
+@font-face {font-family: "youtube-icons";src: url("fonts/youtube-icons.ttf") format("truetype");}
+@font-face{font-family:'Roboto';src:local("Roboto-Regular"),url("fonts/Roboto-Regular-20140804.ttf") format("truetype")}
+@font-face{font-family:'Roboto Bold';src:local("Roboto-Bold"),url("fonts/Roboto-Bold.ttf") format("truetype")}
+@font-face {font-family: "Material Icons Extended";src: url(fonts/kabuki-material-icons.ttf) format("truetype");}
+.icon-4k::before{font-family:'youtube-icons';content:'\00e900'}
+.icon-account-circle::before{font-family:'youtube-icons';content:'\00e901'}
+.icon-account-full-circle::before{font-family:'youtube-icons';content:'\00e902'}
+.icon-airplane::before{font-family:'youtube-icons';content:'\00e903'}
+.icon-as-chevron-down::before{font-family:'youtube-icons';content:'\00e904'}
+.icon-as-chevron-left::before{font-family:'youtube-icons';content:'\00e905'}
+.icon-as-chevron-right::before{font-family:'youtube-icons';content:'\00e906'}
+.icon-as-chevron-up::before{font-family:'youtube-icons';content:'\00e907'}
+.icon-as-replay-video::before{font-family:'youtube-icons';content:'\00e908'}
+.icon-as-settings-autoplay::before{font-family:'youtube-icons';content:'\00e909'}
+.icon-as-settings-bgcolor::before{font-family:'youtube-icons';content:'\00e90a'}
+.icon-as-settings-button-hints::before{font-family:'youtube-icons';content:'\00e90b'}
+.icon-as-settings-clear-cookies::before{font-family:'youtube-icons';content:'\00e90c'}
+.icon-as-settings-clear-history::before{font-family:'youtube-icons';content:'\00e90d'}
+.icon-as-settings-clear-search::before{font-family:'youtube-icons';content:'\00e90e'}
+.icon-as-settings-contrast::before{font-family:'youtube-icons';content:'\00e90f'}
+.icon-as-settings-feedback::before{font-family:'youtube-icons';content:'\00e910'}
+.icon-as-settings-help::before{font-family:'youtube-icons';content:'\00e911'}
+.icon-as-settings-improve-youtube::before{font-family:'youtube-icons';content:'\00e912'}
+.icon-as-settings-linked-devices::before{font-family:'youtube-icons';content:'\00e913'}
+.icon-as-settings-miniplayer::before{font-family:'youtube-icons';content:'\00e914'}
+.icon-as-settings-privacy::before{font-family:'youtube-icons';content:'\00e915'}
+.icon-as-settings-restricted::before{font-family:'youtube-icons';content:'\00e916'}
+.icon-as-settings-sounds::before{font-family:'youtube-icons';content:'\00e917'}
+.icon-back::before{font-family:'youtube-icons';content:'\00e918'}
+.icon-beauty::before{font-family:'youtube-icons';content:'\00e919'}
+.icon-bug_report::before{font-family:'youtube-icons';content:'\00e91a'}
+.icon-cast_off::before{font-family:'youtube-icons';content:'\00e91b'}
+.icon-cast_on::before{font-family:'youtube-icons';content:'\00e91c'}
+.icon-check-circle::before{font-family:'youtube-icons';content:'\00e91d'}
+.icon-check::before{font-family:'youtube-icons';content:'\00e91e'}
+.icon-chevron-down::before{font-family:'youtube-icons';content:'\00e91f'}
+.icon-chevron-left::before{font-family:'youtube-icons';content:'\00e920'}
+.icon-chevron-right::before{font-family:'youtube-icons';content:'\00e921'}
+.icon-chevron-single::before{font-family:'youtube-icons';content:'\00e922'}
+.icon-chevron-up::before{font-family:'youtube-icons';content:'\00e923'}
+.icon-close::before{font-family:'youtube-icons';content:'\00e924'}
+.icon-comedy::before{font-family:'youtube-icons';content:'\00e925'}
+.icon-delete::before{font-family:'youtube-icons';content:'\00e926'}
+.icon-desktop-arrowkeys::before{font-family:'youtube-icons';content:'\00e927'}
+.icon-desktop-delete::before{font-family:'youtube-icons';content:'\00e928'}
+.icon-desktop-esc::before{font-family:'youtube-icons';content:'\00e929'}
+.icon-desktop-g::before{font-family:'youtube-icons';content:'\00e92a'}
+.icon-desktop-s::before{font-family:'youtube-icons';content:'\00e92b'}
+.icon-dislike::before{font-family:'youtube-icons';content:'\00e92c'}
+.icon-double-chevron-right::before{font-family:'youtube-icons';content:'\00e92d'}
+.icon-edit::before{font-family:'youtube-icons';content:'\00e92e'}
+.icon-education::before{font-family:'youtube-icons';content:'\00e92f'}
+.icon-ellipsis::before{font-family:'youtube-icons';content:'\00e930'}
+.icon-entertainment::before{font-family:'youtube-icons';content:'\00e931'}
+.icon-error::before{font-family:'youtube-icons';content:'\00e932'}
+.icon-exit::before{font-family:'youtube-icons';content:'\00e933'}
+.icon-film::before{font-family:'youtube-icons';content:'\00e934'}
+.icon-flag::before{font-family:'youtube-icons';content:'\00e935'}
+.icon-folder::before{font-family:'youtube-icons';content:'\00e936'}
+.icon-food::before{font-family:'youtube-icons';content:'\00e937'}
+.icon-gaming::before{font-family:'youtube-icons';content:'\00e938'}
+.icon-guide-history::before{font-family:'youtube-icons';content:'\00e939'}
+.icon-guide-my-subs::before{font-family:'youtube-icons';content:'\00e93a'}
+.icon-guide-purchases::before{font-family:'youtube-icons';content:'\00e93b'}
+.icon-guide-social::before{font-family:'youtube-icons';content:'\00e93c'}
+.icon-guide-what-to-watch::before{font-family:'youtube-icons';content:'\00e93d'}
+.icon-hats-happy::before{font-family:'youtube-icons';content:'\00e93e'}
+.icon-hats-neutral::before{font-family:'youtube-icons';content:'\00e93f'}
+.icon-hats-sad::before{font-family:'youtube-icons';content:'\00e940'}
+.icon-hats-very-happy::before{font-family:'youtube-icons';content:'\00e941'}
+.icon-hats-very-sad::before{font-family:'youtube-icons';content:'\00e942'}
+.icon-hd::before{font-family:'youtube-icons';content:'\00e943'}
+.icon-history::before{font-family:'youtube-icons';content:'\00e944'}
+.icon-home::before{font-family:'youtube-icons';content:'\00e945'}
+.icon-hourglass::before{font-family:'youtube-icons';content:'\00e946'}
+.icon-key-delete::before{font-family:'youtube-icons';content:'\00e947'}
+.icon-key-globe::before{font-family:'youtube-icons';content:'\00e948'}
+.icon-key-space-sm::before{font-family:'youtube-icons';content:'\00e949'}
+.icon-key-space::before{font-family:'youtube-icons';content:'\00e94a'}
+.icon-like::before{font-family:'youtube-icons';content:'\00e94b'}
+.icon-lips::before{font-family:'youtube-icons';content:'\00e94c'}
+.icon-logo-lozenge::before{font-family:'youtube-icons';content:'\00e94d'}
+.icon-lol::before{font-family:'youtube-icons';content:'\00e94e'}
+.icon-lozenge::before{font-family:'youtube-icons';content:'\00e94f'}
+.icon-mic::before{font-family:'youtube-icons';content:'\00e950'}
+.icon-mix::before{font-family:'youtube-icons';content:'\00e951'}
+.icon-more-horiz::before{font-family:'youtube-icons';content:'\00e952'}
+.icon-more-vert::before{font-family:'youtube-icons';content:'\00e953'}
+.icon-mr_meh_android::before{font-family:'youtube-icons';content:'\00e954'}
+.icon-multiaudio::before{font-family:'youtube-icons';content:'\00e955'}
+.icon-music::before{font-family:'youtube-icons';content:'\00e956'}
+.icon-news::before{font-family:'youtube-icons';content:'\00e957'}
+.icon-people::before{font-family:'youtube-icons';content:'\00e958'}
+.icon-pets::before{font-family:'youtube-icons';content:'\00e959'}
+.icon-player-3d::before{font-family:'youtube-icons';content:'\00e95a'}
+.icon-player-annotations::before{font-family:'youtube-icons';content:'\00e95b'}
+.icon-player-closedcaptions::before{font-family:'youtube-icons';content:'\00e95c'}
+.icon-player-ff::before{font-family:'youtube-icons';content:'\00e95d'}
+.icon-player-HD-circle::before{font-family:'youtube-icons';content:'\00e95e'}
+.icon-player-HD::before{font-family:'youtube-icons';content:'\00e95f'}
+.icon-player-info::before{font-family:'youtube-icons';content:'\00e960'}
+.icon-player-instantreplay::before{font-family:'youtube-icons';content:'\00e961'}
+.icon-player-less::before{font-family:'youtube-icons';content:'\00e962'}
+.icon-player-more::before{font-family:'youtube-icons';content:'\00e963'}
+.icon-player-mute::before{font-family:'youtube-icons';content:'\00e964'}
+.icon-player-next::before{font-family:'youtube-icons';content:'\00e965'}
+.icon-player-pause::before{font-family:'youtube-icons';content:'\00e966'}
+.icon-player-play::before{font-family:'youtube-icons';content:'\00e967'}
+.icon-player-prev::before{font-family:'youtube-icons';content:'\00e968'}
+.icon-player-replay::before{font-family:'youtube-icons';content:'\00e969'}
+.icon-player-rew::before{font-family:'youtube-icons';content:'\00e96a'}
+.icon-player-settings::before{font-family:'youtube-icons';content:'\00e96b'}
+.icon-player-share::before{font-family:'youtube-icons';content:'\00e96c'}
+.icon-player-size-fullscreen::before{font-family:'youtube-icons';content:'\00e96d'}
+.icon-player-size-medium::before{font-family:'youtube-icons';content:'\00e96e'}
+.icon-player-size-minimize::before{font-family:'youtube-icons';content:'\00e96f'}
+.icon-player-stop::before{font-family:'youtube-icons';content:'\00e970'}
+.icon-player-subtitles::before{font-family:'youtube-icons';content:'\00e971'}
+.icon-player-volume-45::before{font-family:'youtube-icons';content:'\00e972'}
+.icon-player-volume-48::before{font-family:'youtube-icons';content:'\00e973'}
+.icon-playlist::before{font-family:'youtube-icons';content:'\00e974'}
+.icon-playstation-circle::before{font-family:'youtube-icons';content:'\00e975'}
+.icon-playstation-square::before{font-family:'youtube-icons';content:'\00e976'}
+.icon-playstation-triangle::before{font-family:'youtube-icons';content:'\00e977'}
+.icon-playstation-x::before{font-family:'youtube-icons';content:'\00e978'}
+.icon-popular::before{font-family:'youtube-icons';content:'\00e979'}
+.icon-privacy-link::before{font-family:'youtube-icons';content:'\00e97a'}
+.icon-privacy-locked::before{font-family:'youtube-icons';content:'\00e97b'}
+.icon-privacy-public::before{font-family:'youtube-icons';content:'\00e97c'}
+.icon-related::before{font-family:'youtube-icons';content:'\00e97d'}
+.icon-remoteque::before{font-family:'youtube-icons';content:'\00e97e'}
+.icon-reward::before{font-family:'youtube-icons';content:'\00e97f'}
+.icon-rocket::before{font-family:'youtube-icons';content:'\00e980'}
+.icon-roku-back::before{font-family:'youtube-icons';content:'\00e981'}
+.icon-search-clear::before{font-family:'youtube-icons';content:'\00e982'}
+.icon-search-keyboard::before{font-family:'youtube-icons';content:'\00e983'}
+.icon-search::before{font-family:'youtube-icons';content:'\00e984'}
+.icon-settings-about-android::before{font-family:'youtube-icons';content:'\00e985'}
+.icon-settings-check::before{font-family:'youtube-icons';content:'\00e986'}
+.icon-settings-clear-cookies::before{font-family:'youtube-icons';content:'\00e987'}
+.icon-settings-clear-history::before{font-family:'youtube-icons';content:'\00e988'}
+.icon-settings-feedback::before{font-family:'youtube-icons';content:'\00e989'}
+.icon-settings-help::before{font-family:'youtube-icons';content:'\00e98a'}
+.icon-settings-pair::before{font-family:'youtube-icons';content:'\00e98b'}
+.icon-settings-phone::before{font-family:'youtube-icons';content:'\00e98c'}
+.icon-settings-signin-android::before{font-family:'youtube-icons';content:'\00e98d'}
+.icon-settings-signout-android::before{font-family:'youtube-icons';content:'\00e98e'}
+.icon-settings-stats-android::before{font-family:'youtube-icons';content:'\00e98f'}
+.icon-settings-term::before{font-family:'youtube-icons';content:'\00e990'}
+.icon-settings-uncheck::before{font-family:'youtube-icons';content:'\00e991'}
+.icon-speechbubble::before{font-family:'youtube-icons';content:'\00e992'}
+.icon-sports::before{font-family:'youtube-icons';content:'\00e993'}
+.icon-star::before{font-family:'youtube-icons';content:'\00e994'}
+.icon-technology::before{font-family:'youtube-icons';content:'\00e995'}
+.icon-trash::before{font-family:'youtube-icons';content:'\00e996'}
+.icon-trending::before{font-family:'youtube-icons';content:'\00e997'}
+.icon-trends::before{font-family:'youtube-icons';content:'\00e998'}
+.icon-tv-dpad::before{font-family:'youtube-icons';content:'\00e999'}
+.icon-upload-arrow::before{font-family:'youtube-icons';content:'\00e99a'}
+.icon-upload::before{font-family:'youtube-icons';content:'\00e99b'}
+.icon-watch-later::before{font-family:'youtube-icons';content:'\00e99c'}
+.icon-wii-1::before{font-family:'youtube-icons';content:'\00e99d'}
+.icon-wii-2::before{font-family:'youtube-icons';content:'\00e99e'}
+.icon-wii-A::before{font-family:'youtube-icons';content:'\00e99f'}
+.icon-wii-B::before{font-family:'youtube-icons';content:'\00e9a0'}
+.icon-wii-minus::before{font-family:'youtube-icons';content:'\00e9a1'}
+.icon-wii-plus::before{font-family:'youtube-icons';content:'\00e9a2'}
+.icon-wii-x::before{font-family:'youtube-icons';content:'\00e9a3'}
+.icon-wii-y::before{font-family:'youtube-icons';content:'\00e9a4'}
+.icon-youtube-logo-old::before{font-family:'youtube-icons';content:'\00e9a5'}
+.icon-youtube-logo::before{font-family:'youtube-icons';content:'\00e9a6'}
+.icon-ytk-logo-mid::before{font-family:'youtube-icons';content:'\00e9aa'}
+.icon-forward-10::before{font-family:'youtube-icons';content:'\00e056'}
+.icon-replay-10::before{font-family:'youtube-icons';content:'\00e059'}
+.material-icon-fourk::before{font-family:'Material Icons Extended';content:'\00e072'}
+.material-icon-account-circle::before{font-family:'Material Icons Extended';content:'\00e853'}
+.material-icon-add::before{font-family:'Material Icons Extended';content:'\00e145'}
+.material-icon-arrow-back::before{font-family:'Material Icons Extended';content:'\00e5c4'}
+.material-icon-backspace::before{font-family:'Material Icons Extended';content:'\00e14a'}
+.material-icon-brightness-high::before{font-family:'Material Icons Extended';content:'\00e1ac'}
+.material-icon-bug-report::before{font-family:'Material Icons Extended';content:'\00e868'}
+.material-icon-build::before{font-family:'Material Icons Extended';content:'\00e869'}
+.material-icon-chat::before{font-family:'Material Icons Extended';content:'\00e0b7'}
+.material-icon-check-box::before{font-family:'Material Icons Extended';content:'\00e834'}
+.material-icon-check-box-outline-blank::before{font-family:'Material Icons Extended';content:'\00e835'}
+.material-icon-check-circle::before{font-family:'Material Icons Extended';content:'\00e86c'}
+.material-icon-chevron-left::before{font-family:'Material Icons Extended';content:'\00e5cb'}
+.material-icon-clear::before{font-family:'Material Icons Extended';content:'\00e14c'}
+.material-icon-close::before{font-family:'Material Icons Extended';content:'\00e5cd'}
+.material-icon-closed-caption::before{font-family:'Material Icons Extended';content:'\00e01c'}
+.material-icon-delete::before{font-family:'Material Icons Extended';content:'\00e872'}
+.material-icon-do-not-disturb-alt::before{font-family:'Material Icons Extended';content:'\00e611'}
+.material-icon-done::before{font-family:'Material Icons Extended';content:'\00e876'}
+.material-icon-edit::before{font-family:'Material Icons Extended';content:'\00e3c9'}
+.material-icon-feedback::before{font-family:'Material Icons Extended';content:'\00e87f'}
+.material-icon-flag::before{font-family:'Material Icons Extended';content:'\00e153'}
+.material-icon-folder::before{font-family:'Material Icons Extended';content:'\00e2c7'}
+.material-icon-forum::before{font-family:'Material Icons Extended';content:'\00e0bf'}
+.material-icon-forward-10::before{font-family:'Material Icons Extended';content:'\00e056'}
+.material-icon-gamepad::before{font-family:'Material Icons Extended';content:'\00e30f'}
+.material-icon-hd::before{font-family:'Material Icons Extended';content:'\00e052'}
+.material-icon-help-outline::before{font-family:'Material Icons Extended';content:'\00e8fd'}
+.material-icon-history::before{font-family:'Material Icons Extended';content:'\00e889'}
+.material-icon-home::before{font-family:'Material Icons Extended';content:'\00e88a'}
+.material-icon-info::before{font-family:'Material Icons Extended';content:'\00e88e'}
+.material-icon-info-outline::before{font-family:'Material Icons Extended';content:'\00e88f'}
+.material-icon-invert-colors::before{font-family:'Material Icons Extended';content:'\00e891'}
+.material-icon-keyboard::before{font-family:'Material Icons Extended';content:'\00e312'}
+.material-icon-language::before{font-family:'Material Icons Extended';content:'\00e894'}
+.material-icon-mic::before{font-family:'Material Icons Extended';content:'\00e029'}
+.material-icon-more-horiz::before{font-family:'Material Icons Extended';content:'\00e5d3'}
+.material-icon-more-vert::before{font-family:'Material Icons Extended';content:'\00e5d4'}
+.material-icon-music-video::before{font-family:'Material Icons Extended';content:'\00e063'}
+.material-icon-navigate-next::before{font-family:'Material Icons Extended';content:'\00e409'}
+.material-icon-pause::before{font-family:'Material Icons Extended';content:'\00e034'}
+.material-icon-play-arrow::before{font-family:'Material Icons Extended';content:'\00e037'}
+.material-icon-playlist-add::before{font-family:'Material Icons Extended';content:'\00e03b'}
+.material-icon-playlist-play::before{font-family:'Material Icons Extended';content:'\00e05f'}
+.material-icon-progress-activity::before{font-family:'Material Icons Extended';content:'\00e9d0'}
+.material-icon-queue-play-next::before{font-family:'Material Icons Extended';content:'\00e066'}
+.material-icon-record-voice-over::before{font-family:'Material Icons Extended';content:'\00e91f'}
+.material-icon-replay::before{font-family:'Material Icons Extended';content:'\00e042'}
+.material-icon-replay-10::before{font-family:'Material Icons Extended';content:'\00e059'}
+.material-icon-reset-tv::before{font-family:'Material Icons Extended';content:'\00e9d9'}
+.material-icon-search::before{font-family:'Material Icons Extended';content:'\00e8b6'}
+.material-icon-sentiment-dissatisfied::before{font-family:'Material Icons Extended';content:'\00e811'}
+.material-icon-sentiment-neutral::before{font-family:'Material Icons Extended';content:'\00e812'}
+.material-icon-sentiment-satisfied::before{font-family:'Material Icons Extended';content:'\00e813'}
+.material-icon-sentiment-very-dissatisfied::before{font-family:'Material Icons Extended';content:'\00e814'}
+.material-icon-sentiment-very-satisfied::before{font-family:'Material Icons Extended';content:'\00e815'}
+.material-icon-settings::before{font-family:'Material Icons Extended';content:'\00e8b8'}
+.material-icon-skip-next::before{font-family:'Material Icons Extended';content:'\00e044'}
+.material-icon-skip-previous::before{font-family:'Material Icons Extended';content:'\00e045'}
+.material-icon-star::before{font-family:'Material Icons Extended';content:'\00e838'}
+.material-icon-star-border::before{font-family:'Material Icons Extended';content:'\00e83a'}
+.material-icon-subscriptions::before{font-family:'Material Icons Extended';content:'\00e064'}
+.material-icon-sync::before{font-family:'Material Icons Extended';content:'\00e627'}
+.material-icon-sync-problem::before{font-family:'Material Icons Extended';content:'\00e629'}
+.material-icon-thumb-down::before{font-family:'Material Icons Extended';content:'\00e8db'}
+.material-icon-thumb-up::before{font-family:'Material Icons Extended';content:'\00e8dc'}
+.material-icon-translate::before{font-family:'Material Icons Extended';content:'\00e8e2'}
+.material-icon-video-youtube::before{font-family:'Material Icons Extended';content:'\00e6a8'}
+.material-icon-volume-up::before{font-family:'Material Icons Extended';content:'\00e050'}
+.material-icon-youtube-improve-tv::before{font-family:'Material Icons Extended';content:'\00e737'}
+.material-icon-youtube-linked-tv::before{font-family:'Material Icons Extended';content:'\00e736'}
+.material-icon-youtube-live::before{font-family:'Material Icons Extended';content:'\00e6fc'}
+.material-icon-youtube-mix::before{font-family:'Material Icons Extended';content:'\00e6cc'}
+.material-icon-youtube-trending::before{font-family:'Material Icons Extended';content:'\00ea05'}
+.onFocus{
+	box-shadow: 0px 0px 10px #aaa;
+}
+.onFocus.different{
+	box-shadow: 0px 0px 20px #337ab7;
+	-webkit-transform: scale(1);
+	-moz-transform: scale(1);
+	-ms-transform: scale(1);
+	-o-transform: scale(1);
+	transform: scale(1);
+}
+.onFocus a .caption {
+	color: #fff !important;
+}
+a#HomeButton {
+	background: url(/files/menu-left-content.png);
+	background-repeat: no-repeat;
+	background-position: left bottom;
+	background-size: contain;
+	width: 67px;
+	height: 50px;
+	display: block;
+}
+#settings>.fa{
+	font-size: 16px;
+}
+.box-meta {
+	background-color: #111111 !important; /*Android TV NO Official Color*/
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+	height: 40px;
+	overflow: hidden;
+	padding: 12px 12px 12px 15px;
+}
+.main .page-header {
+	margin-top: 0;
+}
+
+.page-header {
+	padding-bottom: 9px;
+	margin: 40px 0 20px;
+	border-bottom: 1px solid #37474f;
+	color: #37474f;
+}
+.page-header .h1, h1 {
+	font-size: 36px;
+}
+/***********************************
+REWRITE DEFAULT STYLE
+ ***********************************/
+body{
+	color: #FFFFFF;
+}
+#toolbar{
+	color: #000000;
+    background-color: #111111;
+    padding: 5px 2px;
+}
+#toolbar button{
+    font-weight: 600;
+    height: 30px;
+}
+.navbar{
+	background: url('/files/menu-background-content.png');
+}
+.dropdown-menu .onFocus {
+	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
+	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+}
+#FrontPage #Menu a h3 {
+	color: #FFFFFF;
+	width: 100%;
+	font-size: 18px;
+	margin-top: 230px;
+}
+#ContentPage .fa-cog{
+	color: #FFFFFF;
+	font-size: 18px;
+}
+#ContentPage.Doc {
+	margin: 70px auto;
+}
+#bumplist{
+	position: relative;
+    margin-left: 260px;
+    padding: 50px 0 0px 0px;
+}
+#bumplist div>.alert{
+	margin-bottom: 0px !important;
+}
+#bumpcontainer{
+	margin: 10px;
+}
+#bumpsettings{
+	color: #000000;
+	text-align: left;
+}
+/*****************************
+SCROLLBAR
+/********Media(Body)**********/
+/* width */
+::-webkit-scrollbar {
+	width: 6px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 10px;
+}
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+/**********Folders**********/
+ul#Folders::-webkit-scrollbar {
+	width: 6px;
+}
+/* Track */
+ul#Folders::-webkit-scrollbar-track {
+	display: none;
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+ul#Folders::-webkit-scrollbar-track {
+	display: none;
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+/* Handle */
+ul#Folders::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 10px;
+}
+/* Handle on hover */
+ul#Folders::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+/**********END SCROLLBAR**********/
+
+/*****************************
+Sticky footer styles
+******************************/
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+/******END Sticky footer styles******/
+
+#Folders li:first-child span {
+	margin: 5px 0 6px;
+	padding-top: 3px;
+    padding-bottom: 1px;
+}
+ul#Folders {
+	padding: 15px 0px 0px 0px;
+	top: 50px;
+	width: 260px;
+	background-color: #212121;
+}
+@media screen and (max-width: 1080px) {
+	ul#Folders {
+		padding: 15px 0px 0px 0px;
+		margin-top: 50px;
+		background-color: #333;
+		width: 100%;
+	}
+}
+ul#Folders>li>a{
+	/*padding: 2px 15px 2px 15px;*/
+	font-weight: 600;
+	cursor: pointer;
+	color: #969696;
+	vertical-align: bottom;
+	font-family: Roboto, sans-serif;
+	border: 0;
+	padding-top: 2px;
+    padding-bottom: 1px;
+}
+ul#Folders>li>a:hover{
+	background-color:#ebebeb;
+	color:#2f2f2f !important;
+	-moz-transform:scale(1.1);
+	-webkit-transform:scale(1.1);
+	-o-transform:scale(1.1);
+	transform:scale(1.1);
+	border-radius:0.11364rem;
+	box-shadow:0 0 0.75rem 0 rgba(0,0,0,0.24),0 0.75rem 0.75rem 0 rgba(0,0,0,0.48);
+	-moz-transition: transform 0.2s;
+	-webkit-transition: transform 0.2s;
+	-o-transition: transform 0.2s;
+	transition: transform 0.2s;
+	transform-origin: 50% 50%;
+	overflow: hidden;
+}
+@media screen and (max-width: 1080px) {
+	ul#Folders>li>a:hover {
+		-moz-transform: scale(1.02);
+		-webkit-transform: scale(1.02);
+		-o-transform: scale(1.02);
+		transform: scale(1.02);
+	}
+}
+
+ul#Folders>li:hover{
+	overflow: hidden;
+}
+ul#Folders>li.onFocus{
+	box-shadow: none;
+	overflow: hidden;
+}
+ul#Folders>li.onFocus>a{
+	/*background: #0091EA;
+	color: rgba(255,255,255,.87) !important;
+	font-weight: 600;*/
+	background-color:#ebebeb;
+	color:#2f2f2f !important;
+	-moz-transform:scale(1.1);
+	-webkit-transform:scale(1.1);
+	-o-transform:scale(1.1);
+	transform:scale(1.1);
+	border-radius:0.11364rem;
+	box-shadow:0 0 0.75rem 0 rgba(0,0,0,0.24),0 0.75rem 0.75rem 0 rgba(0,0,0,0.48);
+	-moz-transition: transform 0.2s;
+	-webkit-transition: transform 0.2s;
+	-o-transition: transform 0.2s;
+	transition: transform 0.2s;
+	transform-origin: 50% 50%;
+}
+@media screen and (max-width: 1080px) {
+	ul#Folders>li.onFocus>a {
+		-moz-transform: scale(1.02);
+		-webkit-transform: scale(1.02);
+		-o-transform: scale(1.02);
+		transform: scale(1.02);
+	}
+}
+ul#Folders li span {
+	margin-bottom: 0px;
+}
+#Media.nav>li>a {/*FIX due to bootstrap*/
+	padding: 0px;
+}
+#DownloadLink {
+	margin: 0px;
+	background: #000;
+	border-color: #fff;
+	background-image: none;
+	display: inline-block;
+	height: auto;
+	width: auto;
+}
+.btn-playbar {
+	background: #000;
+	border-color: #fff;
+	color: #fff;
+}
+.btn-playbar:hover {
+
+}
+@media screen and (max-width: 1080px) {
+	ul#Media{
+		padding: 20px 10px 20px 10px;
+	}
+}
+@media screen and (min-width: 1080px) {
+	ul#Media {
+		padding-top: 0px;
+		margin-top: 0px;
+	}
+}
+ul#Media .caption {
+	color: #eeeeee;
+	font-weight: 300;
+	padding-right: 25px;
+	margin-top: -15px;
+}
+ul#Media .playlist_add{
+	color: #eeeeee;
+	font-weight: 300;
+}
+ul#Media li {
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	height: 100% !important;
+	border-radius: 3px;
+	margin: 10px;
+}
+ul#Media li:hover {
+	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
+	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+	-ms-transform: translateY(-2px); /* IE 9 */
+    -webkit-transform: translateY(-2px); /* Safari */
+    transform: translateY(-2px);
+}
+ul#Media li>a:hover {
+	background-color: #000 !important;
+	border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+ul#Media li:hover .caption {
+	color: #fff !important;
+}
+ul#Media .onFocus {
+	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
+	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+	-ms-transform: translateY(-2px); /* IE 9 */
+    -webkit-transform: translateY(-2px); /* Safari */
+    transform: translateY(-2px);
+}
+ul#Media .onFocus {
+	background-color: #000 !important;
+}
+ul#Media .thumb{
+	border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+ul#Media .caption:hover {
+	text-decoration: none;
+}
+#toolbar button.onFocus,#toolbar button:hover{
+	background-color:#ebebeb;
+	color:#2f2f2f !important;
+	-moz-transform:scale(1.1);
+	-webkit-transform:scale(1.1);
+	-o-transform:scale(1.1);
+	transform:scale(1.1);
+	border-radius:0.11364rem;
+	box-shadow:0 0 0.75rem 0 rgba(0,0,0,0.24),0 0.75rem 0.75rem 0 rgba(0,0,0,0.48);
+	-moz-transition: transform 0.2s;
+	-webkit-transition: transform 0.2s;
+	-o-transition: transform 0.2s;
+	transition: transform 0.2s;
+	transform-origin: 50% 50%;
+}
+/*
+* VIDEOJS CSS REWRITE
+*/
+/*.video-js .vjs-big-play-button {
+	margin: 0 auto;
+	font-size: 5em !important;
+	top: 31% !important;
+	left: 0 !important;
+	height: 3em !important;
+	line-height: 3em !important;
+	-webkit-border-radius: 3em !important;
+	-moz-border-radius: 3em !important;
+	border-radius: 3em !important;
+	position: relative !important;
+}*/
+/********OVERLAY********/
+#trigger-overlay{
+	border: 0;
+	background: transparent;
+}
+#trigger-overlay>a{
+	color: #ffffff;
+}
+#SearchForm {
+    max-width: 530px;
+    padding: 15px;
+    margin: 0 auto;
+}
+div#searchbar input{
+	background: transparent;
+    border: 0;
+    height: 60px;
+    font-size: 40px;
+}
+/* Overlay style */
+.overlay {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	background: rgba(0,0,0,0.9);
+}
+
+/* Overlay closing cross */
+.overlay .overlay-close {
+	width: 40px;
+	height: 40px;
+	position: absolute;
+	right: 20px;
+	top: 20px;
+	overflow: hidden;
+	border: none;
+	background: url(../img/cross.png) no-repeat center center;
+	text-indent: 200%;
+	color: transparent;
+	outline: none;
+	z-index: 100;
+}
+
+/* Menu style */
+.overlay nav {
+	text-align: center;
+	position: relative;
+	top: 50%;
+	height: 60%;
+	-webkit-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.overlay ul {
+	list-style: none;
+	padding: 0;
+	margin: 0 auto;
+	display: inline-block;
+	height: 100%;
+	position: relative;
+}
+
+.overlay ul li {
+	display: block;
+	height: 20%;
+	height: calc(100% / 5);
+	min-height: 54px;
+}
+
+.overlay ul li a {
+	font-size: 54px;
+	font-weight: 300;
+	display: block;
+	color: #fff;
+	-webkit-transition: color 0.2s;
+	transition: color 0.2s;
+}
+
+.overlay ul li a:hover,
+.overlay ul li a:focus {
+	color: #f0f0f0;
+}
+
+/* Effects */
+.container {
+	/*background: #fff;*/
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+}
+
+.container.overlay-open {
+	-webkit-transform: scale(0.8);
+	transform: scale(0.8);
+}
+
+.overlay-contentscale {
+	visibility: hidden;
+	-webkit-transform: translateY(100%);
+	transform: translateY(100%);
+	-webkit-transition: -webkit-transform 0.5s, visibility 0s 0.5s;
+	transition: transform 0.5s, visibility 0s 0.5s;
+}
+
+.overlay-contentscale.open {
+	visibility: visible;
+	-webkit-transform: translateY(0%);
+	transform: translateY(0%);
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+	z-index: 1030;
+}
+
+@media screen and (max-height: 30.5em) {
+	.overlay nav {
+		height: 70%;
+		font-size: 34px;
+	}
+	.overlay ul li {
+		min-height: 34px;
+	}
+}
+/********END OVERLAY********/

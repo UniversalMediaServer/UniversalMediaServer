@@ -6,34 +6,59 @@
 		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
 		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<!-- New webUI -->
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/keycode.js"></script>
+		<script src="/files/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
 		<title>Documentation</title>
 	</head>
 	<body id="ContentPage" class="Doc">
-		<div id="Menu">
-			<a href="/browse/0" id="HomeButton"></a>
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a  id="HomeButton" class="navbar-brand onFocus" href="/browse/0" title="UMS"></a>
+			</div>
 		</div>
-		<div id="Container">
-			<h1>Tools</h1>
-			<br>
-			<ul>
-				<li><a href="/files/util/logviewer.html" title="Open general purpose log viewer">View</a> logs and Confs:
-					<ul>
-{{#logs}}
-						<li><a href="/files/log/{{id}}">{{filename}}</a></li>
-{{/logs}}
-					</ul>
-				</li>
-{{#cache}}
+	</nav>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-12 col-md-10 main">
+				<h1 class="page-header">Tools</h1>
 				<br>
-				<li><a href="{{this}}">Manage cache.</a></li>
-{{/cache}}
-			</ul>
-			<br><br>
-			<h1>Documentation</h1>
-			<br>
-			<ul>
-				<li><a href="/bump">Browser-to-UMS Media Player Setup.</a></li>
-			</ul>
+				<ul class="breadcrumb">
+					<li><a href="/files/util/logviewer.html" title="Open general purpose log viewer">View</a> <span class="badge"> logs and Confs:</span>
+						<ul class="breadcrumb">
+							{{#logs}}
+							<li><a href="/files/log/{{id}}">{{filename}}</a><span class="divider">/</span></li>
+							{{/logs}}
+						</ul>
+					</li>
+					{{#cache}}
+					<br>
+					<li><a href="{{this}}">Manage cache.</a><span class="divider">/</span></li>
+					{{/cache}}
+				</ul>
+				<br><br>
+				<h1 class="page-header">Documentation</h1>
+				<br>
+				<ul class="breadcrumb">
+					<li><a href="/bump">Browser-to-UMS Media Player Setup.</a><span class="divider">/</span></li>
+				</ul>
+			</div>
 		</div>
+
+	</div>
 	</body>
+	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
 </html>
