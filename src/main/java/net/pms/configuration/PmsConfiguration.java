@@ -277,8 +277,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * This key was used in older versions, only supports {@code true} or
 	 * {@code false}. Kept for backwards-compatibility for now.
-	 *
-	 * @deprecated Use {@link #KEY_PREVENT_SLEEP} instead.
 	 */
 	@Deprecated
 	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
@@ -375,10 +373,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
-
-	// Deprecated settings
-	@Deprecated
-	protected static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 
 	// The name of the subdirectory under which DMS config files are stored for this build (default: DMS).
 	// See Build for more details
@@ -902,17 +896,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * The TCP/IP port number for a proxy server. Default value is -1.
-	 *
-	 * @return The proxy port number.
-	 */
-	// no longer used
-	@Deprecated
-	public int getProxyServerPort() {
-		return getInt(KEY_PROXY_SERVER_PORT, DEFAULT_PROXY_SERVER_PORT);
-	}
-
-	/**
 	 * Gets the language {@link String} as stored in the {@link PmsConfiguration}.
 	 * May return <code>null</code>.
 	 * @return The language {@link String}
@@ -969,15 +952,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public String getLanguageTag() {
 		return getLanguageLocale().toLanguageTag();
-	}
-
-	/**
-	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
-	 * @since 5.2.3
-	 */
-	@Deprecated
-	public String getLanguage() {
-		return getLanguageTag();
 	}
 
 	/**
@@ -3031,34 +3005,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
-	 * be followed (true) or overridden by our style rules (false) when
-	 * using MEncoder.
-	 *
-	 * @see #setUseEmbeddedSubtitlesStyle(boolean)
-	 * @param value whether to use the embedded styles or ours
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setMencoderAssDefaultStyle(boolean value) {
-		configuration.setProperty(KEY_MENCODER_ASS_DEFAULTSTYLE, value);
-	}
-
-	/**
-	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
-	 * be followed (true) or overridden by our style rules (false) when
-	 * using MEncoder.
-	 *
-	 * @see #isUseEmbeddedSubtitlesStyle()
-	 * @return whether to use the embedded styles or ours
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isMencoderAssDefaultStyle() {
-		return getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
-	}
-
-	/**
-	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
 	 * be followed (true) or overridden by our style rules (false).
 	 *
 	 * @param value whether to use the embedded styles or ours
@@ -3110,16 +3056,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 		}
 		return -1;
-	}
-
-	/**
-	 * @see #getSortMethod(java.io.File)
-	 * @deprecated
-	 * @return
-	 */
-	@Deprecated
-	public int mediaLibrarySort() {
-		return getSortMethod(null);
 	}
 
 	public int getSortMethod(File path) {
@@ -3231,24 +3167,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isFFmpegMuxWithTsMuxerWhenCompatible() {
 		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
-	}
-
-	/**
-	 * @see #setFFmpegDeferToMEncoderForEmbeddedSubtitles(boolean)
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setFFmpegDeferToMEncoderForSubtitles(boolean value) {
-		setFFmpegDeferToMEncoderForProblematicSubtitles(value);
-	}
-
-	/**
-	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles()
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return isFFmpegDeferToMEncoderForProblematicSubtitles();
 	}
 
 	/**
@@ -3882,14 +3800,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 	}
 
-	/**
-	 * @deprecated Use {@link #getCredFile()} instead.
-	 */
-	@Deprecated
-	public String getCredPath() {
-		return getCredFile().getAbsolutePath();
-	}
-
 	public File getCredFile() {
 		String path = getString(KEY_CRED_PATH, "");
 		if (path != null && !path.trim().isEmpty()) {
@@ -4131,11 +4041,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RESUME, value);
 	}
 
-	@Deprecated
-	public int getMinPlayTime() {
-		return getMinimumWatchedPlayTime();
-	}
-
 	public int getMinimumWatchedPlayTime() {
 		return getInt(KEY_MIN_PLAY_TIME, 30000);
 	}
@@ -4208,15 +4113,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @deprecated
-	 * @see #setRunSingleInstance(boolean)
-	 */
-	@Deprecated
-	public void setSingle(boolean value) {
-		setRunSingleInstance(value);
-	}
-
-	/**
 	 * Set whether DMS should allow only one instance by shutting down
 	 * the first one when a second one is launched.
 	 *
@@ -4224,15 +4120,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setRunSingleInstance(boolean value) {
 		configuration.setProperty(KEY_SINGLE, value);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #isRunSingleInstance()
-	 */
-	@Deprecated
-	public boolean getSingle() {
-		return isRunSingleInstance();
 	}
 
 	/**
