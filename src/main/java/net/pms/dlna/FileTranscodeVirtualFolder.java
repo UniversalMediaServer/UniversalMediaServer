@@ -36,12 +36,6 @@ import org.slf4j.LoggerFactory;
 public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
 
-	// FIXME unused
-	@Deprecated
-	public FileTranscodeVirtualFolder(String name, String thumbnailIcon, boolean copy) {
-		super(name, thumbnailIcon);
-	}
-
 	public FileTranscodeVirtualFolder(String name, String thumbnailIcon) { // XXX thumbnailIcon is always null
 		super(name, thumbnailIcon);
 	}
