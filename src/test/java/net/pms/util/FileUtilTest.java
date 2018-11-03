@@ -171,6 +171,8 @@ public class FileUtilTest {
 	        	catch(NumberFormatException ex) {
         			throw(new AssertionError(ex)); 
         		}
+	        	// tvEpisodeNumber might be a single episode, but might also be
+	        	// a hyphen-separated range, so cannot always parse as int
 	        	String tvEpisodeNumber = extracted_metadata[4];
 	        	String tvEpisodeName = extracted_metadata[5];
 
@@ -180,7 +182,7 @@ public class FileUtilTest {
         		if( elem != null ) {
         			for( JsonElement extra: elem.getAsJsonArray() ) {
         				try {
-        					assertThat( extraInformation.indexOf(extra.getAsString()) > -1 );
+        					assertThat( extraInformation.indexOf(extra.getAsString()) > -1 ).isTrue();
         				}
         				catch(NullPointerException ex) {
         					// There is no extraInformation extracted
@@ -195,11 +197,12 @@ public class FileUtilTest {
         			}
         		}
 	        	if( "tv-series-episode".equals(metadata.get("type").getAsString()) ) {
+	        		logger.debug( "Doing tv-series-episode " + original );
 	        		// A single episode, might have episode title and date
 	        		elem = metadata.get("series");
 	        		if( elem != null ) {
 	        			try  {
-	        				assertThat(movieOrShowName.equals(elem.getAsString()));
+	        				assertThat(movieOrShowName).isEqualTo(elem.getAsString());
 	        			}
         				catch(NullPointerException ex) {
         					// There is no movieOrShowName extracted
@@ -215,7 +218,7 @@ public class FileUtilTest {
 	        		elem = metadata.get("season");
 	        		if( elem != null ) {
 	        			try  {
-		        			assertThat(tvSeason == elem.getAsInt()); 
+		        			assertThat(tvSeason).isEqualTo(elem.getAsInt()); 
 	        			}
         				catch(NullPointerException ex) {
         					if(todo) { logger.warn( "testGetFileNameMetadata/season would fail for TODO test " + original ); }
@@ -229,7 +232,7 @@ public class FileUtilTest {
 	        		elem = metadata.get("episode");
 	        		if( elem != null ) {
 	    	        	try {
-	    	        		assertThat(Integer.parseInt(extracted_metadata[3]) == elem.getAsInt());
+	        				assertThat(tvEpisodeNumber).isEqualTo(String.format("%02d",elem.getAsInt()));
 	    	        	}
 	    	        	catch(NumberFormatException ex) {
         					if(todo) { logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original ); }
@@ -257,7 +260,7 @@ public class FileUtilTest {
 	        		elem = metadata.get("title");
 	        		if( elem != null ) {
 	        			try {
-	        				assertThat( tvEpisodeName.equals(elem.getAsString()) );
+	        				assertThat(tvEpisodeName).isEqualTo(elem.getAsString());
 	        			}
         				catch(NullPointerException ex) {
         					if(todo) { logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original ); }
@@ -270,11 +273,12 @@ public class FileUtilTest {
 	        		}
 	        	}
 	        	else if( "tv-series-episodes".equals(metadata.get("type").getAsString()) ) {
+	        		logger.debug( "Doing tv-series-episodes " + original );
 	        		// A single episode or an episode range, cannot have episode title or date
 	        		elem = metadata.get("series");
 	        		if( elem != null ) {
 	        			try {
-	        				assertThat(movieOrShowName.equals(elem.getAsString()));
+	        				assertThat(movieOrShowName).isEqualTo(elem.getAsString());
 	        			}
         				catch(NullPointerException ex) {
         					if(todo) { logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original ); }
@@ -287,7 +291,7 @@ public class FileUtilTest {
 	        		}
 	        		elem = metadata.get("season");
 	        		if( elem != null ) {
-	        			assertThat( tvSeason == elem.getAsInt() ); 
+	        			assertThat(tvSeason).isEqualTo(elem.getAsInt()); 
 	        		}
 	        		elem = metadata.get("episodes");
 	        		if( elem != null ) {
@@ -296,7 +300,7 @@ public class FileUtilTest {
 	        				range = range + "-" + String.format("%02d",elem2.getAsInt());
 	        			}
 	        			try {
-	        				assertThat( range.substring(1).equals(tvEpisodeNumber) );
+	        				assertThat(tvEpisodeNumber).isEqualTo(range.substring(1));
 	        			}
         				catch(AssertionError err) {
         					if(todo) { logger.warn( "testGetFileNameMetadata/episodes would fail for TODO test " + original ); }
@@ -305,16 +309,29 @@ public class FileUtilTest {
 	        		}
 	        	}
 	        	else if( "movie".equals(metadata.get("type").getAsString()) ) {
+	        		logger.debug( "Doing movie " + original );
 	        		elem = metadata.get("title");
 	        		if( elem != null ) {
-	        			assertThat(movieOrShowName.equals(elem.getAsString()));
+	        			try  {
+	        				assertThat(movieOrShowName).isEqualTo(elem.getAsString());
+	        			}
+        				catch(NullPointerException ex) {
+        					// There is no movieOrShowName extracted
+        					if(todo) { logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original ); }
+        					else { throw(new AssertionError(ex)); }
+        				}
+        				catch(AssertionError err) {
+        					// movieOrShowName is extracted, but is wrong
+        					if(todo) { logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original ); }
+        					else { throw(err); }
+        				}
 	        		}
 		        	if(metadata.has("released")) {
 			        	JsonObject metadata_rel = metadata.get("released").getAsJsonObject();
 		        		elem = metadata_rel.get("year");
 		        		if( elem != null ) {
 		        			try {
-		        				assertThat( year == elem.getAsInt() );
+		        				assertThat(year).isEqualTo(elem.getAsInt());
 		        			}
 	        				catch(AssertionError err) {
 	        					if(todo) { logger.warn( "testGetFileNameMetadata/released would fail for TODO test " + original ); }
@@ -323,9 +340,10 @@ public class FileUtilTest {
 		        		}
 		        	}
 	        	}
-	        	
-	        	//assertThat().isEqualTo(prettified);
-	        }
+	        	else {
+	        		logger.error( "Unknown content type in " + original );
+	        	}
+	        } // for all test cases
 		}
 		catch( Exception ex ) {
 			ex.printStackTrace(System.err);
