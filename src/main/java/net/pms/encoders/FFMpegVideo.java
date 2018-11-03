@@ -89,11 +89,6 @@ public class FFMpegVideo extends Player {
 	public FFMpegVideo() {
 	}
 
-	@Deprecated
-	public FFMpegVideo(PmsConfiguration configuration) {
-		this();
-	}
-
 	public static final String ID = "FFmpegVideo";
 
 	/**

@@ -97,22 +97,16 @@ public class MEncoderVideo extends Player {
 	public static final int MENCODER_MAX_THREADS = 8;
 	public static final String ID = "MEncoder";
 
-	// TODO (breaking change): most (probably all) of these
-	// protected fields should be private. And at least two
-	// shouldn't be fields
-
-	@Deprecated
-	protected String overriddenMainArgs[];
-
-	protected boolean dtsRemux;
-	protected boolean encodedAudioPassthrough;
-	protected boolean pcm;
-	protected boolean ovccopy;
-	protected boolean ac3Remux;
-	protected boolean isTranscodeToMPEGTS;
-	protected boolean isTranscodeToH264;
-	protected boolean isTranscodeToAAC;
-	protected boolean wmv;
+	private String overriddenMainArgs[];
+	private boolean dtsRemux;
+	private boolean encodedAudioPassthrough;
+	private boolean pcm;
+	private boolean ovccopy;
+	private boolean ac3Remux;
+	private boolean isTranscodeToMPEGTS;
+	private boolean isTranscodeToH264;
+	private boolean isTranscodeToAAC;
+	private boolean wmv;
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
 		Messages.getString("MEncoderVideo.68") +
