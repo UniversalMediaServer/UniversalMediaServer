@@ -130,18 +130,9 @@ public class MEncoderVideo extends Player {
 		Messages.getString("MEncoderVideo.89") +
 		Messages.getString("MEncoderVideo.91");
 
-	@Deprecated
-	public JCheckBox getCheckBox() {
-		return skipLoopFilter;
-	}
 
 	public JCheckBox getNoskip() {
 		return noskip;
-	}
-
-	@Deprecated
-	public MEncoderVideo(PmsConfiguration configuration) {
-		this();
 	}
 
 	public MEncoderVideo() {
