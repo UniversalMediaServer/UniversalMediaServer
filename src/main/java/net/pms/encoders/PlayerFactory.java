@@ -101,11 +101,6 @@ public final class PlayerFactory {
 	private PlayerFactory() {
 	}
 
-	@Deprecated
-	public static void initialize(final PmsConfiguration configuration) {
-		initialize();
-	}
-
 	/**
 	 * Constructor that registers all players based on the given configuration,
 	 * frame and registry.
@@ -439,16 +434,5 @@ public final class PlayerFactory {
 			PLAYERS_LOCK.readLock().unlock();
 		}
 		return compatiblePlayers;
-	}
-
-	/**
-	 * @deprecated Use {@link #getPlayers(DLNAResource)} instead.
-	 *
-	 * @param resource the resource to match
-	 * @return The list of players if a match could be found, null otherwise.
-	 */
-	@Deprecated
-	public static ArrayList<Player> getEnabledPlayers(final DLNAResource resource) {
-		return getPlayers(resource);
 	}
 }
