@@ -206,8 +206,10 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 						subsCharacterSet = subsCharacterSet.substring(0, subsCharacterSet.lastIndexOf("-"));
 					}
 
+					String lang = null;
 					if (forcedLang == null) { // set the detected language when the language is not specified in the filename
 						lang = match.getLanguage();
+						setLang(lang);
 					}
 
 					LOGGER.debug("Set detected charset \"{}\" and language \"{}\" for {}", subsCharacterSet, lang, externalFile.getAbsolutePath());
