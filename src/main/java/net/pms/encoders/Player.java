@@ -182,14 +182,6 @@ public abstract class Player {
 		return false;
 	}
 
-	/**
-	 * @deprecated Use {@link #launchTranscode(net.pms.dlna.DLNAResource, net.pms.dlna.DLNAMediaInfo, net.pms.io.OutputParams)} instead.
-	 */
-	@Deprecated
-	public final ProcessWrapper launchTranscode(String filename, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
-		return launchTranscode(dlna, media, params);
-	}
-
 	public abstract ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
@@ -199,14 +191,6 @@ public abstract class Player {
 	@Override
 	public String toString() {
 		return name();
-	}
-
-	/**
-	 * @deprecated Use {@link #setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params)} instead.
-	 */
-	@Deprecated
-	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
-		setAudioAndSubs(fileName, media, params);
 	}
 
 	/**
@@ -494,14 +478,6 @@ public abstract class Player {
 				}
 			}
 		}
-	}
-
-	/**
-	 * @see #convertToModX(int, int)
-	 */
-	@Deprecated
-	public int convertToMod4(int number) {
-		return convertToModX(number, 4);
 	}
 
 	/**
