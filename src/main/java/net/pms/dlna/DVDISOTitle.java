@@ -63,14 +63,6 @@ public class DVDISOTitle extends DLNAResource {
 	private long length;
 	private String parentName;
 
-	/**
-	 * @deprecated Use {@link #DVDISOTitle(File, String, int)} instead.
-	 */
-	@Deprecated
-	public DVDISOTitle(File file, int title) {
-		this(file, null, title);
-	}
-
 	public DVDISOTitle(File file, String parentName, int title) {
 		this.file = file;
 		this.title = title;
