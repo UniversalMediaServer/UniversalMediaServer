@@ -47,15 +47,8 @@ import org.slf4j.LoggerFactory;
 public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
 	public static final String ID = "FFmpegAudio";
-
-	// should be private
-	@Deprecated
-	JCheckBox noresample;
-
-	@Deprecated
-	public FFmpegAudio(PmsConfiguration configuration) {
-		this();
-	}
+	
+	private JCheckBox noresample;
 
 	public FFmpegAudio() {
 	}
@@ -117,13 +110,6 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Override
 	public int type() {
 		return Format.AUDIO;
-	}
-
-	@Override
-	@Deprecated
-	public String[] args() {
-		// unused: kept for backwards compatibility
-		return new String[] {"-f", "s16be", "-ar", "48000"};
 	}
 
 	@Override
