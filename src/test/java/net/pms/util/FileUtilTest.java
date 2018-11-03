@@ -234,11 +234,7 @@ public class FileUtilTest {
 	    	        	try {
 	        				assertThat(tvEpisodeNumber).isEqualTo(String.format("%02d",elem.getAsInt()));
 	    	        	}
-	    	        	catch(NumberFormatException ex) {
-        					if(todo) { logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original ); }
-        					else { throw(new AssertionError(ex)); } 
-	            		}
-        				catch(NullPointerException ex) {
+	    	        	catch(NumberFormatException | NullPointerException ex) {
         					if(todo) { logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original ); }
         					else { throw(new AssertionError(ex)); }
         				}
