@@ -159,7 +159,7 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	public synchronized void resolve() {
+	public synchronized void syncResolve() {
 		File file = getFile();
 		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {
 			boolean found = false;

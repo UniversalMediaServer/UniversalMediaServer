@@ -43,7 +43,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this.expectedOutputs = expectedOutput;
 		this.database = PMS.get().getDatabase();
 		if (nameToDisplay != null) {
-			this.displayNameOverride = nameToDisplay;
+			this.setDisplayNameOverride(nameToDisplay);
 		}
 	}
 

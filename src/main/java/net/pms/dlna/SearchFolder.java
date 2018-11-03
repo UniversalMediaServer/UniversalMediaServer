@@ -31,7 +31,7 @@ public class SearchFolder extends VirtualFolder {
 	}
 
 	@Override
-	public synchronized void resolve() {
+	public synchronized void syncResolve() {
 	}
 
 	@Override
