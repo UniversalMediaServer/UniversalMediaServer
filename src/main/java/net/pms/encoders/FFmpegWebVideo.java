@@ -387,13 +387,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return "FFmpeg Web Video";
 	}
 
-	// TODO remove this when it's removed from Player
-	@Deprecated
-	@Override
-	public String[] args() {
-		return null;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */

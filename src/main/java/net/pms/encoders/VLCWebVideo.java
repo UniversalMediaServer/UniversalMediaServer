@@ -25,11 +25,6 @@ import net.pms.util.PlayerUtil;
 public class VLCWebVideo extends VLCVideo {
 	public static final String ID = "VLCWebVideo";
 
-	@Deprecated
-	public VLCWebVideo(PmsConfiguration configuration) {
-		this();
-	}
-
 	public VLCWebVideo() {
 	}
 

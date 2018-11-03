@@ -73,11 +73,6 @@ public class VLCVideo extends Player {
 
 	protected boolean videoRemux;
 
-	@Deprecated
-	public VLCVideo(PmsConfiguration configuration) {
-		this();
-	}
-
 	public VLCVideo() {
 	}
 

@@ -54,11 +54,6 @@ public class TsMuxeRVideo extends Player {
 
 	public static final String ID = "TSMuxer";
 
-	@Deprecated
-	public TsMuxeRVideo(PmsConfiguration configuration) {
-		this();
-	}
-
 	public TsMuxeRVideo() {
 	}
 

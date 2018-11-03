@@ -27,11 +27,6 @@ import net.pms.util.PlayerUtil;
 public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	public static final String ID = "VLCAudio";
 
-	@Deprecated
-	public VideoLanAudioStreaming(PmsConfiguration configuration) {
-		this();
-	}
-
 	public VideoLanAudioStreaming() {
 	}
 

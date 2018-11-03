@@ -38,11 +38,6 @@ import net.pms.util.PlayerUtil;
 public class VideoLanVideoStreaming extends Player {
 	public static final String ID = "VLCVideo";
 
-	@Deprecated
-	public VideoLanVideoStreaming(PmsConfiguration configuration) {
-		this();
-	}
-
 	public VideoLanVideoStreaming() {
 	}
 
