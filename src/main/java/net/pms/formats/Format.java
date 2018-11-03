@@ -160,14 +160,6 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * @deprecated Use {@link #getSupportedExtensions} instead.
-	 */
-	@Deprecated
-	public String[] getId() {
-		return getSupportedExtensions();
-	}
-
-	/**
 	 * Returns a list of file extensions to use to identify
 	 * a particular format e.g. "mp3" or "mpg". Extensions
 	 * are expected to be in lower case. The default value is
@@ -217,16 +209,6 @@ public abstract class Format implements Cloneable {
 
 	public String mimeType() {
 		return HTTPResource.getDefaultMimeType(type);
-	}
-
-	/**
-	 * Not in use, handled by {@link GenericIcons}
-	 *
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setIcon(String filename) {
-		icon = filename;
 	}
 
 	public String getIcon() {
@@ -300,11 +282,6 @@ public abstract class Format implements Cloneable {
 
 	public Format duplicate() {
 		return (Format) this.clone();
-	}
-
-	@Deprecated
-	public void parse(DLNAMediaInfo media, InputFile file, int type) {
-		parse(media, file, type, null);
 	}
 
 	/**
