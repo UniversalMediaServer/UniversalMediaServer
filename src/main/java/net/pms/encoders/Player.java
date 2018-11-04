@@ -20,10 +20,8 @@ package net.pms.encoders;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.JComponent;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -32,9 +30,6 @@ import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
-import net.pms.external.FinalizeTranscoderArgsListener;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
@@ -61,6 +56,24 @@ public abstract class Player {
 	public abstract String id();
 	public abstract String name();
 	public abstract int type();
+	/**
+	 * Must be used to control all access to {@link #available}
+	 */
+	protected final ReentrantReadWriteLock availableLock = new ReentrantReadWriteLock();
+	/**
+	 * Used to determine if the player can be used, e.g if the binary is
+	 * accessible. All access must be guarded with {@link #availableLock}.
+	 */
+	boolean available = false;
+
+	/**
+	 * Must be used to control all access to {@link #enabled}
+	 */
+	protected final ReentrantReadWriteLock enabledLock = new ReentrantReadWriteLock();
+	/**
+	 * All access must be guarded with {@link #enabledLock}.
+	 */
+	boolean enabled = false;
 
 	// FIXME this is an implementation detail (and not a very good one).
 	// it's entirely up to engines how they construct their command lines.
@@ -71,15 +84,6 @@ public abstract class Player {
 	public abstract String executable();
 	protected static final PmsConfiguration _configuration = PMS.getConfiguration();
 	protected PmsConfiguration configuration = _configuration;
-	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners = new ArrayList<>();
-
-	public static void initializeFinalizeTranscoderArgsListeners() {
-		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (listener instanceof FinalizeTranscoderArgsListener) {
-				finalizeTranscoderArgsListeners.add((FinalizeTranscoderArgsListener) listener);
-			}
-		}
-	}
 
 	public boolean avisynth() {
 		return false;
@@ -103,6 +107,67 @@ public abstract class Player {
 
 	public boolean isTimeSeekable() {
 		return false;
+	}
+
+	/**
+	 * Used to determine if the player can be used, e.g if the binary is
+	 * accessible. Threadsafe.
+	 */
+	public boolean isAvailable() {
+		availableLock.readLock().lock();
+		try {
+			return available == true;
+		} finally {
+			availableLock.readLock().unlock();
+		}
+	}
+
+	void setAvailable(boolean available) {
+		availableLock.writeLock().lock();
+		try {
+			this.available = available;
+		} finally {
+			availableLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Threadsafe.
+	 */
+	public boolean isEnabled() {
+		enabledLock.readLock().lock();
+		try {
+			return enabled == true;
+		} finally {
+			enabledLock.readLock().unlock();
+		}
+	}
+
+	void setEnabled(boolean enabled) {
+		enabledLock.writeLock().lock();
+		try {
+			this.enabled = enabled;
+		} finally {
+			enabledLock.writeLock().unlock();
+		}
+		_configuration.setEngineEnabled(id(), enabled);
+	}
+
+	public void toggleEnabled() {
+		enabledLock.writeLock().lock();
+		try {
+			enabled = !enabled;
+		} finally {
+			enabledLock.writeLock().unlock();
+		}
+		_configuration.setEngineEnabled(id(), enabled);
+	}
+
+	/**
+	 * Convenience method to check that a player is both available and enabled
+	 */
+	public boolean isActive() {
+		return isAvailable() && isEnabled();
 	}
 
 	/**
@@ -134,59 +199,6 @@ public abstract class Player {
 	@Override
 	public String toString() {
 		return name();
-	}
-
-	// no need to pass Player as a parameter: it's the invocant
-	@Deprecated
-	protected String[] finalizeTranscoderArgs(
-		Player player,
-		String filename,
-		DLNAResource dlna,
-		DLNAMediaInfo media,
-		OutputParams params,
-		String[] cmdArgs
-	) {
-		return finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArgs
-		);
-	}
-
-	protected String[] finalizeTranscoderArgs(
-		String filename,
-		DLNAResource dlna,
-		DLNAMediaInfo media,
-		OutputParams params,
-		String[] cmdArgs
-	) {
-		if (finalizeTranscoderArgsListeners.isEmpty()) {
-			return cmdArgs;
-		}
-		// make it mutable
-		List<String> cmdList = new ArrayList<>(Arrays.asList(cmdArgs));
-
-		for (FinalizeTranscoderArgsListener listener : finalizeTranscoderArgsListeners) {
-			try {
-				cmdList = listener.finalizeTranscoderArgs(
-					this,
-					filename,
-					dlna,
-					media,
-					params,
-					cmdList
-				);
-			} catch (Throwable t) {
-				LOGGER.error("Failed to call finalizeTranscoderArgs on listener of type \"{}\"", listener.getClass().getSimpleName(), t.getMessage());
-				LOGGER.trace("", t);
-			}
-		}
-
-		String[] cmdArray = new String[cmdList.size()];
-		cmdList.toArray(cmdArray);
-		return cmdArray;
 	}
 
 	/**

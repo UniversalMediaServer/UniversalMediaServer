@@ -19,12 +19,13 @@
 package net.pms.newgui;
 
 import net.pms.configuration.RendererConfiguration;
+import net.pms.newgui.StatusTab.ConnectionState;
 
 public interface IFrame {
 	public void append(String msg);
 	public void updateBuffer();
 	public void setReadValue(long v, String msg);
-	public void setStatusCode(int code, String msg, String icon);
+	public void setConnectionState(ConnectionState connectionState);
 	public void addRenderer(RendererConfiguration renderer);
 	public void updateRenderer(RendererConfiguration renderer);
 	public void setReloadable(boolean reload);

@@ -32,7 +32,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
 public class MEncoderWebVideo extends Player {
-	public static final String ID = "mencoderwebvideo";
+	public static final String ID = "MEncoderWebVideo";
 
 	@Override
 	public JComponent config() {
@@ -108,14 +108,6 @@ public class MEncoderWebVideo extends Player {
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(mkfifo_process);

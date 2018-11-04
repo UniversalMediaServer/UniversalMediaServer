@@ -46,7 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
 	private JTextField altffpath;
-	public static final String ID = "ffmpegdvrmsremux";
+	public static final String ID = "FFmpegDVRMSRemux";
 
 	@Override
 	public int purpose() {
@@ -159,14 +159,6 @@ public class FFmpegDVRMSRemux extends Player {
 		cmdList.add("pipe:");
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();

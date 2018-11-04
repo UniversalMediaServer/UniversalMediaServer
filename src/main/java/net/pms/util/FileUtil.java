@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -31,10 +33,10 @@ import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.*;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -449,7 +451,7 @@ public class FileUtil {
 
 		String title;
 		String year;
-		String edition;
+		String extraInformation;
 		String tvSeason;
 		String tvEpisodeNumber;
 		String tvEpisodeName;
@@ -459,21 +461,21 @@ public class FileUtil {
 		if (media != null && getConfiguration().getUseCache() && StringUtils.isNotBlank(media.getMovieOrShowName())) {
 			title = media.getMovieOrShowName();
 
-			year            = StringUtils.isNotBlank(media.getYear())            ? media.getYear()            : "";
-			edition         = StringUtils.isNotBlank(media.getEdition())         ? media.getEdition()         : "";
-			tvSeason        = StringUtils.isNotBlank(media.getTVSeason())        ? media.getTVSeason()        : "";
-			tvEpisodeNumber = StringUtils.isNotBlank(media.getTVEpisodeNumber()) ? media.getTVEpisodeNumber() : "";
-			tvEpisodeName   = StringUtils.isNotBlank(media.getTVEpisodeName())   ? media.getTVEpisodeName()   : "";
-			isTVEpisode     = StringUtils.isNotBlank(media.getTVSeason());
+			year             = StringUtils.isNotBlank(media.getYear())             ? media.getYear()             : "";
+			extraInformation = StringUtils.isNotBlank(media.getExtraInformation()) ? media.getExtraInformation() : "";
+			tvSeason         = StringUtils.isNotBlank(media.getTVSeason())         ? media.getTVSeason()         : "";
+			tvEpisodeNumber  = StringUtils.isNotBlank(media.getTVEpisodeNumber())  ? media.getTVEpisodeNumber()  : "";
+			tvEpisodeName    = StringUtils.isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
+			isTVEpisode      = StringUtils.isNotBlank(media.getTVSeason());
 		} else {
 			String[] metadataFromFilename = getFileNameMetadata(f);
 
-			title           = StringUtils.isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
-			year            = StringUtils.isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
-			edition         = StringUtils.isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
-			tvSeason        = StringUtils.isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
-			tvEpisodeNumber = StringUtils.isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
-			tvEpisodeName   = StringUtils.isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
+			title            = StringUtils.isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
+			year             = StringUtils.isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			extraInformation = StringUtils.isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
+			tvSeason         = StringUtils.isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
+			tvEpisodeNumber  = StringUtils.isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
+			tvEpisodeName    = StringUtils.isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
 
 			if (StringUtils.isNotBlank(tvSeason)) {
 				isTVEpisode = true;
@@ -509,8 +511,8 @@ public class FileUtil {
 			}
 		}
 
-		if (StringUtils.isNotBlank(edition)) {
-			formattedName += " " + edition;
+		if (StringUtils.isNotBlank(extraInformation)) {
+			formattedName += " " + extraInformation;
 		}
 
 		return formattedName;
@@ -533,6 +535,7 @@ public class FileUtil {
 
 		// These are false unless we recognize that we could use some info on the video from IMDb
 		boolean isMovieWithoutYear = false;
+		boolean isSample = false;
 
 		String movieOrShowName = null;
 		String year            = null;
@@ -540,11 +543,18 @@ public class FileUtil {
 		String tvEpisodeName   = null;
 		String tvEpisodeNumber = null;
 		String edition         = null;
+		
+		// This can contain editions and "Sample" for now
+		String extraInformation = null;
 
 		Pattern pattern;
 		Matcher matcher;
 
 		formattedName = basicPrettify(filename);
+
+		if (formattedName.toLowerCase(Locale.ENGLISH).endsWith("sample")) {
+			isSample = true;
+		}
 
 		if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
@@ -612,7 +622,7 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Rename the season/episode numbers. For example, "1x01" changes to " - 101"
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
@@ -801,16 +811,19 @@ public class FileUtil {
 			}
 		}
 
-		// Add the edition information if it exists
-		if (edition != null) {
-			String substr = formattedName.substring(Math.max(0, formattedName.length() - 2));
-			if (" -".equals(substr)) {
-				formattedName = formattedName.substring(0, formattedName.length() - 2);
+		// Retain the fact it is a sample clip
+		if (isSample) {
+			if (edition == null) {
+				extraInformation = "";
+			} else {
+				extraInformation = edition + " ";
 			}
-			formattedName += " " + edition;
+			extraInformation += "(Sample)";
+		} else {
+			extraInformation = edition;
 		}
 
-		return new String[] { movieOrShowName, year, edition, tvSeason, tvEpisodeNumber, tvEpisodeName };
+		return new String[] { movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName };
 	}
 
 	/**
@@ -1251,9 +1264,9 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The detected <code>Charset</code> or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The detected {@link Charset} or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static Charset getFileCharset(File file) throws IOException {
 		CharsetMatch match = getFileCharsetMatch(file);
@@ -1281,9 +1294,9 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The name of the detected charset or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The name of the detected charset or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static String getFileCharsetName(File file) throws IOException {
 		CharsetMatch match = getFileCharsetMatch(file);
@@ -1338,41 +1351,45 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset <code>Charset</code> to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charset the {@link Charset} to test.
+	 * @return {@code true} if {@code charset} is {@code UTF-16}, {@code false}
+	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF16(Charset charset) {
 		return charset != null && (charset.equals(StandardCharsets.UTF_16) || charset.equals(StandardCharsets.UTF_16BE) || charset.equals(StandardCharsets.UTF_16LE));
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset charset name to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charsetName the charset name to test
+	 * @return {@code true} if {@code charsetName} is {@code UTF-16},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
-	 * Tests if charset is UTF-32.
+	 * Tests if {@code charsetName} is {@code UTF-32}.
 	 *
-	 * @param charsetName charset name to test
-	 * @return True if charset is UTF-32, false otherwise.
+	 * @param charsetName the charset name to test.
+	 * @return {@code true} if {@code charsetName} is {@code UTF-32},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
-	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 * Converts an {@code UTF-16} input file to an {@code UTF-8} output file.
+	 * Does not overwrite an existing output file.
 	 *
-	 * @param inputFile UTF-16 file
-	 * @param outputFile UTF-8 file after conversion
-	 * @throws IOException
+	 * @param inputFile an {@code UTF-16} {@link File}.
+	 * @param outputFile the {@code UTF-8} {@link File} after conversion.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
 		Charset charset;
@@ -1399,6 +1416,7 @@ public class FileUtil {
 				 * For some reason creating a FileInputStream with UTF_16 produces
 				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
 				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+				 *
 				 * @author Nadahar
 				 */
 				if (charset.equals(StandardCharsets.UTF_16LE)) {
@@ -1670,7 +1688,7 @@ public class FileUtil {
 	 * already there.
 	 *
 	 * @param path the path to be modified.
-	 * @return The corrected path or {@code null} of {@code path} is
+	 * @return The corrected path or {@code null} if {@code path} is
 	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {
@@ -1690,6 +1708,29 @@ public class FileUtil {
 		return path;
 	}
 
+	/**
+	 * Appends a suffix to a filename before the last {@code "."} if there is
+	 * one. If not, simply appends the suffix to the filename.
+	 *
+	 * @param fileName the filename to append to.
+	 * @param suffix the suffix to append.
+	 * @return The modified filename.
+	 */
+	@Nonnull
+	public static String appendToFileName(@Nonnull String fileName, @Nullable String suffix) {
+		if (fileName == null) {
+			throw new IllegalArgumentException("fileName cannot be null");
+		}
+		if (isBlank(suffix)) {
+			return fileName;
+		}
+		int i = fileName.lastIndexOf(".");
+		if (i < 0) {
+			return fileName + suffix;
+		}
+		return fileName.substring(0, i) + suffix + fileName.substring(i);
+	}
+
 	private static Boolean isAdmin = null;
 	private static Object isAdminLock = new Object();
 
@@ -1702,18 +1743,16 @@ public class FileUtil {
 				return isAdmin;
 			}
 			if (Platform.isWindows()) {
-				Float ver = null;
-				try {
-					ver = Float.valueOf(System.getProperty("os.version"));
-				} catch (NullPointerException | NumberFormatException e) {
+				Double version = PMS.get().getRegistry().getWindowsVersion();
+				if (version == null) {
 					LOGGER.error(
-						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
-						System.getProperty("os.version"), e.getMessage()
+						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
+						System.getProperty("os.version")
 					);
 					isAdmin = false;
 					return false;
 				}
-				if (ver >= 5.1) {
+				if (version >= 5.1) {
 					try {
 						String command = "reg query \"HKU\\S-1-5-19\"";
 						Process p = Runtime.getRuntime().exec(command);
@@ -1928,5 +1967,17 @@ public class FileUtil {
 				reader.close();
 			}
 		}
+	}
+
+	/**
+	 * Check if the provided {@code filename} string can be a directory
+	 * by checking if the string contains extension. 
+	 *
+	 * @param filename the string represented the directory
+	 * @return {@code true} if the string doesn't contain the extension
+	 * {@code false} otherwise.
+	 */
+	public static boolean isDirectory(String filename) {
+		return FileUtil.getExtension(filename) == null;
 	}
 }

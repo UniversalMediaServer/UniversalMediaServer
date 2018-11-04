@@ -21,6 +21,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
@@ -44,19 +45,19 @@ public class Build {
 
 	/**
 	 * the name of the subdirectory under which PMS config files are stored for this build.
-	 * the default value is "PMS" e.g.
+	 * the default value is "UMS" e.g.
 	 *
 	 *     Windows:
 	 *
-	 *         %ALLUSERSPROFILE%\PMS
+	 *         %ALLUSERSPROFILE%\UMS
 	 *
 	 *     Mac OS X:
 	 *
-	 *         /home/<username>/Library/Application Support/PMS
+	 *         /home/<username>/Library/Application Support/UMS
 	 *
 	 *     Linux &c.
 	 *
-	 *         /home/<username>/.config/PMS
+	 *         /home/<username>/.config/UMS
 	 *
 	 * a custom build can change this to avoid interfering with the config files of other
 	 * builds e.g.:
@@ -64,7 +65,7 @@ public class Build {
 	 *     PROFILE_DIRECTORY_NAME = "PMS Rendr Edition";
 	 *     PROFILE_DIRECTORY_NAME = "pms-mlx";
 	 *
-	 * Note: custom Windows builds that change this value should change the corresponding "$ALLUSERSPROFILE\PMS"
+	 * Note: custom Windows builds that change this value should change the corresponding "$ALLUSERSPROFILE\UMS"
 	 * value in nsis/setup.nsi
 	 *
 	 * @return The profile directory name
@@ -91,11 +92,11 @@ public class Build {
 
 	/**
 	 * Returns the {@link #PROFILE_DIRECTORY_NAME} where configuration files
-	 * for this version of PMS are stored.
+	 * for this version of UMS are stored.
 	 *
 	 * @return The profile directory name
 	 */
 	public static String getProfileDirectoryName() {
-		return PROFILE_DIRECTORY_NAME;
+		return PMS.isRunningTests() ? "UMS-tests" : PROFILE_DIRECTORY_NAME;
 	}
 }

@@ -20,3 +20,10 @@ target/
 /web/
 win32/
 .vscode/settings.json
+.recommenders/
+.metadata/
+docker/renderers
+docker/web
+docker/ums.jar
+docker/logback.headless.xml
+/src/main/java/net/pms/Test.java

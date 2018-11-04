@@ -558,12 +558,12 @@ public class OpenSubtitle {
 			final boolean overTheTopLogging = false;
 			String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
 
-			String titleFromFilename           = metadataFromFilename[0];
-			String yearFromFilename            = metadataFromFilename[1];
-			String editionFromFilename         = metadataFromFilename[2];
-			String tvSeasonFromFilename        = metadataFromFilename[3];
-			String tvEpisodeNumberFromFilename = metadataFromFilename[4];
-			String tvEpisodeNameFromFilename   = metadataFromFilename[5];
+			String titleFromFilename            = metadataFromFilename[0];
+			String yearFromFilename             = metadataFromFilename[1];
+			String extraInformationFromFilename = metadataFromFilename[2];
+			String tvSeasonFromFilename         = metadataFromFilename[3];
+			String tvEpisodeNumberFromFilename  = metadataFromFilename[4];
+			String tvEpisodeNameFromFilename    = metadataFromFilename[5];
 
 			String titleFromFilenameSimplified = PMS.get().getSimplifiedShowName(titleFromFilename);
 
@@ -607,8 +607,8 @@ public class OpenSubtitle {
 			if (yearFromFilename != null) {
 				media.setYear(yearFromFilename);
 			}
-			if (editionFromFilename != null) {
-				media.setEdition(editionFromFilename);
+			if (extraInformationFromFilename != null) {
+				media.setExtraInformation(extraInformationFromFilename);
 			}
 
 			try {
@@ -673,10 +673,10 @@ public class OpenSubtitle {
 								(
 									StringUtils.isNotBlank(yearFromFilename) &&
 									yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
-									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+									StringUtils.isNotEmpty(titleFromFilename)
 								) || (
 									StringUtils.isBlank(yearFromFilename) &&
-									org.codehaus.plexus.util.StringUtils.isNotEmpty(titleFromFilename)
+									StringUtils.isNotEmpty(titleFromFilename)
 								)
 							) {
 								/**
@@ -731,7 +731,6 @@ public class OpenSubtitle {
 										media.setMovieOrShowName(titleFromOpenSubtitles);
 										media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
 										media.setYear(metadataFromOpenSubtitles[5]);
-										media.setEdition(editionFromFilename);
 
 										// If the filename has indicated this is a TV episode
 										if (StringUtils.isNotBlank(tvSeasonFromFilename)) {

@@ -18,7 +18,7 @@
  */
 package net.pms.newgui;
 
-//import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
@@ -31,7 +31,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
-import javax.imageio.ImageIO;
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.UIDefaults.LazyValue;
 import javax.swing.border.Border;
@@ -47,7 +47,14 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
-import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.components.AnimatedIcon;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
+import net.pms.newgui.components.JAnimatedButton;
+import net.pms.newgui.components.JImageButton;
+import net.pms.newgui.components.WindowProperties;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
@@ -60,13 +67,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final AutoUpdater autoUpdater;
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
+	private final WindowProperties windowProperties;
 	private static final long serialVersionUID = 8723727186288427690L;
-	private Dimension storedWindowSize = new Dimension();
-	private Dimension storedScreenSize = new Dimension();
 	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
-	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
-	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
-	private Dimension screenSize = getToolkit().getScreenSize();
+	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
 
 	/**
 	 * List of context sensitive help pages URLs. These URLs should be
@@ -91,8 +95,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private TranscodingTab tr;
 	private GeneralTab gt;
 	private HelpTab ht;
-	private PluginTab pt;
-	private AbstractButton reload;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");;
+	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
+		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
+	);
+	private AnimatedIcon restartIcon;
 	private AbstractButton webinterface;
 	private JLabel status;
 	private static Object lookAndFeelInitializedLock = new Object();
@@ -139,14 +146,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public GeneralTab getGt() {
 		return gt;
-	}
-
-	public PluginTab getPt() {
-		return pt;
-	}
-
-	public AbstractButton getReload() {
-		return reload;
 	}
 
 	public static void initializeLookAndFeel() {
@@ -249,10 +248,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * Constructs a <code>DemoFrame</code>, configures the UI,
 	 * and builds the content.
 	 */
-	public LooksFrame(AutoUpdater autoUpdater, PmsConfiguration configuration) {
+	public LooksFrame(AutoUpdater autoUpdater, @Nonnull PmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
+		super(windowConfiguration.getGraphicsConfiguration());
+		if (configuration == null) {
+			throw new IllegalArgumentException("configuration can't be null");
+		}
+		setResizable(true);
+		windowProperties = new WindowProperties(this, STANDARD_SIZE, MINIMUM_SIZE, windowConfiguration);
 		this.autoUpdater = autoUpdater;
 		this.configuration = configuration;
 		assert this.configuration != null;
+		setMinimumSize(MINIMUM_SIZE);
 		Options.setDefaultIconSize(new Dimension(18, 18));
 		Options.setUseNarrowButtons(true);
 
@@ -463,52 +469,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setTitle(title);
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		if (screenSize.width < MINIMUM_SIZE.width || screenSize.height < MINIMUM_SIZE.height) {
-			setMinimumSize(screenSize);
-		} else {
-			setMinimumSize(MINIMUM_SIZE);
-		}
-
-		String ss = configuration.getScreenSize();
-		storedScreenSize.height = Integer.parseInt(ss.substring(ss.indexOf('x') + 1));
-		storedScreenSize.width = Integer.parseInt(ss.substring(0, ss.indexOf('x')));
-		String[] windowGeometryValues = configuration.getWindowGeometry().split(",");
-		int posX = Integer.parseInt(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf('=') + 1));
-		int posY = Integer.parseInt(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf('=') + 1));
-		storedWindowSize.width = Integer.parseInt(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf('=') + 1));
-		storedWindowSize.height = Integer.parseInt(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf('=') + 1));
-		setSize(storedWindowSize);
-		boolean screenChanged = false;
-		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
-			setSize(STANDARD_SIZE);
-			screenChanged = true;
-		} else if (configuration.getWindowExtendedState() != NORMAL) {
-			setExtendedState(configuration.getWindowExtendedState());
-		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
-			setSize(screenSize);
-		}
-
-		// Customize the colors used in tooltips
-		UIManager.put("ToolTip.background", new ColorUIResource(PMS.getConfiguration().getToolTipBackgroundColor()));
-		Border border = BorderFactory.createLineBorder(PMS.getConfiguration().getToolTipBackgroundColor(), 4);
-		UIManager.put("ToolTip.border", border);
-		UIManager.put("ToolTip.foreground", new ColorUIResource(PMS.getConfiguration().getToolTipForegroundColor()));
 
 		// Display tooltips immediately and for a long time
 		ToolTipManager.sharedInstance().setInitialDelay(400);
 		ToolTipManager.sharedInstance().setDismissDelay(60000);
 		ToolTipManager.sharedInstance().setReshowDelay(400);
-
-		setResizable(true);
-		Dimension paneSize = getSize();
-		if (posX == -1 && posY == -1 || screenChanged) { // first run of UMS or screen/desktop was changed so set the position to the middle of the screen
-			setLocation(
-			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
-			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
-			);
-		} else {
-			setLocation(posX, posY);
-		}
 
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
@@ -518,7 +483,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public static ImageIcon readImageIcon(String filename) {
 		URL url = LooksFrame.class.getResource("/resources/images/" + filename);
-		return new ImageIcon(url);
+		return url == null ? null : new ImageIcon(url);
 	}
 
 	public JComponent buildContent() {
@@ -530,26 +495,52 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebInterface()) {
-			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-webinterface.png");
+			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png");
 			webinterface.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					try {
-						Desktop.getDesktop().browse(new URI(PMS.get().getWebInterface().getUrl()));
-					} catch (IOException | URISyntaxException e2) {
-						LOGGER.trace("Unable to open the given URI: " + PMS.get().getWebInterface().getUrl() + ".");
+					String error = null;
+					if (PMS.get().getWebInterface() != null && isNotBlank(PMS.get().getWebInterface().getUrl())) {
+						try {
+							URI uri = new URI(PMS.get().getWebInterface().getUrl());
+							try {
+								Desktop.getDesktop().browse(uri);
+							} catch (RuntimeException | IOException be) {
+								LOGGER.error("Cound not open the default web browser: {}", be.getMessage());
+								LOGGER.trace("", be);
+								error = Messages.getString("LooksFrame.BrowserError") + "\n" + be.getMessage();
+							}
+						} catch (URISyntaxException se) {
+							LOGGER.error(
+								"Could not form a valid web interface URI from \"{}\": {}",
+								PMS.get().getWebInterface().getUrl(),
+								se.getMessage()
+							);
+							LOGGER.trace("", se);
+							error = Messages.getString("LooksFrame.URIError");
+						}
+					}
+					else {
+						error = Messages.getString("LooksFrame.URIError");
+					}
+					if (error != null) {
+						JOptionPane.showMessageDialog(null, error, Messages.getString("Dialog.Error"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			});
 			webinterface.setToolTipText(Messages.getString("LooksFrame.30"));
+			webinterface.setEnabled(configuration.useWebInterface());
 			toolBar.add(webinterface);
 			toolBar.addSeparator(new Dimension(20, 1));
 		}
 
-		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
+		restartIcon = (AnimatedIcon) reload.getIcon();
+		restartRequredIcon.start();
+		setReloadable(false);
 		reload.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				reload.setEnabled(false);
 				PMS.get().reset();
 			}
 		});
@@ -597,7 +588,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration, this);
 		gt = new GeneralTab(configuration, this);
-		pt = new PluginTab(configuration, this);
 		nt = new NavigationShareTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
@@ -605,7 +595,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
 		if (!configuration.isDisableTranscoding()) {
 			tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
@@ -642,15 +631,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tabbedPane;
 	}
 
-	protected AbstractButton createToolBarButton(String text, String iconName) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+	protected JImageButton createToolBarButton(String text, String iconName) {
+		JImageButton button = new JImageButton(text, iconName);
 		button.setFocusable(false);
-		button.setBorderPainted(false);
 		return button;
 	}
 
-	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+	protected JAnimatedButton createAnimatedToolBarButton(String text, String iconName) {
+		JAnimatedButton button = new JAnimatedButton(text, iconName);
+		button.setFocusable(false);
+		return button;
+	}
+
+	protected JImageButton createToolBarButton(String text, String iconName, String toolTipText) {
+		JImageButton button = new JImageButton(text, iconName);
 		button.setToolTipText(toolTipText);
 		button.setFocusable(false);
 		button.setBorderPainted(false);
@@ -659,19 +653,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
-		String windowGeometry = getBounds().toString();
-		try {
-			if (getExtendedState() != NORMAL) {
-				configuration.setWindowExtendedState(getExtendedState());
-			} else {
-				configuration.setWindowExtendedState(NORMAL);
-				configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf('[') + 1, windowGeometry.indexOf(']')));
-			}
-			configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
-		} catch (Exception e) {
-			LOGGER.warn("Failed to save window geometry and size: {}", e.getMessage());
-			LOGGER.debug("", e);
-		}
+		windowProperties.dispose();
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -679,6 +661,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		System.exit(0);
+	}
+
+	@Override
+	public void dispose() {
+		windowProperties.dispose();
+		super.dispose();
 	}
 
 	@Override
@@ -698,14 +686,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setStatusCode(int code, String msg, String icon) {
-		st.getJl().setText(msg);
+	public void setConnectionState(final ConnectionState connectionState) {
+		SwingUtilities.invokeLater(new Runnable() {
 
-		try {
-			st.getImagePanel().set(ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/" + icon)));
-		} catch (IOException e) {
-			LOGGER.error(null, e);
-		}
+			@Override
+			public void run() {
+				st.setConnectionState(connectionState);
+			}
+		});
 	}
 
 	@Override
@@ -721,17 +709,28 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * changed.<br>
 	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
 	 *
-	 * @param bool true if the server has to be restarted, false otherwise
+	 * @param required true if the server has to be restarted, false otherwise
 	 */
 	@Override
-	public void setReloadable(boolean bool) {
-		if (bool) {
-			reload.setIcon(readImageIcon("button-restart-required.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.13"));
-		} else {
-			reload.setIcon(readImageIcon("button-restart.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.28"));
-		}
+	public void setReloadable(final boolean required) {
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				if (required) {
+					if (reload.getIcon() == restartIcon) {
+						restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
+						reload.setToolTipText(Messages.getString("LooksFrame.13"));
+					}
+				} else {
+					reload.setEnabled(true);
+					if (restartRequredIcon == reload.getIcon()) {
+						reload.setToolTipText(Messages.getString("LooksFrame.28"));
+						restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
+					}
+				}
+			}
+		});
 	}
 
 	@Override
@@ -788,7 +787,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void serverReady() {
 		st.updateMemoryUsage();
 		gt.addRenderers();
-		pt.addPlugins();
 	}
 
 	@Override

@@ -23,8 +23,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.util.PlayerUtil;
 
 public class VLCWebVideo extends VLCVideo {
-	@Deprecated
-	public static final String ID = "vlcwebvideo";
+	public static final String ID = "VLCWebVideo";
 
 	@Deprecated
 	public VLCWebVideo(PmsConfiguration configuration) {
@@ -32,7 +31,7 @@ public class VLCWebVideo extends VLCVideo {
 	}
 
 	public VLCWebVideo() {
-	}	
+	}
 
 	@Override
 	public int purpose() {

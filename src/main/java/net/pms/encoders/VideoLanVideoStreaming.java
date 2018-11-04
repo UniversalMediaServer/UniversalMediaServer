@@ -36,7 +36,7 @@ import net.pms.util.PlayerUtil;
 
 /* XXX this is the old/obsolete VLC web video streaming engine */
 public class VideoLanVideoStreaming extends Player {
-	public static final String ID = "vlcvideo";
+	public static final String ID = "VLCVideo";
 
 	@Deprecated
 	public VideoLanVideoStreaming(PmsConfiguration configuration) {
@@ -173,13 +173,6 @@ public class VideoLanVideoStreaming extends Player {
 
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipe_process);

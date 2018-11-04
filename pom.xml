@@ -3,17 +3,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
-		UMS consists of two major parts: UMS itself and the third party software needed to
-		run it. While UMS itself is 100% pure Java, some of the third party software is
+		DMS consists of two major parts: DMS itself and the third party software needed to
+		run it. While DMS itself is 100% pure Java, some of the third party software is
 		not. This means building a platform specific distribution boils down to first
-		building the pms.jar and then assembling all application resources.
+		building the dms.jar and then assembling all application resources.
 
 		Note that Maven 3 does not automatically install all dependencies, unlike Maven 2.
 		To install external dependencies to your local repository, run the following commands:
 
 		mvn external:install
 
-		To build UMS, do:
+		To build DMS, do:
 
 			mvn clean package
 
@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>7.0.2-SNAPSHOT</version>
+	<version>7.5.1-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>7.0.2</project.version.short>
+		<project.version.short>7.5.1</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -73,7 +73,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
-		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
+		<sevenzip-version>9.20-2.00beta</sevenzip-version>
 
 		<twelvemonkeys-imageio-version>3.3.2</twelvemonkeys-imageio-version>
 
@@ -82,11 +82,12 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>71</binary-revision>
+		<binary-revision>81</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.2.2</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.0.0</maven-assembly-plugin-version>
+		<git-commit-id-plugin-version>2.2.3</git-commit-id-plugin-version>
+		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
+		<maven-enforcer-plugin-version>1.4.1</maven-enforcer-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -152,13 +153,18 @@
 			<artifactId>commons-configuration</artifactId>
 			<!--
 				commons-logging:commons-logging is shared with
-					- commons-httpclient:commons-httpclient
 					- com.github.junrar:junrar
 					- fm.last:coverartarchive-api
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 			-->
 			<version>1.10</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
@@ -193,12 +199,17 @@
 
 				Check the commons-io:commons-io version of the library before upgrading
 			-->
-			<version>2.5</version>
+			<version>2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.5</version>
+			<version>3.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.3</version><!-- Versions above 1.3 require Java 8 -->
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -218,7 +229,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.7</version>
+			<version>2.8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -344,12 +355,11 @@
 			<!--
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
-					- commons-httpclient:commons-httpclient
 					- fm.last:coverartarchive-api
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 			-->
-			<version>0.7</version>
+			<version>1.0.1</version>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
@@ -365,14 +375,14 @@
 			<version>1.2.11</version>
 		</dependency>
 		<dependency>
-			<groupId>sevenzip</groupId>
-			<artifactId>jbinding</artifactId>
-			<version>${sevenzip-version}</version>
+		    <groupId>net.sf.sevenzipjbinding</groupId>
+		    <artifactId>sevenzipjbinding</artifactId>
+		    <version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>sevenzip-allplatforms</groupId>
-			<artifactId>jbinding-allplatforms</artifactId>
-			<version>${sevenzip-version}</version>
+		    <groupId>net.sf.sevenzipjbinding</groupId>
+		    <artifactId>sevenzipjbinding-all-platforms</artifactId>
+		    <version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -405,27 +415,27 @@
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-core</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-support</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-http</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-util</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-xml</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>
@@ -468,13 +478,12 @@
 
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
-					- commons-httpclient:commons-httpclient
 					- com.github.junrar:junrar
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 
 				commons-io:commons-io is shared with
-					- net.pms:ums
+					- net.pms:dms
 
 				Check the commons-io:commons-io version before upgrading
 			-->
@@ -488,6 +497,10 @@
 				<exclusion>
 					<groupId>commons-io</groupId>
 					<artifactId>commons-io</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -503,11 +516,41 @@
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 
 				net.java.dev.jna:jna-platform is shared with
-					- net.pms:ums
+					- net.pms:dms
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
 			<version>3.4.3</version>
+		</dependency>
+		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
+		<dependency>
+		    <groupId>org.codehaus.plexus</groupId>
+		    <artifactId>plexus</artifactId>
+		    <version>5.1</version>
+		    <type>pom</type>
+		</dependency>
+		<dependency>
+		    <groupId>org.codehaus.plexus</groupId>
+		    <artifactId>plexus-utils</artifactId>
+		    <version>3.1.0</version>
+		</dependency>
+		<!-- FIX ERROR: Exception in thread "main" java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument -->
+		<dependency>
+		    <groupId>com.google.guava</groupId>
+		    <artifactId>guava-parent</artifactId>
+		    <version>26.0-jre</version>
+		    <type>pom</type>
+		</dependency>
+		<dependency>
+		    <groupId>org.codehaus</groupId>
+		    <artifactId>codehaus-parent</artifactId>
+		    <version>4</version>
+		    <type>pom</type>
+		</dependency>
+		<dependency>
+		    <groupId>net.lingala.zip4j</groupId>
+		    <artifactId>zip4j</artifactId>
+		    <version>1.3.2</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -528,7 +571,7 @@
 
 						/example.res
 
-					The old PMS ant build packaged them in a "resources" directory
+					The old DMS ant build packaged them in a "resources" directory
 					e.g:
 
 						/resources/example.res
@@ -581,11 +624,12 @@
 				<!-- Enable the use of Maven properties -->
 				<filtering>true</filtering>
 			</testResource>
-			<!--*.srt files to test charset detection-->
+			<!--*.srt files to test charset detection and *json to test filename prettification-->
 			<testResource>
 				<directory>src/test/resources/net/pms/util</directory>
 				<includes>
 					<include>*.srt</include>
+					<include>*.json</include>
 				</includes>
 				<targetPath>net/pms/util</targetPath>
 			</testResource>
@@ -780,7 +824,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.7.0</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -836,18 +880,6 @@
 					<createChecksum>true</createChecksum>
 					<artifactItems>
 						<artifactItem>
-							<groupId>sevenzip</groupId>
-							<artifactId>jbinding</artifactId>
-							<version>${sevenzip-version}</version>
-							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
-						</artifactItem>
-						<artifactItem>
-							<groupId>sevenzip-allplatforms</groupId>
-							<artifactId>jbinding-allplatforms</artifactId>
-							<version>${sevenzip-version}</version>
-							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
-						</artifactItem>
-						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>
 							<version>${cuelib-version}</version>
@@ -901,7 +933,7 @@
 		        </reportSets>
 			</plugin>
 
-			<!-- PMS tests report -->
+			<!-- DMS tests report -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
@@ -960,7 +992,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.4</version>
+				<version>3.0.5</version>
 			</plugin>
 
 			<!-- Checkstyle report -->
@@ -1045,7 +1077,7 @@
 										<mainClass>net.pms.PMS</mainClass>
 										<!--
 											this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
-											without it, the following exception is thrown when PMS starts:
+											without it, the following exception is thrown when DMS starts:
 
 											Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
 												Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
@@ -1069,7 +1101,7 @@
 					</plugin>
 
 					<!--
-						Plugin to move the pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						Plugin to move the dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1148,17 +1180,6 @@
 										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper-community-license-1.1.txt?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper-community-license-1.1.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.conf?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.dll?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.exe?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/service/wrapper.jar?p=${binary-revision}" dest="${project.binaries}/win32/service/wrapper.jar" usetimestamp="true" />
-
-										<!-- Make sure the destination folder for the service wrapper exists and copy the files. -->
-										<mkdir dir="${project.basedir}/win32/service" />
-										<copy todir="${project.basedir}/win32/service" overwrite="true">
-											<fileset dir="${project.binaries}/win32/service" />
-										</copy>
 									</target>
 								</configuration>
 							</execution>
@@ -1170,7 +1191,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<!-- Copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar -->
+										<!-- Copy the dms-x.x.x-jar-with-dependencies.jar to dms.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 										      tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
@@ -1178,6 +1199,16 @@
 										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
 										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
 										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Copy the wrapper to its destination -->
+										<mkdir dir="${project.basedir}/win32/service" />
+										<copy todir="${project.basedir}/win32/service" overwrite="true">
+											<fileset dir="${project.external-resources}/third-party/wrapper" />
+										</copy>
+
+										<!-- Copy the custom jnidispatch.dll for Windows XP -->
+										<mkdir dir="${project.basedir}/win32/winxp" />
+										<copy file="${project.external-resources}/lib/winxp/jnidispatch.dll" todir="${project.basedir}/win32/winxp" />
 									</target>
 								</configuration>
 							</execution>
@@ -1188,7 +1219,7 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"pms.nsi" and "setup.nsi" files.
+						"dms.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
@@ -1267,7 +1298,7 @@
 								</configuration>
 							</execution>
 
-							<!-- Assemble the PMS distribution file. -->
+							<!-- Assemble the DMS distribution file. -->
 							<execution>
 								<id>build-pms-linux</id>
 								<phase>package</phase>
@@ -1292,7 +1323,7 @@
 						Use the antrun plugin to:
 
 						Download the tsMuxeR binary to ${project.binaries}/tsMuxeR
-						Copy the pms-x.x.x-jar-with-dependencies.jar to ums.jar
+						Copy the dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1319,6 +1350,95 @@
 									</target>
 								</configuration>
 							</execution>
+							<execution>
+								<id>copy-jar-with-dependencies-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Testing profile: For running our automated tests - does not download binaries
+		-->
+		<profile>
+			<id>testing</id>
+			<!--
+				this setting does the right thing on Linux
+				and is needed for the Hudson profile to work
+			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the DMS distribution file. -->
+							<execution>
+								<id>build-pms-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Use the antrun plugin to:
+
+						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-linux</id>
 								<phase>package</phase>
@@ -1459,7 +1579,7 @@
 										           mainclassname="net.pms.PMS">
 											<!--<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home"/>-->
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
-											<option value="-Xmx768M"/>
+											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
@@ -1494,7 +1614,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before
+								Assemble the DMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
@@ -1640,7 +1760,7 @@
 										           workingdirectory="$APP_ROOT/Contents/Resources"
 										           mainclassname="net.pms.PMS">
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
-											<option value="-Xmx768M"/>
+											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
@@ -1675,7 +1795,7 @@
 								</configuration>
 							</execution>
 							<!--
-								Assemble the UMS files in the right place before
+								Assemble the DMS files in the right place before
 								moving them to the app Bundle.
 							-->
 							<execution>
@@ -1702,7 +1822,7 @@
 			</build>
 		</profile>
 		<!--
-			Hudson (windows-jar): minimal profile that builds pms.jar with the
+			Hudson (windows-jar): minimal profile that builds dms.jar with the
 			Windows JNA. The POSIX JNA causes snapshot builds to crash the JVM on
 			Windows, whereas the Windows JNA only disables MediaInfo for Ubuntu
 			users, who can still use ffmpeg.
@@ -1749,7 +1869,7 @@
 
 					<!--
 						Use the antrun plugin to: copy the
-						pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						dms-x.x.x-jar-with-dependencies.jar to dms.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1777,7 +1897,7 @@
 		</profile>
 
 		<!--
-			This profile allows running UMS from inside Eclipse
+			This profile allows running DMS from inside Eclipse
 			(Requires a "mvn clean package" to download the binaries first)
 		-->
 		<profile>
