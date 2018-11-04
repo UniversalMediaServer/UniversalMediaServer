@@ -105,12 +105,6 @@ public class PMS {
 	public static final String NAME = "Universal Media Server";
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
-	/**
-	 * @deprecated The version has moved to the resources/project.properties file. Use {@link #getVersion()} instead.
-	 */
-	@Deprecated
-	public static String VERSION;
-
 	private boolean ready = false;
 
 	private static FileWatcher fileWatcher;
@@ -201,14 +195,6 @@ public class PMS {
 	 */
 	public List<RendererConfiguration> getFoundRenderers() {
 		return foundRenderers;
-	}
-
-	/**
-	 * @deprecated Use {@link #setRendererFound(RendererConfiguration)} instead.
-	 */
-	@Deprecated
-	public void setRendererfound(RendererConfiguration renderer) {
-		setRendererFound(renderer);
 	}
 
 	/**
@@ -490,9 +476,7 @@ public class PMS {
 			}
 		}
 
-		// The public VERSION field is deprecated.
-		// This is a temporary fix for backwards compatibility
-		VERSION = getVersion();
+		getVersion();
 
 		fileWatcher = new FileWatcher();
 
@@ -831,53 +815,6 @@ public class PMS {
 		});
 	}
 
-	// Cannot remove these methods because of backwards compatibility;
-	// none of the DMS code uses it, but some plugins still do.
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the debug stream, or {@link System#out} in case the
-	 * debug stream has not been set up yet.
-	 * @param msg {@link String} to be added to the debug stream.
-	 */
-	@Deprecated
-	public static void debug(String msg) {
-		LOGGER.trace(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the info stream.
-	 * @param msg {@link String} to be added to the info stream.
-	 */
-	@Deprecated
-	public static void info(String msg) {
-		LOGGER.debug(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the minimal stream. This stream is also
-	 * shown in the Trace tab.
-	 * @param msg {@link String} to be added to the minimal stream.
-	 */
-	@Deprecated
-	public static void minimal(String msg) {
-		LOGGER.info(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the error stream. This is usually called by
-	 * statements that are in a try/catch block.
-	 * @param msg {@link String} to be added to the error stream
-	 * @param t {@link Throwable} comes from an {@link Exception}
-	 */
-	@Deprecated
-	public static void error(String msg, Throwable t) {
-		LOGGER.error(msg, t);
-	}
-
 	/**
 	 * Creates a new random {@link #uuid}. These are used to uniquely identify the server to renderers (i.e.
 	 * renderers treat multiple servers with the same UUID as the same server).
@@ -961,18 +898,6 @@ public class PMS {
 			LOGGER.error("A serious error occurred during {} initialization: {}", PMS.NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
-	}
-
-	/**
-	 * @deprecated Use {@link net.pms.formats.FormatFactory#getAssociatedFormat(String)}
-	 * instead.
-	 *
-	 * @param filename
-	 * @return The format.
-	 */
-	@Deprecated
-	public Format getAssociatedFormat(String filename) {
-		return FormatFactory.getAssociatedFormat(filename);
 	}
 
 	public static void main(String args[]) {
@@ -1268,22 +1193,6 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
-	}
-
-	/**
-	 * Returns whether the operating system is 64-bit or 32-bit.
-	 *
-	 * This will work with Windows and OS X but not necessarily with Linux
-	 * because when the OS is not Windows we are using Java's os.arch which
-	 * only detects the bitness of Java, not of the operating system.
-	 *
-	 * @return The bitness of the operating system.
-	 *
-	 * @deprecated Use {@link SystemInformation#getOSBitness()} instead.
-	 */
-	@Deprecated
-	public static int getOSBitness() {
-		return SystemInformation.getOSBitness();
 	}
 
 	/**
@@ -1682,14 +1591,6 @@ public class PMS {
 		return helpPage;
 	}
 
-	/**
-	 * @deprecated Use {@link com.sun.jna.Platform#isWindows()} instead
-	 */
-	@Deprecated
-	public boolean isWindows() {
-		return Platform.isWindows();
-	}
-
 	public static boolean isReady() {
 		return get().ready;
 	}
@@ -1701,11 +1602,6 @@ public class PMS {
 	private InfoDb infoDb;
 	private CodeDb codes;
 	private CodeEnter masterCode;
-
-	@Deprecated
-	public void infoDbAdd(File f, String formattedName) {
-		infoDb.backgroundAdd(f, formattedName);
-	}
 
 	public InfoDb infoDb() {
 		return infoDb;
