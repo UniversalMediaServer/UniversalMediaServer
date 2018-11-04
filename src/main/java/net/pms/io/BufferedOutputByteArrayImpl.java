@@ -28,7 +28,7 @@ import java.io.InputStream;
 public class BufferedOutputByteArrayImpl extends ByteArrayOutputStream implements BufferedOutputFile {
 
 	public BufferedOutputByteArrayImpl(OutputParams params) {
-		super(params.outputByteArrayStreamBufferSize > 512 ? params.outputByteArrayStreamBufferSize : 512);
+		super(params.getOutputByteArrayStreamBufferSize() > 512 ? params.getOutputByteArrayStreamBufferSize() : 512);
 	}
 
 	public BufferedOutputByteArrayImpl(int size) {

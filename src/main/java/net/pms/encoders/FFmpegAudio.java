@@ -125,10 +125,10 @@ public class FFmpegAudio extends FFMpegVideo {
 	) throws IOException {
 		PmsConfiguration prev = configuration;
 		// Use device-specific pms conf
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		configuration = (DeviceConfiguration)params.getMediaRenderer();
 		final String filename = dlna.getFileName();
-		params.maxBufferSize = configuration.getMaxAudioBuffer();
-		params.waitbeforestart = 2000;
+		params.setMaxBufferSize(configuration.getMaxAudioBuffer());
+		params.setWaitbeforestart(2000);
 		params.manageFastStart();
 
 		/*
@@ -158,9 +158,9 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("warning");
 		}
 
-		if (params.timeseek > 0) {
+		if (params.getTimeseek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + params.timeseek);
+			cmdList.add("" + params.getTimeseek());
 		}
 
 		// Decoder threads
@@ -181,17 +181,17 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("" + nThreads);
 		}
 
-		if (params.timeend > 0) {
+		if (params.getTimeend() > 0) {
 			cmdList.add("-t");
-			cmdList.add("" + params.timeend);
+			cmdList.add("" + params.getTimeend());
 		}
 
-		if (params.mediaRenderer.isTranscodeToMP3()) {
+		if (params.getMediaRenderer().isTranscodeToMP3()) {
 			cmdList.add("-f");
 			cmdList.add("mp3");
 			cmdList.add("-ab");
 			cmdList.add("320000");
-		} else if (params.mediaRenderer.isTranscodeToWAV()) {
+		} else if (params.getMediaRenderer().isTranscodeToWAV()) {
 			cmdList.add("-f");
 			cmdList.add("wav");
 		} else { // default: LPCM
@@ -200,7 +200,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		}
 
 		if (configuration.isAudioResample()) {
-			if (params.mediaRenderer.isTranscodeAudioTo441()) {
+			if (params.getMediaRenderer().isTranscodeAudioTo441()) {
 				cmdList.add("-ar");
 				cmdList.add("44100");
 				cmdList.add("-ac");

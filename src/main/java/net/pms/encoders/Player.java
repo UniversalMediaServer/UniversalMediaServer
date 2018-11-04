@@ -221,7 +221,7 @@ public abstract class Player {
 	public static void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
 		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(params);
-		if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
+		if (params.getAid() == null && media != null && media.getFirstAudioTrack() != null) {
 			// check for preferred audio
 			DLNAMediaAudio dtsTrack = null;
 			StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
@@ -230,7 +230,7 @@ public abstract class Player {
 				LOGGER.trace("Looking for an audio track with lang: " + lang);
 				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 					if (audio.matchCode(lang)) {
-						params.aid = audio;
+						params.setAid(audio);
 						LOGGER.trace("Matched audio track: " + audio);
 						return;
 					}
@@ -243,11 +243,11 @@ public abstract class Player {
 
 			// preferred audio not found, take a default audio track, dts first if available
 			if (dtsTrack != null) {
-				params.aid = dtsTrack;
+				params.setAid(dtsTrack);
 				LOGGER.trace("Found priority audio track with DTS: " + dtsTrack);
 			} else {
-				params.aid = media.getAudioTracksList().get(0);
-				LOGGER.trace("Chose a default audio track: " + params.aid);
+				params.setAid(media.getAudioTracksList().get(0));
+				LOGGER.trace("Chose a default audio track: " + params.getAid());
 			}
 		}
 	}
@@ -271,27 +271,27 @@ public abstract class Player {
 		String currentLang = null;
 		DLNAMediaSubtitle matchedSub = null;
 
-		if (params.aid != null) {
-			currentLang = params.aid.getLang();
+		if (params.getAid() != null) {
+			currentLang = params.getAid().getLang();
 		}
 
-		if (params.sid != null && params.sid.getId() == -1) {
+		if (params.getSid() != null && params.getSid().getId() == -1) {
 			LOGGER.trace("Don't want subtitles!");
-			params.sid = null;
+			params.setSid(null);
 			return;
 		}
 
 		/**
 		 * Check for live subtitles
 		 */
-		if (params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
-			LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
+		if (params.getSid() != null && !StringUtils.isEmpty(params.getSid().getLiveSubURL())) {
+			LOGGER.debug("Live subtitles " + params.getSid().getLiveSubURL());
 			try {
-				matchedSub = params.sid;
+				matchedSub = params.getSid();
 				String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 				if (!StringUtils.isEmpty(file)) {
 					matchedSub.setExternalFile(new File(file), null);
-					params.sid = matchedSub;
+					params.setSid(matchedSub);
 					return;
 				}
 			} catch (IOException e) {
@@ -392,18 +392,18 @@ public abstract class Player {
 		 * TODO: Can't we save a bunch of looping by checking for isDisableSubtitles
 		 * just after the Live Subtitles check above?
 		 */
-		if (matchedSub != null && params.sid == null) {
+		if (matchedSub != null && params.getSid() == null) {
 			if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
 				LOGGER.trace("Disabled the subtitles: " + matchedSub);
 			} else {
-				params.sid = matchedSub;
+				params.setSid(matchedSub);
 			}
 		}
 
 		/**
 		 * Check for forced subtitles.
 		 */
-		if (!configuration.isDisableSubtitles() && params.sid == null && media != null) {
+		if (!configuration.isDisableSubtitles() && params.getSid() == null && media != null) {
 			// Check for subtitles again
 			File video = new File(fileName);
 			FileUtil.isSubtitlesExists(video, media, false);
@@ -429,7 +429,7 @@ public abstract class Player {
 								if (sub.getExternalFile() != null) {
 									LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
 								}
-								params.sid = sub;
+								params.setSid(sub);
 								forcedSubsFound = true;
 								break;
 							}
@@ -442,7 +442,7 @@ public abstract class Player {
 
 						if (sub.getExternalFile() != null) {
 							LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
-							params.sid = sub;
+							params.setSid(sub);
 							break;
 						}
 					}
@@ -456,8 +456,8 @@ public abstract class Player {
 				return;
 			}
 
-			if (params.sid == null) {
-				st = new StringTokenizer(UMSUtils.getLangList(params.mediaRenderer), ",");
+			if (params.getSid() == null) {
+				st = new StringTokenizer(UMSUtils.getLangList(params.getMediaRenderer()), ",");
 				while (st.hasMoreTokens()) {
 					String lang = st.nextToken();
 					lang = lang.trim();
@@ -470,8 +470,8 @@ public abstract class Player {
 								sub.getExternalFile() != null
 							)
 						) {
-							params.sid = sub;
-							LOGGER.trace("Matched subtitles track: " + params.sid);
+							params.setSid(sub);
+							LOGGER.trace("Matched subtitles track: " + params.getSid());
 							return;
 						}
 					}

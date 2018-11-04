@@ -112,8 +112,8 @@ public class DVDISOFile extends VirtualFolder {
 			"dvd://"
 		};
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.log = true;
+		params.setMaxBufferSize(1);
+		params.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = new Runnable() {
 			@Override

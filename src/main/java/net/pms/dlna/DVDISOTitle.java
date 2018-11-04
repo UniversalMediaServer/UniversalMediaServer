@@ -77,13 +77,13 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.log = true;
+		params.setMaxBufferSize(1);
+		params.setLog(true);
 
 		boolean generateThumbnails = false;
 		if (configuration.isDvdIsoThumbnails()) {
 			try {
-				params.workDir = configuration.getTempFolder();
+				params.setWorkDir(configuration.getTempFolder());
 				generateThumbnails = true;
 			} catch (IOException e1) {
 				LOGGER.error("Could not create temporary folder, DVD thumbnails won't be generated: {}", e1.getMessage());

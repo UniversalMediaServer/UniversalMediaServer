@@ -184,12 +184,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		params.minBufferSize = params.minFileSize;
-		params.secondread_minsize = 100000;
+		params.setMinBufferSize(params.getMinFileSize());
+		params.setSecondread_minsize(100000);
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
-		RendererConfiguration renderer = params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		RendererConfiguration renderer = params.getMediaRenderer();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(filename, media, params);
 
@@ -228,8 +228,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			filtersLock.readLock().unlock();
 		}
 		// - (http) header options
-		if (params.header != null && params.header.length > 0) {
-			String hdr = new String(params.header);
+		if (params.getHeader() != null && params.getHeader().length > 0) {
+			String hdr = new String(params.getHeader());
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options
@@ -287,9 +287,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.transferInputFileOptions(cmdList);
 		}
 
-		if (params.timeseek > 0) {
+		if (params.getTimeseek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + (int) params.timeseek);
+			cmdList.add("" + (int) params.getTimeseek());
 		}
 
 		cmdList.add("-i");
@@ -348,7 +348,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		 */
 		mkfifo_process.runInSameThread();
 
-		params.input_pipes[0] = pipe;
+		params.getInput_pipes()[0] = pipe;
 
 		// Output file
 		cmdList.add(pipe.getInputPipe());

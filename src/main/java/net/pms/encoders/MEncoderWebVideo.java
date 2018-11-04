@@ -87,12 +87,12 @@ public class MEncoderWebVideo extends Player {
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
-		params.minBufferSize = params.minFileSize;
-		params.secondread_minsize = 100000;
+		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		params.setMinBufferSize(params.getMinFileSize());
+		params.setSecondread_minsize(100000);
 
 		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
-		params.input_pipes[0] = pipe;
+		params.getInput_pipes()[0] = pipe;
 
 		String cmdArray[] = new String[args().length + 4];
 		cmdArray[0] = executable();

@@ -582,10 +582,10 @@ public class PMS {
 		OutputParams outputParams = new OutputParams(configuration);
 
 		// Prevent unwanted GUI buffer artifacts (and runaway timers)
-		outputParams.hidebuffer = true;
+		outputParams.setHidebuffer(true);
 
 		// Make sure buffer is destroyed
-		outputParams.cleanup = true;
+		outputParams.setCleanup(true);
 
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
 		if (!configuration.isDisableSubtitles()) {
@@ -1242,7 +1242,7 @@ public class PMS {
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
-		return getConfiguration(params != null ? params.mediaRenderer : null);
+		return getConfiguration(params != null ? params.getMediaRenderer() : null);
 	}
 
 	// Note: this should be used only when no RendererConfiguration or OutputParams is available

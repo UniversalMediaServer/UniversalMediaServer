@@ -184,8 +184,8 @@ public class SpeedStats {
 		private double doPing(int size) {
 			// let's get that speed
 			OutputParams op = new OutputParams(null);
-			op.log = true;
-			op.maxBufferSize = 1;
+			op.setLog(true);
+			op.setMaxBufferSize(1);
 			SystemUtils sysUtil = PMS.get().getRegistry();
 			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
 			Runnable r = new Runnable() {

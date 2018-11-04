@@ -411,14 +411,14 @@ public class DLNAMediaInfo implements Cloneable {
 				getVideoTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			) ||
 			(
-				params.aid != null &&
-				params.aid.getAudioTrackTitleFromMetadata() != null &&
-				params.aid.getAudioTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+				params.getAid() != null &&
+				params.getAid().getAudioTrackTitleFromMetadata() != null &&
+				params.getAid().getAudioTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			) ||
 			(
-				params.sid != null &&
-				params.sid.getSubtitlesTrackTitleFromMetadata() != null &&
-				params.sid.getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+				params.getSid() != null &&
+				params.getSid().getSubtitlesTrackTitleFromMetadata() != null &&
+				params.getSid().getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			)
 		) {
 			return true;
@@ -538,9 +538,9 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.stdin = media.getPush();
-		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
+		params.setMaxBufferSize(1);
+		params.setStdin(media.getPush());
+		params.setNoexitcheck(true); // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(new String[args.size()]), true, params, false, true);
@@ -607,11 +607,11 @@ public class DLNAMediaInfo implements Cloneable {
 		args[12] = "jpeg:outdir=" + frameName;
 		args[13] = "-nosound";
 		OutputParams params = new OutputParams(configuration);
-		params.workDir = configuration.getTempFolder();
-		params.maxBufferSize = 1;
-		params.stdin = media.getPush();
-		params.log = true;
-		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
+		params.setWorkDir(configuration.getTempFolder());
+		params.setMaxBufferSize(1);
+		params.setStdin(media.getPush());
+		params.setLog(true);
+		params.setNoexitcheck(true); // not serious if anything happens during the thumbnailer
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, true, params);
 
 		// FAILSAFE
@@ -1951,8 +1951,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 		byte[][] returnData = new byte[2][];
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.stdin = f.getPush();
+		params.setMaxBufferSize(1);
+		params.setStdin(f.getPush());
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params);
 

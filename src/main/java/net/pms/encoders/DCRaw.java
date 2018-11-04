@@ -113,15 +113,14 @@ public class DCRaw extends ImagePlayer {
 		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(params);
 
-		params.log = false;
+		params.setLog(false);
 		// Setting the buffer to the size of the source file or 5 MB. The
 		// output won't be the same size as the input, but it will hopefully
 		// give us a somewhat relevant buffer size. Every time the buffer has
 		// to grow, the whole buffer must be copied in memory.
-		params.outputByteArrayStreamBufferSize =
-			imageInfo != null &&
-				imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ?
-				(int) imageInfo.getSize() : 5000000;
+		params.setOutputByteArrayStreamBufferSize(imageInfo != null &&
+			imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ?
+			(int) imageInfo.getSize() : 5000000);
 
 		// First try to get the embedded thumbnail
 		String cmdArray[] = new String[5];
@@ -167,11 +166,11 @@ public class DCRaw extends ImagePlayer {
 
 		// Use device-specific pms conf
 		PmsConfiguration configuration = PMS.getConfiguration(params);
-		params.log = false;
+		params.setLog(false);
 
 		// This is a wild guess at a decent buffer size for an embedded thumbnail.
 		// Every time the buffer has to grow, the whole buffer must be copied in memory.
-		params.outputByteArrayStreamBufferSize = 150000;
+		params.setOutputByteArrayStreamBufferSize(150000);
 
 		// First try to get the embedded thumbnail
 		String cmdArray[] = new String[6];
@@ -277,10 +276,9 @@ public class DCRaw extends ImagePlayer {
 					fileName
 				);
 			}
-			params.outputByteArrayStreamBufferSize =
-				imageInfo != null &&
-					imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ?
-					(int) imageInfo.getSize() / 4 : 500000;
+			params.setOutputByteArrayStreamBufferSize(imageInfo != null &&
+				imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ?
+				(int) imageInfo.getSize() / 4 : 500000);
 			cmdArray[1] = "-h";
 			pw = new ProcessWrapperImpl(cmdArray, true, params);
 
@@ -310,7 +308,7 @@ public class DCRaw extends ImagePlayer {
     	}
 
 		OutputParams params = new OutputParams(configuration);
-		params.log = true;
+		params.setLog(true);
 
 		String cmdArray[] = new String[4];
 		cmdArray[0] = configuration.getDCRawPath();

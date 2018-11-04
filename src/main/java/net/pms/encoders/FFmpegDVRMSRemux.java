@@ -127,7 +127,7 @@ public class FFmpegDVRMSRemux extends Player {
 	) {
 		PmsConfiguration prev = configuration;
 		// Use device-specific pms conf
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		configuration = (DeviceConfiguration)params.getMediaRenderer();
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<>();
 		final String filename = dlna.getFileName();
@@ -138,9 +138,9 @@ public class FFmpegDVRMSRemux extends Player {
 			cmdList.add(executable());
 		}
 
-		if (params.timeseek > 0) {
+		if (params.getTimeseek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + params.timeseek);
+			cmdList.add("" + params.getTimeseek());
 		}
 
 		cmdList.add("-i");

@@ -55,8 +55,8 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		params.timeend = media.getDurationInSeconds();
-		params.waitbeforestart = 2500;
+		params.setTimeend(media.getDurationInSeconds());
+		params.setWaitbeforestart(2500);
 		return super.launchTranscode(dlna, media, params);
 	}
 

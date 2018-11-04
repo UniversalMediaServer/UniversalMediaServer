@@ -720,18 +720,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (hasEmbeddedSubs || hasExternalSubtitles()) {
 				OutputParams params = new OutputParams(configurationSpecificToRenderer);
 				Player.setAudioAndSubs(getSystemName(), media, params); // set proper subtitles in accordance with user setting
-				if (params.sid != null) {
-					if (params.sid.isExternal()) {
-						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.sid, media)) {
-							media_subtitle = params.sid;
+				if (params.getSid() != null) {
+					if (params.getSid().isExternal()) {
+						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(params.getSid(), media)) {
+							media_subtitle = params.getSid();
 							media_subtitle.setSubsStreamable(true);
 							LOGGER.trace("This video has external subtitles that could be streamed");
 						} else {
 							hasSubsToTranscode = true;
 							LOGGER.trace("This video has external subtitles that should be transcoded");
 						}
-					} else if (params.sid.isEmbedded()) {
-						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.sid)) {
+					} else if (params.getSid().isEmbedded()) {
+						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(params.getSid())) {
 							LOGGER.trace("This video has embedded subtitles that could be streamed");
 						} else {
 							hasSubsToTranscode = true;
@@ -1898,7 +1898,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (mediaRenderer.isAccurateDLNAOrgPN()) {
 								boolean finishedMatchingPreferences = false;
 								OutputParams params = new OutputParams(configurationSpecificToRenderer);
-								if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
+								if (params.getAid() == null && media != null && media.getFirstAudioTrack() != null) {
 									// check for preferred audio
 									DLNAMediaAudio dtsTrack = null;
 									StringTokenizer st = new StringTokenizer(configurationSpecificToRenderer.getAudioLanguages(), ",");
@@ -1907,7 +1907,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										LOGGER.trace("Looking for an audio track with lang: " + lang);
 										for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 											if (audio.matchCode(lang)) {
-												params.aid = audio;
+												params.setAid(audio);
 												LOGGER.trace("Matched audio track: " + audio);
 												break;
 											}
@@ -1920,39 +1920,39 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 									// preferred audio not found, take a default audio track, dts first if available
 									if (dtsTrack != null) {
-										params.aid = dtsTrack;
+										params.setAid(dtsTrack);
 										LOGGER.trace("Found priority audio track with DTS: " + dtsTrack);
 									} else {
-										params.aid = media.getAudioTracksList().get(0);
-										LOGGER.trace("Chose a default audio track: " + params.aid);
+										params.setAid(media.getAudioTracksList().get(0));
+										LOGGER.trace("Chose a default audio track: " + params.getAid());
 									}
 								}
 
 								String currentLang = null;
 								DLNAMediaSubtitle matchedSub = null;
-								if (params.aid != null) {
-									currentLang = params.aid.getLang();
+								if (params.getAid() != null) {
+									currentLang = params.getAid().getLang();
 								}
 
-								if (params.sid != null && params.sid.getId() == -1) {
+								if (params.getSid() != null && params.getSid().getId() == -1) {
 									LOGGER.trace("Don't want subtitles!");
-									params.sid = null;
-									media_subtitle = params.sid;
+									params.setSid(null);
+									media_subtitle = params.getSid();
 									finishedMatchingPreferences = true;
 								}
 
 								/**
 								 * Check for live subtitles
 								 */
-								if (!finishedMatchingPreferences && params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
-									LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
+								if (!finishedMatchingPreferences && params.getSid() != null && !StringUtils.isEmpty(params.getSid().getLiveSubURL())) {
+									LOGGER.debug("Live subtitles " + params.getSid().getLiveSubURL());
 									try {
-										matchedSub = params.sid;
+										matchedSub = params.getSid();
 										String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 										if (!StringUtils.isEmpty(file)) {
 											matchedSub.setExternalFile(new File(file), null);
-											params.sid = matchedSub;
-											media_subtitle = params.sid;
+											params.setSid(matchedSub);
+											media_subtitle = params.getSid();
 											finishedMatchingPreferences = true;
 										}
 									} catch (IOException e) {
@@ -2056,22 +2056,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 * TODO: Can't we save a bunch of looping by checking for isDisableSubtitles
 									 * just after the Live Subtitles check above?
 									 */
-									if (matchedSub != null && params.sid == null) {
+									if (matchedSub != null && params.getSid() == null) {
 										if (configurationSpecificToRenderer.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
 											LOGGER.trace("Disabled the subtitles: " + matchedSub);
 										} else {
 											if (mediaRenderer.isExternalSubtitlesFormatSupported(matchedSub, media)) {
 												matchedSub.setSubsStreamable(true);
 											}
-											params.sid = matchedSub;
-											media_subtitle = params.sid;
+											params.setSid(matchedSub);
+											media_subtitle = params.getSid();
 										}
 									}
 
 									/**
 									 * Check for forced subtitles.
 									 */
-									if (!configurationSpecificToRenderer.isDisableSubtitles() && params.sid == null && media != null) {
+									if (!configurationSpecificToRenderer.isDisableSubtitles() && params.getSid() == null && media != null) {
 										// Check for subtitles again
 										File video = new File(getSystemName());
 										FileUtil.isSubtitlesExists(video, media, false);
@@ -2100,8 +2100,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
 																sub.setSubsStreamable(true);
 															}
-															params.sid = sub;
-															media_subtitle = params.sid;
+															params.setSid(sub);
+															media_subtitle = params.getSid();
 															forcedSubsFound = true;
 															break;
 														}
@@ -2117,8 +2117,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
 															sub.setSubsStreamable(true);
 														}
-														params.sid = sub;
-														media_subtitle = params.sid;
+														params.setSid(sub);
+														media_subtitle = params.getSid();
 														break;
 													}
 												}
@@ -2133,8 +2133,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											finishedMatchingPreferences = true;
 										}
 
-										if (!finishedMatchingPreferences && params.sid == null) {
-											st = new StringTokenizer(UMSUtils.getLangList(params.mediaRenderer), ",");
+										if (!finishedMatchingPreferences && params.getSid() == null) {
+											st = new StringTokenizer(UMSUtils.getLangList(params.getMediaRenderer()), ",");
 											while (st.hasMoreTokens()) {
 												String lang = st.nextToken();
 												lang = lang.trim();
@@ -2150,8 +2150,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														if (mediaRenderer.isExternalSubtitlesFormatSupported(sub, media)) {
 															sub.setSubsStreamable(true);
 														}
-														params.sid = sub;
-														LOGGER.trace("Matched subtitles track: " + params.sid);
+														params.setSid(sub);
+														LOGGER.trace("Matched subtitles track: " + params.getSid());
 														break;
 													}
 												}
@@ -3254,16 +3254,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			// Pipe transcoding result
 			OutputParams params = new OutputParams(configurationSpecificToRenderer);
-			params.aid = getMediaAudio();
-			params.sid = media_subtitle;
-			params.header = getHeaders();
-			params.mediaRenderer = mediarenderer;
+			params.setAid(getMediaAudio());
+			params.setSid(media_subtitle);
+			params.setHeader(getHeaders());
+			params.setMediaRenderer(mediarenderer);
 			timeRange.limit(getSplitRange());
-			params.timeseek = timeRange.getStartOrZero();
-			params.timeend = timeRange.getEndOrZero();
-			params.shift_scr = timeseek_auto;
+			params.setTimeseek(timeRange.getStartOrZero());
+			params.setTimeend(timeRange.getEndOrZero());
+			params.setShift_scr(timeseek_auto);
 			if (this instanceof IPushOutput) {
-				params.stdin = (IPushOutput) this;
+				params.setStdin((IPushOutput) this);
 			}
 
 			if (resume != null) {
@@ -3271,7 +3271,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					resume.update((Range.Time) range, this);
 				}
 
-				params.timeseek = resume.getTimeOffset() / 1000;
+				params.setTimeseek(resume.getTimeOffset() / 1000);
 				if (player == null) {
 					player = new FFMpegVideo();
 				}
@@ -3291,25 +3291,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 				lastStartSystemTime = System.currentTimeMillis();
 				externalProcess = player.launchTranscode(this, media, params);
-				if (params.waitbeforestart > 0) {
-					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
+				if (params.getWaitbeforestart() > 0) {
+					LOGGER.trace("Sleeping for {} milliseconds", params.getWaitbeforestart());
 					try {
-						Thread.sleep(params.waitbeforestart);
+						Thread.sleep(params.getWaitbeforestart());
 					} catch (InterruptedException e) {
 						LOGGER.error(null, e);
 					}
 
-					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
+					LOGGER.trace("Finished sleeping for " + params.getWaitbeforestart() + " milliseconds");
 				}
 			} else if (
-				params.timeseek > 0 &&
+				params.getTimeseek() > 0 &&
 				media != null &&
 				media.isMediaparsed() &&
 				media.getDurationInSeconds() > 0
 			) {
 				// Time seek request => stop running transcode process and start a new one
-				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
-				params.minBufferSize = 1;
+				LOGGER.debug("Requesting time seek: " + params.getTimeseek() + " seconds");
+				params.setMinBufferSize(1);
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {

@@ -63,13 +63,13 @@ public class AviDemuxerInputStream extends InputStream {
 		this.attachedProcesses = at;
 		this.params = params;
 
-		aOut = params.output_pipes[1].getOutputStream();
-		if (params.no_videoencode && params.forceType != null && params.forceType.equals("V_MPEG4/ISO/AVC") && params.header != null) {
+		aOut = params.getOutput_pipes()[1].getOutputStream();
+		if (params.isNo_videoencode() && params.getForceType() != null && params.getForceType().equals("V_MPEG4/ISO/AVC") && params.getHeader() != null) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
-			try (InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header)) {
-				final OutputStream out = params.output_pipes[0].getOutputStream();
+			try (InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.getHeader())) {
+				final OutputStream out = params.getOutput_pipes()[0].getOutputStream();
 				r = new Runnable() {
 					@Override
 					public void run() {
@@ -88,7 +88,7 @@ public class AviDemuxerInputStream extends InputStream {
 			vOut = pout;
 			new Thread(r, "Avi Demuxer").start();
 		} else {
-			vOut = params.output_pipes[0].getOutputStream();
+			vOut = params.getOutput_pipes()[0].getOutputStream();
 		}
 
 		Runnable r = new Runnable() {
@@ -102,24 +102,24 @@ public class AviDemuxerInputStream extends InputStream {
 						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 						String videoType = "V_MPEG-2";
 
-						if (params.no_videoencode && params.forceType != null) {
-							videoType = params.forceType;
+						if (params.isNo_videoencode() && params.getForceType() != null) {
+							videoType = params.getForceType();
 						}
 
 						String fps = "";
 
-						if (params.forceFps != null) {
-							fps = "fps=" + params.forceFps + ", ";
+						if (params.getForceFps() != null) {
+							fps = "fps=" + params.getForceFps() + ", ";
 						}
 
 						String audioType = "A_LPCM";
 
-						if (params.lossyaudio) {
+						if (params.isLossyaudio()) {
 							audioType = "A_AC3";
 						}
 
-						pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-						pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
+						pw.println(videoType + ", \"" + params.getOutput_pipes()[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+						pw.println(audioType + ", \"" + params.getOutput_pipes()[1].getOutputPipe() + "\", track=2");
 					}
 
 					PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
@@ -265,11 +265,11 @@ public class AviDemuxerInputStream extends InputStream {
 					aud.setNbAudio(nbAudio);
 					long fileLength = 100;
 
-					if (params.losslessaudio) {
+					if (params.isLosslessaudio()) {
 						aOut = new PCMAudioOutputStream(aOut, nbAudio, 48000, bitsPerSample);
 					}
 
-					if (!params.lossyaudio && params.losslessaudio) {
+					if (!params.isLossyaudio() && params.isLosslessaudio()) {
 						writePCMHeader(aOut, fileLength, nbAudio, aud.getRate(), aud.getSampleSize(), bitsPerSample);
 					}
 				}
