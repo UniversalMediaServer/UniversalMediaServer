@@ -58,23 +58,6 @@ public class SpeedStats {
 	 * {@code addr}, {@code null} is returned.
 	 *
 	 * @param addr the {@link InetAddress} to lookup.
-	 * @param rendererName not in use.
-	 * @return The {@link Future} with the estimated network throughput or
-	 *         {@code null}.
-	 * @deprecated Use {@link #getSpeedInMBitsStored(InetAddress)} instead.
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	public Future<Integer> getSpeedInMBitsStored(InetAddress addr, String rendererName) {
-		return getSpeedInMBitsStored(addr);
-	}
-
-	/**
-	 * Returns the estimated networks throughput for the given IP address in
-	 * Mb/s from the cache as a {@link Future}. If no value is cached for
-	 * {@code addr}, {@code null} is returned.
-	 *
-	 * @param addr the {@link InetAddress} to lookup.
 	 * @return The {@link Future} with the estimated network throughput or
 	 *         {@code null}.
 	 */
