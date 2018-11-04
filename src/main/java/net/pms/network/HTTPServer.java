@@ -55,20 +55,8 @@ public class HTTPServer implements Runnable {
 	private NetworkInterface networkInterface;
 	private ChannelGroup group;
 
-	// XXX not used
-	@Deprecated
-	public InetAddress getIafinal() {
-		return iafinal;
-	}
-
 	public NetworkInterface getNetworkInterface() {
 		return networkInterface;
-	}
-
-	// use getNetworkInterface()
-	@Deprecated
-	public NetworkInterface getNi() {
-		return getNetworkInterface();
 	}
 
 	public HTTPServer(int port) {
