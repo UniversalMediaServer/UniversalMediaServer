@@ -36,11 +36,6 @@ public class OutputTextLogger extends OutputConsumer {
 		super(inputStream);
 	}
 
-	@Deprecated
-	public OutputTextLogger(InputStream inputStream, ProcessWrapperImpl pwi) {
-		this(inputStream);
-	}
-
 	@Override
 	public void run() {
 		LineIterator it = null;

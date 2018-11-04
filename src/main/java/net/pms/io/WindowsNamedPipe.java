@@ -40,14 +40,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	private boolean b2;
 	private FileOutputStream debug;
 	private BufferedOutputFile directBuffer;
-
-	/**
-	 * @deprecated Use {@link #setLoop(boolean)} instead.
-	 *
-	 * This field will be made private in a future version.
-	 */
-	@Deprecated
-	public static boolean loop = true;
+	private static boolean loop = true;
 
 	/**
 	 * Size for the buffer used in defining pipes for Windows in bytes. The buffer is used
