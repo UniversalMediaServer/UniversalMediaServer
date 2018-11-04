@@ -159,8 +159,7 @@ public class FileUtilTest {
 	        		if(extracted_metadata[1]!=null) {
 	        			year = Integer.parseInt(extracted_metadata[1]);
 	        		}
-	        	}
-	        	catch(NumberFormatException ex) {
+	        	} catch(NumberFormatException ex) {
         			throw(new AssertionError(ex)); 
         		}
 	        	String extraInformation = extracted_metadata[2];
@@ -169,8 +168,7 @@ public class FileUtilTest {
 	        		if(extracted_metadata[3]!=null) {
 	        			tvSeason = Integer.parseInt(extracted_metadata[3]);
 	        		}
-	        	}
-	        	catch(NumberFormatException ex) {
+	        	} catch(NumberFormatException ex) {
         			throw(new AssertionError(ex)); 
         		}
 	        	// tvEpisodeNumber might be a single episode, but might also be
@@ -185,8 +183,7 @@ public class FileUtilTest {
         			for( JsonElement extra: elem.getAsJsonArray() ) {
         				try {
         					assertThat( extraInformation.indexOf(extra.getAsString()) > -1 ).isTrue();
-        				}
-        				catch(NullPointerException ex) {
+        				} catch(NullPointerException ex) {
         					// There is no extraInformation extracted
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/extra would fail for TODO test " + original );
@@ -194,13 +191,11 @@ public class FileUtilTest {
         					else {
         						throw(new AssertionError(ex));
         					}
-        				}
-        				catch(AssertionError err) {
+        				} catch(AssertionError err) {
         					// extraInformation is extracted, but is wrong
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/extra would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(err);
         					}
         				}
@@ -213,22 +208,18 @@ public class FileUtilTest {
 	        		if( elem != null ) {
 	        			try  {
 	        				assertThat(movieOrShowName).isEqualTo(elem.getAsString());
-	        			}
-        				catch(NullPointerException ex) {
+	        			} catch(NullPointerException ex) {
         					// There is no movieOrShowName extracted
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(new AssertionError(ex));
         					}
-        				}
-        				catch(AssertionError err) {
+        				} catch(AssertionError err) {
         					// movieOrShowName is extracted, but is wrong
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(err);
         					}
         				}
@@ -237,20 +228,16 @@ public class FileUtilTest {
 	        		if( elem != null ) {
 	        			try  {
 		        			assertThat(tvSeason).isEqualTo(elem.getAsInt()); 
-	        			}
-        				catch(NullPointerException ex) {
+	        			} catch(NullPointerException ex) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/season would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(new AssertionError(ex));
         					}
-        				}
-        				catch(AssertionError err) {
+        				} catch(AssertionError err) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/season would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(err);
         					}
         				}
@@ -259,18 +246,16 @@ public class FileUtilTest {
 	        		if( elem != null ) {
 	    	        	try {
 	        				assertThat(tvEpisodeNumber).isEqualTo(String.format("%02d",elem.getAsInt()));
-	    	        	}
-	    	        	catch(NumberFormatException | NullPointerException ex) {
+	    	        	} catch(NumberFormatException | NullPointerException ex) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(new AssertionError(ex));
         					}
-        				}
-        				catch(AssertionError err) {
-        					if(todo) { logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original ); }
-        					else {
+        				} catch(AssertionError err) {
+        					if(todo) {
+        						logger.warn( "testGetFileNameMetadata/episode would fail for TODO test " + original );
+        					} else {
         						throw(err);
         					}
         				}
@@ -289,20 +274,17 @@ public class FileUtilTest {
 	        		if( elem != null ) {
 	        			try {
 	        				assertThat(tvEpisodeName).isEqualTo(elem.getAsString());
-	        			}
-        				catch(NullPointerException ex) {
+	        			} catch(NullPointerException ex) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(new AssertionError(ex));
         					}
         				}
         				catch(AssertionError err) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(err);
         					}
         				}
@@ -315,20 +297,16 @@ public class FileUtilTest {
 	        		if( elem != null ) {
 	        			try {
 	        				assertThat(movieOrShowName).isEqualTo(elem.getAsString());
-	        			}
-        				catch(NullPointerException ex) {
+	        			} catch(NullPointerException ex) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(new AssertionError(ex));
         					}
-        				}
-        				catch(AssertionError err) {
+        				} catch(AssertionError err) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/series would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(err);
         					}
         				}
@@ -345,12 +323,10 @@ public class FileUtilTest {
 	        			}
 	        			try {
 	        				assertThat(tvEpisodeNumber).isEqualTo(range.substring(1));
-	        			}
-        				catch(AssertionError err) {
+	        			} catch(AssertionError err) {
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/episodes would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(err);
         					}
         				}
@@ -362,22 +338,18 @@ public class FileUtilTest {
 	        		if( elem != null ) {
 	        			try  {
 	        				assertThat(movieOrShowName).isEqualTo(elem.getAsString());
-	        			}
-        				catch(NullPointerException ex) {
+	        			} catch(NullPointerException ex) {
         					// There is no movieOrShowName extracted
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(new AssertionError(ex));
         					}
-        				}
-        				catch(AssertionError err) {
+        				} catch(AssertionError err) {
         					// movieOrShowName is extracted, but is wrong
         					if(todo) {
         						logger.warn( "testGetFileNameMetadata/title would fail for TODO test " + original );
-        					}
-        					else {
+        					} else {
         						throw(err);
         					}
         				}
@@ -388,19 +360,16 @@ public class FileUtilTest {
 		        		if( elem != null ) {
 		        			try {
 		        				assertThat(year).isEqualTo(elem.getAsInt());
-		        			}
-	        				catch(AssertionError err) {
+		        			} catch(AssertionError err) {
 	        					if(todo) {
 	        						logger.warn( "testGetFileNameMetadata/released would fail for TODO test " + original );
-	        					}
-	        					else {
+	        					} else {
 	        						throw(err);
 	        					}
 	        				}
 		        		}
 		        	}
-	        	}
-	        	else {
+	        	} else {
 	        		logger.error( "Unknown content type in " + original );
 	        	}
 	        } // for all test cases
