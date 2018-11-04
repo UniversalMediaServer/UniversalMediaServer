@@ -78,18 +78,6 @@ public class BasicSystemUtils implements SystemUtils {
 	}
 
 	@Override
-	@Deprecated
-	public String getVlcp() {
-		return getVlcPath();
-	}
-
-	@Override
-	@Deprecated
-	public String getVlcv() {
-		return getVlcVersion();
-	}
-
-	@Override
 	public String getVlcPath() {
 		return vlcp;
 	}
