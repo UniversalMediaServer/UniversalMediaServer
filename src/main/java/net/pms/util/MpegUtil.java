@@ -81,19 +81,6 @@ public class MpegUtil {
 	}
 
 	/**
-	 * @deprecated Use {@link #getPositionForTimeInMpeg(File, int)} instead.
-	 * gets position for specified time in MPEG stream (M2TS, TS)
-	 * @param f - file to check
-	 * @param timeS - time (in seconds) to find
-	 * @return position in stream (in bytes).
-	 * @throws IOException
-	 */
-	@Deprecated
-	public static long getPossitionForTimeInMpeg(File f, int timeS) throws IOException {
-	    return getPositionForTimeInMpeg(f, timeS);
-	}
-
-	/**
 	 * gets position for specified time in MPEG stream (M2TS, TS)
 	 * @param f - file to check
 	 * @param timeS - time (in seconds) to find
