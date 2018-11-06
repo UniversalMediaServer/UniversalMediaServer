@@ -242,7 +242,7 @@ The Windows installer can now be built with one of the following commands:
 
 ### On macOS
 
-    mvn package -P system-makensis,windows,-osx
+    mvn package -P system-makensis,windows,-osx-java7,-osx-java8
 
 ## Building the Linux tarball
 
@@ -252,14 +252,18 @@ The Windows installer can now be built with one of the following commands:
 
 ### On macOS
 
-    mvn package -P linux,-osx
+    mvn package -P linux,-osx-java7,-osx-java8
 
 ## Building the macOS installer tarball
 
 The macOS installer tarball can be built on any platform by specifying
 the "osx" profile explicity:
 
-    mvn package -P osx
+    mvn package -P osx-java7
+
+or
+
+    mvn package -P osx-java8
 
 ## Building the macOS wizard installer
 

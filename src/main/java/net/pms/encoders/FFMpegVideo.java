@@ -724,7 +724,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public boolean isGPUAccelerationReady() {
-		return false;
+		return true;
 	}
 
 	@Override
