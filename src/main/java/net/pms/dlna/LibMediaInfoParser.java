@@ -231,6 +231,11 @@ public class LibMediaInfoParser {
 
 						currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
 						currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
+						
+						String albumperformer = MI.Get(general, 0, "Album/Performer");
+						currentAudioTrack.setAlbumArtist(albumperformer);
+						//LOGGER.trace("Album " + MI.Get(general, 0, "Album") + " - artist " + albumperformer );
+
 						currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
 						// Try to parse the year from the stored date
 						String recordedDate = MI.Get(general, 0, "Recorded_Date");
