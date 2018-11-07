@@ -326,14 +326,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		final String language = configuration.getLanguageTag();
 		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
 			// http://propedit.sourceforge.jp/propertieseditor.jnlp
-			Font unicodeFont = new Font("SansSerif", Font.PLAIN, 12);
-			MenuFont = unicodeFont;
-			FixedControlFont = unicodeFont;
-			ControlFont = unicodeFont;
-			MessageFont = unicodeFont;
-			WindowFont = unicodeFont;
-			ToolTipFont = unicodeFont;
-			IconFont = unicodeFont;
+			MenuFont = sansSerifPlain12;
+			FixedControlFont = sansSerifPlain12;
+			ControlFont = sansSerifPlain12;
+			MessageFont = sansSerifPlain12;
+			WindowFont = sansSerifPlain12;
+			IconFont = sansSerifPlain12;
 		}
 
 		UIManager.put("Button.font", ControlFont);
