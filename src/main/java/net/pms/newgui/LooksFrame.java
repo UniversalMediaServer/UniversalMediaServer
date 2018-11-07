@@ -281,54 +281,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			autoUpdater.pollServer();
 		}
 
-		// http://propedit.sourceforge.jp/propertieseditor.jnlp
-		Font unicodeFont = null;
-
-		// Set an unicode font for testing exotic languages (Japanese)
-		final String language = configuration.getLanguageTag();
-
-		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
-			unicodeFont = new Font("SansSerif", Font.PLAIN, 12);
-		}
-
-		if (unicodeFont != null) {
-			UIManager.put("Button.font", unicodeFont);
-			UIManager.put("ToggleButton.font", unicodeFont);
-			UIManager.put("RadioButton.font", unicodeFont);
-			UIManager.put("CheckBox.font", unicodeFont);
-			UIManager.put("ColorChooser.font", unicodeFont);
-			UIManager.put("ToggleButton.font", unicodeFont);
-			UIManager.put("ComboBox.font", unicodeFont);
-			UIManager.put("ComboBoxItem.font", unicodeFont);
-			UIManager.put("InternalFrame.titleFont", unicodeFont);
-			UIManager.put("Label.font", unicodeFont);
-			UIManager.put("List.font", unicodeFont);
-			UIManager.put("MenuBar.font", unicodeFont);
-			UIManager.put("Menu.font", unicodeFont);
-			UIManager.put("MenuItem.font", unicodeFont);
-			UIManager.put("RadioButtonMenuItem.font", unicodeFont);
-			UIManager.put("CheckBoxMenuItem.font", unicodeFont);
-			UIManager.put("PopupMenu.font", unicodeFont);
-			UIManager.put("OptionPane.font", unicodeFont);
-			UIManager.put("Panel.font", unicodeFont);
-			UIManager.put("ProgressBar.font", unicodeFont);
-			UIManager.put("ScrollPane.font", unicodeFont);
-			UIManager.put("Viewport", unicodeFont);
-			UIManager.put("TabbedPane.font", unicodeFont);
-			UIManager.put("TableHeader.font", unicodeFont);
-			UIManager.put("TextField.font", unicodeFont);
-			UIManager.put("PasswordFiled.font", unicodeFont);
-			UIManager.put("TextArea.font", unicodeFont);
-			UIManager.put("TextPane.font", unicodeFont);
-			UIManager.put("EditorPane.font", unicodeFont);
-			UIManager.put("TitledBorder.font", unicodeFont);
-			UIManager.put("ToolBar.font", unicodeFont);
-			UIManager.put("ToolTip.font", unicodeFont);
-			UIManager.put("Tree.font", unicodeFont);
-			UIManager.put("Spinner.font", unicodeFont);
-		}
-		
-		// *** Shared Fonts
+		// Shared Fonts
 		final Integer twelve = Integer.valueOf(12);
 		final Integer fontPlain = Integer.valueOf(Font.PLAIN);
 		final Integer fontBold = Integer.valueOf(Font.BOLD);
@@ -361,54 +314,66 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			}
 		};
 
-		if (unicodeFont == null) {
-			Object MenuFont = dialogPlain12;
-			Object FixedControlFont = monospacedPlain12;
-			Object ControlFont = dialogPlain12;
-			Object MessageFont = dialogPlain12;
-			Object WindowFont = dialogBold12;
-			Object ToolTipFont = sansSerifPlain12;
-			Object IconFont = ControlFont;
-			
-			UIManager.put("Button.font", ControlFont);
-			UIManager.put("CheckBox.font", ControlFont);
-			UIManager.put("CheckBoxMenuItem.font", MenuFont);
-			UIManager.put("ComboBox.font", ControlFont);
-			UIManager.put("EditorPane.font", ControlFont);
-			UIManager.put("FileChooser.listFont", IconFont);
-			UIManager.put("FormattedTextField.font", ControlFont);
-			UIManager.put("InternalFrame.titleFont", WindowFont);
-			UIManager.put("Label.font", ControlFont);
-			UIManager.put("List.font", ControlFont);
-			UIManager.put("PopupMenu.font", MenuFont);
-			UIManager.put("Menu.font", MenuFont);
-			UIManager.put("MenuBar.font", MenuFont);
-			UIManager.put("MenuItem.font", MenuFont);
-			UIManager.put("MenuItem.acceleratorFont", MenuFont);
-			UIManager.put("RadioButton.font", ControlFont);
-			UIManager.put("RadioButtonMenuItem.font", MenuFont);
-			UIManager.put("OptionPane.font", MessageFont);
-			UIManager.put("OptionPane.messageFont", MessageFont);
-			UIManager.put("OptionPane.buttonFont", MessageFont);
-			UIManager.put("Panel.font", ControlFont);
-			UIManager.put("PasswordField.font", ControlFont);
-			UIManager.put("ProgressBar.font", ControlFont);
-			UIManager.put("ScrollPane.font", ControlFont);
-			UIManager.put("Slider.font", ControlFont);
-			UIManager.put("Spinner.font", ControlFont);
-			UIManager.put("TabbedPane.font", ControlFont);
-			UIManager.put("Table.font", ControlFont);
-			UIManager.put("TableHeader.font", ControlFont);
-			UIManager.put("TextArea.font", FixedControlFont);
-			UIManager.put("TextField.font", ControlFont);
-			UIManager.put("TextPane.font", ControlFont);
-			UIManager.put("TitledBorder.font", ControlFont);
-			UIManager.put("ToggleButton.font", ControlFont);
-			UIManager.put("ToolBar.font", MenuFont);
-			UIManager.put("ToolTip.font", ToolTipFont);
-			UIManager.put("Tree.font", ControlFont);
-			UIManager.put("Viewport.font", ControlFont);
+		Object MenuFont = dialogPlain12;
+		Object FixedControlFont = monospacedPlain12;
+		Object ControlFont = dialogPlain12;
+		Object MessageFont = dialogPlain12;
+		Object WindowFont = dialogBold12;
+		Object ToolTipFont = sansSerifPlain12;
+		Object IconFont = ControlFont;
+
+		// Override our fonts with a unicode font for languages with special characters
+		final String language = configuration.getLanguageTag();
+		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
+			// http://propedit.sourceforge.jp/propertieseditor.jnlp
+			Font unicodeFont = new Font("SansSerif", Font.PLAIN, 12);
+			MenuFont = unicodeFont;
+			FixedControlFont = unicodeFont;
+			ControlFont = unicodeFont;
+			MessageFont = unicodeFont;
+			WindowFont = unicodeFont;
+			ToolTipFont = unicodeFont;
+			IconFont = unicodeFont;
 		}
+
+		UIManager.put("Button.font", ControlFont);
+		UIManager.put("CheckBox.font", ControlFont);
+		UIManager.put("CheckBoxMenuItem.font", MenuFont);
+		UIManager.put("ComboBox.font", ControlFont);
+		UIManager.put("EditorPane.font", ControlFont);
+		UIManager.put("FileChooser.listFont", IconFont);
+		UIManager.put("FormattedTextField.font", ControlFont);
+		UIManager.put("InternalFrame.titleFont", WindowFont);
+		UIManager.put("Label.font", ControlFont);
+		UIManager.put("List.font", ControlFont);
+		UIManager.put("PopupMenu.font", MenuFont);
+		UIManager.put("Menu.font", MenuFont);
+		UIManager.put("MenuBar.font", MenuFont);
+		UIManager.put("MenuItem.font", MenuFont);
+		UIManager.put("MenuItem.acceleratorFont", MenuFont);
+		UIManager.put("RadioButton.font", ControlFont);
+		UIManager.put("RadioButtonMenuItem.font", MenuFont);
+		UIManager.put("OptionPane.font", MessageFont);
+		UIManager.put("OptionPane.messageFont", MessageFont);
+		UIManager.put("OptionPane.buttonFont", MessageFont);
+		UIManager.put("Panel.font", ControlFont);
+		UIManager.put("PasswordField.font", ControlFont);
+		UIManager.put("ProgressBar.font", ControlFont);
+		UIManager.put("ScrollPane.font", ControlFont);
+		UIManager.put("Slider.font", ControlFont);
+		UIManager.put("Spinner.font", ControlFont);
+		UIManager.put("TabbedPane.font", ControlFont);
+		UIManager.put("Table.font", ControlFont);
+		UIManager.put("TableHeader.font", ControlFont);
+		UIManager.put("TextArea.font", FixedControlFont);
+		UIManager.put("TextField.font", ControlFont);
+		UIManager.put("TextPane.font", ControlFont);
+		UIManager.put("TitledBorder.font", ControlFont);
+		UIManager.put("ToggleButton.font", ControlFont);
+		UIManager.put("ToolBar.font", MenuFont);
+		UIManager.put("ToolTip.font", ToolTipFont);
+		UIManager.put("Tree.font", ControlFont);
+		UIManager.put("Viewport.font", ControlFont);
 
 		setTitle("Test");
 		setIconImage(readImageIcon("icon-32.png").getImage());
