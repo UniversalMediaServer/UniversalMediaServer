@@ -1,3 +1,40 @@
+7.6.0 - 2018-11-??
+
+	General:
+		Started to release installer wizard for macOS (thanks, js-kyle!)
+		Improved network connection stability (thanks, reorder!)
+		Improved the web interface's accessibility and support for remote controls (thanks, acanive!)
+		Removed the broken whitelist functionality (thanks, Nadahar!)
+		Removed the broken plugins functionality (thanks, Nadahar!)
+		Improved the Docker configuration (thanks, atamariya!)
+		Improved the speed of our automated testing suite
+		Improved automated testing of filename prettifying (thanks, stasinos!)
+		Improved our default folder sharing stability (thanks, Nadahar!)
+		Improved support for aspect ratio and scan order (thanks, Nadahar!)
+		Fixed tsMuxeR on macOS (thanks, onon765trb!)
+		Fixed burning picture subtitles when other filters are also used in FFmpeg
+		Fixed FFmpeg not enabling the GPU configuration toggle
+		Fixed thumbnails not persisting to the database unless TRACE logging is enabled
+		Added build documentation to BUILD.md
+		Updated documentation in CONTRIBUTING.md and STYLEGUIDE.md
+	Formats/Codecs: (thanks, Sami32!)
+		Added recognition of video codecs: ASF, FFV1, RLE, S4UD, TGA and VRO
+		Added recognition of audio formats: CAF
+		Added recognition of audio codecs: CELP, MACE, Nellymoser and QCELP
+		Fixed parsing of framerates via MediaInfo
+		Improved recognition of AAC, FLV and WMA
+	Renderers:
+		Added support for Bush Freeview (thanks, atamariya!)
+		Improved support for H.264 codec and SRT subtitles on PS4 (thanks, fgimenezm!)
+	Dependencies:
+		Added commons-text 1.3 (thanks, Nadahar!)
+		Updated Cling to 2.1.2
+		Updated commons-io to 2.6 (thanks, Nadahar!)
+		Updated commons-lang3 to 3.7
+		Updated JUnrar to 1.0.1 (thanks, Nadahar!)
+		Updated Seamless to 1.1.2
+		Updated tsMuxeR on macOS to 2.6.11
+
 7.5.0 - 2018-10-13
 
 	General:
