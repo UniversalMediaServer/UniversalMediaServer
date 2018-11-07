@@ -613,7 +613,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			result.append(", Album: ").append(getAlbum());
 		}
 		if (isNotBlank(getAlbumArtist())) {
-			result.append(", Album Album: ").append(getAlbumArtist());
+			result.append(", Album Artist: ").append(getAlbumArtist());
 		}
 		if (isNotBlank(getSongname())) {
 			result.append(", Track Name: ").append(getSongname());
