@@ -33,6 +33,7 @@
 		Updated commons-lang3 to 3.7
 		Updated JUnrar to 1.0.1 (thanks, Nadahar!)
 		Updated Seamless to 1.1.2
+		Updated sevenzip jbinding to 9.20-2.00beta
 		Updated tsMuxeR on macOS to 2.6.11
 
 7.5.0 - 2018-10-13
