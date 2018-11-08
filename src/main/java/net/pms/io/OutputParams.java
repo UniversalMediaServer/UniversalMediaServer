@@ -1,6 +1,6 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3. Copyright (C) 2008
- * A.Brochard
+ * PS3 Media Server, for streaming any medias to your PS3.
+ * Copyright (C) 2008 A.Brochard
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -93,16 +93,36 @@ public class OutputParams {
 
 	@Override
 	public String toString() {
-		return "OutputParams [aid=" + getAid() + ", avidemux=" + isAvidemux() + ", cleanup=" + isCleanup() + ", forceFps=" + getForceFps()
-			+ ", forceType=" + getForceType() + ", fromFrame=" + getFromFrame() + ", header=" + Arrays.toString(getHeader())
-			+ ", hidebuffer=" + isHidebuffer() + ", input_pipes=" + Arrays.toString(getInput_pipes()) + ", log=" + isLog()
-			+ ", losslessaudio=" + isLosslessaudio() + ", lossyaudio=" + isLossyaudio() + ", maxBufferSize=" + getMaxBufferSize()
-			+ ", mediaRenderer=" + getMediaRenderer() + ", minBufferSize=" + getMinBufferSize() + ", minFileSize=" + getMinFileSize()
-			+ ", no_videoencode=" + isNo_videoencode() + ", outputByteArrayStreamBufferSize= " + getOutputByteArrayStreamBufferSize()
-			+ ", noexitcheck=" + isNoexitcheck() + ", output_pipes=" + Arrays.toString(getOutput_pipes()) + ", secondread_minsize="
-			+ getSecondread_minsize() + ", shift_scr=" + isShift_scr() + ", sid=" + getSid() + ", stdin=" + getStdin() + ", timeend="
-			+ getTimeend() + ", timeseek=" + getTimeseek() + ", toFrame=" + getToFrame() + ", waitbeforestart=" + getWaitbeforestart()
-			+ ", workDir=" + getWorkDir() + ", env=" + getEnv() + "]";
+		return "OutputParams [aid=" + getAid() +
+			", avidemux=" + isAvidemux() + 
+			", cleanup=" + isCleanup() + 
+			", forceFps=" + getForceFps()+ 
+			", forceType=" + getForceType() + 
+			", fromFrame=" + getFromFrame() + 
+			", header=" + Arrays.toString(getHeader()) + 
+			", hidebuffer=" + isHidebuffer() + 
+			", input_pipes=" + Arrays.toString(getInput_pipes()) + 
+			", log=" + isLog() + 
+			", losslessaudio=" + isLosslessaudio() + 
+			", lossyaudio=" + isLossyaudio() + 
+			", maxBufferSize=" + getMaxBufferSize()	+ 
+			", mediaRenderer=" + getMediaRenderer() + 
+			", minBufferSize=" + getMinBufferSize() + 
+			", minFileSize=" + getMinFileSize()	+ 
+			", no_videoencode=" + isNoVideoEncode() + 
+			", outputByteArrayStreamBufferSize= " + getOutputByteArrayStreamBufferSize() + 
+			", noexitcheck=" + isNoexitcheck() + 
+			", output_pipes=" + Arrays.toString(getOutput_pipes()) + 
+			", secondread_minsize="	+ getSecondread_minsize() + 
+			", shift_scr=" + isShift_scr() + 
+			", sid=" + getSid() + 
+			", stdin=" + getStdin() + 
+			", timeend=" + getTimeend() + 
+			", timeseek=" + getTimeseek() + 
+			", toFrame=" + getToFrame() + 
+			", waitbeforestart=" + getWaitbeforestart()	+ 
+			", workDir=" + getWorkDir() + 
+			", env=" + getEnv() + "]";
 	}
 
 	public File getWorkDir() {
@@ -265,11 +285,11 @@ public class OutputParams {
 		this.lossyaudio = lossyaudio;
 	}
 
-	public boolean isNo_videoencode() {
+	public boolean isNoVideoEncode() {
 		return no_videoencode;
 	}
 
-	public void setNo_videoencode(boolean no_videoencode) {
+	public void setNoVideoEncode(boolean no_videoencode) {
 		this.no_videoencode = no_videoencode;
 	}
 

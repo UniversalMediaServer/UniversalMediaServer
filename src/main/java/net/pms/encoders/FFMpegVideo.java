@@ -1219,7 +1219,7 @@ public class FFMpegVideo extends Player {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 
-				if (params.isNo_videoencode() && params.getForceType() != null) {
+				if (params.isNoVideoEncode() && params.getForceType() != null) {
 					videoType = params.getForceType();
 				}
 

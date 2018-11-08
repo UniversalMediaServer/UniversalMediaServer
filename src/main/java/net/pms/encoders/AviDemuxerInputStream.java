@@ -64,7 +64,7 @@ public class AviDemuxerInputStream extends InputStream {
 		this.params = params;
 
 		aOut = params.getOutput_pipes()[1].getOutputStream();
-		if (params.isNo_videoencode() && params.getForceType() != null && params.getForceType().equals("V_MPEG4/ISO/AVC") && params.getHeader() != null) {
+		if (params.isNoVideoEncode() && params.getForceType() != null && params.getForceType().equals("V_MPEG4/ISO/AVC") && params.getHeader() != null) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
@@ -102,7 +102,7 @@ public class AviDemuxerInputStream extends InputStream {
 						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 						String videoType = "V_MPEG-2";
 
-						if (params.isNo_videoencode() && params.getForceType() != null) {
+						if (params.isNoVideoEncode() && params.getForceType() != null) {
 							videoType = params.getForceType();
 						}
 

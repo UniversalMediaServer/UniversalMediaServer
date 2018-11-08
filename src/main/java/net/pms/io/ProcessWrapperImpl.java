@@ -205,7 +205,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			} else if (params.getInput_pipes()[0] != null) {
 				LOGGER.debug("Reading pipe: {}", params.getInput_pipes()[0].getInputPipe());
 				bo = params.getInput_pipes()[0].getDirectBuffer();
-				if (bo == null || params.isLosslessaudio() || params.isLossyaudio() || params.isNo_videoencode()) {
+				if (bo == null || params.isLosslessaudio() || params.isLossyaudio() || params.isNoVideoEncode()) {
 					InputStream is = params.getInput_pipes()[0].getInputStream();
 
 					if (params.isAvidemux()) {

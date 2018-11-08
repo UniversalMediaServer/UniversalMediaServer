@@ -2355,7 +2355,7 @@ public class MEncoderVideo extends Player {
 					pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 					String videoType = "V_MPEG-2";
 
-					if (params.isNo_videoencode() && params.getForceType() != null) {
+					if (params.isNoVideoEncode() && params.getForceType() != null) {
 						videoType = params.getForceType();
 					}
 
