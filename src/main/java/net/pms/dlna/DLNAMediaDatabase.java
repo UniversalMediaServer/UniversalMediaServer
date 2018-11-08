@@ -68,6 +68,7 @@ public class DLNAMediaDatabase implements Runnable {
 	/**
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
+	 * Version 18: introducing "album artist" field 
 	 */
 	private final int latestVersion = 18;
 
@@ -314,6 +315,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", BITSPERSAMPLE     INT");
 				sb.append(", ALBUM             VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ARTIST            VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", ALBUMARTIST       VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", SONGNAME          VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
 				sb.append(", YEAR              INT");
@@ -378,6 +380,9 @@ public class DLNAMediaDatabase implements Runnable {
 
 				LOGGER.trace("Creating index IDXARTIST");
 				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
+
+				LOGGER.trace("Creating index IDXALBUMARTIST");
+				executeUpdate(conn, "CREATE INDEX IDXALBUMARTIST on AUDIOTRACKS (ALBUMARTIST asc);");
 
 				LOGGER.trace("Creating index IDXALBUM");
 				executeUpdate(conn, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
@@ -568,53 +573,54 @@ public class DLNAMediaDatabase implements Runnable {
 						media.setIsTVEpisode(false);
 					}
 					media.setMediaparsed(true);
-
-					ResultSet elements;
-					audios.setLong(1, id);
-					elements = audios.executeQuery();
-					while (elements.next()) {
-						DLNAMediaAudio audio = new DLNAMediaAudio();
-						audio.setId(elements.getInt("ID"));
-						audio.setLang(elements.getString("LANG"));
-						audio.setAudioTrackTitleFromMetadata(elements.getString("TITLE"));
-						audio.getAudioProperties().setNumberOfChannels(elements.getInt("NRAUDIOCHANNELS"));
-						audio.setSampleFrequency(elements.getString("SAMPLEFREQ"));
-						audio.setCodecA(elements.getString("CODECA"));
-						audio.setBitsperSample(elements.getInt("BITSPERSAMPLE"));
-						audio.setAlbum(elements.getString("ALBUM"));
-						audio.setArtist(elements.getString("ARTIST"));
-						audio.setSongname(elements.getString("SONGNAME"));
-						audio.setGenre(elements.getString("GENRE"));
-						audio.setYear(elements.getInt("YEAR"));
-						audio.setTrack(elements.getInt("TRACK"));
-						audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
-						audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
-						audio.setBitRate(elements.getInt("BITRATE"));
-						media.getAudioTracksList().add(audio);
-					}
-
-					elements.close();
-					subs.setLong(1, id);
-					elements = subs.executeQuery();
-					while (elements.next()) {
-						String fileName = elements.getString("EXTERNALFILE");
-						File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
-						if (externalFile != null && !externalFile.exists()) {
-							LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFile.getPath());
-							deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFile.getPath(), false);
-							continue;
+					audios.setInt(1, id);
+					try (ResultSet elements = audios.executeQuery()) {
+						while (elements.next()) {
+							DLNAMediaAudio audio = new DLNAMediaAudio();
+							audio.setId(elements.getInt("ID"));
+							audio.setLang(elements.getString("LANG"));
+							audio.setAudioTrackTitleFromMetadata(elements.getString("TITLE"));
+							audio.getAudioProperties().setNumberOfChannels(elements.getInt("NRAUDIOCHANNELS"));
+							audio.setSampleFrequency(elements.getString("SAMPLEFREQ"));
+							audio.setCodecA(elements.getString("CODECA"));
+							audio.setBitsperSample(elements.getInt("BITSPERSAMPLE"));
+							audio.setAlbum(elements.getString("ALBUM"));
+							audio.setArtist(elements.getString("ARTIST"));
+							audio.setAlbumArtist(elements.getString("ALBUMARTIST"));
+							audio.setSongname(elements.getString("SONGNAME"));
+							audio.setGenre(elements.getString("GENRE"));
+							audio.setYear(elements.getInt("YEAR"));
+							audio.setTrack(elements.getInt("TRACK"));
+							audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
+							audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
+							audio.setBitRate(elements.getInt("BITRATE"));
+							media.getAudioTracksList().add(audio);
 						}
-						DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-						sub.setId(elements.getInt("ID"));
-						sub.setLang(elements.getString("LANG"));
-						sub.setSubtitlesTrackTitleFromMetadata(elements.getString("TITLE"));
-						sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("TYPE")));
-						sub.setExternalFileOnly(externalFile);
-						sub.setSubCharacterSet(elements.getString("CHARSET"));
-						media.getSubtitleTracksList().add(sub);
 					}
+
+					subs.setLong(1, id);
+					try (ResultSet elements = subs.executeQuery()) {
+						while (elements.next()) {
+							String fileName = elements.getString("EXTERNALFILE");
+							File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
+							if (externalFile != null && !externalFile.exists()) {
+								LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFile.getPath());
+								deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFile.getPath(), false);
+								continue;
+							}
+
+							DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+							sub.setId(elements.getInt("ID"));
+							sub.setLang(elements.getString("LANG"));
+							sub.setSubtitlesTrackTitleFromMetadata(elements.getString("TITLE"));
+							sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("TYPE")));
+							sub.setExternalFileOnly(externalFile);
+							sub.setSubCharacterSet(elements.getString("CHARSET"));
+							media.getSubtitleTracksList().add(sub);
+						}
 
 					list.add(media);
+					}
 				}
 			}
 		} catch (SQLException se) {
@@ -706,7 +712,7 @@ public class DLNAMediaDatabase implements Runnable {
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
 					"FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
-					"BITSPERSAMPLE, ALBUM, ARTIST, SONGNAME, GENRE, YEAR, TRACK, " +
+					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, " +
 					"DELAY, MUXINGMODE, BITRATE " +
 				"FROM AUDIOTRACKS " +
 				"WHERE " +
@@ -717,9 +723,9 @@ public class DLNAMediaDatabase implements Runnable {
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO AUDIOTRACKS (" +
 					"FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
-					"ALBUM, ARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE" +
+					"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE" +
 				") VALUES (" +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
 				")"
 			);
 		) {
@@ -736,6 +742,16 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateInt("BITSPERSAMPLE", audioTrack.getBitsperSample());
 						rs.updateString("ALBUM", left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
 						rs.updateString("ARTIST", left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
+						
+						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
+						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
+						if (albumartist.isEmpty()) {
+							rs.updateNull("ALBUMARTIST");
+						}
+						else {
+							rs.updateString("ALBUMARTIST", albumartist);
+						}
+						
 						rs.updateString("SONGNAME", left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
 						rs.updateString("GENRE", left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
 						rs.updateInt("YEAR", audioTrack.getYear());
@@ -756,13 +772,24 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setInt(8, audioTrack.getBitsperSample());
 						insertStatement.setString(9, left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
 						insertStatement.setString(10, left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
-						insertStatement.setString(11, left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
-						insertStatement.setString(12, left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
-						insertStatement.setInt(13, audioTrack.getYear());
-						insertStatement.setInt(14, audioTrack.getTrack());
-						insertStatement.setInt(15, audioTrack.getAudioProperties().getAudioDelay());
-						insertStatement.setString(16, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
-						insertStatement.setInt(17, audioTrack.getBitRate());
+						
+						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
+						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
+						if (albumartist.isEmpty()) {
+							insertStatement.setNull(11, Types.VARCHAR);
+						}
+						else {
+							insertStatement.setString(11, albumartist);
+							
+						}
+						
+						insertStatement.setString(12, left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
+						insertStatement.setString(13, left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
+						insertStatement.setInt(14, audioTrack.getYear());
+						insertStatement.setInt(15, audioTrack.getTrack());
+						insertStatement.setInt(16, audioTrack.getAudioProperties().getAudioDelay());
+						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
+						insertStatement.setInt(18, audioTrack.getBitRate());
 						insertStatement.executeUpdate();
 					}
 				}

@@ -71,6 +71,7 @@ public class UMSUtils {
 					if (audio.getAlbum() != null) {
 						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
+					//TODO maciekberry: check whether it makes sense to use Album Artist
 					if (audio.getArtist() != null) {
 						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
 					}

@@ -236,8 +236,23 @@ public class LibMediaInfoParser {
 							languageCode = DLNAMediaLang.UND;
 						}
 
-						currentAudioTrack.setLang(languageCode);
-					}
+						currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
+						currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
+						
+						String albumperformer = MI.Get(general, 0, "Album/Performer");
+						currentAudioTrack.setAlbumArtist(albumperformer);
+
+						currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
+						// Try to parse the year from the stored date
+						String recordedDate = MI.Get(general, 0, "Recorded_Date");
+						Matcher matcher = yearPattern.matcher(recordedDate);
+						if (matcher.matches()) {
+							try {
+								currentAudioTrack.setYear(Integer.parseInt(matcher.group(1)));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Could not parse year from recorded date \"" + recordedDate + "\"");
+							}
+						}
 
 					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
 					currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
@@ -251,20 +266,6 @@ public class LibMediaInfoParser {
 						currentAudioTrack.getSongname().length() > 0
 					) {
 						currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
-					}
-
-					currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
-					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
-					currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
-					// Try to parse the year from the stored date
-					String recordedDate = MI.Get(general, 0, "Recorded_Date");
-					Matcher matcher = yearPattern.matcher(recordedDate);
-					if (matcher.matches()) {
-						try {
-							currentAudioTrack.setYear(Integer.parseInt(matcher.group(1)));
-						} catch (NumberFormatException nfe) {
-							LOGGER.debug("Could not parse year from recorded date \"" + recordedDate + "\"");
-						}
 					}
 
 					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
@@ -492,6 +493,7 @@ public class LibMediaInfoParser {
 			}
 
 			media.setMediaparsed(true);
+			}
 		}
 	}
 
