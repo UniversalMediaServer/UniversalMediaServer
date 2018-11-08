@@ -554,7 +554,7 @@ public class UMSUtils {
 	 */
 	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
-		outputParams.setWaitbeforestart(0);
+		outputParams.setWaitBeforeStart(0);
 		outputParams.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = new Runnable() {

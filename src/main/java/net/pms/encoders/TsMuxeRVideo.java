@@ -140,8 +140,8 @@ public class TsMuxeRVideo extends Player {
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
 
 			String timeEndValue1 = "-t";
-			String timeEndValue2 = "" + params.getTimeend();
-			if (params.getTimeend() < 1) {
+			String timeEndValue2 = "" + params.getTimeEnd();
+			if (params.getTimeEnd() < 1) {
 				timeEndValue1 = "-y";
 				timeEndValue2 = "-y";
 			}
@@ -218,14 +218,14 @@ public class TsMuxeRVideo extends Player {
 				ffAudio[0] = new ProcessWrapperImpl(flacCmd, ffparams);
 			}
 		} else {
-			params.setWaitbeforestart(5000);
+			params.setWaitBeforeStart(5000);
 			params.manageFastStart();
 
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
 
 			ffmpegCommands = new String[] {
 				configuration.getFfmpegPath(),
-				"-ss", params.getTimeseek() > 0 ? "" + params.getTimeseek() : "0",
+				"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 				"-i", filename,
 				"-c", "copy",
 				"-f", "rawvideo",
@@ -235,7 +235,7 @@ public class TsMuxeRVideo extends Player {
 
 			InputFile newInput = new InputFile();
 			newInput.setFilename(filename);
-			newInput.setPush(params.getStdin());
+			newInput.setPush(params.getStdIn());
 
 			/**
 			 * Note: This logic is weird; on one hand we check if the renderer requires videos to be Level 4.1 or below, but then
@@ -256,7 +256,7 @@ public class TsMuxeRVideo extends Player {
 
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.setMaxBufferSize(1);
-			ffparams.setStdin(params.getStdin());
+			ffparams.setStdIn(params.getStdIn());
 			ffVideo = new ProcessWrapperImpl(ffmpegCommands, ffparams);
 
 			int numAudioTracks = 1;
@@ -323,7 +323,7 @@ public class TsMuxeRVideo extends Player {
 
 						ffmpegCommands = new String[] {
 							configuration.getFfmpegPath(),
-							"-ss", params.getTimeseek() > 0 ? "" + params.getTimeseek() : "0",
+							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
 							"-ac", "" + sm.getNbChannels(),
 							"-f", "ac3",
@@ -340,7 +340,7 @@ public class TsMuxeRVideo extends Player {
 						// AAC audio
 						ffmpegCommands = new String[] {
 							configuration.getFfmpegPath(),
-							"-ss", params.getTimeseek() > 0 ? "" + params.getTimeseek() : "0",
+							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
 							"-ac", "" + channels,
 							"-f", "adts",
@@ -354,7 +354,7 @@ public class TsMuxeRVideo extends Player {
 						// AC-3 audio
 						ffmpegCommands = new String[] {
 							configuration.getFfmpegPath(),
-							"-ss", params.getTimeseek() > 0 ? "" + params.getTimeseek() : "0",
+							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
 							"-ac", "" + channels,
 							"-f", "ac3",
@@ -367,7 +367,7 @@ public class TsMuxeRVideo extends Player {
 
 					ffparams = new OutputParams(configuration);
 					ffparams.setMaxBufferSize(1);
-					ffparams.setStdin(params.getStdin());
+					ffparams.setStdIn(params.getStdIn());
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
 					ffAudio[0] = new ProcessWrapperImpl(ffmpegCommands, ffparams);
 				} else {
@@ -426,7 +426,7 @@ public class TsMuxeRVideo extends Player {
 
 							ffmpegCommands = new String[] {
 								configuration.getFfmpegPath(),
-								"-ss", params.getTimeseek() > 0 ? "" + params.getTimeseek() : "0",
+								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 								"-i", filename,
 								"-ac", "" + sm.getNbChannels(),
 								"-f", "ac3",
@@ -439,7 +439,7 @@ public class TsMuxeRVideo extends Player {
 							// AAC audio
 							ffmpegCommands = new String[] {
 								configuration.getFfmpegPath(),
-								"-ss", params.getTimeseek() > 0 ? "" + params.getTimeseek() : "0",
+								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 								"-i", filename,
 								"-ac", "" + channels,
 								"-f", "adts",
@@ -454,7 +454,7 @@ public class TsMuxeRVideo extends Player {
 							// AC-3 remux or encoding
 							ffmpegCommands = new String[] {
 								configuration.getFfmpegPath(),
-								"-ss", params.getTimeseek() > 0 ? "" + params.getTimeseek() : "0",
+								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 								"-i", filename,
 								"-ac", "" + channels,
 								"-f", "ac3",
@@ -468,7 +468,7 @@ public class TsMuxeRVideo extends Player {
 
 						ffparams = new OutputParams(configuration);
 						ffparams.setMaxBufferSize(1);
-						ffparams.setStdin(params.getStdin());
+						ffparams.setStdIn(params.getStdIn());
 						ffAudio[i] = new ProcessWrapperImpl(ffmpegCommands, ffparams);
 					}
 				}
@@ -549,7 +549,7 @@ public class TsMuxeRVideo extends Player {
 						}
 					}
 				}
-				if (params.getAid() != null && params.getAid().getAudioProperties().getAudioDelay() != 0 && params.getTimeseek() == 0) {
+				if (params.getAid() != null && params.getAid().getAudioProperties().getAudioDelay() != 0 && params.getTimeSeek() == 0) {
 					timeshift = "timeshift=" + params.getAid().getAudioProperties().getAudioDelay() + "ms, ";
 				}
 				pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
@@ -602,7 +602,7 @@ public class TsMuxeRVideo extends Player {
 							}
 						}
 					}
-					if (lang.getAudioProperties().getAudioDelay() != 0 && params.getTimeseek() == 0) {
+					if (lang.getAudioProperties().getAudioDelay() != 0 && params.getTimeSeek() == 0) {
 						timeshift = "timeshift=" + lang.getAudioProperties().getAudioDelay() + "ms, ";
 					}
 					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
@@ -630,7 +630,7 @@ public class TsMuxeRVideo extends Player {
 		ProcessWrapperImpl p = new ProcessWrapperImpl(cmdArray, params);
 		params.setMaxBufferSize(100);
 		params.getInput_pipes()[0] = tsPipe;
-		params.setStdin(null);
+		params.setStdIn(null);
 		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
 		p.attachProcess(pipe_process);
 		pipe_process.runInNewThread();

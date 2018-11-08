@@ -89,7 +89,7 @@ public class MEncoderWebVideo extends Player {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		params.setMinBufferSize(params.getMinFileSize());
-		params.setSecondread_minsize(100000);
+		params.setSecondReadMinSize(100000);
 
 		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
 		params.getInput_pipes()[0] = pipe;

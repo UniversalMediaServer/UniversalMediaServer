@@ -247,12 +247,12 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (isNotBlank(subsFilter)) {
-				if (params.getTimeseek() > 0 && isSubsManualTiming) {
-					filterChain.add("setpts=PTS+" + params.getTimeseek() + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
+				if (params.getTimeSeek() > 0 && isSubsManualTiming) {
+					filterChain.add("setpts=PTS+" + params.getTimeSeek() + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 
 				filterChain.add(subsFilter.toString());
-				if (params.getTimeseek() > 0 && isSubsManualTiming) {
+				if (params.getTimeSeek() > 0 && isSubsManualTiming) {
 					filterChain.add("setpts=PTS-STARTPTS"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
 			}
@@ -338,7 +338,7 @@ public class FFMpegVideo extends Player {
 				!avisynth() &&
 				renderer.isDTSPlayable();
 
-			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.getTimeseek() > 0;
+			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.getTimeSeek() > 0;
 
 			if (configuration.isAudioRemuxAC3() && params.getAid() != null && params.getAid().isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
 				// AC-3 remux
@@ -367,7 +367,7 @@ public class FFMpegVideo extends Player {
 			if (filename != null) {
 				newInput = new InputFile();
 				newInput.setFilename(filename);
-				newInput.setPush(params.getStdin());
+				newInput.setPush(params.getStdIn());
 			}
 
 			// Output video codec
@@ -453,7 +453,7 @@ public class FFMpegVideo extends Player {
 		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeend() == 0) {
+		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeEnd() == 0) {
 			if (rendererMaxBitrates[0] < 0) {
 				// odd special case here
 				// this is -1 so we guess that 3000 kbps is good
@@ -731,7 +731,7 @@ public class FFMpegVideo extends Player {
 		final String filename = dlna.getFileName();
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
-		newInput.setPush(params.getStdin());
+		newInput.setPush(params.getStdIn());
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
@@ -766,12 +766,12 @@ public class FFMpegVideo extends Player {
 
 		List<String> cmdList = new ArrayList<>();
 		boolean avisynth = avisynth();
-		if (params.getTimeseek() > 0) {
-			params.setWaitbeforestart(1);
+		if (params.getTimeSeek() > 0) {
+			params.setWaitBeforeStart(1);
 		} else if (renderer.isTranscodeFastStart()){
 			params.manageFastStart();
 		} else {
-			params.setWaitbeforestart(2500);
+			params.setWaitBeforeStart(2500);
 		}
 
 		setAudioAndSubs(filename, media, params);
@@ -788,9 +788,9 @@ public class FFMpegVideo extends Player {
 			cmdList.add("fatal");
 		}
 
-		if (params.getTimeseek() > 0) {
+		if (params.getTimeSeek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add(String.valueOf(params.getTimeseek()));
+			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
 		// Decoding threads and GPU deccding
@@ -859,7 +859,7 @@ public class FFMpegVideo extends Player {
 			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.getSid(), params.getFromFrame(), params.getToFrame(), frameRateRatio, frameRateNumber, configuration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
-			if (params.getStdin() != null) {
+			if (params.getStdIn() != null) {
 				cmdList.add("pipe:");
 			} else {
 				cmdList.add(filename);
@@ -996,9 +996,9 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(nThreads));
 		}
 
-		if (params.getTimeend() > 0) {
+		if (params.getTimeEnd() > 0) {
 			cmdList.add("-t");
-			cmdList.add(String.valueOf(params.getTimeend()));
+			cmdList.add(String.valueOf(params.getTimeEnd()));
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
@@ -1139,7 +1139,7 @@ public class FFMpegVideo extends Player {
 
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.setMaxBufferSize(1);
-			ffparams.setStdin(params.getStdin());
+			ffparams.setStdIn(params.getStdIn());
 
 			String[] cmdArrayDts = new String[cmdList.size()];
 			cmdList.toArray(cmdArrayDts);
@@ -1167,20 +1167,20 @@ public class FFMpegVideo extends Player {
 			cmdListDTS.add("-y");
 			cmdListDTS.add("-ss");
 
-			if (params.getTimeseek() > 0) {
-				cmdListDTS.add(String.valueOf(params.getTimeseek()));
+			if (params.getTimeSeek() > 0) {
+				cmdListDTS.add(String.valueOf(params.getTimeSeek()));
 			} else {
 				cmdListDTS.add("0");
 			}
 
-			if (params.getStdin() == null) {
+			if (params.getStdIn() == null) {
 				cmdListDTS.add("-i");
 			} else {
 				cmdListDTS.add("-");
 			}
 			cmdListDTS.add(filename);
 
-			if (params.getTimeseek() > 0) {
+			if (params.getTimeSeek() > 0) {
 				cmdListDTS.add("-copypriorss");
 				cmdListDTS.add("0");
 				cmdListDTS.add("-avoid_negative_ts");
@@ -1207,10 +1207,10 @@ public class FFMpegVideo extends Player {
 
 			OutputParams ffaudioparams = new OutputParams(configuration);
 			ffaudioparams.setMaxBufferSize(1);
-			ffaudioparams.setStdin(params.getStdin());
+			ffaudioparams.setStdIn(params.getStdIn());
 			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(cmdArrayDTS, ffaudioparams);
 
-			params.setStdin(null);
+			params.setStdIn(null);
 			try (PrintWriter pwMux = new PrintWriter(f)) {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";

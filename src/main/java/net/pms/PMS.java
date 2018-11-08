@@ -566,7 +566,7 @@ public class PMS {
 		OutputParams outputParams = new OutputParams(configuration);
 
 		// Prevent unwanted GUI buffer artifacts (and runaway timers)
-		outputParams.setHidebuffer(true);
+		outputParams.setHideBuffer(true);
 
 		// Make sure buffer is destroyed
 		outputParams.setCleanup(true);

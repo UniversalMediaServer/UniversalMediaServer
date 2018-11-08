@@ -114,7 +114,7 @@ public class AviDemuxerInputStream extends InputStream {
 
 						String audioType = "A_LPCM";
 
-						if (params.isLossyaudio()) {
+						if (params.isLossyAudio()) {
 							audioType = "A_AC3";
 						}
 
@@ -265,11 +265,11 @@ public class AviDemuxerInputStream extends InputStream {
 					aud.setNbAudio(nbAudio);
 					long fileLength = 100;
 
-					if (params.isLosslessaudio()) {
+					if (params.isLosslessAudio()) {
 						aOut = new PCMAudioOutputStream(aOut, nbAudio, 48000, bitsPerSample);
 					}
 
-					if (!params.isLossyaudio() && params.isLosslessaudio()) {
+					if (!params.isLossyAudio() && params.isLosslessAudio()) {
 						writePCMHeader(aOut, fileLength, nbAudio, aud.getRate(), aud.getSampleSize(), bitsPerSample);
 					}
 				}

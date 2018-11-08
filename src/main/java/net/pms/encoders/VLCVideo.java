@@ -315,7 +315,7 @@ public class VLCVideo extends Player {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeend() == 0) {
+		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeEnd() == 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -454,7 +454,7 @@ public class VLCVideo extends Player {
 
 		params.getInput_pipes()[0] = tsPipe;
 		params.setMinBufferSize(params.getMinFileSize());
-		params.setSecondread_minsize(100000);
+		params.setSecondReadMinSize(100000);
 
 		List<String> cmdList = new ArrayList<>();
 		cmdList.add(executable());
@@ -561,9 +561,9 @@ public class VLCVideo extends Player {
 		}
 
 		// Skip forward if necessary
-		if (params.getTimeseek() != 0) {
+		if (params.getTimeSeek() != 0) {
 			cmdList.add("--start-time");
-			cmdList.add(String.valueOf(params.getTimeseek()));
+			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
 		// Generate encoding args

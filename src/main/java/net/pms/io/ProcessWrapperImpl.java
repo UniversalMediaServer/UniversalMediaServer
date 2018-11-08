@@ -205,7 +205,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			} else if (params.getInput_pipes()[0] != null) {
 				LOGGER.debug("Reading pipe: {}", params.getInput_pipes()[0].getInputPipe());
 				bo = params.getInput_pipes()[0].getDirectBuffer();
-				if (bo == null || params.isLosslessaudio() || params.isLossyaudio() || params.isNoVideoEncode()) {
+				if (bo == null || params.isLosslessAudio() || params.isLossyAudio() || params.isNoVideoEncode()) {
 					InputStream is = params.getInput_pipes()[0].getInputStream();
 
 					if (params.isAvidemux()) {
@@ -232,8 +232,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				stdoutConsumer.start();
 			}
 
-			if (params.getStdin() != null) {
-				params.getStdin().push(process.getOutputStream());
+			if (params.getStdIn() != null) {
+				params.getStdIn().push(process.getOutputStream());
 			}
 
 			Integer pid = ProcessUtil.getProcessID(process);
@@ -272,7 +272,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				LOGGER.trace("", ioe);
 			}
 
-			if (!destroyed && !params.isNoexitcheck()) {
+			if (!destroyed && !params.isNoExitCheck()) {
 				try {
 					success = true;
 					if (process != null && process.exitValue() != 0) {

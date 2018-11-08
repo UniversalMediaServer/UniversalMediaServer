@@ -539,8 +539,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 		OutputParams params = new OutputParams(configuration);
 		params.setMaxBufferSize(1);
-		params.setStdin(media.getPush());
-		params.setNoexitcheck(true); // not serious if anything happens during the thumbnailer
+		params.setStdIn(media.getPush());
+		params.setNoExitCheck(true); // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(new String[args.size()]), true, params, false, true);
@@ -609,9 +609,9 @@ public class DLNAMediaInfo implements Cloneable {
 		OutputParams params = new OutputParams(configuration);
 		params.setWorkDir(configuration.getTempFolder());
 		params.setMaxBufferSize(1);
-		params.setStdin(media.getPush());
+		params.setStdIn(media.getPush());
 		params.setLog(true);
-		params.setNoexitcheck(true); // not serious if anything happens during the thumbnailer
+		params.setNoExitCheck(true); // not serious if anything happens during the thumbnailer
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, true, params);
 
 		// FAILSAFE
@@ -1952,7 +1952,7 @@ public class DLNAMediaInfo implements Cloneable {
 		byte[][] returnData = new byte[2][];
 		OutputParams params = new OutputParams(configuration);
 		params.setMaxBufferSize(1);
-		params.setStdin(f.getPush());
+		params.setStdIn(f.getPush());
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params);
 

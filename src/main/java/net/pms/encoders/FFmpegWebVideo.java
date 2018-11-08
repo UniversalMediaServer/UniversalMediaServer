@@ -185,7 +185,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		OutputParams params
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
-		params.setSecondread_minsize(100000);
+		params.setSecondReadMinSize(100000);
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
@@ -287,9 +287,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.transferInputFileOptions(cmdList);
 		}
 
-		if (params.getTimeseek() > 0) {
+		if (params.getTimeSeek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + (int) params.getTimeseek());
+			cmdList.add("" + (int) params.getTimeSeek());
 		}
 
 		cmdList.add("-i");

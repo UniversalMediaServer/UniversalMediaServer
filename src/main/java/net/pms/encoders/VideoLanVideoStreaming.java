@@ -120,7 +120,7 @@ public class VideoLanVideoStreaming extends Player {
 
 		params.getInput_pipes()[0] = tsPipe;
 		params.setMinBufferSize(params.getMinFileSize());
-		params.setSecondread_minsize(100000);
+		params.setSecondReadMinSize(100000);
 
 		List<String> cmdList = new ArrayList<>();
 		cmdList.add(executable());

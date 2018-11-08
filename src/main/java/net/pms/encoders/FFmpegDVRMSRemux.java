@@ -138,9 +138,9 @@ public class FFmpegDVRMSRemux extends Player {
 			cmdList.add(executable());
 		}
 
-		if (params.getTimeseek() > 0) {
+		if (params.getTimeSeek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + params.getTimeseek());
+			cmdList.add("" + params.getTimeSeek());
 		}
 
 		cmdList.add("-i");

@@ -197,11 +197,11 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 		}
 		this.bufferOverflowWarning = this.maxMemorySize - margin;
-		this.secondread_minsize = params.getSecondread_minsize();
-		this.timeseek = params.getTimeseek();
-		this.timeend = params.getTimeend();
-		this.shiftScr = params.isShift_scr();
-		this.hidebuffer = params.isHidebuffer();
+		this.secondread_minsize = params.getSecondReadMinSize();
+		this.timeseek = params.getTimeSeek();
+		this.timeend = params.getTimeEnd();
+		this.shiftScr = params.isShiftSscr();
+		this.hidebuffer = params.isHideBuffer();
 		this.cleanup = params.isCleanup();
 
 		if (maxMemorySize > INITIAL_BUFFER_SIZE) {

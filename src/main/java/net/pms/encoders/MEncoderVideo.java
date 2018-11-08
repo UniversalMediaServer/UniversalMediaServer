@@ -809,7 +809,7 @@ public class MEncoderVideo extends Player {
 
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
-		newInput.setPush(params.getStdin());
+		newInput.setPush(params.getStdIn());
 
 		boolean isDVD = dlna instanceof DVDISOTitle;
 
@@ -1020,7 +1020,7 @@ public class MEncoderVideo extends Player {
 		 */
 
 		final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
-		final boolean mencoderAC3RemuxAudioDelayBug = (params.getAid() != null) && (params.getAid().getAudioProperties().getAudioDelay() != 0) && (params.getTimeseek() == 0);
+		final boolean mencoderAC3RemuxAudioDelayBug = (params.getAid() != null) && (params.getAid().getAudioProperties().getAudioDelay() != 0) && (params.getTimeSeek() == 0);
 
 		encodedAudioPassthrough = isTsMuxeRVideoEngineActive &&
 			configuration.isEncodedAudioPassthrough() &&
@@ -1090,7 +1090,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (dtsRemux || pcm || encodedAudioPassthrough) {
-			params.setLosslessaudio(true);
+			params.setLosslessAudio(true);
 			params.setForceFps(media.getValidFps(false));
 		}
 
@@ -1581,7 +1581,7 @@ public class MEncoderVideo extends Player {
 
 		// Choose which time to seek to
 		cmdList.add("-ss");
-		cmdList.add((params.getTimeseek() > 0) ? "" + params.getTimeseek() : "0");
+		cmdList.add((params.getTimeSeek() > 0) ? "" + params.getTimeSeek() : "0");
 
 		if (isDVD) {
 			cmdList.add("-dvd-device");
@@ -1595,7 +1595,7 @@ public class MEncoderVideo extends Player {
 			File avsFile = AviSynthMEncoder.getAVSScript(filename, params.getSid(), params.getFromFrame(), params.getToFrame(), frameRateRatio, frameRateNumber, configuration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
-			if (params.getStdin() != null) {
+			if (params.getStdIn() != null) {
 				cmdList.add("-");
 			} else {
 				if (isDVD) {
@@ -2153,9 +2153,9 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (params.getTimeend() > 0) {
+		if (params.getTimeEnd() > 0) {
 			cmdList.add("-endpos");
-			cmdList.add("" + params.getTimeend());
+			cmdList.add("" + params.getTimeEnd());
 		}
 
 		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
@@ -2173,7 +2173,7 @@ public class MEncoderVideo extends Player {
 
 		// Add a -cache option for piped media (e.g. rar/zip file entries):
 		// https://code.google.com/p/ps3mediaserver/issues/detail?id=911
-		if (params.getStdin() != null) {
+		if (params.getStdIn() != null) {
 			cmdList.add("-cache");
 			cmdList.add("8192");
 		}
@@ -2262,7 +2262,7 @@ public class MEncoderVideo extends Player {
 
 				OutputParams ffparams = new OutputParams(configuration);
 				ffparams.setMaxBufferSize(1);
-				ffparams.setStdin(params.getStdin());
+				ffparams.setStdIn(params.getStdIn());
 
 				String[] cmdArray = new String[cmdList.size()];
 				cmdList.toArray(cmdArray);
@@ -2332,7 +2332,7 @@ public class MEncoderVideo extends Player {
 					ffmpegLPCMextract[3] = "-dvd-device";
 					ffmpegLPCMextract[4] = filename;
 					ffmpegLPCMextract[5] = "dvd://" + media.getDvdtrack();
-				} else if (params.getStdin() != null) {
+				} else if (params.getStdIn() != null) {
 					ffmpegLPCMextract[3] = "-";
 				}
 
@@ -2341,16 +2341,16 @@ public class MEncoderVideo extends Player {
 					ffmpegLPCMextract[5] = "1000000";
 				}
 
-				if (params.getTimeseek() > 0) {
-					ffmpegLPCMextract[2] = "" + params.getTimeseek();
+				if (params.getTimeSeek() > 0) {
+					ffmpegLPCMextract[2] = "" + params.getTimeSeek();
 				}
 
 				OutputParams ffaudioparams = new OutputParams(configuration);
 				ffaudioparams.setMaxBufferSize(1);
-				ffaudioparams.setStdin(params.getStdin());
+				ffaudioparams.setStdIn(params.getStdIn());
 				ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(ffmpegLPCMextract, ffaudioparams);
 
-				params.setStdin(null);
+				params.setStdIn(null);
 				try (PrintWriter pwMux = new PrintWriter(f)) {
 					pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 					String videoType = "V_MPEG-2";
@@ -2428,7 +2428,7 @@ public class MEncoderVideo extends Player {
 				cmdList.add("-really-quiet");
 				cmdList.add("-msglevel");
 				cmdList.add("statusline=2");
-				params.setInput_pipes(new PipeProcess[2]);
+				params.setInputPipes(new PipeProcess[2]);
 			} else {
 				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough) ? null : params);
 				params.getInput_pipes()[0] = pipe;

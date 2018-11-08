@@ -3259,11 +3259,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			params.setHeader(getHeaders());
 			params.setMediaRenderer(mediarenderer);
 			timeRange.limit(getSplitRange());
-			params.setTimeseek(timeRange.getStartOrZero());
-			params.setTimeend(timeRange.getEndOrZero());
-			params.setShift_scr(timeseek_auto);
+			params.setTimeSeek(timeRange.getStartOrZero());
+			params.setTimeEnd(timeRange.getEndOrZero());
+			params.setShiftScr(timeseek_auto);
 			if (this instanceof IPushOutput) {
-				params.setStdin((IPushOutput) this);
+				params.setStdIn((IPushOutput) this);
 			}
 
 			if (resume != null) {
@@ -3271,7 +3271,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					resume.update((Range.Time) range, this);
 				}
 
-				params.setTimeseek(resume.getTimeOffset() / 1000);
+				params.setTimeSeek(resume.getTimeOffset() / 1000);
 				if (player == null) {
 					player = new FFMpegVideo();
 				}
@@ -3291,24 +3291,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 				lastStartSystemTime = System.currentTimeMillis();
 				externalProcess = player.launchTranscode(this, media, params);
-				if (params.getWaitbeforestart() > 0) {
-					LOGGER.trace("Sleeping for {} milliseconds", params.getWaitbeforestart());
+				if (params.getWaitBeforeStart() > 0) {
+					LOGGER.trace("Sleeping for {} milliseconds", params.getWaitBeforeStart());
 					try {
-						Thread.sleep(params.getWaitbeforestart());
+						Thread.sleep(params.getWaitBeforeStart());
 					} catch (InterruptedException e) {
 						LOGGER.error(null, e);
 					}
 
-					LOGGER.trace("Finished sleeping for " + params.getWaitbeforestart() + " milliseconds");
+					LOGGER.trace("Finished sleeping for " + params.getWaitBeforeStart() + " milliseconds");
 				}
 			} else if (
-				params.getTimeseek() > 0 &&
+				params.getTimeSeek() > 0 &&
 				media != null &&
 				media.isMediaparsed() &&
 				media.getDurationInSeconds() > 0
 			) {
 				// Time seek request => stop running transcode process and start a new one
-				LOGGER.debug("Requesting time seek: " + params.getTimeseek() + " seconds");
+				LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
 				params.setMinBufferSize(1);
 				Runnable r = new Runnable() {
 					@Override

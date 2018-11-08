@@ -61,13 +61,13 @@ public class OutputParams {
 
 	public OutputParams(PmsConfiguration configuration) {
 		if (configuration != null) {
-			setWaitbeforestart(configuration.getVideoTranscodeStartDelay() * 1000);
+			setWaitBeforeStart(configuration.getVideoTranscodeStartDelay() * 1000);
 		} else {
-			setWaitbeforestart(6000);
+			setWaitBeforeStart(6000);
 		}
 		setFromFrame(-1);
 		setToFrame(-1);
-		setSecondread_minsize(1000000);
+		setSecondReadMinSize(1000000);
 		if (configuration != null) {
 			setMinFileSize(configuration.getMinStreamBuffer());
 			setMinBufferSize(configuration.getMinMemoryBufferSize());
@@ -76,7 +76,7 @@ public class OutputParams {
 		if (getMaxBufferSize() < 100) {
 			setMaxBufferSize(100);
 		}
-		setTimeseek(0);
+		setTimeSeek(0);
 		setEnv(null);
 	}
 
@@ -85,7 +85,7 @@ public class OutputParams {
 	 */
 	public void manageFastStart() {
 		if (getMediaRenderer() != null && getMediaRenderer().isTranscodeFastStart()) {
-			setWaitbeforestart(0); // no delay when the transcode is starting
+			setWaitBeforeStart(0); // no delay when the transcode is starting
 			setMinBufferSize(1); // 1Mb of minimum buffer before sending the
 								 // file
 		}
@@ -100,27 +100,27 @@ public class OutputParams {
 			", forceType=" + getForceType() + 
 			", fromFrame=" + getFromFrame() + 
 			", header=" + Arrays.toString(getHeader()) + 
-			", hidebuffer=" + isHidebuffer() + 
+			", hidebuffer=" + isHideBuffer() + 
 			", input_pipes=" + Arrays.toString(getInput_pipes()) + 
 			", log=" + isLog() + 
-			", losslessaudio=" + isLosslessaudio() + 
-			", lossyaudio=" + isLossyaudio() + 
+			", losslessaudio=" + isLosslessAudio() + 
+			", lossyaudio=" + isLossyAudio() + 
 			", maxBufferSize=" + getMaxBufferSize()	+ 
 			", mediaRenderer=" + getMediaRenderer() + 
 			", minBufferSize=" + getMinBufferSize() + 
 			", minFileSize=" + getMinFileSize()	+ 
 			", no_videoencode=" + isNoVideoEncode() + 
 			", outputByteArrayStreamBufferSize= " + getOutputByteArrayStreamBufferSize() + 
-			", noexitcheck=" + isNoexitcheck() + 
+			", noexitcheck=" + isNoExitCheck() + 
 			", output_pipes=" + Arrays.toString(getOutput_pipes()) + 
-			", secondread_minsize="	+ getSecondread_minsize() + 
-			", shift_scr=" + isShift_scr() + 
+			", secondread_minsize="	+ getSecondReadMinSize() + 
+			", shift_scr=" + isShiftSscr() + 
 			", sid=" + getSid() + 
-			", stdin=" + getStdin() + 
-			", timeend=" + getTimeend() + 
-			", timeseek=" + getTimeseek() + 
+			", stdin=" + getStdIn() + 
+			", timeend=" + getTimeEnd() + 
+			", timeseek=" + getTimeSeek() + 
 			", toFrame=" + getToFrame() + 
-			", waitbeforestart=" + getWaitbeforestart()	+ 
+			", waitbeforestart=" + getWaitBeforeStart()	+ 
 			", workDir=" + getWorkDir() + 
 			", env=" + getEnv() + "]";
 	}
@@ -165,19 +165,19 @@ public class OutputParams {
 		this.maxBufferSize = maxBufferSize;
 	}
 
-	public double getTimeseek() {
+	public double getTimeSeek() {
 		return timeseek;
 	}
 
-	public void setTimeseek(double timeseek) {
+	public void setTimeSeek(double timeseek) {
 		this.timeseek = timeseek;
 	}
 
-	public double getTimeend() {
+	public double getTimeEnd() {
 		return timeend;
 	}
 
-	public void setTimeend(double timeend) {
+	public void setTimeEnd(double timeend) {
 		this.timeend = timeend;
 	}
 
@@ -189,11 +189,11 @@ public class OutputParams {
 		this.fromFrame = fromFrame;
 	}
 
-	public int getWaitbeforestart() {
+	public int getWaitBeforeStart() {
 		return waitbeforestart;
 	}
 
-	public void setWaitbeforestart(int waitbeforestart) {
+	public void setWaitBeforeStart(int waitbeforestart) {
 		this.waitbeforestart = waitbeforestart;
 	}
 
@@ -209,7 +209,7 @@ public class OutputParams {
 		return output_pipes;
 	}
 
-	public void setOutput_pipes(PipeProcess[] output_pipes) {
+	public void setOutputPipes(PipeProcess[] output_pipes) {
 		this.output_pipes = output_pipes;
 	}
 
@@ -217,7 +217,7 @@ public class OutputParams {
 		return input_pipes;
 	}
 
-	public void setInput_pipes(PipeProcess[] input_pipes) {
+	public void setInputPipes(PipeProcess[] input_pipes) {
 		this.input_pipes = input_pipes;
 	}
 
@@ -245,11 +245,11 @@ public class OutputParams {
 		this.outputByteArrayStreamBufferSize = outputByteArrayStreamBufferSize;
 	}
 
-	public int getSecondread_minsize() {
+	public int getSecondReadMinSize() {
 		return secondread_minsize;
 	}
 
-	public void setSecondread_minsize(int secondread_minsize) {
+	public void setSecondReadMinSize(int secondread_minsize) {
 		this.secondread_minsize = secondread_minsize;
 	}
 
@@ -261,27 +261,27 @@ public class OutputParams {
 		this.log = log;
 	}
 
-	public boolean isNoexitcheck() {
+	public boolean isNoExitCheck() {
 		return noexitcheck;
 	}
 
-	public void setNoexitcheck(boolean noexitcheck) {
+	public void setNoExitCheck(boolean noexitcheck) {
 		this.noexitcheck = noexitcheck;
 	}
 
-	public boolean isLosslessaudio() {
+	public boolean isLosslessAudio() {
 		return losslessaudio;
 	}
 
-	public void setLosslessaudio(boolean losslessaudio) {
+	public void setLosslessAudio(boolean losslessaudio) {
 		this.losslessaudio = losslessaudio;
 	}
 
-	public boolean isLossyaudio() {
+	public boolean isLossyAudio() {
 		return lossyaudio;
 	}
 
-	public void setLossyaudio(boolean lossyaudio) {
+	public void setLossyAudio(boolean lossyaudio) {
 		this.lossyaudio = lossyaudio;
 	}
 
@@ -325,19 +325,19 @@ public class OutputParams {
 		this.header = header;
 	}
 
-	public boolean isHidebuffer() {
+	public boolean isHideBuffer() {
 		return hidebuffer;
 	}
 
-	public void setHidebuffer(boolean hidebuffer) {
+	public void setHideBuffer(boolean hidebuffer) {
 		this.hidebuffer = hidebuffer;
 	}
 
-	public IPushOutput getStdin() {
+	public IPushOutput getStdIn() {
 		return stdin;
 	}
 
-	public void setStdin(IPushOutput stdin) {
+	public void setStdIn(IPushOutput stdin) {
 		this.stdin = stdin;
 	}
 
@@ -349,11 +349,11 @@ public class OutputParams {
 		this.avidemux = avidemux;
 	}
 
-	public boolean isShift_scr() {
+	public boolean isShiftSscr() {
 		return shift_scr;
 	}
 
-	public void setShift_scr(boolean shift_scr) {
+	public void setShiftScr(boolean shift_scr) {
 		this.shift_scr = shift_scr;
 	}
 

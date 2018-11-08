@@ -128,7 +128,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		configuration = (DeviceConfiguration)params.getMediaRenderer();
 		final String filename = dlna.getFileName();
 		params.setMaxBufferSize(configuration.getMaxAudioBuffer());
-		params.setWaitbeforestart(2000);
+		params.setWaitBeforeStart(2000);
 		params.manageFastStart();
 
 		/*
@@ -158,9 +158,9 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("warning");
 		}
 
-		if (params.getTimeseek() > 0) {
+		if (params.getTimeSeek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + params.getTimeseek());
+			cmdList.add("" + params.getTimeSeek());
 		}
 
 		// Decoder threads
@@ -181,9 +181,9 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("" + nThreads);
 		}
 
-		if (params.getTimeend() > 0) {
+		if (params.getTimeEnd() > 0) {
 			cmdList.add("-t");
-			cmdList.add("" + params.getTimeend());
+			cmdList.add("" + params.getTimeEnd());
 		}
 
 		if (params.getMediaRenderer().isTranscodeToMP3()) {
