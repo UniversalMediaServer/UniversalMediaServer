@@ -3231,17 +3231,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public PreventSleepMode getPreventSleep() {
-		PreventSleepMode sleepMode = null;
-		String value = getString(KEY_PREVENT_SLEEP, null);
-		if (value == null && configuration.containsKey(KEY_PREVENT_SLEEP)) {
-			// Backwards compatibility
-			sleepMode = getBoolean(KEY_PREVENT_SLEEP, true) ? PreventSleepMode.PLAYBACK : PreventSleepMode.NEVER;
-			configuration.clearProperty(KEY_PREVENT_SLEEP);
-			configuration.setProperty(KEY_PREVENT_SLEEP, sleepMode.getValue());
-		} else if (value != null) {
-			sleepMode = PreventSleepMode.typeOf(value);
-		}
-		return sleepMode != null ? sleepMode : PreventSleepMode.PLAYBACK; // Default
+		return PreventSleepMode.typeOf(getString(KEY_PREVENT_SLEEP, PreventSleepMode.PLAYBACK.getValue()));
 	}
 
 	public void setHTTPEngineV2(boolean value) {
