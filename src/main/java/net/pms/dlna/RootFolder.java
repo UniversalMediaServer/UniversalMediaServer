@@ -212,13 +212,6 @@ public class RootFolder extends DLNAResource {
 				}
 		}
 
-		if (configuration.isShowMediaLibraryFolder()) {
-			DLNAResource libraryRes = PMS.get().getLibrary();
-			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
-			}
-		}
-
 		if (configuration.isShowServerSettingsFolder()) {
 			addAdminFolder();
 		}

@@ -249,9 +249,6 @@ TV - REMOTE CONTROL
 .material-icon-youtube-live::before{font-family:'Material Icons Extended';content:'\00e6fc'}
 .material-icon-youtube-mix::before{font-family:'Material Icons Extended';content:'\00e6cc'}
 .material-icon-youtube-trending::before{font-family:'Material Icons Extended';content:'\00ea05'}
-.onFocus{
-	box-shadow: 0px 0px 10px #aaa;
-}
 .onFocus.different{
 	box-shadow: 0px 0px 20px #337ab7;
 	-webkit-transform: scale(1);
