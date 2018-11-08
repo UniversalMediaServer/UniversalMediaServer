@@ -1434,7 +1434,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 *  Use {@link #syncResolve()} instead
+	 * Use {@link #syncResolve()} instead
 	 */
 	private void resolve() {
 		if (!resolved) {
