@@ -22,6 +22,8 @@ div.jQKeyboardContainer{
 	background-color: transparent;
 	padding-top: 1.75rem;
 	z-index: 1031;
+	bottom: 0;
+	width: 100%;
 }
 
 div.jQKeyboardRow{

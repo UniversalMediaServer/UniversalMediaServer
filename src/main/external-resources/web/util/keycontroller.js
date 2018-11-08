@@ -260,19 +260,19 @@ function moveInHome(key) {
 	var onFocus = $('.onFocus');
 	switch (key) {
 		case VK_DOWN: {
-			if($("#navbar").find("li:first").hasClass("open")==true)
-			{				
-				if ($("#navbar").find("li:first").find("li:last").hasClass("onFocus")==true)
+			if($("#navbar").find("li:nth-child(2)").hasClass("open")==true)
+			{
+				if ($("#navbar").find("li:nth-child(2)").find("li:last").hasClass("onFocus")==true)
 				{
 					break;
 				}
-				if ($("#navbar").find("li:first").find("li").hasClass("onFocus")==true) {
+				if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
 					onFocus.removeClass('onFocus');
 					changeFocus(onFocus.next());
 				}
 				else {
 					onFocus.removeClass('onFocus');
-					$("#navbar").find("li:first").find("li:first").addClass('onFocus');
+					$("#navbar").find("li:nth-child(2)").find("li:first").addClass('onFocus');
 				}
 				break;
 			}
@@ -299,15 +299,15 @@ function moveInHome(key) {
 			break;
 		}
 		case VK_UP: {
-			if($("#navbar").find("li:first").hasClass("open")==true)
+			if($("#navbar").find("li:nth-child(2)").hasClass("open")==true)
 			{
-				if ($("#navbar").find("li:first").find("li:first").hasClass("onFocus")==true)
+				if ($("#navbar").find("li:nth-child(2)").find("li:first").hasClass("onFocus")==true)
 				{
 					onFocus.removeClass('onFocus');
-					$("#navbar").find("li:first a.dropdown-toggle").addClass('onFocus');
-					$("#navbar").find("li:first").removeClass("open");
+					$("#navbar").find("li:nth-child(2) a.dropdown-toggle").addClass('onFocus');
+					$("#navbar").find("li:nth-child(2)").removeClass("open");
 				}
-				else if ($("#navbar").find("li:first").find("li").hasClass("onFocus")==true) {
+				else if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
 					changeFocus(onFocus.prev());
 				}
 			}
@@ -364,6 +364,12 @@ function moveInBrowse(key) {
 				changeFocus(onFocus.next());
 				folderScroll();
 			}
+			else if(window.innerWidth<1081){
+                onFocus.removeClass('onFocus');
+                $('#Media').find('li:first').addClass('onFocus');
+                curLevel = level.MEDIA;
+                moveToFocus();
+            }
 			break;
 		}
 		case VK_RIGHT: {
@@ -637,6 +643,7 @@ function moveInKeyboard(key) {
 			break;
 		}
 		case VK_UP: {
+		    $('.jQKeyboard').blur();
 			if (onFocus.parent().prev().hasClass('jQKeyboardRow')) {
 				var index = onFocus.index()+1;
 				onFocus.parent().prev().find('.jQKeyboardBtn:nth-child('+index+')');
@@ -652,6 +659,16 @@ function moveInKeyboard(key) {
 			{
 				changeFocus(onFocus.parent().parent().prev().find('.jQKeyboardBtn:first'));
 			}
+            else if($('.jQKeyboardRow:first').find('button').hasClass('onFocus'))
+            {
+                changeFocus($('.jQKeyboard'));
+                $('.jQKeyboard').focus();
+            }
+            else
+            {
+                onFocus.blur();
+                changeFocus($('.overlay-close'));
+            }
 			break;
 		}
 		case VK_DOWN: {
@@ -660,7 +677,7 @@ function moveInKeyboard(key) {
 				changeFocus($('.jQKeyboardRow:first').find('button:first').addClass("onFocus"));
 				break;
 			}
-			if (onFocus.parent().next().hasClass('jQKeyboardRow')) {				
+			else if (onFocus.parent().next().hasClass('jQKeyboardRow')) {
 				var index = onFocus.index()+1;
 				onFocus.parent().next().find('.jQKeyboardBtn:nth-child('+index+')');
 				if(onFocus.parent().next().find('.jQKeyboardBtn:nth-child('+index+')').hasClass('jQKeyboardBtn') && !onFocus.parent().next().hasClass('special-keys-container')){
@@ -678,6 +695,11 @@ function moveInKeyboard(key) {
 					changeFocus(onFocus.parent().next().find('.jQKeyboardBtn:first'));
 				}
 			}
+			else if($('.overlay-close').hasClass('onFocus'))
+            {
+                changeFocus($('.jQKeyboard'));
+                $('.jQKeyboard').focus();
+            }
 			break;
 		}
 	}
