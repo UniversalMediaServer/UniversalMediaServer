@@ -279,6 +279,8 @@ a#HomeButton {
 	height: 40px;
 	overflow: hidden;
 	padding: 12px 12px 12px 15px;
+	margin-left: 0px;
+	margin-right: 0px;
 }
 .main .page-header {
 	margin-top: 0;
@@ -301,7 +303,7 @@ body{
 }
 #toolbar{
 	color: #000000;
-    background-color: #111111;
+    background-color: rgba(43,51,63,.7);
     padding: 5px 2px;
 }
 #toolbar button{
@@ -309,7 +311,7 @@ body{
     height: 30px;
 }
 .navbar{
-	background: url('/files/menu-background-content.png');
+	/*background: url('/files/menu-background-content.png'); TODO: REMOVE USE OF IMAGE*/
 }
 .dropdown-menu .onFocus {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
@@ -329,20 +331,38 @@ body{
 #ContentPage.Doc {
 	margin: 70px auto;
 }
-#bumplist{
-	position: relative;
-    margin-left: 260px;
-    padding: 50px 0 0px 0px;
+@media screen and (max-width: 1080px) {
+	#bumplist{
+		position: relative;
+		padding: 0px;
+	}
+	#bumplist div>.alert{
+		margin-bottom: 0px !important;
+	}
+	#bumpcontainer{
+		margin: 10px;
+	}
+	#bumpsettings{
+		color: #000000;
+		text-align: left;
+	}
 }
-#bumplist div>.alert{
-	margin-bottom: 0px !important;
-}
-#bumpcontainer{
-	margin: 10px;
-}
-#bumpsettings{
-	color: #000000;
-	text-align: left;
+@media screen and (min-width: 1081px) {
+	#bumplist{
+		position: relative;
+		margin-left: 260px;
+		padding: 50px 0 0px 0px;
+	}
+	#bumplist div>.alert{
+		margin-bottom: 0px !important;
+	}
+	#bumpcontainer{
+		margin: 10px;
+	}
+	#bumpsettings{
+		color: #000000;
+		text-align: left;
+	}
 }
 /*****************************
 SCROLLBAR
@@ -402,18 +422,6 @@ html {
   position: relative;
   min-height: 100%;
 }
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
-}
-.footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: 60px;
-  background-color: #f5f5f5;
-}
 /******END Sticky footer styles******/
 
 #Folders li:first-child span {
@@ -431,7 +439,6 @@ ul#Folders {
 	ul#Folders {
 		padding: 15px 0px 0px 0px;
 		margin-top: 50px;
-		background-color: #333;
 		width: 100%;
 	}
 }
@@ -512,7 +519,7 @@ ul#Folders li span {
 }
 #DownloadLink {
 	margin: 0px;
-	background: #000;
+	background: #222;
 	border-color: #fff;
 	background-image: none;
 	display: inline-block;
@@ -520,7 +527,7 @@ ul#Folders li span {
 	width: auto;
 }
 .btn-playbar {
-	background: #000;
+	background: #222;
 	border-color: #fff;
 	color: #fff;
 }
@@ -529,20 +536,23 @@ ul#Folders li span {
 }
 @media screen and (max-width: 1080px) {
 	ul#Media{
-		padding: 20px 10px 20px 10px;
+		padding-top: 0px;
+		margin: 0px -20px 0px -20px;
 	}
 }
-@media screen and (min-width: 1080px) {
+@media screen and (min-width: 1081px) {
 	ul#Media {
-		padding-top: 0px;
+		padding-top: 50px; /*50 if no bumplist, 0 stead*/
 		margin-top: 0px;
 	}
 }
 ul#Media .caption {
 	color: #eeeeee;
 	font-weight: 300;
-	padding-right: 25px;
-	margin-top: -15px;
+	padding-right: 35px;
+}
+ul#Media .expand-bump{
+	padding: 0;
 }
 ul#Media .playlist_add{
 	color: #eeeeee;
@@ -604,9 +614,9 @@ ul#Media .caption:hover {
 	transform-origin: 50% 50%;
 }
 /*
-* VIDEOJS CSS REWRITE
+* VIDEOJS CSS REWRITE, TODO: REVIEW THIS IN ALL BROWSERS
 */
-/*.video-js .vjs-big-play-button {
+.video-js .vjs-big-play-button {
 	margin: 0 auto;
 	font-size: 5em !important;
 	top: 31% !important;
@@ -617,7 +627,7 @@ ul#Media .caption:hover {
 	-moz-border-radius: 3em !important;
 	border-radius: 3em !important;
 	position: relative !important;
-}*/
+}
 /********OVERLAY********/
 #trigger-overlay{
 	border: 0;
@@ -656,9 +666,6 @@ div#searchbar input{
 	top: 20px;
 	overflow: hidden;
 	border: none;
-	background: url(../img/cross.png) no-repeat center center;
-	text-indent: 200%;
-	color: transparent;
 	outline: none;
 	z-index: 100;
 }
