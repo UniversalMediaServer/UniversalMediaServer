@@ -51,11 +51,12 @@
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
 			"season": 12,
-			"episodes": [2,3]
+			"episodes": [3,4]
 		}
 	},
 	{
-		"comment": "Video of an extended TV episode",
+		"todo": true,
+		"comment": "Video of a TV episode, noting that EXTENDED is the edition, although a group exists by the same name",
 		"filename": "Universal.Media.Server.S01E02.EXTENDED.720p.mkv",
 		"prettified": "Universal Media Server - 102",
 		"metadata": {
@@ -63,7 +64,18 @@
 			"series": "Universal Media Server",
 			"season": 1,
 			"episodes": [2],
-			"extended": true
+			"extra": ["EXTENDED"]
+		}
+	},
+	{
+		"comment": "Video of a TV episode, noting that EXTENDED is the group and not the edition",
+		"filename": "Universal.Media.Server.S01E02.720p-EXTENDED.mkv",
+		"prettified": "Universal Media Server - 102",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
 		}
 	},
 	{
@@ -87,7 +99,7 @@
 			"series": "Universal Media Server",
 			"season": 1,
 			"episodes": [2],
-			"uncut": true
+			"extra": ["Uncut"]
 		}
 	},
 	{
@@ -99,7 +111,7 @@
 			"series": "Universal Media Server",
 			"season": 1,
 			"episodes": [2],
-			"extended_cut": true
+			"extra": ["Extended Cut"]
 		}
 	},
 	{
@@ -195,7 +207,7 @@
 			"type": "movie",
 			"title": "Universal Media Server",
 			"released": { "year": 2015 },
-			"special_edition": true
+			"extra": ["Special Edition"]
 		}
 	},
 	{
@@ -206,7 +218,7 @@
 			"type": "movie",
 			"title": "Universal Media Server",
 			"released": { "year": 2015 },
-			"special_edition": true
+			"extra": ["Special Edition"]
 		}
 	},
 	{
@@ -217,7 +229,7 @@
 			"type": "movie",
 			"title": "Universal Media Server",
 			"released": { "year": 2015 },
-			"sample": true
+			"extra": ["Sample"]
 		}
 	},
 	{

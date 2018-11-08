@@ -43,6 +43,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private int track;
 	private String audioTrackTitleFromMetadata;
 	private String muxingModeAudio;
+	private String albumartist;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -533,6 +534,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		if (isNotBlank(getAlbum())) {
 			result.append(", Album: ").append(getAlbum());
 		}
+		if (isNotBlank(getAlbumArtist())) {
+			result.append(", Album Artist: ").append(getAlbumArtist());
+		}
 		if (isNotBlank(getSongname())) {
 			result.append(", Track Name: ").append(getSongname());
 		}
@@ -671,6 +675,25 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public String getArtist() {
 		return artist;
+	}
+
+	/**
+	 * Sets the name of the main artist of the album of the audio track. 
+	 * This field is often used for the compilation type albums or "featuring..." songs.
+	 *
+	 * @param artist The album artist name to set.
+	 */
+	public void setAlbumArtist(String artist) {
+		this.albumartist = artist;
+	}
+
+	/**
+	 * Returns the name of the main artist of the album of the audio track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getAlbumArtist() {
+		return albumartist;
 	}
 
 	/**
