@@ -261,7 +261,6 @@ public class RequestV2 extends HTTPResource {
 	 * See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
 	 * for HTTP header field definitions.
 	 *
-	 * @param ctx
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
 	 * @param event The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
@@ -283,7 +282,6 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
 		boolean xbox360 = mediaRenderer.isXbox360();
-		boolean samsung = mediaRenderer.isSamsung();
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -662,7 +660,7 @@ public class RequestV2 extends HTTPResource {
 						"</service>" + CRLF);
 				} else {
 					s = s.replace("Universal Media Server", configuration.getServerDisplayName());
-					if (samsung) {
+					if (mediaRenderer.isSamsung()) {
 						// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
 						s = s.replace("<serialNumber/>", "<serialNumber/>" + CRLF
 								+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
@@ -719,7 +717,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
-				setSamsungBookmark(response);
+				response.append(setSamsungBookmark());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -1183,7 +1181,7 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
-	private void setSamsungBookmark(StringBuilder response) {
+	private StringBuilder setSamsungBookmark() {
 		LOGGER.debug("Setting bookmark");
 		SamsungBookmark payload = this.getPayload(SamsungBookmark.class);
 		if (payload.getPosSecond() == 0) {
@@ -1201,6 +1199,7 @@ public class RequestV2 extends HTTPResource {
 				LOGGER.error("Cannot set bookmark", e);
 			}
 		}
+		StringBuilder response = new StringBuilder();
 		response.append(HTTPXMLHelper.XML_HEADER);
 		response.append(CRLF);
 		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -1209,6 +1208,7 @@ public class RequestV2 extends HTTPResource {
 		response.append(CRLF);
 		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 		response.append(CRLF);
+		return response;
 	}
 
 	private <T> T getPayload(Class<T> clazz) {
