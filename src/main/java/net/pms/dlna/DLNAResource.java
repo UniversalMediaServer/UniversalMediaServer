@@ -33,6 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.database.TableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -2545,6 +2546,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			"dc:title",
 			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
 		);
+		
+		if (this instanceof RealFile) {
+			addBookmark(sb, mediaRenderer.getDcTitle(title, nameSuffix, this));
+		}
 		wireshark.append("\"").append(title).append("\"");
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
@@ -2828,6 +2833,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return sb.toString();
+	}
+	
+	private void addBookmark(StringBuilder sb, String title){
+		try {
+			File file = new File(getFileName());
+			String path = file.getCanonicalPath();
+			int bookmark = TableFilesStatus.getBookmark(path);
+			LOGGER.debug("Setting bookmark for " + path + " => " + bookmark);
+			addXMLTagAndAttribute(
+					sb,
+					"sec:dcmInfo",
+					encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d",title,bookmark))
+				);
+		} catch(Exception e) {
+			LOGGER.error("Cannot fetch bookmark for " + title, e);
+		}
 	}
 
 	/**

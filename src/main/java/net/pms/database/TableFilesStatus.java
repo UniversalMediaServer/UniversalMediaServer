@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 8;
+	private static final int TABLE_VERSION = 9;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -237,6 +237,76 @@ public final class TableFilesStatus extends Tables {
 
 		return result;
 	}
+	
+	public static int getBookmark(final String fullPathToFile) {
+		boolean trace = LOGGER.isTraceEnabled();
+		int result = 0;
+		
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						result = resultSet.getInt("BOOKMARK");
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error while looking up file status in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+	
+	public static void setBookmark(final String fullPathToFile, final int bookmark) {
+		boolean trace = LOGGER.isTraceEnabled();
+		String query;
+
+		try (Connection connection = database.getConnection()) {
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+			if (trace) {
+				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
+			}
+
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				connection.setAutoCommit(false);
+				try (ResultSet result = statement.executeQuery(query)) {
+					if (result.next()) {
+						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+						result.updateInt("BOOKMARK", bookmark);
+						result.updateRow();
+					} else {
+						result.moveToInsertRow();
+						result.updateString("FILENAME", fullPathToFile);
+						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+						result.updateBoolean("ISFULLYPLAYED", false);
+						result.updateInt("BOOKMARK", bookmark);
+						result.insertRow();
+					}
+				} finally {
+					connection.commit();
+				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while writing bookmark \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
+				bookmark,
+				fullPathToFile,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -370,6 +440,12 @@ public final class TableFilesStatus extends Tables {
 						rs.close();
 
 						version = 8;
+						break;
+					case 8:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD BOOKMARK INTEGER DEFAULT 0");
+						}
+						version = 9;
 						break;
 					default:
 						throw new IllegalStateException(

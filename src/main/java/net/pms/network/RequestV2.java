@@ -18,6 +18,8 @@
  */
 package net.pms.network;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,12 +33,18 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.dlna.*;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
@@ -45,6 +53,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.message.SamsungBookmark;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -64,6 +73,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /**
@@ -702,6 +712,8 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) { // Samsung TV is setting a bookmark
+				setSamsungBookmark(response);
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -895,6 +907,8 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
+			} else {
+				LOGGER.info("Unsupported action received: " + content);
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
@@ -1163,6 +1177,44 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
+	private void setSamsungBookmark(StringBuilder response) {
+		LOGGER.debug("Setting bookmark");
+		SamsungBookmark payload = this.getPayload(SamsungBookmark.class);
+		if (payload.getPosSecond()==0) {
+			LOGGER.debug("Not setting bookmark. Position=0");
+		} else {
+			try {
+				DLNAResource dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(payload.getObjectId(), mediaRenderer);
+				File file = new File(dlna.getFileName());
+				String path = file.getCanonicalPath();
+				TableFilesStatus.setBookmark(path, payload.getPosSecond());
+			} catch (Exception e) {
+				LOGGER.error("Cannot set bookmark", e);
+			}
+		}
+		response.append(HTTPXMLHelper.XML_HEADER);
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.SETBOOKMARK_RESPONSE);
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
+		response.append(CRLF);
+	}
+
+	private <T> T getPayload(Class<T> clazz) {
+		try {
+			SOAPMessage message = MessageFactory.newInstance().createMessage(null, new ByteArrayInputStream(content.getBytes()));
+			JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			Document body = message.getSOAPBody().extractContentAsDocument(); 
+			return unmarshaller.unmarshal(body, clazz).getValue();
+		} catch (Exception e) {
+			LOGGER.error("Unmarshalling error", e);
+			return null;
+		}
+	}
+	
 	/**
 	 * Returns a date somewhere in the far future.
 	 * @return The {@link String} containing the date
