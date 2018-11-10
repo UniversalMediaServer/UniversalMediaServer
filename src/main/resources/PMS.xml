@@ -18,8 +18,6 @@
 		<modelNumber>01</modelNumber>
 		<modelURL>http://www.universalmediaserver.com</modelURL>
 		<serialNumber/>
-        <sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>
-        <sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>
 		<UPC/>
 		<UDN>[uuid]</UDN>
 		<iconList>

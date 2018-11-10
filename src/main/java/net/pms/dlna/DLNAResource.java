@@ -2547,7 +2547,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
 		);
 		
-		if (this instanceof RealFile) {
+		if (mediaRenderer.isSamsung() && this instanceof RealFile) {
 			addBookmark(sb, mediaRenderer.getDcTitle(title, nameSuffix, this));
 		}
 		wireshark.append("\"").append(title).append("\"");

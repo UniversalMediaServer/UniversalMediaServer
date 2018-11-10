@@ -283,6 +283,7 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
 		boolean xbox360 = mediaRenderer.isXbox360();
+		boolean samsung = mediaRenderer.isSamsung();
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -661,8 +662,13 @@ public class RequestV2 extends HTTPResource {
 						"</service>" + CRLF);
 				} else {
 					s = s.replace("Universal Media Server", configuration.getServerDisplayName());
+					if (samsung) {
+						// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
+						s = s.replace("<serialNumber/>", "<serialNumber/>" + CRLF
+								+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
+								+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
+					}
 				}
-
 				response.append(s);
 				inputStream = null;
 			}
@@ -712,7 +718,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) { // Samsung TV is setting a bookmark
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
 				setSamsungBookmark(response);
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
@@ -1180,8 +1186,11 @@ public class RequestV2 extends HTTPResource {
 	private void setSamsungBookmark(StringBuilder response) {
 		LOGGER.debug("Setting bookmark");
 		SamsungBookmark payload = this.getPayload(SamsungBookmark.class);
-		if (payload.getPosSecond()==0) {
-			LOGGER.debug("Not setting bookmark. Position=0");
+		if (payload.getPosSecond() == 0) {
+			// Sometimes when Samsung device is starting to play the video
+			// it sends X_SetBookmark message immediatelly with the position=0.
+			// No need to update database in such case.
+			LOGGER.debug("Skipping \"set bookmark\". Position=0");
 		} else {
 			try {
 				DLNAResource dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(payload.getObjectId(), mediaRenderer);
