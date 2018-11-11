@@ -43,6 +43,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
@@ -346,7 +347,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
-		PMS.get().getRegistry().addSystemTray(this);
+		BasicSystemUtils.INSTANCE.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {

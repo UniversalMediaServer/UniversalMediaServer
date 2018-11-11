@@ -34,6 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +167,7 @@ public class AboutTab {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			try {
-				PMS.get().getRegistry().browseURI(link);
+				BasicSystemUtils.INSTANCE.browseURI(link);
 			} catch (Exception e1) {
 				LOGGER.debug("Caught exception", e1);
 			}

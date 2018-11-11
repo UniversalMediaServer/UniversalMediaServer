@@ -46,16 +46,13 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
-	public static final String ID = "FFmpegAudio";
+	public static final PlayerId ID = StandardPlayerId.FFMPEG_AUDIO;
 
-	// should be private
-	@Deprecated
-	JCheckBox noresample;
+	/** The {@link Configuration} key for the FFmpeg Audio executable type. */
+	public static final String KEY_FFMPEG_AUDIO_EXECUTABLE_TYPE = "ffmpeg_audio_executable_type";
+	public static final String NAME = "FFmpeg Audio";
 
-	@Deprecated
-	public FFmpegAudio(PmsConfiguration configuration) {
-		this();
-	}
+	private JCheckBox noresample;
 
 	public FFmpegAudio() {
 	}
@@ -95,8 +92,13 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_FFMPEG_AUDIO_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -111,7 +113,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public String name() {
-		return "FFmpeg Audio";
+		return NAME;
 	}
 
 	@Override
@@ -162,7 +164,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 		List<String> cmdList = new ArrayList<>();
 
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 
 		cmdList.add("-loglevel");
 
