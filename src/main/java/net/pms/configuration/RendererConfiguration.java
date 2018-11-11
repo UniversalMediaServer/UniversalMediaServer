@@ -899,6 +899,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isLG() {
 		return getConfName().toUpperCase().contains("LG ");
 	}
+	
+	/**
+	 * @return whether this renderer is an Samsung device
+	 */
+	public boolean isSamsung() {
+		return getConfName().toUpperCase().contains("SAMSUNG");
+	}
 
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
