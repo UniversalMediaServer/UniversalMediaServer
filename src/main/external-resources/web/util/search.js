@@ -33,6 +33,8 @@
 			}
 			$('#jQKeyboardContainer').remove();
 			$(".jQKeyboard").blur();
+			$('.onFocus').removeClass('onFocus');
+            $('#HomeButton').addClass('onFocus');
 			curLevel = 0;
 		}
 		else if( !classie.has( overlay, 'close' ) ) {
