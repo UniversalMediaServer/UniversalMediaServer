@@ -45,6 +45,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
 import net.pms.newgui.IFrame;
 import net.pms.platform.macos.NSFoundation;
@@ -374,7 +375,7 @@ public class RootFolder extends DLNAResource {
 				// Lazy initialization
 				defaultFolders = new ArrayList<Path>();
 				if (Platform.isWindows()) {
-					Double version = PMS.get().getRegistry().getWindowsVersion();
+					Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
 					if (version != null && version >= 6d) {
 						ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
 							KnownFolders.FOLDERID_Music,

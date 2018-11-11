@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -198,10 +199,7 @@ public class ProcessUtil {
 	 * @return The resulting non-Unicode file path.
 	 */
 	public static String getShortFileNameIfWideChars(String name) {
-		if (name == null) {
-			return null;
-		}
-		return PMS.get().getRegistry().getShortPathNameW(name);
+		return BasicSystemUtils.INSTANCE.getShortPathNameW(name);
 	}
 
 	// Run cmd and return combined stdout/stderr

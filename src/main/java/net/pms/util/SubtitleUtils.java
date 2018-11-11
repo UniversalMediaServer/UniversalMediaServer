@@ -410,7 +410,7 @@ public class SubtitleUtils {
 		}
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
-		cmdList.add(configuration.getFfmpegPath());
+		cmdList.add(configuration.getFFmpegPath());
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
@@ -844,7 +844,7 @@ public class SubtitleUtils {
 	 *         {@code false} otherwise.
 	 */
 	private static boolean isSubtitlesFile(File file, Set<String> supportedExtensions) {
-		String extension = FileUtil.getExtension(file, LetterCase.LOWER, Locale.ROOT);
+		String extension = FileUtil.getExtension(file.getPath(), LetterCase.LOWER, Locale.ROOT);
 		if ("sub".equals(extension)) {
 			// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here
 			// since
@@ -1053,7 +1053,7 @@ public class SubtitleUtils {
 	private static void registerExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
 		DLNAMediaSubtitle subtitles = new DLNAMediaSubtitle();
 		subtitles.setType(SubtitleType.valueOfFileExtension(
-			FileUtil.getExtension(subtitlesFile, LetterCase.LOWER, Locale.ROOT)
+			FileUtil.getExtension(subtitlesFile.getPath(), LetterCase.LOWER, Locale.ROOT)
 		));
 		String language = null;
 		if (suffixParts != null && !suffixParts.isEmpty()) {

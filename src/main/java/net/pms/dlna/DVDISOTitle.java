@@ -104,7 +104,7 @@ public class DVDISOTitle extends DLNAResource {
 		if (generateThumbnails) {
 			String outFolder = "jpeg:outdir=mplayer_thumbs:subdirs=\"" + this.hashCode() + "\"";
 			cmd = new String[] {
-				configuration.getMplayerPath(),
+				configuration.getMPlayerDefaultPath(),
 				"-identify",
 				"-ss",
 				Integer.toString(configuration.getThumbnailSeekPos()),
@@ -121,7 +121,7 @@ public class DVDISOTitle extends DLNAResource {
 			};
 		} else {
 			cmd = new String[] {
-				configuration.getMplayerPath(),
+				configuration.getMPlayerDefaultPath(),
 				"-identify",
 				"-endpos",
 				"0",

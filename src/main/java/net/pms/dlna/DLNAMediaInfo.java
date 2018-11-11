@@ -571,20 +571,9 @@ public class DLNAMediaInfo implements Cloneable {
 		 * minimize the amount of text given by FFmpeg here
 		 */
 		ArrayList<String> args = new ArrayList<>();
-		File file = media.getFile();
-		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
-		boolean generateThumbnail =
-			configuration.isThumbnailGenerationEnabled() && (
-				dvrms ||
-				!configuration.isUseMplayerForVideoThumbs()
-			);
+		boolean generateThumbnail = configuration.isThumbnailGenerationEnabled() && !configuration.isUseMplayerForVideoThumbs();
 
-		if (dvrms && isNotBlank(configuration.getFfmpegAlternativePath())) {
-			args.add(configuration.getFfmpegAlternativePath());
-		} else {
-			args.add(getFfmpegPath());
-		}
-
+		args.add(getFfmpegPath());
 		if (generateThumbnail) {
 			args.add("-ss");
 			if (resume) {
@@ -596,8 +585,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args.add("-i");
 
-		if (file != null) {
-			args.add(ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()));
+		if (media.getFile() != null) {
+			args.add(ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath()));
 		} else {
 			args.add("-");
 		}
@@ -656,7 +645,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
 		File file = media.getFile();
 		String args[] = new String[14];
-		args[0] = configuration.getMplayerPath();
+		args[0] = configuration.getMPlayerDefaultPath();
 		args[1] = "-ss";
 		if (resume) {
 			args[2] = "" + (int) getDurationInSeconds();
@@ -720,7 +709,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private static String getFfmpegPath() {
-		String value = configuration.getFfmpegPath();
+		String value = configuration.getFFmpegPath();
 
 		if (value == null) {
 			LOGGER.info("No FFmpeg - unable to thumbnail");
@@ -987,12 +976,10 @@ public class DLNAMediaInfo implements Cloneable {
 					pw = getFFmpegThumbnail(inputFile, resume);
 				}
 
-				boolean dvrms = false;
 				String input = "-";
 
 				if (file != null) {
 					input = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
-					dvrms = file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}
 
 				synchronized (ffmpeg_failureLock) {
@@ -1020,7 +1007,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
+				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO) {
 					try {
 						getMplayerThumbnail(inputFile, resume);
 						String frameName = "" + inputFile.hashCode();
@@ -2022,7 +2009,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public byte[][] getAnnexBFrameHeader(InputFile f) {
 		String[] cmdArray = new String[14];
-		cmdArray[0] = configuration.getFfmpegPath();
+		cmdArray[0] = configuration.getFFmpegPath();
 		cmdArray[1] = "-i";
 
 		if (f.getPush() == null && f.getFilename() != null) {
@@ -2263,14 +2250,14 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the video bit depth.
+	 * @return the video bit depth
 	 */
 	public int getVideoBitDepth() {
 		return videoBitDepth;
 	}
 
 	/**
-	 * @param value the video bit depth to set.
+	 * @param value the video bit depth to set
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
@@ -2369,7 +2356,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @param value The pixel aspect ratio to set.
+	 * Sets the pixel aspect ratio by parsing the specified {@link String}.
+	 *
+	 * @param pixelAspectRatio the pixel aspect ratio to set.
+	 * @throws NumberFormatException If {@code pixelAspectRatio} cannot be
+	 *             parsed.
 	 */
 	public void setPixelAspectRatio(String pixelAspectRatio) {
 		setPixelAspectRatio(Rational.valueOf(pixelAspectRatio));
@@ -2389,7 +2380,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return The interlacement mode.
+	 * @return the {@link ScanType}.
 	 */
 	@Nullable
 	public ScanType getScanType() {
@@ -2397,7 +2388,9 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @param value The interlacement mode to set.
+	 * Sets the {@link ScanType}.
+	 *
+	 * @param scanType the {@link ScanType} to set.
 	 */
 	public void setScanType(@Nullable ScanType scanType) {
 		this.scanType = scanType;

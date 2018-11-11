@@ -680,7 +680,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							playerTranscoding = child.player;
 						} else {
 							for (Player p : PlayerFactory.getPlayers()) {
-								String end = "[" + p.id() + "]";
+								String end = "[" + p.id().toString() + "]";
 
 								if (name.endsWith(end)) {
 									nametruncate = name.lastIndexOf(end);

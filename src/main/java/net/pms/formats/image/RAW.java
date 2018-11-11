@@ -106,7 +106,7 @@ public class RAW extends ImageBase {
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		try {
 			// Only parse using DCRaw if it is enabled
-			DCRaw dcraw = (DCRaw) PlayerFactory.getActivePlayer("DCRaw");
+			DCRaw dcraw = (DCRaw) PlayerFactory.getActivePlayer(DCRaw.ID);
 			if (dcraw != null) {
 				if (trace) {
 					LOGGER.trace("Parsing RAW image \"{}\" with DCRaw", file.getFile().getName());

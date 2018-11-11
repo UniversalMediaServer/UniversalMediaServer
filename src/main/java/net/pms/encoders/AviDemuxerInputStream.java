@@ -128,7 +128,7 @@ public class AviDemuxerInputStream extends InputStream {
 					pipe_process.runInNewThread();
 					tsPipe.deleteLater();
 
-					String[] cmd = new String[]{ts.executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
+					String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
 					ProcessBuilder pb = new ProcessBuilder(cmd);
 					pb.redirectErrorStream(true);
 					process = pb.start();
@@ -362,12 +362,12 @@ public class AviDemuxerInputStream extends InputStream {
 		vOut.close();
 	}
 
-	private String getString(InputStream input, int sz) throws IOException {
+	private static String getString(InputStream input, int sz) throws IOException {
 		byte[] bb = getBytes(input, sz);
 		return new String(bb);
 	}
 
-	private byte[] getBytes(InputStream input, int sz) throws IOException {
+	private static byte[] getBytes(InputStream input, int sz) throws IOException {
 		byte[] bb = new byte[sz];
 		int n = input.read(bb);
 
@@ -384,7 +384,7 @@ public class AviDemuxerInputStream extends InputStream {
 		return bb;
 	}
 
-	private int readBytes(InputStream input, int number) throws IOException {
+	private static int readBytes(InputStream input, int number) throws IOException {
 		byte[] buffer = new byte[number];
 		int read = input.read(buffer);
 
@@ -417,7 +417,7 @@ public class AviDemuxerInputStream extends InputStream {
 		}
 	}
 
-	private int readByte(InputStream input) throws IOException {
+	private static int readByte(InputStream input) throws IOException {
 		return input.read();
 	}
 
@@ -470,9 +470,8 @@ public class AviDemuxerInputStream extends InputStream {
 		if (realIS != null) {
 			readCount++;
 			return realIS.read();
-		} else {
-			return -1;
 		}
+		return -1;
 	}
 
 	@Override
@@ -498,9 +497,8 @@ public class AviDemuxerInputStream extends InputStream {
 			int n = realIS.read(b);
 			readCount += n;
 			return n;
-		} else {
-			return -1;
 		}
+		return -1;
 	}
 
 	public static void writePCMHeader(OutputStream aOut, long fileLength, int nbAudio, int rate, int sampleSize, int bitsPerSample) { }

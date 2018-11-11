@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -45,25 +46,19 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.RootFolder;
-import net.pms.encoders.AviSynthFFmpeg;
-import net.pms.encoders.AviSynthMEncoder;
 import net.pms.encoders.DCRaw;
 import net.pms.encoders.FFMpegVideo;
-import net.pms.encoders.FFmpegAudio;
-import net.pms.encoders.FFmpegDVRMSRemux;
-import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.MEncoderWebVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.TsMuxeRAudio;
+import net.pms.encoders.PlayerId;
+import net.pms.encoders.StandardPlayerId;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.encoders.VLCVideo;
-import net.pms.encoders.VLCWebVideo;
-import net.pms.encoders.VideoLanAudioStreaming;
-import net.pms.encoders.VideoLanVideoStreaming;
 import net.pms.formats.Format;
 import net.pms.newgui.NavigationShareTab.SharedFoldersTableModel;
+import net.pms.service.PreventSleepMode;
+import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
@@ -72,15 +67,13 @@ import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
-import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
+import net.pms.util.UniqueList;
 import net.pms.util.WindowsRegistry;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
@@ -108,11 +101,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	private static volatile boolean enabledEnginesBuilt = false;
 	private static final ReentrantReadWriteLock enabledEnginesLock = new ReentrantReadWriteLock();
-	private static List<String> enabledEngines;
+	private static UniqueList<PlayerId> enabledEngines;
 
 	private static volatile boolean enginesPriorityBuilt = false;
 	private static final ReentrantReadWriteLock enginesPriorityLock = new ReentrantReadWriteLock();
-	private static List<String> enginesPriority;
+	private static UniqueList<PlayerId> enginesPriority;
 
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
@@ -274,7 +267,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
-	protected static final String KEY_PING_PATH = "ping_path";
 	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL= "playlist_auto_add_all";
 	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
 	protected static final String KEY_PLAYLIST_AUTO_PLAY= "playlist_auto_play";
@@ -406,7 +398,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected String defaultLogFileDir = null;
 
 	public TempFolder tempFolder;
-	public ProgramPaths programPaths;
+	@Nonnull
+	protected final PlatformProgramPaths programPaths;
 	public IpFilter filter;
 
 	/**
@@ -581,7 +574,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *
 	 * @throws org.apache.commons.configuration.ConfigurationException
 	 */
-	public PmsConfiguration() throws ConfigurationException {
+	public PmsConfiguration() throws ConfigurationException, InterruptedException {
 		this(true);
 	}
 
@@ -592,7 +585,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
 	 */
-	public PmsConfiguration(boolean loadFile) {
+	public PmsConfiguration(boolean loadFile) throws ConfigurationException, InterruptedException {
 		super(0);
 
 		if (loadFile) {
@@ -621,7 +614,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		((PropertiesConfiguration)configuration).setPath(PROFILE_PATH);
 
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
-		programPaths = createProgramPathsChain(configuration);
+		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = new IpFilter();
 		PMS.setLocale(getLanguageLocale(true));
 		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
@@ -645,7 +638,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		// Just instantiate
 		super(0);
 		tempFolder = null;
-		programPaths = null;
+		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = null;
 	}
 
@@ -653,7 +646,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		// Just initialize super
 		super(f, uuid);
 		tempFolder = null;
-		programPaths = null;
+		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = null;
 	}
 
@@ -661,20 +654,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void reset() {
 		// This is just to prevent super.reset() from being invoked. Actual resetting would
 		// require rebooting here, since all of the application settings are implicated.
-	}
-
-	/**
-	 * Check if we have disabled something first, then check the config file,
-	 * then the Windows registry, then check for a platform-specific
-	 * default.
-	 */
-	protected static ProgramPaths createProgramPathsChain(Configuration configuration) {
-		return new ConfigurationProgramPaths(
-			configuration,
-			new WindowsRegistryProgramPaths(
-				new PlatformSpecificDefaultPathsFactory().get()
-			)
-		);
 	}
 
 	private static String verifyLogFolder(File folder, String fallbackTo) {
@@ -779,51 +758,461 @@ public class PmsConfiguration extends RendererConfiguration {
 		return tempFolder.getTempFolder();
 	}
 
-	public String getVlcPath() {
-		return programPaths.getVlcPath();
-	}
-
-	public String getMencoderPath() {
-		return programPaths.getMencoderPath();
+	public LogSystemInformationMode getLogSystemInformation() {
+		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
+		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
+		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
+		return result != null ? result : defaultValue;
 	}
 
 	public int getMencoderMaxThreads() {
 		return Math.min(getInt(KEY_MENCODER_MAX_THREADS, getNumberOfCpuCores()), MENCODER_MAX_THREADS);
 	}
 
-	public String getDCRawPath() {
+	/**
+	 * @return {@code true} if custom program paths are supported, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isCustomProgramPathsSupported() {
+		return programPaths instanceof ConfigurableProgramPaths;
+	}
+
+	/**
+	 * Returns the configured {@link ProgramExecutableType} for the specified
+	 * {@link Player}. Note that this can be different from the
+	 * {@link Player#currentExecutableType} for the same {@link Player}.
+	 *
+	 * @param player the {@link Player} for which to get the configured
+	 *            {@link ProgramExecutableType}.
+	 * @return The configured {@link ProgramExecutableType}, the default
+	 *         {@link ProgramExecutableType} if none is configured or
+	 *         {@code null} if there is no default.
+	 *
+	 * @see Player#getCurrentExecutableType()
+	 */
+	@Nullable
+	public ProgramExecutableType getPlayerExecutableType(@Nonnull Player player) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			getString(player.getExecutableTypeKey(), null),
+			player.getProgramInfo().getDefault()
+		);
+
+		// The default might also be null, in which case the current should be used.
+		return executableType == null ? player.getCurrentExecutableType() : executableType;
+	}
+
+	/**
+	 * Sets the configured {@link ProgramExecutableType} for the specified
+	 * {@link Player}.
+	 *
+	 * @param player the {@link Player} for which to set the configured
+	 *            {@link ProgramExecutableType}.
+	 * @param executableType the {@link ProgramExecutableType} to set.
+	 * @return {@code true} if a change was made, {@code false} otherwise.
+	 */
+	public boolean setPlayerExecutableType(@Nonnull Player player, @Nonnull ProgramExecutableType executableType) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		if (executableType == null) {
+			throw new IllegalArgumentException("executableType cannot be null");
+		}
+		String key = player.getExecutableTypeKey();
+		if (key != null) {
+			String currentValue = configuration.getString(key);
+			String newValue = executableType.toRootString();
+			if (newValue.equals(currentValue)) {
+				return false;
+			}
+			configuration.setProperty(key, newValue);
+			player.determineCurrentExecutableType(executableType);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Gets the configured {@link Path} for the specified {@link PlayerId}. The
+	 * {@link Player} must be registered. No check for existence or search in
+	 * the OS path is performed.
+	 *
+	 * @param playerId the {@link PlayerId} for the registered {@link Player}
+	 *            whose configured {@link Path} to get.
+	 * @return The configured {@link Path} or {@code null} if missing, blank or
+	 *         invalid.
+	 */
+	@Nullable
+	public Path getPlayerCustomPath(@Nullable PlayerId playerId) {
+		if (playerId == null) {
+			return null;
+		}
+		return getPlayerCustomPath(PlayerFactory.getPlayer(playerId, false, false));
+	}
+
+	/**
+	 * Gets the configured {@link Path} for the specified {@link Player}. No
+	 * check for existence or search in the OS path is performed.
+	 *
+	 * @param player the {@link Player} whose configured {@link Path} to get.
+	 * @return The configured {@link Path} or {@code null} if missing, blank or
+	 *         invalid.
+	 */
+	@Nullable
+	public Path getPlayerCustomPath(@Nullable Player player) {
+		if (
+			player == null ||
+			isBlank(player.getConfigurablePathKey()) ||
+			!(programPaths instanceof ConfigurableProgramPaths)
+		) {
+			return null;
+		}
+
+		try {
+			return ((ConfigurableProgramPaths) programPaths).getCustomProgramPath(player.getConfigurablePathKey());
+		} catch (ConfigurationException e) {
+			LOGGER.warn(
+				"An invalid executable path is configured for transcoding engine {}. The path is being ignored: {}",
+				player,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Sets the custom executable {@link Path} for the specified {@link Player}
+	 * in the configuration.
+	 * <p>
+	 * <b>Note:</b> This isn't normally what you'd want. To change the
+	 * {@link Path} <b>for the {@link Player} instance</b> in the same
+	 * operation, use {@link Player#setCustomExecutablePath} instead.
+	 *
+	 * @param player the {@link Player} whose custom executable {@link Path} to
+	 *            set.
+	 * @param path the {@link Path} to set or {@code null} to clear.
+	 * @return {@code true} if a change was made to the configuration,
+	 *         {@code false} otherwise.
+	 * @throws IllegalStateException If {@code player} has no configurable path
+	 *             key or custom program paths aren't supported.
+	 */
+	public boolean setPlayerCustomPath(@Nonnull Player player, @Nullable Path path) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		if (isBlank(player.getConfigurablePathKey())) {
+			throw new IllegalStateException(
+				"Can't set custom executable path for player " + player + "because it has no configurable path key"
+			);
+		}
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		return ((ConfigurableProgramPaths) programPaths).setCustomProgramPathConfiguration(
+			path,
+			player.getConfigurablePathKey()
+		);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for VLC.
+	 */
+	@Nullable
+	public ExternalProgramInfo getVLCPaths() {
+		return programPaths.getVLC();
+	}
+
+	@Nullable
+	public ProgramExecutableType getExecutableType(PlayerId id) {
+		if (id == null) {
+			return null;
+		}
+		if (
+			id == StandardPlayerId.AVI_SYNTH_FFMPEG ||
+			id == StandardPlayerId.FFMPEG_AUDIO ||
+			id == StandardPlayerId.FFMPEG_VIDEO ||
+			id == StandardPlayerId.FFMPEG_WEB_VIDEO
+		) {
+			return ProgramExecutableType.toProgramExecutableType(getString(FFMpegVideo.KEY_FFMPEG_EXECUTABLE_TYPE, null), programPaths.getFFmpeg().getDefault());
+		}
+		if (
+			id == StandardPlayerId.AVI_SYNTH_MENCODER ||
+			id == StandardPlayerId.MENCODER_VIDEO ||
+			id == StandardPlayerId.MENCODER_WEB_VIDEO
+		) {
+			return ProgramExecutableType.toProgramExecutableType(getString(MEncoderVideo.KEY_MENCODER_EXECUTABLE_TYPE, null), programPaths.getMEncoder().getDefault());
+		}
+		if (id == StandardPlayerId.DCRAW) {
+			return ProgramExecutableType.toProgramExecutableType(getString(DCRaw.KEY_DCRAW_EXECUTABLE_TYPE, null), programPaths.getDCRaw().getDefault());
+		}
+		if (
+			id == StandardPlayerId.TSMUXER_AUDIO ||
+			id == StandardPlayerId.TSMUXER_VIDEO
+		) {
+			return ProgramExecutableType.toProgramExecutableType(getString(TsMuxeRVideo.KEY_TSMUXER_EXECUTABLE_TYPE, null), programPaths.getTsMuxeR().getDefault());
+		}
+		if (
+			id == StandardPlayerId.VLC_AUDIO_STREAMING ||
+			id == StandardPlayerId.VLC_VIDEO ||
+			id == StandardPlayerId.VLC_VIDEO_STREAMING ||
+			id == StandardPlayerId.VLC_WEB_VIDEO
+		) {
+			return ProgramExecutableType.toProgramExecutableType(getString(VLCVideo.KEY_VLC_EXECUTABLE_TYPE, null), programPaths.getVLC().getDefault());
+		}
+		return null; // XXX: If plugins are reimplemented, a custom lookup is needed here.
+	}
+
+	public String getVLCPath() {
+		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.VLC_VIDEO);
+		if (executableType != null) {
+			return getVLCPaths().getPath(executableType).toString();
+		}
+		return getVLCPaths().getDefaultPath().toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for MEncoder.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMEncoderPaths() {
+		return programPaths.getMEncoder();
+	}
+
+	public String getMEncoderPath() {
+		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.MENCODER_VIDEO);
+		if (executableType != null) {
+			return getMEncoderPaths().getPath(executableType).toString();
+		}
+		return getMEncoderPaths().getDefaultPath().toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for DCRaw.
+	 */
+	@Nullable
+	public ExternalProgramInfo getDCRawPaths() {
 		return programPaths.getDCRaw();
 	}
 
-	public String getFfmpegPath() {
-		return programPaths.getFfmpegPath();
+	public String getDCRawPath() {
+		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.DCRAW);
+		if (executableType != null) {
+			return getDCRawPaths().getPath(executableType).toString();
+		}
+		return getDCRawPaths().getDefaultPath().toString();
 	}
 
-	public String getMplayerPath() {
-		return programPaths.getMplayerPath();
+	/**
+	 * @return The {@link ExternalProgramInfo} for FFmpeg.
+	 */
+	@Nullable
+	public ExternalProgramInfo getFFmpegPaths() {
+		return programPaths.getFFmpeg();
 	}
 
-	public String getTsmuxerPath() {
-		return programPaths.getTsmuxerPath();
+	public String getFFmpegPath() {
+		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.FFMPEG_VIDEO);
+		if (executableType != null) {
+			return getFFmpegPaths().getPath(executableType).toString();
+		}
+		return getFFmpegPaths().getDefaultPath().toString();
 	}
 
-	public String getTsmuxerNewPath() {
-		return programPaths.getTsmuxerNewPath();
+	/**
+	 * @return The {@link ExternalProgramInfo} for MPlayer.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMPlayerPaths() {
+		return programPaths.getMPlayer();
 	}
 
-	public String getFlacPath() {
-		return programPaths.getFlacPath();
+	/**
+	 * @return The configured path to the MPlayer executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMPlayerPath() {
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_MPLAYER_EXECUTABLE_TYPE,
+			getMPlayerPaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getMPlayerPaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getMPlayerPaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
 	}
 
+	public String getMPlayerDefaultPath() {
+		return getMPlayerPaths().getDefaultPath().toString();
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for MPlayer
+	 * both in {@link PmsConfiguration} and the {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomMPlayerPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomMPlayerPath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for tsMuxeR.
+	 */
+	@Nullable
+	public ExternalProgramInfo getTsMuxeRPaths() {
+		return programPaths.getTsMuxeR();
+	}
+
+	public String getTsMuxeRPath() {
+		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.TSMUXER_VIDEO);
+		if (executableType != null) {
+			return getTsMuxeRPaths().getPath(executableType).toString();
+		}
+		return getTsMuxeRPaths().getDefaultPath().toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for tsMuxeRNew.
+	 */
+	@Nullable
+	public ExternalProgramInfo getTsMuxeRNewPaths() {
+		return programPaths.getTsMuxeRNew();
+	}
+
+	/**
+	 * @return The configured path to the tsMuxeRNew executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getTsMuxeRNewPath() {
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_TSMUXER_NEW_EXECUTABLE_TYPE,
+			getTsMuxeRNewPaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getTsMuxeRNewPaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getTsMuxeRNewPaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * "tsMuxeR new" both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomTsMuxeRNewPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomTsMuxeRNewPath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for FLAC.
+	 */
+	@Nullable
+	public ExternalProgramInfo getFLACPaths() {
+		return programPaths.getFLAC();
+	}
+
+	public String getFLACDefaultPath() {
+		return getFLACPaths().getDefaultPath().toString();
+	}
+
+	/**
+	 * @return The configured path to the FLAC executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getFLACPath() {
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_FLAC_EXECUTABLE_TYPE,
+			getFLACPaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getFLACPaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getFLACPaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for FLAC
+	 * both in {@link PmsConfiguration} and the {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomFlacPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomFlacPath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for Interframe.
+	 */
+	@Nullable
+	public ExternalProgramInfo getInterFramePaths() {
+		return programPaths.getInterFrame();
+	}
+
+	public String getInterFrameDefaultPath() {
+		return getInterFramePaths().getDefaultPath().toString();
+	}
+
+	/**
+	 * @return The configured path to the Interframe folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
 	public String getInterFramePath() {
-		return programPaths.getInterFramePath();
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_INTERFRAME_EXECUTABLE_TYPE,
+			getInterFramePaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getInterFramePaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getInterFramePaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
 	}
 
-	public LogSystemInformationMode getLogSystemInformation() {
-		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
-		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
-		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
-		return result != null ? result : defaultValue;
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * Interframe both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomInterFramePath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
 	}
 
 	/**
@@ -2193,7 +2582,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
-		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, listToString(methods));
+		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, collectionToString(methods));
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {
@@ -2271,14 +2660,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	public String getFfmpegAlternativePath() {
-		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
-	}
-
-	public void setFfmpegAlternativePath(String value) {
-		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
-	}
-
 	public boolean getSkipLoopFilterEnabled() {
 		return getBoolean(KEY_SKIP_LOOP_FILTER_ENABLED, false);
 	}
@@ -2353,39 +2734,18 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (enabledEnginesBuilt) {
 			return;
 		}
-
-		String engines = getString(KEY_ENGINES, "").trim();
-		enabledEnginesLock.writeLock().lock();                            
-
+		enabledEnginesLock.writeLock().lock();
 		try {
 			// Not a bug, using double checked locking
 			if (enabledEnginesBuilt) {
 				return;
 			}
-			if (!StringUtil.hasValue(engines)) {
-				// Set default
-				// boolean includeAviSynth = Platform.isWindows() && PMS.get().getRegistry().isAvis();
-				enabledEngines = new ArrayList<>(12);
-				enabledEngines.add(FFMpegVideo.ID);
-				enabledEngines.add(MEncoderVideo.ID);
-				enabledEngines.add(TsMuxeRVideo.ID);
-				enabledEngines.add(FFmpegAudio.ID);
-				enabledEngines.add(TsMuxeRAudio.ID);
-				enabledEngines.add(FFmpegWebVideo.ID);
-				enabledEngines.add(VLCWebVideo.ID);
-				enabledEngines.add(VideoLanVideoStreaming.ID);
-				enabledEngines.add(MEncoderWebVideo.ID);
-				enabledEngines.add(VideoLanAudioStreaming.ID);
-				if (Platform.isWindows()) {
-					enabledEngines.add(FFmpegDVRMSRemux.ID);
-				}
-				enabledEngines.add(DCRaw.ID);
-				configuration.setProperty(KEY_ENGINES, listToString(enabledEngines));
-			} else if (engines.equalsIgnoreCase("None")) {
-				enabledEngines = new ArrayList<>();
-			} else {
-				enabledEngines = stringToList(engines.trim());
+			String engines = configuration.getString(KEY_ENGINES);
+			enabledEngines = stringToPlayerIdSet(engines);
+			if (isBlank(engines)) {
+				configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
 			}
+
 			enabledEnginesBuilt = true;
 		} finally {
 			enabledEnginesLock.writeLock().unlock();
@@ -2397,17 +2757,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Returns a new instance, any modifications won't be stored in the
 	 * original list. Threadsafe.
 	 */
-	public List<String> getEnabledEngines() {
+	public List<PlayerId> getEnabledEngines() {
 		buildEnabledEngines();
 		enabledEnginesLock.readLock().lock();
 		try {
-			return new ArrayList<String>(enabledEngines);
+			return new ArrayList<PlayerId>(enabledEngines);
 		} finally {
 			enabledEnginesLock.readLock().unlock();
 		}
 	}
 
-	public boolean isEngineEnabled(String id) {
+	/**
+	 * Gets the enabled status of the specified {@link PlayerId}.
+	 *
+	 * @param id the {@link PlayerId} to check.
+	 * @return {@code true} if the {@link Player} with {@code id} is enabled,
+	 *         {@code false} otherwise.
+	 */
+	public boolean isEngineEnabled(PlayerId id) {
 		if (id == null) {
 			throw new NullPointerException("id cannot be null");
 		}
@@ -2420,6 +2787,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 	}
 
+	/**
+	 * Gets the enabled status of the specified {@link Player}.
+	 *
+	 * @param player the {@link Player} to check.
+	 * @return {@code true} if {@code player} is enabled, {@code false}
+	 *         otherwise.
+	 */
 	public boolean isEngineEnabled(Player player) {
 		if (player == null) {
 			throw new NullPointerException("player cannot be null");
@@ -2428,9 +2802,15 @@ public class PmsConfiguration extends RendererConfiguration {
 		return isEngineEnabled(player.id());
 	}
 
-	public void setEngineEnabled(String id, boolean enabled) {
-		if (!StringUtil.hasValue(id)) {
-			throw new IllegalArgumentException("id cannot be null or blank");
+	/**
+	 * Sets the enabled status of the specified {@link PlayerId}.
+	 *
+	 * @param id the {@link PlayerId} whose enabled status to set.
+	 * @param enabled the enabled status to set.
+	 */
+	public void setEngineEnabled(PlayerId id, boolean enabled) {
+		if (id == null) {
+			throw new IllegalArgumentException("Unrecognized id");
 		}
 
 		enabledEnginesLock.writeLock().lock();
@@ -2445,12 +2825,18 @@ public class PmsConfiguration extends RendererConfiguration {
 					enabledEngines.add(id);
 				}
 			}
-			configuration.setProperty(KEY_ENGINES, listToString(enabledEngines));
+			configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
 		} finally {
 			enabledEnginesLock.writeLock().unlock();
 		}
 	}
 
+	/**
+	 * Sets the enabled status of the specified {@link Player}.
+	 *
+	 * @param player the {@link Player} whose enabled status to set.
+	 * @param enabled the enabled status to set.
+	 */
 	public void setEngineEnabled(Player player, boolean enabled) {
 		setEngineEnabled(player.id(), enabled);
 	}
@@ -2465,40 +2851,21 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new NullPointerException("player cannot be null");
 		}
-		final String id = player.id();
 
-		boolean changed = false;
-		enabledEnginesLock.writeLock().lock();
-		try {
-			buildEnabledEngines();
-			for (int i = 0; i < enabledEngines.size(); i++) {
-				if (enabledEngines.get(i).equalsIgnoreCase(id) && !enabledEngines.get(i).equals(id)) {
-					enabledEngines.set(i, id);
-					changed = true;
-				}
+		String engines = configuration.getString(KEY_ENGINES);
+		if (StringUtils.isNotBlank(engines)) {
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), player.id().toString());
+			if (!engines.equals(capitalizedEngines)) {
+				configuration.setProperty(KEY_ENGINES, capitalizedEngines);
 			}
-			if (changed) {
-				configuration.setProperty(KEY_ENGINES, listToString(enabledEngines));
-			}
-		} finally {
-			enabledEnginesLock.writeLock().unlock();
 		}
 
-		changed = false;
-		enginesPriorityLock.writeLock().lock();
-		try {
-			buildEnginesPriority();
-			for (int i = 0; i < enginesPriority.size(); i++) {
-				if (enginesPriority.get(i).equalsIgnoreCase(id) && !enginesPriority.get(i).equals(id)) {
-					enginesPriority.set(i, id);
-					changed = true;
-				}
+		engines = configuration.getString(KEY_ENGINES_PRIORITY);
+		if (StringUtils.isNotBlank(engines)) {
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), player.id().toString());
+			if (!engines.equals(capitalizedEngines)) {
+				configuration.setProperty(KEY_ENGINES_PRIORITY, capitalizedEngines);
 			}
-			if (changed) {
-				configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
-			}
-		} finally {
-			enginesPriorityLock.writeLock().unlock();
 		}
 	}
 
@@ -2509,39 +2876,16 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (enginesPriorityBuilt) {
 			return;
 		}
-		String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
 		enginesPriorityLock.writeLock().lock();
 		try {
 			// Not a bug, using double checked locking
 			if (enginesPriorityBuilt) {
 				return;
 			}
-			if (!StringUtil.hasValue(enginesPriorityString)) {
-				// Set default
-				enginesPriority = new ArrayList<>(12);
-				enginesPriority.add(FFMpegVideo.ID);
-				enginesPriority.add(MEncoderVideo.ID);
-				enginesPriority.add(TsMuxeRVideo.ID);
-				if (Platform.isWindows()) {
-					enginesPriority.add(AviSynthFFmpeg.ID);
-					enginesPriority.add(AviSynthMEncoder.ID);
-				}
-				enginesPriority.add(FFmpegAudio.ID);
-				enginesPriority.add(TsMuxeRAudio.ID);
-				enginesPriority.add(FFmpegWebVideo.ID);
-				enginesPriority.add(VLCWebVideo.ID);
-				enginesPriority.add(VideoLanVideoStreaming.ID);
-				enginesPriority.add(MEncoderWebVideo.ID);
-				enginesPriority.add(VideoLanAudioStreaming.ID);
-				if (Platform.isWindows()) {
-					enginesPriority.add(FFmpegDVRMSRemux.ID);
-				}
-				enginesPriority.add(VLCVideo.ID);
-				enginesPriority.add(DCRaw.ID);
-
-				configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
-			} else {
-				enginesPriority = stringToList(enginesPriorityString.trim());
+			String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
+			enginesPriority = stringToPlayerIdSet(enginesPriorityString);
+			if (isBlank(enginesPriorityString)) {
+				configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 			}
 			enginesPriorityBuilt = true;
 		} finally {
@@ -2554,11 +2898,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * instance, any modifications won't be stored in the original list.
 	 * Threadsafe.
 	 */
-	public List<String> getEnginesPriority() {
+	public UniqueList<PlayerId> getEnginesPriority() {
 		buildEnginesPriority();
 		enginesPriorityLock.readLock().lock();
 		try {
-			return new ArrayList<String>(enginesPriority);
+			return new UniqueList<PlayerId>(enginesPriority);
 		} finally {
 			enginesPriorityLock.readLock().unlock();
 		}
@@ -2567,7 +2911,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns the priority index according to the rules of {@link List#indexOf(String)}
 	 */
-	public int getEnginePriority(String id) {
+	public int getEnginePriority(PlayerId id) {
 		if (id == null) {
 			throw new NullPointerException("id cannot be null");
 		}
@@ -2575,9 +2919,21 @@ public class PmsConfiguration extends RendererConfiguration {
 		buildEnginesPriority();
 		enginesPriorityLock.readLock().lock();
 		try {
-			return enginesPriority.indexOf(id);
+			int index = enginesPriority.indexOf(id);
+			if (index >= 0) {
+				return index;
+			}
 		} finally {
 			enginesPriorityLock.readLock().unlock();
+		}
+
+		// The engine isn't listed, add it last
+		enginesPriorityLock.writeLock().lock();
+		try {
+			enginesPriority.add(id);
+			return enginesPriority.indexOf(id);
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
 		}
 	}
 
@@ -2599,9 +2955,25 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param id the engine id to move or insert in the priority list
 	 * @param aboveId the engine id to place {@link id} relative to
 	 */
-	public void setEnginePriorityAbove(String id, String aboveId) {
-		if (!StringUtil.hasValue(id)) {
-			throw new IllegalArgumentException("id cannot be null or blank");
+	public void setEnginePriorityAbove(@Nonnull Player player, @Nullable Player abovePlayer) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		setEnginePriorityAbove(player.id(), abovePlayer == null ? null : abovePlayer.id());
+	}
+
+	/**
+	 * Moves or inserts a {@link PlayerId} directly above another
+	 * {@link PlayerId} in the priority list. If {code aboveId} is {@code null},
+	 * {@code id} will be placed first in the list. If {@code aboveId} isn't
+	 * found, {@code id} will be placed last in the list.
+	 *
+	 * @param id the {@link PlayerId} to move or insert in the priority list.
+	 * @param aboveId the {@link PlayerId} to place {@code id} relative to.
+	 */
+	public void setEnginePriorityAbove(PlayerId id, PlayerId aboveId) {
+		if (id == null) {
+			throw new IllegalArgumentException("Unrecognized id");
 		}
 
 		enginesPriorityLock.writeLock().lock();
@@ -2622,7 +2994,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				}
 			}
 			enginesPriority.add(newPosition, id);
-			configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
+			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 		} finally {
 			enginesPriorityLock.writeLock().unlock();
 		}
@@ -2634,8 +3006,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param player the engine to move or insert in the priority list
 	 * @param abovePlayer the engine to place {@link player} relative to
 	 */
-	public void setEnginePriorityAbove(Player player, Player abovePlayer) {
-		setEnginePriorityAbove(player.id(), abovePlayer.id());
+	public void setEnginePriorityBelow(Player player, Player belowPlayer) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		setEnginePriorityBelow(player.id(), belowPlayer == null ? null : belowPlayer.id());
 	}
 
 	/**
@@ -2646,9 +3021,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param id the engine id to move or insert in the priority list
 	 * @param belowId the engine id to place {@link id} relative to
 	 */
-	public void setEnginePriorityBelow(String id, String belowId) {
-		if (!StringUtil.hasValue(id)) {
-			throw new IllegalArgumentException("id cannot be null or blank");
+	public void setEnginePriorityBelow(PlayerId id, PlayerId belowId) {
+		if (id == null) {
+			throw new IllegalArgumentException("Unrecognized id");
 		}
 
 		enginesPriorityLock.writeLock().lock();
@@ -2669,29 +3044,42 @@ public class PmsConfiguration extends RendererConfiguration {
 				}
 			}
 			enginesPriority.add(newPosition, id);
-			configuration.setProperty(KEY_ENGINES_PRIORITY, listToString(enginesPriority));
+			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 		} finally {
 			enginesPriorityLock.writeLock().unlock();
 		}
 		PlayerFactory.sortPlayers();
 	}
 
-	/**
-	 * @see #setEnginePriorityBelow(String, String)
-	 * @param player the engine to move or insert in the priority list
-	 * @param belowPlayer the engine to place {@link player} relative to
-	 */
-	public void setEnginePriorityBelow(Player player, Player belowPlayer) {
-		setEnginePriorityBelow(player.id(), belowPlayer.id());
+	private static String collectionToString(Collection<?> list) {
+		return StringUtils.join(list, LIST_SEPARATOR);
 	}
 
-	private static String listToString(List<String> enginesAsList) {
-		return StringUtils.join(enginesAsList, LIST_SEPARATOR);
-	}
-
-	private static List<String> stringToList(String input) {
+	@SuppressWarnings("unused")
+	private static List<String> stringToStringList(String input) {
 		List<String> output = new ArrayList<>();
 		Collections.addAll(output, StringUtils.split(input, LIST_SEPARATOR));
+		return output;
+	}
+
+	private static UniqueList<PlayerId> stringToPlayerIdSet(String input) {
+		UniqueList<PlayerId> output = new UniqueList<>();
+		if (isBlank(input)) {
+			output.addAll(StandardPlayerId.ALL);
+			return output;
+		}
+		input = input.trim().toLowerCase(Locale.ROOT);
+		if ("none".equals(input)) {
+			return output;
+		}
+		for (String s : StringUtils.split(input, LIST_SEPARATOR)) {
+			PlayerId playerId = StandardPlayerId.toPlayerID(s);
+			if (playerId != null) {
+				output.add(playerId);
+			} else {
+				LOGGER.warn("Unknown transcoding engine \"{}\"", s);
+			}
+		}
 		return output;
 	}
 
@@ -3347,7 +3735,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new NullPointerException("value cannot be null");
 		}
 		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
-		PMS.get().getSleepManager().setMode(value);
+		Services.sleepManager().setMode(value);
 	}
 
 	public PreventSleepMode getPreventSleep() {
@@ -4364,10 +4752,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			RendererConfiguration.calculateAllSpeeds();
 		}
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
-	}
-
-	public String pingPath() {
-		return getString(KEY_PING_PATH, null);
 	}
 
 	public boolean isSpeedDbg() {
