@@ -59,7 +59,7 @@ public final class TableFilesStatus extends Tables {
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
-	 * {@link #upgradeTable()}
+	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 9;
 
@@ -259,7 +259,7 @@ public final class TableFilesStatus extends Tables {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up file status in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
+			LOGGER.error("Database error while looking up file bookmark in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;
@@ -471,7 +471,8 @@ public final class TableFilesStatus extends Tables {
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN DEFAULT false" +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+					"BOOKMARK      INTEGER DEFAULT 0" +
 				")"
 			);
 

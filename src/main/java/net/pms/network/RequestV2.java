@@ -33,7 +33,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
@@ -912,7 +911,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else {
-				LOGGER.info("Unsupported action received: " + content);
+				LOGGER.debug("Unsupported action received: " + content);
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
