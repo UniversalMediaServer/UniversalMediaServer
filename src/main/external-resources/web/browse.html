@@ -22,50 +22,95 @@
 		<script src="/files/jquery.ums.js"></script>
 		<script src="/files/js.cookie-2.1.0.min.js"></script>
 		<script src="/bump/bump.js"></script>
+		<!-- New webUI -->
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<script src="/files/util/modernizr.custom.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/jQKeyboard.js"></script><!--load before keycontroller-->
+		<script src="/files/util/keycode.js"></script>
+		<script src="/files/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="/files/util/jQKeyboard.css" type="text/css">
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage" class="browsePage">
-		<div id="Container" class="noHzScroll">
-			<div id="Menu">
-				<div id="OptionsMenu">
-{{#hasFile}}
-					<form id="SearchForm" method="get">
-						<input type="text" id="SearchInput" name="str">
-						<input type="submit" id="SearchSubmit" title="Search" value="&nbsp;">
-					</form>
-{{/hasFile}}
-					<ul class="HoverMenu" title="Settings">
-						<a id="DocButton" title="Settings"></a>
-						<ul id="SettingsMenu">
-							<li><a href="/doc" id="Docs" title="Documentation"></a></li>
-							<li><span><a href="javascript:setPadColor(1)" id="ViewPadColor" title="Change padding color"></a></span></li>
-							<li>
-								<a href="javascript:chooseView('grid')" id="ViewGrid" title="Switch to grid view"></a>
-								<a href="javascript:chooseView('dynamic')" id="ViewDynamic" title="Switch to dynamic view"></a>
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a  id="HomeButton" class="navbar-brand onFocus" href="/browse/0" title="UMS"></a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+						{{#hasFile}}
+							<li id="trigger-overlay">
+								<a role="button" type="button">
+									<i class="fa fa-search" aria-hidden="true"></i>
+								</a>
 							</li>
-						</ul>
+						{{/hasFile}}
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="settings"><i class="fa fa-cog"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="/doc" title="Documentation"><i class="fa fa-info-circle" aria-hidden="true"></i> Documentation</a></li>
+								<li><a href="javascript:setPadColor(1)" title="Change padding color"><i class="fa fa-paint-brush" aria-hidden="true"></i> Change padding color</a></li>
+								<li><a href="javascript:chooseView('grid')" title="Switch to grid view"><i class="fa fa-th" aria-hidden="true"></i> Switch to grid view</a></li>
+								<li><a href="javascript:chooseView('dynamic')" title="Switch to dynamic view"><i class="fa fa-th-list" aria-hidden="true"></i> Switch to dynamic view</a></li>
+							</ul>
+						</li>
 					</ul>
 				</div>
-				<a href="/browse/0" id="HomeButton"></a>
 			</div>
+		</nav>
+		<div id="Container" class="noHzScroll">
 			<div id="FoldersContainer">
-				<ul id="Folders">
-{{#folders}}
+				<ul id="Folders" class="nav nav-sidebar">
+					{{#folders}}
 					<li>{{this}}</li>
-{{/folders}}
+					{{/folders}}
 				</ul>
 			</div>
-{{#hasFile}}
-			<ul id="Media">
-{{#media}}
-				<li>
-					{{thumb}}
-					{{bump}}
-					{{caption}}
-				</li>
-{{/media}}
-			</ul>
-{{/hasFile}}
+			{{#hasFile}}
+			<div id="MediaContainer">
+				<div id="bumplist"></div>
+				<ul id="Media" class="nav nav-sidebar">
+					{{#media}}
+					<li>
+						{{thumb}}
+						<div class="box-meta">
+						{{bump}}
+						{{caption}}
+						</div>
+					</li>
+					{{/media}}
+				</ul>
+			</div>
+			{{/hasFile}}			
+		</div>
+		<!-- open/close -->
+		<div class="overlay overlay-contentscale">
+			<button type="button" class="overlay-close">Close</button>
+			<nav>
+			<div id="searchbar">
+				{{#hasFile}}
+					<form  id="SearchForm" method="get">
+						<input type="text" class="form-control jQKeyboard" placeholder="Search..." name="str">
+					</form>
+				{{/hasFile}}				
+			</div>
+			</nav>
 		</div>
 	</body>
+	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
+	<script src="/files/util/searchclassie.js"></script>
+	<script src="/files/util/search.js"></script>
+	<script>$('input.jQKeyboard').initKeypad({'keyboardLayout': keyboard});</script>
 </html>
