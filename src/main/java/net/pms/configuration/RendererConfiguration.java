@@ -700,6 +700,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		} catch (ConfigurationException e) {
 			LOGGER.error("Configuration error while resolving renderer: {}", e.getMessage());
 			LOGGER.trace("", e);
+		} catch (InterruptedException e) {
+			LOGGER.error("Interrupted while resolving renderer \"{}\": {}", ia, e.getMessage());
+			return null;
 		}
 		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
@@ -894,6 +897,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isLG() {
 		return getConfName().toUpperCase().contains("LG ");
+	}
+	
+	/**
+	 * @return whether this renderer is an Samsung device
+	 */
+	public boolean isSamsung() {
+		return getConfName().toUpperCase().contains("SAMSUNG");
 	}
 
 	// Ditlew

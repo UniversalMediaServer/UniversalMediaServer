@@ -71,6 +71,7 @@ public class UMSUtils {
 					if (audio.getAlbum() != null) {
 						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
+					//TODO maciekberry: check whether it makes sense to use Album Artist
 					if (audio.getArtist() != null) {
 						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
 					}
@@ -556,7 +557,7 @@ public class UMSUtils {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.waitbeforestart = 0;
 		outputParams.log = true;
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-hwaccels"}, false, outputParams, true, false);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFFmpegPath(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {

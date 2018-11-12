@@ -32,11 +32,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -46,6 +53,7 @@ import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.platform.windows.NTStatus;
 import net.pms.util.*;
 import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
@@ -59,6 +67,15 @@ import org.slf4j.LoggerFactory;
 
 public class MEncoderVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderVideo.class);
+	public static final PlayerId ID = StandardPlayerId.MENCODER_VIDEO;
+
+	/** The {@link Configuration} key for the custom MEncoder path. */
+	public static final String KEY_MENCODER_PATH = "mencoder_path";
+
+	/** The {@link Configuration} key for the MEncoder executable type. */
+	public static final String KEY_MENCODER_EXECUTABLE_TYPE = "mencoder_executable_type";
+	public static final String NAME = "MEncoder Video";
+
 	private static final String COL_SPEC = "left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow,3dlu, p:grow, 3dlu, right:p:grow,3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private static final String REMOVE_OPTION = "---REMOVE-ME---"; // use an out-of-band option that can't be confused with a real option
@@ -95,7 +112,6 @@ public class MEncoderVideo extends Player {
 	private static final String INVALID_CUSTOM_OPTIONS_LIST = Arrays.toString(INVALID_CUSTOM_OPTIONS);
 
 	public static final int MENCODER_MAX_THREADS = 8;
-	public static final String ID = "MEncoder";
 
 	// TODO (breaking change): most (probably all) of these
 	// protected fields should be private. And at least two
@@ -136,10 +152,6 @@ public class MEncoderVideo extends Player {
 		Messages.getString("MEncoderVideo.89") +
 		Messages.getString("MEncoderVideo.91");
 
-	@Deprecated
-	public JCheckBox getCheckBox() {
-		return skipLoopFilter;
-	}
 
 	public JCheckBox getNoskip() {
 		return noskip;
@@ -519,8 +531,18 @@ public class MEncoderVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_MENCODER_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_MENCODER_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -637,8 +659,8 @@ public class MEncoderVideo extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getMencoderPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getMEncoderPaths();
 	}
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
@@ -675,7 +697,7 @@ public class MEncoderVideo extends Player {
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
-		// Use device-specific pms conf
+		// Use device-specific DMS conf
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -800,7 +822,7 @@ public class MEncoderVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		// Use device-specific pms conf
+		// Use device-specific DMS conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		params.manageFastStart();
@@ -924,6 +946,10 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
 		}
+		if (deferToTsmuxer && !PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
+			deferToTsmuxer = false;
+			LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
+		}
 		if (deferToTsmuxer) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getMencoderCodecSpecificConfig(),
@@ -944,7 +970,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (!nomux) {
-				TsMuxeRVideo tv = new TsMuxeRVideo();
+				TsMuxeRVideo tv = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
@@ -1592,7 +1618,7 @@ public class MEncoderVideo extends Player {
 
 		List<String> cmdList = new ArrayList<>();
 
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 
 		// Choose which time to seek to
 		cmdList.add("-ss");
@@ -2265,9 +2291,9 @@ public class MEncoderVideo extends Player {
 
 				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-				TsMuxeRVideo ts = new TsMuxeRVideo();
-				File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
-				String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
+				TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+				File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
+				String cmd[] = new String[]{ ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe() };
 				pw = new ProcessWrapperImpl(cmd, params);
 
 				PipeIPCProcess ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
@@ -2322,7 +2348,7 @@ public class MEncoderVideo extends Player {
 				// -mc 0.1 makes the DTS-HD extraction work better with latest MEncoder builds, and has no impact on the regular DTS one
 				// TODO: See if these notes are still true, and if so leave specific revisions/release names of the latest version tested.
 				String ffmpegLPCMextract[] = new String[]{
-					executable(),
+					getExecutable(),
 					"-ss", "0",
 					filename,
 					"-really-quiet",
@@ -2489,7 +2515,7 @@ public class MEncoderVideo extends Player {
 
 	@Override
 	public String name() {
-		return "MEncoder";
+		return NAME;
 	}
 
 	@Override
@@ -2635,9 +2661,6 @@ public class MEncoderVideo extends Player {
 		return definitiveArgs;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
@@ -2649,6 +2672,82 @@ public class MEncoderVideo extends Player {
 			return true;
 		}
 
+		return false;
+	}
+
+	@Override
+	public boolean excludeFormat(Format extension) {
+		return false;
+	}
+
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+		return true;
+	}
+
+	@Override
+	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		final String arg = "-info:help";
+		ExecutableInfoBuilder result = executableInfo.modify();
+		try {
+			ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+				30000,
+				1000,
+				executableInfo.getPath().toString(),
+				arg
+			);
+			if (output.getError() != null) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.available(Boolean.FALSE);
+				LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
+				return result.build();
+			}
+			if (output.getExitCode() == 0) {
+				if (output.getOutput() != null && output.getOutput().size() > 0) {
+					Pattern pattern = Pattern.compile("^MEncoder\\s+(.*?)\\s+\\(C\\)", Pattern.CASE_INSENSITIVE);
+					Matcher matcher = pattern.matcher(output.getOutput().get(0));
+					if (matcher.find() && isNotBlank(matcher.group(1))) {
+						result.version(new Version(matcher.group(1)));
+					}
+				}
+				result.available(Boolean.TRUE);
+			} else {
+				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
+				if (ntStatus != null) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+				} else {
+					if (output.getOutput() != null &&
+						output.getOutput().size() > 3 &&
+						StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 1)) &&
+						!StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 2)) &&
+						StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 3))
+					) {
+						result.errorType(ExecutableErrorType.GENERAL);
+						result.errorText(
+							String.format(Messages.getString("Engine.Error"), this) + " \n" +
+							output.getOutput().get(output.getOutput().size() - 3)
+						);
+					} else {
+						result.errorType(ExecutableErrorType.GENERAL);
+						result.errorText(String.format(Messages.getString("Engine.Error"), this) + Messages.getString("General.3"));
+					}
+				}
+				result.available(Boolean.FALSE);
+			}
+		} catch (InterruptedException e) {
+			return null;
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
 		return false;
 	}
 }

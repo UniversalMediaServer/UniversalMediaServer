@@ -21,7 +21,6 @@ package net.pms.newgui;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
-import com.jgoodies.looks.windows.WindowsLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -34,15 +33,18 @@ import java.util.Observable;
 import java.util.Observer;
 import javax.annotation.Nonnull;
 import javax.swing.*;
+import javax.swing.UIDefaults.LazyValue;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
@@ -103,6 +105,21 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
+	/**
+	 * Class name of Windows L&F provided in Sun JDK.
+	 */
+	public static final String WINDOWS_LNF = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+
+	/**
+	 * Class name of PlasticXP L&F.
+	 */
+	public static final String PLASTICXP_LNF = "com.jgoodies.looks.plastic.PlasticXPLookAndFeel";
+
+	/**
+	 * Class name of Metal L&F.
+	 */
+	public static final String METAL_LNF = "javax.swing.plaf.metal.MetalLookAndFeel";
+
 	public ViewLevel getViewLevel() {
 		return viewLevel;
 	}
@@ -131,17 +148,23 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public static void initializeLookAndFeel() {
-
 		synchronized (lookAndFeelInitializedLock) {
 			if (lookAndFeelInitialized) {
 				return;
 			}
 
-			LookAndFeel selectedLaf = null;
 			if (Platform.isWindows()) {
-				selectedLaf = new WindowsLookAndFeel();
+				try {
+					UIManager.setLookAndFeel(WINDOWS_LNF);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+					LOGGER.error("Error while setting Windows look and feel: ", e);
+				}
 			} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
-				selectedLaf = new PlasticLookAndFeel();
+				try {
+					UIManager.setLookAndFeel(PLASTICXP_LNF);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+					LOGGER.error("Error while setting Plastic XP look and feel: ", e);
+				}
 			} else {
 				try {
 					String systemClassName = UIManager.getSystemLookAndFeelClassName();
@@ -160,16 +183,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 					LOGGER.trace("Choosing Java look and feel: " + systemClassName);
 					UIManager.setLookAndFeel(systemClassName);
 				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e1) {
-					selectedLaf = new PlasticLookAndFeel();
+					try {
+						UIManager.setLookAndFeel(PLASTICXP_LNF);
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+						LOGGER.error("Error while setting Plastic XP look and feel: ", e);
+					}
 					LOGGER.error("Error while setting native look and feel: ", e1);
 				}
 			}
 
-			if (selectedLaf instanceof PlasticLookAndFeel) {
+			if (isParticularLaFSet(UIManager.getLookAndFeel(), PLASTICXP_LNF)) {
 				PlasticLookAndFeel.setPlasticTheme(PlasticLookAndFeel.createMyDefaultTheme());
 				PlasticLookAndFeel.setTabStyle(PlasticLookAndFeel.TAB_STYLE_DEFAULT_VALUE);
 				PlasticLookAndFeel.setHighContrastFocusColorsEnabled(false);
-			} else if (selectedLaf != null && selectedLaf.getClass() == MetalLookAndFeel.class) {
+			} else if (isParticularLaFSet(UIManager.getLookAndFeel(), METAL_LNF)) {
 				MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
 			}
 
@@ -179,20 +206,40 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			JCheckBox checkBox = new JCheckBox();
 			checkBox.getUI().uninstallUI(checkBox);
 
-			if (selectedLaf != null) {
-				try {
-					UIManager.setLookAndFeel(selectedLaf);
-					// Workaround for JDK-8179014: JFileChooser with Windows look and feel crashes on win 10
-					// https://bugs.openjdk.java.net/browse/JDK-8179014
-					if (selectedLaf instanceof WindowsLookAndFeel) {
-						UIManager.put("FileChooser.useSystemExtensionHiding", false);
-					}
-				} catch (UnsupportedLookAndFeelException e) {
-					LOGGER.warn("Can't change look and feel", e);
-				}
+			// Workaround for JDK-8179014: JFileChooser with Windows look and feel crashes on win 10
+			// https://bugs.openjdk.java.net/browse/JDK-8179014
+			if (isParticularLaFSet(UIManager.getLookAndFeel(), WINDOWS_LNF)) {
+				UIManager.put("FileChooser.useSystemExtensionHiding", false);
 			}
 
 			lookAndFeelInitialized = true;
+		}
+	}
+
+	/**
+	 * Safely checks whether a particular look and feel class is set.
+	 *
+	 * @param lnf
+	 * @param lookAndFeelClassPath
+	 * @return whether the incoming look and feel class is set
+	 */
+	private static boolean isParticularLaFSet(LookAndFeel lnf, String lookAndFeelClassPath) {
+		// as of Java 10, com.sun.java.swing.plaf.windows.WindowsLookAndFeel
+		// is no longer available on macOS
+		// thus "instanceof WindowsLookAndFeel" directives will result
+		// in a NoClassDefFoundError during runtime
+		if (lnf == null) {
+			return false;
+		} else {
+			try {
+				Class c = Class.forName(lookAndFeelClassPath);
+				return c.isInstance(lnf);
+			} catch (ClassNotFoundException cnfe) {
+				// if it is not possible to load the Windows LnF class, the
+				// given lnf instance cannot be an instance of the Windows
+				// LnF class
+				return false;
+			}
 		}
 	}
 
@@ -235,52 +282,97 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			autoUpdater.pollServer();
 		}
 
-		// http://propedit.sourceforge.jp/propertieseditor.jnlp
-		Font sf = null;
+		// Shared Fonts
+		final Integer twelve = Integer.valueOf(12);
+		final Integer fontPlain = Integer.valueOf(Font.PLAIN);
+		final Integer fontBold = Integer.valueOf(Font.BOLD);
 
-		// Set an unicode font for testing exotic languages (Japanese)
+		LazyValue dialogPlain12 = new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.DIALOG, fontPlain, twelve);
+			}
+		};
+
+		LazyValue sansSerifPlain12 =  new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
+			}
+		};
+
+		LazyValue monospacedPlain12 = new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
+			}
+		};
+
+		LazyValue dialogBold12 = new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.DIALOG, fontBold, twelve);
+			}
+		};
+
+		Object MenuFont = dialogPlain12;
+		Object FixedControlFont = monospacedPlain12;
+		Object ControlFont = dialogPlain12;
+		Object MessageFont = dialogPlain12;
+		Object WindowFont = dialogBold12;
+		Object ToolTipFont = sansSerifPlain12;
+		Object IconFont = ControlFont;
+
+		// Override our fonts with a unicode font for languages with special characters
 		final String language = configuration.getLanguageTag();
-
 		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
-			sf = new Font("SansSerif", Font.PLAIN, 12);
+			// http://propedit.sourceforge.jp/propertieseditor.jnlp
+			MenuFont = sansSerifPlain12;
+			FixedControlFont = sansSerifPlain12;
+			ControlFont = sansSerifPlain12;
+			MessageFont = sansSerifPlain12;
+			WindowFont = sansSerifPlain12;
+			IconFont = sansSerifPlain12;
 		}
 
-		if (sf != null) {
-			UIManager.put("Button.font", sf);
-			UIManager.put("ToggleButton.font", sf);
-			UIManager.put("RadioButton.font", sf);
-			UIManager.put("CheckBox.font", sf);
-			UIManager.put("ColorChooser.font", sf);
-			UIManager.put("ToggleButton.font", sf);
-			UIManager.put("ComboBox.font", sf);
-			UIManager.put("ComboBoxItem.font", sf);
-			UIManager.put("InternalFrame.titleFont", sf);
-			UIManager.put("Label.font", sf);
-			UIManager.put("List.font", sf);
-			UIManager.put("MenuBar.font", sf);
-			UIManager.put("Menu.font", sf);
-			UIManager.put("MenuItem.font", sf);
-			UIManager.put("RadioButtonMenuItem.font", sf);
-			UIManager.put("CheckBoxMenuItem.font", sf);
-			UIManager.put("PopupMenu.font", sf);
-			UIManager.put("OptionPane.font", sf);
-			UIManager.put("Panel.font", sf);
-			UIManager.put("ProgressBar.font", sf);
-			UIManager.put("ScrollPane.font", sf);
-			UIManager.put("Viewport", sf);
-			UIManager.put("TabbedPane.font", sf);
-			UIManager.put("TableHeader.font", sf);
-			UIManager.put("TextField.font", sf);
-			UIManager.put("PasswordFiled.font", sf);
-			UIManager.put("TextArea.font", sf);
-			UIManager.put("TextPane.font", sf);
-			UIManager.put("EditorPane.font", sf);
-			UIManager.put("TitledBorder.font", sf);
-			UIManager.put("ToolBar.font", sf);
-			UIManager.put("ToolTip.font", sf);
-			UIManager.put("Tree.font", sf);
-			UIManager.put("Spinner.font", sf);
-		}
+		UIManager.put("Button.font", ControlFont);
+		UIManager.put("CheckBox.font", ControlFont);
+		UIManager.put("CheckBoxMenuItem.font", MenuFont);
+		UIManager.put("ComboBox.font", ControlFont);
+		UIManager.put("EditorPane.font", ControlFont);
+		UIManager.put("FileChooser.listFont", IconFont);
+		UIManager.put("FormattedTextField.font", ControlFont);
+		UIManager.put("InternalFrame.titleFont", WindowFont);
+		UIManager.put("Label.font", ControlFont);
+		UIManager.put("List.font", ControlFont);
+		UIManager.put("PopupMenu.font", MenuFont);
+		UIManager.put("Menu.font", MenuFont);
+		UIManager.put("MenuBar.font", MenuFont);
+		UIManager.put("MenuItem.font", MenuFont);
+		UIManager.put("MenuItem.acceleratorFont", MenuFont);
+		UIManager.put("RadioButton.font", ControlFont);
+		UIManager.put("RadioButtonMenuItem.font", MenuFont);
+		UIManager.put("OptionPane.font", MessageFont);
+		UIManager.put("OptionPane.messageFont", MessageFont);
+		UIManager.put("OptionPane.buttonFont", MessageFont);
+		UIManager.put("Panel.font", ControlFont);
+		UIManager.put("PasswordField.font", ControlFont);
+		UIManager.put("ProgressBar.font", ControlFont);
+		UIManager.put("ScrollPane.font", ControlFont);
+		UIManager.put("Slider.font", ControlFont);
+		UIManager.put("Spinner.font", ControlFont);
+		UIManager.put("TabbedPane.font", ControlFont);
+		UIManager.put("Table.font", ControlFont);
+		UIManager.put("TableHeader.font", ControlFont);
+		UIManager.put("TextArea.font", FixedControlFont);
+		UIManager.put("TextField.font", ControlFont);
+		UIManager.put("TextPane.font", ControlFont);
+		UIManager.put("TitledBorder.font", ControlFont);
+		UIManager.put("ToggleButton.font", ControlFont);
+		UIManager.put("ToolBar.font", MenuFont);
+		UIManager.put("ToolTip.font", ToolTipFont);
+		UIManager.put("Tree.font", ControlFont);
+		UIManager.put("Viewport.font", ControlFont);
 
 		setTitle("Test");
 		setIconImage(readImageIcon("icon-32.png").getImage());
@@ -346,7 +438,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
-		PMS.get().getRegistry().addSystemTray(this);
+		BasicSystemUtils.INSTANCE.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
