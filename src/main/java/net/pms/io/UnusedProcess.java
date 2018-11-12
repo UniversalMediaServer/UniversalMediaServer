@@ -16,34 +16,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.formats;
+package net.pms.io;
 
-public class DVRMS extends Format {
-	/**
-	 * {@inheritDoc} 
-	 */
-	@Override
-	public Identifier getIdentifier() {
-		return Identifier.DVRMS;
-	}
-
-	@Override
-	public boolean transcodable() {
-		return true;
-	}
-
-	public DVRMS() {
-		type = VIDEO;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String[] getSupportedExtensions() {
-		return new String[] {
-			"dvr",
-			"dvr-ms",
-		};
-	}
+public interface UnusedProcess {
+	public void stopProcess();
+	public boolean isReadyToStop();
+	public void setReadyToStop(boolean nullable);
 }

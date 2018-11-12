@@ -220,10 +220,9 @@ Section "Program Files"
 	SetOutPath "$INSTDIR\win32\service"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\*.*"
 
-	SetOutPath "$INSTDIR\win32"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\lib\ctrlsender\ctrlsender.exe"
 	${GetWindowsVersion} $R0
 	${If} $R0 == "XP"
+		SetOutPath "$INSTDIR\win32"
 		File /r "${PROJECT_BASEDIR}\src\main\external-resources\lib\winxp"
 	${EndIf}
 

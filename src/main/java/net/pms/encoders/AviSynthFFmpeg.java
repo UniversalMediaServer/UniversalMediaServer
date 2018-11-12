@@ -58,17 +58,16 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_FFMPEG;
-	public static final String NAME = "AviSynth/FFmpeg";
+	public static final String ID = "AvSFFmpeg";
 
 	@Override
-	public PlayerId id() {
+	public String id() {
 		return ID;
 	}
 
 	@Override
 	public String name() {
-		return NAME;
+		return "AviSynth/FFmpeg";
 	}
 
 	@Override
@@ -147,7 +146,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String mtLine1         = "";
 			String mtLine2         = "";
 			String interframeLines = null;
-			String interframePath  = configuration.getInterFrameDefaultPath();
+			String interframePath  = configuration.getInterFramePath();
 
 			int Cores = 1;
 			if (configuration.isFfmpegAviSynthMultithreading()) {

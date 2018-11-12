@@ -29,11 +29,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
-	public static final PlayerId ID = StandardPlayerId.TSMUXER_AUDIO;
-
-	/** The {@link Configuration} key for the tsMuxeR Audio executable type. */
-	public static final String KEY_TSMUXER_AUDIO_EXECUTABLE_TYPE = "tsmuxer_audio_executable_type";
-	public static final String NAME = "tsMuxeR Audio";
+	public static final String ID = "TSMuxerAudio";
 
 	@Deprecated
 	public TsMuxeRAudio(PmsConfiguration configuration) {
@@ -49,13 +45,8 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public PlayerId id() {
+	public String id() {
 		return ID;
-	}
-
-	@Override
-	public String getExecutableTypeKey() {
-		return KEY_TSMUXER_AUDIO_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -76,7 +67,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Override
 	public String name() {
-		return NAME;
+		return "Audio High Fidelity";
 	}
 
 	@Override
@@ -89,6 +80,9 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 		return Format.VIDEO;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isVideo(resource, Format.Identifier.AUDIO_AS_VIDEO);

@@ -93,7 +93,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	private StartStopListenerDelegate startStop;
 
-	public WebRender(String user) throws ConfigurationException, InterruptedException {
+	public WebRender(String user) throws ConfigurationException {
 		super(NOFILE, null);
 		this.user = user;
 		ip = "";

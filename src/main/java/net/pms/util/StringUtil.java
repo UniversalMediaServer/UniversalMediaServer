@@ -806,19 +806,6 @@ public class StringUtil {
 	}
 
 	/**
-	 * Replaces a case-insensitive substring with the same substring in its
-	 * provided capitalization. Used to make sure a given part of a
-	 * {@link CharSequence} is capitalized in a defined manner.
-	 *
-	 * @param target the {@link CharSequence} to replace occurrences in.
-	 * @param subString the {@link String} in its correctly capitalized form.
-	 * @return The resulting {@link String}.
-	 */
-	public static String caseReplace(CharSequence target, String subString) {
-		return Pattern.compile(subString, Pattern.CASE_INSENSITIVE + Pattern.LITERAL).matcher(target).replaceAll(subString);
-	}
-
-	/**
 	 * Escapes {@link org.apache.lucene} special characters with backslash.
 	 *
 	 * @param s the {@link String} to evaluate.

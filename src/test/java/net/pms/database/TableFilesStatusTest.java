@@ -39,7 +39,7 @@ public class TableFilesStatusTest {
 	 * @throws ConfigurationException
 	 */
 	@Before
-	public final void setUp() throws ConfigurationException, InterruptedException {
+	public final void setUp() throws ConfigurationException {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 		PMS.get();

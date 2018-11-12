@@ -19,36 +19,35 @@
  */
 package net.pms.encoders;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import com.sun.jna.Platform;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.ProgramExecutableType;
-import net.pms.configuration.ProgramExecutableType.DefaultExecutableType;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.FormatFactory;
+import net.pms.io.SystemUtils;
+import net.pms.util.FilePermissions;
+import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * This utility class handles {@link Player} creation and keeps a registry over
- * instances.
+ * This class handles players. Creating an instance will initialize the list of
+ * known players.
+ *
+ * @since 1.51.0
  */
 public final class PlayerFactory {
-
 	/**
 	 * Logger used for all logging.
 	 */
@@ -64,10 +63,16 @@ public final class PlayerFactory {
 	 */
 	private static final ArrayList<Player> PLAYERS = new ArrayList<>();
 
+	/**
+	 * Interface to Windows specific functions, like Windows Registry. The
+	 * registry is set by the constructor.
+	 */
+	private static SystemUtils utils;
+
 	private static PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
-	 * This sorts {@link Player}s according to their configured priorities.
+	 * This takes care of sorting the players by the given PMS configuration.
 	 */
 	@SuppressWarnings("serial")
 	private static class PlayerSort implements Comparator<Player>, Serializable {
@@ -91,30 +96,33 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Not to be instantiated.
+	 * This class is not meant to be instantiated.
 	 */
 	private PlayerFactory() {
 	}
 
+	@Deprecated
+	public static void initialize(final PmsConfiguration configuration) {
+		initialize();
+	}
+
 	/**
-	 * Registers all players based on the given configuration, frame and
-	 * registry.
-	 *
-	 * @throws InterruptedException If the operation is interrupted.
+	 * Constructor that registers all players based on the given configuration,
+	 * frame and registry.
 	 */
-	public static void initialize() throws InterruptedException {
+	public static void initialize() {
+		utils = PMS.get().getRegistry();
 		registerPlayers();
 	}
 
 	/**
-	 * Registers a known set transcoding engines.
-	 *
-	 * @throws InterruptedException
+	 * Register a known set of audio or video transcoders.
 	 */
-	private static void registerPlayers() throws InterruptedException {
+	private static void registerPlayers() {
 		if (Platform.isWindows()) {
 			registerPlayer(new AviSynthFFmpeg());
 			registerPlayer(new AviSynthMEncoder());
+			registerPlayer(new FFmpegDVRMSRemux());
 		}
 
 		registerPlayer(new FFmpegAudio());
@@ -132,51 +140,80 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Adds a single {@link Player} to the list of {@link Player}s after making
-	 * some checks.
+	 * Adds a single {@link Player} to the list of Players. Before the player is
+	 * added to the list, it is verified to be okay.
 	 *
-	 * @param player the {@link Player} to be added.
-	 * @throws InterruptedException If the operation is interrupted.
+	 * @param player Player to be added to the list.
 	 */
-	public static void registerPlayer(final Player player) throws InterruptedException {
-		if (player == null) {
-			throw new IllegalArgumentException("player cannot be null");
-		}
+	public static void registerPlayer(final Player player) {
 		configuration.capitalizeEngineId(player);
 		PLAYERS_LOCK.writeLock().lock();
 		try {
-			if (isPlayerRegistered(player.id())) {
-				LOGGER.debug("Transcoding engine {} already exists, skipping registration...", player);
+			if (PLAYERS.contains(player)) {
+				LOGGER.info("Transcoding engine {} already exists, skipping registering...", player);
 				return;
 			}
 
-			LOGGER.debug("Checking transcoding engine {}", player);
+			boolean ok = false;
 			PLAYERS.add(player);
-			player.setEnabled(configuration.isEngineEnabled(player), false);
+			player.setEnabled(configuration.isEngineEnabled(player));
 
-			ExternalProgramInfo programInfo = player.getProgramInfo();
-			ReentrantReadWriteLock programInfoLock = programInfo.getLock();
-			// Lock for consistency during tests, need write in case setAvailabe() needs to modify or a custom path is set
-			programInfoLock.writeLock().lock();
-			try {
-				if (configuration.isCustomProgramPathsSupported()) {
-					LOGGER.trace("Registering custom executable path for transcoding engine {}", player);
-					Path customPath = configuration.getPlayerCustomPath(player);
-					player.initCustomExecutablePath(customPath);
+			if (Player.NATIVE.equals(player.executable())) {
+				player.setAvailable(true);
+				ok = true;
+			} else {
+				if (player.executable() == null) {
+					player.setAvailable(false);
+					LOGGER.warn("Executable of transcoding engine {} is undefined", player);
+					return;
 				}
 
-				for (ProgramExecutableType executableType : programInfo.getExecutableTypes()) {
-					testPlayerExecutableType(player, executableType);
+				Path executable;
+				if (Platform.isWindows()) {
+					String[] validExtensions = {"exe", "com", "bat"};
+					String extension = FileUtil.getExtension(player.executable());
+					if (extension == null || !Arrays.asList(validExtensions).contains(extension.toLowerCase())) {
+						executable = Paths.get(player.executable() + ".exe");
+					} else {
+						executable = Paths.get(player.executable());
+					}
+				} else if (player.avisynth()) {
+					LOGGER.debug("Skipping transcoding engine {} as it's not compatible with this platform");
+					player.setAvailable(false);
+					return;
+				} else {
+					executable = Paths.get(player.executable());
 				}
-				player.determineCurrentExecutableType();
-			} finally {
-				programInfoLock.writeLock().unlock();
+
+				try {
+					FilePermissions permissions = new FilePermissions(executable);
+					ok = permissions.isExecutable();
+					if (!ok) {
+						LOGGER.warn(
+							"Insufficient permission to execute \"{}\" for transcoding engine {}",
+							executable.toAbsolutePath(),
+							player
+						);
+					} else if (Platform.isWindows() && player.avisynth()) {
+						ok = utils.isAvis();
+						if (!ok) {
+							LOGGER.warn("Transcoding engine {} is unavailable since AviSynth couldn't be found", player);
+						}
+					}
+				} catch (FileNotFoundException e) {
+					LOGGER.warn(
+						"Executable \"{}\" of transcoding engine {} not found: {}",
+						executable.toAbsolutePath(),
+						player,
+						e.getMessage()
+					);
+					LOGGER.trace("", e);
+				}
 			}
 
-			if (player.isAvailable()) {
-				LOGGER.info("Transcoding engine \"{}\" is available", player);
-			} else {
-				LOGGER.warn("Transcoding engine \"{}\" is not available", player);
+			player.setAvailable(ok);
+			if (ok) {
+				LOGGER.info("Registering transcoding engine: {}", player);
 			}
 
 			// Sort the players according to the configuration settings. This
@@ -190,33 +227,9 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Runs tests on the executable of the specified
-	 * {@link ProgramExecutableType} for the specified {@link Player}.
-	 *
-	 * @param player the {@link Player} whose executable to test.
-	 * @param executableType the {@link ProgramExecutableType} to test.
-	 */
-	protected static void testPlayerExecutableType(
-		@Nullable Player player,
-		@Nullable ProgramExecutableType executableType
-	) {
-		if (player == null || executableType == null || !player.getProgramInfo().containsType(executableType, true)) {
-			return;
-		}
-		if (!player.testPlayer(executableType) && player.getProgramInfo().getExecutableInfo(executableType) != null) {
-			// Unavailability can only be set it the ExecutableInfo in non-null.
-			player.setUnavailable(
-				executableType,
-				ExecutableErrorType.GENERAL,
-				String.format(Messages.getString("Engine.NotTested"), player)
-			);
-		}
-	}
-
-	/**
-	 * Used to (re)sort {@link #PLAYERS} every time either {@link #PLAYERS} or
-	 * {@link PmsConfiguration#enginesPriority} has changed so that
-	 * {@link #PLAYERS} are always sorted according to priority.
+	 * Used to (re)sort {@link #PLAYERS} every time either {@link #PLAYERS}
+	 * or {@link PmsConfiguration#enginesPriority} has changed so that
+	 * {@link #PLAYERS} always is sorted according to priority.
 	 */
 	public static void sortPlayers() {
 		PLAYERS_LOCK.writeLock().lock();
@@ -228,8 +241,8 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Returns a copy of the list of all {@link Player}s. This includes the ones
-	 * not verified as being okay.
+	 * Returns the a copy of the list of all {@link Player}s. This includes the
+	 * ones not verified as being okay.
 	 *
 	 * @return A {@link List} of {@link Player}s.
 	 */
@@ -275,51 +288,14 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Checks if a {@link Player} of the given type is registered.
-	 *
-	 * @param id the {@link Player} type to check for.
-	 * @return The result.
-	 */
-	public static boolean isPlayerRegistered(Player player) {
-		if (player == null) {
-			return false;
-		}
-		return isPlayerRegistered(player.id());
-	}
-
-	/**
-	 * Checks if a {@link PlayerId} is registered.
-	 *
-	 * @param id the {@link PlayerId} to check for.
-	 * @return The result.
-	 */
-	public static boolean isPlayerRegistered(PlayerId id) {
-		if (id == null) {
-			return false;
-		}
-
-		PLAYERS_LOCK.readLock().lock();
-		try {
-			for (Player player : PLAYERS) {
-				if (id.equals(player.id())) {
-					return true;
-				}
-			}
-			return false;
-		} finally {
-			PLAYERS_LOCK.readLock().unlock();
-		}
-	}
-
-	/**
 	 * Checks if a {@link Player} of the given type is both available and
 	 * enabled.
 	 *
 	 * @param id the {@link Player} type to check for.
 	 * @return The result.
 	 */
-	public static boolean isPlayerActive(PlayerId id) {
-		if (id == null) {
+	public static boolean isPlayerActive(String id) {
+		if (isBlank(id)) {
 			return false;
 		}
 
@@ -337,30 +313,6 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Checks if a {@link Player} of the given type is both available.
-	 *
-	 * @param id the {@link Player} type to check for.
-	 * @return The result.
-	 */
-	public static boolean isPlayerAvailable(PlayerId id) {
-		if (id == null) {
-			return false;
-		}
-
-		PLAYERS_LOCK.readLock().lock();
-		try {
-			for (Player player : PLAYERS) {
-				if (id.equals(player.id())) {
-					return player.isAvailable();
-				}
-			}
-			return false;
-		} finally {
-			PLAYERS_LOCK.readLock().unlock();
-		}
-	}
-
-	/**
 	 * Returns the {@link Player} that matches the given {@code id} if it exists
 	 * and is enabled and available. If no {@link Player} is found or it isn't
 	 * enabled and available, {@code null} is returned.
@@ -368,7 +320,7 @@ public final class PlayerFactory {
 	 * @param id the {@link Player} type to check for.
 	 * @return The {@link Player} if found or {@code null}.
 	 */
-	public static Player getActivePlayer(PlayerId id) {
+	public static Player getActivePlayer(String id) {
 		return getPlayer(id, true, true);
 	}
 
@@ -379,12 +331,12 @@ public final class PlayerFactory {
 	 *
 	 * @param id the {@link Player} type to check for.
 	 * @param onlyEnabled whether or not to filter on enabled {@link Player}s.
-	 * @param onlyAvailable whether or not to filter on available {@link Player}s.
+	 * @param onlyAvailable whether or not to filter on available
+	 *        {@link Player}s.
 	 * @return The {@link Player} if found or {@code null}.
 	 */
-	@Nullable
-	public static Player getPlayer(@Nullable PlayerId id, boolean onlyEnabled, boolean onlyAvailable) {
-		if (id == null) {
+	public static Player getPlayer(String id, boolean onlyEnabled, boolean onlyAvailable) {
+		if (isBlank(id)) {
 			return null;
 		}
 		PLAYERS_LOCK.readLock().lock();
@@ -404,14 +356,15 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Returns the first {@link Player} that matches the given
-	 * {@link DLNAResource}. Each of the available {@link Player} instances are
-	 * passed the provided information and the first that reports that it is
-	 * compatible will be returned.
+	 * Returns the first {@link Player} that matches the given mediaInfo or
+	 * format. Each of the available players is passed the provided information
+	 * and the first that reports it is compatible will be returned.
 	 *
-	 * @param resource the {@link DLNAResource} to match.
-	 * @return The {@link Player} if a match could be found, {@code null}
+	 * @param resource
+	 *            The {@link DLNAResource} to match
+	 * @return The player if a match could be found, <code>null</code>
 	 *         otherwise.
+	 * @since 1.60.0
 	 */
 	public static Player getPlayer(final DLNAResource resource) {
 		if (resource == null) {
@@ -435,9 +388,8 @@ public final class PlayerFactory {
 						// Player is enabled and compatible
 						LOGGER.trace("Returning compatible player \"{}\"", player.name());
 						return player;
-					} else if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Player \"{}\" is incompatible", player.name());
 					}
+					LOGGER.trace("Player \"{}\" is incompatible", player.name());
 				} else if (LOGGER.isTraceEnabled()) {
 					if (available) {
 						LOGGER.trace("Player \"{}\" is disabled", player.name());
@@ -458,39 +410,15 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Gets the currently active executable for a registered {@link Player} or
-	 * {@code null} if the no such {@link Player} is registered.
-	 *
-	 * @param id the {@link PlayerId} to use for lookup.
-	 * @return the executable {@link String} or {@code null}.
-	 */
-	public static String getPlayerExecutable(final PlayerId id) {
-		if (id == null) {
-			return null;
-		}
-
-		PLAYERS_LOCK.readLock().lock();
-		try {
-			for (Player player : PLAYERS) {
-				if (id.equals(player.id())) {
-					return player.getExecutable();
-				}
-			}
-		} finally {
-			PLAYERS_LOCK.readLock().unlock();
-		}
-		return null;
-	}
-
-	/**
 	 * Returns all {@link Player}s that match the given resource and are
-	 * enabled. Each of the available {@link Player}s are passed the provided
-	 * information and each {@link Player} that reports that it is compatible
-	 * will be returned.
+	 * enabled. Each of the available players is passed the provided information
+	 * and each player that reports it is compatible will be returned.
 	 *
-	 * @param resource the {@link DLNAResource} to match.
-	 * @return A list of compatible {@link Player}s if a match could be found,
-	 *         {@code null} otherwise.
+	 * @param resource
+	 *        The {@link DLNAResource} to match
+	 * @return The list of compatible players if a match could be found,
+	 *         <code>null</code> otherwise.
+	 * @since 1.60.0
 	 */
 	public static ArrayList<Player> getPlayers(final DLNAResource resource) {
 		if (resource == null) {
@@ -514,80 +442,13 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * {@link ExternalProgramInfo} instances can be shared among several
-	 * {@link Player} instances, typically when they use the same executable.
-	 * <p>
-	 * When a {@link ProgramExecutableType#CUSTOM} {@link Path} is changed, it
-	 * affects all {@link Player} instance that shares that
-	 * {@link ExternalProgramInfo} instance. As a result, tests must be rerun
-	 * and the current/effective {@link ProgramExecutableType} must be
-	 * reevaluated for all affected {@link Player} instances.
-	 * <p>
-	 * This method uses the specified {@link Player} instance that
-	 * triggered/initiated the change as a starting point and finds all affected
-	 * {@link Player} instances. It then sets the new default
-	 * {@link ProgramExecutableType}, rerun the appropriate tests and
-	 * reevaluates the current/effective {@link ProgramExecutableType} for all
-	 * affected {@link Player} instances.
+	 * @deprecated Use {@link #getPlayers(DLNAResource)} instead.
 	 *
-	 * @param player the {@link Player} whose executable to test.
-	 * @return {@code true} if a test was performed, {@code false} otherwise.
-	 * @throws InterruptedException If the operation is interrupted.
+	 * @param resource the resource to match
+	 * @return The list of players if a match could be found, null otherwise.
 	 */
-	public static void reEvaluateExecutable(
-		@Nonnull Player triggeringPlayer,
-		@Nullable ProgramExecutableType changedType,
-		@Nullable DefaultExecutableType defaultType
-	) {
-		if (triggeringPlayer == null) {
-			throw new IllegalArgumentException("triggeringPlayer cannot be null");
-		}
-		ExternalProgramInfo programInfo = triggeringPlayer.getProgramInfo();
-		ArrayList<Player> affectedPlayers = new ArrayList<>();
-		PLAYERS_LOCK.readLock().lock();
-		try {
-			for (Player player : PLAYERS) {
-				if (player.getProgramInfo() == programInfo) {
-					affectedPlayers.add(player);
-				}
-			}
-		} finally {
-			PLAYERS_LOCK.readLock().unlock();
-		}
-		ReentrantReadWriteLock programInfoLock = programInfo.getLock();
-		// Lock for consistency during reevaluation
-		programInfoLock.writeLock().lock();
-		try {
-			if (defaultType != null) {
-				switch (defaultType) {
-					case CUSTOM:
-						programInfo.setDefault(ProgramExecutableType.CUSTOM);
-						break;
-					case ORIGINAL:
-						programInfo.setOriginalDefault();
-						break;
-					case NONE:
-					default:
-						break;
-				}
-			}
-
-			Set<ProgramExecutableType> retestTypes;
-			if (changedType == null) {
-				retestTypes = EnumSet.allOf(ProgramExecutableType.class);
-			} else {
-				retestTypes = Collections.singleton(changedType);
-			}
-
-			for (Player player : affectedPlayers) {
-				for (ProgramExecutableType executableType : retestTypes) {
-					player.clearSpecificErrors(executableType);
-					testPlayerExecutableType(player, executableType);
-				}
-				player.determineCurrentExecutableType();
-			}
-		} finally {
-			programInfoLock.writeLock().unlock();
-		}
+	@Deprecated
+	public static ArrayList<Player> getEnabledPlayers(final DLNAResource resource) {
+		return getPlayers(resource);
 	}
 }

@@ -1,4 +1,4 @@
-package net.pms.service;
+package net.pms.util;
 
 import java.util.Locale;
 import net.pms.Messages;

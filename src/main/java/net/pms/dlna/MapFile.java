@@ -213,7 +213,7 @@ public class MapFile extends DLNAResource {
 	 *         otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
-		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
+		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName, LetterCase.LOWER, Locale.ROOT));
 	}
 
 	private void manageFile(File f, boolean isAddGlobally) {

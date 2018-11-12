@@ -25,11 +25,7 @@ import net.pms.util.PlayerUtil;
 
 /* XXX this is the old/obsolete VLC web audio streaming engine */
 public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
-	public static final PlayerId ID = StandardPlayerId.VLC_AUDIO_STREAMING;
-
-	/** The {@link Configuration} key for the VLC Legacy Web Audio executable type. */
-	public static final String KEY_VLC_LEGACY_AUDIO_EXECUTABLE_TYPE = "vlc_legacy_audio_executable_type";
-	public static final String NAME = "VLC Web Audio (Legacy)";
+	public static final String ID = "VLCAudio";
 
 	@Deprecated
 	public VideoLanAudioStreaming(PmsConfiguration configuration) {
@@ -45,17 +41,13 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	}
 
 	@Override
-	public PlayerId id() {
+	public String id() {
 		return ID;
 	}
 
 	@Override
-	public String getExecutableTypeKey() {
-		return KEY_VLC_LEGACY_AUDIO_EXECUTABLE_TYPE;
-	}
-	@Override
 	public String name() {
-		return NAME;
+		return "VLC Web Audio (Legacy)";
 	}
 
 	@Override
@@ -78,6 +70,9 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 		return "wav";
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebAudio(resource);

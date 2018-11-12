@@ -28,381 +28,188 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.AccessMode;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.EnumSet;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An object that encapsulates file permissions for a {@link File} or
- * {@link Path} object. If there are insufficient permission to read the
- * object's permissions, all permissions will return {@code false} (even though
- * some of them might be true) and no {@link Exception} will be thrown. This is
- * due to limitations in the underlying methods.
+ * An object that encapsulates file permissions for a <code>File</code> object.
+ * If there are insufficient permission to read the <code>File</code> object's
+ * permissions, all permissions will return false (even though some of them
+ * might be true) and no <code>Exception</code> will be thrown.
+ * This is due to limitations in the underlying methods.
  *
  * @author Nadahar
+ * @threadsafe
  */
-@ThreadSafe
 public class FilePermissions {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissions.class);
+	private final File file;
 	private final Path path;
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	@GuardedBy("lock")
+	private Boolean read = null;
+	private Boolean write = null;
+	private Boolean execute = null;
+	private final boolean folder;
 	private String lastCause = null;
-	@GuardedBy("lock")
-	private boolean readChecked = false;
-	@GuardedBy("lock")
-	private boolean writeChecked = false;
-	@GuardedBy("lock")
-	private boolean executeChecked = false;
+	private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissions.class);
 
-	@GuardedBy("lock")
-	private final EnumSet<FileFlag> flags = EnumSet.noneOf(FileFlag.class);
-
-	/**
-	 * Creates a new instance representing the file permissions of the specified
-	 * {@link File}. The implementation is lazy; no permission is being
-	 * evaluated until its value is requested and only the requested permission
-	 * is evaluated. Evaluated values are cached, so the check is only performed
-	 * once unless {@link #refresh()} is called in which case all cached values
-	 * are cleared.
-	 *
-	 * @param file the {@link File} for which to retrieve permissions.
-	 * @throws FileNotFoundException If {@code file} doesn't exist.
-	 */
 	public FilePermissions(File file) throws FileNotFoundException {
 		if (file == null) {
-			throw new IllegalArgumentException("file cannot be null");
+			throw new IllegalArgumentException("File argument cannot be null");
 		}
-		/*
-		 *  Go via .getAbsoluteFile() to work around a bug where new File("")
+		/* Go via .getAbsoluteFile() to work around a bug where new File("")
 		 * (current folder) will report false to isDirectory().
 		 */
-		file = file.getAbsoluteFile();
-		if (!file.exists()) {
-			throw new FileNotFoundException("File \"" + file + "\" not found");
+		this.file = file.getAbsoluteFile();
+		if (!this.file.exists()) {
+			throw new FileNotFoundException("File \"" + this.file.getAbsolutePath() + "\" not found");
 		}
-		path = file.toPath();
-
-		lock.writeLock().lock();
-		try {
-			if (file.isDirectory()) {
-				flags.add(FileFlag.FOLDER);
-			} else if (file.isFile()) {
-				flags.add(FileFlag.FILE);
-			}
-		} finally {
-			lock.writeLock().unlock();
-		}
+		path = this.file.toPath();
+		folder = this.file.isDirectory();
 	}
 
-	/**
-	 * Creates a new instance representing the file permissions of the specified
-	 * {@link Path}. The implementation is lazy; no permission is being
-	 * evaluated until its value is requested and only the requested permission
-	 * is evaluated. Evaluated values are cached, so the check is only performed
-	 * once unless {@link #refresh()} is called in which case all cached values
-	 * are cleared.
-	 *
-	 * @param path the {@link Path} for which to retrieve permissions.
-	 * @param options Any {@link LinkOption}s to use when resolving {@code path}
-	 *            .
-	 * @throws FileNotFoundException If {@code path} doesn't exist.
-	 */
-	public FilePermissions(Path path, LinkOption... options) throws FileNotFoundException {
+	public FilePermissions(Path path) throws FileNotFoundException {
 		if (path == null) {
 			throw new IllegalArgumentException("Path argument cannot be null");
 		}
-		if (!Files.exists(path)) {
-			throw new FileNotFoundException("File \"" + path + "\" not found");
-		}
 		this.path = path;
-		lock.writeLock().lock();
-		try {
-			if (Files.isDirectory(path, options)) {
-				flags.add(FileFlag.FOLDER);
-			} else if (Files.isRegularFile(path, options)) {
-				flags.add(FileFlag.FILE);
-			}
-		} finally {
-			lock.writeLock().unlock();
+		if (!Files.exists(this.path)) {
+			throw new FileNotFoundException("File \"" + this.path + "\" not found");
 		}
+		file = path.toFile();
+		folder = Files.isDirectory(this.path);
 	}
 
+	/**
+	 * Must always be called in a synchronized context
+	 */
 	private void checkPermissions(boolean checkRead, boolean checkWrite, boolean checkExecute) {
-		lock.readLock().lock();
-		try {
-			if (
-				(!checkRead || readChecked) &&
-				(!checkWrite || writeChecked) &&
-				(!checkExecute || executeChecked)
-			) {
-				return;
-			}
-		} finally {
-			lock.readLock().unlock();
-		}
-		lock.writeLock().lock();
-		try {
-			boolean checkBrowse =
-				checkRead && !readChecked && (checkExecute || executeChecked) ||
-				checkExecute && !executeChecked && (checkRead || readChecked);
-			if (!readChecked && checkRead) {
-				try {
-					path.getFileSystem().provider().checkAccess(path, AccessMode.READ);
-					flags.add(FileFlag.READ);
-				} catch (AccessDeniedException e) {
-					if (path.toString().equals(e.getMessage())) {
-						lastCause = "Insufficient permission to read permissions";
-					} else if ("Permissions does not allow requested access".equals(e.getMessage())) {
-						lastCause = "Permissions do not allow read access";
-					} else {
-						lastCause = e.getMessage();
-					}
-				} catch (IOException e) {
+
+		if (read == null && checkRead) {
+			try {
+				path.getFileSystem().provider().checkAccess(path, AccessMode.READ);
+				read = true;
+			} catch (AccessDeniedException e) {
+				if (path.toString().equals(e.getMessage())) {
+					lastCause = "Insufficient permission to read permissions";
+				} else if ("Permissions does not allow requested access".equals(e.getMessage())) {
+					lastCause = "Permissions don't allow read access";
+				} else {
 					lastCause = e.getMessage();
 				}
-				readChecked = true;
+				read = false;
+			} catch (IOException e) {
+				lastCause = e.getMessage();
+				read = false;
 			}
-			if (!writeChecked && checkWrite) {
+		}
+		if (write == null && checkWrite) {
+			try {
+				path.getFileSystem().provider().checkAccess(path, AccessMode.WRITE);
+				write = true;
+			} catch (AccessDeniedException e) {
+				if (e.getMessage().endsWith("Permissions does not allow requested access")) {
+					lastCause = "Permissions don't allow write access";
+				} else {
+					lastCause = e.getMessage();
+				}
+				write = false;
+			} catch (FileSystemException e) {
+				// A workaround for https://bugs.openjdk.java.net/browse/JDK-8034057
+				// and similar bugs, if we can't determine it the nio way, fall
+				// back to actually testing it.
+				LOGGER.trace(
+					"Couldn't determine write permissions for \"{}\", falling back to write testing. The error was: {}",
+					path.toString(),
+					e.getMessage()
+				);
+				if (folder) {
+					write = testFolderWritable();
+				} else {
+					write = testFileWritable(file);
+				}
+			} catch (IOException e) {
+				lastCause = e.getMessage();
+				write = false;
+			}
+		}
+		if (execute == null && checkExecute) {
+			// To conform to the fact that on Linux root always implicit
+			// execute permission regardless of explicit permissions
+			if (Platform.isLinux() && FileUtil.isAdmin()) {
+				execute = true;
+			} else {
 				try {
-					path.getFileSystem().provider().checkAccess(path, AccessMode.WRITE);
-					flags.add(FileFlag.WRITE);
+					path.getFileSystem().provider().checkAccess(path, AccessMode.EXECUTE);
+					execute = true;
 				} catch (AccessDeniedException e) {
 					if (e.getMessage().endsWith("Permissions does not allow requested access")) {
-						lastCause = "Permissions do not allow write access";
+						lastCause = "Permissions don't allow execute access";
 					} else {
 						lastCause = e.getMessage();
 					}
-				} catch (FileSystemException e) {
-					// A workaround for https://bugs.openjdk.java.net/browse/JDK-8034057
-					// and similar bugs, if we can't determine it the NIO way, fall
-					// back to actually testing it.
-					LOGGER.debug(
-						"Couldn't determine write permissions for \"{}\", falling back to write testing. The error was: {}",
-						path.toString(),
-						e.getMessage()
-					);
-					if (isFolder()) {
-						if (testFolderWritable()) {
-							flags.add(FileFlag.WRITE);
-						}
-					} else {
-						if (testFileWritable(path.toFile())) {
-							flags.add(FileFlag.WRITE);
-						}
-					}
+					execute = false;
 				} catch (IOException e) {
 					lastCause = e.getMessage();
+					execute = false;
 				}
-				writeChecked = true;
 			}
-			if (!executeChecked && checkExecute) {
-				// To conform to the fact that on Linux root always implicit
-				// execute permission regardless of explicit permissions
-				if (Platform.isLinux() && FileUtil.isAdmin()) {
-					flags.add(FileFlag.EXECUTE);
-				} else {
-					try {
-						path.getFileSystem().provider().checkAccess(path, AccessMode.EXECUTE);
-						flags.add(FileFlag.EXECUTE);
-					} catch (AccessDeniedException e) {
-						if (e.getMessage().endsWith("Permissions does not allow requested access")) {
-							lastCause = "Permissions do not allow execute access";
-						} else {
-							lastCause = e.getMessage();
-						}
-					} catch (IOException e) {
-						lastCause = e.getMessage();
-					}
-				}
-				executeChecked = true;
-			}
-			if (checkBrowse &&
-				flags.contains(FileFlag.FOLDER) &&
-				flags.contains(FileFlag.READ) &&
-				flags.contains(FileFlag.EXECUTE)
-			) {
-				flags.add(FileFlag.BROWSE);
-			}
-		} finally {
-			lock.writeLock().unlock();
 		}
 	}
 
 	/**
-	 * @return {@code true} if the file object is a folder, {@code false}
-	 *         otherwise.
+	 * @return Whether the <code>File</code> object this <code>FilePermission</code>
+	 * object represents is a folder.
 	 */
 	public boolean isFolder() {
-		lock.readLock().lock();
-		try {
-			return flags.contains(FileFlag.FOLDER);
-		} finally {
-			lock.readLock().unlock();
-		}
+		return folder;
 	}
 
 	/**
-	 * @return {@code true} if the file object is a regular file, {@code false}
-	 *         otherwise.
+	 * @return Whether the file or folder is readable in the current context.
 	 */
-	public boolean isFile() {
-		lock.readLock().lock();
-		try {
-			return flags.contains(FileFlag.FILE);
-		} finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	/**
-	 * @return {@code true} if the file object is readable, {@code false}
-	 *         otherwise.
-	 */
-	public boolean isReadable() {
+	public synchronized boolean isReadable() {
 		checkPermissions(true, false, false);
-		lock.readLock().lock();
-		try {
-			return flags.contains(FileFlag.READ);
-		} finally {
-			lock.readLock().unlock();
-		}
+		return read;
 	}
 
 	/**
-	 * @return {@code true} if the file object is writable, {@code false}
-	 *         otherwise.
+	 * @return Whether the file or folder is writable in the current context.
 	 */
-	public boolean isWritable() {
+	public synchronized boolean isWritable() {
 		checkPermissions(false, true, false);
-		lock.readLock().lock();
-		try {
-			return flags.contains(FileFlag.WRITE);
-		} finally {
-			lock.readLock().unlock();
-		}
+		return write;
 	}
 
 	/**
-	 * @return {@code true} if the file object is a file and is executable or is
-	 *         a folder and is browsable, {@code false} otherwise.
+	 * @return Whether the file is executable in the current context, or if
+	 * folder listing is permitted in the current context if it's a folder.
 	 */
-	public boolean isExecutable() {
+	public synchronized boolean isExecutable() {
 		checkPermissions(false, false, true);
-		lock.readLock().lock();
-		try {
-			return flags.contains(FileFlag.EXECUTE);
-		} finally {
-			lock.readLock().unlock();
-		}
+		return execute;
 	}
 
 	/**
-	 * @return {@code true} if the file object is a file and is readable and
-	 *         executable, {@code false} otherwise.
+	 * @return Whether the listing of the folder's content is permitted.
+	 * For this to be <code>true</code> {@link #isFolder()}, {@link #isReadable()}
+	 * and {@link #isExecutable()} must be true.
 	 */
-	public boolean isExecutableFile() {
+	public synchronized boolean isBrowsable() {
 		checkPermissions(true, false, true);
-		lock.readLock().lock();
-		try {
-			return flags.contains(FileFlag.FILE) && flags.contains(FileFlag.READ) && flags.contains(FileFlag.EXECUTE);
-		} finally {
-			lock.readLock().unlock();
-		}
+		return folder && read && execute;
 	}
 
 	/**
-	 * @return {@code true} if the file object is a folder and listing of the
-	 *         its content is permitted, {@code false} otherwise.
-	 */
-	public boolean isBrowsable() {
-		checkPermissions(true, false, true);
-		lock.readLock().lock();
-		try {
-			return flags.contains(FileFlag.BROWSE);
-		} finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	/**
-	 * Makes sure that the specified file permissions are evaluated and returns
-	 * an {@link EnumSet} containing the permissions and properties of the file
-	 * object. {@code checkFlag} isn't a filter but a way to make sure that only
-	 * the permissions that are needed are evaluated, so that any permissions
-	 * that has previously been evaluated will be included even if they aren't
-	 * specified.
-	 * <p>
-	 * If no {@code checkFlag} is specified, all permissions will be evaluated.
-	 *
-	 * @param checkFlag the {@link FileFlag}s indicating which permissions to check.
-	 * @return An {@link EnumSet} containing the permissions for the file object
-	 *         that are present and have been evaluated. There is no way to
-	 *         differentiate between a permission that isn't evaluated and one
-	 *         that isn't granted, in both cases it won't be in the returned
-	 *         {@link EnumSet}.
-	 */
-	@Nonnull
-	public EnumSet<FileFlag> getFlags(FileFlag... checkFlag) {
-		boolean checkRead = checkFlag.length == 0;
-		boolean checkWrite = checkFlag.length == 0;
-		boolean checkExecute = checkFlag.length == 0;
-		for (FileFlag flag : checkFlag) {
-			switch (flag) {
-				case BROWSE:
-					checkRead = true;
-					checkExecute = true;
-					break;
-				case EXECUTE:
-					checkExecute = true;
-					break;
-				case FILE:
-					if (!isFile()) {
-						return EnumSet.noneOf(FileFlag.class);
-					}
-					break;
-				case FOLDER:
-					if (!isFolder()) {
-						return EnumSet.noneOf(FileFlag.class);
-					}
-					break;
-				case READ:
-					checkRead = true;
-					break;
-				case WRITE:
-					checkWrite = true;
-					break;
-				default:
-					throw new AssertionError("Flag " + flag.name() + "isn't implemented", null);
-			}
-		}
-		checkPermissions(checkRead, checkWrite, checkExecute);
-		lock.readLock().lock();
-		try {
-			return flags.clone();
-		} finally {
-			lock.readLock().unlock();
-		}
-	}
-
-	/**
-	 * @return The object this {@link FilePermissions} instance represents as a
-	 *         {@link File}.
+	 * @return The <code>File</code> object this <code>FilePermission</code>
+	 * object represents.
 	 */
 	public File getFile() {
-		return path.toFile();
+		return file;
 	}
 
 	/**
-	 * @return The object this {@link FilePermissions} instance represents as a
-	 *         {@link Path}.
+	 * @return The <code>Path</code> object this <code>FilePermission</code>
+	 * object represents.
 	 */
 	public Path getPath() {
 		return path;
@@ -411,84 +218,51 @@ public class FilePermissions {
 	/**
 	 * Re-reads file or folder permissions in case they have changed.
 	 */
-	public void refresh() {
-		lock.writeLock().lock();
-		try {
-			flags.clear();
-			readChecked = false;
-			writeChecked = false;
-			executeChecked = false;
-			lastCause = null;
-		} finally {
-			lock.writeLock().unlock();
-		}
+	public synchronized void refresh() {
+		read = null;
+		write = null;
+		execute = null;
+		lastCause = null;
 	}
 
-	/**
-	 * @return The {@link String} containing the last cause why a permission
-	 *         isn't available of {@code null} if none exists.
-	 */
-	@Nullable
-	public String getLastCause() {
-		lock.readLock().lock();
-		try {
-			return lastCause;
-		} finally {
-			lock.readLock().unlock();
-		}
+	public synchronized String getLastCause() {
+		return lastCause;
 	}
 
 	@Override
-	public String toString() {
-		return toString(false);
-	}
-
-	/**
-	 * Returns a {@link String} representation of this {@link FilePermissions}
-	 * instance in POSIX notation ({@code "drwx"}).
-	 *
-	 * @param debug if {@code true}, will show the current state without first
-	 *            evaluating unresolved permissions. Unknown permissions will be
-	 *            shown as {@code "?"}.
-	 * @return The POSIX {@link String} representation.
-	 */
-	public String toString(boolean debug) {
-		if (!debug) {
-			checkPermissions(true, true, true);
-		}
+	public synchronized String toString() {
+		checkPermissions(true, true, true);
 		StringBuilder sb = new StringBuilder();
-		lock.readLock().lock();
-		try {
-			sb.append(flags.contains(FileFlag.FOLDER) ? "d" : "-");
-			if (!readChecked) {
-				sb.append('?');
-			} else {
-				sb.append(flags.contains(FileFlag.READ) ? "r" : "-");
-			}
-			if (!writeChecked) {
-				sb.append('?');
-			} else {
-				sb.append(flags.contains(FileFlag.WRITE) ? "w" : "-");
-			}
-			if (!executeChecked) {
-				sb.append('?');
-			} else {
-				sb.append(flags.contains(FileFlag.EXECUTE) ? "x" : "-");
-			}
-		} finally {
-			lock.readLock().unlock();
+		sb.append(folder ? "d" : "-");
+		if (read == null) {
+			sb.append('?');
+		} else {
+			sb.append(read ? "r" : "-");
+		}
+		if (write == null) {
+			sb.append('?');
+		} else {
+			sb.append(write ? "w" : "-");
+		}
+		if (execute == null) {
+			sb.append('?');
+		} else {
+			sb.append(execute ? "x" : "-");
 		}
 		return sb.toString();
 	}
 
+	/**
+	 * Must always be called in a synchronized context
+	 */
 	private boolean testFolderWritable() {
-		if (!isFolder()) {
-			throw new IllegalStateException("testFolderWriteable can only be called on a folder");
+		if (!folder) {
+			throw new IllegalStateException("Can only be called on a folder");
 		}
 		boolean isWritable = false;
 
 		File file = new File(
-			this.path.toFile(),
+			this.file,
 			String.format(
 				"UMS_folder_write_test_%d_%d.tmp",
 				System.currentTimeMillis(),
@@ -503,8 +277,7 @@ public class FilePermissions {
 				}
 
 				if (!file.delete()) {
-					LOGGER.error("Couldn't delete temporary test file: \"{}\"", file.getAbsolutePath());
-					file.deleteOnExit();
+					LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
 				}
 			}
 		} catch (IOException e) {
@@ -514,6 +287,9 @@ public class FilePermissions {
 		return isWritable;
 	}
 
+	/**
+	 * Must always be called in a synchronized context
+	 */
 	private boolean testFileWritable(File file) {
 		file = file.getAbsoluteFile();
 		if (file.isDirectory()) {
@@ -533,7 +309,6 @@ public class FilePermissions {
 				if (!fileAlreadyExists) { // a new file has been "touched"; try to remove it
 					if (!file.delete()) {
 						LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
-						file.deleteOnExit();
 					}
 				}
 			} catch (IOException e) {
@@ -544,31 +319,5 @@ public class FilePermissions {
 		}
 
 		return isWritable;
-	}
-
-	/**
-	 * Flags used to represent a file object's permission or property.
-	 *
-	 * @author Nadahar
-	 */
-	public enum FileFlag {
-
-		/** Read permission */
-		READ,
-
-		/** Write permission */
-		WRITE,
-
-		/** Execute permission */
-		EXECUTE,
-
-		/** Browse permission */
-		BROWSE,
-
-		/** Is a file */
-		FILE,
-
-		/** Is a folder */
-		FOLDER;
 	}
 }

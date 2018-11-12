@@ -169,11 +169,11 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String user, HttpExchange t) throws InterruptedException {
+	public RootFolder getRoot(String user, HttpExchange t) {
 		return getRoot(user, false, t);
 	}
 
-	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
+	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
 		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root;
 		synchronized (roots) {

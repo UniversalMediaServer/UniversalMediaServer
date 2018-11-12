@@ -27,9 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An {@link OutputConsumer} implementation that writes to a byte array. The
- * byte array will grow as needed, but as always: growing is expensive. A
- * reasonable default buffer size should be given in
+ * An {@link OutputConsumer} implementation writing to a byte array. The byte
+ * array will grow as needed, but as always: growing is expensive. A reasonable
+ * default buffer size should be given in
  * {@code params.outputByteArrayStreamBufferSize}.
  *
  * @author Nadahar
@@ -41,12 +41,6 @@ public class ByteArrayOutputStreamConsumer extends OutputConsumer {
 	private BufferedOutputByteArrayImpl outputBuffer;
 	private final int bufferSize;
 
-	/**
-	 * Creates a new instance.
-	 *
-	 * @param inputStream the {@link InputStream} to consume.
-	 * @param params the {@link OutputParams} to use.
-	 */
 	public ByteArrayOutputStreamConsumer(InputStream inputStream, OutputParams params) {
 		super(inputStream);
 		bufferSize = params.outputByteArrayStreamBufferSize > 512 ? params.outputByteArrayStreamBufferSize : 512;
@@ -56,7 +50,7 @@ public class ByteArrayOutputStreamConsumer extends OutputConsumer {
 	@Override
 	public void run() {
 		try {
-			byte[] bytes = new byte[Math.min(Math.max(512, bufferSize / 8), 64000)];
+			byte[] bytes = new byte[Math.min(Math.max(512, bufferSize/8), 64000)];
 			int n = 0;
 			while ((n = inputStream.read(bytes)) > 0) {
 				outputBufferLock.writeLock().lock();

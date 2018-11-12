@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -30,11 +29,9 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 import net.pms.Messages;
 import net.pms.encoders.Player;
-import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +55,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 	public String id() {
 		if (player != null) {
-			return player.id().toString();
+			return player.id();
 		} else if (otherConfigPanel != null) {
 			return "" + otherConfigPanel.hashCode();
 		} else {
@@ -70,8 +67,9 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 		if (player != null) {
 			if (player.isAvailable()) {
 				return player.config();
+			} else {
+				return getWarningPanel();
 			}
-			return getWarningPanel();
 		} else if (otherConfigPanel != null) {
 			return otherConfigPanel;
 		} else {
@@ -79,22 +77,22 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 		}
 	}
 
-	private JPanel getWarningPanel() {
+	public JPanel getWarningPanel() {
 		if (warningPanel == null) {
-			BufferedImage warningIcon = null;
+			BufferedImage bi = null;
 
 			try {
-				warningIcon = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/icon-status-warning.png"));
+				bi = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/icon-status-warning.png"));
 			} catch (IOException e) {
 				LOGGER.debug("Error reading icon-status-warning: ", e.getMessage());
 				LOGGER.trace("", e);
 			}
 
-			ImagePanel iconPanel = new ImagePanel(warningIcon);
+			ImagePanel ip = new ImagePanel(bi);
 
 			FormLayout layout = new FormLayout(
-				"10dlu, pref, 10dlu, pref:grow, 10dlu",
-				"5dlu, pref, 3dlu, pref:grow, 5dlu"
+				"0:grow, pref, 0:grow",
+				"pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p"
 			);
 
 			PanelBuilder builder = new PanelBuilder(layout);
@@ -102,20 +100,12 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 			builder.opaque(false);
 			CellConstraints cc = new CellConstraints();
 
-			builder.add(iconPanel, cc.xywh(2, 1, 1, 4, CellConstraints.CENTER, CellConstraints.TOP));
+			JLabel jl = new JLabel(Messages.getString("TreeNodeSettings.4"));
+			builder.add(jl, cc.xy(2, 1, "center, fill"));
+			jl.setFont(jl.getFont().deriveFont(Font.BOLD));
 
-			JLabel warningLabel = new JLabel(Messages.getString("TreeNodeSettings.4"));
-			builder.add(warningLabel, cc.xy(4, 2, CellConstraints.LEFT, CellConstraints.CENTER));
-			warningLabel.setFont(warningLabel.getFont().deriveFont(Font.BOLD));
+			builder.add(ip, cc.xy(2, 3, "center, fill"));
 
-			if (StringUtil.hasValue(player.getStatusTextFull())) {
-				JTextArea stateText = new JTextArea(player.getStatusTextFull());
-				stateText.setPreferredSize(new Dimension());
-				stateText.setEditable(false);
-				stateText.setLineWrap(true);
-				stateText.setWrapStyleWord(true);
-				builder.add(stateText, cc.xy(4, 4, CellConstraints.FILL, CellConstraints.FILL));
-			}
 			warningPanel = builder.getPanel();
 		}
 

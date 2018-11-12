@@ -28,19 +28,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.util.FilePermissions.FileFlag;
 import static net.pms.util.Constants.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Fail;
 import static org.junit.Assert.*;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +45,14 @@ import org.slf4j.LoggerFactory;
 public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
 
-	@BeforeClass
-	public static void SetUPClass() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the DMS code that is being tested
+	/**
+	 * Set up testing conditions before running the tests.
+	 *
+	 * @throws ConfigurationException
+	 */
+	@Before
+	public final void setUp() throws ConfigurationException {
+		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
 		PMS.get();
@@ -633,14 +635,5 @@ public class FileUtilTest {
 		assertEquals("DontAppendBackslash", "foo\\bar\\", FileUtil.appendPathSeparator("foo\\bar\\"));
 		assertEquals("AppendMissingSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar"));
 		assertEquals("DontAppendSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar/"));
-	}
-
-	@Test
-	public void testFindInPath() {
-		Path executable = Paths.get("java");
-		assertNotNull(FileUtil.findExecutableInOSPath(executable));
-		assertNotNull(FileUtil.findInOSPath(executable, true, FileFlag.FILE, FileFlag.EXECUTE));
-		assertNotNull(FileUtil.findInOSPath(executable, true, FileFlag.READ));
-		assertNotNull(FileUtil.findInOSPath(executable, true));
 	}
 }

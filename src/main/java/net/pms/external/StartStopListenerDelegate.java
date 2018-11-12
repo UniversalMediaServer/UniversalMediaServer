@@ -1,10 +1,10 @@
 // a utility class, instances of which trigger start/stop callbacks before/after streaming a resource
 package net.pms.external;
 
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.service.Services;
 
 public class StartStopListenerDelegate {
 	private final String rendererId;
@@ -36,9 +36,9 @@ public class StartStopListenerDelegate {
 		if (!started && ext != null && (ext.isVideo() || ext.isAudio())) {
 			dlna.startPlaying(rendererId, renderer);
 			started = true;
-			Services.sleepManager().startPlaying();
+			PMS.get().getSleepManager().startPlaying();
 		} else {
-			Services.sleepManager().postponeSleep();
+			PMS.get().getSleepManager().postponeSleep();
 		}
 	}
 
@@ -46,7 +46,7 @@ public class StartStopListenerDelegate {
 		if (started && !stopped) {
 			dlna.stopPlaying(rendererId, renderer);
 			stopped = true;
-			Services.sleepManager().stopPlaying();
+			PMS.get().getSleepManager().stopPlaying();
 		}
 	}
 }

@@ -16,10 +16,9 @@ public class UMSUtilsTest {
 	 * Set up testing conditions before running the tests.
 	 * @throws ConfigurationException
 	 */
-	@SuppressWarnings("static-method")
 	@Before
-	public final void setUp() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the DMS code that is being tested
+	public final void setUp() throws ConfigurationException {
+		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 		PMS.get();

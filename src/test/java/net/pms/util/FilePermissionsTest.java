@@ -43,7 +43,7 @@ public class FilePermissionsTest {
 	@Test
 	public void throwsIllegalArgumentExceptionIfFileIsNull() throws FileNotFoundException {
 		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage("file cannot be null");
+		exception.expectMessage("File argument cannot be null");
 		File file = null;
 		new FilePermissions(file);
 	}

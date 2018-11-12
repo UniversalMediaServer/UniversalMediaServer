@@ -59,10 +59,9 @@ public class RendererConfigurationTest {
 	 * .conf files it reads. This is done by feeding it known headers and
 	 * checking whether it recognizes the correct renderer.
 	 * @throws ConfigurationException
-	 * @throws InterruptedException
 	 */
 	@Test
-	public void testKnownHeaders() throws ConfigurationException, InterruptedException {
+	public void testKnownHeaders() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
 		pmsConf = new PmsConfiguration(false);
@@ -209,10 +208,9 @@ public class RendererConfigurationTest {
 	/**
 	 * Test recognition with a forced default renderer configured.
 	 * @throws ConfigurationException
-	 * @throws InterruptedException
 	 */
 	@Test
-	public void testForcedDefault() throws ConfigurationException, InterruptedException {
+	public void testForcedDefault() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
 		pmsConf = new PmsConfiguration(false);
@@ -236,10 +234,9 @@ public class RendererConfigurationTest {
 	/**
 	 * Test recognition with a forced bogus default renderer configured.
 	 * @throws ConfigurationException
-	 * @throws InterruptedException
 	 */
 	@Test
-	public void testBogusDefault() throws ConfigurationException, InterruptedException {
+	public void testBogusDefault() throws ConfigurationException {
 		PmsConfiguration pmsConf = null;
 
 		pmsConf = new PmsConfiguration(false);

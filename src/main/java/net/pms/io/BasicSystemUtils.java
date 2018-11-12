@@ -28,12 +28,10 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.PropertiesUtil;
-import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,29 +43,9 @@ import org.slf4j.LoggerFactory;
 public class BasicSystemUtils implements SystemUtils {
 	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
-	/** The singleton platform dependent {@link SystemUtils} instance */
-	public static SystemUtils INSTANCE = BasicSystemUtils.createInstance();
-
-	protected Path vlcPath;
-	protected Version vlcVersion;
-	protected boolean aviSynth;
-
-	protected static BasicSystemUtils createInstance() {
-		if (Platform.isWindows()) {
-			return new WinUtils();
-		}
-		if (Platform.isMac()) {
-			return new MacSystemUtils();
-		}
-		if (Platform.isSolaris()) {
-			return new SolarisUtils();
-		}
-		return new BasicSystemUtils();
-	}
-
-	/** Only to be instantiated by {@link BasicSystemUtils#createInstance()}. */
-	protected BasicSystemUtils() {
-	}
+	protected String vlcp;
+	protected String vlcv;
+	protected boolean avis;
 
 	@Override
 	public File getAvsPluginsDir() {
@@ -100,18 +78,35 @@ public class BasicSystemUtils implements SystemUtils {
 	}
 
 	@Override
-	public Path getVlcPath() {
-		return vlcPath;
+	@Deprecated
+	public String getVlcp() {
+		return getVlcPath();
 	}
 
 	@Override
-	public Version getVlcVersion() {
-		return vlcVersion;
+	@Deprecated
+	public String getVlcv() {
+		return getVlcVersion();
 	}
 
 	@Override
-	public boolean isAviSynthAvailable() {
-		return aviSynth;
+	public String getVlcPath() {
+		return vlcp;
+	}
+
+	@Override
+	public String getVlcVersion() {
+		return vlcv;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see net.pms.io.SystemUtils#isAvis()
+	 */
+	@Override
+	public boolean isAvis() {
+		return avis;
 	}
 
 	@Override
