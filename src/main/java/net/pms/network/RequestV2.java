@@ -674,11 +674,9 @@ public class RequestV2 extends HTTPResource {
 
 			StringBuilder payload = new StringBuilder();
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
-				payload.append(HTTPXMLHelper.XBOX_360_2);
-				payload.append(CRLF);
+				payload.append(HTTPXMLHelper.XBOX_360_2).append(CRLF);
 			} else if (soapaction != null && soapaction.contains("IsValidated")) {
-				payload.append(HTTPXMLHelper.XBOX_360_1);
-				payload.append(CRLF);
+				payload.append(HTTPXMLHelper.XBOX_360_1).append(CRLF);
 			}
 
 			response.append(createResponse(payload.toString()));
@@ -693,12 +691,9 @@ public class RequestV2 extends HTTPResource {
 
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				StringBuilder payload = new StringBuilder();
-				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER);
-				payload.append(CRLF);
-				payload.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>");
-				payload.append(CRLF);
-				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
-				payload.append(CRLF);
+				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
+				payload.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>").append(CRLF);
+				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER).append(CRLF);
 				response.append(createResponse(payload.toString()));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
 				response.append(samsungSetBookmarkHandler());
@@ -1151,14 +1146,10 @@ public class RequestV2 extends HTTPResource {
 	 */
 	private StringBuilder createResponse(String payload) {
 		StringBuilder response = new StringBuilder();
-		response.append(HTTPXMLHelper.XML_HEADER);
-		response.append(CRLF);
-		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-		response.append(CRLF);
-		response.append(payload);
-		response.append(CRLF);
-		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-		response.append(CRLF);
+		response.append(HTTPXMLHelper.XML_HEADER).append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER).append(CRLF);
+		response.append(payload).append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER).append(CRLF);
 		return response;
 	}
 
