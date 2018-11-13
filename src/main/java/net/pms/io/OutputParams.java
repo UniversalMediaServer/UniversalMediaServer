@@ -38,8 +38,8 @@ public class OutputParams {
 	private int fromFrame;
 	private int toFrame;
 	private int waitbeforestart;
-	private PipeProcess[] input_pipes = new PipeProcess[2];
-	private PipeProcess[] output_pipes = new PipeProcess[2];
+	private PipeProcess[] inputpipes = new PipeProcess[2];
+	private PipeProcess[] outputpipes = new PipeProcess[2];
 	private DLNAMediaAudio aid;
 	private DLNAMediaSubtitle sid;
 	private int secondread_minsize;
@@ -101,7 +101,7 @@ public class OutputParams {
 			", fromFrame=" + getFromFrame() + 
 			", header=" + Arrays.toString(getHeader()) + 
 			", hidebuffer=" + isHideBuffer() + 
-			", input_pipes=" + Arrays.toString(getInput_pipes()) + 
+			", input_pipes=" + Arrays.toString(getInputPipes()) + 
 			", log=" + isLog() + 
 			", losslessaudio=" + isLosslessAudio() + 
 			", lossyaudio=" + isLossyAudio() + 
@@ -112,7 +112,7 @@ public class OutputParams {
 			", no_videoencode=" + isNoVideoEncode() + 
 			", outputByteArrayStreamBufferSize= " + getOutputByteArrayStreamBufferSize() + 
 			", noexitcheck=" + isNoExitCheck() + 
-			", output_pipes=" + Arrays.toString(getOutput_pipes()) + 
+			", output_pipes=" + Arrays.toString(getOutputPipes()) + 
 			", secondread_minsize="	+ getSecondReadMinSize() + 
 			", shift_scr=" + isShiftSscr() + 
 			", sid=" + getSid() + 
@@ -205,20 +205,20 @@ public class OutputParams {
 		this.toFrame = toFrame;
 	}
 
-	public PipeProcess[] getOutput_pipes() {
-		return output_pipes;
+	public PipeProcess[] getOutputPipes() {
+		return outputpipes;
 	}
 
-	public void setOutputPipes(PipeProcess[] output_pipes) {
-		this.output_pipes = output_pipes;
+	public void setOutputPipes(PipeProcess[] outputpipes) {
+		this.outputpipes = outputpipes;
 	}
 
-	public PipeProcess[] getInput_pipes() {
-		return input_pipes;
+	public PipeProcess[] getInputPipes() {
+		return inputpipes;
 	}
 
-	public void setInputPipes(PipeProcess[] input_pipes) {
-		this.input_pipes = input_pipes;
+	public void setInputPipes(PipeProcess[] inputpipes) {
+		this.inputpipes = inputpipes;
 	}
 
 	public DLNAMediaAudio getAid() {

@@ -1127,7 +1127,7 @@ public class FFMpegVideo extends Player {
 			pipe = new PipeProcess(fifoName);
 			pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 
-			params.getInput_pipes()[0] = pipe;
+			params.getInputPipes()[0] = pipe;
 
 			// Output file
 			cmdList.add(pipe.getInputPipe());
@@ -1286,7 +1286,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			pipe.deleteLater();
-			params.getInput_pipes()[0] = pipe;
+			params.getInputPipes()[0] = pipe;
 
 			ProcessWrapper ff_pipe_process = ffAudioPipe.getPipeProcess();
 			pw.attachProcess(ff_pipe_process);

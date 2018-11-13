@@ -321,7 +321,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		 */
 		mkfifo_process.runInSameThread();
 
-		params.getInput_pipes()[0] = pipe;
+		params.getInputPipes()[0] = pipe;
 
 		// Output file
 		cmdList.add(pipe.getInputPipe());

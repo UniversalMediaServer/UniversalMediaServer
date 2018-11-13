@@ -101,7 +101,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		params.setSecondReadMinSize(100000);
 
 		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
-		params.getInput_pipes()[0] = pipe;
+		params.getInputPipes()[0] = pipe;
 
 		String cmdArray[] = new String[args().length + 4];
 		cmdArray[0] = getExecutable();

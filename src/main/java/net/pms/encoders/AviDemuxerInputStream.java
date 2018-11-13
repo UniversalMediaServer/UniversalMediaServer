@@ -63,13 +63,13 @@ public class AviDemuxerInputStream extends InputStream {
 		this.attachedProcesses = at;
 		this.params = params;
 
-		aOut = params.getOutput_pipes()[1].getOutputStream();
+		aOut = params.getOutputPipes()[1].getOutputStream();
 		if (params.isNoVideoEncode() && params.getForceType() != null && params.getForceType().equals("V_MPEG4/ISO/AVC") && params.getHeader() != null) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
 			try (InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.getHeader())) {
-				final OutputStream out = params.getOutput_pipes()[0].getOutputStream();
+				final OutputStream out = params.getOutputPipes()[0].getOutputStream();
 				r = new Runnable() {
 					@Override
 					public void run() {
@@ -88,7 +88,7 @@ public class AviDemuxerInputStream extends InputStream {
 			vOut = pout;
 			new Thread(r, "Avi Demuxer").start();
 		} else {
-			vOut = params.getOutput_pipes()[0].getOutputStream();
+			vOut = params.getOutputPipes()[0].getOutputStream();
 		}
 
 		Runnable r = new Runnable() {
@@ -118,8 +118,8 @@ public class AviDemuxerInputStream extends InputStream {
 							audioType = "A_AC3";
 						}
 
-						pw.println(videoType + ", \"" + params.getOutput_pipes()[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-						pw.println(audioType + ", \"" + params.getOutput_pipes()[1].getOutputPipe() + "\", track=2");
+						pw.println(videoType + ", \"" + params.getOutputPipes()[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+						pw.println(audioType + ", \"" + params.getOutputPipes()[1].getOutputPipe() + "\", track=2");
 					}
 
 					PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");

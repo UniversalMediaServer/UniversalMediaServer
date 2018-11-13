@@ -152,7 +152,7 @@ public class VideoLanVideoStreaming extends Player {
 		pipe_process.runInNewThread();
 		tsPipe.deleteLater();
 
-		params.getInput_pipes()[0] = tsPipe;
+		params.getInputPipes()[0] = tsPipe;
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 

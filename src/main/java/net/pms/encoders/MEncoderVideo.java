@@ -2225,7 +2225,7 @@ public class MEncoderVideo extends Player {
 
 			if (params.isAvidemux()) {
 				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough || ac3Remux) ? null : params);
-				params.getInput_pipes()[0] = pipe;
+				params.getInputPipes()[0] = pipe;
 
 				cmdList.add("-o");
 				cmdList.add(pipe.getInputPipe());
@@ -2248,8 +2248,8 @@ public class MEncoderVideo extends Player {
 				ProcessWrapper videoPipeProcess = videoPipe.getPipeProcess();
 				ProcessWrapper audioPipeProcess = audioPipe.getPipeProcess();
 
-				params.getOutput_pipes()[0] = videoPipe;
-				params.getOutput_pipes()[1] = audioPipe;
+				params.getOutputPipes()[0] = videoPipe;
+				params.getOutputPipes()[1] = audioPipe;
 
 				pw.attachProcess(videoPipeProcess);
 				pw.attachProcess(audioPipeProcess);
@@ -2434,7 +2434,7 @@ public class MEncoderVideo extends Player {
 				}
 
 				pipe.deleteLater();
-				params.getInput_pipes()[0] = pipe;
+				params.getInputPipes()[0] = pipe;
 
 				ProcessWrapper ff_pipe_process = ffAudioPipe.getPipeProcess();
 				pw.attachProcess(ff_pipe_process);
@@ -2461,7 +2461,7 @@ public class MEncoderVideo extends Player {
 				params.setInputPipes(new PipeProcess[2]);
 			} else {
 				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough) ? null : params);
-				params.getInput_pipes()[0] = pipe;
+				params.getInputPipes()[0] = pipe;
 				cmdList.add("-o");
 				cmdList.add(pipe.getInputPipe());
 			}

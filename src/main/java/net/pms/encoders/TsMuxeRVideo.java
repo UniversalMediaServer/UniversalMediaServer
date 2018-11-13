@@ -657,7 +657,7 @@ public class TsMuxeRVideo extends Player {
 
 		ProcessWrapperImpl p = new ProcessWrapperImpl(cmdArray, params);
 		params.setMaxBufferSize(100);
-		params.getInput_pipes()[0] = tsPipe;
+		params.getInputPipes()[0] = tsPipe;
 		params.setStdIn(null);
 		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
 		p.attachProcess(pipe_process);
