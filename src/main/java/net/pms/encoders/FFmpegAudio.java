@@ -54,7 +54,8 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	private JCheckBox noresample;
 
-	public FFmpegAudio() {
+	// Not to be instantiated by anything but PlayerFactory
+	FFmpegAudio() {
 	}
 
 	@Override

@@ -55,6 +55,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
 	public static final String NAME = "FFmpeg Web Video";
 
+	// Not to be instantiated by anything but PlayerFactory
+	FFmpegWebVideo() {
+	}
+
 	/**
 	 * Must be used to protect all access to {@link #excludes}, {@link #autoOptions} and {@link #replacements}
 	 */

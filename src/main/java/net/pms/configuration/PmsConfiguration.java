@@ -46,15 +46,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.RootFolder;
-import net.pms.encoders.DCRaw;
-import net.pms.encoders.FFMpegVideo;
-import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
-import net.pms.encoders.TsMuxeRVideo;
-import net.pms.encoders.VLCVideo;
 import net.pms.formats.Format;
 import net.pms.newgui.NavigationShareTab.SharedFoldersTableModel;
 import net.pms.service.PreventSleepMode;
@@ -573,6 +568,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * from the profile path.
 	 *
 	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws InterruptedException
 	 */
 	public PmsConfiguration() throws ConfigurationException, InterruptedException {
 		this(true);
@@ -584,6 +580,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
+	 * @throws InterruptedException
 	 */
 	public PmsConfiguration(boolean loadFile) throws ConfigurationException, InterruptedException {
 		super(0);
@@ -925,68 +922,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		return programPaths.getVLC();
 	}
 
-	@Nullable
-	public ProgramExecutableType getExecutableType(PlayerId id) {
-		if (id == null) {
-			return null;
-		}
-		if (
-			id == StandardPlayerId.AVI_SYNTH_FFMPEG ||
-			id == StandardPlayerId.FFMPEG_AUDIO ||
-			id == StandardPlayerId.FFMPEG_VIDEO ||
-			id == StandardPlayerId.FFMPEG_WEB_VIDEO
-		) {
-			return ProgramExecutableType.toProgramExecutableType(getString(FFMpegVideo.KEY_FFMPEG_EXECUTABLE_TYPE, null), programPaths.getFFmpeg().getDefault());
-		}
-		if (
-			id == StandardPlayerId.AVI_SYNTH_MENCODER ||
-			id == StandardPlayerId.MENCODER_VIDEO ||
-			id == StandardPlayerId.MENCODER_WEB_VIDEO
-		) {
-			return ProgramExecutableType.toProgramExecutableType(getString(MEncoderVideo.KEY_MENCODER_EXECUTABLE_TYPE, null), programPaths.getMEncoder().getDefault());
-		}
-		if (id == StandardPlayerId.DCRAW) {
-			return ProgramExecutableType.toProgramExecutableType(getString(DCRaw.KEY_DCRAW_EXECUTABLE_TYPE, null), programPaths.getDCRaw().getDefault());
-		}
-		if (
-			id == StandardPlayerId.TSMUXER_AUDIO ||
-			id == StandardPlayerId.TSMUXER_VIDEO
-		) {
-			return ProgramExecutableType.toProgramExecutableType(getString(TsMuxeRVideo.KEY_TSMUXER_EXECUTABLE_TYPE, null), programPaths.getTsMuxeR().getDefault());
-		}
-		if (
-			id == StandardPlayerId.VLC_AUDIO_STREAMING ||
-			id == StandardPlayerId.VLC_VIDEO ||
-			id == StandardPlayerId.VLC_VIDEO_STREAMING ||
-			id == StandardPlayerId.VLC_WEB_VIDEO
-		) {
-			return ProgramExecutableType.toProgramExecutableType(getString(VLCVideo.KEY_VLC_EXECUTABLE_TYPE, null), programPaths.getVLC().getDefault());
-		}
-		return null; // XXX: If plugins are reimplemented, a custom lookup is needed here.
-	}
-
-	public String getVLCPath() {
-		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.VLC_VIDEO);
-		if (executableType != null) {
-			return getVLCPaths().getPath(executableType).toString();
-		}
-		return getVLCPaths().getDefaultPath().toString();
-	}
-
 	/**
 	 * @return The {@link ExternalProgramInfo} for MEncoder.
 	 */
 	@Nullable
 	public ExternalProgramInfo getMEncoderPaths() {
 		return programPaths.getMEncoder();
-	}
-
-	public String getMEncoderPath() {
-		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.MENCODER_VIDEO);
-		if (executableType != null) {
-			return getMEncoderPaths().getPath(executableType).toString();
-		}
-		return getMEncoderPaths().getDefaultPath().toString();
 	}
 
 	/**
@@ -997,28 +938,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		return programPaths.getDCRaw();
 	}
 
-	public String getDCRawPath() {
-		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.DCRAW);
-		if (executableType != null) {
-			return getDCRawPaths().getPath(executableType).toString();
-		}
-		return getDCRawPaths().getDefaultPath().toString();
-	}
-
 	/**
 	 * @return The {@link ExternalProgramInfo} for FFmpeg.
 	 */
 	@Nullable
 	public ExternalProgramInfo getFFmpegPaths() {
 		return programPaths.getFFmpeg();
-	}
-
-	public String getFFmpegPath() {
-		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.FFMPEG_VIDEO);
-		if (executableType != null) {
-			return getFFmpegPaths().getPath(executableType).toString();
-		}
-		return getFFmpegPaths().getDefaultPath().toString();
 	}
 
 	/**
@@ -1049,10 +974,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return executable == null ? null : executable.toString();
 	}
 
-	public String getMPlayerDefaultPath() {
-		return getMPlayerPaths().getDefaultPath().toString();
-	}
-
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for MPlayer
 	 * both in {@link PmsConfiguration} and the {@link ExternalProgramInfo}.
@@ -1072,14 +993,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nullable
 	public ExternalProgramInfo getTsMuxeRPaths() {
 		return programPaths.getTsMuxeR();
-	}
-
-	public String getTsMuxeRPath() {
-		ProgramExecutableType executableType = getExecutableType(StandardPlayerId.TSMUXER_VIDEO);
-		if (executableType != null) {
-			return getTsMuxeRPaths().getPath(executableType).toString();
-		}
-		return getTsMuxeRPaths().getDefaultPath().toString();
 	}
 
 	/**
@@ -1132,10 +1045,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return programPaths.getFLAC();
 	}
 
-	public String getFLACDefaultPath() {
-		return getFLACPaths().getDefaultPath().toString();
-	}
-
 	/**
 	 * @return The configured path to the FLAC executable. If none is
 	 *         configured, the default is used.
@@ -1175,10 +1084,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nullable
 	public ExternalProgramInfo getInterFramePaths() {
 		return programPaths.getInterFrame();
-	}
-
-	public String getInterFrameDefaultPath() {
-		return getInterFramePaths().getDefaultPath().toString();
 	}
 
 	/**
@@ -2728,7 +2633,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Lazy implementation, call before accessing {@link #enabledEngines}
+	 * Lazy implementation, call before accessing {@link #enabledEngines}.
 	 */
 	private void buildEnabledEngines() {
 		if (enabledEnginesBuilt) {
@@ -2753,9 +2658,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Get a {@link List} of the enabled engines IDs in no particular order.
-	 * Returns a new instance, any modifications won't be stored in the
-	 * original list. Threadsafe.
+	 * Gets a {@link UniqueList} of the {@link PlayerId}s in no particular
+	 * order. Returns a new instance, any modifications won't affect original
+	 * list.
+	 *
+	 * @return A copy of the {@link List} of {@link PlayerId}s.
 	 */
 	public List<PlayerId> getEnabledEngines() {
 		buildEnabledEngines();
@@ -2843,9 +2750,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * This is to make sure that any incorrect capitalization in the
-	 * configuration file is corrected. This should only need to be called
-	 * from {@link PlayerFactory#registerPlayer(Player)}.
-	 * @param player the engine for which to assure correct capitalization
+	 * configuration file is corrected. This should only need to be called from
+	 * {@link PlayerFactory#registerPlayer(Player)}.
+	 *
+	 * @param player the {@link Player} for which to assure correct
+	 *            capitalization.
 	 */
 	public void capitalizeEngineId(Player player) {
 		if (player == null) {
@@ -2870,7 +2779,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Lazy implementation, call before accessing {@link #enginesPriority}
+	 * Lazy implementation, call before accessing {@link #enginesPriority}.
 	 */
 	private void buildEnginesPriority() {
 		if (enginesPriorityBuilt) {
@@ -2894,9 +2803,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Get a {@link List} of the engines IDs ordered by priority. Returns a new
-	 * instance, any modifications won't be stored in the original list.
-	 * Threadsafe.
+	 * Gets a {@link UniqueList} of the {@link PlayerId}s ordered by priority.
+	 * Returns a new instance, any modifications won't affect priority list.
+	 *
+	 * @return A copy of the priority list.
 	 */
 	public UniqueList<PlayerId> getEnginesPriority() {
 		buildEnginesPriority();
@@ -2909,7 +2819,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns the priority index according to the rules of {@link List#indexOf(String)}
+	 * Returns the priority index according to the rules of {@link List#indexOf}.
+	 *
+	 * @param id the {@link PlayerId} whose position to return.
+	 * @return The priority index of {@code id}, or {@code -1} if the priority
+	 *         list doesn't contain {@code id}.
 	 */
 	public int getEnginePriority(PlayerId id) {
 		if (id == null) {
@@ -2938,7 +2852,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns the priority index according to the rules of {@link List#indexOf(String)}
+	 * Returns the priority index according to the rules of {@link List#indexOf}.
+	 *
+	 * @param player the {@link Player} whose position to return.
+	 * @return the priority index of {@code player}, or -1 if this the priority
+	 *         list doesn't contain {@code player}.
 	 */
 	public int getEnginePriority(Player player) {
 		if (player == null) {
@@ -2948,12 +2866,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Moves or inserts a engine id directly above another engine id in the
-	 * priority list. If {@link aboveId} is <code>null</code> {@link id} will
-	 * be placed first in the list. If {@link aboveId} is blank or not found,
-	 * {@link id} will be placed last in the list.
-	 * @param id the engine id to move or insert in the priority list
-	 * @param aboveId the engine id to place {@link id} relative to
+	 * Moves or inserts a {@link Player} directly above another {@link Player}
+	 * in the priority list. If {code abovePlayer} is {@code null},
+	 * {@code player} will be placed first in the list. If {@code abovePlayer}
+	 * isn't found, {@code player} will be placed last in the list.
+	 *
+	 * @param player the {@link Player} to move or insert in the priority list.
+	 * @param abovePlayer the {@link Player} to place {@code player} relative
+	 *            to.
 	 */
 	public void setEnginePriorityAbove(@Nonnull Player player, @Nullable Player abovePlayer) {
 		if (player == null) {
@@ -3002,9 +2922,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @see #setEnginePriorityAbove(String, String)
-	 * @param player the engine to move or insert in the priority list
-	 * @param abovePlayer the engine to place {@link player} relative to
+	 * Moves or inserts a {@link Player} directly below another {@link Player}
+	 * in the priority list. If {code belowPlayer} is {@code null} or isn't
+	 * found, {@code player} will be placed last in the list.
+	 *
+	 * @param player the {@link Player} to move or insert in the priority list.
+	 * @param belowPlayer the {@link Player} to place {@code player} relative
+	 *            to.
 	 */
 	public void setEnginePriorityBelow(Player player, Player belowPlayer) {
 		if (player == null) {
@@ -3014,12 +2938,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Moves or inserts a engine id directly below another engine id in the
-	 * priority list. If {@link belowId} is <code>null</code> {@link id} will
-	 * be placed last in the list. If {@link belowId} is blank or not found,
-	 * {@link id} will also be placed last in the list.
-	 * @param id the engine id to move or insert in the priority list
-	 * @param belowId the engine id to place {@link id} relative to
+	 * Moves or inserts a {@link PlayerId} directly below another
+	 * {@link PlayerId} in the priority list. If {code belowId} is {@code null}
+	 * or isn't found, {@code id} will be placed last in the list.
+	 *
+	 * @param id the {@link PlayerId} to move or insert in the priority list.
+	 * @param belowId the {@link PlayerId} to place {@code id} relative to.
 	 */
 	public void setEnginePriorityBelow(PlayerId id, PlayerId belowId) {
 		if (id == null) {
