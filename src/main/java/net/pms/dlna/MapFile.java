@@ -196,7 +196,7 @@ public class MapFile extends DLNAResource {
 	 *         otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
-		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName, LetterCase.LOWER, Locale.ROOT));
+		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
 	}
 
 	private void manageFile(File f, boolean isAddGlobally) {

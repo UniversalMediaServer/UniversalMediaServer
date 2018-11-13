@@ -36,10 +36,10 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.service.PreventSleepMode;
+import net.pms.service.SleepManager;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
-import net.pms.util.PreventSleepMode;
-import net.pms.util.SleepManager;
 import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -66,7 +66,7 @@ public class GeneralTab {
 	private JCheckBox adaptBitrate;
 	private JComboBox<String> renderers;
 	private final PmsConfiguration configuration;
-	private JCheckBox fdCheckBox;
+	private JCheckBox forceDefaultRenderer;
 	private JCheckBox extNetBox;
 	private JCheckBox appendProfileName;
 	private JCheckBox runWizardOnProgramStartup;
@@ -163,7 +163,7 @@ public class GeneralTab {
 		}
 
 		if (Platform.isWindows()) {
-			autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
+			autoStart = new JCheckBox(Messages.getString("GeneralTab.StartWithWindows"), configuration.isAutoStart());
 			autoStart.setContentAreaFilled(false);
 			autoStart.addItemListener(new ItemListener() {
 				@Override
@@ -292,6 +292,7 @@ public class GeneralTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			// Edit UMS configuration file manually
 			CustomJButton confEdit = new CustomJButton(Messages.getString("NetworkTab.51"));
+			confEdit.setToolTipText(configuration.getProfilePath());
 			confEdit.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -486,15 +487,16 @@ public class GeneralTab {
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"), configuration.isRendererForceDefault());
-			fdCheckBox.setContentAreaFilled(false);
-			fdCheckBox.addItemListener(new ItemListener() {
+			forceDefaultRenderer = new JCheckBox(Messages.getString("GeneralTab.ForceDefaultRenderer"), configuration.isRendererForceDefault());
+			forceDefaultRenderer.setToolTipText(Messages.getString("GeneralTab.ForceDefaultRendererTooltip"));
+			forceDefaultRenderer.setContentAreaFilled(false);
+			forceDefaultRenderer.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+			builder.add(forceDefaultRenderer, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 
 			ypos += 2;
 

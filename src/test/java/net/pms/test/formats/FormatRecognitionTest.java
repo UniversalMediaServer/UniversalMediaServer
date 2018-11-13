@@ -54,10 +54,10 @@ import org.slf4j.LoggerFactory;
  */
 public class FormatRecognitionTest {
 	private static boolean mediaInfoParserIsValid;
-	private final static PmsConfiguration configuration = new PmsConfiguration(false);
+	private static PmsConfiguration configuration;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws ConfigurationException {
+	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
 		PMS.configureJNA();
 		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
 
@@ -66,6 +66,7 @@ public class FormatRecognitionTest {
 		context.reset();
 
 		// Initialize the RendererConfiguration
+		configuration = new PmsConfiguration(false);
 		RendererConfiguration.loadRendererConfigurations(configuration);
 	}
 
@@ -267,9 +268,10 @@ public class FormatRecognitionTest {
 	 * message.
 	 * <p>
 	 * This test verifies the case above.
+	 * @throws InterruptedException
 	 */
 	@Test
-	public void testVirtualVideoActionInitializationCompatibility() {
+	public void testVirtualVideoActionInitializationCompatibility() throws InterruptedException {
 		boolean configurationLoaded = false;
 
 		try {

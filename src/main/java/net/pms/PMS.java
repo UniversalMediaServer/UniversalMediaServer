@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
@@ -64,7 +65,6 @@ import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
-import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
@@ -77,6 +77,7 @@ import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.remote.RemoteWeb;
+import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
@@ -90,6 +91,7 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK = "nativelook";
@@ -132,22 +134,12 @@ public class PMS {
 
 	private JmDNS jmDNS;
 
-	private SleepManager sleepManager = null;
-
 	/**
 	 * Returns a pointer to the DMS GUI's main window.
 	 * @return {@link net.pms.newgui.IFrame} Main DMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
-	}
-
-	/**
-	 * @return The {@link SleepManager} instance or {@code null} if not
-	 *         instantiated yet.
-	 */
-	public SleepManager getSleepManager() {
-		return sleepManager;
 	}
 
 	/**
@@ -247,19 +239,6 @@ public class PMS {
 	 * {@link net.pms.newgui.IFrame} object that represents the DMS GUI.
 	 */
 	private IFrame frame;
-
-	/**
-	 * Interface to Windows-specific functions, like Windows Registry. registry is set by {@link #init()}.
-	 * @see net.pms.io.WinUtils
-	 */
-	private SystemUtils registry;
-
-	/**
-	 * @see net.pms.io.WinUtils
-	 */
-	public SystemUtils getRegistry() {
-		return registry;
-	}
 
 	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
@@ -476,8 +455,6 @@ public class PMS {
 			}
 		}
 
-		getVersion();
-
 		fileWatcher = new FileWatcher();
 
 		globalRepo = new GlobalIdRepo();
@@ -487,11 +464,6 @@ public class PMS {
 			String serverURL = Build.getUpdateServerURL();
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
-
-		registry = createSystemUtils();
-
-		// Create SleepManager
-		sleepManager = new SleepManager();
 
 		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
@@ -563,20 +535,12 @@ public class PMS {
 		jmDNS = null;
 		launchJmDNSRenderers();
 
-		OutputParams outputParams = new OutputParams(configuration);
-
-		// Prevent unwanted GUI buffer artifacts (and runaway timers)
-		outputParams.setHideBuffer(true);
-
-		// Make sure buffer is destroyed
-		outputParams.setCleanup(true);
-
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
 		if (!configuration.isDisableSubtitles()) {
 			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
-			ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
-			mplayer.runInNewThread();
+			//TODO: Rewrite fontconfig generation
+			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, configuration.getMPlayerDefaultPath(), "dummy");
 
 			/**
 			 * Note: Different versions of fontconfig and bitness require
@@ -585,8 +549,22 @@ public class PMS {
 			 * This should result in all of the necessary caches being built.
 			 */
 			if (!Platform.isWindows() || Platform.is64Bit()) {
-				ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
-				ffmpeg.runInNewThread();
+				ThreadedProcessWrapper.runProcessNullOutput(
+					5,
+					TimeUnit.MINUTES,
+					2000,
+					configuration.getFFmpegPaths().getDefaultPath().toString(),
+					"-y",
+					"-f",
+					"lavfi",
+					"-i",
+					"nullsrc=s=720x480:d=1:r=1",
+					"-vf",
+					"ass=DummyInput.ass",
+					"-target",
+					"ntsc-dvd",
+					"-"
+				);
 			}
 		}
 
@@ -596,13 +574,13 @@ public class PMS {
 		frame.setConnectionState(ConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (registry.isAvis() && registry.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + registry.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(registry.getAvsPluginsDir(), "VSFilter.dll");
+		if (BasicSystemUtils.INSTANCE.isAviSynthAvailable() && BasicSystemUtils.INSTANCE.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(BasicSystemUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(registry.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(BasicSystemUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -611,34 +589,15 @@ public class PMS {
 			}
 		}
 
-		// Check if VLC is found
-		String vlcVersion = registry.getVlcVersion();
-		String vlcPath = registry.getVlcPath();
-
-		if (vlcVersion != null && vlcPath != null) {
-			LOGGER.info("Found VLC version " + vlcVersion + " at: " + vlcPath);
-
-			Version vlc = new Version(vlcVersion);
-			Version requiredVersion = new Version("2.0.2");
-
-			if (vlc.compareTo(requiredVersion) <= 0) {
-				LOGGER.error("Only VLC versions 2.0.2 and above are supported");
-			}
-		}
-
 		// Check if Kerio is installed
-		if (registry.isKerioFirewall()) {
+		if (BasicSystemUtils.INSTANCE.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
-		// Force use of specific DVR-MS muxer when it's installed in the right place
-		File dvrsMsffmpegmuxer = new File("win32/dvrms/ffmpeg_MPGMUX.exe");
-		if (dvrsMsffmpegmuxer.exists()) {
-			configuration.setFfmpegAlternativePath(dvrsMsffmpegmuxer.getAbsolutePath());
-		}
-
 		// Disable jaudiotagger logging
-		LogManager.getLogManager().readConfiguration(new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes(StandardCharsets.US_ASCII)));
+		LogManager.getLogManager().readConfiguration(
+			new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes(StandardCharsets.US_ASCII))
+		);
 
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
@@ -706,8 +665,16 @@ public class PMS {
 				try {
 					UPNPHelper.shutDownListener();
 					UPNPHelper.sendByeBye();
-					LOGGER.debug("Forcing shutdown of all active processes");
 
+					LOGGER.debug("Shutting down the HTTP server");
+					get().getServer().stop();
+					Thread.sleep(500);
+
+					LOGGER.debug("Shutting down all active processes");
+
+					if (Services.processManager() != null) {
+						Services.processManager().stop();
+					}
 					for (Process p : currentProcesses) {
 						try {
 							p.exitValue();
@@ -716,13 +683,15 @@ public class PMS {
 							ProcessUtil.destroy(p);
 						}
 					}
-
-					get().getServer().stop();
-					Thread.sleep(500);
 				} catch (InterruptedException e) {
-					LOGGER.debug("Caught exception", e);
+					LOGGER.debug("Interrupted while shutting down..");
+					LOGGER.trace("", e);
 				}
-				LOGGER.info("Stopping " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
+
+				// Destroy services
+				Services.destroy();
+
+				LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
 				/**
 				 * Stopping logging gracefully (flushing logs)
 				 * No logging is available after this point
@@ -732,6 +701,7 @@ public class PMS {
 					((LoggerContext) iLoggerContext).stop();
 				} else {
 					LOGGER.error("Unable to shut down logging gracefully");
+					System.err.println("Unable to shut down logging gracefully");
 				}
 
 			}
@@ -764,19 +734,6 @@ public class PMS {
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
-	}
-
-	private static SystemUtils createSystemUtils() {
-		if (Platform.isWindows()) {
-			return new WinUtils();
-		}
-		if (Platform.isMac()) {
-			return new MacSystemUtils();
-		}
-		if (Platform.isSolaris()) {
-			return new SolarisUtils();
-		}
-		return new BasicSystemUtils();
 	}
 
 	/**
@@ -1031,6 +988,9 @@ public class PMS {
 			// Write buffered messages to the log now that logger is configured
 			CacheLogger.stopAndFlush();
 
+			// Create services
+			Services.create();
+
 			LOGGER.debug(new Date().toString());
 
 			try {
@@ -1062,6 +1022,8 @@ public class PMS {
 					JOptionPane.ERROR_MESSAGE
 				);
 			}
+		} catch (InterruptedException e) {
+			// Interrupted during startup
 		}
 	}
 
@@ -1325,7 +1287,6 @@ public class PMS {
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
-				in.close();
 				return false;
 			}
 			line = in.readLine();

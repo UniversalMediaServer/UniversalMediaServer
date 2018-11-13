@@ -315,7 +315,7 @@ public class SubtitleUtils {
 		}
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
-		cmdList.add(configuration.getFfmpegPath());
+		cmdList.add(configuration.getFFmpegPath());
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting

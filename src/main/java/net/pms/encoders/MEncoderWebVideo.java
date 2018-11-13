@@ -24,15 +24,18 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
-public class MEncoderWebVideo extends Player {
-	public static final String ID = "MEncoderWebVideo";
+public class MEncoderWebVideo extends MEncoderVideo {
+	public static final PlayerId ID = StandardPlayerId.MENCODER_WEB_VIDEO;
+
+	/** The {@link Configuration} key for the DCRaw executable type. */
+	public static final String KEY_MENCODER_WEB_EXECUTABLE_TYPE = "mencoder_web_executable_type";
+	public static final String NAME = "MEncoder Web Video";
 
 	@Override
 	public JComponent config() {
@@ -40,8 +43,13 @@ public class MEncoderWebVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_MENCODER_WEB_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -59,6 +67,7 @@ public class MEncoderWebVideo extends Player {
 		return "video/mpeg";
 	}
 
+	@Override
 	protected String[] getDefaultArgs() {
 		int nThreads = configuration.getMencoderMaxThreads();
 		String acodec = configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3";
@@ -95,7 +104,7 @@ public class MEncoderWebVideo extends Player {
 		params.getInput_pipes()[0] = pipe;
 
 		String cmdArray[] = new String[args().length + 4];
-		cmdArray[0] = executable();
+		cmdArray[0] = getExecutable();
 		final String filename = dlna.getFileName();
 		cmdArray[1] = filename;
 		System.arraycopy(args(), 0, cmdArray, 2, args().length);
@@ -134,7 +143,7 @@ public class MEncoderWebVideo extends Player {
 
 	@Override
 	public String name() {
-		return "MEncoder Web";
+		return NAME;
 	}
 
 	@Override
@@ -142,19 +151,6 @@ public class MEncoderWebVideo extends Player {
 		return getDefaultArgs();
 	}
 
-	@Override
-	public String executable() {
-		return configuration.getMencoderPath();
-	}
-
-	@Override
-	public int type() {
-		return Format.VIDEO;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebVideo(resource);

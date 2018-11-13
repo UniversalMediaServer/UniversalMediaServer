@@ -1,5 +1,7 @@
 package net.pms.encoders;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -8,14 +10,21 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.JComponent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.drew.lang.ByteArrayReader;
+import com.sun.jna.Platform;
 import net.coobird.thumbnailator.Thumbnails;
+import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.ExternalProgramInfo;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -25,16 +34,27 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.image.thumbnailator.ExifFilterUtils;
 import net.pms.io.InternalJavaProcessImpl;
+import net.pms.io.ListProcessWrapperResult;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.SimpleProcessWrapper;
+import net.pms.platform.windows.NTStatus;
+import net.pms.util.Version;
 
 public class DCRaw extends ImagePlayer {
-	public final static String ID = "DCRaw";
 	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
+	public final static PlayerId ID = StandardPlayerId.DCRAW;
+
+	/** The {@link Configuration} key for the custom DCRaw path. */
+	public static final String KEY_DCRAW_PATH = "dcraw_path";
+
+	/** The {@link Configuration} key for the DCRaw executable type. */
+	public static final String KEY_DCRAW_EXECUTABLE_TYPE = "dcraw_executable_type";
+	public static final String NAME = "DCRaw";
 
 	protected String[] getDefaultArgs() {
-		return new String[]{ "-e", "-c" };
+		return new String[] { "-e", "-c" };
 	}
 
 	@Override
@@ -48,13 +68,23 @@ public class DCRaw extends ImagePlayer {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getDCRawPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getDCRawPaths();
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_DCRAW_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_DCRAW_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -84,7 +114,7 @@ public class DCRaw extends ImagePlayer {
 
 	@Override
 	public String name() {
-		return "DCRaw";
+		return NAME;
 	}
 
 	@Override
@@ -110,10 +140,8 @@ public class DCRaw extends ImagePlayer {
 			params = new OutputParams(PMS.getConfiguration());
 		}
 
-		// Use device-specific pms conf
-		PmsConfiguration configuration = PMS.getConfiguration(params);
-
 		params.setLog(false);
+
 		// Setting the buffer to the size of the source file or 5 MB. The
 		// output won't be the same size as the input, but it will hopefully
 		// give us a somewhat relevant buffer size. Every time the buffer has
@@ -123,8 +151,8 @@ public class DCRaw extends ImagePlayer {
 			(int) imageInfo.getSize() : 5000000);
 
 		// First try to get the embedded thumbnail
-		String cmdArray[] = new String[5];
-		cmdArray[0] = configuration.getDCRawPath();
+		String[] cmdArray = new String[5];
+		cmdArray[0] = PlayerFactory.getPlayerExecutable(ID);
 		cmdArray[1] = "-c";
 		cmdArray[2] = "-M";
 		cmdArray[3] = "-w";
@@ -164,8 +192,6 @@ public class DCRaw extends ImagePlayer {
 			params = new OutputParams(PMS.getConfiguration());
 		}
 
-		// Use device-specific pms conf
-		PmsConfiguration configuration = PMS.getConfiguration(params);
 		params.setLog(false);
 
 		// This is a wild guess at a decent buffer size for an embedded thumbnail.
@@ -173,7 +199,7 @@ public class DCRaw extends ImagePlayer {
 		params.setOutputByteArrayStreamBufferSize(150000);
 
 		// First try to get the embedded thumbnail
-		String cmdArray[] = new String[6];
+		String[] cmdArray = new String[6];
 		cmdArray[0] = configuration.getDCRawPath();
 		cmdArray[1] = "-e";
 		cmdArray[2] = "-c";
@@ -233,9 +259,9 @@ public class DCRaw extends ImagePlayer {
 							imageAspect = (double) imageInfo.getWidth() / imageInfo.getHeight();
 						}
 						if (ImagesUtil.isExifAxesSwapNeeded(thumbnailOrientation)) {
-							thumbnailAspect = (double) jpegResolution.getHeight() / jpegResolution.getWidth();
+							thumbnailAspect = jpegResolution.getHeight() / jpegResolution.getWidth();
 						} else {
-							thumbnailAspect = (double) jpegResolution.getWidth() / jpegResolution.getHeight();
+							thumbnailAspect = jpegResolution.getWidth() / jpegResolution.getHeight();
 						}
 
 						if (Math.abs(imageAspect - thumbnailAspect) > 0.001d) {
@@ -298,19 +324,19 @@ public class DCRaw extends ImagePlayer {
 	 *            results in.
 	 * @param file the {@link File} to parse.
 	 */
-    @Override
+	@Override
 	public void parse(DLNAMediaInfo media, File file) {
-    	if (media == null) {
-    		throw new NullPointerException("media cannot be null");
-    	}
-    	if (file == null) {
-    		throw new NullPointerException("file cannot be null");
-    	}
+		if (media == null) {
+			throw new NullPointerException("media cannot be null");
+		}
+		if (file == null) {
+			throw new NullPointerException("file cannot be null");
+		}
 
 		OutputParams params = new OutputParams(configuration);
 		params.setLog(true);
 
-		String cmdArray[] = new String[4];
+		String[] cmdArray = new String[4];
 		cmdArray[0] = configuration.getDCRawPath();
 		cmdArray[1] = "-i";
 		cmdArray[2] = "-v";
@@ -338,13 +364,75 @@ public class DCRaw extends ImagePlayer {
 				break;
 			}
 		}
-    }
+	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return resource != null && resource.getFormat() != null && resource.getFormat().getIdentifier() == Format.Identifier.RAW;
+	}
+
+	@Override
+	public boolean excludeFormat(Format extension) {
+		return false;
+	}
+
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+		return true;
+	}
+
+	@Override
+	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		ExecutableInfoBuilder result = executableInfo.modify();
+		try {
+			ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+				30000,
+				1000,
+				executableInfo.getPath().toString()
+			);
+			if (output.getError() != null) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.available(Boolean.FALSE);
+				LOGGER.debug("\"{}\" failed with error: {}", executableInfo.getPath(), output.getError().getMessage());
+				return result.build();
+			}
+			if (!output.getOutput().isEmpty() && isBlank(output.getOutput().get(0))) {
+				if (output.getOutput().size() > 1) {
+					Pattern pattern = Pattern.compile("decoder\\s\"dcraw\"\\s(\\S+)", Pattern.CASE_INSENSITIVE);
+					Matcher matcher = pattern.matcher(output.getOutput().get(1));
+					if (matcher.find() && isNotBlank(matcher.group(1))) {
+						result.version(new Version(matcher.group(1)));
+					}
+				}
+				result.available(Boolean.TRUE);
+			} else if (output.getOutput() != null && output.getOutput().size() > 0) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getOutput().get(0));
+				result.available(Boolean.FALSE);
+			} else {
+				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
+				if (ntStatus != null && ntStatus != NTStatus.STATUS_SUCCESS) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+				} else {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + Messages.getString("General.3"));
+				}
+				result.available(Boolean.FALSE);
+			}
+		} catch (InterruptedException e) {
+			return null;
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
+		return false;
 	}
 }

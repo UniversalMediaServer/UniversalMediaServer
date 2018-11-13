@@ -18,6 +18,8 @@
  */
 package net.pms.network;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,12 +33,17 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.dlna.*;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
@@ -45,6 +52,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.message.SamsungBookmark;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -64,6 +72,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.stream.ChunkedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /**
@@ -251,7 +260,6 @@ public class RequestV2 extends HTTPResource {
 	 * See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
 	 * for HTTP header field definitions.
 	 *
-	 * @param ctx
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
 	 * @param event The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
@@ -651,8 +659,13 @@ public class RequestV2 extends HTTPResource {
 						"</service>" + CRLF);
 				} else {
 					s = s.replace("Universal Media Server", configuration.getServerDisplayName());
+					if (mediaRenderer.isSamsung()) {
+						// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
+						s = s.replace("<serialNumber/>", "<serialNumber/>" + CRLF
+								+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
+								+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
+					}
 				}
-
 				response.append(s);
 				inputStream = null;
 			}
@@ -702,6 +715,8 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
+				response.append(setSamsungBookmark());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -895,6 +910,8 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
+			} else {
+				LOGGER.debug("Unsupported action received: " + content);
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.headers().set("SID", PMS.get().usn());
@@ -1163,6 +1180,49 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
+	private StringBuilder setSamsungBookmark() {
+		LOGGER.debug("Setting bookmark");
+		SamsungBookmark payload = this.getPayload(SamsungBookmark.class);
+		if (payload.getPosSecond() == 0) {
+			// Sometimes when Samsung device is starting to play the video
+			// it sends X_SetBookmark message immediatelly with the position=0.
+			// No need to update database in such case.
+			LOGGER.debug("Skipping \"set bookmark\". Position=0");
+		} else {
+			try {
+				DLNAResource dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(payload.getObjectId(), mediaRenderer);
+				File file = new File(dlna.getFileName());
+				String path = file.getCanonicalPath();
+				TableFilesStatus.setBookmark(path, payload.getPosSecond());
+			} catch (Exception e) {
+				LOGGER.error("Cannot set bookmark", e);
+			}
+		}
+		StringBuilder response = new StringBuilder();
+		response.append(HTTPXMLHelper.XML_HEADER);
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.SETBOOKMARK_RESPONSE);
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
+		response.append(CRLF);
+		return response;
+	}
+
+	private <T> T getPayload(Class<T> clazz) {
+		try {
+			SOAPMessage message = MessageFactory.newInstance().createMessage(null, new ByteArrayInputStream(content.getBytes()));
+			JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			Document body = message.getSOAPBody().extractContentAsDocument(); 
+			return unmarshaller.unmarshal(body, clazz).getValue();
+		} catch (Exception e) {
+			LOGGER.error("Unmarshalling error", e);
+			return null;
+		}
+	}
+	
 	/**
 	 * Returns a date somewhere in the far future.
 	 * @return The {@link String} containing the date
