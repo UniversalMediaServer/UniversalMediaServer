@@ -672,14 +672,14 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			StringBuilder payload = new StringBuilder();
+			String payload = "";
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
-				payload.append(HTTPXMLHelper.XBOX_360_2).append(CRLF);
+				payload = HTTPXMLHelper.XBOX_360_2;
 			} else if (soapaction != null && soapaction.contains("IsValidated")) {
-				payload.append(HTTPXMLHelper.XBOX_360_1).append(CRLF);
+				payload = HTTPXMLHelper.XBOX_360_1;
 			}
 
-			response.append(createResponse(payload.toString()));
+			response.append(createResponse(payload));
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
@@ -693,7 +693,7 @@ public class RequestV2 extends HTTPResource {
 				StringBuilder payload = new StringBuilder();
 				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
 				payload.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>").append(CRLF);
-				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER).append(CRLF);
+				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 				response.append(createResponse(payload.toString()));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
 				response.append(samsungSetBookmarkHandler());
