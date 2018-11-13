@@ -87,12 +87,8 @@ public class VLCVideo extends Player {
 
 	protected boolean videoRemux;
 
-	@Deprecated
-	public VLCVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public VLCVideo() {
+	// Not to be instantiated by anything but PlayerFactory
+	VLCVideo() {
 	}
 
 	@Override

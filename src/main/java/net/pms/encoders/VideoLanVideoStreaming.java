@@ -62,7 +62,8 @@ public class VideoLanVideoStreaming extends Player {
 	public static final String KEY_VLC_LEGACY_EXECUTABLE_TYPE = "vlc_legacy_executable_type";
 	public static final String NAME = "VLC Web Video (Legacy)";
 
-	public VideoLanVideoStreaming() {
+	// Not to be instantiated by anything but PlayerFactory
+	VideoLanVideoStreaming() {
 	}
 
 	@Override

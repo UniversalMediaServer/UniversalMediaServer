@@ -37,6 +37,10 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	public static final String KEY_MENCODER_WEB_EXECUTABLE_TYPE = "mencoder_web_executable_type";
 	public static final String NAME = "MEncoder Web Video";
 
+	// Not to be instantiated by anything but PlayerFactory
+	MEncoderWebVideo() {
+	}
+
 	@Override
 	public JComponent config() {
 		return null;
@@ -84,14 +88,6 @@ public class MEncoderWebVideo extends MEncoderVideo {
 				"-vf", "harddup",
 				"-ofps", "25"
 			};
-	}
-
-	@Deprecated
-	public MEncoderWebVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public MEncoderWebVideo() {
 	}
 
 	@Override
