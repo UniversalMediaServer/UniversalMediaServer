@@ -698,79 +698,38 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			response.append(HTTPXMLHelper.XML_HEADER);
-			response.append(CRLF);
-			response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-			response.append(CRLF);
 
+			String payload = "";
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
-				response.append(HTTPXMLHelper.XBOX_360_2);
-				response.append(CRLF);
+				payload = HTTPXMLHelper.XBOX_360_2;
 			} else if (soapaction != null && soapaction.contains("IsValidated")) {
-				response.append(HTTPXMLHelper.XBOX_360_1);
-				response.append(CRLF);
+				payload = HTTPXMLHelper.XBOX_360_1;
 			}
 
-			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-			response.append(CRLF);
+			response.append(createResponse(payload));
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
-				response.append(HTTPXMLHelper.XML_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.PROTOCOLINFO_RESPONSE);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-				response.append(CRLF);
+				response.append(createResponse(HTTPXMLHelper.PROTOCOLINFO_RESPONSE));
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
-				response.append(HTTPXMLHelper.XML_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER);
-				response.append(CRLF);
-				response.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>");
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-				response.append(CRLF);
+				StringBuilder payload = new StringBuilder();
+				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
+				payload.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>").append(CRLF);
+				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
+				response.append(createResponse(payload.toString()));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
-				response.append(setSamsungBookmark());
+				response.append(samsungSetBookmarkHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
-				response.append(HTTPXMLHelper.XML_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SAMSUNG_ERROR_RESPONSE);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-				response.append(CRLF);
+				response.append(createResponse(HTTPXMLHelper.SAMSUNG_ERROR_RESPONSE));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
-				response.append(HTTPXMLHelper.XML_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SORTCAPS_RESPONSE);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-				response.append(CRLF);
+				response.append(createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
-				response.append(HTTPXMLHelper.XML_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SEARCHCAPS_RESPONSE);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-				response.append(CRLF);
+				response.append(createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE));
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
@@ -1207,7 +1166,21 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
-	private StringBuilder setSamsungBookmark() {
+	/**
+	 * Wraps the payload around soap Envelope / Body tags
+	 * @param payload Soap body as a XML String
+	 * @return Soap message as a XML string
+	 */
+	private StringBuilder createResponse(String payload) {
+		StringBuilder response = new StringBuilder();
+		response.append(HTTPXMLHelper.XML_HEADER).append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER).append(CRLF);
+		response.append(payload).append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER).append(CRLF);
+		return response;
+	}
+
+	private StringBuilder samsungSetBookmarkHandler() {
 		LOGGER.debug("Setting bookmark");
 		SamsungBookmark payload = this.getPayload(SamsungBookmark.class);
 		if (payload.getPosSecond() == 0) {
@@ -1225,16 +1198,7 @@ public class RequestV2 extends HTTPResource {
 				LOGGER.error("Cannot set bookmark", e);
 			}
 		}
-		StringBuilder response = new StringBuilder();
-		response.append(HTTPXMLHelper.XML_HEADER);
-		response.append(CRLF);
-		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-		response.append(CRLF);
-		response.append(HTTPXMLHelper.SETBOOKMARK_RESPONSE);
-		response.append(CRLF);
-		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-		response.append(CRLF);
-		return response;
+		return createResponse(HTTPXMLHelper.SETBOOKMARK_RESPONSE);
 	}
 
 	private <T> T getPayload(Class<T> clazz) {
