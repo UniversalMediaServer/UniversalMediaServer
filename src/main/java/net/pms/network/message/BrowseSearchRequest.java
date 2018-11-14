@@ -12,105 +12,105 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public abstract class BrowseSearchRequest {
 
-    @XmlElement(name = "ObjectID")
-    private String objectId;
+	@XmlElement(name = "ObjectID")
+	private String objectId;
 
-    @XmlElement(name = "ContainerID")
-    private String containerId;
+	@XmlElement(name = "ContainerID")
+	private String containerId;
 
-    @XmlElement(name = "StartingIndex")
-    private Integer startingIndex;
+	@XmlElement(name = "StartingIndex")
+	private Integer startingIndex;
 
-    @XmlElement(name = "RequestedCount")
-    private Integer requestedCount;
+	@XmlElement(name = "RequestedCount")
+	private Integer requestedCount;
 
-    @XmlElement(name = "SearchCriteria")
-    private String searchCriteria;
+	@XmlElement(name = "SearchCriteria")
+	private String searchCriteria;
 
-    @XmlElement(name = "SortCriteria")
-    private String sortCriteria;
+	@XmlElement(name = "SortCriteria")
+	private String sortCriteria;
 
-    @XmlElement(name = "Filter")
-    private String filter;
+	@XmlElement(name = "Filter")
+	private String filter;
 
-    @XmlElement(name = "BrowseFlag")
-    private String browseFlag;
+	@XmlElement(name = "BrowseFlag")
+	private String browseFlag;
 
-    public String getObjectId() {
-        return objectId;
-    }
+	public String getObjectId() {
+		return objectId;
+	}
 
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
-    }
+	public void setObjectId(String objectId) {
+		this.objectId = objectId;
+	}
 
-    public String getContainerId() {
-        return containerId;
-    }
+	public String getContainerId() {
+		return containerId;
+	}
 
-    public void setContainerId(String containerId) {
-        this.containerId = containerId;
-    }
+	public void setContainerId(String containerId) {
+		this.containerId = containerId;
+	}
 
-    public Integer getStartingIndex() {
-        return startingIndex;
-    }
+	public Integer getStartingIndex() {
+		return startingIndex;
+	}
 
-    public void setStartingIndex(Integer startingIndex) {
-        this.startingIndex = startingIndex;
-    }
+	public void setStartingIndex(Integer startingIndex) {
+		this.startingIndex = startingIndex;
+	}
 
-    public Integer getRequestedCount() {
-        return requestedCount;
-    }
+	public Integer getRequestedCount() {
+		return requestedCount;
+	}
 
-    public void setRequestedCount(Integer requestedCount) {
-        this.requestedCount = requestedCount;
-    }
+	public void setRequestedCount(Integer requestedCount) {
+		this.requestedCount = requestedCount;
+	}
 
-    public String getSearchCriteria() {
-        return searchCriteria;
-    }
+	public String getSearchCriteria() {
+		return searchCriteria;
+	}
 
-    public void setSearchCriteria(String searchCriteria) {
-        this.searchCriteria = searchCriteria;
-    }
+	public void setSearchCriteria(String searchCriteria) {
+		this.searchCriteria = searchCriteria;
+	}
 
-    public String getSortCriteria() {
-        return sortCriteria;
-    }
+	public String getSortCriteria() {
+		return sortCriteria;
+	}
 
-    public void setSortCriteria(String sortCriteria) {
-        this.sortCriteria = sortCriteria;
-    }
+	public void setSortCriteria(String sortCriteria) {
+		this.sortCriteria = sortCriteria;
+	}
 
-    public String getFilter() {
-        return filter;
-    }
+	public String getFilter() {
+		return filter;
+	}
 
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
+	public void setFilter(String filter) {
+		this.filter = filter;
+	}
 
-    public String getBrowseFlag() {
-        return browseFlag;
-    }
+	public String getBrowseFlag() {
+		return browseFlag;
+	}
 
-    public void setBrowseFlag(String browseFlag) {
-        this.browseFlag = browseFlag;
-    }
+	public void setBrowseFlag(String browseFlag) {
+		this.browseFlag = browseFlag;
+	}
 
-    @Override
-    public String toString() {
-        return "BrowseSearchRequest{" +
-                "objectId='" + objectId + "'" +
-                ", containerId='" + containerId + "'" +
-                ", startingIndex=" + startingIndex +
-                ", requestedCount=" + requestedCount +
-                ", searchCriteria='" + searchCriteria + "'" +
-                ", sortCriteria='" + sortCriteria + "'" +
-                ", filter='" + filter + "'" +
-                ", browseFlag='" + browseFlag + "'" +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "BrowseSearchRequest{" +
+				"objectId='" + objectId + "'" +
+				", containerId='" + containerId + "'" +
+				", startingIndex=" + startingIndex +
+				", requestedCount=" + requestedCount +
+				", searchCriteria='" + searchCriteria + "'" +
+				", sortCriteria='" + sortCriteria + "'" +
+				", filter='" + filter + "'" +
+				", browseFlag='" + browseFlag + "'" +
+				'}';
+	}
 }

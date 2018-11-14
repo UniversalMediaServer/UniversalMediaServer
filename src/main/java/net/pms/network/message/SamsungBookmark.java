@@ -53,13 +53,13 @@ public class SamsungBookmark {
 		this.rId = rId;
 	}
 
-    @Override
-    public String toString() {
-        return "SamsungBookmark{" +
-                "objectId='" + objectId + "'" +
-                ", posSecond=" + posSecond +
-                ", categoryType='" + categoryType + "'" +
-                ", rId='" + rId + "'" +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "SamsungBookmark{" +
+				"objectId='" + objectId + "'" +
+				", posSecond=" + posSecond +
+				", categoryType='" + categoryType + "'" +
+				", rId='" + rId + "'" +
+				'}';
+	}
 }
