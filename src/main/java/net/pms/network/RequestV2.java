@@ -52,7 +52,10 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.message.BrowseRequest;
+import net.pms.network.message.BrowseSearchRequest;
 import net.pms.network.message.SamsungBookmark;
+import net.pms.network.message.SearchRequest;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -96,12 +99,10 @@ public class RequestV2 extends HTTPResource {
 	private String argument;
 	private String soapaction;
 	private String content;
-	private String objectID;
-	private int startingIndex;
+    private int startingIndex;
 	private int requestCount;
-	private String browseFlag;
 
-	/**
+    /**
 	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 */
 	private long lowRange;
@@ -280,7 +281,6 @@ public class RequestV2 extends HTTPResource {
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
-		boolean xbox360 = mediaRenderer.isXbox360();
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -647,7 +647,7 @@ public class RequestV2 extends HTTPResource {
 					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
 				}
 
-				if (xbox360) {
+				if (mediaRenderer.isXbox360()) {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
@@ -672,14 +672,12 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			String payload = "";
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
-				payload = HTTPXMLHelper.XBOX_360_2;
+				response.append(createResponse(HTTPXMLHelper.XBOX_360_2));
 			} else if (soapaction != null && soapaction.contains("IsValidated")) {
-				payload = HTTPXMLHelper.XBOX_360_1;
+				response.append(createResponse(HTTPXMLHelper.XBOX_360_1));
 			}
 
-			response.append(createResponse(payload));
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
@@ -703,173 +701,11 @@ public class RequestV2 extends HTTPResource {
 				response.append(createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
 				response.append(createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE));
-			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
-				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
-				String containerID = null;
-				if ((objectID == null || objectID.length() == 0)) {
-					containerID = getEnclosingValue(content, "<ContainerID", "</ContainerID>");
-					if (containerID == null || (xbox360 && !containerID.contains("$"))) {
-						objectID = "0";
-					} else {
-						objectID = containerID;
-						containerID = null;
-					}
-				}
-				String sI = getEnclosingValue(content, "<StartingIndex", "</StartingIndex>");
-				String rC = getEnclosingValue(content, "<RequestedCount", "</RequestedCount>");
-				browseFlag = getEnclosingValue(content, "<BrowseFlag", "</BrowseFlag>");
-
-				if (sI != null) {
-					startingIndex = Integer.parseInt(sI);
-				}
-
-				if (rC != null) {
-					requestCount = Integer.parseInt(rC);
-				}
-
-				response.append(HTTPXMLHelper.XML_HEADER);
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
-				response.append(CRLF);
-
-				if (soapaction.contains("ContentDirectory:1#Search")) {
-					response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
-				} else {
-					response.append(HTTPXMLHelper.BROWSERESPONSE_HEADER);
-				}
-
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.RESULT_HEADER);
-				response.append(HTTPXMLHelper.DIDL_HEADER);
-
-				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren");
-
-				if (soapaction.contains("ContentDirectory:1#Search")) {
-					browseDirectChildren = true;
-				}
-
-				// Xbox 360 virtual containers ... d'oh!
-				String searchCriteria = null;
-				if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
-					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
-						objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
-					} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
-						objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
-					} else if (containerID.equals("5") && PMS.get().getLibrary().getGenreFolder() != null) {
-						objectID = PMS.get().getLibrary().getGenreFolder().getResourceId();
-					} else if (containerID.equals("F") && PMS.get().getLibrary().getPlaylistFolder() != null) {
-						objectID = PMS.get().getLibrary().getPlaylistFolder().getResourceId();
-					} else if (containerID.equals("4") && PMS.get().getLibrary().getAllFolder() != null) {
-						objectID = PMS.get().getLibrary().getAllFolder().getResourceId();
-					} else if (containerID.equals("1")) {
-						String artist = getEnclosingValue(content, "upnp:artist = &quot;", "&quot;)");
-						if (artist != null) {
-							objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
-							searchCriteria = artist;
-						}
-					}
-				} else if (soapaction.contains("ContentDirectory:1#Search")) {
-					searchCriteria = getEnclosingValue(content, "<SearchCriteria", "</SearchCriteria>");
-				}
-
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
-					objectID,
-					browseDirectChildren,
-					startingIndex,
-					requestCount,
-					mediaRenderer,
-					searchCriteria
-				);
-
-				if (searchCriteria != null && files != null) {
-					UMSUtils.postSearch(files, searchCriteria);
-					if (xbox360) {
-						if (files.size() > 0) {
-							files = files.get(0).getChildren();
-						}
-					}
-				}
-
-				int minus = 0;
-				if (files != null) {
-					for (DLNAResource uf : files) {
-						if (xbox360 && containerID != null) {
-							uf.setFakeParentId(containerID);
-						}
-
-						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
-							|| uf.getPlayer().isPlayerCompatible(mediaRenderer))
-							 // do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-							 // all possible combination not only those supported by renderer because the renderer setting could be wrong.
-							|| files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
-								response.append(uf.getDidlString(mediaRenderer));
-						} else {
-							minus++;
-						}
-					}
-				}
-
-				response.append(HTTPXMLHelper.DIDL_FOOTER);
-				response.append(HTTPXMLHelper.RESULT_FOOTER);
-				response.append(CRLF);
-
-				int filessize = 0;
-				if (files != null) {
-					filessize = files.size();
-				}
-
-				response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
-				response.append(CRLF);
-				DLNAResource parentFolder = null;
-
-				if (files != null && filessize > 0) {
-					parentFolder = files.get(0).getParent();
-				} else {
-					parentFolder = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(objectID, mediaRenderer);
-				}
-
-				if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {
-					// with the new parser, files are parsed and analyzed *before*
-					// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
-					// so we do not know exactly the total number of items in the DLNA folder to send
-					// (regular files, plus the #transcode folder, maybe the #imdb one, also files can be
-					// invalidated and hidden if format is broken or encrypted, etc.).
-					// let's send a fake total size to force the renderer to ask following items
-					int totalCount = startingIndex + requestCount + 1; // returns 11 when 10 asked
-
-					// If no more elements, send the startingIndex
-					if (filessize - minus <= 0) {
-						totalCount = startingIndex;
-					}
-
-					response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
-				} else if (browseDirectChildren) {
-					response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
-				} else {
-					// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
-					response.append("<TotalMatches>1</TotalMatches>");
-				}
-
-				response.append(CRLF);
-				response.append("<UpdateID>");
-
-				if (parentFolder != null) {
-					response.append(parentFolder.getUpdateId());
-				} else {
-					response.append('1');
-				}
-
-				response.append("</UpdateID>");
-				response.append(CRLF);
-				if (soapaction.contains("ContentDirectory:1#Search")) {
-					response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
-				} else {
-					response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
-				}
-				response.append(CRLF);
-				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
-				response.append(CRLF);
-			} else {
+            } else if (soapaction != null && soapaction.contains("ContentDirectory:1#Browse")) {
+                response.append(browseHandler());
+            } else if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
+                response.append(searchHandler());
+            } else {
 				LOGGER.debug("Unsupported action received: " + content);
 			}
 		} else if (method.equals("SUBSCRIBE")) {
@@ -1139,8 +975,192 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
-	/**
-	 * Wraps the payload around soap Envelope / Body tags
+    private StringBuilder browseHandler() {
+        BrowseRequest requestMessage = getPayload(BrowseRequest.class);
+        return this.browseSearchHandler(requestMessage);
+    }
+
+    private StringBuilder searchHandler() {
+        SearchRequest requestMessage = getPayload(SearchRequest.class);
+        return this.browseSearchHandler(requestMessage);
+    }
+
+    /**
+     * Hybrid handler for Browse and Search requests.
+     * FIXME: Should be split up into separate implementations!
+     *
+     * @param requestMessage parsed message
+     * @return Soap response as a XML string
+     */
+    private StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage) {
+        boolean xbox360 = mediaRenderer.isXbox360();
+        String objectID = requestMessage.getObjectId();
+        String containerID = null;
+        if ((objectID == null || objectID.length() == 0)) {
+            containerID = requestMessage.getContainerId();
+            if (containerID == null || (xbox360 && !containerID.contains("$"))) {
+                objectID = "0";
+            } else {
+                objectID = containerID;
+                containerID = null;
+            }
+        }
+        Integer sI = requestMessage.getStartingIndex();
+        Integer rC = requestMessage.getRequestedCount();
+        String browseFlag = requestMessage.getBrowseFlag();
+
+        if (sI != null) {
+            startingIndex = sI;
+        }
+
+        if (rC != null) {
+            requestCount = rC;
+        }
+
+        boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren");
+
+        if (requestMessage instanceof SearchRequest) {
+            browseDirectChildren = true;
+        }
+
+        // Xbox 360 virtual containers ... d'oh!
+        String searchCriteria = null;
+        if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
+            if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
+                objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
+            } else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
+                objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
+            } else if (containerID.equals("5") && PMS.get().getLibrary().getGenreFolder() != null) {
+                objectID = PMS.get().getLibrary().getGenreFolder().getResourceId();
+            } else if (containerID.equals("F") && PMS.get().getLibrary().getPlaylistFolder() != null) {
+                objectID = PMS.get().getLibrary().getPlaylistFolder().getResourceId();
+            } else if (containerID.equals("4") && PMS.get().getLibrary().getAllFolder() != null) {
+                objectID = PMS.get().getLibrary().getAllFolder().getResourceId();
+            } else if (containerID.equals("1")) {
+                String artist = getEnclosingValue(content, "upnp:artist = &quot;", "&quot;)");
+                if (artist != null) {
+                    objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
+                    searchCriteria = artist;
+                }
+            }
+        } else if (requestMessage instanceof SearchRequest) {
+            searchCriteria = requestMessage.getSearchCriteria();
+        }
+
+        List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+                objectID,
+            browseDirectChildren,
+            startingIndex,
+            requestCount,
+            mediaRenderer,
+            searchCriteria
+        );
+
+        if (searchCriteria != null && files != null) {
+            UMSUtils.postSearch(files, searchCriteria);
+            if (xbox360) {
+                if (files.size() > 0) {
+                    files = files.get(0).getChildren();
+                }
+            }
+        }
+
+        int minus = 0;
+        StringBuilder filesData = new StringBuilder();
+        if (files != null) {
+            for (DLNAResource uf : files) {
+                if (xbox360 && containerID != null) {
+                    uf.setFakeParentId(containerID);
+                }
+
+                if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
+                    || uf.getPlayer().isPlayerCompatible(mediaRenderer))
+                     // do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
+                     // all possible combination not only those supported by renderer because the renderer setting could be wrong.
+                    || files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
+                    filesData.append(uf.getDidlString(mediaRenderer));
+                } else {
+                    minus++;
+                }
+            }
+        }
+
+        StringBuilder response = new StringBuilder();
+
+        if (requestMessage instanceof SearchRequest) {
+            response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
+        } else {
+            response.append(HTTPXMLHelper.BROWSERESPONSE_HEADER);
+        }
+
+        response.append(CRLF);
+        response.append(HTTPXMLHelper.RESULT_HEADER);
+        response.append(HTTPXMLHelper.DIDL_HEADER);
+        response.append(filesData);
+        response.append(HTTPXMLHelper.DIDL_FOOTER);
+        response.append(HTTPXMLHelper.RESULT_FOOTER);
+        response.append(CRLF);
+
+        int filessize = 0;
+        if (files != null) {
+            filessize = files.size();
+        }
+
+        response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
+        response.append(CRLF);
+        DLNAResource parentFolder = null;
+
+        if (files != null && filessize > 0) {
+            parentFolder = files.get(0).getParent();
+        } else {
+            parentFolder = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(objectID, mediaRenderer);
+        }
+
+        if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {
+            // with the new parser, files are parsed and analyzed *before*
+            // creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
+            // so we do not know exactly the total number of items in the DLNA folder to send
+            // (regular files, plus the #transcode folder, maybe the #imdb one, also files can be
+            // invalidated and hidden if format is broken or encrypted, etc.).
+            // let's send a fake total size to force the renderer to ask following items
+            int totalCount = startingIndex + requestCount + 1; // returns 11 when 10 asked
+
+            // If no more elements, send the startingIndex
+            if (filessize - minus <= 0) {
+                totalCount = startingIndex;
+            }
+
+            response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
+        } else if (browseDirectChildren) {
+            response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
+        } else {
+            // From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
+            response.append("<TotalMatches>1</TotalMatches>");
+        }
+
+        response.append(CRLF);
+        response.append("<UpdateID>");
+
+        if (parentFolder != null) {
+            response.append(parentFolder.getUpdateId());
+        } else {
+            response.append('1');
+        }
+
+        response.append("</UpdateID>");
+        response.append(CRLF);
+        if (requestMessage instanceof SearchRequest) {
+            response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
+        } else {
+            response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
+        }
+
+        return createResponse(response.toString());
+    }
+
+    /**
+	 * Wraps the payload around soap Envelope / Body tags.
+     *
 	 * @param payload Soap body as a XML String
 	 * @return Soap message as a XML string
 	 */

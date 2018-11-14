@@ -53,8 +53,13 @@ public class SamsungBookmark {
 		this.rId = rId;
 	}
 
-	@Override
-	public String toString() {
-		return String.format("objectId: %s\ncategoryType: %s\nposSecond: %d\nrId: %s",objectId, categoryType, this.posSecond, this.rId);
-	}
+    @Override
+    public String toString() {
+        return "SamsungBookmark{" +
+                "objectId='" + objectId + "'" +
+                ", posSecond=" + posSecond +
+                ", categoryType='" + categoryType + "'" +
+                ", rId='" + rId + "'" +
+                '}';
+    }
 }
