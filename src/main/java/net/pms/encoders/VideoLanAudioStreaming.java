@@ -18,7 +18,6 @@
  */
 package net.pms.encoders;
 
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PlayerUtil;
@@ -31,12 +30,8 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	public static final String KEY_VLC_LEGACY_AUDIO_EXECUTABLE_TYPE = "vlc_legacy_audio_executable_type";
 	public static final String NAME = "VLC Web Audio (Legacy)";
 
-	@Deprecated
-	public VideoLanAudioStreaming(PmsConfiguration configuration) {
-		this();
-	}
-
-	public VideoLanAudioStreaming() {
+	// Not to be instantiated by anything but PlayerFactory
+	VideoLanAudioStreaming() {
 	}
 
 	@Override

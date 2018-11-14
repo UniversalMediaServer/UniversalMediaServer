@@ -104,12 +104,8 @@ public class FFMpegVideo extends Player {
 	public static final String NAME = "FFmpeg Video";
 	private static final String DEFAULT_QSCALE = "3";
 
-	public FFMpegVideo() {
-	}
-
-	@Deprecated
-	public FFMpegVideo(PmsConfiguration configuration) {
-		this();
+	// Not to be instantiated by anything but PlayerFactory
+	FFMpegVideo() {
 	}
 
 	/**

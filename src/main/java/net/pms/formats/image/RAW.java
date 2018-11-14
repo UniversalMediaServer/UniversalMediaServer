@@ -167,7 +167,7 @@ public class RAW extends ImageBase {
 				media.setImageInfo(imageInfo);
 
 				if (media.getWidth() > 0 && media.getHeight() > 0 && configuration.getImageThumbnailsEnabled()) {
-					byte[] image = new DCRaw().getThumbnail(null, file.getFile().getAbsolutePath(), imageInfo);
+					byte[] image = dcraw.getThumbnail(null, file.getFile().getAbsolutePath(), imageInfo);
 					media.setThumb(DLNAThumbnail.toThumbnail(image, 320, 320, ScaleType.MAX, ImageFormat.JPEG, false));
 				}
 			} else {

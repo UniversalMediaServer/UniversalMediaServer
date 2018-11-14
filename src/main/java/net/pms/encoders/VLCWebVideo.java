@@ -18,7 +18,6 @@
  */
 package net.pms.encoders;
 
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.util.PlayerUtil;
 
@@ -29,12 +28,8 @@ public class VLCWebVideo extends VLCVideo {
 	public static final String KEY_VLC_WEB_EXECUTABLE_TYPE = "vlc_web_executable_type";
 	public static final String NAME = "VLC Web Video";
 
-	@Deprecated
-	public VLCWebVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public VLCWebVideo() {
+	// Not to be instantiated by anything but PlayerFactory
+	VLCWebVideo() {
 	}
 
 	@Override
