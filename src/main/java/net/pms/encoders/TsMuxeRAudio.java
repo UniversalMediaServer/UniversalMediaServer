@@ -20,7 +20,6 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import javax.swing.JComponent;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -35,12 +34,8 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	public static final String KEY_TSMUXER_AUDIO_EXECUTABLE_TYPE = "tsmuxer_audio_executable_type";
 	public static final String NAME = "tsMuxeR Audio";
 
-	@Deprecated
-	public TsMuxeRAudio(PmsConfiguration configuration) {
-		this();
-	}
-
-	public TsMuxeRAudio() {
+	// Not to be instantiated by anything but PlayerFactory
+	TsMuxeRAudio() {
 	}
 
 	@Override
