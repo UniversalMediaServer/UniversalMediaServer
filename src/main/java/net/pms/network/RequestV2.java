@@ -99,10 +99,10 @@ public class RequestV2 extends HTTPResource {
 	private String argument;
 	private String soapaction;
 	private String content;
-    private int startingIndex;
+	private int startingIndex;
 	private int requestCount;
 
-    /**
+	/**
 	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 */
 	private long lowRange;
