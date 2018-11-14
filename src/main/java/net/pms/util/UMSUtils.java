@@ -593,4 +593,26 @@ public class UMSUtils {
 		configuration.setFFmpegAvailableGPUDecodingAccelerationMethods(availableMethods);
 		configuration.save();
 	}
+
+	private static final int MEGABYTE_IN_BYTES = 1048576;
+	
+	public static long getMaximumRuntimeMemoryInMB() {
+		return Runtime.getRuntime().maxMemory() / MEGABYTE_IN_BYTES;
+	}
+	
+	public static long getCurrentRuntimeMemoryInMB() {
+		return (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / MEGABYTE_IN_BYTES;
+	}
+	
+	public static long getCurrentBufferMemoryInMB() {
+		long buf = 0;
+		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+		synchronized (foundRenderers) {
+			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
+				buf += (r.getBuffer());
+			}
+		}
+
+		return buf;
+	}
 }

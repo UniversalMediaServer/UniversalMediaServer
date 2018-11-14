@@ -142,7 +142,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
 	protected static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
-	protected static final String KEY_BUFFER_MAX = "buffer_max";
 	protected static final String KEY_BUMP_ADDRESS = "bump";
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
 	protected static final String KEY_BUMP_JS = "bump.js";

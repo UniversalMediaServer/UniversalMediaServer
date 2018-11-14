@@ -2,6 +2,8 @@ package net.pms.dlna;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.PMS;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,12 @@ public class GlobalIdRepo {
 	private int curGlobalId = 1, deletionsCount = 0;
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private final ArrayList<ID> ids = new ArrayList<>();
+
+	// The number of IDs to remove at a time when memory is getting tight
+	private final int DEBOUNCE_AMOUNT = 10;
+
+	// A counter that resets when it reaches DEBOUNCE_AMOUNT
+	private int debounceCounter = 0;
 
 	private static class ID {
 		final int id;
@@ -32,7 +40,29 @@ public class GlobalIdRepo {
 		lock.writeLock().lock();
 		try {
 			String id = dlnaResource.getId();
-			if (id != null) {
+			if (id == null) {
+				/**
+				 * Before adding a new global ID, check whether
+				 * we have a comfortable amount of room in
+				 * memory, and if there isn't, remove the oldest
+				 * ID to make room.
+				 *
+				 * The math is inexact; current memory plus 1x
+				 * maximum transcoding buffer memory plus 100 MB
+				 * for a general buffer.
+				 */
+				if (debounceCounter == DEBOUNCE_AMOUNT) {
+					long maximumComfortableMemoryUseInMB = (UMSUtils.getCurrentRuntimeMemoryInMB() + PMS.getConfiguration().getMaxMemoryBufferSize() + 100);
+					if (maximumComfortableMemoryUseInMB > UMSUtils.getMaximumRuntimeMemoryInMB()) {
+						for (int i = 0; i <= DEBOUNCE_AMOUNT; i++) {
+							ids.remove(1);
+						}
+					}
+					debounceCounter = 0;
+				} else {
+					debounceCounter++;
+				}
+			} else {
 				remove(id);
 			}
 

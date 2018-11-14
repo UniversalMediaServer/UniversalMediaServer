@@ -37,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -47,7 +45,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.components.AnimatedIcon;
-import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
@@ -68,7 +65,6 @@ public class StatusTab {
 		public ImagePanel icon;
 		public JLabel label;
 		public GuiUtil.MarqueeLabel playingLabel;
-//		public GuiUtil.ScrollLabel playingLabel;
 		public GuiUtil.FixedPanel playing;
 		public JLabel time;
 		public JFrame frame;
@@ -82,7 +78,6 @@ public class StatusTab {
 			icon.enableRollover();
 			label = new JLabel(renderer.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
-//			playingLabel = new GuiUtil.ScrollLabel(" ");
 			playingLabel.setForeground(Color.gray);
 			int h = (int) playingLabel.getSize().getHeight();
 			playing = new GuiUtil.FixedPanel(0, h);
@@ -519,25 +514,23 @@ public class StatusTab {
 	}
 
 	private int getTickMarks() {
-		int mb = (int) (Runtime.getRuntime().maxMemory() / 1048576);
+		int mb = (int) UMSUtils.getMaximumRuntimeMemoryInMB();
 		return mb < 1000 ? 100 : mb < 2500 ? 250 : mb < 5000 ? 500 : 1000;
 	}
 
 	public void updateMemoryUsage() {
-		final long max = Runtime.getRuntime().maxMemory() / 1048576;
-		final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-		long buf = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized (foundRenderers) {
-			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
-				buf += (r.getBuffer());
-			}
-		}
-		final long buffer = buf;
+		final long maxMemoryInMB = UMSUtils.getMaximumRuntimeMemoryInMB();
+		final long usedMemoryTotalInMB = UMSUtils.getCurrentRuntimeMemoryInMB();
+		final long usedMemoryByBufferInMB = UMSUtils.getCurrentBufferMemoryInMB();
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
+				memBarUI.setValues(
+					0,
+					(int) maxMemoryInMB,
+					(int) (usedMemoryTotalInMB - usedMemoryByBufferInMB),
+					(int) usedMemoryByBufferInMB
+				);
 			}
 		});
 	}
