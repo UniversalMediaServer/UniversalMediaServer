@@ -2,6 +2,7 @@
 
 	General:
 		Started to release installer wizard for macOS (thanks, js-kyle!)
+		Started to use the "Album Artist" field for better audio file browsing of compilations (thanks, maciekberry!)
 		Improved network connection stability (thanks, reorder!)
 		Improved the web interface's accessibility and support for remote controls (thanks, acanive!)
 		Removed the broken whitelist functionality (thanks, Nadahar!)
@@ -15,8 +16,11 @@
 		Fixed burning picture subtitles when other filters are also used in FFmpeg
 		Fixed FFmpeg not enabling the GPU configuration toggle
 		Fixed thumbnails not persisting to the database unless TRACE logging is enabled
+		Fixed binaries not being picked up from the PATH on Linux (thanks, Nadahar!)
+		Fixed support for Java 10+ on Linux
 		Added build documentation to BUILD.md
 		Updated documentation in CONTRIBUTING.md and STYLEGUIDE.md
+		Improved code formatting (thanks, drakulis!)
 	Formats/Codecs: (thanks, Sami32!)
 		Added recognition of video codecs: ASF, FFV1, RLE, S4UD, TGA and VRO
 		Added recognition of audio formats: CAF
@@ -25,6 +29,7 @@
 		Improved recognition of AAC, FLV and WMA
 	Renderers:
 		Added support for Bush Freeview (thanks, atamariya!)
+		Added support for the built-in "Resume" functionality on Samsung TVs
 		Improved support for H.264 codec and SRT subtitles on PS4 (thanks, fgimenezm!)
 	Dependencies:
 		Added commons-text 1.3 (thanks, Nadahar!)
