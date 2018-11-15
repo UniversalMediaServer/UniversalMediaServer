@@ -1,4 +1,4 @@
-7.6.0 - 2018-11-??
+7.6.0 - 2018-11-16
 
 	General:
 		Started to release installer wizard for macOS (thanks, js-kyle!)
