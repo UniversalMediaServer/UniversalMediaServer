@@ -1,19 +1,19 @@
 package net.pms.dlna;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
 import static org.assertj.core.api.Assertions.*;
 
-import java.io.File;
-import java.util.ArrayList;
-
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.ProgramExecutableType;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.Player;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
@@ -21,6 +21,7 @@ import net.pms.io.ProcessWrapper;
 
 public class DLNAMediaInfoTest
 {
+	private final Class<?> CLASS = DLNAMediaInfoTest.class;
 
 	@BeforeClass
 	public static void SetUPClass()
@@ -43,22 +44,31 @@ public class DLNAMediaInfoTest
 		// Initialize the RendererConfiguration
 		loadRendererConfigurations(pmsConf);
 		
+		Player player = new FFmpegWebVideo();
+		player.setCurrentExecutableType(ProgramExecutableType.BUNDLED);
+
 		// Get a resource handle
 		// This comes from RequestV2::answer()
-		RendererConfiguration mediaRenderer = RendererConfiguration.getDefaultConf();
-		
-		File f = new File("/mnt/konstant/todo/A.Scanner.Darkly.2006.1080p.BluRay.x264.YIFY.mp4");
-		DLNAResource dlna = new RealFile(f);
+		DLNAResource dlna = new RealFile(
+				FileUtils.toFile(CLASS.getResource("pexels-video-4809.mp4")));
 		dlna.setMedia(new DLNAMediaInfo());
 		dlna.setMediaAudio(new DLNAMediaAudio());
 		PMS.getGlobalRepo().add(dlna);
-		OutputParams params = new OutputParams(PMS.getConfiguration());
-		params.mediaRenderer = new DeviceConfiguration();
-		params.aid = dlna.getMediaAudio();
-
-		Player player = new FFMpegVideo();
-		ProcessWrapper externalProcess = player.launchTranscode(dlna,
-				dlna.getMedia(), params);
+		
+		for(RendererConfiguration mediaRenderer : RendererConfiguration.getEnabledRenderersConfigurations()) {
+			if( mediaRenderer.getConfName() != null && mediaRenderer.getConfName().equals("VLC for desktop") ) {
+				OutputParams params = new OutputParams(PMS.getConfiguration());
+				params.mediaRenderer = new DeviceConfiguration(mediaRenderer);
+				params.aid = dlna.getMediaAudio();
+				ProcessWrapper externalProcess = player.launchTranscode(dlna,
+						dlna.getMedia(), params);
+				//dlna.getMedia().parseFFmpegInfo(externalProcess.getResults(), "-");
+				System.out.println(dlna.getMedia().getDurationString());
+				System.out.println(dlna.getMedia().getContainer());
+			}
+		}
+		
+		
 	
 	}
 
