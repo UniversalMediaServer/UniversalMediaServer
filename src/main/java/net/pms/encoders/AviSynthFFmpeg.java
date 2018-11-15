@@ -61,6 +61,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_FFMPEG;
 	public static final String NAME = "AviSynth/FFmpeg";
 
+	// Not to be instantiated by anything but PlayerFactory
+	AviSynthFFmpeg() {
+	}
+
 	@Override
 	public PlayerId id() {
 		return ID;
@@ -147,7 +151,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String mtLine1         = "";
 			String mtLine2         = "";
 			String interframeLines = null;
-			String interframePath  = configuration.getInterFrameDefaultPath();
+			String interframePath  = configuration.getInterFramePath();
 
 			int Cores = 1;
 			if (configuration.isFfmpegAviSynthMultithreading()) {
@@ -316,9 +320,6 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return builder.getPanel();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
