@@ -31,6 +31,38 @@
 		Added support for Bush Freeview (thanks, atamariya!)
 		Added support for the built-in "Resume" functionality on Samsung TVs
 		Improved support for H.264 codec and SRT subtitles on PS4 (thanks, fgimenezm!)
+	Languages:
+		Updated translations via Crowdin:
+			Arabic translation updated
+			Bulgarian translation updated
+			Catalan translation updated
+			Chinese Simplified translation updated
+			Chinese Traditional translation updated
+			Croatian translation updated
+			Czech translation updated
+			Danish translation updated
+			Dutch translation updated
+			Finnish translation updated
+			French translation completed and validated
+			German translation updated
+			Greek translation updated
+			Hungarian translation updated
+			Italian translation updated
+			Japanese translation updated
+			Korean translation updated
+			Norwegian translation updated
+			Persian translation updated
+			Polish translation completed and validated
+			Portuguese translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Slovak translation updated
+			Slovenian translation updated
+			Serbian (Cyrillic) translation updated
+			Spanish translation completed
+			Swedish translation updated
+			Turkish translation updated
 	Dependencies:
 		Added commons-text 1.3 (thanks, Nadahar!)
 		Updated Cling to 2.1.2
