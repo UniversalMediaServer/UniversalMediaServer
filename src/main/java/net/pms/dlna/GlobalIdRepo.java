@@ -44,18 +44,18 @@ public class GlobalIdRepo {
 				/**
 				 * Before adding a new global ID, check whether
 				 * we have a comfortable amount of room in
-				 * memory, and if there isn't, remove the oldest
-				 * ID to make room.
+				 * memory, and if there isn't, remove the
+				 * 2nd-oldest ID to make room.
 				 *
 				 * The math is inexact; current memory plus 1x
-				 * maximum transcoding buffer memory plus 100 MB
+				 * maximum transcoding buffer memory plus 150 MB
 				 * for a general buffer.
 				 */
 				if (debounceCounter == DEBOUNCE_AMOUNT) {
 					long maximumComfortableMemoryUseInMB = (UMSUtils.getCurrentRuntimeMemoryInMB() + PMS.getConfiguration().getMaxMemoryBufferSize() + 150);
 					if (maximumComfortableMemoryUseInMB > UMSUtils.getMaximumRuntimeMemoryInMB()) {
 						for (int i = 0; i <= DEBOUNCE_AMOUNT; i++) {
-							ids.remove(1);
+							remove(ids.get(1).dlnaResource);
 						}
 					}
 					debounceCounter = 0;
