@@ -32,21 +32,21 @@ public class DeviceConfiguration extends PmsConfiguration {
 	private static HashMap<String, String> xref;
 	private static File deviceDir;
 
-	public DeviceConfiguration() {
+	public DeviceConfiguration() throws InterruptedException {
 		super(0);
 	}
 
-	public DeviceConfiguration(File f, String uuid) throws ConfigurationException {
+	public DeviceConfiguration(File f, String uuid) throws ConfigurationException, InterruptedException {
 		super(f, uuid);
 		inherit(this);
 	}
 
-	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException {
+	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
 		super(0);
 		inherit(ref);
 	}
 
-	public DeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException {
+	public DeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
 		super(0);
 		deviceConf = initConfiguration(ia);
 		inherit(ref);
@@ -81,7 +81,6 @@ public class DeviceConfiguration extends PmsConfiguration {
 		// Sync our internal PmsConfiguration vars
 		// TODO: create new objects here instead?
 		tempFolder = baseConf.tempFolder;
-		programPaths = baseConf.programPaths;
 		filter = baseConf.filter;
 
 		// Initialize our internal RendererConfiguration vars

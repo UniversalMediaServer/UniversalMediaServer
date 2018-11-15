@@ -20,7 +20,6 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import javax.swing.JComponent;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -29,14 +28,14 @@ import net.pms.io.ProcessWrapper;
 import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
-	public static final String ID = "TSMuxerAudio";
+	public static final PlayerId ID = StandardPlayerId.TSMUXER_AUDIO;
 
-	@Deprecated
-	public TsMuxeRAudio(PmsConfiguration configuration) {
-		this();
-	}
+	/** The {@link Configuration} key for the tsMuxeR Audio executable type. */
+	public static final String KEY_TSMUXER_AUDIO_EXECUTABLE_TYPE = "tsmuxer_audio_executable_type";
+	public static final String NAME = "tsMuxeR Audio";
 
-	public TsMuxeRAudio() {
+	// Not to be instantiated by anything but PlayerFactory
+	TsMuxeRAudio() {
 	}
 
 	@Override
@@ -45,8 +44,13 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_TSMUXER_AUDIO_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -67,7 +71,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Override
 	public String name() {
-		return "Audio High Fidelity";
+		return NAME;
 	}
 
 	@Override
@@ -80,9 +84,6 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 		return Format.VIDEO;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isVideo(resource, Format.Identifier.AUDIO_AS_VIDEO);

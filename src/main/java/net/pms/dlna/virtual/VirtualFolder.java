@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a container (folder). This is widely used by the UPNP ContentBrowser service. Child objects are expected in this folder.

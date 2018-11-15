@@ -18,10 +18,12 @@
  */
 package net.pms.encoders;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
@@ -29,37 +31,49 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.newgui.GuiUtil;
+import net.pms.platform.windows.NTStatus;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.PlayerUtil;
+import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TsMuxeRVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TsMuxeRVideo.class);
+	public static final PlayerId ID = StandardPlayerId.TSMUXER_VIDEO;
+
+	/** The {@link Configuration} key for the custom tsMuxeR path. */
+	public static final String KEY_TSMUXER_PATH     = "tsmuxer_path";
+
+	/** The {@link Configuration} key for the tsMuxeR executable type. */
+	public static final String KEY_TSMUXER_EXECUTABLE_TYPE = "tsmuxer_executable_type";
+	public static final String NAME = "tsMuxeR Video";
+
 	private static final String COL_SPEC = "left:pref, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow";
 
-	public static final String ID = "TSMuxer";
-
-	@Deprecated
-	public TsMuxeRVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public TsMuxeRVideo() {
+	// Not to be instantiated by anything but PlayerFactory
+	TsMuxeRVideo() {
 	}
 
 	@Override
@@ -87,8 +101,18 @@ public class TsMuxeRVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_TSMUXER_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_TSMUXER_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -102,8 +126,8 @@ public class TsMuxeRVideo extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getTsmuxerPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getTsMuxeRPaths();
 	}
 
 	@Override
@@ -152,7 +176,7 @@ public class TsMuxeRVideo extends Player {
 			}
 
 			ffmpegCommands = new String[] {
-				configuration.getFfmpegPath(),
+				PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 				timeEndValue1, timeEndValue2,
 				"-loop", "1",
 				"-i", "DummyInput.jpg",
@@ -181,7 +205,7 @@ public class TsMuxeRVideo extends Player {
 				ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "flacaudio", System.currentTimeMillis() + "audioout", false, true);
 
 				String[] flacCmd = new String[] {
-					configuration.getFlacPath(),
+					configuration.getFLACPath(),
 					"--output-name=" + ffAudioPipe[0].getInputPipe(),
 					"-d",
 					"-f",
@@ -208,7 +232,7 @@ public class TsMuxeRVideo extends Player {
 				}
 
 				String[] flacCmd = new String[] {
-					configuration.getFfmpegPath(),
+					PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 					"-i", filename,
 					"-ar", rate,
 					"-f", "wav",
@@ -229,7 +253,7 @@ public class TsMuxeRVideo extends Player {
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
 
 			ffmpegCommands = new String[] {
-				configuration.getFfmpegPath(),
+				PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 				"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 				"-i", filename,
 				"-c", "copy",
@@ -327,7 +351,7 @@ public class TsMuxeRVideo extends Player {
 						sm.setBitsPerSample(16);
 
 						ffmpegCommands = new String[] {
-							configuration.getFfmpegPath(),
+							PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							"-i", filename,
 							"-ac", "" + sm.getNbChannels(),
@@ -344,7 +368,7 @@ public class TsMuxeRVideo extends Player {
 					} else if (!ac3Remux && params.mediaRenderer.isTranscodeToAAC()) {
 						// AAC audio
 						ffmpegCommands = new String[] {
-							configuration.getFfmpegPath(),
+							PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							"-i", filename,
 							"-ac", "" + channels,
@@ -358,7 +382,7 @@ public class TsMuxeRVideo extends Player {
 					} else {
 						// AC-3 audio
 						ffmpegCommands = new String[] {
-							configuration.getFfmpegPath(),
+							PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 							"-i", filename,
 							"-ac", "" + channels,
@@ -430,7 +454,7 @@ public class TsMuxeRVideo extends Player {
 							}
 
 							ffmpegCommands = new String[] {
-								configuration.getFfmpegPath(),
+								PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								"-i", filename,
 								"-ac", "" + sm.getNbChannels(),
@@ -443,7 +467,7 @@ public class TsMuxeRVideo extends Player {
 						} else if (!ac3Remux && params.mediaRenderer.isTranscodeToAAC()) {
 							// AAC audio
 							ffmpegCommands = new String[] {
-								configuration.getFfmpegPath(),
+								PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								"-i", filename,
 								"-ac", "" + channels,
@@ -458,7 +482,7 @@ public class TsMuxeRVideo extends Player {
 						} else {
 							// AC-3 remux or encoding
 							ffmpegCommands = new String[] {
-								configuration.getFfmpegPath(),
+								PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO),
 								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
 								"-i", filename,
 								"-ac", "" + channels,
@@ -621,9 +645,9 @@ public class TsMuxeRVideo extends Player {
 		 * Use the newer version of tsMuxeR on PS3 since other renderers
 		 * like Panasonic TVs don't always recognize the new output
 		 */
-		String executable = executable();
+		String executable = getExecutable();
 		if (params.mediaRenderer.isPS3()) {
-			executable = configuration.getTsmuxerNewPath();
+			executable = configuration.getTsMuxeRNewPath();
 		}
 
 		String[] cmdArray = new String[]{
@@ -631,14 +655,6 @@ public class TsMuxeRVideo extends Player {
 			f.getAbsolutePath(),
 			tsPipe.getInputPipe()
 		};
-
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
 
 		ProcessWrapperImpl p = new ProcessWrapperImpl(cmdArray, params);
 		params.maxBufferSize = 100;
@@ -702,7 +718,7 @@ public class TsMuxeRVideo extends Player {
 
 	@Override
 	public String name() {
-		return "tsMuxeR";
+		return NAME;
 	}
 
 	@Override
@@ -773,9 +789,6 @@ public class TsMuxeRVideo extends Player {
 		return mediaRenderer != null && mediaRenderer.isMuxH264MpegTS();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
@@ -809,6 +822,63 @@ public class TsMuxeRVideo extends Player {
 			return true;
 		}
 
+		return false;
+	}
+
+	@Override
+	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		final String arg = "-v";
+		ExecutableInfoBuilder result = executableInfo.modify();
+		try {
+			ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+				30000,
+				1000,
+				executableInfo.getPath().toString(),
+				arg
+			);
+			if (output.getError() != null) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.available(Boolean.FALSE);
+				LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
+				return result.build();
+			}
+			if (output.getExitCode() == 0) {
+				if (output.getOutput() != null && output.getOutput().size() > 0) {
+					Pattern pattern = Pattern.compile("tsMuxeR\\.\\s+Version\\s(\\S+)\\s+", Pattern.CASE_INSENSITIVE);
+					Matcher matcher = pattern.matcher(output.getOutput().get(0));
+					if (matcher.find() && isNotBlank(matcher.group(1))) {
+						result.version(new Version(matcher.group(1)));
+					}
+				}
+				result.available(Boolean.TRUE);
+			} else {
+				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
+				if (ntStatus != null) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+				} else {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					if (Platform.isLinux() && Platform.is64Bit()) {
+						result.errorType(ExecutableErrorType.GENERAL);
+						result.errorText(result.errorText() + ". \n" + Messages.getString("Engine.tsMuxerErrorLinux"));
+					}
+					result.available(Boolean.FALSE);
+				}
+			}
+		} catch (InterruptedException e) {
+			return null;
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
 		return false;
 	}
 }

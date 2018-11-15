@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>7.5.0</version>
+	<version>7.6.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>7.5.0</project.version.short>
+		<project.version.short>7.6.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -73,7 +73,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
-		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
+		<sevenzip-version>9.20-2.00beta</sevenzip-version>
 
 		<twelvemonkeys-imageio-version>3.3.2</twelvemonkeys-imageio-version>
 
@@ -82,7 +82,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>http://universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>80</binary-revision>
+		<binary-revision>81</binary-revision>
 
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.3</git-commit-id-plugin-version>
@@ -159,6 +159,12 @@
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 			-->
 			<version>1.10</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
@@ -193,12 +199,17 @@
 
 				Check the commons-io:commons-io version of the library before upgrading
 			-->
-			<version>2.5</version>
+			<version>2.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.5</version>
+			<version>3.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.3</version><!-- Versions above 1.3 require Java 8 -->
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -348,7 +359,7 @@
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 			-->
-			<version>0.7</version>
+			<version>1.0.1</version>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
@@ -364,14 +375,14 @@
 			<version>1.2.11</version>
 		</dependency>
 		<dependency>
-			<groupId>sevenzip</groupId>
-			<artifactId>jbinding</artifactId>
-			<version>${sevenzip-version}</version>
+		    <groupId>net.sf.sevenzipjbinding</groupId>
+		    <artifactId>sevenzipjbinding</artifactId>
+		    <version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>sevenzip-allplatforms</groupId>
-			<artifactId>jbinding-allplatforms</artifactId>
-			<version>${sevenzip-version}</version>
+		    <groupId>net.sf.sevenzipjbinding</groupId>
+		    <artifactId>sevenzipjbinding-all-platforms</artifactId>
+		    <version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -404,27 +415,27 @@
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-core</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.fourthline.cling</groupId>
 			<artifactId>cling-support</artifactId>
-			<version>2.1.1</version>
+			<version>2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-http</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-util</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-xml</artifactId>
-			<version>1.1.1</version>
+			<version>1.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>
@@ -487,6 +498,10 @@
 					<groupId>commons-io</groupId>
 					<artifactId>commons-io</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -506,6 +521,36 @@
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
 			<version>3.4.3</version>
+		</dependency>
+		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
+		<dependency>
+		    <groupId>org.codehaus.plexus</groupId>
+		    <artifactId>plexus</artifactId>
+		    <version>5.1</version>
+		    <type>pom</type>
+		</dependency>
+		<dependency>
+		    <groupId>org.codehaus.plexus</groupId>
+		    <artifactId>plexus-utils</artifactId>
+		    <version>3.1.0</version>
+		</dependency>
+		<!-- FIX ERROR: Exception in thread "main" java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument -->
+		<dependency>
+		    <groupId>com.google.guava</groupId>
+		    <artifactId>guava-parent</artifactId>
+		    <version>26.0-jre</version>
+		    <type>pom</type>
+		</dependency>
+		<dependency>
+		    <groupId>org.codehaus</groupId>
+		    <artifactId>codehaus-parent</artifactId>
+		    <version>4</version>
+		    <type>pom</type>
+		</dependency>
+		<dependency>
+		    <groupId>net.lingala.zip4j</groupId>
+		    <artifactId>zip4j</artifactId>
+		    <version>1.3.2</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -579,11 +624,12 @@
 				<!-- Enable the use of Maven properties -->
 				<filtering>true</filtering>
 			</testResource>
-			<!--*.srt files to test charset detection-->
+			<!--*.srt files to test charset detection and *json to test filename prettification-->
 			<testResource>
 				<directory>src/test/resources/net/pms/util</directory>
 				<includes>
 					<include>*.srt</include>
+					<include>*.json</include>
 				</includes>
 				<targetPath>net/pms/util</targetPath>
 			</testResource>
@@ -834,18 +880,6 @@
 					<createChecksum>true</createChecksum>
 					<artifactItems>
 						<artifactItem>
-							<groupId>sevenzip</groupId>
-							<artifactId>jbinding</artifactId>
-							<version>${sevenzip-version}</version>
-							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
-						</artifactItem>
-						<artifactItem>
-							<groupId>sevenzip-allplatforms</groupId>
-							<artifactId>jbinding-allplatforms</artifactId>
-							<version>${sevenzip-version}</version>
-							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
-						</artifactItem>
-						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>
 							<version>${cuelib-version}</version>
@@ -1087,7 +1121,6 @@
 										<mkdir dir="${project.binaries}/win32" />
 										<mkdir dir="${project.binaries}/win32/avisynth" />
 										<mkdir dir="${project.binaries}/win32/codecs" />
-										<mkdir dir="${project.binaries}/win32/dvrms" />
 										<mkdir dir="${project.binaries}/win32/fonts" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
@@ -1121,8 +1154,6 @@
 										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wma9dmod.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmv9dmod.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmvdmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/dvrms/ffmpeg_MPGMUX.exe?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/ffmpeg_MPGMUX.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/dvrms/pthreadGC2.dll?p=${binary-revision}" dest="${project.binaries}/win32/dvrms/pthreadGC2.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
@@ -2296,13 +2327,14 @@
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/linux" />										
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/ffmpeg?p=${binary-revision}" dest="${project.binaries}/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/ffmpeg64?p=${binary-revision}" dest="${project.binaries}/ffmpeg64" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/tsMuxeR-new" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/ffmpeg64?p=${binary-revision}" dest="${project.binaries}/linux/ffmpeg64" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR_license.txt" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2326,7 +2358,7 @@
 		</profile>
 
 		<!--
-			macOS Java 7 profile: takes care of building the final package for macOS using Java 7.
+			Mac OSX Java 7 profile: takes care of building the final package for macOS using Java 7.
 			Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
 		-->
 		<profile>

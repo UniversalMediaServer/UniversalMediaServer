@@ -11,9 +11,8 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
-import net.pms.encoders.FFMpegVideo;
-import net.pms.encoders.FFmpegAudio;
-import net.pms.encoders.FFmpegWebVideo;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.StandardPlayerId;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,9 +91,9 @@ public class RemoteMediaHandler implements HttpHandler {
 				} else if (!RemoteUtil.directmime(mimeType) || RemoteUtil.transMp4(mimeType, media)) {
 					mimeType = renderer != null ? renderer.getVideoMimeType() : RemoteUtil.transMime();
 					if (FileUtil.isUrl(resource.getSystemName())) {
-						resource.setPlayer(new FFmpegWebVideo());
+						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_WEB_VIDEO, false, false));
 					} else if (!(resource instanceof DVDISOTitle)) {
-						resource.setPlayer(new FFMpegVideo());
+						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_VIDEO, false, false));
 					}
 					//code = 206;
 				}
@@ -110,7 +109,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			}
 
 			if (!RemoteUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
-				resource.setPlayer(new FFmpegAudio());
+				resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
 				code = 206;
 			}
 

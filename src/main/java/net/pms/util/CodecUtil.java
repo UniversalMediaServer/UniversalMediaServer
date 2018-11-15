@@ -27,9 +27,9 @@ import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.io.*;
 import java.util.ArrayList;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
+import net.pms.io.BasicSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +93,7 @@ public class CodecUtil {
 		String font = null;
 		if (Platform.isWindows()) {
 			// get Windows Arial
-			String winDir = PMS.get().getRegistry().getWindowsDirectory();
+			String winDir = BasicSystemUtils.INSTANCE.getWindowsDirectory();
 			if (winDir != null) {
 				File winDirFile = new File(winDir);
 				if (winDirFile.exists()) {

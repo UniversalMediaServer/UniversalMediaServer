@@ -34,7 +34,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
-	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
+	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);

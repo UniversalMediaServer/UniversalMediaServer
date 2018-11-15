@@ -501,15 +501,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			ArrayList<String> tags = new ArrayList<>();
-			tags.add(getRendererName());
-			for (InetAddress sa : addressAssociation.keySet()) {
-				if (addressAssociation.get(sa) == this) {
-					tags.add(sa.getHostAddress());
-				}
-			}
-
-			rootFolder = new RootFolder(tags);
+			rootFolder = new RootFolder();
 			if (pmsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
@@ -708,6 +700,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		} catch (ConfigurationException e) {
 			LOGGER.error("Configuration error while resolving renderer: {}", e.getMessage());
 			LOGGER.trace("", e);
+		} catch (InterruptedException e) {
+			LOGGER.error("Interrupted while resolving renderer \"{}\": {}", ia, e.getMessage());
+			return null;
 		}
 		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
@@ -902,6 +897,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isLG() {
 		return getConfName().toUpperCase().contains("LG ");
+	}
+	
+	/**
+	 * @return whether this renderer is an Samsung device
+	 */
+	public boolean isSamsung() {
+		return getConfName().toUpperCase().contains("SAMSUNG");
 	}
 
 	// Ditlew
@@ -2501,13 +2503,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isEmbeddedSubtitlesSupported() {
 		return StringUtils.isNotBlank(getSupportedEmbeddedSubtitles());
-	}
-
-	public ArrayList<String> tags() {
-		if (rootFolder != null) {
-			return rootFolder.getTags();
-		}
-		return null;
 	}
 
 	/**
