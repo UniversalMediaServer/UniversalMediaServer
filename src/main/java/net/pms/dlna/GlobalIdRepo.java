@@ -52,7 +52,7 @@ public class GlobalIdRepo {
 				 * for a general buffer.
 				 */
 				if (debounceCounter == DEBOUNCE_AMOUNT) {
-					long maximumComfortableMemoryUseInMB = (UMSUtils.getCurrentRuntimeMemoryInMB() + PMS.getConfiguration().getMaxMemoryBufferSize() + 100);
+					long maximumComfortableMemoryUseInMB = (UMSUtils.getCurrentRuntimeMemoryInMB() + PMS.getConfiguration().getMaxMemoryBufferSize() + 150);
 					if (maximumComfortableMemoryUseInMB > UMSUtils.getMaximumRuntimeMemoryInMB()) {
 						for (int i = 0; i <= DEBOUNCE_AMOUNT; i++) {
 							ids.remove(1);
