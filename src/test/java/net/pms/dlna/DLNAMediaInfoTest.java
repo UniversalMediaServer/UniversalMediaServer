@@ -46,11 +46,6 @@ public class DLNAMediaInfoTest
 		// force unbuffered if in trace mode
 		LoggingConfig.setBuffered(false);
 		Services.create();
-		try {
-			PMS.getConfiguration().initCred();
-		} catch (IOException ex) {
-			throw new AssertionError(ex);
-		}
 
 		if (PMS.getConfiguration().isRunSingleInstance()) {
 //			PMS.killOld();
