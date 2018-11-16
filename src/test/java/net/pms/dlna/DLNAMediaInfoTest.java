@@ -67,7 +67,8 @@ public class DLNAMediaInfoTest
 		DLNAResource parent = new VirtualFolder("test","test");
 		DLNAResource dlna = new RealFile(
 				FileUtils.toFile(CLASS.getResource("pexels-video-4809.mp4")));
-		PMS.getGlobalRepo().add(dlna);
+		System.err.println("XXXXXXXXXXXXXXXXXXXXXX"+CLASS.getResource("pexels-video-4809.mp4").toExternalForm());
+		
 		dlna.setMedia(new DLNAMediaInfo());
 		dlna.setParent(parent);
 		dlna.syncResolve();
