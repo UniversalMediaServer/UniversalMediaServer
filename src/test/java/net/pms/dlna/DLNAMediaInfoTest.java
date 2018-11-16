@@ -1,14 +1,11 @@
 package net.pms.dlna;
 
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
-import org.assertj.core.internal.Integers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+//import static org.junit.Assert.assertThat;
 
 import ch.qos.logback.classic.Level;
 
@@ -20,7 +17,6 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.logging.LoggingConfig;
 import net.pms.service.Services;
-import net.pms.util.FileUtil;
 
 
 public class DLNAMediaInfoTest
@@ -46,6 +42,12 @@ public class DLNAMediaInfoTest
 		// force unbuffered if in trace mode
 		LoggingConfig.setBuffered(false);
 		Services.create();
+		 try {
+			 PMS.getConfiguration().initCred();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
 
 		if (PMS.getConfiguration().isRunSingleInstance()) {
 //			PMS.killOld();
