@@ -72,6 +72,8 @@ public class DLNAMediaInfoTest
 		dlna.setParent(parent);
 		dlna.syncResolve();
 		dlna.resolveFormat();
+		
+		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
 		assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436);
 		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
