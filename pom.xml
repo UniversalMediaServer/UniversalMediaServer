@@ -638,6 +638,7 @@
 				<directory>src/test/resources/net/pms/dlna</directory>
 				<includes>
 					<include>*.mp4</include>
+					<include>*.mkv</include>
 					<include>*.srt</include>
 				</includes>
 				<targetPath>net/pms/dlna</targetPath>
