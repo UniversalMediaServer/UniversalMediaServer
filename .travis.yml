@@ -20,9 +20,6 @@ matrix:
     - os: osx
       osx_image: xcode9.3
 
-env:
-    - DMS_PROFILE=.
-
 install: mvn external:install 
 
 script: mvn verify -B -V -P testing
