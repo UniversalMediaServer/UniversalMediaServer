@@ -67,7 +67,6 @@ public class DLNAMediaInfoTest
 		DLNAResource parent = new VirtualFolder("test","test");
 		DLNAResource dlna = new RealFile(
 				FileUtils.toFile(CLASS.getResource("pexels-video-4809.mp4")));
-		System.err.println("XXXXXXXXXXXXXXXXXXXXXX"+CLASS.getResource("pexels-video-4809.mp4").toExternalForm());
 		
 		dlna.setMedia(new DLNAMediaInfo());
 		dlna.setParent(parent);
@@ -75,16 +74,16 @@ public class DLNAMediaInfoTest
 		dlna.resolveFormat();
 
 		assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436);
-		assertThat( dlna.getMedia().getContainer() ).isEqualTo("mp4");
-		assertThat( dlna.getMedia().getMimeType() ).isEqualTo("video/mp4");
+		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
+		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/mp4");
 		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
 		
 		assertThat( dlna.getMedia().getVideoTrackCount() ).isEqualTo(1);
-		assertThat( dlna.getMedia().getCodecV() ).isEqualTo("h264");
+		assertThat( dlna.getMedia().getCodecV() ).isEqualToIgnoringCase("h264");
 		assertThat( dlna.getMedia().getBitrate() ).isEqualTo(5016576);
 		assertThat( dlna.getMedia().getFrameRate() ).isEqualTo("29.97");
 		assertThat( dlna.getMedia().getDuration() ).isEqualTo(15.42);
-		assertThat( dlna.getMedia().getResolution() ).isEqualTo("1920x1080");
+		assertThat( dlna.getMedia().getResolution() ).isEqualToIgnoringCase("1920x1080");
 		assertThat( dlna.getMedia().getFrameNumbers() ).isEqualTo(462);
 		assertThat( dlna.getMedia().getExifOrientation().getValue() ).isEqualTo(1);
 
