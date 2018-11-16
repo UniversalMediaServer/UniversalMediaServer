@@ -3,8 +3,12 @@ package net.pms.dlna;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.internal.Integers;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import ch.qos.logback.classic.Level;
 
@@ -16,6 +20,7 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.logging.LoggingConfig;
 import net.pms.service.Services;
+import net.pms.util.FileUtil;
 
 
 public class DLNAMediaInfoTest
@@ -58,7 +63,7 @@ public class DLNAMediaInfoTest
 
 
 	@Test
-	public void testSomething() throws Exception
+	public void testFFmpegOutputParse() throws Exception
 	{
 		// Get a resource handle
 		// This comes from RequestV2::answer()
@@ -70,14 +75,35 @@ public class DLNAMediaInfoTest
 		dlna.setParent(parent);
 		dlna.syncResolve();
 		dlna.resolveFormat();
+
+		assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436);
+		assertThat( dlna.getMedia().getContainer() ).isEqualTo("mp4");
+		assertThat( dlna.getMedia().getMimeType() ).isEqualTo("video/mp4");
+		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
+		
+		assertThat( dlna.getMedia().getVideoTrackCount() ).isEqualTo(1);
+		assertThat( dlna.getMedia().getCodecV() ).isEqualTo("h264");
+		assertThat( dlna.getMedia().getBitrate() ).isEqualTo(5016576);
+		assertThat( dlna.getMedia().getFrameRate() ).isEqualTo("29.97");
+		assertThat( dlna.getMedia().getDuration() ).isEqualTo(15.42);
+		assertThat( dlna.getMedia().getResolution() ).isEqualTo("1920x1080");
+		assertThat( dlna.getMedia().getFrameNumbers() ).isEqualTo(462);
+		assertThat( dlna.getMedia().getExifOrientation().getValue() ).isEqualTo(1);
+
+		//System.out.format( "name: %s\n", dlna.getName() );
+		//System.out.format( "display name: %s\n", dlna.getDisplayName() );
+		//System.out.format( "aspect ratio: %s\n", dlna.getMedia().getAspectRatioMencoderMpegopts(false) );
+		//System.out.format( "aspect ratio: %s\n", dlna.getMedia().getAspectRatioMencoderMpegopts(true) );
+		//System.out.format( "aspect ratio: %d/%d\n", dlna.getMedia().getAspectRatioVideoTrack().getNumerator(), dlna.getMedia().getAspectRatioVideoTrack().getDenominator() );
+		//System.out.format( "frame rate mode: %s\n", dlna.getMedia().getFrameRateMode() );
 		for(RendererConfiguration mediaRenderer : RendererConfiguration.getEnabledRenderersConfigurations()) {
 			if( mediaRenderer.getConfName() != null && mediaRenderer.getConfName().equals("VLC for desktop") ) {
 				dlna.resolvePlayer(mediaRenderer);
 			}
 		}
-		
 		Player player = PlayerFactory.getPlayer(dlna);
-		
+
+		/*
 		for (Player p:PlayerFactory.getAllPlayers()){
 			System.out.println(p.id().getName());
 			System.out.println(p.isActive());
@@ -85,9 +111,7 @@ public class DLNAMediaInfoTest
 			System.out.println(p.isEnabled());
 			System.out.println(p.getClass().getName());
 		}
-		for (Player p:PlayerFactory.getPlayers(true,true)){
-			System.out.println("aa "+p.id().getName());
-		}
+		*/
 	
 	}
 
