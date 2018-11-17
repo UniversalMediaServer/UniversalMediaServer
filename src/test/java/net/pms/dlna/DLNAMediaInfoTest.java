@@ -2,19 +2,14 @@ package net.pms.dlna;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -30,7 +25,12 @@ public class DLNAMediaInfoTest
 {
 	private static final Class<?> CLASS = DLNAMediaInfoTest.class;
 	
-	private static final List<DLNAResource> test_content = new ArrayList<DLNAResource>(1);
+	private static final String[] test_files =
+	{
+			"pexels-video-4809.mp4", "pexels-video-4809.mkv"
+	};
+	private static final int[] test_content =
+			new int[test_files.length];
 
 	@BeforeClass
 	public static void SetUPClass()
@@ -51,8 +51,7 @@ public class DLNAMediaInfoTest
 		// force unbuffered if in trace mode
 		LoggingConfig.setBuffered(false);
 		
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		Logger logger = context.getLogger(DLNAMediaInfoTest.class);
+		Logger logger = LoggerFactory.getLogger(CLASS);
 
 		Services.create();
 		 try {
@@ -71,38 +70,48 @@ public class DLNAMediaInfoTest
 		
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
+
 		DLNAResource parent = new VirtualFolder("test","test");
-		DLNAResource dlna = new RealFile(
-				FileUtils.toFile(CLASS.getResource("pexels-video-4809.mp4")));
+		parent.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		PMS.getGlobalRepo().add(parent);
 		
-		dlna.setMedia(new DLNAMediaInfo());
-		dlna.setParent(parent);
-		
-		dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
-		dlna.resolveFormat();
-		dlna.syncResolve();
-		
-		test_content.add(dlna);
+		for(int i=0; i<test_files.length; ++i) {
+			DLNAResource dlna;
+			dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
+			dlna.setMedia(new DLNAMediaInfo());
+			dlna.setParent(parent);
+			dlna.resolveFormat();
+			dlna.syncResolve();
+			PMS.getGlobalRepo().add(dlna);
+			test_content[i] = dlna.getIntId();
+		}
 	}
 
 
-	@Test
 	public void testContainerProperties() throws Exception
 	{
-		for(DLNAResource dlna : test_content) {
-			System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
+		DLNAResource dlna = PMS.getGlobalRepo().get(test_content[0]);
+		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
-			assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436);
-			assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
-			assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/mp4");
-			assertThat( dlna.getFormat().getType() ).isEqualTo(4);
-		}
+		assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436L);
+		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
+		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/mp4");
+		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
+
+		dlna = PMS.getGlobalRepo().get(test_content[1]);
+		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
+
+		assertThat( dlna.getMedia().getSize() ).isEqualTo(9439150L);
+		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("MKV");
+		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/MKV");
+		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
 	}
 
 	@Test
 	public void testFFmpegOutputParse() throws Exception
 	{
-		for(DLNAResource dlna : test_content) {
+		for(int id : test_content) {
+			DLNAResource dlna = PMS.getGlobalRepo().get(id);
 			System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
 			assertThat( dlna.getMedia().getVideoTrackCount() ).isEqualTo(1);
