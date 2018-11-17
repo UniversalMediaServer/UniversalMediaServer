@@ -70,8 +70,10 @@ public class DLNAMediaInfoTest
 		
 		dlna.setMedia(new DLNAMediaInfo());
 		dlna.setParent(parent);
-		dlna.syncResolve();
+		
+		dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		dlna.resolveFormat();
+		dlna.syncResolve();
 		
 		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
