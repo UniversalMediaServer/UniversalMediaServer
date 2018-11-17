@@ -1312,7 +1312,7 @@ public class PMS {
 	/**
 	 * Restart handling
 	 */
-	private static void killOld() {
+	public static void killOld() {
 		// Note: failure here doesn't necessarily mean we need admin rights,
 		// only that we lack the required permission for these specific items.
 		try {

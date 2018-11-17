@@ -63,8 +63,7 @@ public class DLNAMediaInfoTest
 
 
 		if (PMS.getConfiguration().isRunSingleInstance()) {
-//			PMS.killOld();
-			System.err.println("XXXXXXXXXXXXXXXXXXXXXX");
+			PMS.killOld();
 		}
 
 		// Create the PMS instance returned by get()
