@@ -467,6 +467,7 @@ public class PMS {
 		fileWatcher = new FileWatcher();
 
 		globalRepo = new GlobalIdRepo();
+		LOGGER.trace("Initialized globalRepo");
 
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
@@ -894,6 +895,13 @@ public class PMS {
 			createInstance();
 		}
 
+		return instance;
+	}
+
+	@Nonnull
+	public static PMS getNew() {
+		instance=null;
+		createInstance();
 		return instance;
 	}
 

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
@@ -33,7 +34,7 @@ public class DLNAMediaInfoTest
 			new int[test_files.length];
 
 	@BeforeClass
-	public static void SetUPClass()
+	public static void setUpBeforeClass()
 	{
 		PMS.configureJNA();
 		PMS.forceHeadless();
@@ -65,8 +66,8 @@ public class DLNAMediaInfoTest
 			PMS.killOld();
 		}
 
-		// Create the PMS instance returned by get()
-		PMS.get();
+		// Create a new PMS instance
+		PMS.getNew();
 		
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
@@ -82,16 +83,17 @@ public class DLNAMediaInfoTest
 			dlna.setParent(parent);
 			dlna.resolveFormat();
 			dlna.syncResolve();
+			logger.trace("mediainfo: %s\n", dlna.getMedia().toString() );
 			PMS.getGlobalRepo().add(dlna);
 			test_content[i] = dlna.getIntId();
 		}
 	}
 
 
+	@Test
 	public void testContainerProperties() throws Exception
 	{
 		DLNAResource dlna = PMS.getGlobalRepo().get(test_content[0]);
-		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
 		assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436L);
 		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
@@ -102,17 +104,17 @@ public class DLNAMediaInfoTest
 		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
 		assertThat( dlna.getMedia().getSize() ).isEqualTo(9439150L);
-		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("MKV");
-		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/MKV");
+		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("matroska");
+		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/x-matroska");
 		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
 	}
+
 
 	@Test
 	public void testFFmpegOutputParse() throws Exception
 	{
 		for(int id : test_content) {
 			DLNAResource dlna = PMS.getGlobalRepo().get(id);
-			System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
 			assertThat( dlna.getMedia().getVideoTrackCount() ).isEqualTo(1);
 			assertThat( dlna.getMedia().getCodecV() ).isEqualToIgnoringCase("h264");
