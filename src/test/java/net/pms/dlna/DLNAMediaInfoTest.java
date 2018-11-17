@@ -96,16 +96,16 @@ public class DLNAMediaInfoTest
 		DLNAResource dlna = PMS.getGlobalRepo().get(test_content[0]);
 
 		assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436L);
-		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
-		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/mp4");
+		assertThat( dlna.getMedia().getContainer() ).isEqualTo("mp4");
+		assertThat( dlna.getMedia().getMimeType() ).isEqualTo("video/mp4");
 		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
 
 		dlna = PMS.getGlobalRepo().get(test_content[1]);
 		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
 
 		assertThat( dlna.getMedia().getSize() ).isEqualTo(9439150L);
-		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("matroska");
-		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/x-matroska");
+		assertThat( dlna.getMedia().getContainer() ).isEqualTo("matroska");
+		assertThat( dlna.getMedia().getMimeType() ).isEqualTo("video/x-matroska");
 		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
 	}
 
@@ -117,7 +117,7 @@ public class DLNAMediaInfoTest
 			DLNAResource dlna = PMS.getGlobalRepo().get(id);
 
 			assertThat( dlna.getMedia().getVideoTrackCount() ).isEqualTo(1);
-			assertThat( dlna.getMedia().getCodecV() ).isEqualToIgnoringCase("h264");
+			assertThat( dlna.getMedia().getCodecV() ).isEqualTo("h264");
 			assertThat( dlna.getMedia().getBitrate() ).isCloseTo(5016576,withPercentage(5));
 			assertThat( Float.parseFloat(dlna.getMedia().getFrameRate()) ).isEqualTo(29.97f);
 			assertThat( dlna.getMedia().getDuration() ).isCloseTo(15.42,withPercentage(1));
