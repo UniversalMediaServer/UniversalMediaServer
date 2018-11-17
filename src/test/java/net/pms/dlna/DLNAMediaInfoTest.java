@@ -1,15 +1,20 @@
 package net.pms.dlna;
 
 import org.apache.commons.io.FileUtils;
-import org.assertj.core.data.Offset;
-import org.assertj.core.data.Percentage;
 import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-//import static org.junit.Assert.assertThat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Percentage.withPercentage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -23,7 +28,9 @@ import net.pms.service.Services;
 
 public class DLNAMediaInfoTest
 {
-	private final Class<?> CLASS = DLNAMediaInfoTest.class;
+	private static final Class<?> CLASS = DLNAMediaInfoTest.class;
+	
+	private static final List<DLNAResource> test_content = new ArrayList<DLNAResource>(1);
 
 	@BeforeClass
 	public static void SetUPClass()
@@ -43,11 +50,15 @@ public class DLNAMediaInfoTest
 		LoggingConfig.setRootLevel(Level.TRACE);
 		// force unbuffered if in trace mode
 		LoggingConfig.setBuffered(false);
+		
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger logger = context.getLogger(DLNAMediaInfoTest.class);
+
 		Services.create();
 		 try {
 			 PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.warn("Failed to write credentials configuration", ex);
 		}
 
 
@@ -58,13 +69,8 @@ public class DLNAMediaInfoTest
 
 		// Create the PMS instance returned by get()
 		PMS.get();
-	}
-
-
-	@Test
-	public void testFFmpegOutputParse() throws Exception
-	{
-		// Get a resource handle
+		
+		// Create handles to the test content
 		// This comes from RequestV2::answer()
 		DLNAResource parent = new VirtualFolder("test","test");
 		DLNAResource dlna = new RealFile(
@@ -77,21 +83,38 @@ public class DLNAMediaInfoTest
 		dlna.resolveFormat();
 		dlna.syncResolve();
 		
-		System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
+		test_content.add(dlna);
+	}
 
-		assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436);
-		assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
-		assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/mp4");
-		assertThat( dlna.getFormat().getType() ).isEqualTo(4);
-		
-		assertThat( dlna.getMedia().getVideoTrackCount() ).isEqualTo(1);
-		assertThat( dlna.getMedia().getCodecV() ).isEqualToIgnoringCase("h264");
-		assertThat( dlna.getMedia().getBitrate() ).isCloseTo(5016576,Percentage.withPercentage(5));
-		assertThat( Float.parseFloat(dlna.getMedia().getFrameRate()) ).isEqualTo(29.97f);
-		assertThat( dlna.getMedia().getDuration() ).isCloseTo(15.42,Percentage.withPercentage(1));
-		assertThat( dlna.getMedia().getResolution() ).isEqualToIgnoringWhitespace("1920x1080");
-		assertThat( dlna.getMedia().getFrameNumbers() ).isCloseTo(462,Percentage.withPercentage(5));
-		assertThat( dlna.getMedia().getExifOrientation().getValue() ).isEqualTo(1);
+
+	@Test
+	public void testContainerProperties() throws Exception
+	{
+		for(DLNAResource dlna : test_content) {
+			System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
+
+			assertThat( dlna.getMedia().getSize() ).isEqualTo(9441436);
+			assertThat( dlna.getMedia().getContainer() ).isEqualToIgnoringCase("mp4");
+			assertThat( dlna.getMedia().getMimeType() ).isEqualToIgnoringCase("video/mp4");
+			assertThat( dlna.getFormat().getType() ).isEqualTo(4);
+		}
+	}
+
+	@Test
+	public void testFFmpegOutputParse() throws Exception
+	{
+		for(DLNAResource dlna : test_content) {
+			System.out.format( "mediainfo: %s\n", dlna.getMedia().toString() );
+
+			assertThat( dlna.getMedia().getVideoTrackCount() ).isEqualTo(1);
+			assertThat( dlna.getMedia().getCodecV() ).isEqualToIgnoringCase("h264");
+			assertThat( dlna.getMedia().getBitrate() ).isCloseTo(5016576,withPercentage(5));
+			assertThat( Float.parseFloat(dlna.getMedia().getFrameRate()) ).isEqualTo(29.97f);
+			assertThat( dlna.getMedia().getDuration() ).isCloseTo(15.42,withPercentage(1));
+			assertThat( dlna.getMedia().getResolution() ).isEqualToIgnoringWhitespace("1920x1080");
+			assertThat( dlna.getMedia().getFrameNumbers() ).isCloseTo(462,withPercentage(5));
+			assertThat( dlna.getMedia().getExifOrientation().getValue() ).isEqualTo(1);
+		}
 
 		//System.out.format( "name: %s\n", dlna.getName() );
 		//System.out.format( "display name: %s\n", dlna.getDisplayName() );
@@ -99,6 +122,7 @@ public class DLNAMediaInfoTest
 		//System.out.format( "aspect ratio: %s\n", dlna.getMedia().getAspectRatioMencoderMpegopts(true) );
 		//System.out.format( "aspect ratio: %d/%d\n", dlna.getMedia().getAspectRatioVideoTrack().getNumerator(), dlna.getMedia().getAspectRatioVideoTrack().getDenominator() );
 		//System.out.format( "frame rate mode: %s\n", dlna.getMedia().getFrameRateMode() );
+			/*
 		for(RendererConfiguration mediaRenderer : RendererConfiguration.getEnabledRenderersConfigurations()) {
 			if( mediaRenderer.getConfName() != null && mediaRenderer.getConfName().equals("VLC for desktop") ) {
 				dlna.resolvePlayer(mediaRenderer);
@@ -106,7 +130,6 @@ public class DLNAMediaInfoTest
 		}
 		Player player = PlayerFactory.getPlayer(dlna);
 
-		/*
 		for (Player p:PlayerFactory.getAllPlayers()){
 			System.out.println(p.id().getName());
 			System.out.println(p.isActive());
