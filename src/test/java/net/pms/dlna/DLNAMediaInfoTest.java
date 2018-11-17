@@ -88,8 +88,8 @@ public class DLNAMediaInfoTest
 		//assertThat( dlna.getMedia().getBitrate() ).isEqualTo(5016576);
 		assertThat( Float.parseFloat(dlna.getMedia().getFrameRate()) ).isEqualTo(29.97f);
 		assertThat( dlna.getMedia().getDuration() ).isCloseTo(15.42, Offset.offset(0.01d));
-		assertThat( dlna.getMedia().getResolution() ).isEqualToIgnoringCase("1920x1080");
-		assertThat( dlna.getMedia().getFrameNumbers() ).isEqualTo(462);
+		assertThat( dlna.getMedia().getResolution() ).isEqualToIgnoringWhitespace("1920x1080");
+		assertThat( dlna.getMedia().getFrameNumbers() ).isCloseTo(462, Offset.offset(1));
 		assertThat( dlna.getMedia().getExifOrientation().getValue() ).isEqualTo(1);
 
 		//System.out.format( "name: %s\n", dlna.getName() );
