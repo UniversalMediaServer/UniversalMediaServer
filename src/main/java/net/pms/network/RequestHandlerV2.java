@@ -368,20 +368,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
-			String soapAction = nettyRequest.headers().get("SOAPACTION");
-
-			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
-				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
-				response = new DefaultHttpResponse(
-					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
-					HttpResponseStatus.INTERNAL_SERVER_ERROR
-				);
-			} else {
-				response = new DefaultHttpResponse(
-					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
-					HttpResponseStatus.OK
-				);
-			}
+			response = new DefaultHttpResponse(
+				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+				HttpResponseStatus.OK
+			);
 		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
