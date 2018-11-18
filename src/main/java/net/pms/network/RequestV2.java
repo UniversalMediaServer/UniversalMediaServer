@@ -63,7 +63,7 @@ import static net.pms.util.StringUtil.convertStringToTime;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -696,7 +696,7 @@ public class RequestV2 extends HTTPResource {
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
 				response.append(samsungSetBookmarkHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
-				response.append(createResponse(HTTPXMLHelper.SAMSUNG_ERROR_RESPONSE));
+				response.append(samsungGetFeaturesListHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 				response.append(createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
@@ -927,7 +927,7 @@ public class RequestV2 extends HTTPResource {
 						formattedResponse = StringUtil.prettifyXML(response.toString(), 4);
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-						formattedResponse += "	" + response.toString().replaceAll("\n", "\n	");
+						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
 					}
 				}
 				if (isNotBlank(formattedResponse)) {
@@ -973,6 +973,31 @@ public class RequestV2 extends HTTPResource {
 			}
 		}
 		return future;
+	}
+
+	private StringBuilder samsungGetFeaturesListHandler() {
+		StringBuilder features = new StringBuilder();
+		String rootFolderId = PMS.get().getRootFolder(mediaRenderer).getResourceId();
+		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
+		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
+		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
+		// we may use here different container IDs in the future
+		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.audioItem\"/>").append(CRLF);
+		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.videoItem\"/>").append(CRLF);
+		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.imageItem\"/>").append(CRLF);
+		features.append("</Feature>").append(CRLF);
+		features.append("</Features>").append(CRLF);
+
+		StringBuilder response = new StringBuilder();
+		response.append("<u:X_GetFeatureListResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\">").append(CRLF);
+		response.append("<FeatureList>").append(CRLF);
+
+		response.append(StringEscapeUtils.escapeXml10(features.toString()));
+
+		response.append("</FeatureList>").append(CRLF);
+		response.append("</u:X_GetFeatureListResponse>");
+		return createResponse(response.toString());
 	}
 
 	private StringBuilder browseHandler() {
