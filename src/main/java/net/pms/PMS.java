@@ -899,7 +899,7 @@ public class PMS {
 	}
 
 	@Nonnull
-	public static PMS getNew() {
+	public static PMS getNewInstance() {
 		instance=null;
 		createInstance();
 		return instance;

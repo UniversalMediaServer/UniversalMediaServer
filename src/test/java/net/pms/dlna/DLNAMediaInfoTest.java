@@ -67,7 +67,7 @@ public class DLNAMediaInfoTest
 		}
 
 		// Create a new PMS instance
-		PMS.getNew();
+		PMS.getNewInstance();
 		
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
