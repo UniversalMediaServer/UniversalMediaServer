@@ -37,6 +37,7 @@ public class GlobalIdRepo {
 			}
 
 			ids.add(new ID(dlnaResource, curGlobalId++));
+			LOGGER.trace("GlobalIdRepo$ID size {}, added {} for renderer {}", ids.size(), dlnaResource.getDisplayName(), dlnaResource.getDefaultRenderer());
 		} finally {
 			lock.writeLock().unlock();
 		}
