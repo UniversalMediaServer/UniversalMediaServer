@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -26,13 +28,17 @@ import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
 	private static final ReentrantReadWriteLock fullyPlayedEntriesLock = new ReentrantReadWriteLock();
-	private static Set<String> fullyPlayedEntries;
+	private static final HashMap<String, Boolean> fullyPlayedEntries = new HashMap<>();
+	private File[] dirs;
+	private PmsConfiguration config;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
-	public MediaMonitor() {
+	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
-		fullyPlayedEntries = new HashSet<>();
+		this.dirs = new File[dirs.length];
+		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
+		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
 
@@ -41,7 +47,7 @@ public class MediaMonitor extends VirtualFolder {
 	 * @return The file
 	 */
 	private File monitorFile() {
-		return new File(configuration.getDataFile("UMS.mon"));
+		return new File(config.getDataFile("UMS.mon"));
 	}
 
 	private void parseMonitorFile() {
@@ -98,20 +104,34 @@ public class MediaMonitor extends VirtualFolder {
 				}
 			});
 
-			for (File f : files) {
-				if (f.isFile()) {
-					if (isFullyPlayed(f.getAbsolutePath())) {
+			Set<String> fullyPlayedPaths = null;
+			if (config.isHideEmptyFolders()) {
+				fullyPlayedPaths = new HashSet<>();
+				fullyPlayedEntriesLock.readLock().lock();
+				try {
+					for (Entry<String, Boolean> entry : fullyPlayedEntries.entrySet()) {
+						if (entry.getValue()) {
+							fullyPlayedPaths.add(entry.getKey());
+						}
+					}
+				} finally {
+					fullyPlayedEntriesLock.readLock().unlock();
+				}
+			}
+			for (File fileEntry : files) {
+				if (fileEntry.isFile()) {
+					if (isFullyPlayed(fileEntry.getAbsolutePath())) {
 						continue;
 					}
-					res.addChild(new RealFile(f));
+					res.addChild(new RealFile(fileEntry));
 				}
-				if (f.isDirectory()) {
-					boolean add = true;
-					if (configuration.isHideEmptyFolders()) {
-						add = FileUtil.isFolderRelevant(f, configuration, fullyPlayedEntries);
+				if (fileEntry.isDirectory()) {
+					boolean add = !config.isHideEmptyFolders();
+					if (!add) {
+						add = FileUtil.isFolderRelevant(fileEntry, config, fullyPlayedPaths);
 					}
 					if (add) {
-						res.addChild(new MonitorEntry(f, this));
+						res.addChild(new MonitorEntry(fileEntry, this));
 					}
 				}
 			}
@@ -120,8 +140,10 @@ public class MediaMonitor extends VirtualFolder {
 
 	@Override
 	public void discoverChildren() {
-		for (Path folder : configuration.getMonitoredFolders()) {
-			scanDir(folder.toFile().listFiles(), this);
+		if (dirs != null) {
+			for (File f : dirs) {
+				scanDir(f.listFiles(), this);
+			}
 		}
 	}
 
@@ -144,9 +166,9 @@ public class MediaMonitor extends VirtualFolder {
 		}
 
 		/**
-		 * Time since the file started playing.
-		 * This is not a great way to get this value because if the
-		 * video is paused, it will no longer be accurate.
+		 * Time since the file started playing. This is not a great way to get
+		 * this value because if the video is paused, it will no longer be
+		 * accurate.
 		 */
 		double elapsed;
 		if (realFile.getLastStartPosition() == 0) {
@@ -217,8 +239,8 @@ public class MediaMonitor extends VirtualFolder {
 							} else {
 								LOGGER.debug("Moving {} failed, trying again in 3 seconds", playedFile.getName());
 
-							try {
-								Thread.sleep(3000);
+								try {
+									Thread.sleep(3000);
 
 									if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
 										LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
@@ -261,7 +283,11 @@ public class MediaMonitor extends VirtualFolder {
 								FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
 							}
 						} catch (IOException | FileUtil.InvalidFileSystemException e) {
-							LOGGER.warn("Failed to move file \"{}\" to recycler/trash after it has been fully played: {}", playedFile.getAbsoluteFile(), e.getMessage());
+							LOGGER.warn(
+								"Failed to move file \"{}\" to recycler/trash after it has been fully played: {}",
+								playedFile.getAbsoluteFile(),
+								e.getMessage()
+							);
 							LOGGER.trace("", e);
 						}
 					}
@@ -286,7 +312,7 @@ public class MediaMonitor extends VirtualFolder {
 		fullyPlayedEntriesLock.readLock().lock();
 		Boolean fullyPlayed;
 		try {
-			fullyPlayed = fullyPlayedEntries.contains(fullPathToFile);
+			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
 		} finally {
 			fullyPlayedEntriesLock.readLock().unlock();
 		}
@@ -298,7 +324,7 @@ public class MediaMonitor extends VirtualFolder {
 		fullyPlayedEntriesLock.writeLock().lock();
 		try {
 			// It could have been added between the locks, check again
-			fullyPlayed = fullyPlayedEntries.contains(fullPathToFile);
+			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
 			if (fullyPlayed != null) {
 				return fullyPlayed;
 			}
@@ -308,7 +334,7 @@ public class MediaMonitor extends VirtualFolder {
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
-			fullyPlayedEntries.add(fullPathToFile);
+			fullyPlayedEntries.put(fullPathToFile, fullyPlayed);
 			return fullyPlayed;
 		} finally {
 			fullyPlayedEntriesLock.writeLock().unlock();
@@ -316,7 +342,8 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	/**
-	 * Populates DMS.mon with a list of completely played media.
+	 * Sets the fully played status of the given {@code fullPathToFile} both in
+	 * the memory cache and in the database.
 	 *
 	 * @param fullPathToFile the full path to the file in question.
 	 * @param isFullyPlayed {@code true} if {@code fullPathToFile} is fully
@@ -325,7 +352,7 @@ public class MediaMonitor extends VirtualFolder {
 	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
 		fullyPlayedEntriesLock.writeLock().lock();
 		try {
-			fullyPlayedEntries.add(fullPathToFile);
+			fullyPlayedEntries.put(fullPathToFile, isFullyPlayed);
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
 		} finally {
 			fullyPlayedEntriesLock.writeLock().unlock();
