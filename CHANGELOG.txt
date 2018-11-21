@@ -1,3 +1,14 @@
+7.6.1 - 2018-11-22
+
+	General:
+		Increased thumbnail compression for less memory use
+		Fixed broken browsing on some Samsung devices (thanks, drakulis!)
+		Fixed fully played thumbnails not working after restarts
+		Improved code formatting (thanks, drakulis!)
+	Languages:
+		Chinese Simplified translation updated
+		Swedish translation updated
+
 7.6.0 - 2018-11-16
 
 	General:
@@ -48,7 +59,7 @@
 			German translation updated
 			Greek translation updated
 			Hungarian translation updated
-			Italian translation updated
+			Italian translation completed
 			Japanese translation updated
 			Korean translation updated
 			Norwegian translation updated
