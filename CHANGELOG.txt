@@ -1,4 +1,4 @@
-7.6.1 - 2018-11-??
+7.6.1 - 2018-11-22
 
 	General:
 		Increased thumbnail compression for less memory use
