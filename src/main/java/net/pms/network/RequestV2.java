@@ -618,30 +618,89 @@ public class RequestV2 extends HTTPResource {
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
-			inputStream = imageHandler(output);
+			if (argument.toLowerCase().endsWith(".png")) {
+				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/png");
+			} else {
+				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
+			}
+
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+			output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
+			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			response.append(serverInfoHandler(output));
+			output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
+			output.headers().set(HttpHeaders.Names.EXPIRES, "0");
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
+
+			if (argument.equals("description/fetch")) {
+				byte b[] = new byte[inputStream.available()];
+				inputStream.read(b);
+				String s = new String(b, StandardCharsets.UTF_8);
+				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
+
+				if (PMS.get().getServer().getHost() != null) {
+					s = s.replace("[host]", PMS.get().getServer().getHost());
+					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
+				}
+
+				if (mediaRenderer.isXbox360()) {
+					LOGGER.debug("DLNA changes for Xbox 360");
+					s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
+					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
+					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
+						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
+						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
+						"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
+						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
+						"</service>" + CRLF);
+				} else {
+					s = s.replace("Universal Media Server", configuration.getServerDisplayName());
+					if (mediaRenderer.isSamsung()) {
+						// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
+						s = s.replace("<serialNumber/>", "<serialNumber/>" + CRLF
+								+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
+								+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
+					}
+				}
+				response.append(s);
+				inputStream = null;
+			}
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			response.append(msMediaReceiverRegistrarHandler());
+
+			if (soapaction != null && soapaction.contains("IsAuthorized")) {
+				response.append(createResponse(HTTPXMLHelper.XBOX_360_2));
+			} else if (soapaction != null && soapaction.contains("IsValidated")) {
+				response.append(createResponse(HTTPXMLHelper.XBOX_360_1));
+			}
+
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
-				response.append(getProtocolInfoHandler());
+				response.append(createResponse(HTTPXMLHelper.PROTOCOLINFO_RESPONSE));
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
-				response.append(getSystemUpdateIdHandler());
+				StringBuilder payload = new StringBuilder();
+				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
+				payload.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>").append(CRLF);
+				payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
+				response.append(createResponse(payload.toString()));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
 				response.append(samsungSetBookmarkHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(samsungGetFeaturesListHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
-				response.append(getSortCapabilitiesHandler());
+				response.append(createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
-				response.append(getSearchCapabilitiesHandler());
+				response.append(createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE));
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Browse")) {
 				response.append(browseHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
@@ -650,9 +709,79 @@ public class RequestV2 extends HTTPResource {
 				LOGGER.debug("Unsupported action received: " + content);
 			}
 		} else if (method.equals("SUBSCRIBE")) {
-			response.append(subscribeHandler(output));
+			output.headers().set("SID", PMS.get().usn());
+
+			/**
+			 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
+			 * subscribed UPnP control points. The device must enforce a subscription
+			 * TIMEOUT value of 5 minutes.
+			 * The UPnP device behavior of enforcing this 5 minutes TIMEOUT value is
+			 * implemented by specifying "TIMEOUT: second-300" as an HTTP header/value pair.
+			 */
+			output.headers().set("TIMEOUT", "Second-300");
+
+			if (soapaction != null) {
+				String cb = soapaction.replace("<", "").replace(">", "");
+
+				try {
+					URL soapActionUrl = new URL(cb);
+					String addr = soapActionUrl.getHost();
+					int port = soapActionUrl.getPort();
+					try (
+						Socket sock = new Socket(addr, port);
+						OutputStream out = sock.getOutputStream()
+					) {
+						out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("SEQ: " + 0).getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("NT: upnp:event").getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("NTS: upnp:propchange").getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.write(("HOST: " + addr + ":" + port).getBytes(StandardCharsets.UTF_8));
+						out.write(CRLF.getBytes(StandardCharsets.UTF_8));
+						out.flush();
+					}
+				} catch (MalformedURLException ex) {
+					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
+				}
+			} else {
+				LOGGER.debug("Expected soap action in request");
+			}
+
+			if (argument.contains("connection_manager")) {
+				response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
+				response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
+				response.append(HTTPXMLHelper.eventProp("SourceProtocolInfo"));
+				response.append(HTTPXMLHelper.eventProp("CurrentConnectionIDs"));
+				response.append(HTTPXMLHelper.EVENT_FOOTER);
+			} else if (argument.contains("content_directory")) {
+				response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
+				response.append(HTTPXMLHelper.eventProp("TransferIDs"));
+				response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
+				response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
+				response.append(HTTPXMLHelper.EVENT_FOOTER);
+			}
 		} else if (method.equals("NOTIFY")) {
-			response.append(notifyHandler(output));
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
+			output.headers().set("NT", "upnp:event");
+			output.headers().set("NTS", "upnp:propchange");
+			output.headers().set("SID", PMS.get().usn());
+			output.headers().set("SEQ", "0");
+			response.append("<e:propertyset xmlns:e=\"urn:schemas-upnp-org:event-1-0\">");
+			response.append("<e:property>");
+			response.append("<TransferIDs></TransferIDs>");
+			response.append("</e:property>");
+			response.append("<e:property>");
+			response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
+			response.append("</e:property>");
+			response.append("<e:property>");
+			response.append("<SystemUpdateID>").append(DLNAResource.getSystemUpdateId()).append("</SystemUpdateID>");
+			response.append("</e:property>");
+			response.append("</e:propertyset>");
 		}
 
 		output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
@@ -756,272 +885,94 @@ public class RequestV2 extends HTTPResource {
 
 		if (LOGGER.isTraceEnabled()) {
 			// Log trace information
-			logRequest(output, response);
-		}
-		return future;
-	}
-
-	private String getSortCapabilitiesHandler() {
-		return createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE).toString();
-	}
-
-	private String getSearchCapabilitiesHandler() {
-		return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
-	}
-
-	private String getProtocolInfoHandler() {
-		return createResponse(HTTPXMLHelper.PROTOCOLINFO_RESPONSE).toString();
-	}
-
-	private String msMediaReceiverRegistrarHandler() {
-		if (soapaction != null && soapaction.contains("IsAuthorized")) {
-			return createResponse(HTTPXMLHelper.XBOX_360_2).toString();
-		} else if (soapaction != null && soapaction.contains("IsValidated")) {
-			return createResponse(HTTPXMLHelper.XBOX_360_1).toString();
-		}
-		return "";
-	}
-
-	private String getSystemUpdateIdHandler() {
-		StringBuilder payload = new StringBuilder();
-		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
-		payload.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>").append(CRLF);
-		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
-		return createResponse(payload.toString()).toString();
-	}
-
-	private InputStream imageHandler(HttpResponse output) {
-		if (argument.toLowerCase().endsWith(".png")) {
-			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/png");
-		} else {
-			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
-		}
-
-		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-		return getResourceInputStream(argument);
-	}
-
-	private String serverInfoHandler(HttpResponse output) throws IOException {
-		output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
-		output.headers().set(HttpHeaders.Names.EXPIRES, "0");
-		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
-
-		if (argument.equals("description/fetch")) {
-			byte b[] = new byte[inputStream.available()];
-			inputStream.read(b);
-			String s = new String(b, StandardCharsets.UTF_8);
-			s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
-
-			if (PMS.get().getServer().getHost() != null) {
-				s = s.replace("[host]", PMS.get().getServer().getHost());
-				s = s.replace("[port]", "" + PMS.get().getServer().getPort());
+			StringBuilder header = new StringBuilder();
+			for (Entry<String, String> entry : output.headers().entries()) {
+				if (isNotBlank(entry.getKey())) {
+					header.append("  ").append(entry.getKey())
+					.append(": ").append(entry.getValue()).append("\n");
+				}
 			}
-
-			if (mediaRenderer.isXbox360()) {
-				LOGGER.debug("DLNA changes for Xbox 360");
-				s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
-				s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-				s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
-					"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
-					"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
-					"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
-					"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
-					"</service>" + CRLF);
+			String rendererName;
+			if (mediaRenderer != null) {
+				if (isNotBlank(mediaRenderer.getRendererName())) {
+					if (
+						isBlank(mediaRenderer.getConfName()) ||
+						mediaRenderer.getRendererName().equals(mediaRenderer.getConfName())
+					) {
+						rendererName = mediaRenderer.getRendererName();
+					} else {
+						rendererName = mediaRenderer.getRendererName() + " [" + mediaRenderer.getConfName() + "]";
+					}
+				} else if (isNotBlank(mediaRenderer.getConfName())) {
+					rendererName = mediaRenderer.getConfName();
+				} else {
+					rendererName = "Unnamed";
+				}
 			} else {
-				s = s.replace("Universal Media Server", configuration.getServerDisplayName());
-				if (mediaRenderer.isSamsung()) {
-					// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
-					s = s.replace("<serialNumber/>", "<serialNumber/>" + CRLF
-							+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
-							+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
-				}
+				rendererName = "Unknown";
 			}
-			inputStream = null;
-			return s;
-		}
-		return "";
-	}
 
-	private String subscribeHandler(HttpResponse output) throws IOException {
-		StringBuilder response = new StringBuilder();
-		output.headers().set("SID", PMS.get().usn());
-
-		/**
-		 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
-		 * subscribed UPnP control points. The device must enforce a subscription
-		 * TIMEOUT value of 5 minutes.
-		 * The UPnP device behavior of enforcing this 5 minutes TIMEOUT value is
-		 * implemented by specifying "TIMEOUT: second-300" as an HTTP header/value pair.
-		 */
-		output.headers().set("TIMEOUT", "Second-300");
-
-		if (soapaction != null) {
-			String cb = soapaction.replace("<", "").replace(">", "");
-
-			try {
-				URL soapActionUrl = new URL(cb);
-				String addr = soapActionUrl.getHost();
-				int port = soapActionUrl.getPort();
-				try (
-						Socket sock = new Socket(addr, port);
-						OutputStream out = sock.getOutputStream()
-				) {
-					out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
-					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
-					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.write(("SEQ: " + 0).getBytes(StandardCharsets.UTF_8));
-					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.write(("NT: upnp:event").getBytes(StandardCharsets.UTF_8));
-					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.write(("NTS: upnp:propchange").getBytes(StandardCharsets.UTF_8));
-					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.write(("HOST: " + addr + ":" + port).getBytes(StandardCharsets.UTF_8));
-					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.flush();
-				}
-			} catch (MalformedURLException ex) {
-				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
-			}
-		} else {
-			LOGGER.debug("Expected soap action in request");
-		}
-
-		if (argument.contains("connection_manager")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
-			response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
-			response.append(HTTPXMLHelper.eventProp("SourceProtocolInfo"));
-			response.append(HTTPXMLHelper.eventProp("CurrentConnectionIDs"));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		} else if (argument.contains("content_directory")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
-			response.append(HTTPXMLHelper.eventProp("TransferIDs"));
-			response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-			response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		}
-		return response.toString();
-	}
-
-	private String notifyHandler(HttpResponse output) {
-		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
-		output.headers().set("NT", "upnp:event");
-		output.headers().set("NTS", "upnp:propchange");
-		output.headers().set("SID", PMS.get().usn());
-		output.headers().set("SEQ", "0");
-
-		StringBuilder response = new StringBuilder();
-		response.append("<e:propertyset xmlns:e=\"urn:schemas-upnp-org:event-1-0\">");
-		response.append("<e:property>");
-		response.append("<TransferIDs></TransferIDs>");
-		response.append("</e:property>");
-		response.append("<e:property>");
-		response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
-		response.append("</e:property>");
-		response.append("<e:property>");
-		response.append("<SystemUpdateID>").append(DLNAResource.getSystemUpdateId()).append("</SystemUpdateID>");
-		response.append("</e:property>");
-		response.append("</e:propertyset>");
-		return response.toString();
-	}
-
-	private void logRequest(HttpResponse output, StringBuilder response) {
-		StringBuilder header = new StringBuilder();
-		for (Entry<String, String> entry : output.headers().entries()) {
-			if (isNotBlank(entry.getKey())) {
-				header.append("  ").append(entry.getKey())
-				.append(": ").append(entry.getValue()).append("\n");
-			}
-		}
-
-		String rendererName = getRendererName();
-
-		if (method.equals("HEAD")) {
-			LOGGER.trace(
-				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
-				rendererName,
-				output.getProtocolVersion(),
-				output.getStatus(),
-				header
-			);
-		} else {
-			String formattedResponse = null;
-			if (isNotBlank(response)) {
-				try {
-					formattedResponse = StringUtil.prettifyXML(response.toString(), 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
-				}
-			}
-			if (isNotBlank(formattedResponse)) {
+			if (method.equals("HEAD")) {
 				LOGGER.trace(
-					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+					"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
 					rendererName,
 					output.getProtocolVersion(),
 					output.getStatus(),
-					header,
-					formattedResponse
+					header
 				);
-				Matcher matcher = DIDL_PATTERN.matcher(response);
-				if (matcher.find()) {
+			} else {
+				String formattedResponse = null;
+				if (isNotBlank(response)) {
 					try {
-						LOGGER.trace(
-							"The unescaped <Result> sent to {} is:\n{}",
-							rendererName,
-							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
-						);
+						formattedResponse = StringUtil.prettifyXML(response.toString(), 4);
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-						LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
-						LOGGER.trace("", e);
+						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
 					}
 				}
-			} else if (inputStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
-				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
-					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
-					output.isChunked() ? "chunked" : "non-chunked",
-					header
-				);
-			} else {
-				LOGGER.trace(
-					"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
-					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
-					header
-				);
-			}
-		}
-	}
-
-	private String getRendererName() {
-		String rendererName;
-		if (mediaRenderer != null) {
-			if (isNotBlank(mediaRenderer.getRendererName())) {
-				if (
-					isBlank(mediaRenderer.getConfName()) ||
-					mediaRenderer.getRendererName().equals(mediaRenderer.getConfName())
-				) {
-					rendererName = mediaRenderer.getRendererName();
+				if (isNotBlank(formattedResponse)) {
+					LOGGER.trace(
+						"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+						rendererName,
+						output.getProtocolVersion(),
+						output.getStatus(),
+						header,
+						formattedResponse
+					);
+					Matcher matcher = DIDL_PATTERN.matcher(response);
+					if (matcher.find()) {
+						try {
+							LOGGER.trace(
+								"The unescaped <Result> sent to {} is:\n{}",
+								rendererName,
+								StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), 2)
+							);
+						} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+							LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
+							LOGGER.trace("", e);
+						}
+					}
+				} else if (inputStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
+					LOGGER.trace(
+						"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+						rendererName,
+						output.getProtocolVersion(),
+						output.getStatus(),
+						output.isChunked() ? "chunked" : "non-chunked",
+						header
+					);
 				} else {
-					rendererName = mediaRenderer.getRendererName() + " [" + mediaRenderer.getConfName() + "]";
+					LOGGER.trace(
+						"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+						rendererName,
+						output.getProtocolVersion(),
+						output.getStatus(),
+						header
+					);
 				}
-			} else if (isNotBlank(mediaRenderer.getConfName())) {
-				rendererName = mediaRenderer.getConfName();
-			} else {
-				rendererName = "Unnamed";
 			}
-		} else {
-			rendererName = "Unknown";
 		}
-		return rendererName;
+		return future;
 	}
 
 	private StringBuilder samsungGetFeaturesListHandler() {
