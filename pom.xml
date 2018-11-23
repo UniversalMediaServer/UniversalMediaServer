@@ -862,7 +862,7 @@
 					<target>1.7</target>
 					<testSource>1.7</testSource>
 					<testTarget>1.7</testTarget>
-					<!--<compilerArgument>${compilerArgument}</compilerArgument>-->
+					<compilerArgument>${compilerArgument}</compilerArgument>
 				</configuration>
 			</plugin>
 
