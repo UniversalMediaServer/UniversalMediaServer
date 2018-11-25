@@ -1274,14 +1274,14 @@ public class RequestV2 extends HTTPResource {
 			SOAPMessage message = MessageFactory.newInstance().createMessage(null, new ByteArrayInputStream(content.getBytes()));
 			JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-			Document body = message.getSOAPBody().extractContentAsDocument(); 
+			Document body = message.getSOAPBody().extractContentAsDocument();
 			return unmarshaller.unmarshal(body, clazz).getValue();
 		} catch (Exception e) {
 			LOGGER.error("Unmarshalling error", e);
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Returns a date somewhere in the far future.
 	 * @return The {@link String} containing the date
