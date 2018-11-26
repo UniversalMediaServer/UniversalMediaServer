@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 
 /**
- * This is a hybrid of Search and Browse request message created just to satisfy current Browser/Search implementation
+ * This is a hybrid of Search and Browse request message created just to satisfy current Browse/Search implementation
  * handler. Should be split up into separate classes as soon as possible.
  */
 
