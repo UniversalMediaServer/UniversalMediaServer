@@ -1,5 +1,7 @@
 package net.pms.dlna;
 
+import java.lang.ref.WeakReference;
+import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang.StringUtils;
@@ -14,64 +16,110 @@ public class GlobalIdRepo {
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private final ArrayList<ID> ids = new ArrayList<>();
 
-	private static class ID {
-		final int id;
-		final DLNAResource dlnaResource;
+	private class ID {
+		int id;
+		boolean isValid;
+		weakDLNARef dlnaRef;
 
 		private ID(DLNAResource dlnaResource, int id) {
 			this.id = id;
-			this.dlnaResource = dlnaResource;
+			setRef(dlnaResource);
+			isValid = true;
+		}
+
+		void setRef(DLNAResource dlnaResource) {
+			if (dlnaRef != null) {
+				dlnaRef.cancel();
+			}
+			dlnaRef = new weakDLNARef(dlnaResource, id);
 			dlnaResource.setIndexId(id);
 		}
 	}
 
 	public GlobalIdRepo() {
+		startIdCleanup();
 	}
 
 	public void add(DLNAResource dlnaResource) {
 		lock.writeLock().lock();
 		try {
 			String id = dlnaResource.getId();
-			if (id != null) {
-				remove(id);
+			if (dlnaResource.getId() == null || get(dlnaResource.getId()) != dlnaResource) {
+				ids.add(new ID(dlnaResource, curGlobalId++));
 			}
-
-			ids.add(new ID(dlnaResource, curGlobalId++));
 		} finally {
 			lock.writeLock().unlock();
 		}
 	}
 
-	public DLNAResource get(String id) {
-		return get(parseIndex(id));
-	}
-
-	public DLNAResource get(int id) {
+	private void delete(int index) {
 		lock.readLock().lock();
 		try {
-			int index = indexOf(id);
-			return index > -1 ? ids.get(index).dlnaResource : null;
+			if (index > -1 && index < ids.size()) {
+				ids.remove(index);
+				deletionsCount++;
+			}
 		} finally {
 			lock.readLock().unlock();
 		}
 	}
 
-	public void remove(DLNAResource d) {
-		remove(d.getId());
+	public DLNAResource get(String id) {
+		return id != null ? get(parseIndex(id)) : null;
 	}
 
-	public void remove(String id) {
-		remove(parseIndex(id));
+	public DLNAResource get(int id) {
+		ID item = getItem(id);
+		if (item != null && !item.isValid) {
+			LOGGER.debug("Id {} is marked invalid, returning null", id);
+			item = null;
+		}
+		return item != null ? item.dlnaRef.get() : null;
 	}
 
-	public void remove(int id) {
-		lock.writeLock().lock();
+	public ID getItem(int id) {
+		lock.readLock().lock();
 		try {
-			int index = indexOf(id);
-			if (index > -1) {
-				LOGGER.debug("GlobalIdRepo: removing id {} - {}", id, ids.get(index).dlnaResource.getName());
-				ids.remove(index);
-				deletionsCount++;
+			if (id > 0) {
+				int index = indexOf(id);
+				if (index > -1) {
+					return ids.get(index);
+				}
+			}
+			return null;
+		} finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	public boolean exists(String id) {
+		return get(id) != null;
+	}
+
+	public void replace(DLNAResource a, DLNAResource b) {
+		lock.readLock().lock();
+		try {
+			ID item = getItem(parseIndex(a.getId()));
+			if (item != null) {
+				item.setRef(b);
+			}
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+
+	// Here isValid=false means util.DLNAList is telling us the underlying
+	// DLNAResource has been removed and we should ignore its id, i.e. not
+	// share any hard references to it via get(), between now and whenever
+	// garbage collection actually happens
+
+	public void setValid(DLNAResource dlnaresource, boolean isValid) {
+		lock.readLock().lock();
+		try {
+			ID item = getItem(parseIndex(dlnaresource.getId()));
+			if (item != null) {
+				LOGGER.debug("Marking id {} as {}valid", item.id, isValid ? "" : "in");
+				item.isValid = isValid;
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -85,10 +133,6 @@ public class GlobalIdRepo {
 		} catch (NumberFormatException e) {
 			return -1;
 		}
-	}
-
-	public boolean exists(String id) {
-		return indexOf(parseIndex(id)) != -1;
 	}
 
 	private int indexOf(int id) {
@@ -121,5 +165,44 @@ public class GlobalIdRepo {
 		}
 		LOGGER.debug("GlobalIdRepo: id not found: {}", id);
 		return -1;
+	}
+
+	// id cleanup
+
+	ReferenceQueue<DLNAResource> idCleanupQueue;
+
+	class weakDLNARef extends WeakReference<DLNAResource> {
+		int id;
+		weakDLNARef(DLNAResource dlnaresource, int id) {
+			super(dlnaresource, idCleanupQueue);
+			this.id = id;
+		}
+		void cancel() {
+			// We've been replaced, i.e. another weakDLNARef is now holding our
+			// id, and it will trigger id cleanup at garbage collection time
+			id = -1;
+		}
+	}
+
+	private void startIdCleanup() {
+		idCleanupQueue = new ReferenceQueue<>();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (true) {
+					try {
+						// Once an underlying DLNAResource is ready for garbage
+						// collection, its weak reference will pop out here
+						weakDLNARef ref = (weakDLNARef)idCleanupQueue.remove();
+						if (ref.id > 0) {
+							// Delete the associated id from our repo list
+							LOGGER.debug("deleting invalid id {}", ref.id);
+							delete(indexOf(ref.id));
+						}
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+		}, "GlobalId cleanup").start();
 	}
 }
