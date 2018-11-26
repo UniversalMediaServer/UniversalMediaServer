@@ -108,6 +108,9 @@ public class RendererConfigurationTest {
 
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
 
+		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
+		testUPNPDetails("Philips PUS TV", "friendlyName=49PUS8503/12");
+
 		testHeaders(
 			"Philips TV",
 			"User-Agent: Windows2000/0.0 UPnP/1.0 PhilipsIntelSDK/1.4 DLNADOC/1.50",
