@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<!-- Subtitle translator
+Text which must not be translated should be included with class="skiptranslate"
+@author: Anand Tamariya -->
+
+<title>Subtitle translator</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script type="text/javascript"
+	src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script type="text/javascript"
+	src="http://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/src/FileSaver.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+</head>
+<body ng-app="SubtitleApp" ng-controller="subController"
+	class="container">
+
+	<div class="skiptranslate">
+		<h1>Subtitle translator</h1>
+		<div id="google_translate_element"></div>
+	</div>
+	<div class="skiptranslate">
+		<form>
+			<div class="form-group">
+				<input type="file" id="files" name="files[]" multiple
+					onchange="angular.element(this).scope().uploadFile(this.files)" />
+			</div>
+			<div class="form-group">
+				<button type="button" class="btn btn-default" ng-click="save()">Save</button>
+			</div>
+		</form>
+		<form class="form-inline">
+			<div class="form-group">
+				<label for="pwd">Add offset (hh:mm:ss,SSS):</label> 
+				<input type="text"
+					class="form-control" ng-model="offset">
+			</div>
+			<button type="button" class="btn btn-default" ng-click="addOffset()">Submit</button>
+		</form>
+		<br/>
+	</div>
+	
+	<div class="table-responsive">
+		<table class="table table-bordered table-striped">
+			<thead>
+				<tr class="headerRow">
+					<th width="5%" class="skiptranslate">No.</th>
+					<th width="10%" class="skiptranslate">From</th>
+					<th width="10%" class="skiptranslate">To</th>
+					<th width="35%" class="skiptranslate">Orignal Text</th>
+					<th width="45%" class="noBorder skiptranslate">Translated Text</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="line in lines">
+					<td class="skiptranslate">{{line.no}}</td>
+					<td class="skiptranslate"><div id="divSubtitleStart1">{{line.from}}</div></td>
+					<td class="skiptranslate"><div id="divSubtitleEnd1">{{line.to}}</div></td>
+					<td class="skiptranslate">
+						<div id="divSubtitleText1">{{line.text}}</div>
+					</td>
+					<td class="noBorder"><textarea ng-model="lines[$index].trText"
+							ng-blur="editSubtitle($index, false)"
+							ng-show="lines[$index].edit"></textarea>
+						<div class="divTranslatedText" ng-show="!lines[$index].edit">
+							<span id="divTranslatedText{{$index}}">{{line.trText}}</span> <img
+								ng-click="editSubtitle($index, true)" src="img/edit-icon-14.png"
+								title="Edit Subtitle" tooltip="Edit Subtitle" />
+						</div></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<script type="text/javascript">
+		function googleTranslateElementInit() {
+			new google.translate.TranslateElement({
+				pageLanguage : 'en'
+			}, 'google_translate_element');
+		}
+
+		function download(name, content) {
+
+			//alert("hello world");
+			//this alert line was to test the function call
+			//the alert actually appears when the <script> tag
+			// has no src field labeled. Just an observation.
+
+			var blob = new Blob([ content ], {
+				type : "text/plain;charset=utf-8"
+			});
+			saveAs(blob, name);
+		}
+
+		var lineNumberPattern = "(\\d+)[\\r\\n]+";
+		var timeStampPattern = "([\\d:,]+)";
+		var contentPattern = "(.*)";
+
+		var str = "2\r\n00:00:02,373 --> 00:00:03,999\r\nOhh wooaah\r\n";
+		var pattern = new RegExp(lineNumberPattern + timeStampPattern + " --> "
+				+ timeStampPattern + "[\\s]*" + contentPattern);
+		var r = pattern.exec(str);
+
+		var app = angular.module('SubtitleApp', []);
+		app.controller('subController', function($scope, $http) {
+			$scope.name = "anand";
+			$scope.lines = [];
+			function updateLines(r) {
+				var i = $scope.lines.length;
+				$scope.lines[i] = {};
+				$scope.lines[i].no = i + 1;
+				$scope.lines[i].from = r[2];
+				$scope.lines[i].to = r[3];
+				$scope.lines[i].text = r[4];
+				$scope.lines[i].trText = r[4];
+			}
+			//updateLines(r);
+			//console.log(r);
+
+			$scope.editSubtitle = function(i, edit) {
+				$scope.lines[i].edit = edit;
+				if (edit) {
+					$scope.lines[i].trText = $('#divTranslatedText' + i).text()
+						.trim();
+				} else {
+					$('#divTranslatedText' + i).html($scope.lines[i].trText);
+				}
+			}
+
+			$scope.addOffset = function() {
+				if ($scope.lines.length == 0) {
+					return;
+				}
+				
+				$scope.lines.forEach(function(e, i) {
+					var offset = $scope.offset;
+					offset = offset.replace(",", ".");
+					offset_d = moment.duration(offset);
+					
+					offset = e.from;
+					offset = offset.replace(",", ".");
+					from_d = moment.duration(offset).add(offset_d);
+					
+					offset = e.to;
+					offset = offset.replace(",", ".");
+					to_d = moment.duration(offset).add(offset_d);
+					
+					e.from = moment.utc(from_d.as('milliseconds')).format('HH:mm:ss,SSS');
+					e.to   = moment.utc(to_d.as('milliseconds')).format('HH:mm:ss,SSS');
+					//console.log("From: " + e.from);
+				});
+			}
+
+			$scope.save = function() {
+				if ($scope.lines.length == 0) {
+					alert("Empty file");
+					return;
+				}
+				
+				var subtitleContent = '';
+				$scope.lines.forEach(function(e, i) {
+					var divTranslatedText = $('#divTranslatedText' + i).text()
+							.trim();
+					subtitleContent += $scope.lines[i].no + '\n';
+					subtitleContent += $scope.lines[i].from + ' --> '
+							+ $scope.lines[i].to + '\n';
+					subtitleContent += divTranslatedText + '\n\n';
+				});
+				//alert(subtitleContent);
+				// Append language code
+				try {
+					var transLang = '';
+					if ($('.goog-te-combo').val() != '') {
+						transLang = $('.goog-te-combo').val();
+					}
+					if ($('.subtitleTable .divTranslatedText span').length > 1
+							&& $('.subtitleTable .divTranslatedText span').get(
+									1).lang != '') {
+						transLang = $('.subtitleTable .divTranslatedText span')
+								.get(1).lang;
+					}
+					if (transLang != '') {
+						var uploadedFileName = $scope.name;
+						$scope.name = uploadedFileName.substr(0,
+								uploadedFileName.lastIndexOf('.'))
+								+ '.' + transLang + '.srt';
+					}
+				} catch (exc) {
+				}
+
+				download($scope.name, subtitleContent);
+			}
+
+			var reader = new FileReader();
+			reader.onload = function(f) {
+				var str = reader.result;
+				var done = false;
+				while (!done) {
+					var r = pattern.exec(str);
+					if (r) {
+						updateLines(r);
+						str = str.substring(r[0].length);
+					} else {
+						done = true;
+					}
+					//console.log(r);
+				}
+				$scope.$apply();
+			};
+
+			$scope.uploadFile = function(files) {
+				// files is a FileList of File objects. List some properties.
+				var output = [];
+
+				for (var i = 0, f; f = files[i]; i++) {
+					$scope.name = f.name;
+					reader.readAsText(f);
+				}
+			}
+			//$http.get("customers.php")
+			//.then(function (response) {$scope.names = response.data.records;});
+		});
+	</script>
+
+</body>
+</html>
