@@ -8,6 +8,18 @@ public class DLNAList extends ArrayList<DLNAResource> {
 	private static final long serialVersionUID = -5775968769790761576L;
 
 	@Override
+	public boolean add(DLNAResource r) {
+		PMS.getGlobalRepo().setValid(r, true);
+		return super.add(r);
+	}
+
+	@Override
+	public void add(int index, DLNAResource r) {
+		PMS.getGlobalRepo().setValid(r, true);
+		super.add(index, r);
+	}
+
+	@Override
 	public DLNAResource remove(int index) {
 		PMS.getGlobalRepo().setValid(get(index), false);
 		return super.remove(index);

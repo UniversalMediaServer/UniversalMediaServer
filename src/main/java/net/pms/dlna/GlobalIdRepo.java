@@ -113,7 +113,8 @@ public class GlobalIdRepo {
 	// Here isValid=false means util.DLNAList is telling us the underlying
 	// DLNAResource has been removed and we should ignore its id, i.e. not
 	// share any hard references to it via get(), between now and whenever
-	// garbage collection actually happens
+	// garbage collection actually happens (or whenever the item is re-added,
+	// in the case of items that are just being moved).
 
 	public void setValid(DLNAResource dlnaresource, boolean isValid) {
 		lock.readLock().lock();
