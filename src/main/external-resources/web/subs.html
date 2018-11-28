@@ -21,7 +21,7 @@ Text which must not be translated should be included with class="skiptranslate"
 <script
 	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script
-	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular.min.js"></script>
 <script type="text/javascript"
 	src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <script type="text/javascript"
@@ -64,11 +64,11 @@ Text which must not be translated should be included with class="skiptranslate"
 					<th width="10%" class="skiptranslate">From</th>
 					<th width="10%" class="skiptranslate">To</th>
 					<th width="35%" class="skiptranslate">Orignal Text</th>
-					<th width="45%" class="noBorder skiptranslate">Translated Text</th>
+					<th width="40%" class="skiptranslate">Translated Text</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="line in lines">
+				<tr ng-repeat="line in lines track by $index">
 					<td class="skiptranslate">{{line.no}}</td>
 					<td class="skiptranslate"><div id="divSubtitleStart1">{{line.from}}</div></td>
 					<td class="skiptranslate"><div id="divSubtitleEnd1">{{line.to}}</div></td>
