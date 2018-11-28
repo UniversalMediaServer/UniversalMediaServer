@@ -100,7 +100,7 @@ public class GlobalIdRepo {
 		ID item = getItem(parseIndex(a.getId()));
 		if (item != null) {
 			synchronized (lock) {
-				lock.readLock().lock();
+				lock.writeLock().lock();
 				try {
 					item.setRef(b);
 				} finally {
@@ -117,7 +117,7 @@ public class GlobalIdRepo {
 	// in the case of items that are just being moved).
 
 	public void setValid(DLNAResource dlnaresource, boolean isValid) {
-		lock.readLock().lock();
+		lock.writeLock().lock();
 		try {
 			ID item = getItem(parseIndex(dlnaresource.getId()));
 			if (item != null) {
