@@ -97,14 +97,16 @@ public class GlobalIdRepo {
 	}
 
 	public void replace(DLNAResource a, DLNAResource b) {
-		lock.readLock().lock();
-		try {
-			ID item = getItem(parseIndex(a.getId()));
-			if (item != null) {
-				item.setRef(b);
+		ID item = getItem(parseIndex(a.getId()));
+		if (item != null) {
+			synchronized (lock) {
+				lock.readLock().lock();
+				try {
+					item.setRef(b);
+				} finally {
+					lock.writeLock().unlock();
+				}
 			}
-		} finally {
-			lock.writeLock().unlock();
 		}
 	}
 
