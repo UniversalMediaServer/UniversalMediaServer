@@ -18,13 +18,13 @@ public class GlobalIdRepo {
 
 	private class ID {
 		int id;
-		boolean isValid;
+		boolean scope;
 		WeakDLNARef dlnaRef;
 
 		private ID(DLNAResource dlnaResource, int id) {
 			this.id = id;
 			setRef(dlnaResource);
-			isValid = true;
+			scope = true;
 		}
 
 		void setRef(DLNAResource dlnaResource) {
@@ -70,9 +70,9 @@ public class GlobalIdRepo {
 
 	public DLNAResource get(int id) {
 		ID item = getItem(id);
-		if (item != null && !item.isValid) {
-			LOGGER.debug("Id {} is marked invalid, returning null", id);
-			item = null;
+		if (item != null && !item.scope) {
+			LOGGER.debug("GlobalIdRepo: id {} is not in scope, returning null", id);
+			return null;
 		}
 		return item != null ? item.dlnaRef.get() : null;
 	}
@@ -110,19 +110,19 @@ public class GlobalIdRepo {
 		}
 	}
 
-	// Here isValid=false means util.DLNAList is telling us the underlying
+	// Here scope=false means util.DLNAList is telling us the underlying
 	// DLNAResource has been removed and we should ignore its id, i.e. not
 	// share any hard references to it via get(), between now and whenever
 	// garbage collection actually happens (or whenever the item is re-added,
 	// in the case of items that are just being moved).
 
-	public void setValid(DLNAResource dlnaresource, boolean isValid) {
+	public void setScope(DLNAResource dlnaResource, boolean scope) {
 		lock.writeLock().lock();
 		try {
-			ID item = getItem(parseIndex(dlnaresource.getId()));
+			ID item = getItem(parseIndex(dlnaResource.getId()));
 			if (item != null) {
-				LOGGER.debug("Marking id {} as {}valid", item.id, isValid ? "" : "in");
-				item.isValid = isValid;
+				LOGGER.debug("GlobalIdRepo: marking id {} {} scope", item.id, scope ? "in" : "out of");
+				item.scope = scope;
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -176,8 +176,8 @@ public class GlobalIdRepo {
 
 	class WeakDLNARef extends WeakReference<DLNAResource> {
 		int id;
-		WeakDLNARef(DLNAResource dlnaresource, int id) {
-			super(dlnaresource, idCleanupQueue);
+		WeakDLNARef(DLNAResource dlnaResource, int id) {
+			super(dlnaResource, idCleanupQueue);
 			this.id = id;
 		}
 		void cancel() {
