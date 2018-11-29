@@ -19,7 +19,7 @@ public class GlobalIdRepo {
 	private class ID {
 		int id;
 		boolean isValid;
-		weakDLNARef dlnaRef;
+		WeakDLNARef dlnaRef;
 
 		private ID(DLNAResource dlnaResource, int id) {
 			this.id = id;
@@ -31,7 +31,7 @@ public class GlobalIdRepo {
 			if (dlnaRef != null) {
 				dlnaRef.cancel();
 			}
-			dlnaRef = new weakDLNARef(dlnaResource, id);
+			dlnaRef = new WeakDLNARef(dlnaResource, id);
 			dlnaResource.setIndexId(id);
 		}
 	}
@@ -174,9 +174,9 @@ public class GlobalIdRepo {
 
 	ReferenceQueue<DLNAResource> idCleanupQueue;
 
-	class weakDLNARef extends WeakReference<DLNAResource> {
+	class WeakDLNARef extends WeakReference<DLNAResource> {
 		int id;
-		weakDLNARef(DLNAResource dlnaresource, int id) {
+		WeakDLNARef(DLNAResource dlnaresource, int id) {
 			super(dlnaresource, idCleanupQueue);
 			this.id = id;
 		}
@@ -196,7 +196,7 @@ public class GlobalIdRepo {
 					try {
 						// Once an underlying DLNAResource is ready for garbage
 						// collection, its weak reference will pop out here
-						weakDLNARef ref = (weakDLNARef)idCleanupQueue.remove();
+						WeakDLNARef ref = (WeakDLNARef)idCleanupQueue.remove();
 						if (ref.id > 0) {
 							// Delete the associated id from our repo list
 							LOGGER.debug("deleting invalid id {}", ref.id);
