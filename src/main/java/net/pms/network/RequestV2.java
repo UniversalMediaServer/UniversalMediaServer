@@ -812,13 +812,13 @@ public class RequestV2 extends HTTPResource {
 		String s = new String(b, StandardCharsets.UTF_8);
 
 		if (argument.equals("description/fetch")) {
-			s = preparePmsSpec(s);
+			s = prepareUmsSpec(s);
 		}
 		return s;
 	}
 
-	private String preparePmsSpec(String pmsXml) {
-		String result = pmsXml.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
+	private String prepareUmsSpec(String umsXml) {
+		String result = umsXml.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 
 		if (PMS.get().getServer().getHost() != null) {
 			result = result.replace("[host]", PMS.get().getServer().getHost());
