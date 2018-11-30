@@ -106,7 +106,6 @@ public class RequestV2 extends HTTPResource {
 	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 */
 	private long lowRange;
-	private InputStream inputStream;
 	private RendererConfiguration mediaRenderer;
 	private String transferMode;
 	private String contentFeatures;
@@ -126,10 +125,6 @@ public class RequestV2 extends HTTPResource {
 		this.mediaRenderer = mediaRenderer;
 		// Use device-specific pms conf
 		configuration = PMS.getConfiguration(mediaRenderer);
-	}
-
-	public InputStream getInputStream() {
-		return inputStream;
 	}
 
 	/**
@@ -277,10 +272,10 @@ public class RequestV2 extends HTTPResource {
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
-		ChannelFuture future = null;
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
+		InputStream inputStream = null;
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -332,7 +327,7 @@ public class RequestV2 extends HTTPResource {
 					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
+					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
 					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
 					DLNAThumbnailInputStream thumbInputStream;
@@ -390,11 +385,11 @@ public class RequestV2 extends HTTPResource {
 							imageProfile = DLNAImageProfile.JPEG_LRG;
 						}
 					}
-						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-						output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-						try {
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
+					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+					try {
 						InputStream imageInputStream;
 						if (dlna.getPlayer() instanceof ImagePlayer) {
 							ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
@@ -430,7 +425,7 @@ public class RequestV2 extends HTTPResource {
 						output.setStatus(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
 
 						// Send the response headers to the client.
-						future = event.getChannel().write(output);
+						ChannelFuture future = event.getChannel().write(output);
 
 						if (close) {
 							// Close the channel after the response is sent.
@@ -444,7 +439,7 @@ public class RequestV2 extends HTTPResource {
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitles file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
-					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
+					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
 					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 					if (sub != null) {
 						// XXX external file is null if the first subtitle track is embedded:
@@ -648,7 +643,7 @@ public class RequestV2 extends HTTPResource {
 			inputStream = imageHandler(output);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			response.append(serverInfoHandler(output));
+			response.append(serverSpecHandler(output));
 		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(msMediaReceiverRegistrarHandler());
@@ -684,6 +679,7 @@ public class RequestV2 extends HTTPResource {
 
 		output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
 
+		ChannelFuture future;
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
 			byte responseData[] = response.toString().getBytes("UTF-8");
@@ -737,11 +733,12 @@ public class RequestV2 extends HTTPResource {
 				ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
+				final InputStream finalInputStream = inputStream;
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) {
 						try {
-							inputStream.close();
+							finalInputStream.close();
 						} catch (IOException e) {
 							LOGGER.error("Caught exception", e);
 						}
@@ -783,7 +780,7 @@ public class RequestV2 extends HTTPResource {
 
 		if (LOGGER.isTraceEnabled()) {
 			// Log trace information
-			logRequest(output, response);
+			logRequest(output, response, inputStream);
 		}
 		return future;
 	}
@@ -826,51 +823,55 @@ public class RequestV2 extends HTTPResource {
 
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
+		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
 		return getResourceInputStream(argument);
 	}
 
-	private String serverInfoHandler(HttpResponse output) throws IOException {
+	private String serverSpecHandler(HttpResponse output) throws IOException {
 		output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
 		output.headers().set(HttpHeaders.Names.EXPIRES, "0");
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
+		InputStream iStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
+
+		byte b[] = new byte[iStream.available()];
+		iStream.read(b);
+		String s = new String(b, StandardCharsets.UTF_8);
 
 		if (argument.equals("description/fetch")) {
-			byte b[] = new byte[inputStream.available()];
-			inputStream.read(b);
-			String s = new String(b, StandardCharsets.UTF_8);
-			s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
-
-			if (PMS.get().getServer().getHost() != null) {
-				s = s.replace("[host]", PMS.get().getServer().getHost());
-				s = s.replace("[port]", "" + PMS.get().getServer().getPort());
-			}
-
-			if (mediaRenderer.isXbox360()) {
-				LOGGER.debug("DLNA changes for Xbox 360");
-				s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
-				s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-				s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
-					"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
-					"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
-					"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
-					"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
-					"</service>" + CRLF);
-			} else {
-				s = s.replace("Universal Media Server", configuration.getServerDisplayName());
-				if (mediaRenderer.isSamsung()) {
-					// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
-					s = s.replace("<serialNumber/>", "<serialNumber/>" + CRLF
-							+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
-							+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
-				}
-			}
-			inputStream = null;
-			return s;
+			s = prepareUmsSpec(s);
 		}
-		return "";
+		return s;
+	}
+
+	private String prepareUmsSpec(String umsXml) {
+		String result = umsXml.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
+
+		if (PMS.get().getServer().getHost() != null) {
+			result = result.replace("[host]", PMS.get().getServer().getHost());
+			result = result.replace("[port]", "" + PMS.get().getServer().getPort());
+		}
+
+		if (mediaRenderer.isXbox360()) {
+			LOGGER.debug("DLNA changes for Xbox 360");
+			result = result.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
+			result = result.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
+			result = result.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
+				"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
+				"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
+				"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
+				"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
+				"</service>" + CRLF);
+		} else {
+			result = result.replace("Universal Media Server", configuration.getServerDisplayName());
+			if (mediaRenderer.isSamsung()) {
+				// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
+				result = result.replace("<serialNumber/>", "<serialNumber/>" + CRLF
+						+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
+						+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
+			}
+		}
+		return result;
 	}
 
 	private String subscribeHandler(HttpResponse output) throws IOException {
@@ -956,7 +957,7 @@ public class RequestV2 extends HTTPResource {
 		return response.toString();
 	}
 
-	private void logRequest(HttpResponse output, StringBuilder response) {
+	private void logRequest(HttpResponse output, StringBuilder response, InputStream iStream) {
 		StringBuilder header = new StringBuilder();
 		for (Entry<String, String> entry : output.headers().entries()) {
 			if (isNotBlank(entry.getKey())) {
@@ -1007,7 +1008,7 @@ public class RequestV2 extends HTTPResource {
 						LOGGER.trace("", e);
 					}
 				}
-			} else if (inputStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
+			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
 				LOGGER.trace(
 					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
 					rendererName,
@@ -1300,19 +1301,19 @@ public class RequestV2 extends HTTPResource {
 			SOAPMessage message = MessageFactory.newInstance().createMessage(null, new ByteArrayInputStream(content.getBytes()));
 			JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-			Document body = message.getSOAPBody().extractContentAsDocument(); 
+			Document body = message.getSOAPBody().extractContentAsDocument();
 			return unmarshaller.unmarshal(body, clazz).getValue();
 		} catch (Exception e) {
 			LOGGER.error("Unmarshalling error", e);
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Returns a date somewhere in the far future.
 	 * @return The {@link String} containing the date
 	 */
-	private String getFUTUREDATE() {
+	private String getFutureDate() {
 		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return sdf.format(new Date(10000000000L + System.currentTimeMillis()));
 	}
