@@ -100,8 +100,6 @@ public class RequestV2 extends HTTPResource {
 	private String argument;
 	private String soapaction;
 	private String content;
-	private int startingIndex;
-	private int requestCount;
 
 	/**
 	 * When sending an input stream, the lowRange indicates which byte to start from.
@@ -117,10 +115,6 @@ public class RequestV2 extends HTTPResource {
 	 */
 	private long highRange;
 	private boolean http10;
-
-	public RendererConfiguration getMediaRenderer() {
-		return mediaRenderer;
-	}
 
 	public void setMediaRenderer(RendererConfiguration mediaRenderer) {
 		this.mediaRenderer = mediaRenderer;
@@ -201,38 +195,12 @@ public class RequestV2 extends HTTPResource {
 		this.argument = uri;
 	}
 
-	public String getSoapaction() {
-		return soapaction;
-	}
-
 	public void setSoapaction(String soapaction) {
 		this.soapaction = soapaction;
 	}
 
-	public String getTextContent() {
-		return content;
-	}
-
 	public void setTextContent(String content) {
 		this.content = content;
-	}
-
-	/**
-	 * Retrieves the HTTP method with which this {@link RequestV2} was created.
-	 * @return The (@link String} containing the HTTP method.
-	 */
-	public String getMethod() {
-		return method;
-	}
-
-	/**
-	 * Retrieves the argument with which this {@link RequestV2} was created. It contains
-	 * a command, a unique resource id and a resource name, all separated by slashes. For
-	 * example: "get/0$0$2$17/big_buck_bunny_1080p_h264.mov" or "get/0$0$2$13/thumbnail0000Sintel.2010.1080p.mkv"
-	 * @return The {@link String} containing the argument.
-	 */
-	public String getArgument() {
-		return argument;
 	}
 
 	/**
@@ -332,8 +300,6 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	private InputStream dlnaFileHandler(HttpResponse output, StartStopListenerDelegate startStopListenerDelegate) throws HttpException, IOException {
-		DLNAResource dlna;// Request to retrieve a file
-
 		/**
 		 * Skip the leading "get/"
 		 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
@@ -351,7 +317,7 @@ public class RequestV2 extends HTTPResource {
 		id = id.replace("%24", "$");
 
 		// Retrieve the DLNAresource itself.
-		dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+		DLNAResource dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
 		String fileName = id.substring(id.indexOf('/') + 1);
 
 		if (transferMode != null) {
@@ -1109,6 +1075,8 @@ public class RequestV2 extends HTTPResource {
 		boolean xbox360 = mediaRenderer.isXbox360();
 		String objectID = requestMessage.getObjectId();
 		String containerID = null;
+		int requestCount = 0;
+		int startingIndex = 0;
 		if ((objectID == null || objectID.length() == 0)) {
 			containerID = requestMessage.getContainerId();
 			if (containerID == null || (xbox360 && !containerID.contains("$"))) {
