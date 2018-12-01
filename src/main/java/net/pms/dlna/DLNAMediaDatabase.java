@@ -1379,6 +1379,8 @@ public class DLNAMediaDatabase implements Runnable {
 						oldpercent = newpercent;
 					}
 				}
+
+				PMS.get().getFrame().setStatusLine(null);
 			}
 
 			/**
