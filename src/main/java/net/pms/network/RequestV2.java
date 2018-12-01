@@ -49,6 +49,7 @@ import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
@@ -147,36 +148,20 @@ public class RequestV2 extends HTTPResource {
 		}
 	}
 
-	public String getTransferMode() {
-		return transferMode;
-	}
-
 	public void setTransferMode(String transferMode) {
 		this.transferMode = transferMode;
-	}
-
-	public String getContentFeatures() {
-		return contentFeatures;
 	}
 
 	public void setContentFeatures(String contentFeatures) {
 		this.contentFeatures = contentFeatures;
 	}
 
-	public void setTimeRangeStart(Double timeseek) {
-		this.range.setStart(timeseek);
-	}
-
 	public void setTimeRangeStartString(String str) {
-		setTimeRangeStart(convertStringToTime(str));
-	}
-
-	public void setTimeRangeEnd(Double rangeEnd) {
-		this.range.setEnd(rangeEnd);
+		this.range.setStart(convertStringToTime(str));
 	}
 
 	public void setTimeRangeEndString(String str) {
-		setTimeRangeEnd(convertStringToTime(str));
+		this.range.setEnd(convertStringToTime(str));
 	}
 
 	/**
@@ -208,12 +193,12 @@ public class RequestV2 extends HTTPResource {
 	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
 	 * Rewritten version of the {@link Request} class.
 	 * @param method The {@link String} that defines the HTTP method to be used.
-	 * @param argument The {@link String} containing instructions for PMS. It contains a command,
+	 * @param uri The {@link String} containing instructions for PMS. It contains a command,
 	 * 		a unique resource id and a resource name, all separated by slashes.
 	 */
-	public RequestV2(String method, String argument) {
+	public RequestV2(String method, String uri) {
 		this.method = method;
-		this.argument = argument;
+		this.argument = uri;
 	}
 
 	public String getSoapaction() {
@@ -271,10 +256,8 @@ public class RequestV2 extends HTTPResource {
 		MessageEvent event,
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
-	) throws IOException {
-		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
+	) throws IOException, HttpException {
 		StringBuilder response = new StringBuilder();
-		DLNAResource dlna = null;
 		InputStream inputStream = null;
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
@@ -288,330 +271,7 @@ public class RequestV2 extends HTTPResource {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
-			// Request to retrieve a file
-
-			/**
-			 * Skip the leading "get/"
-			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
-			 *
-			 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
-			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
-			 * This should fix it
-			 */
-
-			// Note: we intentionally include the trailing filename here because it may
-			// be used to reconstruct lost Temp items.
-			String id = argument.substring(argument.indexOf("get/") + 4);
-
-			// Some clients escape the separators in their request: unescape them.
-			id = id.replace("%24", "$");
-
-			// Retrieve the DLNAresource itself.
-			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
-			String fileName = id.substring(id.indexOf('/') + 1);
-
-			if (transferMode != null) {
-				output.headers().set("TransferMode.DLNA.ORG", transferMode);
-			}
-
-			if (dlna != null && dlna.isFolder() && !fileName.startsWith("thumbnail0000")) {
-				// if we found a folder we MUST be asked for thumbnails
-				// otherwise this is not allowed
-				dlna = null;
-			}
-
-			if (dlna != null) {
-				// DLNAresource was found.
-				if (fileName.startsWith("thumbnail0000")) {
-					// This is a request for a thumbnail file.
-					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-
-					DLNAThumbnailInputStream thumbInputStream;
-					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
-						thumbInputStream = dlna.getGenericThumbnailInputStream(null);
-					} else {
-						dlna.checkThumbnail();
-						thumbInputStream = dlna.fetchThumbnailInputStream();
-					}
-					if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
-						thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
-					}
-					inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
-					if (contentFeatures != null) {
-						output.headers().set(
-							"ContentFeatures.DLNA.ORG",
-							dlna.getDlnaContentFeatures(imageProfile, true)
-						);
-					}
-					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
-						if (lowRange > 0) {
-							inputStream.skip(lowRange);
-						}
-						inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
-					}
-					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-				} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
-					// This is a request for an image
-					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
-					if (imageProfile == null) {
-						// Parsing failed for some reason, we'll have to pick a profile
-						if (dlna.getMedia().getImageInfo() != null && dlna.getMedia().getImageInfo().getFormat() != null) {
-							switch (dlna.getMedia().getImageInfo().getFormat()) {
-								case GIF:
-									imageProfile = DLNAImageProfile.GIF_LRG;
-									break;
-								case PNG:
-									imageProfile = DLNAImageProfile.PNG_LRG;
-									break;
-								default:
-									imageProfile = DLNAImageProfile.JPEG_LRG;
-							}
-						} else {
-							imageProfile = DLNAImageProfile.JPEG_LRG;
-						}
-					}
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-					try {
-						InputStream imageInputStream;
-						if (dlna.getPlayer() instanceof ImagePlayer) {
-							ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
-								dlna,
-								dlna.getMedia(),
-								new OutputParams(configuration)
-							);
-							imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
-						} else {
-							imageInputStream = dlna.getInputStream();
-						}
-						if (imageInputStream == null) {
-							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
-						} else {
-							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
-							if (contentFeatures != null) {
-								output.headers().set(
-									"ContentFeatures.DLNA.ORG",
-									dlna.getDlnaContentFeatures(imageProfile, false)
-								);
-							}
-							if (inputStream != null && (lowRange > 0 || highRange > 0)) {
-								if (lowRange > 0) {
-									inputStream.skip(lowRange);
-								}
-								inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
-							}
-							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-							output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-						}
-					} catch (IOException ie) {
-						output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-						output.setStatus(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
-
-						// Send the response headers to the client.
-						ChannelFuture future = event.getChannel().write(output);
-
-						if (close) {
-							// Close the channel after the response is sent.
-							future.addListener(ChannelFutureListener.CLOSE);
-						}
-
-						LOGGER.debug("Could not send image \"{}\": {}", dlna.getName(), ie.getMessage() != null ? ie.getMessage() : ie.getClass().getSimpleName());
-						LOGGER.trace("", ie);
-						return future;
-					}
-				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
-					// This is a request for a subtitles file
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
-					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
-					if (sub != null) {
-						// XXX external file is null if the first subtitle track is embedded:
-						// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
-						if (sub.isExternal()) {
-							try {
-								if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
-									inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
-								} else {
-									inputStream = new FileInputStream(sub.getExternalFile());
-								}
-								LOGGER.trace("Loading external subtitles file: {}", sub);
-							} catch (IOException ioe) {
-								LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub, ioe.getMessage());
-								LOGGER.trace("", ioe);
-							}
-						} else {
-							LOGGER.trace("Not loading external subtitles file because it is embedded: {}", sub);
-						}
-					} else {
-						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");
-					}
-				} else if (dlna.isCodeValid(dlna)) {
-					// This is a request for a regular file.
-					DLNAResource.Rendering origRendering = null;
-					if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
-						// Adjust rendering details for this renderer
-						origRendering = dlna.updateRendering(mediaRenderer);
-					}
-					// If range has not been initialized yet and the DLNAResource has its
-					// own start and end defined, initialize range with those values before
-					// requesting the input stream.
-					Range.Time splitRange = dlna.getSplitRange();
-
-					if (range.getStart() == null && splitRange.getStart() != null) {
-						range.setStart(splitRange.getStart());
-					}
-
-					if (range.getEnd() == null && splitRange.getEnd() != null) {
-						range.setEnd(splitRange.getEnd());
-					}
-
-					long totalsize = dlna.length(mediaRenderer);
-					boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
-
-					// Ignore ByteRangeRequests while media is transcoded
-					if (
-						!ignoreTranscodeByteRangeRequests ||
-						totalsize != DLNAMediaInfo.TRANS_SIZE ||
-						(
-							ignoreTranscodeByteRangeRequests &&
-							lowRange == 0 &&
-							totalsize == DLNAMediaInfo.TRANS_SIZE
-						)
-					) {
-						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
-						if (dlna.isResume()) {
-							// Update range to possibly adjusted resume time
-							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
-						}
-					}
-
-					Format format = dlna.getFormat();
-					if (format != null && format.isVideo()) {
-						if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
-							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
-							String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-							if (isNotBlank(subtitleHttpHeader)) {
-								// Device allows a custom subtitle HTTP header; construct it
-								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
-								String subtitleUrl;
-								String subExtension = sub.getType().getExtension();
-								if (isNotBlank(subExtension)) {
-									subExtension = "." + subExtension;
-								}
-								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-									':' + PMS.get().getServer().getPort() + "/get/" +
-									id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
-
-								output.headers().set(subtitleHttpHeader, subtitleUrl);
-							} else {
-								LOGGER.trace(
-									"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
-									subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
-								);
-							}
-						} else if (LOGGER.isTraceEnabled()) {
-							ArrayList<String> reasons = new ArrayList<>();
-							if (dlna.getMedia() == null) {
-								reasons.add("dlna.getMedia() is null");
-							}
-							if (configuration.isDisableSubtitles()) {
-								reasons.add("configuration.isDisabledSubtitles() is true");
-							}
-							if (dlna.getMediaSubtitle() == null) {
-								reasons.add("dlna.getMediaSubtitle() is null");
-							} else if (!dlna.getMediaSubtitle().isStreamable()) {
-								reasons.add("dlna.getMediaSubtitle().isStreamable() is false");
-							}
-							LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
-						}
-					}
-
-					String name = dlna.getDisplayName(mediaRenderer);
-					if (dlna.isNoName()) {
-						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
-					}
-
-					if (inputStream == null) {
-						if (!ignoreTranscodeByteRangeRequests) {
-							// No inputStream indicates that transcoding / remuxing probably crashed.
-							LOGGER.error("There is no inputstream to return for " + name);
-						}
-					} else {
-						// Notify plugins that the DLNAresource is about to start playing
-						startStopListenerDelegate.start(dlna);
-
-						// Try to determine the content type of the file
-						String rendererMimeType = getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia());
-
-						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
-							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
-						}
-
-						// Response generation:
-						// We use -1 for arithmetic convenience but don't send it as a value.
-						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
-						boolean chunked = mediaRenderer.isChunkedTransfer();
-
-						// Determine the total size. Note: when transcoding the length is
-						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
-						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
-							// In chunked mode we try to avoid arbitrary values.
-							totalsize = -1;
-						}
-
-						long remaining = totalsize - lowRange;
-						long requested = highRange - lowRange;
-
-						if (requested != 0) {
-							// Determine the range (i.e. smaller of known or requested bytes)
-							long bytes = remaining > -1 ? remaining : inputStream.available();
-
-							if (requested > 0 && bytes > requested) {
-								bytes = requested + 1;
-							}
-
-							// Calculate the corresponding highRange (this is usually redundant).
-							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
-
-							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
-
-							output.headers().set(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
-
-							// Content-Length refers to the current chunk size here, though in chunked
-							// mode if the request is open-ended and totalsize is unknown we omit it.
-							if (chunked && requested < 0 && totalsize < 0) {
-								CLoverride = -1;
-							} else {
-								CLoverride = bytes;
-							}
-						} else {
-							// Content-Length refers to the total remaining size of the stream here.
-							CLoverride = remaining;
-						}
-
-						// Calculate the corresponding highRange (this is usually redundant).
-						highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
-
-						if (contentFeatures != null) {
-							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
-						}
-
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-					}
-					if (origRendering != null) {
-						// Restore original rendering details
-						dlna.updateRendering(origRendering);
-					}
-				}
-			}
+			inputStream = dlnaFileHandler(output, startStopListenerDelegate);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
 			inputStream = imageHandler(output);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
@@ -655,105 +315,480 @@ public class RequestV2 extends HTTPResource {
 		ChannelFuture future;
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
-			byte responseData[] = response.toString().getBytes("UTF-8");
-			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
-
-			// HEAD requests only require headers to be set, no need to set contents.
-			if (!method.equals("HEAD")) {
-				// Not a HEAD request, so set the contents of the response.
-				ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
-				output.setContent(buf);
-			}
-
-			// Send the response to the client.
-			future = event.getChannel().write(output);
-
-			if (close) {
-				// Close the channel after the response is sent.
-				future.addListener(ChannelFutureListener.CLOSE);
-			}
+			future = answerXml(output, event, close, response);
 		} else if (inputStream != null) {
 			// There is an input stream to send as a response.
-
-			if (CLoverride > -2) {
-				// Content-Length override has been set, send or omit as appropriate
-				if (CLoverride > -1 && CLoverride != DLNAMediaInfo.TRANS_SIZE) {
-					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
-					// as the PS3 will display a network error and request the last seconds of the
-					// transcoded video. Better to send no Content-Length at all.
-					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + CLoverride);
-				}
-			} else {
-				int contentLength = inputStream.available();
-				LOGGER.trace("Available Content-Length: {}", contentLength);
-				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
-			}
-
-			if (range.isStartOffsetAvailable() && dlna != null) {
-				// Add timeseek information headers.
-				String timeseekValue = StringUtil.formatDLNADuration(range.getStartOrZero());
-				String timetotalValue = dlna.getMedia().getDurationString();
-				String timeEndValue = range.isEndLimitAvailable() ? StringUtil.formatDLNADuration(range.getEnd()) : timetotalValue;
-				output.headers().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
-				output.headers().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
-			}
-
-			// Send the response headers to the client.
-			future = event.getChannel().write(output);
-
-			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
-				// Send the response body to the client in chunks.
-				ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
-
-				// Add a listener to clean up after sending the entire response body.
-				final InputStream finalInputStream = inputStream;
-				chunkWriteFuture.addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future) {
-						try {
-							finalInputStream.close();
-						} catch (IOException e) {
-							LOGGER.error("Caught exception", e);
-						}
-
-						// Always close the channel after the response is sent because of
-						// a freeze at the end of video when the channel is not closed.
-						future.getChannel().close();
-						startStopListenerDelegate.stop();
-					}
-				});
-			} else {
-				// HEAD method is being used, so simply clean up after the response was sent.
-				try {
-					inputStream.close();
-				} catch (IOException ioe) {
-					LOGGER.error("Caught exception", ioe);
-				}
-
-				if (close) {
-					// Close the channel after the response is sent
-					future.addListener(ChannelFutureListener.CLOSE);
-				}
-
-				startStopListenerDelegate.stop();
-			}
+			future = answerStream(output, event, close, inputStream, startStopListenerDelegate);
 		} else {
 			// No response data and no input stream. Seems we are merely serving up headers.
-			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-			output.setStatus(HttpResponseStatus.NO_CONTENT);
-
-			// Send the response headers to the client.
-			future = event.getChannel().write(output);
-
-			if (close) {
-				// Close the channel after the response is sent.
-				future.addListener(ChannelFutureListener.CLOSE);
-			}
+			future = answerNoContent(output, event, close);
 		}
 
 		if (LOGGER.isTraceEnabled()) {
 			// Log trace information
 			logRequest(output, response, inputStream);
+		}
+		return future;
+	}
+
+	private InputStream dlnaFileHandler(HttpResponse output, StartStopListenerDelegate startStopListenerDelegate) throws HttpException, IOException {
+		DLNAResource dlna;// Request to retrieve a file
+
+		/**
+		 * Skip the leading "get/"
+		 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
+		 *
+		 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
+		 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
+		 * This should fix it
+		 */
+
+		// Note: we intentionally include the trailing filename here because it may
+		// be used to reconstruct lost Temp items.
+		String id = argument.substring(argument.indexOf("get/") + 4);
+
+		// Some clients escape the separators in their request: unescape them.
+		id = id.replace("%24", "$");
+
+		// Retrieve the DLNAresource itself.
+		dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+		String fileName = id.substring(id.indexOf('/') + 1);
+
+		if (transferMode != null) {
+			output.headers().set("TransferMode.DLNA.ORG", transferMode);
+		}
+
+		if (dlna != null && dlna.isFolder() && !fileName.startsWith("thumbnail0000")) {
+			// if we found a folder we MUST be asked for thumbnails
+			// otherwise this is not allowed
+			dlna = null;
+		}
+
+		InputStream iStream = null;
+		if (dlna != null) {
+			// DLNAresource was found.
+
+			if (!dlna.isCodeValid(dlna)) {
+				LOGGER.error("Invalid code for: " + dlna.getName());
+				throw new HttpException(HttpResponseStatus.BAD_REQUEST);
+			}
+
+			if (fileName.startsWith("thumbnail0000")) {
+				iStream = dlnaThumbnailHandler(output, dlna, fileName);
+			} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE) {
+				// This is a request for an image
+				iStream = dlnaImageHandler(output, dlna, fileName);
+			} else if (dlna.getMedia() != null && fileName.contains("subtitle0000")) {
+				// This is a request for a subtitles file
+				iStream = dlnaSubtitlesHandler(output, dlna);
+			} else {
+				// This is a request for a regular file.
+				iStream = dlnaMediaHandler(output, startStopListenerDelegate, dlna, id);
+			}
+		}
+		return iStream;
+	}
+
+	private ChannelFuture answerStream(HttpResponse output, MessageEvent event, boolean close, InputStream inputStream, final StartStopListenerDelegate startStopListenerDelegate) {
+		ChannelFuture future;// Send the response headers to the client.
+		future = event.getChannel().write(output);
+
+		if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
+			// Send the response body to the client in chunks.
+			ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
+
+			// Add a listener to clean up after sending the entire response body.
+			final InputStream finalInputStream = inputStream;
+			chunkWriteFuture.addListener(new ChannelFutureListener() {
+				@Override
+				public void operationComplete(ChannelFuture future) {
+					try {
+						finalInputStream.close();
+					} catch (IOException e) {
+						LOGGER.error("Caught exception", e);
+					}
+
+					// Always close the channel after the response is sent because of
+					// a freeze at the end of video when the channel is not closed.
+					future.getChannel().close();
+					startStopListenerDelegate.stop();
+				}
+			});
+		} else {
+			// HEAD method is being used, so simply clean up after the response was sent.
+			try {
+				inputStream.close();
+			} catch (IOException ioe) {
+				LOGGER.error("Caught exception", ioe);
+			}
+
+			if (close) {
+				// Close the channel after the response is sent
+				future.addListener(ChannelFutureListener.CLOSE);
+			}
+
+			startStopListenerDelegate.stop();
+		}
+		return future;
+	}
+
+	private InputStream dlnaMediaHandler(HttpResponse output, StartStopListenerDelegate startStopListenerDelegate, DLNAResource dlna, String id) throws IOException, HttpException {
+		DLNAResource.Rendering origRendering = null;
+		if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
+			// Adjust rendering details for this renderer
+			origRendering = dlna.updateRendering(mediaRenderer);
+		}
+		// If range has not been initialized yet and the DLNAResource has its
+		// own start and end defined, initialize range with those values before
+		// requesting the input stream.
+		Range.Time splitRange = dlna.getSplitRange();
+
+		if (range.getStart() == null && splitRange.getStart() != null) {
+			range.setStart(splitRange.getStart());
+		}
+
+		if (range.getEnd() == null && splitRange.getEnd() != null) {
+			range.setEnd(splitRange.getEnd());
+		}
+
+		long totalsize = dlna.length(mediaRenderer);
+		boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
+
+		InputStream inputStream = null;
+		// Ignore ByteRangeRequests while media is transcoded
+		if (!ignoreTranscodeByteRangeRequests || totalsize != DLNAMediaInfo.TRANS_SIZE ||
+				( ignoreTranscodeByteRangeRequests && lowRange == 0 && totalsize == DLNAMediaInfo.TRANS_SIZE)) {
+			inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+			if (dlna.isResume()) {
+				// Update range to possibly adjusted resume time
+				range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
+			}
+		}
+
+		if (inputStream == null) {
+			// No inputStream indicates that transcoding / remuxing probably crashed.
+			String name = dlna.getDisplayName(mediaRenderer);
+			if (dlna.isNoName()) {
+				name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
+			}
+			LOGGER.error("There is no inputstream to return for " + name);
+			throw new HttpException(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		Format format = dlna.getFormat();
+		if (format != null && format.isVideo()) {
+			addSubtitlesHeader(output, dlna, id);
+		}
+
+		// Notify plugins that the DLNAresource is about to start playing
+		startStopListenerDelegate.start(dlna);
+
+		// Try to determine the content type of the file
+		String rendererMimeType = getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia());
+
+		if (rendererMimeType != null && !"".equals(rendererMimeType)) {
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
+		}
+
+		if (contentFeatures != null) {
+			output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
+		}
+
+		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+
+		setContentLengthHeader(output, totalsize, inputStream);
+
+		if (origRendering != null) {
+			// Restore original rendering details
+			dlna.updateRendering(origRendering);
+		}
+
+		if (range.isStartOffsetAvailable() && dlna != null) {
+			// Add timeseek information headers.
+			String timeseekValue = StringUtil.formatDLNADuration(range.getStartOrZero());
+			String timetotalValue = dlna.getMedia().getDurationString();
+			String timeEndValue = range.isEndLimitAvailable() ? StringUtil.formatDLNADuration(range.getEnd()) : timetotalValue;
+			output.headers().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
+			output.headers().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
+		}
+
+		return inputStream;
+	}
+
+	private void setContentLengthHeader(HttpResponse output, long totalsize, InputStream inputStream) throws IOException {
+		// Response generation:
+		// We use -1 for arithmetic convenience but don't send it as a value.
+		// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
+		boolean chunked = mediaRenderer.isChunkedTransfer();
+
+		// Determine the total size. Note: when transcoding the length is
+		// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
+		if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
+			// In chunked mode we try to avoid arbitrary values.
+			totalsize = -1;
+		}
+
+		long remaining = totalsize - lowRange;
+		long requested = highRange - lowRange;
+		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
+
+		if (requested != 0) {
+			// Determine the range (i.e. smaller of known or requested bytes)
+			long bytes = remaining > -1 ? remaining : inputStream.available();
+
+			if (requested > 0 && bytes > requested) {
+				bytes = requested + 1;
+			}
+
+			// Calculate the corresponding highRange (this is usually redundant).
+			highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
+
+			LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
+
+			output.headers().set(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
+
+			// Content-Length refers to the current chunk size here, though in chunked
+			// mode if the request is open-ended and totalsize is unknown we omit it.
+			if (chunked && requested < 0 && totalsize < 0) {
+				CLoverride = -1;
+			} else {
+				CLoverride = bytes;
+			}
+		} else {
+			// Content-Length refers to the total remaining size of the stream here.
+			CLoverride = remaining;
+		}
+
+		// Calculate the corresponding highRange (this is usually redundant).
+		highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
+
+		if (CLoverride > -2) {
+			// Content-Length override has been set, send or omit as appropriate
+			if (CLoverride > -1 && CLoverride != DLNAMediaInfo.TRANS_SIZE) {
+				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
+				// as the PS3 will display a network error and request the last seconds of the
+				// transcoded video. Better to send no Content-Length at all.
+				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + CLoverride);
+			}
+		} else {
+			int contentLength = inputStream.available();
+			LOGGER.trace("Available Content-Length: {}", contentLength);
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
+		}
+	}
+
+	/**
+	 * Some renderers (like Samsung devices) allow a custom header for a subtitle URL
+	 */
+	private void addSubtitlesHeader(HttpResponse output, DLNAResource dlna, String id) {
+		if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
+
+			String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
+			if (isNotBlank(subtitleHttpHeader)) {
+				// Device allows a custom subtitle HTTP header; construct it
+				DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+				String subtitleUrl;
+				String subExtension = sub.getType().getExtension();
+				if (isNotBlank(subExtension)) {
+					subExtension = "." + subExtension;
+				}
+				subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+					':' + PMS.get().getServer().getPort() + "/get/" +
+					id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
+
+				output.headers().set(subtitleHttpHeader, subtitleUrl);
+			} else {
+				LOGGER.trace(
+					"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+					subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
+				);
+			}
+		} else if (LOGGER.isTraceEnabled()) {
+			ArrayList<String> reasons = new ArrayList<>();
+			if (dlna.getMedia() == null) {
+				reasons.add("dlna.getMedia() is null");
+			}
+			if (configuration.isDisableSubtitles()) {
+				reasons.add("configuration.isDisabledSubtitles() is true");
+			}
+			if (dlna.getMediaSubtitle() == null) {
+				reasons.add("dlna.getMediaSubtitle() is null");
+			} else if (!dlna.getMediaSubtitle().isStreamable()) {
+				reasons.add("dlna.getMediaSubtitle().isStreamable() is false");
+			}
+			LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
+		}
+	}
+
+	private InputStream dlnaImageHandler(HttpResponse output, DLNAResource dlna, String fileName) throws HttpException {
+		DLNAImageProfile imageProfile = getImageProfile(fileName, dlna.getMedia().getImageInfo());
+
+		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
+		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
+		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+
+		InputStream iStream = null;
+		try {
+			InputStream imageInputStream;
+			if (dlna.getPlayer() instanceof ImagePlayer) {
+				ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
+					dlna,
+					dlna.getMedia(),
+					new OutputParams(configuration)
+				);
+				imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
+			} else {
+				imageInputStream = dlna.getInputStream();
+			}
+
+			if (imageInputStream == null) {
+				LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
+			} else {
+				iStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+				if (contentFeatures != null) {
+					output.headers().set(
+						"ContentFeatures.DLNA.ORG",
+						dlna.getDlnaContentFeatures(imageProfile, false)
+					);
+				}
+				if (iStream != null && (lowRange > 0 || highRange > 0)) {
+					if (lowRange > 0) {
+						iStream.skip(lowRange);
+					}
+					iStream = DLNAResource.wrap(iStream, highRange, lowRange);
+				}
+				output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+				output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+			}
+		} catch (IOException ie) {
+			LOGGER.debug("Could not send image \"{}\": {}", dlna.getName(), ie.getMessage() != null ? ie.getMessage() : ie.getClass().getSimpleName());
+			LOGGER.trace("", ie);
+			throw new HttpException(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
+		}
+		return iStream;
+	}
+
+	private DLNAImageProfile getImageProfile(String fileName, ImageInfo imageInfo) {
+		DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
+		if (imageProfile == null) {
+			// Parsing failed for some reason, we'll have to pick a profile
+			if (imageInfo != null && imageInfo.getFormat() != null) {
+				switch (imageInfo.getFormat()) {
+					case GIF:
+						imageProfile = DLNAImageProfile.GIF_LRG;
+						break;
+					case PNG:
+						imageProfile = DLNAImageProfile.PNG_LRG;
+						break;
+					default:
+						imageProfile = DLNAImageProfile.JPEG_LRG;
+				}
+			} else {
+				imageProfile = DLNAImageProfile.JPEG_LRG;
+			}
+		}
+		return imageProfile;
+	}
+
+	private InputStream dlnaThumbnailHandler(HttpResponse output, DLNAResource dlna, String fileName) throws IOException {
+		InputStream inputStream;
+		DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
+		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
+		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
+		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+
+		DLNAThumbnailInputStream thumbInputStream;
+		if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
+			thumbInputStream = dlna.getGenericThumbnailInputStream(null);
+		} else {
+			dlna.checkThumbnail();
+			thumbInputStream = dlna.fetchThumbnailInputStream();
+		}
+		if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
+			thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
+		}
+		inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+		if (contentFeatures != null) {
+			output.headers().set(
+				"ContentFeatures.DLNA.ORG",
+				dlna.getDlnaContentFeatures(imageProfile, true)
+			);
+		}
+		if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+			if (lowRange > 0) {
+				inputStream.skip(lowRange);
+			}
+			inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+		}
+		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		return inputStream;
+	}
+
+	private InputStream dlnaSubtitlesHandler(HttpResponse output, DLNAResource dlna) {
+		InputStream iStream = null;
+		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
+		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
+		DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+		if (sub != null) {
+			// XXX external file is null if the first subtitle track is embedded:
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+			if (sub.isExternal()) {
+				try {
+					if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) { // remove tags from .srt subs when renderer doesn't support them
+						iStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
+					} else {
+						iStream = new FileInputStream(sub.getExternalFile());
+					}
+
+					LOGGER.trace("Loading external subtitles file: {}", sub);
+				} catch (IOException ioe) {
+					LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub, ioe.getMessage());
+					LOGGER.trace("", ioe);
+				}
+			} else {
+				LOGGER.trace("Not loading external subtitles file because it is embedded: {}", sub);
+			}
+		} else {
+			LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");
+		}
+		return iStream;
+	}
+
+	private ChannelFuture answerXml(HttpResponse output, MessageEvent event, boolean close, StringBuilder response) throws IOException {
+		byte responseData[] = response.toString().getBytes("UTF-8");
+		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
+
+		// HEAD requests only require headers to be set, no need to set contents.
+		if (!method.equals("HEAD")) {
+			// Not a HEAD request, so set the contents of the response.
+			ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
+			output.setContent(buf);
+		}
+
+		// Send the response to the client.
+		ChannelFuture future = event.getChannel().write(output);
+
+		if (close) {
+			// Close the channel after the response is sent.
+			future.addListener(ChannelFutureListener.CLOSE);
+		}
+		return future;
+	}
+
+	private ChannelFuture answerNoContent(HttpResponse output, MessageEvent event, boolean close) {
+		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+		output.setStatus(HttpResponseStatus.NO_CONTENT);
+
+		// Send the response headers to the client.
+		ChannelFuture future = event.getChannel().write(output);
+
+		if (close) {
+			// Close the channel after the response is sent.
+			future.addListener(ChannelFutureListener.CLOSE);
 		}
 		return future;
 	}
@@ -787,17 +822,20 @@ public class RequestV2 extends HTTPResource {
 		return createResponse(payload.toString()).toString();
 	}
 
-	private InputStream imageHandler(HttpResponse output) {
+	private InputStream imageHandler(HttpResponse output) throws IOException {
 		if (argument.toLowerCase().endsWith(".png")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/png");
 		} else {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
 		}
 
+		InputStream iStream = getResourceInputStream(argument);
+		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + iStream.available());
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-		return getResourceInputStream(argument);
+
+		return iStream;
 	}
 
 	private String serverSpecHandler(HttpResponse output) throws IOException {

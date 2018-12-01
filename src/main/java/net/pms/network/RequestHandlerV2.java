@@ -354,7 +354,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) throws HttpException {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
