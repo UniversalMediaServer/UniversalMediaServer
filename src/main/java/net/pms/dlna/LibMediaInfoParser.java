@@ -528,8 +528,7 @@ public class LibMediaInfoParser {
 			value.equals("isml") ||
 			(value.startsWith("m4a") && !value.startsWith("m4ae")) ||
 			value.startsWith("m4v") ||
-			value.equals("mpeg-4 visual") ||
-			value.equals("xvid")
+			value.equals("mpeg-4 visual")
 		) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
@@ -591,6 +590,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.VP9;
 		} else if (
 				value.startsWith("div") ||
+				value.startsWith("xvid") ||
 				value.equals("dx50") ||
 				value.equals("dvx1")
 			) {
