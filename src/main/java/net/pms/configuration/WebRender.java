@@ -258,7 +258,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public boolean isChromeTrick() {
-		return browser == CHROME && pmsconfiguration.getWebChrome();
+		return browser == CHROME;
 	}
 
 	public boolean isFirefoxLinuxMp4() {
