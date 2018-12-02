@@ -341,7 +341,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
-	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome_mkv_as_webm_spoof";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
 	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
@@ -4692,10 +4691,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getWebFlash() {
 		return getBoolean(KEY_WEB_FLASH, false);
-	}
-
-	public boolean getWebChrome() {
-		return getBoolean(KEY_WEB_CHROME_TRICK, false);
 	}
 
 	public boolean getWebFirefoxLinuxMp4() {
