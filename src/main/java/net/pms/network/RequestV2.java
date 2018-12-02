@@ -193,6 +193,12 @@ public class RequestV2 extends HTTPResource {
 	public RequestV2(String method, String uri) {
 		this.method = method;
 		this.argument = uri;
+
+		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
+		if (argument.startsWith("/")) {
+			LOGGER.trace("Stripping preceding slash from: " + argument);
+			argument = argument.substring(1);
+		}
 	}
 
 	public void setSoapaction(String soapaction) {
@@ -228,18 +234,12 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder response = new StringBuilder();
 		InputStream inputStream = null;
 
-		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
-		if (argument.startsWith("/")) {
-			LOGGER.trace("Stripping preceding slash from: " + argument);
-			argument = argument.substring(1);
-		}
-
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
 			// Request to output a page to the HTML console.
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
-			inputStream = dlnaFileHandler(output, startStopListenerDelegate);
+			inputStream = dlnaResourceHandler(output, startStopListenerDelegate);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
 			inputStream = imageHandler(output);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
@@ -278,18 +278,13 @@ public class RequestV2 extends HTTPResource {
 			response.append(notifyHandler(output));
 		}
 
-		output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
-
 		ChannelFuture future;
-		if (response.length() > 0) {
-			// A response message was constructed; convert it to data ready to be sent.
-			future = answerXml(output, event, close, response);
-		} else if (inputStream != null) {
+		if (inputStream != null) {
 			// There is an input stream to send as a response.
 			future = answerStream(output, event, close, inputStream, startStopListenerDelegate);
 		} else {
-			// No response data and no input stream. Seems we are merely serving up headers.
-			future = answerNoContent(output, event, close);
+			// A response message was constructed; convert it to data ready to be sent.
+			future = answerXml(output, event, close, response);
 		}
 
 		if (LOGGER.isTraceEnabled()) {
@@ -299,8 +294,12 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
-	private InputStream dlnaFileHandler(HttpResponse output, StartStopListenerDelegate startStopListenerDelegate) throws HttpException, IOException {
-		/**
+	/**
+	 *  Handles dlna resource request (movie, music, photo etc). Creates data stream related with requested item
+	 *  and sets response headers required by client to correctly processed.
+	 */
+	private InputStream dlnaResourceHandler(HttpResponse output, StartStopListenerDelegate startStopListenerDelegate) throws HttpException, IOException {
+		/*
 		 * Skip the leading "get/"
 		 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
 		 *
@@ -355,50 +354,11 @@ public class RequestV2 extends HTTPResource {
 		return iStream;
 	}
 
-	private ChannelFuture answerStream(HttpResponse output, MessageEvent event, boolean close, InputStream inputStream, final StartStopListenerDelegate startStopListenerDelegate) {
-		ChannelFuture future;// Send the response headers to the client.
-		future = event.getChannel().write(output);
-
-		if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
-			// Send the response body to the client in chunks.
-			ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
-
-			// Add a listener to clean up after sending the entire response body.
-			final InputStream finalInputStream = inputStream;
-			chunkWriteFuture.addListener(new ChannelFutureListener() {
-				@Override
-				public void operationComplete(ChannelFuture future) {
-					try {
-						finalInputStream.close();
-					} catch (IOException e) {
-						LOGGER.error("Caught exception", e);
-					}
-
-					// Always close the channel after the response is sent because of
-					// a freeze at the end of video when the channel is not closed.
-					future.getChannel().close();
-					startStopListenerDelegate.stop();
-				}
-			});
-		} else {
-			// HEAD method is being used, so simply clean up after the response was sent.
-			try {
-				inputStream.close();
-			} catch (IOException ioe) {
-				LOGGER.error("Caught exception", ioe);
-			}
-
-			if (close) {
-				// Close the channel after the response is sent
-				future.addListener(ChannelFutureListener.CLOSE);
-			}
-
-			startStopListenerDelegate.stop();
-		}
-		return future;
-	}
-
-	private InputStream dlnaMediaHandler(HttpResponse output, StartStopListenerDelegate startStopListenerDelegate, DLNAResource dlna, String id) throws IOException, HttpException {
+	/**
+	 * Creates movie/music data stream related with provided {@code dlna} resource and set proper response headers.
+	 */
+	private InputStream dlnaMediaHandler(HttpResponse output, StartStopListenerDelegate startStopListenerDelegate,
+										 DLNAResource dlna, String id) throws IOException, HttpException {
 		DLNAResource.Rendering origRendering = null;
 		if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
 			// Adjust rendering details for this renderer
@@ -482,6 +442,9 @@ public class RequestV2 extends HTTPResource {
 		return inputStream;
 	}
 
+	/**
+	 * Calculate and set ContentLength response header.
+	 */
 	private void setContentLengthHeader(HttpResponse output, long totalsize, InputStream inputStream) throws IOException {
 		// Response generation:
 		// We use -1 for arithmetic convenience but don't send it as a value.
@@ -587,6 +550,15 @@ public class RequestV2 extends HTTPResource {
 		}
 	}
 
+	/**
+	 * Handles dlna image request. Set proper response headers and returns image data as a stream.
+	 *
+	 * @param output The {@link HttpResponse} object that will be used to construct the response.
+	 * @param dlna {@link DLNAResource} dlna resourece related with requested image
+	 * @param fileName
+	 * @return {@link InputStream} image data stream
+	 * @throws {@link HttpException} if for some reason image data stream cannot be crerated
+	 */
 	private InputStream dlnaImageHandler(HttpResponse output, DLNAResource dlna, String fileName) throws HttpException {
 		DLNAImageProfile imageProfile = getImageProfile(fileName, dlna.getMedia().getImageInfo());
 
@@ -636,6 +608,15 @@ public class RequestV2 extends HTTPResource {
 		return iStream;
 	}
 
+	/**
+	 * Search for image profile for file related with {@code fileName}. When profile cannot be found {@code imageInfo}
+	 * is used to discover proper profile. If it still cannot be found then {@link DLNAImageProfile#JPEG_LRG} is used
+	 * as a fallback
+	 *
+	 * @param fileName {@link String}
+	 * @param imageInfo {@link ImageInfo}
+	 * @return {@link DLNAImageProfile}
+	 */
 	private DLNAImageProfile getImageProfile(String fileName, ImageInfo imageInfo) {
 		DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
 		if (imageProfile == null) {
@@ -658,6 +639,13 @@ public class RequestV2 extends HTTPResource {
 		return imageProfile;
 	}
 
+	/**
+	 * Creates thumbnail data stream served to the client
+	 *
+	 * @param output The {@link HttpResponse} object that will be used to construct the response.
+	 * @param dlna {@link DLNAResource} DLNA resource related with current request
+	 * @return {@link InputStream} subtitles data stream
+	 */
 	private InputStream dlnaThumbnailHandler(HttpResponse output, DLNAResource dlna, String fileName) throws IOException {
 		InputStream inputStream;
 		DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
@@ -694,6 +682,13 @@ public class RequestV2 extends HTTPResource {
 		return inputStream;
 	}
 
+	/**
+	 * Creates subtitles data stream served to the client
+	 *
+	 * @param output The {@link HttpResponse} object that will be used to construct the response.
+	 * @param dlna {@link DLNAResource} DLNA resource related with current request
+	 * @return {@link InputStream} subtitles data stream
+	 */
 	private InputStream dlnaSubtitlesHandler(HttpResponse output, DLNAResource dlna) {
 		InputStream iStream = null;
 		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
@@ -724,32 +719,72 @@ public class RequestV2 extends HTTPResource {
 		return iStream;
 	}
 
-	private ChannelFuture answerXml(HttpResponse output, MessageEvent event, boolean close, StringBuilder response) throws IOException {
-		byte responseData[] = response.toString().getBytes("UTF-8");
-		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
+	/**
+	 * Create response built from provided {@code inputStream}.
+	 */
+	private ChannelFuture answerStream(HttpResponse output, MessageEvent event, boolean close, InputStream inputStream, final StartStopListenerDelegate startStopListenerDelegate) {
+		ChannelFuture future;// Send the response headers to the client.
+		future = event.getChannel().write(output);
 
-		// HEAD requests only require headers to be set, no need to set contents.
-		if (!method.equals("HEAD")) {
-			// Not a HEAD request, so set the contents of the response.
-			ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
-			output.setContent(buf);
-		}
+		if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
+			// Send the response body to the client in chunks.
+			ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
-		// Send the response to the client.
-		ChannelFuture future = event.getChannel().write(output);
+			// Add a listener to clean up after sending the entire response body.
+			final InputStream finalInputStream = inputStream;
+			chunkWriteFuture.addListener(new ChannelFutureListener() {
+				@Override
+				public void operationComplete(ChannelFuture future) {
+					try {
+						finalInputStream.close();
+					} catch (IOException e) {
+						LOGGER.error("Caught exception", e);
+					}
 
-		if (close) {
-			// Close the channel after the response is sent.
-			future.addListener(ChannelFutureListener.CLOSE);
+					// Always close the channel after the response is sent because of
+					// a freeze at the end of video when the channel is not closed.
+					future.getChannel().close();
+					startStopListenerDelegate.stop();
+				}
+			});
+		} else {
+			// HEAD method is being used, so simply clean up after the response was sent.
+			try {
+				inputStream.close();
+			} catch (IOException ioe) {
+				LOGGER.error("Caught exception", ioe);
+			}
+
+			if (close) {
+				// Close the channel after the response is sent
+				future.addListener(ChannelFutureListener.CLOSE);
+			}
+
+			startStopListenerDelegate.stop();
 		}
 		return future;
 	}
 
-	private ChannelFuture answerNoContent(HttpResponse output, MessageEvent event, boolean close) {
-		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-		output.setStatus(HttpResponseStatus.NO_CONTENT);
+	/**
+	 * Creates regular communication response between server and the DLNA device
+	 */
+	private ChannelFuture answerXml(HttpResponse output, MessageEvent event, boolean close, StringBuilder response) throws IOException {
+		if (response != null && response.length() > 0) {
+			byte responseData[] = response.toString().getBytes("UTF-8");
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
 
-		// Send the response headers to the client.
+			// HEAD requests only require headers to be set, no need to set contents.
+			if (!method.equals("HEAD")) {
+				// Not a HEAD request, so set the contents of the response.
+				ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
+				output.setContent(buf);
+			}
+		} else {
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+			output.setStatus(HttpResponseStatus.NO_CONTENT);
+		}
+
+		// Send the response to the client.
 		ChannelFuture future = event.getChannel().write(output);
 
 		if (close) {
@@ -788,6 +823,13 @@ public class RequestV2 extends HTTPResource {
 		return createResponse(payload.toString()).toString();
 	}
 
+	/**
+	 * Handles request for web view images (not DLNA resource!) as well as UMS icon requested buy devices.
+	 *
+	 * @param output The {@link HttpResponse} object that will be used to construct the response.
+	 * @return {@link InputStream} image stream
+	 * @throws IOException when image cannot be served
+	 */
 	private InputStream imageHandler(HttpResponse output) throws IOException {
 		if (argument.toLowerCase().endsWith(".png")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/png");

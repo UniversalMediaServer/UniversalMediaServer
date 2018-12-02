@@ -371,6 +371,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			);
 		}
 
+		response.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
+
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
 		ctx.setAttachment(startStopListenerDelegate);
