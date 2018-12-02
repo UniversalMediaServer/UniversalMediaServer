@@ -579,8 +579,7 @@ public class LibMediaInfoParser {
 			value.equals("isml") ||
 			(value.startsWith("m4a") && !value.startsWith("m4ae")) ||
 			value.startsWith("m4v") ||
-			value.equals("mpeg-4 visual") ||
-			value.equals("xvid")
+			value.equals("mpeg-4 visual")
 		) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
@@ -642,11 +641,12 @@ public class LibMediaInfoParser {
 		} else if (value.startsWith("vp9")) {
 			format = FormatConfiguration.VP9;
 		} else if (
-			value.startsWith("div") ||
-			value.equals("dx50") ||
-			value.equals("dvx1")
-		) {
-			format = FormatConfiguration.DIVX;
+				value.startsWith("div") ||
+				value.startsWith("xvid") ||
+				value.equals("dx50") ||
+				value.equals("dvx1")
+			) {
+				format = FormatConfiguration.DIVX;
 		} else if (value.startsWith("indeo")) { // Intel Indeo Video: IV31, IV32, IV41 and IV50
 			format = FormatConfiguration.INDEO;
 		} else if (streamType == StreamType.Video && value.equals("yuv")) {
