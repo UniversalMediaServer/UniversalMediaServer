@@ -562,12 +562,6 @@ public class RequestV2 extends HTTPResource {
 	private InputStream dlnaImageHandler(HttpResponse output, DLNAResource dlna, String fileName) throws HttpException {
 		DLNAImageProfile imageProfile = getImageProfile(fileName, dlna.getMedia().getImageInfo());
 
-		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-
-		InputStream iStream = null;
 		try {
 			InputStream imageInputStream;
 			if (dlna.getPlayer() instanceof ImagePlayer) {
@@ -582,30 +576,37 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			if (imageInputStream == null) {
-				LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
-			} else {
-				iStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
-				if (contentFeatures != null) {
-					output.headers().set(
-						"ContentFeatures.DLNA.ORG",
-						dlna.getDlnaContentFeatures(imageProfile, false)
-					);
-				}
-				if (iStream != null && (lowRange > 0 || highRange > 0)) {
-					if (lowRange > 0) {
-						iStream.skip(lowRange);
-					}
-					iStream = DLNAResource.wrap(iStream, highRange, lowRange);
-				}
-				output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-				output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+				LOGGER.error("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
+				throw new HttpException(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
 			}
+
+			InputStream iStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+			if (contentFeatures != null) {
+				output.headers().set(
+					"ContentFeatures.DLNA.ORG",
+					dlna.getDlnaContentFeatures(imageProfile, false)
+				);
+			}
+			if (iStream != null && (lowRange > 0 || highRange > 0)) {
+				if (lowRange > 0) {
+					iStream.skip(lowRange);
+				}
+				iStream = DLNAResource.wrap(iStream, highRange, lowRange);
+			}
+			long totalsize = dlna.length(mediaRenderer);
+			setContentLengthHeader(output, totalsize ,iStream);
+
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
+			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+			output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
+			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+
+			return iStream;
 		} catch (IOException ie) {
 			LOGGER.debug("Could not send image \"{}\": {}", dlna.getName(), ie.getMessage() != null ? ie.getMessage() : ie.getClass().getSimpleName());
 			LOGGER.trace("", ie);
 			throw new HttpException(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
 		}
-		return iStream;
 	}
 
 	/**
@@ -647,12 +648,7 @@ public class RequestV2 extends HTTPResource {
 	 * @return {@link InputStream} subtitles data stream
 	 */
 	private InputStream dlnaThumbnailHandler(HttpResponse output, DLNAResource dlna, String fileName) throws IOException {
-		InputStream inputStream;
 		DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
-		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
 		DLNAThumbnailInputStream thumbInputStream;
 		if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
@@ -661,25 +657,34 @@ public class RequestV2 extends HTTPResource {
 			dlna.checkThumbnail();
 			thumbInputStream = dlna.fetchThumbnailInputStream();
 		}
+
 		if (dlna instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) dlna).getFile())) {
 			thumbInputStream = FullyPlayed.addFullyPlayedOverlay(thumbInputStream);
 		}
-		inputStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
+
+		InputStream iStream = thumbInputStream.transcode(imageProfile, mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false);
 		if (contentFeatures != null) {
 			output.headers().set(
 				"ContentFeatures.DLNA.ORG",
 				dlna.getDlnaContentFeatures(imageProfile, true)
 			);
 		}
-		if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+
+		if (iStream != null && (lowRange > 0 || highRange > 0)) {
 			if (lowRange > 0) {
-				inputStream.skip(lowRange);
+				iStream.skip(lowRange);
 			}
-			inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+			iStream = DLNAResource.wrap(iStream, highRange, lowRange);
 		}
+
+		long totalsize = dlna.length(mediaRenderer);
+		setContentLengthHeader(output, totalsize ,iStream);
+		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		return inputStream;
+
+		return iStream;
 	}
 
 	/**
@@ -691,8 +696,6 @@ public class RequestV2 extends HTTPResource {
 	 */
 	private InputStream dlnaSubtitlesHandler(HttpResponse output, DLNAResource dlna) {
 		InputStream iStream = null;
-		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
-		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
 		DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 		if (sub != null) {
 			// XXX external file is null if the first subtitle track is embedded:
@@ -716,6 +719,10 @@ public class RequestV2 extends HTTPResource {
 		} else {
 			LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle() returned null");
 		}
+
+		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
+		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
+
 		return iStream;
 	}
 
