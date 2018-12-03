@@ -319,11 +319,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							ffMp4Cmd(cmdList);
 							break;
 						case HTTPResource.WEBM_TYPEMIME:
-							if (browser == CHROME) {
-								ffChromeCmd(cmdList);
-							} else {
-								// nothing here yet
-							}
+							ffWebmCmd(cmdList);
 							break;
 					}
 				}
@@ -391,20 +387,20 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("libx264");
 		cmdList.add("-preset");
 		cmdList.add("ultrafast");
-		/*cmdList.add("-tune");
+		cmdList.add("-tune");
 		cmdList.add("zerolatency");
-		cmdList.add("-profile:v");
-		cmdList.add("high");
-		cmdList.add("-level:v");
-		cmdList.add("3.1");*/
+//		cmdList.add("-profile:v");
+//		cmdList.add("high");
+//		cmdList.add("-level:v");
+//		cmdList.add("3.1");
 		cmdList.add("-c:a");
 		cmdList.add("aac");
 		cmdList.add("-ab");
 		cmdList.add("16k");
 //		cmdList.add("-ar");
 //		cmdList.add("44100");
-		/*cmdList.add("-pix_fmt");
-		cmdList.add("yuv420p");*/
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
 //		cmdList.add("-frag_duration");
 //		cmdList.add("300");
 //		cmdList.add("-frag_size");
@@ -417,7 +413,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("mp4");
 	}
 
-	private static void ffChromeCmd(List<String> cmdList) {
+	private static void ffWebmCmd(List<String> cmdList) {
 		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
@@ -504,9 +500,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			dlna.getPlayer() instanceof FFMpegVideo;
 	}
 
+	/**
+	 * libvorbis transcodes very slowly, so we scale the video down to
+	 * speed it up.
+	 *
+	 * @return 
+	 */
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return "scale=" + getVideoWidth() + ":" + getVideoHeight();
+		return getVideoMimeType() == HTTPResource.OGG_TYPEMIME ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
 	}
 
 	@Override
