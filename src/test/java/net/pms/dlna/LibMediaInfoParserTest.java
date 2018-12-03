@@ -119,15 +119,15 @@ public class LibMediaInfoParserTest extends LibMediaInfoParser {
 	public void testSetFormat() throws Exception {
 		DLNAMediaInfo media = new DLNAMediaInfo();
 		DLNAMediaAudio audio = new DLNAMediaAudio();
-		LibMediaInfoParser.setFormat(StreamType.General, media, audio, "XVID", null);
+		setFormat(StreamType.General, media, audio, "XVID", null);
 		assertEquals(FormatConfiguration.DIVX, media.getContainer());
-		LibMediaInfoParser.setFormat(StreamType.Video, media, audio, "XVID", null);
+		setFormat(StreamType.Video, media, audio, "XVID", null);
 		assertEquals(FormatConfiguration.DIVX, media.getCodecV());
 		media.setContainer("");
-		LibMediaInfoParser.setFormat(StreamType.General, media, audio, "mp42 (mp42/isom)", null);
+		setFormat(StreamType.General, media, audio, "mp42 (mp42/isom)", null);
 		assertEquals(FormatConfiguration.MP4, media.getContainer());
 		media.setCodecV("");
-		LibMediaInfoParser.setFormat(StreamType.Video, media, audio, "DIVX", null);
+		setFormat(StreamType.Video, media, audio, "DIVX", null);
 		assertEquals(FormatConfiguration.DIVX, media.getCodecV());
 		// TODO this can continue with other container, video and audio formats
 	}
