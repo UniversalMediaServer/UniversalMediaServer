@@ -477,12 +477,6 @@ public class LibMediaInfoParser {
 		media.getSubtitleTracksList().add(currentSubTrack);
 	}
 
-	@Deprecated
-	// FIXME this is obsolete (replaced by the private method below) and isn't called from anywhere outside this class
-	public static void getFormat(MediaInfo.StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value) {
-		setFormat(streamType, media, audio, value, null);
-	}
-
 	/**
 	 * Sends the correct information to media.setContainer(),
 	 * media.setCodecV() or media.setCodecA, depending on streamType.
