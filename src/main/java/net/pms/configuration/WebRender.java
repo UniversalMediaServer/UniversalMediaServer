@@ -257,14 +257,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	public boolean isChromeTrick() {
-		return browser == CHROME;
-	}
-
-	public boolean isFirefoxLinuxMp4() {
-		return browser == FIREFOX && platform != null && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
-	}
-
 	public boolean isScreenSizeConstrained() {
 		return (screenWidth != 0 && RemoteUtil.getWidth() > screenWidth) ||
 			(screenHeight != 0 && RemoteUtil.getHeight() > screenHeight);
@@ -279,9 +271,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getVideoMimeType() {
-		if (isChromeTrick()) {
+		if (browser == CHROME) {
 			return HTTPResource.WEBM_TYPEMIME;
-		} else if (isFirefoxLinuxMp4()) {
+		} else if (browser == FIREFOX) {
 			return HTTPResource.MP4_TYPEMIME;
 		}
 		return defaultMime;
@@ -327,7 +319,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							ffMp4Cmd(cmdList);
 							break;
 						case HTTPResource.WEBM_TYPEMIME:
-							if (isChromeTrick()) {
+							if (browser == CHROME) {
 								ffChromeCmd(cmdList);
 							} else {
 								// nothing here yet
