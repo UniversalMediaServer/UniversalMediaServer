@@ -87,11 +87,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-		RequestV2 request = null;
-		RendererConfiguration renderer = null;
-		String userAgentString = null;
-		ArrayList<String> identifiers = new ArrayList<>();
-
 		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) event.getMessage();
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
@@ -111,7 +106,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
+		RequestV2 request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
 
 		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
 			request.setHttp10(true);
@@ -125,7 +120,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// default renderer.
 
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
-		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
@@ -140,6 +135,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		Set<String> headerNames = headers.names();
 		Iterator<String> iterator = headerNames.iterator();
+		String userAgentString = null;
+		ArrayList<String> identifiers = new ArrayList<>();
 		while (iterator.hasNext()) {
 			String name = iterator.next();
 			String headerLine = name + ": " + headers.get(name);
@@ -355,7 +352,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) throws HttpException {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -384,6 +381,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				);
 			}
 		}
+
+		response.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
