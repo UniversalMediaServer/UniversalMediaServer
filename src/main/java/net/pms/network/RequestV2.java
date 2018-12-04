@@ -514,7 +514,7 @@ public class RequestV2 extends HTTPResource {
 		if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 
 			String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-			if (isNotBlank(subtitleHttpHeader)) {
+			if (isNotBlank(subtitleHttpHeader) && (dlna.getPlayer() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 				// Device allows a custom subtitle HTTP header; construct it
 				DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 				String subtitleUrl;
