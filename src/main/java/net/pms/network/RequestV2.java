@@ -595,7 +595,7 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			int contentLength = iStream.available();
-			LOGGER.trace("Image available Content-Length: {}", contentLength);
+			LOGGER.trace("Image: Available Content-Length: {}", contentLength);
 			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
@@ -680,7 +680,7 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		int contentLength = iStream.available();
-		LOGGER.trace("Thumbnail available Content-Length: {}", contentLength);
+		LOGGER.trace("Thumbnail: Available Content-Length: {}", contentLength);
 		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 
 		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
