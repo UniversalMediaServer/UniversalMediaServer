@@ -71,6 +71,10 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMethod;
+import static org.jboss.netty.handler.codec.http.HttpMethod.GET;
+import static org.jboss.netty.handler.codec.http.HttpMethod.HEAD;
+import static org.jboss.netty.handler.codec.http.HttpMethod.POST;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.stream.ChunkedStream;
@@ -88,7 +92,7 @@ public class RequestV2 extends HTTPResource {
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
-	private final String method;
+	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
@@ -175,11 +179,11 @@ public class RequestV2 extends HTTPResource {
 	/**
 	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
 	 * Rewritten version of the {@link Request} class.
-	 * @param method The {@link String} that defines the HTTP method to be used.
+	 * @param method The {@link HttpMethod} that defines the HTTP method to be used.
 	 * @param uri The {@link String} containing instructions for PMS. It contains a command,
 	 * 		a unique resource id and a resource name, all separated by slashes.
 	 */
-	public RequestV2(String method, String uri) {
+	public RequestV2(HttpMethod method, String uri) {
 		this.method = method;
 		this.uri = uri;
 	}
@@ -217,26 +221,26 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder response = new StringBuilder();
 		InputStream inputStream = null;
 
-		if ((method.equals("GET") || method.equals("HEAD")) && uri.startsWith("console/")) {
+		if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("console/")) {
 			// Request to output a page to the HTML console.
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.append(HTMLConsole.servePage(uri.substring(8)));
-		} else if ((method.equals("GET") || method.equals("HEAD")) && uri.startsWith("get/")) {
+		} else if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
 			inputStream = dlnaResourceHandler(output, startStopListenerDelegate);
-		} else if ((method.equals("GET") || method.equals("HEAD")) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
+		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 			inputStream = imageHandler(output);
-		} else if ((method.equals("GET") || method.equals("HEAD")) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
+		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(serverSpecHandler(output));
-		} else if (method.equals("POST") && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("mrr/control"))) {
+		} else if (POST.equals(method) && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("mrr/control"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(msMediaReceiverRegistrarHandler());
-		} else if (method.equals("POST") && uri.endsWith("upnp/control/connection_manager")) {
+		} else if (POST.equals(method) && uri.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(getProtocolInfoHandler());
 			}
-		} else if (method.equals("POST") && uri.endsWith("upnp/control/content_directory")) {
+		} else if (POST.equals(method) && uri.endsWith("upnp/control/content_directory")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				response.append(getSystemUpdateIdHandler());
@@ -255,9 +259,9 @@ public class RequestV2 extends HTTPResource {
 			} else {
 				LOGGER.debug("Unsupported action received: " + content);
 			}
-		} else if (method.equals("SUBSCRIBE")) {
+		} else if (method.getName().equals("SUBSCRIBE")) {
 			response.append(subscribeHandler(output));
-		} else if (method.equals("NOTIFY")) {
+		} else if (method.getName().equals("NOTIFY")) {
 			response.append(notifyHandler(output));
 		}
 
@@ -720,7 +724,7 @@ public class RequestV2 extends HTTPResource {
 		ChannelFuture future;// Send the response headers to the client.
 		future = event.getChannel().write(output);
 
-		if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
+		if (lowRange != DLNAMediaInfo.ENDFILE_POS && !HEAD.equals(method)) {
 			// Send the response body to the client in chunks.
 			ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
@@ -768,7 +772,7 @@ public class RequestV2 extends HTTPResource {
 			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
 
 			// HEAD requests only require headers to be set, no need to set contents.
-			if (!method.equals("HEAD")) {
+			if (!HEAD.equals(method)) {
 				// Not a HEAD request, so set the contents of the response.
 				ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseData);
 				output.setContent(buf);
@@ -981,7 +985,7 @@ public class RequestV2 extends HTTPResource {
 
 		String rendererName = getRendererName();
 
-		if (method.equals("HEAD")) {
+		if (HEAD.equals(method)) {
 			LOGGER.trace(
 				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
 				rendererName,

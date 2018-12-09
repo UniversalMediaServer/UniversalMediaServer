@@ -105,7 +105,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		RequestV2 request = new RequestV2(nettyRequest.getMethod().getName(), getUri(nettyRequest.getUri()));
+		RequestV2 request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
 
 		HttpHeaders headers = nettyRequest.headers();
 
