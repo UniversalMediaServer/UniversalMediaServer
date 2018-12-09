@@ -660,7 +660,7 @@ public class DLNAMediaDatabase implements Runnable {
 			for (DLNAMediaSubtitle subtitleTrack : media.getSubtitleTracksList()) {
 				updateStatement.setLong(1, fileId);
 				updateStatement.setInt(2, subtitleTrack.getId());
-				if (subtitleTrack.isExternal()) {
+				if (subtitleTrack.getExternalFile() != null) {
 					updateStatement.setString(3, subtitleTrack.getExternalFile().getPath());
 				} else {
 					updateStatement.setString(3, "");
