@@ -514,7 +514,7 @@ public class RequestV2 extends HTTPResource {
 		if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 
 			String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-			if (isNotBlank(subtitleHttpHeader)) {
+			if (isNotBlank(subtitleHttpHeader) && (dlna.getPlayer() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 				// Device allows a custom subtitle HTTP header; construct it
 				DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 				String subtitleUrl;
@@ -593,8 +593,10 @@ public class RequestV2 extends HTTPResource {
 				}
 				iStream = DLNAResource.wrap(iStream, highRange, lowRange);
 			}
-			long totalsize = dlna.length(mediaRenderer);
-			setContentLengthHeader(output, totalsize ,iStream);
+
+			int contentLength = iStream.available();
+			LOGGER.trace("Image: Available Content-Length: {}", contentLength);
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
@@ -677,8 +679,10 @@ public class RequestV2 extends HTTPResource {
 			iStream = DLNAResource.wrap(iStream, highRange, lowRange);
 		}
 
-		long totalsize = dlna.length(mediaRenderer);
-		setContentLengthHeader(output, totalsize ,iStream);
+		int contentLength = iStream.available();
+		LOGGER.trace("Thumbnail: Available Content-Length: {}", contentLength);
+		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
+
 		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
