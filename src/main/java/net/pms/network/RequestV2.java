@@ -605,8 +605,10 @@ public class RequestV2 extends HTTPResource {
 				}
 				iStream = DLNAResource.wrap(iStream, highRange, lowRange);
 			}
-			long totalsize = dlna.length(mediaRenderer);
-			setContentLengthHeader(output, totalsize ,iStream);
+
+			int contentLength = iStream.available();
+			LOGGER.trace("Image: Available Content-Length: {}", contentLength);
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 			output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
@@ -699,8 +701,10 @@ public class RequestV2 extends HTTPResource {
 			iStream = DLNAResource.wrap(iStream, highRange, lowRange);
 		}
 
-		long totalsize = dlna.length(mediaRenderer);
-		setContentLengthHeader(output, totalsize ,iStream);
+		int contentLength = iStream.available();
+		LOGGER.trace("Thumbnail: Available Content-Length: {}", contentLength);
+		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
+
 		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
