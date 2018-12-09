@@ -105,11 +105,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		RequestV2 request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
-
-		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
-			request.setHttp10(true);
-		}
+		RequestV2 request = new RequestV2(nettyRequest.getMethod().getName(), getUri(nettyRequest.getUri()));
 
 		HttpHeaders headers = nettyRequest.headers();
 
@@ -263,6 +259,23 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		writeResponse(ctx, event, request, ia);
 	}
 
+	/**
+	 * Removes all preceding slashes from uri. Samsung 2012 TVs have a problematic (additional) preceding slash that
+	 * needs to be also removed.
+	 *
+	 * @param rawUri requested uri
+	 * @return uri without preceding slash
+	 */
+	private String getUri(String rawUri) {
+		String uri = rawUri;
+
+		while (uri.startsWith("/")) {
+			LOGGER.trace("Stripping preceding slash from: " + uri);
+			uri = uri.substring(1);
+		}
+		return uri;
+	}
+
 	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
@@ -361,13 +374,13 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
-				HttpResponseStatus.PARTIAL_CONTENT
+					nettyRequest.getProtocolVersion(),
+					HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
 			response = new DefaultHttpResponse(
-				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
-				HttpResponseStatus.OK
+					nettyRequest.getProtocolVersion(),
+					HttpResponseStatus.OK
 			);
 		}
 

@@ -92,12 +92,10 @@ public class RequestV2 extends HTTPResource {
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
-	 * A {@link String} that contains the argument with which this {@link RequestV2} was
-	 * created. It contains a command, a unique resource id and a resource name, all
-	 * separated by slashes. For example: "get/0$0$2$17/big_buck_bunny_1080p_h264.mov" or
-	 * "get/0$0$2$13/thumbnail0000Sintel.2010.1080p.mkv"
+	 * A {@link String} that contains the uri with which this {@link RequestV2} was
+	 * created.
 	 */
-	private String argument;
+	private String uri;
 	private String soapaction;
 	private String content;
 
@@ -114,7 +112,6 @@ public class RequestV2 extends HTTPResource {
 	 * When sending an input stream, the highRange indicates which byte to stop at.
 	 */
 	private long highRange;
-	private boolean http10;
 
 	public void setMediaRenderer(RendererConfiguration mediaRenderer) {
 		this.mediaRenderer = mediaRenderer;
@@ -175,14 +172,6 @@ public class RequestV2 extends HTTPResource {
 		this.highRange = highRange;
 	}
 
-	public boolean isHttp10() {
-		return http10;
-	}
-
-	public void setHttp10(boolean http10) {
-		this.http10 = http10;
-	}
-
 	/**
 	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
 	 * Rewritten version of the {@link Request} class.
@@ -192,13 +181,7 @@ public class RequestV2 extends HTTPResource {
 	 */
 	public RequestV2(String method, String uri) {
 		this.method = method;
-		this.argument = uri;
-
-		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
-		if (argument.startsWith("/")) {
-			LOGGER.trace("Stripping preceding slash from: " + argument);
-			argument = argument.substring(1);
-		}
+		this.uri = uri;
 	}
 
 	public void setSoapaction(String soapaction) {
@@ -234,26 +217,26 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder response = new StringBuilder();
 		InputStream inputStream = null;
 
-		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
+		if ((method.equals("GET") || method.equals("HEAD")) && uri.startsWith("console/")) {
 			// Request to output a page to the HTML console.
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-			response.append(HTMLConsole.servePage(argument.substring(8)));
-		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
+			response.append(HTMLConsole.servePage(uri.substring(8)));
+		} else if ((method.equals("GET") || method.equals("HEAD")) && uri.startsWith("get/")) {
 			inputStream = dlnaResourceHandler(output, startStopListenerDelegate);
-		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
+		} else if ((method.equals("GET") || method.equals("HEAD")) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 			inputStream = imageHandler(output);
-		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
+		} else if ((method.equals("GET") || method.equals("HEAD")) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(serverSpecHandler(output));
-		} else if (method.equals("POST") && (argument.contains("MS_MediaReceiverRegistrar_control") || argument.contains("mrr/control"))) {
+		} else if (method.equals("POST") && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("mrr/control"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(msMediaReceiverRegistrarHandler());
-		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
+		} else if (method.equals("POST") && uri.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(getProtocolInfoHandler());
 			}
-		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
+		} else if (method.equals("POST") && uri.endsWith("upnp/control/content_directory")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				response.append(getSystemUpdateIdHandler());
@@ -310,7 +293,7 @@ public class RequestV2 extends HTTPResource {
 
 		// Note: we intentionally include the trailing filename here because it may
 		// be used to reconstruct lost Temp items.
-		String id = argument.substring(argument.indexOf("get/") + 4);
+		String id = uri.substring(uri.indexOf("get/") + 4);
 
 		// Some clients escape the separators in their request: unescape them.
 		id = id.replace("%24", "$");
@@ -842,13 +825,13 @@ public class RequestV2 extends HTTPResource {
 	 * @throws IOException when image cannot be served
 	 */
 	private InputStream imageHandler(HttpResponse output) throws IOException {
-		if (argument.toLowerCase().endsWith(".png")) {
+		if (uri.toLowerCase().endsWith(".png")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/png");
 		} else {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
 		}
 
-		InputStream iStream = getResourceInputStream(argument);
+		InputStream iStream = getResourceInputStream(uri);
 		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + iStream.available());
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -862,13 +845,13 @@ public class RequestV2 extends HTTPResource {
 		output.headers().set(HttpHeaders.Names.EXPIRES, "0");
 		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		InputStream iStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
+		InputStream iStream = getResourceInputStream((uri.equals("description/fetch") ? "PMS.xml" : uri));
 
 		byte b[] = new byte[iStream.available()];
 		iStream.read(b);
 		String s = new String(b, StandardCharsets.UTF_8);
 
-		if (argument.equals("description/fetch")) {
+		if (uri.equals("description/fetch")) {
 			s = prepareUmsSpec(s);
 		}
 		return s;
@@ -928,7 +911,7 @@ public class RequestV2 extends HTTPResource {
 						Socket sock = new Socket(addr, port);
 						OutputStream out = sock.getOutputStream()
 				) {
-					out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
+					out.write(("NOTIFY /" + uri + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 					out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
@@ -949,13 +932,13 @@ public class RequestV2 extends HTTPResource {
 			LOGGER.debug("Expected soap action in request");
 		}
 
-		if (argument.contains("connection_manager")) {
+		if (uri.contains("connection_manager")) {
 			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
 			response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
 			response.append(HTTPXMLHelper.eventProp("SourceProtocolInfo"));
 			response.append(HTTPXMLHelper.eventProp("CurrentConnectionIDs"));
 			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		} else if (argument.contains("content_directory")) {
+		} else if (uri.contains("content_directory")) {
 			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 			response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 			response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
