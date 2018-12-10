@@ -301,6 +301,12 @@ ul#Media .caption:hover {
 	background: url('/files/settings32.png') no-repeat;
 }
 
+#sub_translator {
+	background: url('img/edit-icon-14.png') no-repeat;
+	width: 14px;
+	height: 16px;
+}
+
 #Docs {
 	background: url('/files/view-info.png') no-repeat;
 	width: 20px;

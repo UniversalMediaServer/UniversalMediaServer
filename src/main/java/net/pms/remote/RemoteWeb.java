@@ -1,22 +1,56 @@
 package net.pms.remote;
 
-import com.samskivert.mustache.MustacheException;
-import com.samskivert.mustache.Template;
-import com.sun.net.httpserver.*;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.HttpCookie;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-import javax.net.ssl.*;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
+
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.samskivert.mustache.MustacheException;
+import com.samskivert.mustache.Template;
+import com.sun.net.httpserver.BasicAuthenticator;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -29,10 +63,6 @@ import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.DbgPacker;
 import net.pms.util.FullyPlayed;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
 public class RemoteWeb {
@@ -365,6 +395,72 @@ public class RemoteWeb {
 					}
 					mime = "text/html";
 
+	            } else if (path.startsWith("/files/proxy")) {
+	                String url = t.getRequestURI().getQuery();
+	                if (url != null)
+	                    url = url.substring(2);
+
+	                InputStream in = null;
+	                CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
+	                if (cookieManager == null) {
+	                    cookieManager = new CookieManager();
+	                    CookieHandler.setDefault(cookieManager);
+	                }
+
+	                if (t.getRequestMethod().equals("POST")) {
+	                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+	                    byte[] buf = new byte[4096];
+	                    int n;
+	                    while ((n = t.getRequestBody().read(buf)) > -1) {
+	                        bytes.write(buf, 0, n);
+	                    }
+	                    String str = bytes.toString("utf-8");
+	                    
+	                    URLConnection conn = new URL(url).openConnection();
+	                    ((HttpURLConnection)conn).setRequestMethod("POST");
+	                    conn.setRequestProperty( "Content-type", t.getRequestHeaders().getFirst("Content-type"));
+	                    conn.setRequestProperty( "Content-Length", String.valueOf(str.length()));
+	                    conn.setDoOutput(true);
+	                    OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+	                    writer.write(str);
+	                    writer.flush();
+	                    
+	                    in = conn.getInputStream();
+	                    bytes = new ByteArrayOutputStream();
+	                    while ((n = in.read(buf)) > -1) {
+	                        bytes.write(buf, 0, n);
+	                    }
+	                    in = new ByteArrayInputStream(bytes.toByteArray());
+	                    
+	                    if (LOGGER.isDebugEnabled()) {
+	                        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+	                        for (HttpCookie cookie : cookies) {
+	                            LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
+	                        }
+	                    }
+	                } else if (t.getRequestMethod().equals("OPTIONS")) {
+	                    in = new ByteArrayInputStream("".getBytes("utf-8"));
+	                } else {
+	                    in = HTTPResource.downloadAndSend(url, false);
+	                    
+	                    if (LOGGER.isDebugEnabled()) {
+	                        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+	                        for (HttpCookie cookie : cookies) {
+	                            LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
+	                        }
+	                    }
+	                }
+	                Headers hdr = t.getResponseHeaders();
+	                hdr.add("Content-Type", "text/plain");
+	                hdr.add("Access-Control-Allow-Origin", "*");
+	                hdr.add("Access-Control-Allow-Headers", "User-Agent");
+	                hdr.add("Access-Control-Allow-Headers", "Content-Type");
+	                t.sendResponseHeaders(200, in.available());
+
+	                OutputStream os = t.getResponseBody();
+	                LOGGER.trace("input is {} output is {}", in, os);
+	                RemoteUtil.dump(in, os);
+	                return;
 				} else if (parent.getResources().write(path.substring(7), t)) {
 					// The resource manager found and sent the file, all done.
 					return;
