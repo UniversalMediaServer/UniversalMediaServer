@@ -43,7 +43,7 @@ public class LibMediaInfoParser {
 		if (MI.isValid()) {
 			MI.Option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
 			MI.Option("Complete", "1");
-			MI.Option("Language", "raw");
+			MI.Option("Language", "en");
 			MI.Option("File_TestContinuousFileNames", "0");
 			LOGGER.debug("Option 'File_TestContinuousFileNames' is set to: " + MI.Option("File_TestContinuousFileNames_Get"));
 			MI.Option("ParseSpeed", "0");
