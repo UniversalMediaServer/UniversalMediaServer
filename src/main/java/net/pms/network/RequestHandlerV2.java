@@ -60,7 +60,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		Pattern.CASE_INSENSITIVE
 	);
 
-	private volatile HttpRequest nettyRequest;
 	private final ChannelGroup group;
 
 	public RequestHandlerV2(ChannelGroup group) {
@@ -86,15 +85,16 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) event.getMessage();
+		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
+		HttpHeaders headers = nettyRequest.headers();
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
 		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
-			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
+			headers.get(HttpHeaders.Names.USER_AGENT) != null &&
+			headers.get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
@@ -105,13 +105,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		RequestV2 request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
-
-		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
-			request.setHttp10(true);
-		}
-
-		HttpHeaders headers = nettyRequest.headers();
+		RequestV2 request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
 
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
@@ -133,9 +127,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		Set<String> headerNames = headers.names();
-		Iterator<String> iterator = headerNames.iterator();
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
+		Iterator<String> iterator = headerNames.iterator();
 		while (iterator.hasNext()) {
 			String name = iterator.next();
 			String headerLine = name + ": " + headers.get(name);
@@ -263,6 +257,23 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		writeResponse(ctx, event, request, ia);
 	}
 
+	/**
+	 * Removes all preceding slashes from uri. Samsung 2012 TVs have a problematic (additional) preceding slash that
+	 * needs to be also removed.
+	 *
+	 * @param rawUri requested uri
+	 * @return uri without preceding slash
+	 */
+	private String getUri(String rawUri) {
+		String uri = rawUri;
+
+		while (uri.startsWith("/")) {
+			LOGGER.trace("Stripping preceding slash from: " + uri);
+			uri = uri.substring(1);
+		}
+		return uri;
+	}
+
 	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
@@ -351,7 +362,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, MessageEvent e, RequestV2 request, InetAddress ia) throws HttpException {
+	private void writeResponse(ChannelHandlerContext ctx, MessageEvent event, RequestV2 request, InetAddress ia) throws HttpException {
+		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -361,13 +373,13 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
-				HttpResponseStatus.PARTIAL_CONTENT
+					nettyRequest.getProtocolVersion(),
+					HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
 			response = new DefaultHttpResponse(
-				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
-				HttpResponseStatus.OK
+					nettyRequest.getProtocolVersion(),
+					HttpResponseStatus.OK
 			);
 		}
 
@@ -378,7 +390,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		ctx.setAttachment(startStopListenerDelegate);
 
 		try {
-			request.answer(response, e, close, startStopListenerDelegate);
+			request.answer(response, event, close, startStopListenerDelegate);
 		} catch (IOException e1) {
 			LOGGER.debug("HTTP request V2 IO error: " + e1.getMessage());
 			LOGGER.trace("", e1);
@@ -393,7 +405,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
 		throws Exception {
-		Channel ch = e.getChannel();
 		Throwable cause = e.getCause();
 		if (cause instanceof TooLongFrameException) {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
@@ -412,6 +423,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				LOGGER.trace("", cause);
 			}
 		}
+
+		Channel ch = e.getChannel();
 		if (ch.isConnected()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 		}
