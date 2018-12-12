@@ -22,31 +22,31 @@ function keyDown(event) {
 	switch (event.keyCode) {
 		case VK_LEFT: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MENU) {
+			if (curLevel === level.MENU) {
 				moveInMenu(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.FOOTER) {
+			if (curLevel === level.FOOTER) {
 				moveInFooter(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -54,35 +54,35 @@ function keyDown(event) {
 		}
 		case VK_RIGHT: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.BROWSE) {
+			if (curLevel === level.BROWSE) {
 				moveInBrowse(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MENU) {
+			if (curLevel === level.MENU) {
 				moveInMenu(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.FOOTER) {
+			if (curLevel === level.FOOTER) {
 				moveInFooter(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -90,31 +90,31 @@ function keyDown(event) {
 		}
 		case VK_DOWN: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.BROWSE) {
+			if (curLevel === level.BROWSE) {
 				moveInBrowse(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.VIDEO) {
+			if (curLevel === level.VIDEO) {
 				moveInVideo(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -122,31 +122,31 @@ function keyDown(event) {
 		}
 		case VK_UP: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.BROWSE) {
+			if (curLevel === level.BROWSE) {
 				moveInBrowse(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.FOOTER) {
+			if (curLevel === level.FOOTER) {
 				moveInFooter(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -154,7 +154,7 @@ function keyDown(event) {
 		}
 		case VK_ENTER: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			} else {
@@ -167,7 +167,7 @@ function keyDown(event) {
 			break;
 		}
 		case VK_DASH: {
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			} else {
@@ -177,13 +177,13 @@ function keyDown(event) {
 			break;
 		}
 		case VK_PLAY: {
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 			}
 			break;
 		}
 		case VK_STOP: {
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 			}
 			break;
@@ -203,16 +203,28 @@ function moveInHome(key) {
 	var onFocus = $('.onFocus');
 	switch (key) {
 		case VK_DOWN: {
-			if($("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
-				if ($("#navbar").find("li:nth-child(2)").find("li:last").hasClass("onFocus")==true) {
+            if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(2)").find("li:last").hasClass("onFocus")==true) {
+                    break;
+                }
+                if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
+                    onFocus.removeClass('onFocus');
+                    changeFocus(onFocus.next());
+                } else {
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(2)").find("li:first").addClass('onFocus');
+                }
+                break;
+            } else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
+				if ($("#navbar").find("li:nth-child(1)").find("li:last").hasClass("onFocus")==true) {
 					break;
 				}
-				if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
+				if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
 					onFocus.removeClass('onFocus');
 					changeFocus(onFocus.next());
 				} else {
 					onFocus.removeClass('onFocus');
-					$("#navbar").find("li:nth-child(2)").find("li:first").addClass('onFocus');
+					$("#navbar").find("li:nth-child(1)").find("li:first").addClass('onFocus');
 				}
 				break;
 			} else if($('#Folders').text()!=""){
@@ -233,29 +245,39 @@ function moveInHome(key) {
 			break;
 		}
 		case VK_UP: {
-			if($("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
-				if ($("#navbar").find("li:nth-child(2)").find("li:first").hasClass("onFocus")==true){
+            if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(2)").find("li:first").hasClass("onFocus")==true){
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(2) a.dropdown-toggle").addClass('onFocus');
+                    $("#navbar").find("li:nth-child(2)").removeClass("open");
+                } else if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
+                    changeFocus(onFocus.prev());
+                }
+            }
+			else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
+				if ($("#navbar").find("li:nth-child(1)").find("li:first").hasClass("onFocus")==true){
 					onFocus.removeClass('onFocus');
-					$("#navbar").find("li:nth-child(2) a.dropdown-toggle").addClass('onFocus');
-					$("#navbar").find("li:nth-child(2)").removeClass("open");
-				} else if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
+					$("#navbar").find("li:nth-child(1) a.dropdown-toggle").addClass('onFocus');
+					$("#navbar").find("li:nth-child(1)").removeClass("open");
+				} else if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
 					changeFocus(onFocus.prev());
 				}
 			}
 			break;
 		}
 		case VK_RIGHT: {
-			if($('#HomeButton').hasClass("onFocus")==true) {
+			if($('#HomeButton').hasClass("onFocus")==true && $("#trigger-overlay").length != 0) {
 				onFocus.removeClass('onFocus');
 				$("#trigger-overlay").addClass('onFocus');
-			} else {
+			}
+            else {
 				onFocus.removeClass('onFocus');
 				$("#navbar").find(".dropdown-toggle").addClass('onFocus');
 			}			
 			break;
 		}
 		case VK_LEFT: {
-			if($("#navbar").find(".dropdown-toggle").hasClass("onFocus")==true) {
+			if($("#navbar").find(".dropdown-toggle").hasClass("onFocus")==true && $("#trigger-overlay").length != 0) {
 				onFocus.removeClass('onFocus');
 				$("#trigger-overlay").addClass('onFocus');
 			} else {				

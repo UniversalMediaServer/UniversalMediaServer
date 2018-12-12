@@ -249,6 +249,9 @@ TV - REMOTE CONTROL
 .material-icon-youtube-live::before{font-family:'Material Icons Extended';content:'\00e6fc'}
 .material-icon-youtube-mix::before{font-family:'Material Icons Extended';content:'\00e6cc'}
 .material-icon-youtube-trending::before{font-family:'Material Icons Extended';content:'\00ea05'}
+.onFocus{
+	box-shadow: 0px 0px 10px #aaa;
+}
 .onFocus.different{
 	box-shadow: 0px 0px 20px #337ab7;
 	-webkit-transform: scale(1);
@@ -484,6 +487,12 @@ ul#Folders>li:hover{
 ul#Folders>li.onFocus{
 	box-shadow: none;
 	overflow: hidden;
+	/*TODO: round folder li sides on hover or onFocus
+	border-radius: 1.25rem;
+	padding-left: 1.25rem;
+	padding-right: 1.25rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;*/
 }
 ul#Folders>li.onFocus>a{
 	/*background: #0091EA;
@@ -568,9 +577,6 @@ ul#Media li:hover {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
-	-ms-transform: translateY(-2px); /* IE 9 */
-    -webkit-transform: translateY(-2px); /* Safari */
-    transform: translateY(-2px);
 }
 ul#Media li>a:hover {
 	background-color: #000 !important;
@@ -584,9 +590,6 @@ ul#Media .onFocus {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
-	-ms-transform: translateY(-2px); /* IE 9 */
-    -webkit-transform: translateY(-2px); /* Safari */
-    transform: translateY(-2px);
 }
 ul#Media .onFocus {
 	background-color: #000 !important;
