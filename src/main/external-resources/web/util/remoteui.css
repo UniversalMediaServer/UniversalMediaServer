@@ -577,9 +577,6 @@ ul#Media li:hover {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
-	-ms-transform: translateY(-2px); /* IE 9 */
-    -webkit-transform: translateY(-2px); /* Safari */
-    transform: translateY(-2px);
 }
 ul#Media li>a:hover {
 	background-color: #000 !important;
@@ -593,9 +590,6 @@ ul#Media .onFocus {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
-	-ms-transform: translateY(-2px); /* IE 9 */
-    -webkit-transform: translateY(-2px); /* Safari */
-    transform: translateY(-2px);
 }
 ul#Media .onFocus {
 	background-color: #000 !important;
