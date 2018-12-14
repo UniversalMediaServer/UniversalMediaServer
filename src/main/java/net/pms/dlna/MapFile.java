@@ -279,20 +279,31 @@ public class MapFile extends DLNAResource {
 
 	private List<File> getFileList() {
 		List<File> out = new ArrayList<>();
+		ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
+		String filename;
 
 		for (File file : this.conf.getFiles()) {
-			if (file != null && file.isDirectory()) {
-				if (file.canRead()) {
-					File[] files = file.listFiles();
+			filename = file.getName() == null ? "unnamed" : file.getName();
+			if (file == null || !file.isDirectory()) {
+				LOGGER.trace("Ignoring {} because it is not a valid directory", filename);
+			}
 
-					if (files == null) {
-						LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
-					} else {
-						out.addAll(Arrays.asList(files));
-					}
+			// Skip if ignored
+			if (!ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(filename)) {
+				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.getName());
+				continue;
+			}
+
+			if (file.canRead()) {
+				File[] files = file.listFiles();
+
+				if (files == null) {
+					LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
 				} else {
-					LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+					out.addAll(Arrays.asList(files));
 				}
+			} else {
+				LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
 			}
 		}
 
