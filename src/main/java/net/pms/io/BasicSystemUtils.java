@@ -241,4 +241,9 @@ public class BasicSystemUtils implements SystemUtils {
 		}
 		return Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/resources/images/" + icon));
 	}
+
+	@Override
+	public Double getWindowsVersion() {
+		return null;
+	}
 }

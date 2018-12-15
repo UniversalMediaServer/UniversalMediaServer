@@ -20,6 +20,7 @@ package net.pms.io;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.Platform;
 import com.sun.jna.WString;
 import com.sun.jna.ptr.LongByReference;
 import java.io.File;
@@ -30,6 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.prefs.Preferences;
+import javax.annotation.Nullable;
 import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -359,5 +361,18 @@ public class WinUtils extends BasicSystemUtils {
 			return null;
 		}
 		return line.substring(line.lastIndexOf(':', msPos) + 1, msPos).trim();
+	}
+
+	@Override
+	@Nullable
+	public Double getWindowsVersion() {
+		if (!Platform.isWindows()) {
+			return null;
+		}
+		try {
+			return Double.valueOf(System.getProperty("os.version"));
+		} catch (NullPointerException | NumberFormatException e) {
+			return null;
+		}
 	}
 }
