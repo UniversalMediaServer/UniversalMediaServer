@@ -1574,18 +1574,10 @@ public class FileUtil {
 	}
 
 	/**
-<<<<<<< rebased_fix_subs_recognition
-	 * Tests if the {@link Charset} is UTF-16.
-=======
 	 * Tests if {@code charset} is {@code UTF-16}.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
 	 * @param charset the {@link Charset} to test.
-<<<<<<< rebased_fix_subs_recognition
-	 * @return {@code true} if the {@link Charset} is UTF-16, {@code false}
-=======
 	 * @return {@code true} if {@code charset} is {@code UTF-16}, {@code false}
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF16(Charset charset) {
@@ -1599,62 +1591,34 @@ public class FileUtil {
 	}
 
 	/**
-<<<<<<< rebased_fix_subs_recognition
-	 * Tests if the charset name is UTF-16.
-=======
 	 * Tests if {@code charset} is {@code UTF-16}.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
-<<<<<<< rebased_fix_subs_recognition
-	 * @param charsetName the charset name to test.
-	 * @return {@code true} if charset is UTF-16, {@code false} otherwise.
-=======
 	 * @param charsetName the charset name to test
 	 * @return {@code true} if {@code charsetName} is {@code UTF-16},
 	 *         {@code false} otherwise.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
-<<<<<<< rebased_fix_subs_recognition
-	 * Tests if the charset name is UTF-32.
-=======
 	 * Tests if {@code charsetName} is {@code UTF-32}.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
 	 * @param charsetName the charset name to test.
-<<<<<<< rebased_fix_subs_recognition
-	 * @return {@code true} if charset name is UTF-32, {@code false} otherwise.
-=======
 	 * @return {@code true} if {@code charsetName} is {@code UTF-32},
 	 *         {@code false} otherwise.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
-<<<<<<< rebased_fix_subs_recognition
-	 * Converts a UTF-16 {@code inputFile} to a UTF-8 {@code outputFile}. Does
-	 * not overwrite existing {@code outputFile}.
-=======
 	 * Converts an {@code UTF-16} input file to an {@code UTF-8} output file.
 	 * Does not overwrite an existing output file.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 *
-<<<<<<< rebased_fix_subs_recognition
-	 * @param inputFile the UTF-16 {@link File}.
-	 * @param outputFile the UTF-8 {@link File} after conversion.
-	 * @throws IOException
-=======
 	 * @param inputFile an {@code UTF-16} {@link File}.
 	 * @param outputFile the {@code UTF-8} {@link File} after conversion.
 	 * @throws IOException If an IO error occurs during the operation.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
 		Charset charset;

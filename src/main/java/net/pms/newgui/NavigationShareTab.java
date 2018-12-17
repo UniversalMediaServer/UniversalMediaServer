@@ -29,7 +29,6 @@ import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Point;
 import java.awt.event.*;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -127,7 +126,8 @@ public class NavigationShareTab {
 		this.looksFrame = looksFrame;
 	}
 
-	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
+//	private static final String PANEL_COL_SPEC = "left:pref,3dlu,                pref, 3dlu,                       pref, 3dlu,                 pref, 3dlu, pref, default:grow";
+	private static final String PANEL_COL_SPEC = "left:pref,          3dlu,                pref, 3dlu,                       pref, 3dlu,               pref, 3dlu, pref, 3dlu, pref, default:grow";
 	private static final String PANEL_ROW_SPEC =
 		//                                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		"p,"                              // Thumbnails
