@@ -347,14 +347,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
-	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome_mkv_as_webm_spoof";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
 	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
-	protected static final String KEY_WEB_FIREFOX_LINUX_MP4 = "web_firefox_linux_mp4";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
 	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
@@ -4729,14 +4727,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getWebFlash() {
 		return getBoolean(KEY_WEB_FLASH, false);
-	}
-
-	public boolean getWebChrome() {
-		return getBoolean(KEY_WEB_CHROME_TRICK, false);
-	}
-
-	public boolean getWebFirefoxLinuxMp4() {
-		return getBoolean(KEY_WEB_FIREFOX_LINUX_MP4, false);
 	}
 
 	public boolean getWebSubs() {
