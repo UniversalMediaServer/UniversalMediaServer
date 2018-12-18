@@ -248,7 +248,7 @@ public class RequestV2 extends HTTPResource {
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
 				response.append(samsungSetBookmarkHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
-				response.append(createResponse(HTTPXMLHelper.SAMSUNG_ERROR_RESPONSE));
+				response.append(samsungGetFeaturesListHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 				response.append(getSortCapabilitiesHandler());
 			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {

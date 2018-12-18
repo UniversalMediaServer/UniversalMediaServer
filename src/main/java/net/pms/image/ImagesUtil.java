@@ -1609,7 +1609,7 @@ public class ImagesUtil {
 		Thumbnails.of(bufferedImage)
 			.scale(1.0d)
 			.outputFormat(outputFormat.toString())
-			.outputQuality(1.0f)
+			.outputQuality(0.8f)
 			.toOutputStream(outputStream);
 
 		byte[] outputByteArray = outputStream.toByteArray();

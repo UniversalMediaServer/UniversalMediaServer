@@ -707,6 +707,7 @@ public abstract class Player {
 		if (resource == null || params == null || resource.getMedia() == null) {
 			return;
 		}
+
 		if (params.aid == null) {
 			params.aid = resource.resolveAudioStream(params.mediaRenderer);
 		}
@@ -726,7 +727,7 @@ public abstract class Player {
 			}
 		} else if (params.sid == null) {
 			params.sid = resource.resolveSubtitlesStream(params.mediaRenderer, params.aid == null ? null : params.aid.getLang(), true);
-		}
+		}	
 	}
 
 	/**

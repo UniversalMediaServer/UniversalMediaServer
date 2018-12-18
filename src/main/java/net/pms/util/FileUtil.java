@@ -309,7 +309,7 @@ public class FileUtil {
 
 	public static String getUrlExtension(String u) {
 		// Omit the query string, if any
-		return getExtension(substringBefore(u, "?"));
+		return getExtension(substringBefore(u, "?"), null, null);
 	}
 
 	@Nullable
@@ -317,7 +317,15 @@ public class FileUtil {
 		if (file == null || isBlank(file.getName())) {
 			return null;
 		}
-		return getExtension(file.getName());
+		return getExtension(file.getName(), null, null);
+	}
+
+	@Nullable
+	public static String getExtension(@Nullable String fileName) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+		return getExtension(fileName, null, null);
 	}
 
 	/**
@@ -348,43 +356,17 @@ public class FileUtil {
 		if (file == null) {
 			return null;
 		}
+
 		Path fileName = file.getFileName();
-		if (fileName == null) {
+		if (fileName == null || isBlank(fileName.toString())) {
 			return null;
 		}
 		return getExtension(fileName.toString(), convertTo, locale);
 	}
 
-	/**
-	 * Returns the file extension from {@code fileName} or {@code null} if
-	 * {@code fileName} has no extension.
-	 *
-	 * @param fileName the file name from which to extract the extension.
-	 * @return The extracted extension or {@code null}.
-	 */
-	public static String getExtension(String fileName) {
-		return getExtension(fileName, null, null);
-	}
-
-	/**
-	 * Returns the file extension from {@code fileName} or {@code null} if
-	 * {@code fileName} has no extension.
-	 *
-	 * @param fileName the file name from which to extract the extension.
-	 * @param convertTo if {@code null} makes no letter case change to the
-	 *            returned {@link String}, otherwise converts the extracted
-	 *            extension (if any) to the corresponding letter case.
-	 * @param locale the {@link Locale} to use for letter case conversion.
-	 *            Defaults to {@link Locale#ROOT} if {@code null}.
-	 * @return The extracted and potentially letter case converted extension or
-	 *         {@code null}.
-	 */
-	public static String getExtension(String fileName, LetterCase convertTo, Locale locale) {
-		if (fileName == null) {
-			return null;
-		}
-
-		if (fileName == null || isBlank(fileName.toString())) {
+	@Nullable
+	public static String getExtension(@Nullable String fileName, LetterCase convertTo, Locale locale) {
+		if (isBlank(fileName)) {
 			return null;
 		}
 
@@ -1388,15 +1370,9 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-<<<<<<< rebased_fix_subs_recognition
 	 * @param file the file for which to detect charset/encoding
 	 * @return The detected {@link Charset} or {@code null} if not detected
 	 * @throws IOException
-=======
-	 * @param file the file for which to detect charset/encoding.
-	 * @return The detected {@link Charset} or {@code null} if not detected.
-	 * @throws IOException If an IO error occurs during the operation.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	@Nullable
 	public static Charset getFileCharset(@Nullable File file) throws IOException {
@@ -1493,16 +1469,10 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-<<<<<<< rebased_fix_subs_recognition
 	 * @param file the {@link File} for which to detect charset/encoding
 	 * @return The name of the detected {@link Charset} or {@code null} if not
 	 *         detected
 	 * @throws IOException
-=======
-	 * @param file the file for which to detect charset/encoding.
-	 * @return The name of the detected charset or {@code null} if not detected.
-	 * @throws IOException If an IO error occurs during the operation.
->>>>>>> 84c0bb1 Removed dependency on plexus StringUtils (#1625)
 	 */
 	@Nullable
 	public static String getFileCharsetName(@Nullable File file) throws IOException {

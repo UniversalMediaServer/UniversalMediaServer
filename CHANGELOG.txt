@@ -1,3 +1,8 @@
+7.6.2 - 2018-11-22
+
+	General:
+		Fixed broken browsing on some devices
+
 7.6.1 - 2018-11-22
 
 	General:
@@ -23,6 +28,7 @@
 		Improved automated testing of filename prettifying (thanks, stasinos!)
 		Improved our default folder sharing stability (thanks, Nadahar!)
 		Improved support for aspect ratio and scan order (thanks, Nadahar!)
+		Improved file scanning/parsing speed
 		Fixed tsMuxeR on macOS (thanks, onon765trb!)
 		Fixed burning picture subtitles when other filters are also used in FFmpeg
 		Fixed FFmpeg not enabling the GPU configuration toggle
@@ -40,7 +46,7 @@
 		Improved recognition of AAC, FLV and WMA
 	Renderers:
 		Added support for Bush Freeview (thanks, atamariya!)
-		Added support for the built-in "Resume" functionality on Samsung TVs
+		Added support for the built-in "Resume" functionality on Samsung TVs (thanks, drakulis!)
 		Improved support for H.264 codec and SRT subtitles on PS4 (thanks, fgimenezm!)
 	Languages:
 		Updated translations via Crowdin:

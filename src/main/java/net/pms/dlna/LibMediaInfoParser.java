@@ -525,6 +525,7 @@ public class LibMediaInfoParser {
 	 * Sends the correct information to media.setContainer(),
 	 * media.setCodecV() or media.setCodecA, depending on streamType.
 	 *
+<<<<<<< HEAD
 <<<<<<< rebased_fix_subs_recognition
 	 * Note: A lot of these are types of MPEG-4 Audio and this can be a
 	 * good resource to make sense of that:
@@ -534,6 +535,8 @@ public class LibMediaInfoParser {
 	 *
 =======
 >>>>>>> 3cebb04 Fix XVID recognition (#1705)
+=======
+>>>>>>> refs/heads/master
 	 * @param streamType
 	 * @param media
 	 * @param audio

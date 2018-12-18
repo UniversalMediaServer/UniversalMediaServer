@@ -136,8 +136,15 @@ public class RootFolder extends DLNAResource {
 			addChild(recentlyPlayed, true, isAddGlobally);
 		}
 
-		if (!configuration.getSharedFolders().isEmpty()) {
-			mon = new MediaMonitor();
+		List<Path> foldersMonitored = configuration.getMonitoredFolders();
+		if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+			File[] dirs = new File[foldersMonitored.size()];
+			int i = 0;
+			for (Path folderMonitored : foldersMonitored) {
+				dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replaceAll("&comma;", ","));
+				i++;
+			}
+			mon = new MediaMonitor(dirs);
 
 			if (configuration.isShowNewMediaFolder()) {
 				addChild(mon, true, isAddGlobally);
