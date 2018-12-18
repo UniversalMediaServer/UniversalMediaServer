@@ -215,7 +215,6 @@ public class WinUtils extends BasicSystemUtils {
 	}
 
 	/**
-<<<<<<< HEAD
 	 * @return The result of {@link #getOEMCP()} converted to a {@link Charset}
 	 *         or {@code null} if it couldn't be converted.
 	 */
@@ -235,8 +234,6 @@ public class WinUtils extends BasicSystemUtils {
 	}
 
 	/**
-=======
->>>>>>> refs/heads/master
 	 * @return The result from the Windows API {@code GetConsoleOutputCP()}.
 	 */
 	public static int getConsoleOutputCP() {
