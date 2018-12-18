@@ -312,20 +312,38 @@ public class FileUtil {
 		return getExtension(substringBefore(u, "?"), null, null);
 	}
 
+
+	/**
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
 	@Nullable
 	public static String getExtension(@Nullable File file) {
-		if (file == null || isBlank(file.getName())) {
-			return null;
-		}
 		return getExtension(file.getName(), null, null);
 	}
 
+	/**
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
 	@Nullable
-	public static String getExtension(@Nullable String fileName) {
-		if (isBlank(fileName)) {
+	public static String getExtension(@Nullable File file, LetterCase convertTo, Locale locale) {
+		if (file == null || file.getName() == null) {
 			return null;
 		}
-		return getExtension(fileName, null, null);
+		return getExtension(file.getName(), convertTo, locale);
 	}
 
 	/**
@@ -335,10 +353,12 @@ public class FileUtil {
 	 * @param file the {@link Path} from which to extract the extension.
 	 * @return The extracted extension or {@code null}.
 	 */
-	public static String getExtension(Path file) {
+	@Nullable
+	public static String getExtension(@Nullable Path file) {
 		return getExtension(file, null, null);
 	}
 
+	
 	/**
 	 * Returns the file extension from the specified {@link Path} or
 	 * {@code null} if it has no extension.
@@ -352,7 +372,8 @@ public class FileUtil {
 	 * @return The extracted and potentially letter case converted extension or
 	 *         {@code null}.
 	 */
-	public static String getExtension(Path file, LetterCase convertTo, Locale locale) {
+	@Nullable
+	public static String getExtension(@Nullable Path file, LetterCase convertTo, Locale locale) {
 		if (file == null) {
 			return null;
 		}
@@ -364,6 +385,31 @@ public class FileUtil {
 		return getExtension(fileName.toString(), convertTo, locale);
 	}
 
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable String fileName) {
+		return getExtension(fileName, null, null);
+	}
+
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
 	@Nullable
 	public static String getExtension(@Nullable String fileName, LetterCase convertTo, Locale locale) {
 		if (isBlank(fileName)) {
