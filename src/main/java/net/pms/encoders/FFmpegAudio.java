@@ -46,18 +46,16 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
-	public static final String ID = "ffmpegaudio";
+	public static final PlayerId ID = StandardPlayerId.FFMPEG_AUDIO;
 
-	// should be private
-	@Deprecated
-	JCheckBox noresample;
+	/** The {@link Configuration} key for the FFmpeg Audio executable type. */
+	public static final String KEY_FFMPEG_AUDIO_EXECUTABLE_TYPE = "ffmpeg_audio_executable_type";
+	public static final String NAME = "FFmpeg Audio";
 
-	@Deprecated
-	public FFmpegAudio(PmsConfiguration configuration) {
-		this();
-	}
+	private JCheckBox noresample;
 
-	public FFmpegAudio() {
+	// Not to be instantiated by anything but PlayerFactory
+	FFmpegAudio() {
 	}
 
 	@Override
@@ -95,8 +93,13 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_FFMPEG_AUDIO_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -111,7 +114,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public String name() {
-		return "FFmpeg Audio";
+		return NAME;
 	}
 
 	@Override
@@ -162,7 +165,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 		List<String> cmdList = new ArrayList<>();
 
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 
 		cmdList.add("-loglevel");
 
@@ -232,14 +235,6 @@ public class FFmpegAudio extends FFMpegVideo {
 		String[] cmdArray = new String[ cmdList.size() ];
 		cmdList.toArray(cmdArray);
 
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
-
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
@@ -258,7 +253,8 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.APE) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.ATRAC) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.AU) ||
-			PlayerUtil.isAudio(resource, Format.Identifier.DSD) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.DFF) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.DSF) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.DTS) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.EAC3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||

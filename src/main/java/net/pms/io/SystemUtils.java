@@ -3,7 +3,10 @@ package net.pms.io;
 import java.io.File;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.nio.file.Path;
+import javax.annotation.Nullable;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.Version;
 
 public interface SystemUtils {
 
@@ -19,23 +22,11 @@ public interface SystemUtils {
 
 	public abstract boolean isKerioFirewall();
 
-	/*
-	 * Use getVlcPath() instead
-	 */
-	@Deprecated
-	public abstract String getVlcp();
+	public abstract Path getVlcPath();
 
-	/*
-	 * Use getVlcVersion() instead
-	 */
-	@Deprecated
-	public abstract String getVlcv();
+	public abstract Version getVlcVersion();
 
-	public abstract String getVlcPath();
-
-	public abstract String getVlcVersion();
-
-	public abstract boolean isAvis();
+	public abstract boolean isAviSynthAvailable();
 
 	/**
 	 * Open HTTP URLs in the default browser.
@@ -78,4 +69,11 @@ public interface SystemUtils {
 	 * @return The estimated number of fragments.
 	 */
 	int getPingPacketFragments(int packetSize);
+
+ 	/**
+	 * @return The Windows (internal) version or {@code null} if the platform
+	 *         isn't Windows or the value could not be parsed.
+	 */
+	@Nullable
+	public Double getWindowsVersion();
 }

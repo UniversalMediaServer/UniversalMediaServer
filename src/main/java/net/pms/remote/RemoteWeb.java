@@ -1,5 +1,7 @@
 package net.pms.remote;
 
+import com.samskivert.mustache.MustacheException;
+import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.InetAddress;
@@ -167,12 +169,11 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String user, HttpExchange t) {
+	public RootFolder getRoot(String user, HttpExchange t) throws InterruptedException {
 		return getRoot(user, false, t);
 	}
 
-	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
-		String groupTag = getTag(user);
+	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
 		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root;
 		synchronized (roots) {
@@ -202,15 +203,7 @@ public class RemoteWeb {
 				return root;
 			}
 
-			ArrayList<String> tag = new ArrayList<>();
-			tag.add(user);
-			if (!groupTag.equals(user)) {
-				tag.add(groupTag);
-			}
-
-			tag.add(t.getRemoteAddress().getHostString());
-			tag.add("web");
-			root = new RootFolder(tag);
+			root = new RootFolder();
 			try {
 				WebRender render = new WebRender(user);
 				root.setDefaultRenderer(render);
@@ -269,46 +262,54 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			if (RemoteUtil.deny(t)) {
-				throw new IOException("Access denied");
+			try {
+				if (RemoteUtil.deny(t)) {
+					throw new IOException("Access denied");
+				}
+				String id = RemoteUtil.getId("thumb/", t);
+				LOGGER.trace("web thumb req " + id);
+				if (id.contains("logo")) {
+					RemoteUtil.sendLogo(t);
+					return;
+				}
+				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+				if (root == null) {
+					LOGGER.debug("weird root in thumb req");
+					throw new IOException("Unknown root");
+				}
+				final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
+				if (r == null) {
+					// another error
+					LOGGER.debug("media unknown");
+					throw new IOException("Bad id");
+				}
+				DLNAThumbnailInputStream in;
+				if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
+					// we shouldn't show the thumbs for coded objects
+					// unless the code is entered
+					in = r.getGenericThumbnailInputStream(null);
+				} else {
+					r.checkThumbnail();
+					in = r.fetchThumbnailInputStream();
+				}
+				if (r instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) r).getFile())) {
+					in = FullyPlayed.addFullyPlayedOverlay(in);
+				}
+				Headers hdr = t.getResponseHeaders();
+				hdr.add("Content-Type", ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
+				hdr.add("Accept-Ranges", "bytes");
+				hdr.add("Connection", "keep-alive");
+				t.sendResponseHeaders(200, in.getSize());
+				OutputStream os = t.getResponseBody();
+				LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
+				RemoteUtil.dump(in, os);
+			} catch (IOException e) {
+				throw e;
+			} catch (Exception e) {
+				// Nothing should get here, this is just to avoid crashing the thread
+				LOGGER.error("Unexpected error in RemoteThumbHandler.handle(): {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
-			String id = RemoteUtil.getId("thumb/", t);
-			LOGGER.trace("web thumb req " + id);
-			if (id.contains("logo")) {
-				RemoteUtil.sendLogo(t);
-				return;
-			}
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-			if (root == null) {
-				LOGGER.debug("weird root in thumb req");
-				throw new IOException("Unknown root");
-			}
-			final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
-			if (r == null) {
-				// another error
-				LOGGER.debug("media unknown");
-				throw new IOException("Bad id");
-			}
-			DLNAThumbnailInputStream in;
-			if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
-				// we shouldn't show the thumbs for coded objects
-				// unless the code is entered
-				in = r.getGenericThumbnailInputStream(null);
-			} else {
-				r.checkThumbnail();
-				in = r.fetchThumbnailInputStream();
-			}
-			if (r instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) r).getFile())) {
-				in = FullyPlayed.addFullyPlayedOverlay(in);
-			}
-			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
-			hdr.add("Accept-Ranges", "bytes");
-			hdr.add("Connection", "keep-alive");
-			t.sendResponseHeaders(200, in.getSize());
-			OutputStream os = t.getResponseBody();
-			LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
-			RemoteUtil.dump(in, os);
 		}
 	}
 
@@ -321,62 +322,70 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("Handling web interface file request \"{}\"", t.getRequestURI());
+			try {
+				LOGGER.debug("Handling web interface file request \"{}\"", t.getRequestURI());
 
-			String path = t.getRequestURI().getPath();
-			String response = null;
-			String mime = null;
-			int status = 200;
+				String path = t.getRequestURI().getPath();
+				String response = null;
+				String mime = null;
+				int status = 200;
 
-			if (path.contains("crossdomain.xml")) {
-				response = "<?xml version=\"1.0\"?>" +
-					"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
-					"<cross-domain-policy>" +
-					"<allow-access-from domain=\"*\" />" +
-					"</cross-domain-policy>";
-				mime = "text/xml";
+				if (path.contains("crossdomain.xml")) {
+					response = "<?xml version=\"1.0\"?>" +
+						"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
+						"<cross-domain-policy>" +
+						"<allow-access-from domain=\"*\" />" +
+						"</cross-domain-policy>";
+					mime = "text/xml";
 
-			} else if (path.startsWith("/files/log/")) {
-				String filename = path.substring(11);
-				if (filename.equals("info")) {
-					String log = PMS.get().getFrame().getLog();
-					log = log.replaceAll("\n", "<br>");
-					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
-					String x = fullLink + log;
-					if (StringUtils.isNotEmpty(log)) {
-						x = x + fullLink;
-					}
-					response = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
-				} else {
-					File file = parent.getResources().getFile(filename);
-					if (file != null) {
-						filename = file.getName();
-						HashMap<String, Object> vars = new HashMap<>();
-						vars.put("title", filename);
-						vars.put("brush", filename.endsWith("debug.log") ? "debug_log" :
-							filename.endsWith(".log") ? "log" : "conf");
-						vars.put("log", RemoteUtil.read(file).replace("<", "&lt;"));
-						response = parent.getResources().getTemplate("util/log.html").execute(vars);
+				} else if (path.startsWith("/files/log/")) {
+					String filename = path.substring(11);
+					if (filename.equals("info")) {
+						String log = PMS.get().getFrame().getLog();
+						log = log.replaceAll("\n", "<br>");
+						String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
+						String x = fullLink + log;
+						if (StringUtils.isNotEmpty(log)) {
+							x = x + fullLink;
+						}
+						response = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
 					} else {
-						status = 404;
+						File file = parent.getResources().getFile(filename);
+						if (file != null) {
+							filename = file.getName();
+							HashMap<String, Object> vars = new HashMap<>();
+							vars.put("title", filename);
+							vars.put("brush", filename.endsWith("debug.log") ? "debug_log" :
+								filename.endsWith(".log") ? "log" : "conf");
+							vars.put("log", RemoteUtil.read(file).replace("<", "&lt;"));
+							response = parent.getResources().getTemplate("util/log.html").execute(vars);
+						} else {
+							status = 404;
+						}
 					}
+					mime = "text/html";
+
+				} else if (parent.getResources().write(path.substring(7), t)) {
+					// The resource manager found and sent the file, all done.
+					return;
+
+				} else {
+					status = 404;
 				}
-				mime = "text/html";
 
-			} else if (parent.getResources().write(path.substring(7), t)) {
-				// The resource manager found and sent the file, all done.
-				return;
+				if (status == 404 && response == null) {
+					response = "<html><body>404 - File Not Found: " + path + "</body></html>";
+					mime = "text/html";
+				}
 
-			} else {
-				status = 404;
+				RemoteUtil.respond(t, response, status, mime);
+			} catch (IOException e) {
+				throw e;
+			} catch (Exception e) {
+				// Nothing should get here, this is just to avoid crashing the thread
+				LOGGER.error("Unexpected error in RemoteFileHandler.handle(): {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
-
-			if (status == 404 && response == null) {
-				response = "<html><body>404 - File Not Found: " + path + "</body></html>";
-				mime = "text/html";
-			}
-
-			RemoteUtil.respond(t, response, status, mime);
 		}
 	}
 
@@ -392,20 +401,38 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("root req " + t.getRequestURI());
-			if (RemoteUtil.deny(t)) {
-				throw new IOException("Access denied");
-			}
-			if (t.getRequestURI().getPath().contains("favicon")) {
-				RemoteUtil.sendLogo(t);
-				return;
-			}
+			try {
+				LOGGER.debug("root req " + t.getRequestURI());
+				if (RemoteUtil.deny(t)) {
+					throw new IOException("Access denied");
+				}
+				if (t.getRequestURI().getPath().contains("favicon")) {
+					RemoteUtil.sendLogo(t);
+					return;
+				}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("serverName", configuration.getServerDisplayName());
+				HashMap<String, Object> vars = new HashMap<>();
+				vars.put("serverName", configuration.getServerDisplayName());
 
-			String response = parent.getResources().getTemplate("start.html").execute(vars);
-			RemoteUtil.respond(t, response, 200, "text/html");
+				try {
+					Template template = parent.getResources().getTemplate("start.html");
+					if (template != null) {
+						String response = template.execute(vars);
+						RemoteUtil.respond(t, response, 200, "text/html");
+					} else {
+						throw new IOException("Web template \"start.html\" not found");
+					}
+				} catch (MustacheException e) {
+					LOGGER.error("An error occurred while generating a HTTP response: {}", e.getMessage());
+					LOGGER.trace("", e);
+				}
+			} catch (IOException e) {
+				throw e;
+			} catch (Exception e) {
+				// Nothing should get here, this is just to avoid crashing the thread
+				LOGGER.error("Unexpected error in RemoteStartHandler.handle(): {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 	}
 
@@ -424,28 +451,39 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("root req " + t.getRequestURI());
-			if (RemoteUtil.deny(t)) {
-				throw new IOException("Access denied");
-			}
-			if (t.getRequestURI().getPath().contains("favicon")) {
-				RemoteUtil.sendLogo(t);
-				return;
-			}
+			try {
+				LOGGER.debug("root req " + t.getRequestURI());
+				if (RemoteUtil.deny(t)) {
+					throw new IOException("Access denied");
+				}
+				if (t.getRequestURI().getPath().contains("favicon")) {
+					RemoteUtil.sendLogo(t);
+					return;
+				}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("logs", getLogs(true));
-			if (configuration.getUseCache()) {
-				vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
-			}
+				HashMap<String, Object> vars = new HashMap<>();
+				vars.put("logs", getLogs(true));
+				if (configuration.getUseCache()) {
+					vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
+				}
 
-			String response = parent.getResources().getTemplate("doc.html").execute(vars);
-			RemoteUtil.respond(t, response, 200, "text/html");
+				String response = parent.getResources().getTemplate("doc.html").execute(vars);
+				RemoteUtil.respond(t, response, 200, "text/html");
+			} catch (IOException e) {
+				throw e;
+			} catch (Exception e) {
+				// Nothing should get here, this is just to avoid crashing the thread
+				LOGGER.error("Unexpected error in RemoteDocHandler.handle(): {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 
 		private ArrayList<HashMap<String, String>> getLogs(boolean asList) {
 			Set<File> files = new DbgPacker().getItems();
-			ArrayList<HashMap<String, String>> logs = asList ? new ArrayList<HashMap<String, String>>() : null;
+			if (!asList) {
+				return null;
+			}
+			ArrayList<HashMap<String, String>> logs = new ArrayList<HashMap<String, String>>();
 			for (File f : files) {
 				if (f.exists()) {
 					String id = String.valueOf(parent.getResources().add(f));
@@ -474,7 +512,6 @@ public class RemoteWeb {
 	}
 
 	static class RemotePollHandler implements HttpHandler {
-		@SuppressWarnings("unused")
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
@@ -487,14 +524,22 @@ public class RemoteWeb {
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			//LOGGER.debug("poll req " + t.getRequestURI());
-			if (RemoteUtil.deny(t)) {
-				throw new IOException("Access denied");
+			try {
+				//LOGGER.debug("poll req " + t.getRequestURI());
+				if (RemoteUtil.deny(t)) {
+					throw new IOException("Access denied");
+				}
+				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+				WebRender renderer = (WebRender) root.getDefaultRenderer();
+				String json = renderer.getPushData();
+				RemoteUtil.respond(t, json, 200, "text");
+			} catch (IOException e) {
+				throw e;
+			} catch (Exception e) {
+				// Nothing should get here, this is just to avoid crashing the thread
+				LOGGER.error("Unexpected error in RemotePollHandler.handle(): {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-			WebRender renderer = (WebRender) root.getDefaultRenderer();
-			String json = renderer.getPushData();
-			RemoteUtil.respond(t, json, 200, "text");
 		}
 	}
 }

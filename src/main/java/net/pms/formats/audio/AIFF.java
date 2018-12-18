@@ -34,6 +34,7 @@ public class AIFF extends AudioBase {
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {
+			"afc",
 			"aif",
 			"aiff",
 			"aifc"

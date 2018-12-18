@@ -43,7 +43,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * @author SubJunk & Nadahar
  * @since 7.1.1
  */
-public final class TableThumbnails extends Tables{
+public final class TableThumbnails extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -72,38 +72,27 @@ public final class TableThumbnails extends Tables{
 	 * Finally, it writes the ID from this table as the THUMBID in the FILES
 	 * table.
 	 *
-	 * @param md5Hash
 	 * @param thumbnail
+	 * @param fullPathToFile
 	 */
 	public static void setThumbnail(final DLNAThumbnail thumbnail, final String fullPathToFile) {
-		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 		String md5Hash = DigestUtils.md5Hex(thumbnail.getBytes(false));
-
 		try (Connection connection = database.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE MD5 = " + sqlQuote(md5Hash) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for thumbnail in " + TABLE_NAME + " with \"{}\" before update", query);
-			}
+			LOGGER.trace("Searching for thumbnail in {} with \"{}\" before update", TABLE_NAME, query);
 
 			TABLE_LOCK.writeLock().lock();
 			try (PreparedStatement statement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, Statement.RETURN_GENERATED_KEYS)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery()) {
 					if (result.next()) {
-						if (trace) {
-							LOGGER.trace("Found existing file entry with ID {} in " + TABLE_NAME + ", setting the THUMBID in the FILES table", result.getInt("ID"));
+						LOGGER.trace("Found existing file entry with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
 
-							// Write the existing thumbnail ID to the FILES table
-							PMS.get().getDatabase().updateThumbnailId(fullPathToFile, result.getInt("ID"));
-						}
+						// Write the existing thumbnail ID to the FILES table
+						PMS.get().getDatabase().updateThumbnailId(fullPathToFile, result.getInt("ID"));
 					} else {
-						if (trace) {
-							LOGGER.trace(
-								"File entry \"{}\" not found in " + TABLE_NAME,
-								md5Hash
-							);
-						}
+						LOGGER.trace("File entry \"{}\" not found in {}", md5Hash, TABLE_NAME);
 						result.moveToInsertRow();
 						result.updateString("MD5", md5Hash);
 						result.updateObject("THUMBNAIL", thumbnail);
@@ -113,9 +102,7 @@ public final class TableThumbnails extends Tables{
 						try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 							if (generatedKeys.next()) {
 								// Write the new thumbnail ID to the FILES table
-								if (trace) {
-									LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
-								}
+								LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
 								PMS.get().getDatabase().updateThumbnailId(fullPathToFile, generatedKeys.getInt(1));
 							}
 						}
@@ -127,11 +114,7 @@ public final class TableThumbnails extends Tables{
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing \"{}\" to " + TABLE_NAME + ": {}",
-				md5Hash,
-				e.getMessage()
-			);
+			LOGGER.error("Database error while writing \"{}\" to {}: {}", md5Hash, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
@@ -152,9 +135,9 @@ public final class TableThumbnails extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
 							database.getDatabaseFilename() +
 							"\" before starting UMS"
 						);

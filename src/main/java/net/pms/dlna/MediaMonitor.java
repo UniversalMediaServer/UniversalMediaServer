@@ -4,9 +4,11 @@ import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -200,10 +202,10 @@ public class MediaMonitor extends VirtualFolder {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null) {
 				boolean isMonitored = false;
-				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
-				if (foldersMonitored != null && foldersMonitored.length > 0) {
-					for (File folderMonitored : foldersMonitored) {
-						if (realFile.getFile().getAbsolutePath().contains(folderMonitored.getAbsolutePath())) {
+				List<Path> foldersMonitored = configuration.getMonitoredFolders();
+				if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+					for (Path folderMonitored : foldersMonitored) {
+						if (realFile.getFile().getAbsolutePath().contains(folderMonitored.toAbsolutePath().toString())) {
 							isMonitored = true;
 						}
 					}

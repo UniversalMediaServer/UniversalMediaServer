@@ -30,6 +30,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,11 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
+	@BeforeClass
+	public static void SetUPClass() {
+		PMS.configureJNA();
+	}
+	
 	@Before
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
@@ -53,9 +59,10 @@ public class RendererConfigurationTest {
 	 * .conf files it reads. This is done by feeding it known headers and
 	 * checking whether it recognizes the correct renderer.
 	 * @throws ConfigurationException
+	 * @throws InterruptedException
 	 */
 	@Test
-	public void testKnownHeaders() throws ConfigurationException {
+	public void testKnownHeaders() throws ConfigurationException, InterruptedException {
 		PmsConfiguration pmsConf = null;
 
 		pmsConf = new PmsConfiguration(false);
@@ -101,6 +108,9 @@ public class RendererConfigurationTest {
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
+
+		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
+		testUPNPDetails("Philips PUS TV", "friendlyName=49PUS8503/12");
 
 		testHeaders(
 			"Philips TV",
@@ -161,6 +171,9 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
+		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung LED UHD", "modelName=UE88KS9810");
+
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
 
 		testHeaders("Showtime 3", "User-Agent: Showtime 3.0", "X-AV-Client-Info: Showtime 3.0");
@@ -199,9 +212,10 @@ public class RendererConfigurationTest {
 	/**
 	 * Test recognition with a forced default renderer configured.
 	 * @throws ConfigurationException
+	 * @throws InterruptedException
 	 */
 	@Test
-	public void testForcedDefault() throws ConfigurationException {
+	public void testForcedDefault() throws ConfigurationException, InterruptedException {
 		PmsConfiguration pmsConf = null;
 
 		pmsConf = new PmsConfiguration(false);
@@ -225,9 +239,10 @@ public class RendererConfigurationTest {
 	/**
 	 * Test recognition with a forced bogus default renderer configured.
 	 * @throws ConfigurationException
+	 * @throws InterruptedException
 	 */
 	@Test
-	public void testBogusDefault() throws ConfigurationException {
+	public void testBogusDefault() throws ConfigurationException, InterruptedException {
 		PmsConfiguration pmsConf = null;
 
 		pmsConf = new PmsConfiguration(false);
@@ -258,7 +273,7 @@ public class RendererConfigurationTest {
 	 * @param headerLines
 	 *            One or more raw header lines.
 	 */
-	private void testHeaders(String correctRendererName, String... headerLines) {
+	private static void testHeaders(String correctRendererName, String... headerLines) {
 		SortedHeaderMap headers = new SortedHeaderMap();
 		for (String header : headerLines) {
 			headers.put(header);
