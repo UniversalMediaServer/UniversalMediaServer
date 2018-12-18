@@ -518,8 +518,6 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		
-		//XXX fix merging to show subs information in video names 
 
 		// Hide empty folders
 		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"), configuration.isHideEmptyFolders());
