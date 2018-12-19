@@ -1610,7 +1610,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	  * Returns the "base" part of the display name or an empty {@link String} if
+	 * Returns the "base" part of the display name or an empty {@link String} if
 	 * none should be displayed. The "base" name is the name of this
 	 * {@link DLNAResource} without any prefix or suffix.
 	 *
@@ -1638,7 +1638,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		MediaType mediaType = media.getMediaType();
 		switch (mediaType) {
 			case VIDEO:
-		StringBuilder nameSuffixBuilder = new StringBuilder();
+				StringBuilder nameSuffixBuilder = new StringBuilder();
 				boolean subsAreValidForStreaming =
 					media_subtitle != null &&
 					media_subtitle.isExternal() &&
@@ -3579,23 +3579,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public BufferedImageFilterChain addFlagFilters(BufferedImageFilterChain filterChain) {
 		// Show audio and subtitles language flags in the TRANSCODE folder only for video files
 		if (
-				(
-					parent instanceof FileTranscodeVirtualFolder ||
-					parent instanceof SubSelFile
-				) && (
-					media_audio != null ||
-					media_subtitle != null
-				)
+			(
+				parent instanceof FileTranscodeVirtualFolder ||
+				parent instanceof SubSelFile
+			) && (
+				media_audio != null ||
+				media_subtitle != null
+			)
 		) {
 			if (
-					(
-						media != null &&
-						media.isVideo()
-					) || (
-						media == null &&
-						format != null &&
-						format.isVideo()
-					)
+				(
+					media != null &&
+					media.isVideo()
+				) || (
+					media == null &&
+					format != null &&
+					format.isVideo()
+				)
 			) {
 				filterChain = addAudioFlagFilter(filterChain);
 				filterChain = addSubtitlesFlagFilter(filterChain);

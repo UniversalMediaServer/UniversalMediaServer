@@ -160,7 +160,7 @@ public class RootFolder extends DLNAResource {
 			addChild(PMS.get().getDynamicPls(), true, isAddGlobally);
 			if (!configuration.isHideSavedPlaylistFolder()) {
 				File plsdir = new File(configuration.getDynamicPlsSavePath());
-				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")));
+				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true, isAddGlobally);
 			}
 		}
 
@@ -192,7 +192,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (DLNAResource r : getVirtualFolders()) {
-			addChild(r, true);
+			addChild(r);
 		}
 
 		loadWebConf();
@@ -242,7 +242,7 @@ public class RootFolder extends DLNAResource {
 		running = true;
 
 		if (!isDiscovered()) {
-			discoverChildren();
+			discoverChildren(false);
 		}
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -289,7 +289,7 @@ public class RootFolder extends DLNAResource {
 							child.syncResolve();
 						}
 						child.discoverChildren();
-						child.analyzeChildren(-1);
+						child.analyzeChildren(-1, false);
 						child.setDiscovered(true);
 					}
 

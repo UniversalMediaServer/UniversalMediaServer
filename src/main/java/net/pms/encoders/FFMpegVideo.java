@@ -269,7 +269,7 @@ public class FFMpegVideo extends Player {
 					// Embedded
 					subsPictureFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
 					isSubsManualTiming = false;
-				} else if (params.sid.getExternalFile() != null){
+				} else if (params.sid.getExternalFile() != null) {
 					// External
 					videoFilterOptions.add("-i");
 					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
