@@ -205,12 +205,15 @@ public class FileUtil {
 			if (obj == null) {
 				return false;
 			}
+
 			if (this == obj) {
 				return true;
 			}
+
 			if (!(obj instanceof UnixMountPoint)) {
 				return false;
 			}
+
 			return
 				device.equals(((UnixMountPoint) obj).device) &&
 				folder.equals(((UnixMountPoint) obj).folder);
@@ -240,6 +243,7 @@ public class FileUtil {
 		if (character == null || character.length() != 1) {
 			return false;
 		}
+
 		return isSeparator(character.charAt(0));
 	}
 
@@ -258,6 +262,7 @@ public class FileUtil {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -276,9 +281,11 @@ public class FileUtil {
 		if (fileName == null) {
 			return -1;
 		}
+
 		if (FILE_SEPARATORS.length == 2) {
 			return Math.max(fileName.lastIndexOf(FILE_SEPARATORS[0]), fileName.lastIndexOf(FILE_SEPARATORS[1]));
 		}
+
 		return fileName.lastIndexOf(FILE_SEPARATORS[0]);
 	}
 
@@ -293,6 +300,7 @@ public class FileUtil {
 		if (isUrl(filename)) {
 			return filename.split("://")[0].toLowerCase(Locale.ROOT);
 		}
+
 		return null;
 	}
 
@@ -300,6 +308,7 @@ public class FileUtil {
 		if (isUrl(filename)) {
 			return filename;
 		}
+
 		try {
 			return new URL(new URL(base), filename).toString();
 		} catch (MalformedURLException e) {
@@ -343,6 +352,7 @@ public class FileUtil {
 		if (file == null || file.getName() == null) {
 			return null;
 		}
+
 		return getExtension(file.getName(), convertTo, locale);
 	}
 
@@ -382,6 +392,7 @@ public class FileUtil {
 		if (fileName == null || isBlank(fileName.toString())) {
 			return null;
 		}
+
 		return getExtension(fileName.toString(), convertTo, locale);
 	}
 
@@ -429,9 +440,11 @@ public class FileUtil {
 		if (convertTo == LetterCase.UPPER) {
 			return extension.toUpperCase(locale);
 		}
+
 		if (convertTo == LetterCase.LOWER) {
 			return extension.toLowerCase(locale);
 		}
+
 		return extension;
 	}
 
@@ -445,6 +458,7 @@ public class FileUtil {
 		if (file == null) {
 			return null;
 		}
+
 		return getFileNameWithoutExtension(file.getName());
 	}
 
@@ -458,10 +472,12 @@ public class FileUtil {
 		if (file == null) {
 			return null;
 		}
+
 		Path fileName = file.getFileName();
 		if (fileName == null) {
 			return null;
 		}
+
 		return getFileNameWithoutExtension(fileName.toString());
 	}
 
@@ -475,6 +491,7 @@ public class FileUtil {
 		if (isBlank(fileName)) {
 			return fileName;
 		}
+
 		int point = fileName.lastIndexOf('.');
 		if (point == -1 || getIndexOfLastSeparator(fileName) > point) {
 			return fileName;
@@ -505,6 +522,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(" - " + COMMON_FILE_EDITIONS, "");
 			formattedName = formattedName.replaceAll(COMMON_FILE_EDITIONS, "");
 		}
+
 		return new FormattedNameAndEdition(formattedName, edition);
 	}
 
@@ -519,10 +537,13 @@ public class FileUtil {
 				if (formattedNameBuilder.length() > 0) {
 					formattedNameBuilder.append(" - ");
 				}
+
 				formattedNameBuilder.append(convertLowerCaseStringToTitleCase(part));
 			}
+
 			formattedName = formattedNameBuilder.toString();
 		}
+
 		return formattedName;
 	}
 
@@ -534,6 +555,7 @@ public class FileUtil {
 		if (formattedName.equals(formattedName.toLowerCase())) {
 			formattedName = convertLowerCaseStringToTitleCase(formattedName);
 		}
+
 		return formattedName;
 	}
 
@@ -1755,6 +1777,7 @@ public class FileUtil {
 		if (path != null) {
 			return new FilePermissions(new File(path));
 		}
+
 		File file = null;
 		return new FilePermissions(file);
 	}
@@ -1772,6 +1795,7 @@ public class FileUtil {
 				return null;
 			}
 		}
+
 		return null;
 	}
 
@@ -1834,6 +1858,7 @@ public class FileUtil {
 				}
 			}
 		}
+
 		return false;
 	}
 
@@ -1903,15 +1928,18 @@ public class FileUtil {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), fileCharset));
 			return new BufferedReaderDetectCharsetResult(reader, fileCharset, true);
 		}
+
 		if (defaultCharset == null) {
 			defaultCharset = Charset.defaultCharset();
 		}
+
 		reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), defaultCharset));
 		LOGGER.warn(
 			"Could not detect character encoding for file \"{}\"; using the default charset \"{}\"",
 			file.getAbsolutePath(),
 			defaultCharset
 		);
+
 		return new BufferedReaderDetectCharsetResult(reader, defaultCharset, false);
 	}
 
@@ -1936,6 +1964,7 @@ public class FileUtil {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -1961,6 +1990,7 @@ public class FileUtil {
 				path += File.separator;
 			}
 		}
+
 		return path;
 	}
 
@@ -1977,13 +2007,16 @@ public class FileUtil {
 		if (fileName == null) {
 			throw new IllegalArgumentException("fileName cannot be null");
 		}
+
 		if (isBlank(suffix)) {
 			return fileName;
 		}
+
 		int i = fileName.lastIndexOf(".");
 		if (i < 0) {
 			return fileName + suffix;
 		}
+
 		return fileName.substring(0, i) + suffix + fileName.substring(i);
 	}
 
@@ -1998,6 +2031,7 @@ public class FileUtil {
 			if (isAdmin != null) {
 				return isAdmin;
 			}
+
 			if (Platform.isWindows()) {
 				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
 				if (version == null) {
@@ -2008,6 +2042,7 @@ public class FileUtil {
 					isAdmin = false;
 					return false;
 				}
+
 				if (version >= 5.1) {
 					try {
 						String command = "reg query \"HKU\\S-1-5-19\"";
@@ -2019,6 +2054,7 @@ public class FileUtil {
 							isAdmin = true;
 							return true;
 						}
+
 						isAdmin = false;
 						return false;
 					} catch (IOException | InterruptedException e) {
@@ -2042,11 +2078,13 @@ public class FileUtil {
 						exitValue = p.exitValue();
 						exitLine = br.readLine();
 					}
+
 					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
 						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
 						isAdmin = false;
 						return false;
 					}
+
 					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
 					if (
 						(Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
@@ -2056,6 +2094,7 @@ public class FileUtil {
 						isAdmin = true;
 						return true;
 					}
+
 					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
 					isAdmin = false;
 					return false;
@@ -2067,6 +2106,7 @@ public class FileUtil {
 					);
 				}
 			}
+
 			isAdmin = false;
 			return false;
 		}
@@ -2168,12 +2208,14 @@ public class FileUtil {
 					try (BufferedReader reader = new BufferedReader(new InputStreamReader(id.getInputStream(), Charset.defaultCharset()))) {
 						response = reader.readLine();
 					}
+
 					try {
 						unixUID = Integer.parseInt(response);
 					} catch (NumberFormatException e) {
 						throw new UnsupportedOperationException("Unexpected response from OS: " + response, e);
 					}
 				}
+
 				return unixUID;
 			}
 		}
@@ -2191,10 +2233,12 @@ public class FileUtil {
 		if (isBlank(osPath)) {
 			return result;
 		}
+
 		String[] paths = osPath.split(File.pathSeparator);
 		for (String path : paths) {
 			result.add(Paths.get(path));
 		}
+
 		return result;
 	}
 
@@ -2239,6 +2283,7 @@ public class FileUtil {
 		if (relativePath == null) {
 			return null;
 		}
+
 		if (relativePath.isAbsolute()) {
 			throw new IllegalArgumentException("relativePath must be relative");
 		}
@@ -2257,21 +2302,25 @@ public class FileUtil {
 				}
 			}
 		}
+
 		for (String extension : extensions) {
 			for (Path path : osPath) {
 				if (path == null) {
 					path = Paths.get("").toAbsolutePath();
 				}
+
 				if (extension == null) {
 					result = path.resolve(relativePath);
 				} else {
 					result = path.resolve(relativePath.toString() + extension);
 				}
+
 				if (Files.exists(result, options)) {
 					if (requiredFlags.length == 0) {
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace("Resolved \"{}\" from \"{}\" using OS path", result, relativePath);
 						}
+
 						try {
 							return result.toRealPath(options);
 						} catch (IOException e) {
@@ -2280,6 +2329,7 @@ public class FileUtil {
 							return result;
 						}
 					}
+
 					try {
 						FilePermissions permissions = new FilePermissions(result, options);
 						Set<FileFlag> flags = permissions.getFlags(requiredFlags);
@@ -2287,6 +2337,7 @@ public class FileUtil {
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace("Resolved \"{}\" from \"{}\" using OS path", result, relativePath);
 							}
+
 							try {
 								return result.toRealPath(options);
 							} catch (IOException e) {
@@ -2301,9 +2352,11 @@ public class FileUtil {
 				}
 			}
 		}
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Failed to resolve \"{}\" using OS path", relativePath);
 		}
+
 		return null;
 	}
 
