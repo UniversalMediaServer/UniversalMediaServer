@@ -70,7 +70,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * do with the database since the last released version.
 	 * Version 18: introducing "album artist" field 
 	 */
-	private final int latestVersion = 18;
+	private final int latestVersion = 19;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
