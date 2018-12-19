@@ -275,6 +275,38 @@ a#HomeButton {
 #settings>.fa{
 	font-size: 16px;
 }
+#fontChanger{
+	color: #ffffff;
+}
+.small .active{
+	font-size: 12px;
+	background-color: lightgray;
+}
+.medium .active{
+	font-size: 16px;
+	background-color: lightgray;
+}
+.big .active{
+	font-size: 18px;
+	background-color: lightgray;
+}
+.extrabig .active{
+	font-size: 22px;
+	background-color: lightgray;
+}
+.dropdown-menu li .small{
+	font-size: 12px;
+}
+.dropdown-menu li .medium{
+	font-size: 16px;
+}
+.dropdown-menu li .big{
+	font-size: 18px;
+}
+.dropdown-menu li .extrabig{
+	font-size: 22px;
+}
+
 .box-meta {
 	background-color: #111111 !important; /*Android TV NO Official Color*/
 	border-bottom-left-radius: 3px;
@@ -367,56 +399,6 @@ body{
 		text-align: left;
 	}
 }
-/*****************************
-SCROLLBAR
-/********Media(Body)**********/
-/* width */
-::-webkit-scrollbar {
-	width: 6px;
-}
-/* Track */
-::-webkit-scrollbar-track {
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-::-webkit-scrollbar-track {
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-/* Handle */
-::-webkit-scrollbar-thumb {
-	background: #888;
-	border-radius: 10px;
-}
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-	background: #555;
-}
-/**********Folders**********/
-ul#Folders::-webkit-scrollbar {
-	width: 6px;
-}
-/* Track */
-ul#Folders::-webkit-scrollbar-track {
-	display: none;
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-ul#Folders::-webkit-scrollbar-track {
-	display: none;
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-/* Handle */
-ul#Folders::-webkit-scrollbar-thumb {
-	background: #888;
-	border-radius: 10px;
-}
-/* Handle on hover */
-ul#Folders::-webkit-scrollbar-thumb:hover {
-	background: #555;
-}
-/**********END SCROLLBAR**********/
 
 /*****************************
 Sticky footer styles
@@ -558,7 +540,9 @@ ul#Folders li span {
 ul#Media .caption {
 	color: #eeeeee;
 	font-weight: 300;
-	padding-right: 35px;
+	padding-right: 20px;
+	line-height: 20px;
+	height: 22px;
 }
 ul#Media .expand-bump{
 	padding: 0;
@@ -578,6 +562,9 @@ ul#Media li:hover {
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 }
+ul#Media li>a{
+	width: 100%;
+}
 ul#Media li>a:hover {
 	background-color: #000 !important;
 	border-top-left-radius: 3px;
@@ -585,6 +572,9 @@ ul#Media li>a:hover {
 }
 ul#Media li:hover .caption {
 	color: #fff !important;
+}
+ul#Media li .clearPadding{
+	padding-left: 0px;
 }
 ul#Media .onFocus {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);

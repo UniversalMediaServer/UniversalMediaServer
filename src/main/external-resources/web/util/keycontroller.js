@@ -154,12 +154,19 @@ function keyDown(event) {
 		}
 		case VK_ENTER: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel === level.PLAY) {
-				moveInPlay(event.keyCode);
-				break;
-			} else {
-				emuleClick();
-			}
+			console.log('Dentro de enter');
+			if($('body').find('.onFocus').length==0)
+			{
+				console.log('Dentro de body');
+				$('#HomeButton').addClass('onFocus');
+			} else if (curLevel === level.PLAY) {
+				console.log('Dentro de play');
+                moveInPlay(event.keyCode);
+                break;
+            } else{
+            	console.log('emulate clic');
+                emuleClick();
+            }
 			break;
 		}
 		case VK_RETURN: {
@@ -200,6 +207,7 @@ function keyDown(event) {
 //Function to navigate in home/header
 //key : ASCII code of pressed button/key
 function moveInHome(key) {
+	console.log('moving in home still');
 	var onFocus = $('.onFocus');
 	switch (key) {
 		case VK_DOWN: {
@@ -215,19 +223,43 @@ function moveInHome(key) {
                     $("#navbar").find("li:nth-child(2)").find("li:first").addClass('onFocus');
                 }
                 break;
-            } else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
-				if ($("#navbar").find("li:nth-child(1)").find("li:last").hasClass("onFocus")==true) {
+            } else if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(3)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(3)").find("li:last").hasClass("onFocus")==true) {
+                    break;
+                }
+                if ($("#navbar").find("li:nth-child(3)").find("li").hasClass("onFocus")==true) {
+                    onFocus.removeClass('onFocus');
+                    changeFocus(onFocus.next());
+                } else {
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(3)").find("li:first").addClass('onFocus');
+                }
+                break;
+            } else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+				if ($("#navbar").find("li:nth-child(2)").find("li:last").hasClass("onFocus")==true) {
 					break;
 				}
-				if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
+				if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
 					onFocus.removeClass('onFocus');
 					changeFocus(onFocus.next());
 				} else {
 					onFocus.removeClass('onFocus');
-					$("#navbar").find("li:nth-child(1)").find("li:first").addClass('onFocus');
+					$("#navbar").find("li:nth-child(2)").find("li:first").addClass('onFocus');
 				}
 				break;
-			} else if($('#Folders').text()!=""){
+			} else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(1)").find("li:last").hasClass("onFocus")==true) {
+                    break;
+                }
+                if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
+                    onFocus.removeClass('onFocus');
+                    changeFocus(onFocus.next());
+                } else {
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(1)").find("li:first").addClass('onFocus');
+                }
+                break;
+            } else if($('#Folders').text()!=""){
 				onFocus.removeClass('onFocus');
 				$('#Folders').find('li:first').addClass('onFocus');
 				curLevel = level.BROWSE;
@@ -245,7 +277,15 @@ function moveInHome(key) {
 			break;
 		}
 		case VK_UP: {
-            if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+            if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(3)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(3)").find("li:first").hasClass("onFocus")==true){
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(3) a.dropdown-toggle").addClass('onFocus');
+                    $("#navbar").find("li:nth-child(3)").removeClass("open");
+                } else if ($("#navbar").find("li:nth-child(3)").find("li").hasClass("onFocus")==true) {
+                    changeFocus(onFocus.prev());
+                }
+            } else if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
                 if ($("#navbar").find("li:nth-child(2)").find("li:first").hasClass("onFocus")==true){
                     onFocus.removeClass('onFocus');
                     $("#navbar").find("li:nth-child(2) a.dropdown-toggle").addClass('onFocus');
@@ -253,16 +293,23 @@ function moveInHome(key) {
                 } else if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
                     changeFocus(onFocus.prev());
                 }
-            }
-			else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
-				if ($("#navbar").find("li:nth-child(1)").find("li:first").hasClass("onFocus")==true){
+            } else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+				if ($("#navbar").find("li:nth-child(2)").find("li:first").hasClass("onFocus")==true){
 					onFocus.removeClass('onFocus');
-					$("#navbar").find("li:nth-child(1) a.dropdown-toggle").addClass('onFocus');
-					$("#navbar").find("li:nth-child(1)").removeClass("open");
-				} else if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
+					$("#navbar").find("li:nth-child(2) a.dropdown-toggle").addClass('onFocus');
+					$("#navbar").find("li:nth-child(2)").removeClass("open");
+				} else if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
 					changeFocus(onFocus.prev());
 				}
-			}
+			} else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(1)").find("li:first").hasClass("onFocus")==true){
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(1) a.dropdown-toggle").addClass('onFocus');
+                    $("#navbar").find("li:nth-child(1)").removeClass("open");
+                } else if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
+                    changeFocus(onFocus.prev());
+                }
+            }
 			break;
 		}
 		case VK_RIGHT: {
@@ -270,17 +317,39 @@ function moveInHome(key) {
 				onFocus.removeClass('onFocus');
 				$("#trigger-overlay").addClass('onFocus');
 			}
+			else if($('#HomeButton').hasClass("onFocus")==true && $("#trigger-overlay").length == 0) {
+                onFocus.removeClass('onFocus');
+                $("#fontsChangerContainer").find(".dropdown-toggle").addClass('onFocus');
+            }
+            else if($("#trigger-overlay").length != 0 && $("#trigger-overlay").hasClass("onFocus")==true) {
+                onFocus.removeClass('onFocus');
+                $("#fontsChangerContainer").find(".dropdown-toggle").addClass('onFocus');
+            }
             else {
+            	$("#fontsChangerContainer").removeClass("open");
 				onFocus.removeClass('onFocus');
-				$("#navbar").find(".dropdown-toggle").addClass('onFocus');
+				$("#settingsContainer").find(".dropdown-toggle").addClass('onFocus');
 			}			
 			break;
 		}
 		case VK_LEFT: {
-			if($("#navbar").find(".dropdown-toggle").hasClass("onFocus")==true && $("#trigger-overlay").length != 0) {
+            if($("#settingsContainer").find(".dropdown-toggle").hasClass("onFocus")==true || $("#settingsContainer").hasClass("open")==true) {
+            	console.log('Left: 1');
+            	$("#settingsContainer").removeClass("open");
+                onFocus.removeClass('onFocus');
+                $("#fontsChangerContainer").find(".dropdown-toggle").addClass('onFocus');
+            } else if(($("#fontsChangerContainer").find(".dropdown-toggle").hasClass("onFocus")==true || $("#fontsChangerContainer").hasClass("open")==true) && $("#trigger-overlay").length != 0) {
+            	console.log('Left: 2');
+            	$("#fontsChangerContainer").removeClass("open");
 				onFocus.removeClass('onFocus');
 				$("#trigger-overlay").addClass('onFocus');
-			} else {				
+            } else if(($("#fontsChangerContainer").find(".dropdown-toggle").hasClass("onFocus")==true || $("#fontsChangerContainer").hasClass("open")==true) && $("#trigger-overlay").length == 0) {
+            	console.log('Left: 3');
+            	$("#fontsChangerContainer").removeClass("open");
+                onFocus.removeClass('onFocus');
+                $('#HomeButton').addClass('onFocus');
+            } else {
+            	console.log('Left: 4');
 				onFocus.removeClass('onFocus');
 				$('#HomeButton').addClass('onFocus');
 			}			
@@ -557,6 +626,7 @@ function changeFocus(newfocusOb) {
 }
 // Function to emulate click
 function emuleClick() {
+	console.log('dentro de emulate clic');
 	var link_level1 = $('.onFocus').attr('href');
 	var link_level2 = $('.onFocus').parent('a').attr('href');
 	var link_level3 = $('.onFocus').find('a:first').attr('href');
