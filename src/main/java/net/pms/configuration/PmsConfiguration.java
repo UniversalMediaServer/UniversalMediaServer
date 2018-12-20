@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,7 +52,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.newgui.NavigationShareTab.SharedFoldersTableModel;
+import net.pms.newgui.SharedContentTab.SharedFoldersTableModel;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
@@ -4928,5 +4929,76 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public boolean disableExternalEntities() {
 		return getBoolean(KEY_DISABLE_EXTERNAL_ENTITIES, true);
+  }
+	
+	public List<String> getWebConfigurationFileHeader() {
+		return Arrays.asList(
+			"##########################################################################################################",
+			"#                                                                                                        #",
+			"# WEB.conf: configure support for web feeds and streams                                                  #",
+			"#                                                                                                        #",
+			"# NOTE: This file must be placed in the profile directory to work:                                       #",
+			"#                                                                                                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"#                                                                                                        #",
+			"# Supported types:                                                                                       #",
+			"#                                                                                                        #",
+			"#     imagefeed, audiofeed, videofeed, audiostream, videostream                                          #",
+			"#                                                                                                        #",
+			"# Format for feeds:                                                                                      #",
+			"#                                                                                                        #",
+			"#     type.folders,separated,by,commas=URL                                                               #",
+			"#                                                                                                        #",
+			"# Format for streams:                                                                                    #",
+			"#                                                                                                        #",
+			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
+			"#                                                                                                        #",
+			"# For more web feed/stream options, see:                                                                 #",
+			"#                                                                                                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
+			"#                                                                                                        #",
+			"##########################################################################################################"
+		);
+	}
+
+	public void writeWebConfigurationFile() {
+		List<String> defaultWebConfContents = new ArrayList<>();
+		defaultWebConfContents.addAll(getWebConfigurationFileHeader());
+		defaultWebConfContents.addAll(Arrays.asList(
+			"",
+			"# image feeds",
+			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=29142919@N07&lang=en-en&format=rss_200",
+			"imagefeed.Web,Pictures=http://picasaweb.google.fr/data/feed/base/user/nefuisalbum/albumid/5218433104757705489?alt=rss&kind=photo&hl=en_US",
+			"imagefeed.Web,Pictures=http://picasaweb.google.fr/data/feed/base/user/cookiejarconfessionals/albumid/5229065014037788129?alt=rss&kind=photo&hl=en",
+			"imagefeed.Web,Pictures,Albums=http://picasaweb.google.com/data/feed/base/user/FenderStratRocker?alt=rss&kind=album&hl=en_US&access=public",
+			"",
+			"# audio feeds",
+			"audiofeed.Web,Podcasts=http://podcasts.engadget.com/rss.xml",
+			"",
+			"# video feeds",
+			"videofeed.Web,TED=http://feeds.feedburner.com/tedtalks_video",
+			"videofeed.Web,The Onion=http://feeds.theonion.com/onionnewsnetwork",
+			"",
+			"# video streams",
+			"videostream.Web,TV=France 24,mms://stream1.france24.yacast.net/f24_liveen,http://www.france24.com/en/sites/france24.com.en/themes/france24/logo-fr.png",
+			"videostream.Web,TV=BFM TV (French TV),mms://vipmms9.yacast.net/bfm_bfmtv,http://upload.wikimedia.org/wikipedia/en/6/62/BFMTV.png",
+			"videostream.Web,Webcams=View of Shanghai Harbour,mmst://www.onedir.com/cam3,http://media-cdn.tripadvisor.com/media/photo-s/00/1d/4b/d8/pudong-from-the-bund.jpg")
+		);
+
+		writeWebConfigurationFile(defaultWebConfContents);
+	}
+
+	public void writeWebConfigurationFile(List<String> fileContents) {
+		List<String> contentsToWrite = new ArrayList<>();
+		contentsToWrite.addAll(getWebConfigurationFileHeader());
+		contentsToWrite.addAll(fileContents);
+
+		try {
+			Path webConfFilePath = Paths.get(getWebConfPath());
+			Files.write(webConfFilePath, contentsToWrite, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+		}
 	}
 }
