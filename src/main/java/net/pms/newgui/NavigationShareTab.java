@@ -116,7 +116,6 @@ public class NavigationShareTab {
 		this.looksFrame = looksFrame;
 	}
 
-//	private static final String PANEL_COL_SPEC = "left:pref,3dlu,                pref, 3dlu,                       pref, 3dlu,                 pref, 3dlu, pref, default:grow";
 	private static final String PANEL_COL_SPEC = "left:pref,          3dlu,                pref, 3dlu,                       pref, 3dlu,               pref, 3dlu, pref, 3dlu, pref, default:grow";
 	private static final String PANEL_ROW_SPEC =
 		//                                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,8 +230,8 @@ public class NavigationShareTab {
 
 			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1, 29   ), colSpec, orientation));
 			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 29, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xyw(7, 29), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(9, 29), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy (7, 29   ), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy (9, 29   ), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
