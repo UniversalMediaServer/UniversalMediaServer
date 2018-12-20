@@ -29,7 +29,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.event.*;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +61,6 @@ public class SharedContentTab {
 	private JPanel sharedFoldersPanel;
 	private JPanel sharedWebContentPanel;
 	private JTable sharedFolders;
-	private JTable sharedFoldersList;
 	public static JTable webContentList;
 	private SharedFoldersTableModel folderTableModel;
 	public static WebContentTableModel webContentTableModel;
@@ -148,7 +146,7 @@ public class SharedContentTab {
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
 	private static final String PANEL_ROW_SPEC = "fill:default:grow, 9dlu, fill:default:grow";
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
-	private static final String SHARED_FOLDER_ROW_SPEC = "2*(p, 3dlu), 55dlu:grow";
+	private static final String SHARED_FOLDER_ROW_SPEC = "2*(p, 3dlu), fill:default:grow";
 
 	public JComponent build() {
 		// Apply the orientation for the locale
