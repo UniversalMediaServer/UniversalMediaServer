@@ -301,9 +301,9 @@ public class SharedContentTab {
 						boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
 
 						sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 0), i    , 0);
-						sharedFolders.setValueAt(value1                    , i + 1, 0);
+						sharedFolders.setValueAt(value1                            , i + 1, 0);
 						sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 1), i    , 1);
-						sharedFolders.setValueAt(value2                    , i + 1, 1);
+						sharedFolders.setValueAt(value2                            , i + 1, 1);
 						sharedFolders.changeSelection(i + 1, 1, false, false);
 
 						break;
@@ -323,9 +323,9 @@ public class SharedContentTab {
 						boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
 
 						sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 0), i    , 0);
-						sharedFolders.setValueAt(value1                    , i - 1, 0);
+						sharedFolders.setValueAt(value1                            , i - 1, 0);
 						sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 1), i    , 1);
-						sharedFolders.setValueAt(value2                    , i - 1, 1);
+						sharedFolders.setValueAt(value2                            , i - 1, 1);
 						sharedFolders.changeSelection(i - 1, 1, false, false);
 
 						break;
@@ -536,11 +536,11 @@ public class SharedContentTab {
 						Object source = webContentList.getValueAt(i, 2);
 
 						webContentList.setValueAt(webContentList.getValueAt(i + 1, 0), i    , 0);
-						webContentList.setValueAt(type                      , i + 1, 0);
+						webContentList.setValueAt(type                               , i + 1, 0);
 						webContentList.setValueAt(webContentList.getValueAt(i + 1, 1), i    , 1);
-						webContentList.setValueAt(folder                    , i + 1, 1);
+						webContentList.setValueAt(folder                             , i + 1, 1);
 						webContentList.setValueAt(webContentList.getValueAt(i + 1, 2), i    , 2);
-						webContentList.setValueAt(source                    , i + 1, 2);
+						webContentList.setValueAt(source                             , i + 1, 2);
 						webContentList.changeSelection(i + 1, 1, false, false);
 
 						break;
@@ -562,11 +562,11 @@ public class SharedContentTab {
 						Object source = webContentList.getValueAt(i, 2);
 
 						webContentList.setValueAt(webContentList.getValueAt(i - 1, 0), i    , 0);
-						webContentList.setValueAt(type                      , i - 1, 0);
+						webContentList.setValueAt(type                               , i - 1, 0);
 						webContentList.setValueAt(webContentList.getValueAt(i - 1, 1), i    , 1);
-						webContentList.setValueAt(folder                    , i - 1, 1);
+						webContentList.setValueAt(folder                             , i - 1, 1);
 						webContentList.setValueAt(webContentList.getValueAt(i - 1, 2), i    , 2);
-						webContentList.setValueAt(source                    , i - 1, 2);
+						webContentList.setValueAt(source                             , i - 1, 2);
 						webContentList.changeSelection(i - 1, 1, false, false);
 
 						break;
@@ -600,18 +600,6 @@ public class SharedContentTab {
 		folderTableModel.setDataVector(newDataVector, FOLDERS_COLUMN_NAMES);
 		TableColumn column = sharedFolders.getColumnModel().getColumn(0);
 		column.setMinWidth(600);
-	}
-
-	@Nullable
-	private static Icon getIcon(@Nullable String baseName, @Nullable String suffix) {
-		if (isBlank(baseName)) {
-			return null;
-		}
-		ImageIcon icon = isBlank(suffix) ?
-			LooksFrame.readImageIcon(baseName) :
-			LooksFrame.readImageIcon(FileUtil.appendToFileName(baseName, suffix));
-
-		return icon == null ? UIManager.getIcon("OptionPane.warningIcon") : icon;
 	}
 
 	public static void setScanLibraryEnabled(boolean enabled) {
