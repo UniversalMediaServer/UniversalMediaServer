@@ -12,29 +12,39 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.WindowsProgramPaths;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.BasicSystemUtils;
+import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.WordUtils;
 import static org.apache.commons.lang3.StringUtils.*;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -225,82 +235,38 @@ public class FileUtil {
 		return getExtension(substringBefore(u, "?"));
 	}
 
-	/**
-	 * Returns the file extension from the specified {@link File} or
-	 * {@code null} if it has no extension.
-	 *
-	 * @param file the {@link File} from which to extract the extension.
-	 * @return The extracted extension or {@code null}.
-	 */
-	public static String getExtension(File file) {
-		return getExtension(file, null, null);
-	}
-
-	/**
-	 * Returns the file extension from the specified {@link File} or
-	 * {@code null} if it has no extension.
-	 *
-	 * @param file the {@link File} from which to extract the extension.
-	 * @param convertTo if {@code null} makes no letter case change to the
-	 *            returned {@link String}, otherwise converts the extracted
-	 *            extension (if any) to the corresponding letter case.
-	 * @param locale the {@link Locale} to use for letter case conversion.
-	 *            Defaults to {@link Locale#ROOT} if {@code null}.
-	 * @return The extracted and potentially letter case converted extension or
-	 *         {@code null}.
-	 */
-	public static String getExtension(File file, LetterCase convertTo, Locale locale) {
-		if (file == null || file.getName() == null) {
+	@Nullable
+	public static String getExtension(@Nullable File file) {
+		if (file == null || isBlank(file.getName())) {
 			return null;
 		}
-		return getExtension(file.getName(), convertTo, locale);
+		return getExtension(file.getName());
 	}
 
-	/**
-	 * Returns the file extension from {@code fileName} or {@code null} if
-	 * {@code fileName} has no extension.
-	 *
-	 * @param fileName the file name from which to extract the extension.
-	 * @return The extracted extension or {@code null}.
-	 */
-	public static String getExtension(String fileName) {
-		return getExtension(fileName, null, null);
-	}
-
-	/**
-	 * Returns the file extension from {@code fileName} or {@code null} if
-	 * {@code fileName} has no extension.
-	 *
-	 * @param fileName the file name from which to extract the extension.
-	 * @param convertTo if {@code null} makes no letter case change to the
-	 *            returned {@link String}, otherwise converts the extracted
-	 *            extension (if any) to the corresponding letter case.
-	 * @param locale the {@link Locale} to use for letter case conversion.
-	 *            Defaults to {@link Locale#ROOT} if {@code null}.
-	 * @return The extracted and potentially letter case converted extension or
-	 *         {@code null}.
-	 */
-	public static String getExtension(String fileName, LetterCase convertTo, Locale locale) {
-		if (fileName == null) {
+	@Nullable
+	public static String getExtension(@Nullable Path path) {
+		if (path == null) {
 			return null;
 		}
+		Path fileName = path.getFileName();
+		if (fileName == null || isBlank(fileName.toString())) {
+			return null;
+		}
+		return getExtension(fileName.toString());
+	}
 
+	@Nullable
+	public static String getExtension(@Nullable String fileName) {
+		if (isBlank(fileName)) {
+			return null;
+		}
 		int point = fileName.lastIndexOf('.');
+
 		if (point == -1) {
 			return null;
 		}
-		if (convertTo != null && locale == null) {
-			locale = Locale.ROOT;
-		}
 
-		String extension = fileName.substring(point + 1);
-		if (convertTo == LetterCase.UPPER) {
-			return extension.toUpperCase(locale);
-		}
-		if (convertTo == LetterCase.LOWER) {
-			return extension.toLowerCase(locale);
-		}
-		return extension;
+		return fileName.substring(point + 1);
 	}
 
 	public static String getFileNameWithoutExtension(String f) {
@@ -440,7 +406,6 @@ public class FileUtil {
 	 *
 	 * @param f The filename
 	 * @param file The file to possibly be used by the InfoDb
-	 * @param media The DLNAMediaInfo for database access
 	 *
 	 * @return The prettified filename
 	 */
@@ -620,7 +585,7 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Rename the season/episode numbers. For example, "1x01" changes to " - 101"
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
@@ -881,7 +846,7 @@ public class FileUtil {
 	}
 
 	/**
-	 * @deprecated Use {@link #replaceExtension} instead.
+	 * @deprecated Use {@link #getFileNameWithNewExtension(File, File, String)}.
 	 */
 	@Deprecated
 	public static File getFileNameWitNewExtension(File parent, File f, String ext) {
@@ -1250,7 +1215,8 @@ public class FileUtil {
 	 * @return The match object form the detection process or <code>null</code> if no match was found
 	 * @throws IOException
 	 */
-	public static CharsetMatch getFileCharsetMatch(File file) throws IOException {
+	@Nonnull
+	public static CharsetMatch getFileCharsetMatch(@Nonnull File file) throws IOException {
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		CharsetDetector detector = new CharsetDetector();
 		detector.setText(in);
@@ -1262,29 +1228,31 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The detected <code>Charset</code> or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The detected {@link Charset} or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
-	public static Charset getFileCharset(File file) throws IOException {
-		CharsetMatch match = getFileCharsetMatch(file);
-		if (match != null) {
-			try {
-				if (Charset.isSupported(match.getName())) {
-					LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
-					return Charset.forName(match.getName());
-				}
-				LOGGER.debug(
-					"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
-					match.getName(),
-					file.getAbsolutePath()
-				);
-				return null;
-			} catch (IllegalCharsetNameException e) {
-				LOGGER.debug("Illegal charset deteceted \"{}\" in file {}", match.getName(), file.getAbsolutePath());
-			}
+	@Nullable
+	public static Charset getFileCharset(@Nullable File file) throws IOException {
+		if (file == null) {
+			return null;
 		}
-		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		CharsetMatch match = getFileCharsetMatch(file);
+		try {
+			if (Charset.isSupported(match.getName())) {
+				LOGGER.debug("Detected charset \"{}\" in file \"{}\"", match.getName(), file.getAbsolutePath());
+				return Charset.forName(match.getName());
+			}
+			LOGGER.debug(
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				match.getName(),
+				file.getAbsolutePath()
+			);
+			return null;
+		} catch (IllegalCharsetNameException e) {
+			LOGGER.debug("Illegal charset \"{}\" deteceted in file \"{}\"", match.getName(), file.getAbsolutePath());
+		}
+		LOGGER.debug("Found no matching charset for file \"{}\"", file.getAbsolutePath());
 		return null;
 	}
 
@@ -1292,17 +1260,31 @@ public class FileUtil {
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
 	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The name of the detected charset or <code>null</code> if not detected
-	 * @throws IOException
+	 * @param file the file for which to detect charset/encoding.
+	 * @return The name of the detected charset or {@code null} if not detected.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
-	public static String getFileCharsetName(File file) throws IOException {
-		CharsetMatch match = getFileCharsetMatch(file);
-		if (match != null) {
-			LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
-			return match.getName().toUpperCase(PMS.getLocale());
+	@Nullable
+	public static String getFileCharsetName(@Nullable File file) throws IOException {
+		if (file == null) {
+			return null;
 		}
-		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+		CharsetMatch match = getFileCharsetMatch(file);
+		try {
+			if (Charset.isSupported(match.getName())) {
+				LOGGER.debug("Detected charset \"{}\" in file \"{}\"", match.getName(), file.getAbsolutePath());
+				return match.getName().toUpperCase(Locale.ROOT);
+			}
+			LOGGER.debug(
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				match.getName(),
+				file.getAbsolutePath()
+			);
+			return null;
+		} catch (IllegalCharsetNameException e) {
+			LOGGER.debug("Illegal charset \"{}\" deteceted in file \"{}\"", match.getName(), file.getAbsolutePath());
+		}
+		LOGGER.debug("Found no matching charset for file \"{}\"", file.getAbsolutePath());
 		return null;
 	}
 
@@ -1349,58 +1331,55 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset <code>Charset</code> to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charset the {@link Charset} to test.
+	 * @return {@code true} if {@code charset} is {@code UTF-16}, {@code false}
+	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF16(Charset charset) {
 		return charset != null && (charset.equals(StandardCharsets.UTF_16) || charset.equals(StandardCharsets.UTF_16BE) || charset.equals(StandardCharsets.UTF_16LE));
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset charset name to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charsetName the charset name to test
+	 * @return {@code true} if {@code charsetName} is {@code UTF-16},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
-	 * Tests if charset is UTF-32.
+	 * Tests if {@code charsetName} is {@code UTF-32}.
 	 *
-	 * @param charsetName charset name to test
-	 * @return True if charset is UTF-32, false otherwise.
+	 * @param charsetName the charset name to test.
+	 * @return {@code true} if {@code charsetName} is {@code UTF-32},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
-	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 * Converts an {@code UTF-16} input file to an {@code UTF-8} output file.
+	 * Does not overwrite an existing output file.
 	 *
-	 * @param inputFile UTF-16 file
-	 * @param outputFile UTF-8 file after conversion
-	 * @throws IOException
+	 * @param inputFile an {@code UTF-16} {@link File}.
+	 * @param outputFile the {@code UTF-8} {@link File} after conversion.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
 		Charset charset;
-		if (inputFile == null || !inputFile.canRead()) {
-			throw new FileNotFoundException("Can't read inputFile.");
+		if (inputFile == null) {
+			throw new IllegalArgumentException("inputFile cannot be null");
 		}
 
-		try {
-			charset = getFileCharset(inputFile);
-		} catch (IOException ex) {
-			LOGGER.debug("Exception during charset detection.", ex);
-			throw new IllegalArgumentException("Can't confirm inputFile is UTF-16.");
-		}
-
+		charset = getFileCharset(inputFile);
 		if (isCharsetUTF16(charset)) {
 			if (!outputFile.exists()) {
-				BufferedReader reader = null;
 				/*
 				 * This is a strange hack, and I'm not sure if it's needed. I
 				 * did it this way to conform to the tests, which dictates that
@@ -1410,23 +1389,25 @@ public class FileUtil {
 				 * For some reason creating a FileInputStream with UTF_16 produces
 				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
 				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+				 *
 				 * @author Nadahar
 				 */
-				if (charset.equals(StandardCharsets.UTF_16LE)) {
-					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16));
-				} else {
-					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
+				try (BufferedReader reader =
+					charset.equals(StandardCharsets.UTF_16LE) ?
+						new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16)) :
+						new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset))
+				) {
+					try (BufferedWriter writer = new BufferedWriter(
+						new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))
+					) {
+						int c;
+
+						while ((c = reader.read()) != -1) {
+							writer.write(c);
+						}
+					}
+
 				}
-
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8));
-				int c;
-
-				while ((c = reader.read()) != -1) {
-					writer.write(c);
-				}
-
-				writer.close();
-				reader.close();
 			}
 		} else {
 			throw new IllegalArgumentException("File is not UTF-16");
@@ -1681,7 +1662,7 @@ public class FileUtil {
 	 * already there.
 	 *
 	 * @param path the path to be modified.
-	 * @return The corrected path or {@code null} of {@code path} is
+	 * @return The corrected path or {@code null} if {@code path} is
 	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {
@@ -1701,6 +1682,29 @@ public class FileUtil {
 		return path;
 	}
 
+	/**
+	 * Appends a suffix to a filename before the last {@code "."} if there is
+	 * one. If not, simply appends the suffix to the filename.
+	 *
+	 * @param fileName the filename to append to.
+	 * @param suffix the suffix to append.
+	 * @return The modified filename.
+	 */
+	@Nonnull
+	public static String appendToFileName(@Nonnull String fileName, @Nullable String suffix) {
+		if (fileName == null) {
+			throw new IllegalArgumentException("fileName cannot be null");
+		}
+		if (isBlank(suffix)) {
+			return fileName;
+		}
+		int i = fileName.lastIndexOf(".");
+		if (i < 0) {
+			return fileName + suffix;
+		}
+		return fileName.substring(0, i) + suffix + fileName.substring(i);
+	}
+
 	private static Boolean isAdmin = null;
 	private static Object isAdminLock = new Object();
 
@@ -1713,18 +1717,16 @@ public class FileUtil {
 				return isAdmin;
 			}
 			if (Platform.isWindows()) {
-				Float ver = null;
-				try {
-					ver = Float.valueOf(System.getProperty("os.version"));
-				} catch (NullPointerException | NumberFormatException e) {
+				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
+				if (version == null) {
 					LOGGER.error(
-						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
-						System.getProperty("os.version"), e.getMessage()
+						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
+						System.getProperty("os.version")
 					);
 					isAdmin = false;
 					return false;
 				}
-				if (ver >= 5.1) {
+				if (version >= 5.1) {
 					try {
 						String command = "reg query \"HKU\\S-1-5-19\"";
 						Process p = Runtime.getRuntime().exec(command);
@@ -1884,6 +1886,133 @@ public class FileUtil {
 			}
 		}
 		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
+	}
+
+	/**
+	 * @return The OS {@code PATH} environment variable as a {@link List} of
+	 *         {@link Path}s.
+	 */
+	@Nonnull
+	public static List<Path> getOSPath() {
+		List<Path> result = new ArrayList<>();
+		String osPath = System.getenv("PATH");
+		if (isBlank(osPath)) {
+			return result;
+		}
+		String[] paths = osPath.split(File.pathSeparator);
+		for (String path : paths) {
+			result.add(Paths.get(path));
+		}
+		return result;
+	}
+
+	/**
+	 * Tries to find the specified relative file that is both executable and
+	 * readable using the system {@code PATH} environment variable while
+	 * following symbolic links. Returns the first match in the order of the
+	 * system {@code PATH} or {@code null} is no match was found.
+	 *
+	 * @param relativePath the relative {@link Path} describing the file or
+	 *            folder to return.
+	 * @return The matched {@link Path} or {@code null} if no match was found.
+	 * @throws IllegalArgumentException if {@code relativePath} is absolute.
+	 */
+	@Nullable
+	public static Path findExecutableInOSPath(@Nullable Path relativePath) {
+		return findInOSPath(relativePath, true, FileFlag.FILE, FileFlag.READ, FileFlag.EXECUTE);
+	}
+
+	/**
+	 * Tries to find the specified relative file or folder using the system
+	 * {@code PATH} environment variable. Returns the first match in the order
+	 * of the system {@code PATH} or {@code null} is no match was found.
+	 *
+	 * @param relativePath the relative {@link Path} describing the file or
+	 *            folder to return.
+	 * @param followSymlinks whether or not to follow symbolic links (NIO
+	 *            default is {@code true}).
+	 * @param requiredFlags zero or more {@link FileFlag}s that specify
+	 *            permissions or properties that must be met for a file object
+	 *            to match. Use for example {@link FileFlag#FILE} to only find
+	 *            files or {@link FileFlag#FOLDER} to only find folders.
+	 * @return The matched {@link Path} or {@code null} if no match was found.
+	 * @throws IllegalArgumentException if {@code relativePath} is absolute.
+	 */
+	@Nullable
+	public static Path findInOSPath(
+		@Nullable Path relativePath,
+		boolean followSymlinks,
+		FileFlag... requiredFlags
+	) {
+		if (relativePath == null) {
+			return null;
+		}
+		if (relativePath.isAbsolute()) {
+			throw new IllegalArgumentException("relativePath must be relative");
+		}
+
+		LinkOption[] options = followSymlinks ? new LinkOption[] {} : new LinkOption[] {LinkOption.NOFOLLOW_LINKS};
+		List<Path> osPath = new ArrayList<>();
+		osPath.add(null);
+		osPath.addAll(getOSPath());
+		Path result = null;
+		List<String> extensions = new ArrayList<>();
+		extensions.add(null);
+		if (Platform.isWindows() && getExtension(relativePath) == null) {
+			for (String s : WindowsProgramPaths.getWindowsPathExtensions()) {
+				if (isNotBlank(s)) {
+					extensions.add("." + s);
+				}
+			}
+		}
+		for (String extension : extensions) {
+			for (Path path : osPath) {
+				if (path == null) {
+					path = Paths.get("").toAbsolutePath();
+				}
+				if (extension == null) {
+					result = path.resolve(relativePath);
+				} else {
+					result = path.resolve(relativePath.toString() + extension);
+				}
+				if (Files.exists(result, options)) {
+					if (requiredFlags.length == 0) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Resolved \"{}\" from \"{}\" using OS path", result, relativePath);
+						}
+						try {
+							return result.toRealPath(options);
+						} catch (IOException e) {
+							LOGGER.warn("Could not get the real path of \"{}\": {}", result, e.getMessage());
+							LOGGER.trace("", e);
+							return result;
+						}
+					}
+					try {
+						FilePermissions permissions = new FilePermissions(result, options);
+						Set<FileFlag> flags = permissions.getFlags(requiredFlags);
+						if (flags.containsAll(Arrays.asList(requiredFlags))) {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Resolved \"{}\" from \"{}\" using OS path", result, relativePath);
+							}
+							try {
+								return result.toRealPath(options);
+							} catch (IOException e) {
+								LOGGER.warn("Could not get the real path of \"{}\": {}", result, e.getMessage());
+								LOGGER.trace("", e);
+								return result;
+							}
+						}
+					} catch (FileNotFoundException e) {
+						continue;
+					}
+				}
+			}
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Failed to resolve \"{}\" using OS path", relativePath);
+		}
+		return null;
 	}
 
 	/**

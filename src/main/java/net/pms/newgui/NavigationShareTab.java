@@ -25,15 +25,30 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Point;
 import java.awt.event.*;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
+import javax.annotation.Nullable;
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.database.TableFilesStatus;
+import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.AnimatedIcon;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.JAnimatedButton;
+import net.pms.newgui.components.JImageButton;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
@@ -69,10 +84,15 @@ public class NavigationShareTab {
 	private JCheckBox prettifyfilenames;
 	private JCheckBox episodeTitles;
 	private JCheckBox resume;
+	private JCheckBox isScanSharedFoldersOnStartup;
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
 	private static final JAnimatedButton scanButton = new JAnimatedButton("button-scan.png");
+	private final AnimatedIcon scanNormalIcon = (AnimatedIcon) scanButton.getIcon();
+	private final AnimatedIcon scanRolloverIcon = (AnimatedIcon) scanButton.getRolloverIcon();
+	private final AnimatedIcon scanPressedIcon = (AnimatedIcon) scanButton.getPressedIcon();
+	private final AnimatedIcon scanDisabledIcon = (AnimatedIcon) scanButton.getDisabledIcon();
 	private static final AnimatedIcon scanBusyIcon = new AnimatedIcon(scanButton, "button-scan-busy.png");
 	private static final AnimatedIcon scanBusyRolloverIcon = new AnimatedIcon(scanButton, "button-cancel.png");
 	private static final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(scanButton, "button-cancel_pressed.png");
@@ -85,6 +105,10 @@ public class NavigationShareTab {
 	private JCheckBox isShowFolderNewMedia;
 	private JCheckBox isShowFolderRecentlyPlayed;
 	private JCheckBox isShowFolderLiveSubtitles;
+
+	public SharedFoldersTableModel getDf() {
+		return folderTableModel;
+	}
 
 	private final PmsConfiguration configuration;
 	private LooksFrame looksFrame;
@@ -395,7 +419,7 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
 				cachereset.setEnabled(configuration.getUseCache());
-				SharedContentTab.setScanLibraryEnabled(configuration.getUseCache());
+				setScanLibraryEnabled(configuration.getUseCache());
 			}
 		});
 

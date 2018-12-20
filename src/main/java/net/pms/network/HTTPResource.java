@@ -81,6 +81,7 @@ public class HTTPResource {
 	public static final String AVI_TYPEMIME = "video/avi";
 	public static final String BMP_TYPEMIME = "image/bmp";
 	public static final String DIVX_TYPEMIME = "video/x-divx";
+	public static final String FLV_TYPEMIME = "video/x-flv";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";

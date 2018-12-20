@@ -84,9 +84,9 @@ $('* .bumppanel').css({
 	borderRadius:'2px',
 	'-moz-border-radius':'2px',
 	'-webkit-border-radius':'2px',
-	boxShadow:' 16px 4px 2px rgba(136,136,136,0.5)',
-	'-moz-box-shadow':'16px 4px 2px rgba(136,136,136,0.5)',
-	'-webkit-box-shadow':'16px 4px 2px rgba(136,136,136,0.5)',
+	boxShadow:' 0px 4px 2px rgba(136,136,136,0.5)',
+	'-moz-box-shadow':'0px 4px 2px rgba(136,136,136,0.5)',
+	'-webkit-box-shadow':'0px 4px 2px rgba(136,136,136,0.5)',
 	appearance:'none',
 	'-moz-appearance':'none',
 	'-webkit-appearance':'none',
@@ -111,7 +111,6 @@ $('#bumppos').css({
 
 $('#bexit').css({
 	verticalAlign:'top',
-	marginRight:'-20px',
 	color:'#fff',
 	cursor:'pointer',
 });

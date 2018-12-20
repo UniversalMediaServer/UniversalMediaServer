@@ -4,6 +4,7 @@
  */
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
@@ -55,17 +56,12 @@ public class MapFileConfiguration {
 		files = new ArrayList<>();
 	}
 
-	@Deprecated
-	public static List<MapFileConfiguration> parse(String conf) {
-		return parseVirtualFolders(null);
-	}
-
-	public static List<MapFileConfiguration> parseVirtualFolders(ArrayList<String> tags) {
+	public static List<MapFileConfiguration> parseVirtualFolders() {
 		String conf;
 
-		if (configuration.getVirtualFoldersFile(tags).trim().length() > 0) {
+		if (isNotBlank(configuration.getVirtualFoldersFile())) {
 			// Get the virtual folder info from the user's file
-			conf = configuration.getVirtualFoldersFile(tags).trim().replaceAll("&comma;", ",");
+			conf = configuration.getVirtualFoldersFile().trim().replaceAll("&comma;", ",");
 			File file = new File(configuration.getProfileDirectory(), conf);
 			conf = null;
 
@@ -86,9 +82,9 @@ public class MapFileConfiguration {
 			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
 			List<MapFileConfiguration> out = gson.fromJson(conf, listType);
 			return out;
-		} else if (configuration.getVirtualFolders(tags).trim().length() > 0) {
+		} else if (isNotBlank(configuration.getVirtualFolders())) {
 			// Get the virtual folder info from the config string
-			conf = configuration.getVirtualFolders(tags).trim().replaceAll("&comma;", ",");
+			conf = configuration.getVirtualFolders().trim().replaceAll("&comma;", ",");
 
 			// Convert our syntax into JSON syntax
 			String arrayLevel1[] = conf.split("\\|");
@@ -143,10 +139,9 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 			FilePermissions permissions = FileUtil.getFilePermissions(file);
 			if (permissions.isBrowsable()) {
 				return file;
-			} else {
-				LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
-				return null;
 			}
+			LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
+			return null;
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Folder not found: {}", e.getMessage());
 			return null;

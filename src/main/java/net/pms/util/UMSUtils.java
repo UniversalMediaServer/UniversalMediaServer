@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.util;
 
 import java.io.*;
@@ -32,7 +31,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -73,6 +71,7 @@ public class UMSUtils {
 					if (audio.getAlbum() != null) {
 						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
+					//TODO maciekberry: check whether it makes sense to use Album Artist
 					if (audio.getArtist() != null) {
 						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
 					}
@@ -353,14 +352,8 @@ public class UMSUtils {
 				sb.append("\n");
 				for (DLNAResource r : playlist) {
 					String data = r.write();
-					if (!org.apache.commons.lang.StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
-						ExternalListener external = r.getMasterParent();
-						String id;
-						if (external != null) {
-							id = external.getClass().getName();
-						} else {
-							id = "internal:" + r.getClass().getName();
-						}
+					if (!StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
+						String id = "internal:" + r.getClass().getName();
 
 						sb.append("master:").append(id).append(';');
 						if (r.getPlayer() != null) {
@@ -394,15 +387,6 @@ public class UMSUtils {
 				out.write(sb.toString());
 				out.flush();
 			}
-		}
-
-		private static ExternalListener findMasterParent(String className) {
-			for (ExternalListener l : ExternalFactory.getExternalListeners()) {
-				if (className.equals(l.getClass().getName())) {
-					return l;
-				}
-			}
-			return null;
 		}
 
 		private static Player findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
@@ -509,18 +493,10 @@ public class UMSUtils {
 						pos = str.indexOf(';');
 					}
 					LOGGER.debug("master is " + master + " str " + str);
-					ExternalListener external;
 					if (master.startsWith("internal:")) {
 						res = parse(master.substring(9), str);
 					} else {
-						external = findMasterParent(master);
-						if (external != null) {
-							res = resolveCreateMethod(external, str);
-							if (res != null) {
-								LOGGER.debug("set masterparent for " + res + " to " + external);
-								res.setMasterParent(external);
-							}
-						}
+						LOGGER.warn("Unknown master parents: {}", master);
 					}
 					if (res != null) {
 						if (resData != null) {
@@ -577,11 +553,11 @@ public class UMSUtils {
 	 * @param configuration in which the available GPU acceleration methods will be stored
 	 * @throws ConfigurationException
 	 */
-	public static void CheckGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.waitbeforestart = 0;
 		outputParams.log = true;
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-hwaccels"}, false, outputParams, true, false);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {

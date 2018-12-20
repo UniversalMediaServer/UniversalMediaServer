@@ -58,16 +58,21 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	public static final String ID = "AvSFFmpeg";
+	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_FFMPEG;
+	public static final String NAME = "AviSynth/FFmpeg";
+
+	// Not to be instantiated by anything but PlayerFactory
+	AviSynthFFmpeg() {
+	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
 	}
 
 	@Override
 	public String name() {
-		return "AviSynth/FFmpeg";
+		return NAME;
 	}
 
 	@Override
@@ -315,9 +320,6 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return builder.getPanel();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
