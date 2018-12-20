@@ -366,13 +366,24 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null && sub.getId() != -1) {
+							if (
+								sub.getLang() != null &&
+								(
+									(
+										sub.isExternal() &&
+										sub.getExternalFile() != null
+									) || (
+										sub.isEmbedded() &&
+										sub.getId() != -1
+									)
+								)
+							) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(',');
 								if (sub.isExternal()) {
 									sb.append("file:");
-									sb.append(sub.getExternalFile().getAbsolutePath());
+									sb.append(sub.getExternalFile().getPath());
 								} else {
 									sb.append("id:");
 									sb.append("").append(sub.getId());
@@ -518,8 +529,7 @@ public class UMSUtils {
 							subData = tmp[1];
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile), null);
-								s.setId(100);
+								s.setExternalFile(new File(sFile));
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
 							} else if (subData.startsWith("id:")) {

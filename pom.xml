@@ -75,7 +75,7 @@
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>9.20-2.00beta</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.3.2</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.4.1</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -245,9 +245,24 @@
 			<version>2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>net.java.dev.rome</groupId>
+			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<version>1.0.0</version>
+			<!--
+				org.slf4j:slf4j-api is shared with
+					- ch.qos.logback:logback-classic
+					- su.litvak.chromecast
+					- fm.last:coverartarchive-api
+					- com.github.oshi:oshi-core
+
+				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
+			-->
+			<version>1.9.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.coobird</groupId>

@@ -27,6 +27,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Locale;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -40,6 +42,8 @@ import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.JImageButton;
+import net.pms.newgui.components.CustomJSpinner;
+import net.pms.newgui.components.SpinnerIntModel;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.KeyedStringComboBoxModel;
@@ -98,15 +102,17 @@ public class TranscodingTab {
 	private JTextField alternateSubFolder;
 	private JButton folderSelectButton;
 	private JCheckBox autoloadExternalSubtitles;
+	private JCheckBox deleteDownloadedSubtitles;
+	private CustomJSpinner liveSubtitlesLimit;
 	private JTextField defaultaudiosubs;
 	private JComboBox<String> subtitleCodePage;
 	private JTextField defaultfont;
 	private JButton fontselect;
 	private JCheckBox fribidi;
-	private JTextField ass_scale;
-	private JTextField ass_outline;
-	private JTextField ass_shadow;
-	private JTextField ass_margin;
+	private JTextField assScale;
+	private CustomJSpinner assOutline;
+	private CustomJSpinner assShadow;
+	private CustomJSpinner assMargin;
 	private JButton subColor;
 	private JCheckBox forceExternalSubtitles;
 	private JCheckBox useEmbeddedSubtitlesStyle;
@@ -851,7 +857,7 @@ public class TranscodingTab {
 			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] values = new String[]{
-			Messages.getString("General.2"),
+			Messages.getString("Generic.AutoDetect"),
 			Messages.getString("CharacterSet.874"),
 			Messages.getString("CharacterSet.932"),
 			Messages.getString("CharacterSet.936"),
@@ -955,48 +961,69 @@ public class TranscodingTab {
 		JPanel flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		flowPanel.setComponentOrientation(orientation);
 		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 14, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		ass_scale = new JTextField(configuration.getAssScale());
-		ass_scale.addKeyListener(new KeyAdapter() {
+		assScale = new JTextField(configuration.getAssScale());
+		assScale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setAssScale(ass_scale.getText());
+				configuration.setAssScale(assScale.getText());
 			}
 		});
-		flowPanel.add(ass_scale);
+		flowPanel.add(assScale);
 
 		flowPanel.add(new JLabel(Messages.getString("MEncoderVideo.13")));
 
-		ass_outline = new JTextField(configuration.getAssOutline());
-		ass_outline.addKeyListener(new KeyAdapter() {
+		int assOutlineValue;
+		try {
+			assOutlineValue = Integer.parseInt(configuration.getAssOutline());
+		} catch (NumberFormatException e) {
+			assOutlineValue = 1;
+		}
+		final SpinnerIntModel assOutlineModel = new SpinnerIntModel(assOutlineValue, 0, 99, 1);
+		assOutline = new CustomJSpinner(assOutlineModel, true);
+		assOutline.addChangeListener(new ChangeListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAssOutline(ass_outline.getText());
+			public void stateChanged(ChangeEvent e) {
+				configuration.setAssOutline(assOutlineModel.getValue().toString());
 			}
 		});
-		flowPanel.add(ass_outline);
+		flowPanel.add(assOutline);
 
 		flowPanel.add(new JLabel(Messages.getString("MEncoderVideo.14")));
 
-		ass_shadow = new JTextField(configuration.getAssShadow());
-		ass_shadow.addKeyListener(new KeyAdapter() {
+		int assShadowValue;
+		try {
+			assShadowValue = Integer.parseInt(configuration.getAssShadow());
+		} catch (NumberFormatException e) {
+			assShadowValue = 1;
+		}
+		final SpinnerIntModel assShadowModel = new SpinnerIntModel(assShadowValue, 0, 99, 1);
+		assShadow = new CustomJSpinner(assShadowModel, true);
+		assShadow.addChangeListener(new ChangeListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAssShadow(ass_shadow.getText());
+			public void stateChanged(ChangeEvent e) {
+				configuration.setAssShadow(assShadowModel.getValue().toString());
 			}
 		});
-		flowPanel.add(ass_shadow);
+		flowPanel.add(assShadow);
 
 		flowPanel.add(new JLabel(Messages.getString("MEncoderVideo.15")));
 
-		ass_margin = new JTextField(configuration.getAssMargin());
-		ass_margin.addKeyListener(new KeyAdapter() {
+		int assMarginValue;
+		try {
+			assMarginValue = Integer.parseInt(configuration.getAssMargin());
+		} catch (NumberFormatException e) {
+			assMarginValue = 10;
+		}
+		final SpinnerIntModel assMarginModel = new SpinnerIntModel(assMarginValue, 0, 999, 5);
+		assMargin = new CustomJSpinner(assMarginModel, true);
+		assMargin.addChangeListener(new ChangeListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAssMargin(ass_margin.getText());
+			public void stateChanged(ChangeEvent e) {
+				configuration.setAssMargin(assMarginModel.getValue().toString());
 			}
 		});
 
-		flowPanel.add(ass_margin);
+		flowPanel.add(assMargin);
 		builder.add(flowPanel, FormLayoutUtil.flip(cc.xyw(3, 14, 13), colSpec, orientation));
 
 		autoloadExternalSubtitles = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
@@ -1053,7 +1080,20 @@ public class TranscodingTab {
 				autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 			}
 		});
-		builder.add(forceExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 18, 11), colSpec, orientation));
+
+		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles), FormLayoutUtil.flip(cc.xyw(1, 16, 6), colSpec, orientation));
+
+		deleteDownloadedSubtitles = new JCheckBox(Messages.getString("TrTab2.DeleteLiveSubtitles"), !configuration.isLiveSubtitlesKeep());
+		deleteDownloadedSubtitles.setToolTipText(Messages.getString("TrTab2.DeleteLiveSubtitlesTooltip"));
+		deleteDownloadedSubtitles.setContentAreaFilled(false);
+		deleteDownloadedSubtitles.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+
+		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles), FormLayoutUtil.flip(cc.xyw(7, 16, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("TrTab2.89"));
@@ -1064,7 +1104,23 @@ public class TranscodingTab {
 				configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(useEmbeddedSubtitlesStyle, FormLayoutUtil.flip(cc.xyw(1, 20, 11), colSpec, orientation));
+
+		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 18, 4), colSpec, orientation));
+
+
+		final SpinnerIntModel liveSubtitlesLimitModel = new SpinnerIntModel(configuration.getLiveSubtitlesLimit(), 1, 999, 1);
+		liveSubtitlesLimit = new CustomJSpinner(liveSubtitlesLimitModel, true);
+		liveSubtitlesLimit.setToolTipText(Messages.getString("TrTab2.LiveSubtitlesLimitTooltip"));
+		liveSubtitlesLimit.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue());
+			}
+		});
+		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getString("TrTab2.LiveSubtitlesLimit"));
+		liveSubtitlesLimitLabel.setLabelFor(liveSubtitlesLimit);
+		builder.add(liveSubtitlesLimitLabel, FormLayoutUtil.flip(cc.xyw(7, 18, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(liveSubtitlesLimit, FormLayoutUtil.flip(cc.xy(15, 18), colSpec, orientation));
 
 		Integer[] depth = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
 

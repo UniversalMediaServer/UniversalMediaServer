@@ -28,7 +28,6 @@ import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Point;
 import java.awt.event.*;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -43,6 +42,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
@@ -98,6 +98,8 @@ public class NavigationShareTab {
 	private static final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(scanButton, "button-cancel_pressed.png");
 	private static final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(scanButton, "button-scan-busy_disabled.png");
 
+	private JComboBox<String> addVideoSuffix;
+
 	// Settings for the visibility of virtual folders
 	private JCheckBox isShowFolderServerSettings;
 	private JCheckBox isShowFolderTranscode;
@@ -114,7 +116,7 @@ public class NavigationShareTab {
 		this.looksFrame = looksFrame;
 	}
 
-	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
+	private static final String PANEL_COL_SPEC = "left:pref,          3dlu,                pref, 3dlu,                       pref, 3dlu,               pref, 3dlu, pref, 3dlu, pref, default:grow";
 	private static final String PANEL_ROW_SPEC =
 		//                                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		"p,"                              // Thumbnails
@@ -130,10 +132,10 @@ public class NavigationShareTab {
 		+ "p,"                            //
 		+ "3dlu,"                         //
 		+ "p,"                            //
-		+ "9dlu,"                         //
-		+ "p,"                            // Virtual folders
 		+ "3dlu,"                         //
 		+ "p,"                            //
+		+ "9dlu,"                         //
+		+ "p,"                            // Virtual folders
 		+ "3dlu,"                         //
 		+ "p,"                            //
 		+ "3dlu,"                         //
@@ -167,67 +169,69 @@ public class NavigationShareTab {
 
 		// Build gui with initialized components
 		if (!configuration.isHideAdvancedOptions()) {
-			JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
+			JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"),      FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(thumbgenCheckBox),        FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("NetworkTab.16"),                   FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
-			builder.add(seekpos,                                                    FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(image_thumb),             FormLayoutUtil.flip(cc.xyw(9, 3, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(thumbgenCheckBox),             FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkTab.16"),                        FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+			builder.add(seekpos,                                                         FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(image_thumb),                  FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.26"),                      FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
-			builder.add(audiothumbnail,                                             FormLayoutUtil.flip(cc.xyw(4, 5, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(mplayer_thumb),           FormLayoutUtil.flip(cc.xyw(9, 5, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.26"),                           FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+			builder.add(audiothumbnail,                                                  FormLayoutUtil.flip(cc.xyw(3, 5, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(mplayer_thumb),                FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.27"),                      FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
-			builder.add(defaultThumbFolder,                                         FormLayoutUtil.flip(cc.xyw(4, 7, 2), colSpec, orientation));
-			builder.add(select,                                                     FormLayoutUtil.flip(cc.xy(6, 7), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(dvdiso_thumb),            FormLayoutUtil.flip(cc.xyw(9, 7, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.27"),                           FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+			builder.add(defaultThumbFolder,                                              FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+			builder.add(select,                                                          FormLayoutUtil.flip(cc.xy(5, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(dvdiso_thumb),                 FormLayoutUtil.flip(cc.xy(7, 7), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"),         FormLayoutUtil.flip(cc.xyw(1, 9, 12), colSpec, orientation));
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"),              FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.addLabel(Messages.getString("FoldTab.18"),                      FormLayoutUtil.flip(cc.xyw(1, 11, 3), colSpec, orientation));
-			builder.add(sortmethod,                                                 FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(ignorethewordthe),        FormLayoutUtil.flip(cc.xyw(9, 11, 4), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.18"),                           FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+			builder.add(sortmethod,                                                      FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(ignorethewordthe),             FormLayoutUtil.flip(cc.xy(7, 11), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),       FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),           FormLayoutUtil.flip(cc.xyw(9, 13, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),            FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),               FormLayoutUtil.flip(cc.xy(3, 13), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),                FormLayoutUtil.flip(cc.xy(7, 13), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),         FormLayoutUtil.flip(cc.xyw(1, 15, 12), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.addSubtitlesInfo"),             FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
+			builder.add(addVideoSuffix,                                                  FormLayoutUtil.flip(cc.xyw(3, 15, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),                  FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
+
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),              FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),          FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideengines),             FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),        FormLayoutUtil.flip(cc.xyw(9, 17, 4), colSpec, orientation));
-
-			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                  FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                  FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                FormLayoutUtil.flip(cc.xyw(9, 19, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(itunes),                       FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(iphoto),                       FormLayoutUtil.flip(cc.xy(3, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                     FormLayoutUtil.flip(cc.xy(7, 19), colSpec, orientation));
 
 			builder.add(GuiUtil.getPreferredSizeComponent(cacheenable),                  FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-			builder.add(cachereset,                                                      FormLayoutUtil.flip(cc.xyw(4, 21, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderMediaLibrary),     FormLayoutUtil.flip(cc.xyw(9, 21, 4), colSpec, orientation));
+			builder.add(cachereset,                                                      FormLayoutUtil.flip(cc.xyw(3, 21, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderMediaLibrary),     FormLayoutUtil.flip(cc.xy(7, 21), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(archive),                      FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderServerSettings),   FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderTranscode),        FormLayoutUtil.flip(cc.xyw(9, 23, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(archive),                      FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderServerSettings),   FormLayoutUtil.flip(cc.xy(3, 23), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderTranscode),        FormLayoutUtil.flip(cc.xy(7, 23), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles),    FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("FoldTab.37"),                           FormLayoutUtil.flip(cc.xyw(4, 25, 2), colSpec, orientation));
-			builder.add(atzLimit,                                                        FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderNewMedia),         FormLayoutUtil.flip(cc.xyw(9, 25, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles),    FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.37"),                           FormLayoutUtil.flip(cc.xy(3, 25), colSpec, orientation));
+			builder.add(atzLimit,                                                        FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderNewMedia),         FormLayoutUtil.flip(cc.xy(7, 25), colSpec, orientation));
 
 			builder.add(GuiUtil.getPreferredSizeComponent(resume),                       FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xyw(9, 27, 4), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),             FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.72"),                      FormLayoutUtil.flip(cc.xy (1,  29   ), colSpec, orientation));
-			builder.add(fullyPlayedAction,                                         FormLayoutUtil.flip(cc.xyw(4,  29, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xyw(9,  29, 2), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory,                          FormLayoutUtil.flip(cc.xyw(11, 29, 2), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1, 29   ), colSpec, orientation));
+			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 29, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy (7, 29   ), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy (9, 29   ), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
@@ -451,13 +455,47 @@ public class NavigationShareTab {
 		});
 
 		// Hide transcoding engine names
-		hideengines = new JCheckBox(Messages.getString("FoldTab.8"), configuration.isHideEngineNames());
-		hideengines.setToolTipText(Messages.getString("FoldTab.46"));
+		hideengines = new JCheckBox(Messages.getString("FoldTab.showEngineNames"), !configuration.isHideEngineNames());
+		hideengines.setToolTipText(Messages.getString("FoldTab.showEngineNamesToolTip"));
 		hideengines.setContentAreaFilled(false);
 		hideengines.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setHideEngineNames((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setHideEngineNames((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+
+		// Add subtitles information to video names
+		final KeyedComboBoxModel<SubtitlesInfoLevel, String> videoSuffixKCBM = new KeyedComboBoxModel<>(
+			new SubtitlesInfoLevel[] {
+				SubtitlesInfoLevel.NONE,
+				SubtitlesInfoLevel.BASIC,
+				SubtitlesInfoLevel.FULL
+			},
+			new String[] {
+				Messages.getString("Generic.None"),
+				Messages.getString("Generic.Basic"),
+				Messages.getString("Generic.Full")
+			}
+		);
+
+		addVideoSuffix = new JComboBox<String>(videoSuffixKCBM);
+		addVideoSuffix.setEditable(false);
+		addVideoSuffix.setToolTipText(Messages.getString("FoldTab.addSubtitlesInfoToolTip"));
+
+		videoSuffixKCBM.setSelectedKey(configuration.getSubtitlesInfoLevel());
+
+		addVideoSuffix.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					LOGGER.debug(
+						"Setting \"{}\" to \"{}\"",
+						Messages.getRootString("FoldTab.addSubtitlesInfo"),
+						videoSuffixKCBM.getSelectedValue()
+					);
+					configuration.setSubtitlesInfoLevel(videoSuffixKCBM.getSelectedKey());
+				}
 			}
 		});
 
