@@ -51,7 +51,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.newgui.NavigationShareTab.SharedFoldersTableModel;
+import net.pms.newgui.SharedContentTab.SharedFoldersTableModel;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.util.CoverSupplier;

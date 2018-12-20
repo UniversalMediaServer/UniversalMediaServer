@@ -106,10 +106,6 @@ public class NavigationShareTab {
 	private JCheckBox isShowFolderRecentlyPlayed;
 	private JCheckBox isShowFolderLiveSubtitles;
 
-	public SharedFoldersTableModel getDf() {
-		return folderTableModel;
-	}
-
 	private final PmsConfiguration configuration;
 	private LooksFrame looksFrame;
 
@@ -419,7 +415,7 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
 				cachereset.setEnabled(configuration.getUseCache());
-				setScanLibraryEnabled(configuration.getUseCache());
+				SharedContentTab.setScanLibraryEnabled(configuration.getUseCache());
 			}
 		});
 
