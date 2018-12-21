@@ -378,7 +378,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 			ExecutableInfo executableInfo = programInfo.getExecutableInfo(currentExecutableType);
 			if (executableInfo instanceof FFmpegExecutableInfo) {
-				List<String> protocols = ((FFmpegExecutableInfo) executableInfo).getProtocols();
+				List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
 				if (protocols == null || !protocols.contains(url.split(":")[0])) {
 					return false;
 				}
