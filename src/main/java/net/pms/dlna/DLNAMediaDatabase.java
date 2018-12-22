@@ -1097,7 +1097,8 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
 						rs.updateRow();
 					} else {
-						LOGGER.error("Couldn't find \"{}\" in the database when trying to store data from OpenSubtitles", name);
+						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store data from OpenSubtitles", name);
+						return;
 					}
 				}
 			}
