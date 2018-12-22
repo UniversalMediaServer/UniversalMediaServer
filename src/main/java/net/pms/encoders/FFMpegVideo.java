@@ -265,14 +265,14 @@ public class FFMpegVideo extends Player {
 				}
 			} else if (params.sid.getType().isPicture()) {
 				StringBuilder subsPictureFilter = new StringBuilder();
-				if (params.sid.getId() < 100) {
+				if (params.sid.isEmbedded()) {
 					// Embedded
 					subsPictureFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
 					isSubsManualTiming = false;
 				} else if (params.sid.getExternalFile() != null) {
 					// External
 					videoFilterOptions.add("-i");
-					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
+					videoFilterOptions.add(params.sid.getExternalFile().getPath());
 					subsPictureFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
 				}
 				filterChain.add(0, subsPictureFilter.toString());

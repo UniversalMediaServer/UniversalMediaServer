@@ -32,7 +32,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
-import net.pms.util.StringUtil.LetterCase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -73,7 +73,6 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -412,7 +411,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_HIDE_EMPTY_FOLDERS,
 			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
-			KEY_HIDE_SUBS_INFO,
 			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
@@ -428,6 +426,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
+			KEY_SUBS_INFO_LEVEL,
 			KEY_SORT_METHOD,
 			KEY_SUBS_INFO_LEVEL,
 			KEY_USE_CACHE
@@ -4520,10 +4519,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getResumeKeepTime() {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
-	}
-
-	public boolean hideSubsInfo() {
-		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 
 	/**

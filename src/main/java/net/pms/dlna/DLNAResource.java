@@ -93,11 +93,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	);
 
 	/**
-	 * The name displayed on the renderer. If this is null, displayName is used.
-	 */
-	public String displayNameOverride;
-
-	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
 	 */
 	@Deprecated
@@ -3869,14 +3864,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @Deprecated use {@link #hasExternalSubtitles()} instead
+	 * Determines whether this resource has external subtitles.
+	 *
+	 * @return {@code true} if this resource has external subtitles,
+	 *         {@code false} otherwise.
 	 */
 	public boolean hasExternalSubtitles() {
 		return hasExternalSubtitles(false);
 	}
 
 	/**
-	 * @Deprecated use {@link #hasExternalSubtitles()} instead
+	 * Determines whether this resource has external subtitles.
+	 *
+	 * @param forceRefresh if {@code true} forces a new scan for external
+	 *            subtitles instead of relying on cached information (if it
+	 *            exists).
+	 * @return {@code true} if this resource has external subtitles,
+	 *         {@code false} otherwise.
 	 */
 	public boolean hasExternalSubtitles(boolean forceRefresh) {
 		if (media == null || !media.isVideo()) {
@@ -3889,16 +3893,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Whether this resource has external subtitles.
+	 * Determines whether this resource has subtitles.
 	 *
-	 * @return whether this resource has external subtitles
+	 * @return {@code true} if this resource has subtitles, {@code false}
+	 *         otherwise.
 	 */
 	public boolean hasSubtitles() {
 		return hasSubtitles(false);
 	}
 
 	/**
-	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
+	 * Determines whether this resource has subtitles.
+	 *
+	 * @param forceRefresh if {@code true} forces a new scan for external
+	 *            subtitles instead of relying on cached information (if it
+	 *            exists).
+	 * @return {@code true} if this resource has subtitles, {@code false}
+	 *         otherwise.
 	 */
 	public boolean hasSubtitles(boolean forceRefresh) {
 		if (media == null || !media.isVideo()) {
@@ -3911,7 +3922,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @Deprecated use {@link #setHasExternalSubtitles(boolean)} instead
+	 * Determines whether this resource has internal/embedded subtitles.
+	 *
+	 * @return {@code true} if this resource has internal/embedded subtitles,
+	 *         {@code false} otherwise.
 	 */
 	public boolean hasEmbeddedSubtitles() {
 		if (media == null || !media.isVideo()) {
@@ -3948,7 +3962,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * sets the cached subtitles information for this resource after
 	 * registration.
 	 *
-	 * @param value whether this resource has external subtitles
+	 * @param forceRefresh if {@code true} forces a new scan for external
+	 *            subtitles instead of relying on cached information (if it
+	 *            exists).
 	 */
 	public void registerExternalSubtitles(boolean forceRefresh) {
 		if (media == null || !media.isVideo()) {

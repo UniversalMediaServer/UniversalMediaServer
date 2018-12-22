@@ -42,7 +42,7 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
