@@ -1385,7 +1385,7 @@ public class MEncoderVideo extends Player {
 				// Start building the options for lavc to pass to libx264
 				encodeSettings += ":o=qcomp=0.6";
 				if (!Platform.isMac()) {
-					encodeSettings += ":preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+					encodeSettings += ",preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
 				}
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
