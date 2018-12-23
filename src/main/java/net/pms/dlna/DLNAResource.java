@@ -3592,6 +3592,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					format.isVideo()
 				)
 			) {
+				media_audio = media.getFirstAudioTrack();
 				filterChain = addAudioFlagFilter(filterChain);
 				filterChain = addSubtitlesFlagFilter(filterChain);
 			}
