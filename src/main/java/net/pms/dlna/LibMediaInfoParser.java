@@ -493,8 +493,8 @@ public class LibMediaInfoParser {
 			}
 
 			media.setMediaparsed(true);
-			}
 		}
+	}
 
 
 	public static void addAudio(DLNAMediaAudio currentAudioTrack, DLNAMediaInfo media) {
