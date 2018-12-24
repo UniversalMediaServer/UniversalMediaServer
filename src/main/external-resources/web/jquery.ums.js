@@ -34,13 +34,15 @@ function changeMargins() {
 						height : row_h + 'px',
 						maxWidth : cell_w + 'px',
 						maxHeight : row_h + 'px',
-                        borderTopRightRadius: '3px',//MODDED
+                        borderBottomRightRadius: '0px',//MODDED
                         borderBottomLeftRadius: '0px',//MODDED
+                        borderTopRightRadius: '3px',//MODDED
 					});
                     $(cells[c]).find('.thumb').removeClass('pull-left');//MODDED
                     $(cells[c]).find('.box-meta').css({
                         borderBottomLeftRadius: '3px',//MODDED
                         borderBottomRightRadius: '3px',//MODDED
+                        borderTopRightRadius: '0px',//MODDED
                     });
 					$(cells[c]).css({
 						height : row_h + 'px',
@@ -80,8 +82,9 @@ function changeMargins() {
 						height : row_h + 'px',
 						maxWidth : cell_w + 'px',
 						maxHeight : row_h + 'px',
-                        borderTopRightRadius: '3px',//MODDED
+                        borderBottomRightRadius: '0px',//MODDED
                         borderBottomLeftRadius: '0px',//MODDED
+                        borderTopRightRadius: '3px',//MODDED
 					});
                     $(cells[c]).find('.thumb').removeClass('pull-left');//MODDED
 					$(cells[c]).css({
@@ -93,6 +96,7 @@ function changeMargins() {
                         position: 'initial',
                         borderBottomLeftRadius: '3px',//MODDED
                         borderBottomRightRadius: '3px',//MODDED
+                        borderTopRightRadius: '0px',//MODDED
                     });
 				}
 				images_w = 0;

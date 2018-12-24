@@ -1,0 +1,108 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Feb 23, 2015, 2:14:38 PM
+    Author     : Erik Nijenhuis <erik@xerdi.com>
+*/
+
+:focus {outline:none !important;}
+::-moz-focus-inner {border:0 !important;}
+
+@keyframes flip-in {
+    from {transform: rotateY(-90deg);-webkit-transform: rotateY(-90deg);}
+    to {transform: rotateY(0deg);-webkit-transform: rotateY(0deg);}
+}
+@-webkit-keyframes flip-in {
+    from {transform: rotateY(-90deg);-webkit-transform: rotateY(-90deg);}
+    to {transform: rotateY(0deg);-webkit-transform: rotateY(0deg);}
+}
+@keyframes flip-out {
+    from {transform: rotateY(0deg);-webkit-transform: rotateY(0deg);}
+    to {transform: rotateY(90deg);-webkit-transform: rotateY(90deg);}
+}
+@-webkit-keyframes flip-out {
+    from {transform: rotateY(0deg);-webkit-transform: rotateY(0deg);}
+    to {transform: rotateY(90deg);-webkit-transform: rotateY(90deg);}
+}
+@keyframes soften {
+    from {opacity: 1;-webkit-opacity: 1;}
+}
+@-webkit-keyframes soften {
+    from {opacity: 1;-webkit-opacity: 1;}
+}
+
+div.flip-card {
+    transition: transform 1s;
+    display: none;
+}
+div.active-card {
+    display: block;
+    transform: rotateY(0deg);
+}
+div.flip-in {
+    animation: flip-in 1s ease-out;
+    -webkit-animation: flip-in 1s;
+}
+div.flip-out {
+    animation: flip-out 1s ease-in;
+    -webkit-animation: flip-out 1s;
+}
+
+.card {
+    width: 100%;
+    height: 480px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 3px 3px 0 0;
+    transition: opacity 0.2s;
+    -webkit-transition: opacity 0.2s;
+}
+
+.card:hover {
+    animation: soften 0.2s;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.card h6 {
+    display: block;
+    position: relative;
+    text-align: center;
+    margin-top: 50px;
+    font-size: 16em;
+}
+
+.card img {
+    position:absolute;
+    left: -100%;
+    right: -100%;
+    top: -100%;
+    bottom: -100%;
+    margin: auto; 
+    min-height: 100%;
+    min-width: 100%;
+}
+
+.full-card {
+    position: relative;
+    transition: all 1.2s;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.full-card .btn-fab {
+    float: right;
+    margin-top: -28px;
+    margin-right: 14px;
+}
+
+.well {
+    background-color: #212121;
+    border-radius: 0px;
+    border: 0px solid #e3e3e3;
+    margin-bottom: 0px;
+	overflow-wrap: break-word;
+}

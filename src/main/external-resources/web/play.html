@@ -44,23 +44,10 @@
 		</script>
 		<div id="Container">
 			<div id="VideoContainer">
-                <!--
-<video id="movie" preload autoplay allowfullscreen>
-    <source src="http://www.youtube.com/wp-content/uploads/2018/09/Keane_Somewhere_Only_We_Know_Live_Acoustic_Show_London_27_04_2012-1.webm" type="video/webm; codecs=vp8,vorbis" />
-    <object width="320" height="240" type="application/x-shockwave-flash"
-            data="<?php echo "\"".get_template_directory_uri().'/inc/assets/js/video-js.swf"';?>">
-        <param name="movie" value="<?php echo "\"".get_template_directory_uri().'/inc/assets/js/video-js.swf"';?>" />
-        <param name="allowfullscreen" value="true" />
-        <param name="autoPlay" value="true" />
-        <param name="autoBuffering" value="true" />
-        <param name="flashvars" value="config={'clip': {'url': 'http://www.youtube.com/wp-content/uploads/2018/09/Keane_Somewhere_Only_We_Know_Live_Acoustic_Show_London_27_04_2012-1.webm'}}" />
-    </object>
-</video>-->
-{{^isVideo}}
-				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
-				<h2>{{name}}</h2><br>
-{{/isVideo}}
-				<{{mediaType}} id="player" class="video-js vjs-default-skin" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
+				{{^isVideo}}
+				<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
+				{{/isVideo}}
+				<{{mediaType}} id="player" class="video-js vjs-default-skin {{^isVideo}}full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
 					   data-setup='{ "html5" : { "nativeTextTracks" : true } }'
 					   poster="/thumb/{{id1}}" data-setup="{}">
 
@@ -70,7 +57,12 @@
 				{{/sub}}
 				<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 				</{{mediaType}}>
-				<div id="toolbar">
+				{{^isVideo}}
+				<div class="well {{^isVideo}}full-card{{/isVideo}}">
+					<h2>{{name}}</h2>
+				</div>
+				{{/isVideo}}
+				<div id="toolbar" class=" {{^isVideo}}full-card{{/isVideo}}">
 					<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-prev"></span></button>
 					<button id="play" onclick="play()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-play"></span></button>
 					<button id="pause" onclick="pause()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-pause"></span></button>
