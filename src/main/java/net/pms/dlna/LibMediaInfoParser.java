@@ -209,7 +209,7 @@ public class LibMediaInfoParser {
 			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new DLNAMediaAudio();
-					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
+					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format/String"), file);
 					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
 					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
 					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
@@ -738,6 +738,10 @@ public class LibMediaInfoParser {
 			)
 		) {
 			format = FormatConfiguration.AAC_LC;
+		} else if (value.equals("aac lc")) {
+			format = FormatConfiguration.AAC_LC;
+		} else if (value.equals("aac lc sbr")) {
+			format = FormatConfiguration.HE_AAC;
 		} else if (value.equals("ltp")) {
 			format = FormatConfiguration.AAC_LTP;
 		} else if (value.contains("he-aac")) {
@@ -746,10 +750,13 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.AAC_MAIN;
 		} else if (value.equals("ssr")) {
 			format = FormatConfiguration.AAC_SSR;
-		} else if (value.startsWith("a_aac/")) {
+		} else if (value.startsWith("a_aac")) {
 			if (value.equals("a_aac/mpeg2/main")) {
 				format = FormatConfiguration.AAC_MAIN;
-			} else if (value.equals("a_aac/mpeg2/lc")) {
+			} else if (
+				value.equals("a_aac/mpeg2/lc") ||
+				value.equals("a_aac-2")
+			) {
 				format = FormatConfiguration.AAC_LC;
 			} else if (value.equals("a_aac/mpeg2/lc/sbr")) {
 				format = FormatConfiguration.HE_AAC;
@@ -1512,7 +1519,7 @@ public class LibMediaInfoParser {
 			appendString("Title", MI.Get(StreamType.Audio, idx, "Title"), false, true, true);
 			streamColumns.reset();
 			sb.append("\n");
-			appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Audio, idx, "Format"), true, true);
+			appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Audio, idx, "Format/String"), true, true);
 			appendStringNextColumn(streamColumns, "Version", MI.Get(StreamType.Audio, idx, "Format_Version"), true, true);
 			appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Audio, idx, "Format_Profile"), true, true);
 			appendStringNextColumn(streamColumns, "CodecID", MI.Get(StreamType.Audio, idx, "CodecID"), true, true);
