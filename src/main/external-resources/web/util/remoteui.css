@@ -253,12 +253,33 @@ TV - REMOTE CONTROL
 	box-shadow: 0px 0px 10px #aaa;
 }
 .onFocus.different{
-	box-shadow: 0px 0px 20px #337ab7;
+	box-shadow: 0px 0px 5px #2979FF;
 	-webkit-transform: scale(1);
 	-moz-transform: scale(1);
 	-ms-transform: scale(1);
 	-o-transform: scale(1);
 	transform: scale(1);
+}
+.onFocus.different.btn-primary,.onFocus.different.btn-primary:visited{
+	color: #fff;
+    background-color: #2979FF;
+    border-color: #2962FF;
+	-webkit-border-radius: 50px;
+	-moz-border-radius: 50px;
+	border-radius: 50px;
+	border: none;
+	outline: none;
+}
+.onFocus.different.btn-primary:hover {
+    color: #fff;
+    background-color: #1565C0;
+    border-color: #0D47A1;
+	-webkit-border-radius: 50px;
+	-moz-border-radius: 50px;
+	border-radius: 50px;
+}
+.onFocus.different.btn:focus {
+    outline: none !important;
 }
 .onFocus a .caption {
 	color: #fff !important;
@@ -267,7 +288,7 @@ TV - REMOTE CONTROL
 #loadingLink{
 	position: absolute;
 	left: 50%;
-	top: 50%;
+	top: 45%;
 	margin: 0;
 }
 .loading {
@@ -312,6 +333,8 @@ TV - REMOTE CONTROL
 	-ms-transform: translate(-50%, -50%);
 	-o-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);	
+	border: none;
+	outline: none;
 }
 @keyframes rotate {
   0% {
