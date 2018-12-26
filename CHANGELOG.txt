@@ -1,4 +1,4 @@
-7.7.1 - 2018-12-??
+7.7.1 - 2018-12-27
 
 	General:
 		Fixed broken transcoding via MEncoder on Windows and Linux
