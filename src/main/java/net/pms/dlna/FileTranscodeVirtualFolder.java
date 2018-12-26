@@ -305,6 +305,8 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 						DLNAResource copy = createResourceWithAudioSubtitlePlayer(originalResource, singleAudioTrack, subtitlesTrack, null);
 						entries.add(copy);
 					}
+
+					
 				}
 			}
 

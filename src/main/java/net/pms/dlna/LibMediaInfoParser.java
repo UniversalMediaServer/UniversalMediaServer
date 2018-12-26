@@ -209,7 +209,7 @@ public class LibMediaInfoParser {
 			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new DLNAMediaAudio();
-					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format"), file);
+					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format/String"), file);
 					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
 					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
 					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
@@ -253,6 +253,7 @@ public class LibMediaInfoParser {
 								LOGGER.debug("Could not parse year from recorded date \"" + recordedDate + "\"");
 							}
 						}
+					}
 
 					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
 					currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
@@ -394,90 +395,89 @@ public class LibMediaInfoParser {
 				media.setContainer(media.getAudioVariantFormatConfigurationString());
 			}
 
-				// Separate ASF from WMV
-				if (FormatConfiguration.WMV.equals(media.getContainer())) {
-					if (
-						media.getCodecV() != null &&
-						!media.getCodecV().equals(FormatConfiguration.WMV) &&
-						!media.getCodecV().equals(FormatConfiguration.VC1)
-					) {
-						media.setContainer(FormatConfiguration.ASF);
-					} else {
-						for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
-							if (
-								audioTrack.getCodecA() != null &&
-								!audioTrack.getCodecA().equals(FormatConfiguration.WMA) &&
-								!audioTrack.getCodecA().equals(FormatConfiguration.WMAPRO) &&
-								!audioTrack.getCodecA().equals(FormatConfiguration.WMALOSSLESS) &&
-								!audioTrack.getCodecA().equals(FormatConfiguration.WMAVOICE) &&
-								!audioTrack.getCodecA().equals(FormatConfiguration.WMA10) &&
-								!audioTrack.getCodecA().equals(FormatConfiguration.MP3) // up to 128 kbit/s only (WMVSPML_MP3 profile)
-							) {
-								media.setContainer(FormatConfiguration.ASF);
-								break;
-							}
+			// Separate ASF from WMV
+			if (FormatConfiguration.WMV.equals(media.getContainer())) {
+				if (
+					media.getCodecV() != null &&
+					!media.getCodecV().equals(FormatConfiguration.WMV) &&
+					!media.getCodecV().equals(FormatConfiguration.VC1)
+				) {
+					media.setContainer(FormatConfiguration.ASF);
+				} else {
+					for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
+						if (
+							audioTrack.getCodecA() != null &&
+							!audioTrack.getCodecA().equals(FormatConfiguration.WMA) &&
+							!audioTrack.getCodecA().equals(FormatConfiguration.WMAPRO) &&
+							!audioTrack.getCodecA().equals(FormatConfiguration.WMALOSSLESS) &&
+							!audioTrack.getCodecA().equals(FormatConfiguration.WMAVOICE) &&
+							!audioTrack.getCodecA().equals(FormatConfiguration.WMA10) &&
+							!audioTrack.getCodecA().equals(FormatConfiguration.MP3) // up to 128 kbit/s only (WMVSPML_MP3 profile)
+						) {
+							media.setContainer(FormatConfiguration.ASF);
+							break;
 						}
 					}
 				}
+			}
 
-				/*
-				 * Recognize 3D layout from the filename.
-				 *
-				 * First we check for our custom naming convention, for which the filename
-				 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
-				 * or "3DOULF" or "3DOURF" for over-under layout.
-				 * For anaglyph 3D video can be used following combination:
-				 * 		3DARCG 	anaglyph_red_cyan_gray
-				 *		3DARCH 	anaglyph_red_cyan_half_color
-				 *		3DARCC 	anaglyph_red_cyan_color
-				 *		3DARCD 	anaglyph_red_cyan_dubois
-				 *		3DAGMG 	anaglyph_green_magenta_gray
-				 *		3DAGMH 	anaglyph_green_magenta_half_color
-				 *		3DAGMC 	anaglyph_green_magenta_color
-				 *		3DAGMD 	anaglyph_green_magenta_dubois
-				 *		3DAYBG 	anaglyph_yellow_blue_gray
-				 *		3DAYBH 	anaglyph_yellow_blue_half_color
-				 *		3DAYBC 	anaglyph_yellow_blue_color
-				 *		3DAYBD 	anaglyph_yellow_blue_dubois
-				 *
-				 * Next we check for common naming conventions.
-				 */
-				if (!media.is3d()) {
-					String upperCaseFileName = file.getName().toUpperCase();
-					if (upperCaseFileName.startsWith("3DSBS")) {
+			/*
+			 * Recognize 3D layout from the filename.
+			 *
+			 * First we check for our custom naming convention, for which the filename
+			 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
+			 * or "3DOULF" or "3DOURF" for over-under layout.
+			 * For anaglyph 3D video can be used following combination:
+			 * 		3DARCG 	anaglyph_red_cyan_gray
+			 *		3DARCH 	anaglyph_red_cyan_half_color
+			 *		3DARCC 	anaglyph_red_cyan_color
+			 *		3DARCD 	anaglyph_red_cyan_dubois
+			 *		3DAGMG 	anaglyph_green_magenta_gray
+			 *		3DAGMH 	anaglyph_green_magenta_half_color
+			 *		3DAGMC 	anaglyph_green_magenta_color
+			 *		3DAGMD 	anaglyph_green_magenta_dubois
+			 *		3DAYBG 	anaglyph_yellow_blue_gray
+			 *		3DAYBH 	anaglyph_yellow_blue_half_color
+			 *		3DAYBC 	anaglyph_yellow_blue_color
+			 *		3DAYBD 	anaglyph_yellow_blue_dubois
+			 *
+			 * Next we check for common naming conventions.
+			 */
+			if (!media.is3d()) {
+				String upperCaseFileName = file.getName().toUpperCase();
+				if (upperCaseFileName.startsWith("3DSBS")) {
+					LOGGER.debug("3D format SBS detected for " + file.getName());
+					media.setStereoscopy(file.getName().substring(2, 7));
+				} else if (upperCaseFileName.startsWith("3DOU")) {
+					LOGGER.debug("3D format OU detected for " + file.getName());
+					media.setStereoscopy(file.getName().substring(2, 6));
+				} else if (upperCaseFileName.startsWith("3DA")) {
+					LOGGER.debug("3D format Anaglyph detected for " + file.getName());
+					media.setStereoscopy(file.getName().substring(2, 6));
+				} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
+					LOGGER.debug("3D format HSBS detected for " + file.getName());
+					media.setStereoscopy("half side by side (left eye first)");
+				} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
+					LOGGER.debug("3D format HOU detected for " + file.getName());
+					media.setStereoscopy("half top-bottom (left eye first)");
+				} else if (upperCaseFileName.matches(".*[\\s\\.]SBS[\\s\\.].*")) {
+					if (media.getWidth() > 1920) {
 						LOGGER.debug("3D format SBS detected for " + file.getName());
-						media.setStereoscopy(file.getName().substring(2, 7));
-					} else if (upperCaseFileName.startsWith("3DOU")) {
-						LOGGER.debug("3D format OU detected for " + file.getName());
-						media.setStereoscopy(file.getName().substring(2, 6));
-					} else if (upperCaseFileName.startsWith("3DA")) {
-						LOGGER.debug("3D format Anaglyph detected for " + file.getName());
-						media.setStereoscopy(file.getName().substring(2, 6));
-					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
-						LOGGER.debug("3D format HSBS detected for " + file.getName());
+						media.setStereoscopy("side by side (left eye first)");
+					} else {
+						LOGGER.debug("3D format HSBS detected based on width for " + file.getName());
 						media.setStereoscopy("half side by side (left eye first)");
-					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
-						LOGGER.debug("3D format HOU detected for " + file.getName());
+					}
+				} else if (upperCaseFileName.matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
+					if (media.getHeight() > 1080) {
+						LOGGER.debug("3D format OU detected for " + file.getName());
+						media.setStereoscopy("top-bottom (left eye first)");
+					} else {
+						LOGGER.debug("3D format HOU detected based on height for " + file.getName());
 						media.setStereoscopy("half top-bottom (left eye first)");
-					} else if (upperCaseFileName.matches(".*[\\s\\.]SBS[\\s\\.].*")) {
-						if (media.getWidth() > 1920) {
-							LOGGER.debug("3D format SBS detected for " + file.getName());
-							media.setStereoscopy("side by side (left eye first)");
-						} else {
-							LOGGER.debug("3D format HSBS detected based on width for " + file.getName());
-							media.setStereoscopy("half side by side (left eye first)");
-						}
-					} else if (upperCaseFileName.matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
-						if (media.getHeight() > 1080) {
-							LOGGER.debug("3D format OU detected for " + file.getName());
-							media.setStereoscopy("top-bottom (left eye first)");
-						} else {
-							LOGGER.debug("3D format HOU detected based on height for " + file.getName());
-							media.setStereoscopy("half top-bottom (left eye first)");
-						}
 					}
 				}
-
+			}
 			media.postParse(type, inputFile);
 			if (parseLogger != null) {
 				LOGGER.trace("{}", parseLogger);
@@ -493,9 +493,9 @@ public class LibMediaInfoParser {
 			}
 
 			media.setMediaparsed(true);
-			}
 		}
 	}
+
 
 	public static void addAudio(DLNAMediaAudio currentAudioTrack, DLNAMediaInfo media) {
 		if (isBlank(currentAudioTrack.getLang())) {
@@ -738,6 +738,10 @@ public class LibMediaInfoParser {
 			)
 		) {
 			format = FormatConfiguration.AAC_LC;
+		} else if (value.equals("aac lc")) {
+			format = FormatConfiguration.AAC_LC;
+		} else if (value.equals("aac lc sbr")) {
+			format = FormatConfiguration.HE_AAC;
 		} else if (value.equals("ltp")) {
 			format = FormatConfiguration.AAC_LTP;
 		} else if (value.contains("he-aac")) {
@@ -746,10 +750,13 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.AAC_MAIN;
 		} else if (value.equals("ssr")) {
 			format = FormatConfiguration.AAC_SSR;
-		} else if (value.startsWith("a_aac/")) {
+		} else if (value.startsWith("a_aac")) {
 			if (value.equals("a_aac/mpeg2/main")) {
 				format = FormatConfiguration.AAC_MAIN;
-			} else if (value.equals("a_aac/mpeg2/lc")) {
+			} else if (
+				value.equals("a_aac/mpeg2/lc") ||
+				value.equals("a_aac-2")
+			) {
 				format = FormatConfiguration.AAC_LC;
 			} else if (value.equals("a_aac/mpeg2/lc/sbr")) {
 				format = FormatConfiguration.HE_AAC;
@@ -1512,7 +1519,7 @@ public class LibMediaInfoParser {
 			appendString("Title", MI.Get(StreamType.Audio, idx, "Title"), false, true, true);
 			streamColumns.reset();
 			sb.append("\n");
-			appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Audio, idx, "Format"), true, true);
+			appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Audio, idx, "Format/String"), true, true);
 			appendStringNextColumn(streamColumns, "Version", MI.Get(StreamType.Audio, idx, "Format_Version"), true, true);
 			appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Audio, idx, "Format_Profile"), true, true);
 			appendStringNextColumn(streamColumns, "CodecID", MI.Get(StreamType.Audio, idx, "CodecID"), true, true);
