@@ -73,7 +73,7 @@
 					{{#isVideo}}
 					<button id="flash" onclick="flash()" title="Switch to flash player" type="button" class="btn btn-sm btn-playbar"><span>Flash</span></button>
 					{{/isVideo}}
-					<button href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}" class="btn btn-sm btn-playbar"><span class="fa fa-download"></span></button>
+					<a href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}" class="btn btn-sm btn-playbar"><span class="fa fa-download"></span></a>
 					<button id="fullscreen" onclick="GoInFullscreen(videojs('player'));" title="Fullscreen Mode" class="btn btn-sm btn-playbar"><span class="icon-player-size-fullscreen"></span></button>
 				</div>
 			</div>
@@ -116,7 +116,7 @@
 				var player = document.getElementById('player');
 				switch (op) {
 					case 'play':
-						player.play();
+						//player.play();
 						break;
 					case 'pause':
 						player.pause(!player.paused);

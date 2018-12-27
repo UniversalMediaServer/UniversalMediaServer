@@ -754,7 +754,7 @@ ul#Media .thumb{
 ul#Media .caption:hover {
 	text-decoration: none;
 }
-#toolbar button.onFocus,#toolbar button:hover{
+#toolbar button.onFocus,#toolbar button:hover,#toolbar a.onFocus,#toolbar a:hover{
 	background-color:#ebebeb;
 	color:#2f2f2f !important;
 	-moz-transform:scale(1.1);
@@ -768,6 +768,14 @@ ul#Media .caption:hover {
 	-o-transition: transform 0.2s;
 	transition: transform 0.2s;
 	transform-origin: 50% 50%;
+	border: none;
+	outline: none;
+}
+#toolbar .btn .focus, #toolbar .btn:focus{
+    color: #000000;
+    background-color: white;
+	border: none;
+	outline: none;
 }
 /*
 * VIDEOJS CSS REWRITE, TODO: REVIEW THIS IN ALL BROWSERS
