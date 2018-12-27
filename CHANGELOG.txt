@@ -1,3 +1,14 @@
+8.0.0-a2 - 2018-12-?? - Changes since 8.0.0-a1
+
+	General:
+		Fixed support for picture-based subtitles
+		Fixed images being displayed in low quality
+		Fixed a bug when writing OpenSubtitles data to the database
+		Fixed audio flags in TRANSCODE folders
+		All changes in 7.7.1
+	Dependencies:
+		Updated MediaInfo to 18.12 on Windows and macOS
+
 7.7.1 - 2018-12-27
 
 	General:
@@ -10,7 +21,7 @@
 			Portuguese translation completed
 			Portuguese (Brazilian) translation completed
 
-8.0.0-a1 - Changes since 7.7.0
+8.0.0-a1 - 2018-12-21 - Changes since 7.7.0
 
 	General:
 		Added new Shared Content tab for managing all local and web content
