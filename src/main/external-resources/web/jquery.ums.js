@@ -214,7 +214,7 @@ function poll() {
 			success: function(json){
 				refused = 0;
 				if (json) {
-					console.log('json: '+json)
+					//console.log('json: '+json)
 					var ops = JSON.parse(json), i;
 					for (i = 0; i < ops.length; i++) {
 						var args = ops[i];
