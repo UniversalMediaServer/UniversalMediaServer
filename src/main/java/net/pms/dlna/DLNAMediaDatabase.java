@@ -68,9 +68,13 @@ public class DLNAMediaDatabase implements Runnable {
 	/**
 	 * The database version should be incremented when we change anything to
 	 * do with the database since the last released version.
-	 * Version 18: introducing "album artist" field 
+	 *
+	 * Version notes:
+	 * - 18: Introduced "album artist" field
+	 * - 19: External file
+	 * - 20: MediaInfo 18.12
 	 */
-	private final int latestVersion = 19;
+	private final int latestVersion = 20;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
