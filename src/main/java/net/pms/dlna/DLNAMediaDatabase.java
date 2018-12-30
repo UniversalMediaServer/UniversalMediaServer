@@ -618,9 +618,9 @@ public class DLNAMediaDatabase implements Runnable {
 							sub.setSubCharacterSet(elements.getString("CHARSET"));
 							media.getSubtitleTracksList().add(sub);
 						}
+					}
 
 					list.add(media);
-					}
 				}
 			}
 		} catch (SQLException se) {

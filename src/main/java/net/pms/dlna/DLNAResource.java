@@ -4191,7 +4191,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					);
 
 					if ("*".equals(audio) || DLNAMediaLang.UND.equals(audio) || Iso639.isCodesMatching(audio, audioLanguage)) {
-						boolean anyLanguage = "*".equals(sub) ||  DLNAMediaLang.UND.equals(sub);
+						boolean anyLanguage = "*".equals(sub) || DLNAMediaLang.UND.equals(sub);
 						if ("off".equals(sub)) {
 							if (deviceSpecificConfiguration.isForceExternalSubtitles()) {
 								// Ignore the "off" language for external subtitles if force external subtitles is enabled
@@ -4201,7 +4201,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										candidates.add(subtitles);
 									}
 								}
-								if (!candidates.isEmpty()) {
+
+								// If external subtitles were found, let findPrioritizedSubtitles return the right one
+								if (candidates.isEmpty()) {
+									LOGGER.trace(
+										"Disabling subtitles because we matched \"off\" and no external" +
+										"subtitles candidates were found, returning null for \"{}\"",
+										getName()
+									);
+								} else {
 									matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, true);
 									LOGGER.trace(
 										"Ignoring the \"off\" language because external " +
@@ -4209,8 +4217,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										matchedSub,
 										getName()
 									);
-									return matchedSub;
 								}
+
+								// Return either the matched external subtitles, or null if there was no external match
+								return matchedSub;
 							} else {
 								LOGGER.trace(
 									"Not looking for non-forced subtitles since they are \"off\" for audio language \"{}\"",
