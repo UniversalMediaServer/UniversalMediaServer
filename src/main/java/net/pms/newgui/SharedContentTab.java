@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
-import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -47,9 +46,7 @@ import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
-import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class SharedContentTab {
 	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(

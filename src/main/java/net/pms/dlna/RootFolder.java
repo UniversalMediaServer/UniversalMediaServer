@@ -511,7 +511,10 @@ public class RootFolder extends DLNAResource {
 	private void parseWebConf(File webConf) {
 		try {
 			// Remove any existing rows from the Web content GUI
-			((SharedContentTab.WebContentTableModel) SharedContentTab.webContentList.getModel()).setRowCount(0);
+
+			if (SharedContentTab.webContentList != null && SharedContentTab.webContentList.getModel() != null) {
+				((SharedContentTab.WebContentTableModel) SharedContentTab.webContentList.getModel()).setRowCount(0);
+			}
 
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
