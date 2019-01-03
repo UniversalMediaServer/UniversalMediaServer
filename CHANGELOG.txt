@@ -1,3 +1,14 @@
+8.0.0-b1 - 2019-01-??
+
+	General:
+		Fixed too much transcoding due to not respecting language priority settings
+		Fixed failure to store audio stream information
+		Fixed failure to start
+		Fixed missing text when adding web content
+		Fixed missing text on the first time language chooser
+		Fixed text clash on the Subtitles settings subtab of the Transcoding settings tab
+		Fixed logspam
+
 8.0.0-a2 - 2018-12-27 - Changes since 8.0.0-a1
 
 	General:
