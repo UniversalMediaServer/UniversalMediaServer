@@ -62,7 +62,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private String dbName;
 	public static final String NONAME = "###";
 	private Thread scanner;
-	private JdbcConnectionPool cp;
+	private final JdbcConnectionPool cp;
 	private int dbCount;
 
 	/**
@@ -70,9 +70,10 @@ public class DLNAMediaDatabase implements Runnable {
 	 * do with the database since the last released version.
 	 *
 	 * Version notes:
-	 * - 18: Introduced "album artist" field
-	 * - 19: External file
-	 * - 20: MediaInfo 18.12
+	 * - 18: Introduced ALBUMARTIST field
+	 * - 19: Introduced EXTERNALFILE field
+	 *       Released in versions 8.0.0-a1 and a2
+	 * - 20: No db changes, bumped version because a parsing bug was fixed
 	 */
 	private final int latestVersion = 20;
 
@@ -103,6 +104,8 @@ public class DLNAMediaDatabase implements Runnable {
 	 * Will create the "UMS-tests" profile directory and put the database
 	 * in there if it doesn't exist, in order to prevent overwriting
 	 * real databases.
+	 *
+	 * @param name the database name
 	 */
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
@@ -1045,7 +1048,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 			throw se;
 		} finally {
-			if (media.getThumb() != null) {
+			if (media != null && media.getThumb() != null) {
 				TableThumbnails.setThumbnail(media.getThumb(), name);
 			}
 		}
