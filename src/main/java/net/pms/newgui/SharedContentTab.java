@@ -29,6 +29,13 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,16 +50,21 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
 import net.pms.dlna.DLNAMediaDatabase;
+import static net.pms.dlna.RootFolder.parseFeedKey;
+import static net.pms.dlna.RootFolder.parseFeedValue;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SharedContentTab {
 	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
 		Arrays.asList(new String[] {Messages.getString("Generic.Folder"), Messages.getString("FoldTab.65")})
 	);
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
+	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 
 	private JPanel sharedPanel;
 	private JPanel sharedFoldersPanel;
@@ -161,6 +173,13 @@ public class SharedContentTab {
 		// Init all gui components
 		sharedFoldersPanel = initSharedFoldersGuiComponents(cc).build();
 		sharedWebContentPanel = initWebContentGuiComponents(cc).build();
+
+		// Load WEB.conf after we are sure the GUI has initialized
+		String webConfPath = configuration.getWebConfPath();
+		File webConf = new File(webConfPath);
+		if (webConf.exists() && configuration.getExternalNetwork()) {
+			parseWebConf(webConf);
+		}
 
 		builder.add(sharedFoldersPanel,    FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 		builder.add(sharedWebContentPanel, FormLayoutUtil.flip(cc.xyw(1, 3, 12), colSpec, orientation));
@@ -424,10 +443,12 @@ public class SharedContentTab {
 
 		webContentList.addMouseListener(new TableMouseListener(webContentList));
 
-		/* An attempt to set the correct row height adjusted for font scaling.
+		/*
+		 * An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
-		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) webContentList.getCellRenderer(0,0);
+		 * to allow 2 pixels above and below the text.
+		 */
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) webContentList.getCellRenderer(0, 0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
 		webContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		webContentList.setIntercellSpacing(new Dimension(8, 2));
@@ -457,7 +478,7 @@ public class SharedContentTab {
 
 				GroupLayout layout = new GroupLayout(addNewWebContentPanel);
 				addNewWebContentPanel.setLayout(layout);
-		
+
 				layout.setHorizontalGroup(
 					layout
 						.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -478,7 +499,7 @@ public class SharedContentTab {
 								.addContainerGap()
 					)
 				);
-		
+
 				layout.setVerticalGroup(
 					layout
 						.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -497,8 +518,8 @@ public class SharedContentTab {
 								.addContainerGap()
 						)
 				);
-		
-				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebFeedStream"), JOptionPane.OK_CANCEL_OPTION);
+
+				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
 					((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
 					updateWebContentModel();
@@ -786,6 +807,78 @@ public class SharedContentTab {
 					updateWebContentModel();
 				}
 			}
+		}
+	}
+
+	/**
+	 * This parses the web config and populates the web section of this tab.
+	 *
+	 * @param webConf
+	 */
+	public static void parseWebConf(File webConf) {
+		try {
+			// Remove any existing rows
+			((WebContentTableModel) webContentList.getModel()).setRowCount(0);
+
+			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+
+					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
+						String key = line.substring(0, line.indexOf('='));
+						String value = line.substring(line.indexOf('=') + 1);
+						String[] keys = parseFeedKey(key);
+						String sourceType = keys[0];
+						String folderName = keys[1] == null ? null : keys[1];
+
+						try {
+							if (
+								sourceType.equals("imagefeed") ||
+								sourceType.equals("audiofeed") ||
+								sourceType.equals("videofeed") ||
+								sourceType.equals("audiostream") ||
+								sourceType.equals("videostream")
+							) {
+								String[] values = parseFeedValue(value);
+								String uri = values[0];
+
+								String readableType = "";
+								switch (sourceType) {
+									case "imagefeed":
+										readableType = "Image feed";
+										break;
+									case "videofeed":
+										readableType = "Video feed";
+										break;
+									case "audiofeed":
+										readableType = "Podcast";
+										break;
+									case "audiostream":
+										readableType = "Audio stream";
+										break;
+									case "videostream":
+										readableType = "Video stream";
+										break;
+									default:
+										break;
+								}
+
+								webContentTableModel.addRow(new Object[]{readableType, folderName, uri});
+							}
+						} catch (ArrayIndexOutOfBoundsException e) {
+							// catch exception here and go with parsing
+							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
+							LOGGER.debug(null, e);
+						}
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
+		} catch (IOException e) {
+			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
+			LOGGER.debug("", e);
 		}
 	}
 }

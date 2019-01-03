@@ -510,12 +510,6 @@ public class RootFolder extends DLNAResource {
 	 */
 	private void parseWebConf(File webConf) {
 		try {
-			// Remove any existing rows from the Web content GUI
-
-			if (SharedContentTab.webContentList != null && SharedContentTab.webContentList.getModel() != null) {
-				((SharedContentTab.WebContentTableModel) SharedContentTab.webContentList.getModel()).setRowCount(0);
-			}
-
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
 				while ((line = br.readLine()) != null) {
@@ -574,34 +568,25 @@ public class RootFolder extends DLNAResource {
 									}
 								}
 
-								String readableType = "";
 								switch (sourceType) {
 									case "imagefeed":
-										readableType = "Image feed";
 										parent.addChild(new ImagesFeed(uri));
 										break;
 									case "videofeed":
-										readableType = "Video feed";
 										parent.addChild(new VideosFeed(uri));
 										break;
 									case "audiofeed":
-										readableType = "Podcast";
 										parent.addChild(new AudiosFeed(uri));
 										break;
 									case "audiostream":
-										readableType = "Audio stream";
 										parent.addChild(new WebAudioStream(uri, values[1], values[2]));
 										break;
 									case "videostream":
-										readableType = "Video stream";
 										parent.addChild(new WebVideoStream(uri, values[1], values[2]));
 										break;
 									default:
 										break;
 								}
-
-								// Update the GUI on the Shared Content tab
-								SharedContentTab.webContentTableModel.addRow(new Object[]{readableType, folderName, uri});
 							}
 						} catch (ArrayIndexOutOfBoundsException e) {
 							// catch exception here and go with parsing
@@ -616,6 +601,10 @@ public class RootFolder extends DLNAResource {
 		} catch (IOException e) {
 			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
 			LOGGER.debug("", e);
+		} finally {
+			if (SharedContentTab.webContentList != null) {
+				SharedContentTab.parseWebConf(webConf);
+			}
 		}
 	}
 

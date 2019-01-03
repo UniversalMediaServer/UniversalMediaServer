@@ -904,7 +904,7 @@ public class PMS {
 			}
 		} catch (Exception e) {
 			LOGGER.error("A serious error occurred during {} initialization: {}", PMS.NAME, e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.debug("", e);
 		}
 	}
 
