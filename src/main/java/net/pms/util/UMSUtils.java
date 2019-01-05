@@ -584,7 +584,8 @@ public class UMSUtils {
 		pw.run();
 		List<String> result = pw.getOtherResults();
 		List<String> availableMethods = new ArrayList<String>(1);
-		availableMethods.addAll(Arrays.asList("auto"));
+		availableMethods.addAll(Arrays.asList("none"));
+		availableMethods.add("auto");
 		if (result != null) {
 			for (String line : result) {
 				line = line.trim();
