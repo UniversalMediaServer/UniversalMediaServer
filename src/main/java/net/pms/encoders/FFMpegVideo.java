@@ -831,7 +831,8 @@ public class FFMpegVideo extends Player {
 				cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
 			} else {
 				if (configuration.getFFmpegGPUDecodingAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
-					cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					String[] hwaccelOptions = StringUtils.split(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					cmdList.addAll(Arrays.asList(hwaccelOptions));
 				} else {
 					cmdList.add("-hwaccel");
 					cmdList.add("auto");
