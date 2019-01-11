@@ -153,6 +153,34 @@ Function GetJRE
 		ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
 		ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
+		IfErrors CheckRegistryJDK1
+		IfFileExists $R0 0 CheckRegistryJDK1
+		Call CheckJREVersion
+		IfErrors CheckRegistryJDK1 JreFound
+
+    ; 7) Check the registry for JDK
+    CheckRegistryJDK1:
+        ClearErrors
+        ${If} ${RunningX64}
+            SetRegView 64
+        ${EndIf}
+        ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Development Kit" "CurrentVersion"
+        ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Development Kit\$R1" "JavaHome"
+        StrCpy $R0 "$R0\bin\${JAVAEXE}"
+        IfErrors CheckRegistryJDK2
+        IfFileExists $R0 0 CheckRegistryJDK2
+        Call CheckJREVersion
+        IfErrors CheckRegistryJDK2 JreFound
+
+    ; 8) Check the registry for JDK (location used by JDK 9+)
+	CheckRegistryJDK2:
+		ClearErrors
+		${If} ${RunningX64}
+			SetRegView 64
+		${EndIf}
+		ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\JDK" "CurrentVersion"
+		ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\JDK\$R1" "JavaHome"
+		StrCpy $R0 "$R0\bin\${JAVAEXE}"
 		IfErrors DownloadJRE
 		IfFileExists $R0 0 DownloadJRE
 		Call CheckJREVersion
