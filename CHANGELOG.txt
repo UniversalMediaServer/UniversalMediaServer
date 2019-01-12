@@ -1,4 +1,4 @@
-8.0.0-b1 - 2019-01-??
+8.0.0-b1 - 2019-01-12
 
 	General:
 		Added option to disable FFmpeg GPU acceleration
