@@ -831,7 +831,8 @@ public class FFMpegVideo extends Player {
 				cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
 			} else {
 				if (configuration.getFFmpegGPUDecodingAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
-					cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					String[] hwaccelOptions = StringUtils.split(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					cmdList.addAll(Arrays.asList(hwaccelOptions));
 				} else {
 					cmdList.add("-hwaccel");
 					cmdList.add("auto");
@@ -920,7 +921,7 @@ public class FFMpegVideo extends Player {
 			)
 		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
-			MEncoderVideo mv = new MEncoderVideo();
+			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);
 			return mv.launchTranscode(dlna, media, params);
 		}
 
