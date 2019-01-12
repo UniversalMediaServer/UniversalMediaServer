@@ -838,7 +838,11 @@ public class FFMpegVideo extends Player {
 		if (nThreads > 0 && !configuration.isGPUAcceleration()) {
 			cmdList.add("-threads");
 			cmdList.add(String.valueOf(nThreads));
-		} else if (configuration.isGPUAcceleration() && !avisynth) {
+		} else if (
+			configuration.isGPUAcceleration() &&
+			!avisynth &&
+			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"))
+		) {
 			// GPU decoding method
 			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
 				cmdList.add("-hwaccel");

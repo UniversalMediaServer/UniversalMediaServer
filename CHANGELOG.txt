@@ -1,6 +1,7 @@
 8.0.0-b1 - 2019-01-??
 
 	General:
+		Added option to disable FFmpeg GPU acceleration
 		Fixed too much transcoding due to not respecting language priority settings
 		Fixed failure to store audio stream information
 		Fixed failure to start
