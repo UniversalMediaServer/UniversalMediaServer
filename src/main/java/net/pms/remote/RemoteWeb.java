@@ -34,11 +34,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.samskivert.mustache.MustacheException;
 import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.BasicAuthenticator;
@@ -66,7 +61,7 @@ import net.pms.newgui.DbgPacker;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
