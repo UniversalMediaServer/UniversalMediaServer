@@ -9,6 +9,7 @@
 		Fixed missing text on the first time language chooser
 		Fixed text clash on the Subtitles settings subtab of the Transcoding settings tab
 		Fixed logspam
+		All changes in 7.8.0
 
 7.8.0 - 2019-01-12
 
