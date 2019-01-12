@@ -840,29 +840,28 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(nThreads));
 		} else if (configuration.isGPUAcceleration() && !avisynth) {
 			// GPU decoding method
-			if (!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"))) {
-				if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
+			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
+				cmdList.add("-hwaccel");
+				cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
+			} else {
+				if (configuration.getFFmpegGPUDecodingAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
+					String[] hwaccelOptions = StringUtils.split(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					cmdList.addAll(Arrays.asList(hwaccelOptions));
+				} else {
 					cmdList.add("-hwaccel");
-					cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
-				} else {
-					if (configuration.getFFmpegGPUDecodingAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
-						cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod());
-					} else {
-						cmdList.add("-hwaccel");
-						cmdList.add("auto");
-					}
+					cmdList.add("auto");
 				}
+			}
 
-				// GPU decoding threads
-				if (configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim().matches("^[0-9]+$")) {
-					if (Integer.parseInt(configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim()) > 0) {
-						cmdList.add("-threads");
-						cmdList.add(String.valueOf(configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim()));
-					}
-				} else {
+			// GPU decoding threads
+			if (configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim().matches("^[0-9]+$")) {
+				if (Integer.parseInt(configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim()) > 0) {
 					cmdList.add("-threads");
-					cmdList.add("1");
+					cmdList.add(String.valueOf(configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim()));
 				}
+			} else {
+				cmdList.add("-threads");
+				cmdList.add("1");
 			}
 		}
 
@@ -936,7 +935,7 @@ public class FFMpegVideo extends Player {
 			)
 		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
-			MEncoderVideo mv = new MEncoderVideo();
+			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);
 			return mv.launchTranscode(dlna, media, params);
 		}
 

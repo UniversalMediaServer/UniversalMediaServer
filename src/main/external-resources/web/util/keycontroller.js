@@ -465,6 +465,12 @@ function moveInPlay(key) {
 			}
 			break;
 		}
+		case VK_UP: {
+			$('.onFocus').removeClass('onFocus');
+			$('#HomeButton').addClass('onFocus');
+			curLevel = level.HOME;
+			break;
+		}
 		case VK_STOP: {
 			history.back();
 			break;
@@ -632,7 +638,10 @@ function emuleClick() {
 	var link_level3 = $('.onFocus').find('a:first').attr('href');
 	if (link_level1 != undefined) {
 		if(link_level1!="#keyboard" && link_level1!="#") {
-			window.location = link_level1;
+			if($('.onFocus').attr('id')=="DownloadLink"){
+					window.open(link_level1);
+				}
+			else{window.location = link_level1;}
 		} else if(link_level1=="#") {
 			$('.onFocus').click();
 		} else {launchVirtualKeyboard();}
@@ -651,6 +660,12 @@ function emuleClick() {
 	} else {
 		$('.onFocus').click();
 	}
+}
+function simulateClick(control)
+{
+    var evObj = document.createEvent('MouseEvents');
+	evObj.initMouseEvent('click', true, true, window, 1, 12, 345, 7, 220, false, false, true, false, 0, null );
+	control.dispatchEvent(evObj);
 }
 //Function to move focus to screen center
 function moveToFocus(){

@@ -9,6 +9,30 @@
 		Fixed text clash on the Subtitles settings subtab of the Transcoding settings tab
 		Fixed logspam
 
+7.8.0 - 2019-01-12
+
+	General:
+		Added examples for all binary tools paths in UMS.conf (thanks, Amadeus-!)
+		Added detection of JDK to the Windows installer (thanks, siboXD!)
+		Fixed custom option parsing for ffmpeg_gpu_decoding_acceleration_method (thanks, goncalossilva!)
+		Fixed error when FFmpeg deferred to MEncoder
+	Web interface:
+		Added Subtitle Translator to the menu (thanks, atamariya!)
+		Added new home screen with automatic entry (thanks, Abel Espinosa!)
+		Added player navigation using keys to return to home screen (thanks, Abel Espinosa!)
+		Added new logo icon fully displayed and transparent in web interface browse view (thanks, Abel Espinosa!)
+		Made caption, folder list and play toolbar buttons compliant with material design (thanks, Abel Espinosa!)
+		Fixed audio thumbnails (thanks, Abel Espinosa!)
+		Fixed some buttons not displaying correctly (thanks, Abel Espinosa!)
+		Fixed broken hover effect on Firefox (thanks, Abel Espinosa!)
+		Modified menu icons
+	Languages:
+		Updated translations via Crowdin:
+			French translation updated
+			Icelandic translation updated
+			Japanese translation updated
+			Ukranian translation updated
+
 8.0.0-a2 - 2018-12-27 - Changes since 8.0.0-a1
 
 	General:
