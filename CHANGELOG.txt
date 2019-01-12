@@ -1,3 +1,37 @@
+7.8.0 - 2019-01-??
+
+	General:
+		Added examples for all binary tools paths in UMS.conf (thanks, Amadeus-!)
+		Added detection of JDK to the Windows installer (thanks, siboXD!)
+		Fixed custom option parsing for ffmpeg_gpu_decoding_acceleration_method (thanks, goncalossilva!)
+		Fixed error when FFmpeg deffered to MEncoder
+	Web interface:
+		Added Subtitle Translator to the menu (thanks, atamariya!)
+		Added new home screen with automatic entry (thanks, Abel Espinosa!)
+		Added player navigation using keys to return to home screen (thanks, Abel Espinosa!)
+		Added new logo icon fully displayed and transparent in web interface browse view (thanks, Abel Espinosa!)
+		Made caption, folder list and play toolbar buttons compliant with material design (thanks, Abel Espinosa!)
+		Fixed audio thumbnails (thanks, Abel Espinosa!)
+		Fixed some buttons not displaying correctly (thanks, Abel Espinosa!)
+		Fixed broken hover effect on Firefox (thanks, Abel Espinosa!)
+	Languages:
+		Updated translations via Crowdin:
+			French translation updated
+			Icelandic translation updated
+			Japanese translation updated
+			Ukranian translation updated
+
+8.0.0-a2 - 2018-12-27 - Changes since 8.0.0-a1
+
+	General:
+		Fixed support for picture-based subtitles
+		Fixed images being displayed in low quality
+		Fixed a bug when writing OpenSubtitles data to the database
+		Fixed audio flags in TRANSCODE folders
+		All changes in 7.7.1
+	Dependencies:
+		Updated MediaInfo to 18.12 on Windows and macOS
+
 7.7.1 - 2018-12-27
 
 	General:
@@ -9,6 +43,17 @@
 			German translation completed
 			Portuguese translation completed
 			Portuguese (Brazilian) translation completed
+
+8.0.0-a1 - 2018-12-21 - Changes since 7.7.0
+
+	General:
+		Added new Shared Content tab for managing all local and web content
+		Added country flags for audio and subtitles to video thumbnails in TRANSCODE folders
+		Added option to customize the subtitles info that is appended to filenames
+		Made the subtitles info more standardized
+		Greatly optimized memory use and long-term stability (thanks, skeptical!)
+		Improved default web content entries
+		Fixed a lot of bugs related to subtitles
 
 7.7.0 - 2018-12-21
 
