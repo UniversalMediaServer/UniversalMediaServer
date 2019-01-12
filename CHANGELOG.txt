@@ -1,10 +1,10 @@
-7.8.0 - 2019-01-??
+7.8.0 - 2019-01-12
 
 	General:
 		Added examples for all binary tools paths in UMS.conf (thanks, Amadeus-!)
 		Added detection of JDK to the Windows installer (thanks, siboXD!)
 		Fixed custom option parsing for ffmpeg_gpu_decoding_acceleration_method (thanks, goncalossilva!)
-		Fixed error when FFmpeg deffered to MEncoder
+		Fixed error when FFmpeg deferred to MEncoder
 	Web interface:
 		Added Subtitle Translator to the menu (thanks, atamariya!)
 		Added new home screen with automatic entry (thanks, Abel Espinosa!)
@@ -14,6 +14,7 @@
 		Fixed audio thumbnails (thanks, Abel Espinosa!)
 		Fixed some buttons not displaying correctly (thanks, Abel Espinosa!)
 		Fixed broken hover effect on Firefox (thanks, Abel Espinosa!)
+		Modified menu icons
 	Languages:
 		Updated translations via Crowdin:
 			French translation updated
