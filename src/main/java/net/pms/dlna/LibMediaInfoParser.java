@@ -672,14 +672,14 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MP3;
 		} else if (
 			value.equals("lc") ||
+			value.equals("aac lc") ||
+			value.equals("mp4a-40-2") ||
 			value.equals("00001000-0000-FF00-8000-00AA00389B71") ||
 			(
 				value.equals("aac") &&
 				FormatConfiguration.AVI.equals(media.getContainer())
 			)
 		) {
-			format = FormatConfiguration.AAC_LC;
-		} else if (value.equals("aac lc")) {
 			format = FormatConfiguration.AAC_LC;
 		} else if (value.equals("aac lc sbr")) {
 			format = FormatConfiguration.HE_AAC;
@@ -723,8 +723,6 @@ public class LibMediaInfoParser {
 			value.equals("mp4a-40-22")
 		) {
 			format = FormatConfiguration.ER_BSAC;
-		} else if (value.equals("mp4a-40-2")) {
-			format = FormatConfiguration.AAC_LC;
 		} else if (value.startsWith("adpcm")) {
 			format = FormatConfiguration.ADPCM;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
