@@ -191,6 +191,7 @@ public class LibMediaInfoParser {
 						value = MI.Get(video, i, "Format_Profile");
 						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
 							media.setAvcLevel(getAvcLevel(value));
+							media.setH264Profile(getAvcProfile(value));
 						}
 
 						if (parseLogger != null) {
