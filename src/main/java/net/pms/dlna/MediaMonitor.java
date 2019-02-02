@@ -232,15 +232,15 @@ public class MediaMonitor extends VirtualFolder {
 						String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
 						if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
 							// Move the video to a different folder
-							boolean moved = true;
+							boolean moved = false;
 							File newFile = null;
 
 							try {
 								Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
 								LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
 								newFile = new File(newDirectory + playedFile.getName());
+								moved = true;
 							} catch (IOException e) {
-								moved = false;
 								LOGGER.debug("Moving {} failed, trying again in 3 seconds: {}", playedFile.getName(), e.getMessage());
 
 								try {
@@ -248,8 +248,8 @@ public class MediaMonitor extends VirtualFolder {
 									Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
 									LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
 									newFile = new File(newDirectory + playedFile.getName());
+									moved = true;
 								} catch (InterruptedException e2) {
-									moved = false;
 									LOGGER.debug(
 										"Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}",
 										playedFile.getName(),
@@ -257,7 +257,6 @@ public class MediaMonitor extends VirtualFolder {
 									);
 									Thread.currentThread().interrupt();
 								} catch (IOException e3) {
-									moved = false;
 									LOGGER.debug("Moving {} failed a second time: {}", playedFile.getName(), e3.getMessage());
 								}
 							}
