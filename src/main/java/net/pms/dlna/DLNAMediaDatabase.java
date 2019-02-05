@@ -71,9 +71,10 @@ public class DLNAMediaDatabase implements Runnable {
 	 *
 	 * Version notes:
 	 * - 18: Introduced ALBUMARTIST field
-	 * - 19: Introduced EXTERNALFILE field
+	 * - 19: Introduced EXTERNALFILE and CHARSET fields
 	 *       Released in versions 8.0.0-a1 and a2
 	 * - 20: No db changes, bumped version because a parsing bug was fixed
+	 *       Released in version 8.0.0-b1
 	 */
 	private final int latestVersion = 20;
 

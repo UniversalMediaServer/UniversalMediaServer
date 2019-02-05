@@ -4918,14 +4918,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Whether to disable connection to external entities to prevent the XML External Entity vurnelability.
+	 * Whether to disable connection to external entities to prevent the XML External Entity vulnerability.
 	 *
 	 * @return default {@code true} whether to disable external entities.
 	 */
 	public boolean disableExternalEntities() {
 		return getBoolean(KEY_DISABLE_EXTERNAL_ENTITIES, true);
-  }
-	
+	}
+
 	public List<String> getWebConfigurationFileHeader() {
 		return Arrays.asList(
 			"##########################################################################################################",
