@@ -195,6 +195,7 @@ public class LibMediaInfoParser {
 						value = MI.Get(video, i, "Format_Profile");
 						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
 							media.setAvcLevel(getAvcLevel(value));
+							media.setH264Profile(getAvcProfile(value));
 						}
 
 						if (parseLogger != null) {
@@ -731,14 +732,14 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MP3;
 		} else if (
 			value.equals("lc") ||
+			value.equals("aac lc") ||
+			value.equals("mp4a-40-2") ||
 			value.equals("00001000-0000-FF00-8000-00AA00389B71") ||
 			(
 				value.equals("aac") &&
 				FormatConfiguration.AVI.equals(media.getContainer())
 			)
 		) {
-			format = FormatConfiguration.AAC_LC;
-		} else if (value.equals("aac lc")) {
 			format = FormatConfiguration.AAC_LC;
 		} else if (value.equals("aac lc sbr")) {
 			format = FormatConfiguration.HE_AAC;

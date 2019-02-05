@@ -911,9 +911,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else if (!format.isCompatible(media, renderer)) {
 				isIncompatible = true;
 				if (renderer == null) {
-					LOGGER.trace(prependTraceReason + "the renderer is not recognised");
+					LOGGER.trace(prependTraceReason + "the renderer is not recognised", getName());
 				} else {
-					LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", renderer.getRendererName());
+					LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", getName(), renderer.getRendererName());
 				}
 			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
 				if (
