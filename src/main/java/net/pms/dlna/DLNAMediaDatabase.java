@@ -45,6 +45,8 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.nio.file.Path;
+import java.util.List;
 import net.pms.newgui.SharedContentTab;
 
 /**
@@ -1355,7 +1357,8 @@ public class DLNAMediaDatabase implements Runnable {
 			/**
 			 * Cleanup of FILES table
 			 *
-			 * Removes entries that are not on the hard drive anymore.
+			 * Removes entries that are not on the hard drive anymore, and
+			 * ones that are no longer shared.
 			 */
 			ps = conn.prepareStatement("SELECT COUNT(*) FROM FILES");
 			rs = ps.executeQuery();
@@ -1374,13 +1377,32 @@ public class DLNAMediaDatabase implements Runnable {
 			if (dbCount > 0) {
 				ps = conn.prepareStatement("SELECT FILENAME, MODIFIED, ID FROM FILES", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 				rs = ps.executeQuery();
+
+				List<Path> sharedFolders = configuration.getSharedFolders();
+				boolean isFileStillShared = false;
+
 				while (rs.next()) {
 					String filename = rs.getString("FILENAME");
 					long modified = rs.getTimestamp("MODIFIED").getTime();
 					File file = new File(filename);
 					if (!file.exists() || file.lastModified() != modified) {
+						LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
 						rs.deleteRow();
+					} else {
+						// the file exists on the hard drive, but now check if we are still sharing it
+						for (Path folder : sharedFolders) {
+							if (filename.contains(folder.toString())) {
+								isFileStillShared = true;
+								break;
+							}
+						}
+
+						if (!isFileStillShared) {
+							LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
+							rs.deleteRow();
+						}
 					}
+
 					i++;
 					int newpercent = i * 100 / dbCount;
 					if (newpercent > oldpercent) {
