@@ -3113,6 +3113,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				return folders;
 			}
 			String[] foldersArray = ignoredFolderNamesString.trim().split("\\s*,\\s*");
+			ignoredFolderNames = new ArrayList<>();
 
 			for (String folder : foldersArray) {
 				/*

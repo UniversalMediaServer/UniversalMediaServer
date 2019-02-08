@@ -32,7 +32,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
-import net.pms.util.StringUtil.LetterCase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -254,6 +253,8 @@ public class MapFile extends DLNAResource {
 						addChild(d, true, isAddGlobally);
 					}
 				} else {
+					ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
+
 					/* Optionally ignore empty directories */
 					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 						LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
@@ -265,7 +266,10 @@ public class MapFile extends DLNAResource {
 						if (!emptyFoldersToRescan.contains(f)) {
 							emptyFoldersToRescan.add(f);
 						}
-					} else { // Otherwise add the file
+					} else if (f.isDirectory() && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(f.getName())) {
+						LOGGER.debug("Ignoring {} because it is in the ignored folders list", f.getName());
+					} else {
+						// Otherwise add the file
 						RealFile rf = new RealFile(f);
 						if (searchList != null) {
 							searchList.add(rf);
