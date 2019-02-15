@@ -396,7 +396,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("-c:a");
 		cmdList.add("aac");
 		cmdList.add("-ab");
-		cmdList.add("16k");
+		cmdList.add("128k");
 //		cmdList.add("-ar");
 //		cmdList.add("44100");
 		cmdList.add("-pix_fmt");
