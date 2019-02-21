@@ -1,4 +1,4 @@
-7.9.0 - 2019-2-??
+7.9.0 - 2019-2-22
 
 	General:
 		Added the ability to ignore folders by name, which defaults to ".unwanted"
