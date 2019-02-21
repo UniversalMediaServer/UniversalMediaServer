@@ -1,3 +1,10 @@
+8.0.0-RC1 - 2019-2-22
+
+	General
+		Database cleanup step removes files that are no longer shared
+		Cleanup of new config settings
+		All changes in 7.9.0
+
 7.9.0 - 2019-2-22
 
 	General:
