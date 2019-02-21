@@ -47,8 +47,8 @@
 				{{^isVideo}}
 				<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
 				{{/isVideo}}
-				<{{mediaType}} id="player" class="video-js vjs-default-skin {{^isVideo}}full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
-					   data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+				<{{mediaType}} id="player" class="video-js vjs-default-skin {{^isVideo}}full-card card vjs-live vjs-liveui{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
+					   data-setup='{ "html5" : { "nativeTextTracks" : true }, "liveui": true }'
 					   poster="/thumb/{{id1}}" data-setup="{}">
 
 					<source src="/media/{{id1}}" type="{{mime}}">
