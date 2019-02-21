@@ -179,6 +179,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
+	protected static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
 	protected static final String KEY_FOLDERS = "folders";
 	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
@@ -3030,6 +3031,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	@GuardedBy("sharedFoldersLock")
 	private ArrayList<Path> ignoredFolders;
 
+	private ArrayList<String> ignoredFolderNames;
+
+	/**
+	 * Whether folder_names_ignored has been read.
+	 */
+	private boolean ignoredFolderNamesRead;
+
 	private void readSharedFolders() {
 		synchronized (sharedFoldersLock) {
 			if (!sharedFoldersRead) {
@@ -3093,6 +3101,38 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 			return ignoredFolders;
 		}
+	}
+
+	/**
+	 * @return The {@link List} of {@link Path}s of ignored folder names.
+	 */
+	@Nonnull
+	public ArrayList<String> getIgnoredFolderNames() {
+		if (!ignoredFolderNamesRead) {
+			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted");
+
+			ArrayList<String> folders = new ArrayList<>();
+			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
+				return folders;
+			}
+			String[] foldersArray = ignoredFolderNamesString.trim().split("\\s*,\\s*");
+			ignoredFolderNames = new ArrayList<>();
+
+			for (String folder : foldersArray) {
+				/*
+				 * Unescape embedded commas. Note: Backslashing isn't safe as it
+				 * conflicts with the Windows path separator.
+				 */
+				folder = folder.replaceAll("&comma;", ",");
+
+				// add the path even if there are problems so that the user can update the shared folders as required.
+				ignoredFolderNames.add(folder);
+			}
+
+			ignoredFolderNamesRead = true;
+		}
+
+		return ignoredFolderNames;
 	}
 
 	/**
