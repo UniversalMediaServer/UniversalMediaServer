@@ -1,3 +1,26 @@
+7.9.0 - 2019-2-22
+
+	General:
+		Added the ability to ignore folders by name, which defaults to ".unwanted"
+		The server shows up on devices sooner
+		Increased the difference between button hover/pressed states
+		Improved stability and logging when moving files after fully playing
+		Improved recognition of AAC
+		Fixed H.264 profile not updating
+		Fixed low bitrate audio on transcoded web videos (thanks, SsJVasto!)
+		Fixed content updating in the Media Library on some devices
+		Logging fixes
+	Renderers:
+		Improved support for Roku 4
+		Improved support for Samsung 9 Series TVs
+	Languages:
+		Updated translations via Crowdin:
+			Dutch translation updated
+			Bulgarian translation updated
+			Korean translation updated
+			Swedish translation updated
+			Turkish translation updated
+
 8.0.0-b1 - 2019-01-12
 
 	General:
