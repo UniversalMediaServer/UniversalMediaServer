@@ -218,11 +218,15 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 		for (String f : addedString) {
 			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
+				String nameToDisplay = null;
+				if (expectedOutput == SEASONS && f.length() != 4) {
+					nameToDisplay = Messages.getString("VirtualFolder.6") + " " + f;
+				}
 				String sqls2[] = new String[sqls.length - 1];
 				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 				System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
-				addChild(new MediaLibraryFolder(f, sqls2, expectedOutputs2));
+				addChild(new MediaLibraryFolder(f, sqls2, expectedOutputs2, nameToDisplay));
 			}
 		}
 
