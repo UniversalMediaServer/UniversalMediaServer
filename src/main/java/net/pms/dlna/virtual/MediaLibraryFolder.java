@@ -131,6 +131,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	private String transformSQL(String sql) {
+		int i = 1;
 		DLNAResource resource = this;
 		sql = sql.replace("${0}", transformName(getName()));
 		while (resource.getParent() != null) {
@@ -138,6 +139,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			sql = sql.replace("${" + i + "}", transformName(resource.getName()));
 			i++;
 		}
+
 		return sql;
 	}
 
