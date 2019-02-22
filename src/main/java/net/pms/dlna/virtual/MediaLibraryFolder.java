@@ -131,18 +131,12 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	private String transformSQL(String sql) {
+		DLNAResource resource = this;
 		sql = sql.replace("${0}", transformName(getName()));
-		if (getParent() != null) {
-			sql = sql.replace("${1}", transformName(getParent().getName()));
-			if (getParent().getParent() != null) {
-				sql = sql.replace("${2}", transformName(getParent().getParent().getName()));
-				if (getParent().getParent().getParent() != null) {
-					sql = sql.replace("${3}", transformName(getParent().getParent().getParent().getName()));
-					if (getParent().getParent().getParent().getParent() != null) {
-						sql = sql.replace("${4}", transformName(getParent().getParent().getParent().getParent().getName()));
-					}
-				}
-			}
+		while (resource.getParent() != null) {
+			resource = resource.getParent();
+			sql = sql.replace("${" + i + "}", transformName(resource.getName()));
+			i++;
 		}
 		return sql;
 	}
