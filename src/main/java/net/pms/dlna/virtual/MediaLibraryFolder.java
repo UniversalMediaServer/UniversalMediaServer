@@ -56,7 +56,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						if (expectedOutput == FILES) {
+						if (expectedOutput != FILES_NOSORT) {
 							UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						}
 						for (File f : list) {
