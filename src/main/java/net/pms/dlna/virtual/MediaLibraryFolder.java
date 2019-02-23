@@ -53,68 +53,35 @@ public class MediaLibraryFolder extends VirtualFolder {
 			int expectedOutput = expectedOutputs[0];
 			if (sql != null) {
 				sql = transformSQL(sql);
-				if (expectedOutput == FILES) {
+				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						if (expectedOutput == FILES) {
+							UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						}
 						for (File f : list) {
 							addChild(new RealFile(f));
+							if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
+								addChild(new RealFile(f));
+							} else if (expectedOutput == PLAYLISTS) {
+								addChild(new PlaylistFolder(f));
+							} else if (expectedOutput == ISOS) {
+								addChild(new DVDISOFile(f));
+							}
 						}
 					}
-				} else if (expectedOutput == FILES_NOSORT) {
-					ArrayList<File> list = database.getFiles(sql);
-					if (list != null) {
-						for (File f : list) {
-							addChild(new RealFile(f));
-						}
-					}
-				} else if (expectedOutput == PLAYLISTS) {
-					ArrayList<File> list = database.getFiles(sql);
-					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
-						for (File f : list) {
-							addChild(new PlaylistFolder(f));
-						}
-					}
-				} else if (expectedOutput == ISOS) {
-					ArrayList<File> list = database.getFiles(sql);
-					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
-						for (File f : list) {
-							addChild(new DVDISOFile(f));
-						}
-					}
-				} else if (expectedOutput == TEXTS) {
-					ArrayList<String> list = database.getStrings(sql);
-					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
-						for (String s : list) {
-							String sqls2[] = new String[sqls.length - 1];
-							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
-							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
-							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
-							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
-						}
-					}
-				} else if (expectedOutput == TEXTS_NOSORT) {
-					ArrayList<String> list = database.getStrings(sql);
-					if (list != null) {
-						for (String s : list) {
-							String sqls2[] = new String[sqls.length - 1];
-							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
-							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
-							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
-							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2));
-						}
-					}
-				} else if (expectedOutput == SEASONS) {
+				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 					String nameToDisplay;
 					ArrayList<String> list = database.getStrings(sql);
 					if (list != null) {
-						UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						if (expectedOutput != TEXTS_NOSORT) {
+							UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+						}
 						for (String s : list) {
 							nameToDisplay = null;
-							if (s.length() != 4) {
+							
+							// Don't prepend "Season" text to years 
+							if (expectedOutput == SEASONS && s.length() != 4) {
 								nameToDisplay = Messages.getString("VirtualFolder.6") + " " + s;
 							}
 
@@ -221,9 +188,12 @@ public class MediaLibraryFolder extends VirtualFolder {
 		for (String f : addedString) {
 			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 				String nameToDisplay = null;
+
+				// Don't prepend "Season" text to years 
 				if (expectedOutput == SEASONS && f.length() != 4) {
 					nameToDisplay = Messages.getString("VirtualFolder.6") + " " + f;
 				}
+
 				String sqls2[] = new String[sqls.length - 1];
 				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
