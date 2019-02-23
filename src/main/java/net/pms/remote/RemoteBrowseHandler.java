@@ -82,6 +82,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		
 		String backUri = "javascript:history.back()";
 		if (
+			!resources.isEmpty() &&
 			resources.get(0).getParent() != null &&
 			resources.get(0).getParent().getParent() != null &&
 			resources.get(0).getParent().getParent().isFolder()
