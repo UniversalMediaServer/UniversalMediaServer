@@ -127,82 +127,86 @@ public class MediaLibraryFolder extends VirtualFolder {
 	 */
 	@Override
 	public void doRefreshChildren() {
-		ArrayList<File> list = null;
-		ArrayList<String> strings = null;
+		ArrayList<File> filesListFromDb = null;
+		ArrayList<String> virtualFoldersListFromDb = null;
 		int expectedOutput = 0;
 		if (sqls.length > 0) {
 			String sql = sqls[0];
+			
+			/**
+			 * @todo work with all expectedOutputs instead of just the first
+			 */
 			expectedOutput = expectedOutputs[0];
 			if (sql != null) {
 				sql = transformSQL(sql);
 				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
-					list = database.getFiles(sql);
+					filesListFromDb = database.getFiles(sql);
 				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
-					strings = database.getStrings(sql);
+					virtualFoldersListFromDb = database.getStrings(sql);
 				}
 			}
 		}
-		ArrayList<File> addedFiles = new ArrayList<>();
-		ArrayList<String> addedString = new ArrayList<>();
-		ArrayList<DLNAResource> removedFiles = new ArrayList<>();
-		ArrayList<DLNAResource> removedString = new ArrayList<>();
+		ArrayList<File> newFiles = new ArrayList<>();
+		ArrayList<String> newVirtualFolders = new ArrayList<>();
+		ArrayList<DLNAResource> oldFiles = new ArrayList<>();
+		ArrayList<DLNAResource> oldVirtualFolders = new ArrayList<>();
 
-		if (list != null) {
-			UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
+		if (filesListFromDb != null) {
+			UMSUtils.sort(filesListFromDb, PMS.getConfiguration().getSortMethod(null));
 
-			for (File file : list) {
+			for (File file : filesListFromDb) {
 				for (DLNAResource child : getChildren()) {
-					removedFiles.add(child);
+					oldFiles.add(child);
 				}
-				addedFiles.add(file);
+				newFiles.add(file);
 			}
 		}
 
-		if (strings != null) {
-			UMSUtils.sort(strings, PMS.getConfiguration().getSortMethod(null));
+		if (virtualFoldersListFromDb != null) {
+			UMSUtils.sort(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
 
-			for (String f : strings) {
+			for (String f : virtualFoldersListFromDb) {
 				for (DLNAResource child : getChildren()) {
-					removedString.add(child);
+					oldVirtualFolders.add(child);
 				}
-				addedString.add(f);
+				newVirtualFolders.add(f);
 			}
 		}
 
-		for (DLNAResource f : removedFiles) {
-			getChildren().remove(f);
+		for (DLNAResource fileResource : oldFiles) {
+			getChildren().remove(fileResource);
 		}
-		for (DLNAResource s : removedString) {
-			getChildren().remove(s);
+		for (DLNAResource virtualFolderResource : oldVirtualFolders) {
+			getChildren().remove(virtualFolderResource);
 		}
-		for (File f : addedFiles) {
+		for (File file : newFiles) {
 			if (expectedOutput == FILES) {
-				addChild(new RealFile(f));
+				addChild(new RealFile(file));
 			} else if (expectedOutput == PLAYLISTS) {
-				addChild(new PlaylistFolder(f));
+				addChild(new PlaylistFolder(file));
 			} else if (expectedOutput == ISOS) {
-				addChild(new DVDISOFile(f));
+				addChild(new DVDISOFile(file));
 			}
 		}
-		for (String f : addedString) {
+		for (String virtualFolderName : newVirtualFolders) {
 			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 				String nameToDisplay = null;
 
 				// Don't prepend "Season" text to years 
-				if (expectedOutput == SEASONS && f.length() != 4) {
-					nameToDisplay = Messages.getString("VirtualFolder.6") + " " + f;
+				if (expectedOutput == SEASONS && virtualFolderName.length() != 4) {
+					nameToDisplay = Messages.getString("VirtualFolder.6") + " " + virtualFolderName;
 				}
 
 				String sqls2[] = new String[sqls.length - 1];
 				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 				System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
-				addChild(new MediaLibraryFolder(f, sqls2, expectedOutputs2, nameToDisplay));
+				addChild(new MediaLibraryFolder(virtualFolderName, sqls2, expectedOutputs2, nameToDisplay));
 			}
 		}
 
 		setUpdateId(this.getIntId());
-		//return removedFiles.size() != 0 || addedFiles.size() != 0 || removedString.size() != 0 || addedString.size() != 0;
+		//return oldFiles.size() != 0 || newFiles.size() != 0 || oldVirtualFolders.size() != 0 || newVirtualFolders.size() != 0;
 	}
 
 	@Override
