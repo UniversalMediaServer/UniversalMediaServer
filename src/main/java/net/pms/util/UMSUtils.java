@@ -604,4 +604,27 @@ public class UMSUtils {
 		configuration.setFFmpegAvailableGPUDecodingAccelerationMethods(availableMethods);
 		configuration.save();
 	}
+
+	/**
+	 * @see https://stackoverflow.com/a/19155453/2049714
+	 * @param a first list to compare
+	 * @param b second list to compare
+	 * @return whether the lists are equal
+	 */
+	public static boolean isListsEqual(ArrayList<String> a, ArrayList<String> b) {
+		// Check for sizes and nulls
+		if (a == null && b == null) {
+			return true;
+		}
+
+		if ((a == null && b != null) || (a != null && b == null) || (a.size() != b.size())) {
+			return false;
+		}
+
+		// Sort and compare the two lists          
+		Collections.sort(a);
+		Collections.sort(b);
+
+		return a.equals(b);
+	}
 }

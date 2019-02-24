@@ -25,7 +25,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
 	private String displayNameOverride;
-	private String sqlResult;
+	private ArrayList<String> populatedVirtualFoldersListFromDb;
+	private ArrayList<String> populatedFilesListFromDb;
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -78,8 +79,32 @@ public class MediaLibraryFolder extends VirtualFolder {
 		return name;
 	}
 
+	/**
+	 * Whether the contents of this virtual folder should be refreshed.
+	 *
+	 * @return true if the old cached SQL result matches the new one.
+	 */
 	@Override
 	public boolean isRefreshNeeded() {
+		int expectedOutput = 0;
+		if (sqls.length > 0) {
+			String sql = sqls[0];
+
+			/**
+			 * @todo work with all expectedOutputs instead of just the first
+			 */
+			expectedOutput = expectedOutputs[0];
+			if (sql != null) {
+				sql = transformSQL(sql);
+
+				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
+					return !UMSUtils.isListsEqual(populatedFilesListFromDb, database.getStrings(sql));
+				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
+					return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, database.getStrings(sql));
+				}
+			}
+		}
+
 		return true;
 	}
 
@@ -94,16 +119,15 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (sqls.length > 0) {
 			String sql = sqls[0];
 
-			/**
-			 * @todo work with all expectedOutputs instead of just the first
-			 */
 			expectedOutput = expectedOutputs[0];
 			if (sql != null) {
 				sql = transformSQL(sql);
 				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					filesListFromDb = database.getFiles(sql);
+					populatedFilesListFromDb = database.getStrings(sql);
 				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 					virtualFoldersListFromDb = database.getStrings(sql);
+					populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 				}
 			}
 		}
