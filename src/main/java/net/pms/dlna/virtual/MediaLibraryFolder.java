@@ -8,6 +8,11 @@ import net.pms.PMS;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
 
+/**
+ * A MediaLibraryFolder can be populated by either virtual folders (e.g. TEXTS
+ * and SEASONS) or virtual/real files (e.g. FILES and ISOS). All of these are
+ * connected to SQL queries.
+ */
 public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES = 0;
 	public static final int TEXTS = 1;
@@ -20,6 +25,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
 	private String displayNameOverride;
+	private String sqlResult;
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -48,52 +54,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 	@Override
 	public void discoverChildren() {
-		if (sqls.length > 0) {
-			String sql = sqls[0];
-			int expectedOutput = expectedOutputs[0];
-			if (sql != null) {
-				sql = transformSQL(sql);
-				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
-					ArrayList<File> list = database.getFiles(sql);
-					if (list != null) {
-						if (expectedOutput != FILES_NOSORT) {
-							UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
-						}
-						for (File f : list) {
-							if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
-								addChild(new RealFile(f));
-							} else if (expectedOutput == PLAYLISTS) {
-								addChild(new PlaylistFolder(f));
-							} else if (expectedOutput == ISOS) {
-								addChild(new DVDISOFile(f));
-							}
-						}
-					}
-				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
-					String nameToDisplay;
-					ArrayList<String> list = database.getStrings(sql);
-					if (list != null) {
-						if (expectedOutput != TEXTS_NOSORT) {
-							UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
-						}
-						for (String s : list) {
-							nameToDisplay = null;
-							
-							// Don't prepend "Season" text to years 
-							if (expectedOutput == SEASONS && s.length() != 4) {
-								nameToDisplay = Messages.getString("VirtualFolder.6") + " " + s;
-							}
-
-							String sqls2[] = new String[sqls.length - 1];
-							int expectedOutputs2[] = new int[expectedOutputs.length - 1];
-							System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
-							System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
-							addChild(new MediaLibraryFolder(s, sqls2, expectedOutputs2, nameToDisplay));
-						}
-					}
-				}
-			}
-		}
+		this.doRefreshChildren();
 	}
 
 	private String transformSQL(String sql) {
@@ -132,7 +93,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		int expectedOutput = 0;
 		if (sqls.length > 0) {
 			String sql = sqls[0];
-			
+
 			/**
 			 * @todo work with all expectedOutputs instead of just the first
 			 */
