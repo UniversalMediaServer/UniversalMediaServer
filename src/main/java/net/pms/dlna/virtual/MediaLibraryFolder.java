@@ -154,10 +154,11 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (filesListFromDb != null) {
 			UMSUtils.sort(filesListFromDb, PMS.getConfiguration().getSortMethod(null));
 
+			for (DLNAResource child : getChildren()) {
+				oldFiles.add(child);
+			}
+
 			for (File file : filesListFromDb) {
-				for (DLNAResource child : getChildren()) {
-					oldFiles.add(child);
-				}
 				newFiles.add(file);
 			}
 		}
@@ -165,10 +166,11 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (virtualFoldersListFromDb != null) {
 			UMSUtils.sort(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
 
+			for (DLNAResource child : getChildren()) {
+				oldVirtualFolders.add(child);
+			}
+
 			for (String f : virtualFoldersListFromDb) {
-				for (DLNAResource child : getChildren()) {
-					oldVirtualFolders.add(child);
-				}
 				newVirtualFolders.add(f);
 			}
 		}
