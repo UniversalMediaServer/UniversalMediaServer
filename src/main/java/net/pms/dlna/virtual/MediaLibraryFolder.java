@@ -60,7 +60,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 							UMSUtils.sort(list, PMS.getConfiguration().getSortMethod(null));
 						}
 						for (File f : list) {
-							addChild(new RealFile(f));
 							if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
 								addChild(new RealFile(f));
 							} else if (expectedOutput == PLAYLISTS) {
