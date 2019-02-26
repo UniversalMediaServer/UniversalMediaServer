@@ -1323,7 +1323,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			connection = getConnection();
-			ps = connection.prepareStatement(sql);
+			ps = connection.prepareStatement(sql.toLowerCase().startsWith("select") ? sql : ("SELECT FILENAME FROM FILES WHERE " + sql));
 			rs = ps.executeQuery();
 			while (rs.next()) {
 				String str = rs.getString(1);
