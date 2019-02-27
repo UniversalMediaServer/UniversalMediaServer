@@ -55,7 +55,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 	@Override
 	public void discoverChildren() {
-		this.doRefreshChildren();
+		doRefreshChildren();
+		setDiscovered(true);
 	}
 
 	private String transformSQL(String sql) {
@@ -167,7 +168,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			getChildren().remove(virtualFolderResource);
 		}
 		for (File file : newFiles) {
-			if (expectedOutput == FILES) {
+			if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
 				addChild(new RealFile(file));
 			} else if (expectedOutput == PLAYLISTS) {
 				addChild(new PlaylistFolder(file));
@@ -192,7 +193,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 
-		setUpdateId(this.getIntId());
+		if (isDiscovered()) {
+			setUpdateId(this.getIntId());
+		}
 		//return oldFiles.size() != 0 || newFiles.size() != 0 || oldVirtualFolders.size() != 0 || newVirtualFolders.size() != 0;
 	}
 
