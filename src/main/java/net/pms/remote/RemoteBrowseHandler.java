@@ -43,13 +43,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
-		if (!resources.isEmpty() &&
+		if (
+			!resources.isEmpty() &&
 			resources.get(0).getParent() != null &&
-			(resources.get(0).getParent() instanceof CodeEnter)) {
+			(resources.get(0).getParent() instanceof CodeEnter)
+		) {
 			// this is a code folder the search string is  entered code
 			CodeEnter ce = (CodeEnter) resources.get(0).getParent();
 			ce.setEnteredCode(search);
-			if(!ce.validCode(ce)) {
+			if (!ce.validCode(ce)) {
 				// invalid code throw error
 				throw new IOException("Auth error");
 			}
@@ -77,9 +79,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
+		
+		String backUri = "javascript:history.back()";
+		if (
+			!resources.isEmpty() &&
+			resources.get(0).getParent() != null &&
+			resources.get(0).getParent().getParent() != null &&
+			resources.get(0).getParent().getParent().isFolder()
+		) {
+			String newId = resources.get(0).getParent().getParent().getResourceId();
+			String idForWeb = URLEncoder.encode(newId, "UTF-8");
+			backUri = "/browse/" + idForWeb;
+		}
 
 		sb.setLength(0);
-		sb.append("<a href=\"javascript:history.back()\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
+		sb.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
 		sb.append("<span>").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
 		sb.append("</a>");
 		folders.add(sb.toString());
