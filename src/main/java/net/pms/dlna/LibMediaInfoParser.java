@@ -237,23 +237,7 @@ public class LibMediaInfoParser {
 							languageCode = DLNAMediaLang.UND;
 						}
 
-						currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
-						currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
-						
-						String albumperformer = MI.Get(general, 0, "Album/Performer");
-						currentAudioTrack.setAlbumArtist(albumperformer);
-
-						currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
-						// Try to parse the year from the stored date
-						String recordedDate = MI.Get(general, 0, "Recorded_Date");
-						Matcher matcher = yearPattern.matcher(recordedDate);
-						if (matcher.matches()) {
-							try {
-								currentAudioTrack.setYear(Integer.parseInt(matcher.group(1)));
-							} catch (NumberFormatException nfe) {
-								LOGGER.debug("Could not parse year from recorded date \"" + recordedDate + "\"");
-							}
-						}
+						currentAudioTrack.setLang(languageCode);
 					}
 
 					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
@@ -270,7 +254,23 @@ public class LibMediaInfoParser {
 						currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
 					}
 
-					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
+					currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
+					currentAudioTrack.setAlbumArtist(MI.Get(general, 0, "Album/Performer"));
+					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
+					currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
+
+					// Try to parse the year from the stored date
+					String recordedDate = MI.Get(general, 0, "Recorded_Date");
+					Matcher matcher = yearPattern.matcher(recordedDate);
+					if (matcher.matches()) {
+						try {
+							currentAudioTrack.setYear(Integer.parseInt(matcher.group(1)));
+						} catch (NumberFormatException nfe) {
+							LOGGER.debug("Could not parse year from recorded date \"" + recordedDate + "\"");
+						}
+					}
+
+					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while MEncoder does not
 					value = MI.Get(audio, i, "ID/String");
 					if (!value.isEmpty()) {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
