@@ -40,6 +40,7 @@ import net.pms.io.OutputParams;
 import net.pms.util.AudioUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javafx.scene.Parent;
 
 public class FormatConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
@@ -459,12 +460,18 @@ public class FormatConfiguration {
 
 			if (subsFormat != null) {
 				if (isExternalSubs) {
-					if (externalSubs != null  && !subsFormat.matches(externalSubs)) {
+					if (externalSubs == null) {
+						LOGGER.trace("External subtitles format undefined in support line, video will be transcoded");
+						return false;
+					} else if (!subsFormat.matches(externalSubs)) { 
 						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
 				} else {
-					if (embeddedSubs != null && !subsFormat.matches(embeddedSubs)) {
+					if (embeddedSubs == null) {
+						LOGGER.trace("Internal subtitles format undefined in support line, video will be transcoded");
+						return false;
+					} else if (!subsFormat.matches(embeddedSubs)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
