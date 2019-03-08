@@ -59,6 +59,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 			Player player = ((TreeNodeSettings) value).getPlayer();
 			if (player == null) {
 				setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
+				setToolTipText(null);
 			} else {
 				if (player.isEnabled()) {
 					if (player.isAvailable()) {
@@ -69,6 +70,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 				} else {
 					setIcon(LooksFrame.readImageIcon("icon-treemenu-enginedisabled.png"));
 				}
+				setToolTipText(player.getStatusText());
 			}
 
 			if (player != null && ((TreeNodeSettings) value).getParent().getIndex((TreeNodeSettings) value) == 0) {

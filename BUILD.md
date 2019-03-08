@@ -242,7 +242,7 @@ The Windows installer can now be built with one of the following commands:
 
 ### On macOS
 
-    mvn package -P system-makensis,windows,-osx
+    mvn package -P system-makensis,windows,-osx-java7,-osx-java8
 
 ## Building the Linux tarball
 
@@ -252,24 +252,34 @@ The Windows installer can now be built with one of the following commands:
 
 ### On macOS
 
-    mvn package -P linux,-osx
+    mvn package -P linux,-osx-java7,-osx-java8
 
 ## Building the macOS installer tarball
 
 The macOS installer tarball can be built on any platform by specifying
 the "osx" profile explicity:
 
-    mvn package -P osx
+    mvn package -P osx-java7
+
+or
+
+    mvn package -P osx-java8
 
 ## Building the macOS wizard installer
 
 1) Build UMS
 2) Install http://s.sudre.free.fr/Software/Packages/about.html
 3) Set a variable storing the directory path of the build distribution file, e.g.
-`$ UMS_DIST_FOLDER="/Users/dev/ums/target/ums-7.3.1-SNAPSHOT-distribution/Universal Media Server.app"`
-`$ UMS_LOGO_FILE="/Users/dev/ums/src/main/external-resources/third-party/nsis/Contrib/Graphics/Wizard/win.png"`
+```
+export UMS_DIST_FOLDER="/Users/dev/ums/target/ums-7.3.1-SNAPSHOT-distribution/Universal Media Server.app"
+export UMS_LOGO_FILE="/Users/dev/ums/src/main/external-resources/third-party/nsis/Contrib/Graphics/Wizard/win.png"
+```
 4) Replace desired path inside the  .pkgproj file
-`$ sed -i '' "s#UMS_DIST_FOLDER#$UMS_DIST_FOLDER#g" src/main/assembly/osx-installer.pkgproj`
-`$ sed -i '' "s#UMS_LOGO_FILE#$UMS_LOGO_FILE#g" src/main/assembly/osx-installer.pkgproj`
+```
+sed -i '' "s#UMS_DIST_FOLDER#$UMS_DIST_FOLDER#g" src/main/assembly/osx-installer.pkgproj
+sed -i '' "s#UMS_LOGO_FILE#$UMS_LOGO_FILE#g" src/main/assembly/osx-installer.pkgproj
+```
 5) Build .pkg installer. This will output to `/target/Universal Media Server.pkg`
-`$ /usr/local/bin/packagesbuild src/main/assembly/osx-installer.pkgproj`
+```
+/usr/local/bin/packagesbuild src/main/assembly/osx-installer.pkgproj
+```

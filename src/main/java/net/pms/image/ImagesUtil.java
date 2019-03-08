@@ -1475,11 +1475,16 @@ public class ImagesUtil {
 			oldBufferedImage.flush();
 		}
 
+		/**
+		 * @todo make sure that all conversions happen on an uncompressed
+		 *       version of the image, and just use the lower quality
+		 *       (0.8f) for the final conversion.
+		 */
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		Thumbnails.of(bufferedImage)
 			.scale(1.0d)
 			.outputFormat(outputFormat.toString())
-			.outputQuality(1.0f)
+			.outputQuality(0.8f)
 			.toOutputStream(outputStream);
 
 		byte[] outputByteArray = outputStream.toByteArray();

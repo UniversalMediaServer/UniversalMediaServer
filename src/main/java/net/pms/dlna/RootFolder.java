@@ -45,6 +45,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
 import net.pms.newgui.IFrame;
 import net.pms.platform.macos.NSFoundation;
@@ -135,8 +136,15 @@ public class RootFolder extends DLNAResource {
 			addChild(last, true, isAddGlobally);
 		}
 
-		if (!configuration.getSharedFolders().isEmpty()) {
-			mon = new MediaMonitor();
+		List<Path> foldersMonitored = configuration.getMonitoredFolders();
+		if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+			File[] dirs = new File[foldersMonitored.size()];
+			int i = 0;
+			for (Path folderMonitored : foldersMonitored) {
+				dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replaceAll("&comma;", ","));
+				i++;
+			}
+			mon = new MediaMonitor(dirs);
 
 			if (configuration.isShowNewMediaFolder()) {
 				addChild(mon, true, isAddGlobally);
@@ -210,13 +218,6 @@ public class RootFolder extends DLNAResource {
 						addChild(iTunesRes);
 					}
 				}
-		}
-
-		if (configuration.isShowMediaLibraryFolder()) {
-			DLNAResource libraryRes = PMS.get().getLibrary();
-			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
-			}
 		}
 
 		if (configuration.isShowServerSettingsFolder()) {
@@ -381,7 +382,7 @@ public class RootFolder extends DLNAResource {
 				// Lazy initialization
 				defaultFolders = new ArrayList<Path>();
 				if (Platform.isWindows()) {
-					Double version = PMS.get().getRegistry().getWindowsVersion();
+					Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
 					if (version != null && version >= 6d) {
 						ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
 							KnownFolders.FOLDERID_Music,

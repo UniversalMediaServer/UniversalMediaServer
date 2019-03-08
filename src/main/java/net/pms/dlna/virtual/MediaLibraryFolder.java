@@ -176,7 +176,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				sql = transformSQL(sql);
 				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					list = database.getFiles(sql);
-				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
+				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 					strings = database.getStrings(sql);
 				}
 			}
@@ -224,7 +224,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 		for (String f : addedString) {
-			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
+			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 				String sqls2[] = new String[sqls.length - 1];
 				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);

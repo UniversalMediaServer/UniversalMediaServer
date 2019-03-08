@@ -33,6 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.database.TableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -677,7 +678,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							playerTranscoding = child.player;
 						} else {
 							for (Player p : PlayerFactory.getPlayers()) {
-								String end = "[" + p.id() + "]";
+								String end = "[" + p.id().toString() + "]";
 
 								if (name.endsWith(end)) {
 									nametruncate = name.lastIndexOf(end);
@@ -938,11 +939,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else if (!format.isCompatible(media, renderer)) {
 				isIncompatible = true;
 				if (renderer == null) {
-					LOGGER.trace(prependTraceReason + "the renderer is not recognised");
+					LOGGER.trace(prependTraceReason + "the renderer is not recognised", getName());
 				} else {
-					LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", renderer.getRendererName());
+					LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", getName(), renderer.getRendererName());
 				}
-				
 			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
 				if (
 					getMediaAudio() != null &&
@@ -1910,7 +1910,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			o.resolved = false;
 
 			if (media != null) {
-				o.media = (DLNAMediaInfo) media.clone();
+				o.media = media.clone();
 			}
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
@@ -2536,12 +2536,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			"dc:title",
 			encodeXML(mediaRenderer.getDcTitle(title, nameSuffix, this))
 		);
+		
+		if (mediaRenderer.isSamsung() && this instanceof RealFile) {
+			addBookmark(sb, mediaRenderer.getDcTitle(title, nameSuffix, this));
+		}
 		wireshark.append("\"").append(title).append("\"");
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
 			}
 
+			//TODO maciekberry: check whether it makes sense to use Album Artist
 			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
 				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
 				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
@@ -2832,6 +2837,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return sb.toString();
+	}
+	
+	private void addBookmark(StringBuilder sb, String title){
+		try {
+			File file = new File(getFileName());
+			String path = file.getCanonicalPath();
+			int bookmark = TableFilesStatus.getBookmark(path);
+			LOGGER.debug("Setting bookmark for " + path + " => " + bookmark);
+			addXMLTagAndAttribute(
+					sb,
+					"sec:dcmInfo",
+					encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d",title,bookmark))
+				);
+		} catch(Exception e) {
+			LOGGER.error("Cannot set bookmark tag for " + title, e);
+		}
 	}
 
 	/**
@@ -3432,124 +3453,124 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			lastStartSystemTime = System.currentTimeMillis();
 			return fis;
-		} else {
-			// Pipe transcoding result
-			OutputParams params = new OutputParams(configurationSpecificToRenderer);
-			params.aid = getMediaAudio();
-			params.sid = media_subtitle;
-			params.header = getHeaders();
-			params.mediaRenderer = mediarenderer;
-			timeRange.limit(getSplitRange());
-			params.timeseek = timeRange.getStartOrZero();
-			params.timeend = timeRange.getEndOrZero();
-			params.shift_scr = timeseek_auto;
-			if (this instanceof IPushOutput) {
-				params.stdin = (IPushOutput) this;
+		}
+
+		// Pipe transcoding result
+		OutputParams params = new OutputParams(configurationSpecificToRenderer);
+		params.aid = getMediaAudio();
+		params.sid = media_subtitle;
+		params.header = getHeaders();
+		params.mediaRenderer = mediarenderer;
+		timeRange.limit(getSplitRange());
+		params.timeseek = timeRange.getStartOrZero();
+		params.timeend = timeRange.getEndOrZero();
+		params.shift_scr = timeseek_auto;
+		if (this instanceof IPushOutput) {
+			params.stdin = (IPushOutput) this;
+		}
+
+		if (resume != null) {
+			if (range.isTimeRange()) {
+				resume.update((Range.Time) range, this);
 			}
 
-			if (resume != null) {
-				if (range.isTimeRange()) {
-					resume.update((Range.Time) range, this);
+			params.timeseek = resume.getTimeOffset() / 1000;
+			if (player == null) {
+				player = PlayerFactory.getPlayer(this);
+			}
+		}
+
+		if (System.currentTimeMillis() - lastStartSystemTime < 500) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				LOGGER.error(null, e);
+			}
+		}
+
+		// (Re)start transcoding process if necessary
+		if (externalProcess == null || externalProcess.isDestroyed()) {
+			// First playback attempt => start new transcoding process
+			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
+			lastStartSystemTime = System.currentTimeMillis();
+			externalProcess = player.launchTranscode(this, media, params);
+			if (params.waitbeforestart > 0) {
+				LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
+				try {
+					Thread.sleep(params.waitbeforestart);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
 				}
 
-				params.timeseek = resume.getTimeOffset() / 1000;
-				if (player == null) {
-					player = new FFMpegVideo();
+				LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
+			}
+		} else if (
+			params.timeseek > 0 &&
+			media != null &&
+			media.isMediaparsed() &&
+			media.getDurationInSeconds() > 0
+		) {
+			// Time seek request => stop running transcode process and start a new one
+			LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
+			params.minBufferSize = 1;
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					externalProcess.stopProcess();
 				}
+			};
+
+			new Thread(r, "External Process Stopper").start();
+			lastStartSystemTime = System.currentTimeMillis();
+			ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				LOGGER.error(null, e);
 			}
 
-			if (System.currentTimeMillis() - lastStartSystemTime < 500) {
+			if (newExternalProcess == null) {
+				LOGGER.trace("External process instance is null... sounds not good");
+			}
+
+			externalProcess = newExternalProcess;
+		}
+
+		if (externalProcess == null) {
+			return null;
+		}
+
+		InputStream is = null;
+		int timer = 0;
+		while (is == null && timer < 10) {
+			is = externalProcess.getInputStream(low);
+			timer++;
+			if (is == null) {
+				LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
-					LOGGER.error(null, e);
 				}
 			}
-
-			// (Re)start transcoding process if necessary
-			if (externalProcess == null || externalProcess.isDestroyed()) {
-				// First playback attempt => start new transcoding process
-				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
-				lastStartSystemTime = System.currentTimeMillis();
-				externalProcess = player.launchTranscode(this, media, params);
-				if (params.waitbeforestart > 0) {
-					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
-					try {
-						Thread.sleep(params.waitbeforestart);
-					} catch (InterruptedException e) {
-						LOGGER.error(null, e);
-					}
-
-					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
-				}
-			} else if (
-				params.timeseek > 0 &&
-				media != null &&
-				media.isMediaparsed() &&
-				media.getDurationInSeconds() > 0
-			) {
-				// Time seek request => stop running transcode process and start a new one
-				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
-				params.minBufferSize = 1;
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						externalProcess.stopProcess();
-					}
-				};
-
-				new Thread(r, "External Process Stopper").start();
-				lastStartSystemTime = System.currentTimeMillis();
-				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					LOGGER.error(null, e);
-				}
-
-				if (newExternalProcess == null) {
-					LOGGER.trace("External process instance is null... sounds not good");
-				}
-
-				externalProcess = newExternalProcess;
-			}
-
-			if (externalProcess == null) {
-				return null;
-			}
-
-			InputStream is = null;
-			int timer = 0;
-			while (is == null && timer < 10) {
-				is = externalProcess.getInputStream(low);
-				timer++;
-				if (is == null) {
-					LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-					}
-				}
-			}
-
-			// fail fast: don't leave a process running indefinitely if it's
-			// not producing output after params.waitbeforestart milliseconds + 5 seconds
-			// this cleans up lingering MEncoder web video transcode processes that hang
-			// instead of exiting
-			if (is == null && !externalProcess.isDestroyed()) {
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						LOGGER.error("External input stream instance is null... stopping process");
-						externalProcess.stopProcess();
-					}
-				};
-
-				new Thread(r, "Hanging External Process Stopper").start();
-			}
-
-			return is;
 		}
+
+		// fail fast: don't leave a process running indefinitely if it's
+		// not producing output after params.waitbeforestart milliseconds + 5 seconds
+		// this cleans up lingering MEncoder web video transcode processes that hang
+		// instead of exiting
+		if (is == null && !externalProcess.isDestroyed()) {
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					LOGGER.error("External input stream instance is null... stopping process");
+					externalProcess.stopProcess();
+				}
+			};
+
+			new Thread(r, "Hanging External Process Stopper").start();
+		}
+
+		return is;
 	}
 
 	/**

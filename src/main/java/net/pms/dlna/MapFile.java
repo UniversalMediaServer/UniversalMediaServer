@@ -32,7 +32,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
-import net.pms.util.StringUtil.LetterCase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,7 +212,7 @@ public class MapFile extends DLNAResource {
 	 *         otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
-		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName, LetterCase.LOWER, Locale.ROOT));
+		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
 	}
 
 	private void manageFile(File f, boolean isAddGlobally) {
@@ -254,6 +253,8 @@ public class MapFile extends DLNAResource {
 						addChild(d, true, isAddGlobally);
 					}
 				} else {
+					ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
+
 					/* Optionally ignore empty directories */
 					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 						LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
@@ -265,7 +266,10 @@ public class MapFile extends DLNAResource {
 						if (!emptyFoldersToRescan.contains(f)) {
 							emptyFoldersToRescan.add(f);
 						}
-					} else { // Otherwise add the file
+					} else if (f.isDirectory() && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(f.getName())) {
+						LOGGER.debug("Ignoring {} because it is in the ignored folders list", f.getName());
+					} else {
+						// Otherwise add the file
 						RealFile rf = new RealFile(f);
 						if (searchList != null) {
 							searchList.add(rf);
@@ -279,20 +283,32 @@ public class MapFile extends DLNAResource {
 
 	private List<File> getFileList() {
 		List<File> out = new ArrayList<>();
+		ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
+		String filename;
 
 		for (File file : this.conf.getFiles()) {
-			if (file != null && file.isDirectory()) {
-				if (file.canRead()) {
-					File[] files = file.listFiles();
+			filename = file.getName() == null ? "unnamed" : file.getName();
+			if (file == null || !file.isDirectory()) {
+				LOGGER.trace("Ignoring {} because it is not a valid directory", filename);
+				continue;
+			}
 
-					if (files == null) {
-						LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
-					} else {
-						out.addAll(Arrays.asList(files));
-					}
+			// Skip if ignored
+			if (!ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(filename)) {
+				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.getName());
+				continue;
+			}
+
+			if (file.canRead()) {
+				File[] files = file.listFiles();
+
+				if (files == null) {
+					LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
 				} else {
-					LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+					out.addAll(Arrays.asList(files));
 				}
+			} else {
+				LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
 			}
 		}
 
