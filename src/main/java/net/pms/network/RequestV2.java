@@ -212,6 +212,7 @@ public class RequestV2 extends HTTPResource {
 	 * 			to notify plugins that the {@link DLNAResource} is about to start playing.
 	 * @return The {@link ChannelFuture} object via which the response was sent.
 	 * @throws IOException
+	 * @throws net.pms.network.HttpException
 	 */
 	public ChannelFuture answer(
 		HttpResponse output,
@@ -550,13 +551,13 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * Handles dlna image request. Set proper response headers and returns image data as a stream.
+	 * Handles DLNA image request. Set proper response headers and returns image data as a stream.
 	 *
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
-	 * @param dlna {@link DLNAResource} dlna resourece related with requested image
+	 * @param dlna {@link DLNAResource} DLNA resource related with requested image
 	 * @param fileName
 	 * @return {@link InputStream} image data stream
-	 * @throws {@link HttpException} if for some reason image data stream cannot be crerated
+	 * @throws {@link HttpException} if for some reason image data stream cannot be created
 	 */
 	private InputStream dlnaImageHandler(HttpResponse output, DLNAResource dlna, String fileName) throws HttpException {
 		DLNAImageProfile imageProfile = getImageProfile(fileName, dlna.getMedia().getImageInfo());
@@ -620,7 +621,7 @@ public class RequestV2 extends HTTPResource {
 	 * @return {@link DLNAImageProfile}
 	 */
 	private DLNAImageProfile getImageProfile(String fileName, ImageInfo imageInfo) {
-		DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
+		DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null, mediaRenderer);
 		if (imageProfile == null) {
 			// Parsing failed for some reason, we'll have to pick a profile
 			if (imageInfo != null && imageInfo.getFormat() != null) {

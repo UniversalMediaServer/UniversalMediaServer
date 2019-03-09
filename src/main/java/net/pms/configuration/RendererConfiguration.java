@@ -143,6 +143,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
+	protected static final String DLNA_LRG_IMAGE_RESOLUTION_LIMIT = "DLNALrgImageResolutionLimit";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
@@ -1966,6 +1967,22 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public int getMaxVideoWidth() {
 		return getInt(MAX_VIDEO_WIDTH, 1920);
+	}
+
+	/**
+	 * DLNA spec says the JPEG_LRG and PNG_LRG image profiles must be
+	 * limited to 4096 width and height, but most renderers support higher,
+	 * and since our image conversion process is slow thanks to Java/ImageIO
+	 * we prefer sending the raw image if we can.
+	 *
+	 * This setting allows renderers to set their own maximum resolution for
+	 * those profiles, including 4096 if they follow the DLNA spec.
+	 *
+	 * @return The maximum width/height to allow images to be within the
+	 * JPEG_LRG and PNG_LRG images profiles.
+	 */
+	public int getDlnaLrgImageResolutionLimit() {
+		return getInt(DLNA_LRG_IMAGE_RESOLUTION_LIMIT, 100000);
 	}
 
 	/**

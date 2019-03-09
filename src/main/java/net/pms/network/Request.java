@@ -377,7 +377,7 @@ public class Request extends HTTPResource {
 					appendToHeader(responseHeader, "Connection: keep-alive");
 				} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 					// This is a request for an image
-					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
+					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null, mediaRenderer);
 					if (imageProfile == null) {
 						// Parsing failed for some reason, we'll have to pick a profile
 						if (dlna.getMedia().getImageInfo() != null && dlna.getMedia().getImageInfo().getFormat() != null) {

@@ -29,6 +29,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.pms.configuration.RendererConfiguration;
 import org.fourthline.cling.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,9 +132,16 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	public static final DLNAImageProfile GIF_LRG = new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, null);
 
 	/**
-	 * {@code JPEG_LRG} maximum resolution 4096 x 4096.
+	 * Allows a renderer to set a limit on JPEG_LRG and PNG_LRG resolutions.
+	 * DLNA says it should be 4096 but most renderers don't limit it, so we
+	 * default to a very high one.
 	 */
-	public static final DLNAImageProfile JPEG_LRG = new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, null);
+	public static final int DEFAULT_JPEG_PNG_LRG_WIDTH_HEIGHT = 100000;
+
+	/**
+	 * {@code JPEG_LRG} maximum resolution renderer-specific.
+	 */
+	public static DLNAImageProfile JPEG_LRG = new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, DEFAULT_JPEG_PNG_LRG_WIDTH_HEIGHT, DEFAULT_JPEG_PNG_LRG_WIDTH_HEIGHT, null);
 
 	/**
 	 * {@code JPEG_MED} maximum resolution 1024 x 768.
@@ -161,9 +169,9 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	public static final DLNAImageProfile JPEG_TN = new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, null);
 
 	/**
-	 * {@code PNG_LRG} maximum resolution 4096 x 4096.
+	 * {@code PNG_LRG} maximum resolution renderer-specific.
 	 */
-	public static final DLNAImageProfile PNG_LRG = new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, null);
+	public static DLNAImageProfile PNG_LRG = new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, DEFAULT_JPEG_PNG_LRG_WIDTH_HEIGHT, DEFAULT_JPEG_PNG_LRG_WIDTH_HEIGHT, null);
 
 	/**
 	 * {@code PNG_TN} maximum resolution 160 x 160.
@@ -288,7 +296,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 *         conversion failed.
 	 */
 	public static DLNAImageProfile toDLNAImageProfile(int value) {
-		return toDLNAImageProfile(value, null, null);
+		return toDLNAImageProfile(value, null, null, null);
 	}
 
 	/**
@@ -302,7 +310,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 *         conversion failed.
 	 */
 	public static DLNAImageProfile toDLNAImageProfile(int value, MimeType mimeType) {
-		return toDLNAImageProfile(value, null, mimeType);
+		return toDLNAImageProfile(value, null, mimeType, null);
 	}
 
 	/**
@@ -317,7 +325,20 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 *         {@code defaultImageProfile} if the conversion failed.
 	 */
 	public static DLNAImageProfile toDLNAImageProfile(int value, DLNAImageProfile defaultImageProfile) {
-		return toDLNAImageProfile(value, defaultImageProfile, null);
+		return toDLNAImageProfile(value, defaultImageProfile, null, null);
+	}
+
+	/**
+	 * Prefer the media renderers' definition of a large image if we have it.
+	 * @param mediaRenderer
+	 * @return the width/height value for PNG_LRG and JPEG_LRG
+	 */
+	public static int getJpegPngLrgWidthHeightLimit(RendererConfiguration mediaRenderer) {
+		int jpegPngLrgWidthHeightLimit = DEFAULT_JPEG_PNG_LRG_WIDTH_HEIGHT;
+		if (mediaRenderer != null) {
+			jpegPngLrgWidthHeightLimit = mediaRenderer.getDlnaLrgImageResolutionLimit();
+		}
+		return jpegPngLrgWidthHeightLimit;
 	}
 
 	/**
@@ -329,14 +350,18 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 *            conversion fails.
 	 * @param mimeType the {@link MimeType} to use for the resulting
 	 *            {@link DLNAImageProfile}.
+	 * @param mediaRenderer
 	 * @return The resulting {@link DLNAImageProfile} or
 	 *         {@code defaultImageProfile} if the conversion failed.
 	 */
 	public static DLNAImageProfile toDLNAImageProfile(
 		int value, DLNAImageProfile
 		defaultImageProfile,
-		MimeType mimeType
+		MimeType mimeType,
+		RendererConfiguration mediaRenderer
 	) {
+		int jpegPngLrgWidthHeightLimit = getJpegPngLrgWidthHeightLimit(mediaRenderer);
+
 		/*
 		 * Note: Even though this will work without checking if the mimeType is
 		 * blank and just sending it as a parameter, doing it this way allows
@@ -350,7 +375,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			case JPEG_LRG_INT:
 				return mimeType == null ?
 					DLNAImageProfile.JPEG_LRG :
-					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
+					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, jpegPngLrgWidthHeightLimit, jpegPngLrgWidthHeightLimit, mimeType);
 			case JPEG_MED_INT:
 				return mimeType == null ?
 					DLNAImageProfile.JPEG_MED :
@@ -370,7 +395,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			case PNG_LRG_INT:
 				return mimeType == null ?
 					DLNAImageProfile.PNG_LRG :
-					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
+					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, jpegPngLrgWidthHeightLimit, jpegPngLrgWidthHeightLimit, mimeType);
 			case PNG_TN_INT:
 				return mimeType == null ?
 					DLNAImageProfile.PNG_TN :
@@ -392,7 +417,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 *         conversion failed.
 	 */
 	public static DLNAImageProfile toDLNAImageProfile(String argument) {
-		return toDLNAImageProfile(argument, null, null);
+		return toDLNAImageProfile(argument, null, null, null);
 	}
 
 	/**
@@ -408,7 +433,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 *         conversion failed.
 	 */
 	public static DLNAImageProfile toDLNAImageProfile(String argument, MimeType mimeType) {
-		return toDLNAImageProfile(argument, null, mimeType);
+		return toDLNAImageProfile(argument, null, mimeType, null);
 	}
 
 	/**
@@ -427,7 +452,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 		if (argument == null) {
 			return defaultImageProfile;
 		}
-		return toDLNAImageProfile(argument, defaultImageProfile, null);
+		return toDLNAImageProfile(argument, defaultImageProfile, null, null);
 	}
 
 	/**
@@ -441,13 +466,16 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 *            conversion fails.
 	 * @param mimeType the {@link MimeType} to use for the resulting
 	 *            {@link DLNAImageProfile}.
+	 * @param mediaRenderer
 	 * @return The resulting {@link DLNAImageProfile} or
 	 *         {@code defaultImageProfile} if the conversion failed.
 	 */
-	public static DLNAImageProfile toDLNAImageProfile(String argument, DLNAImageProfile defaultImageProfile, MimeType mimeType) {
+	public static DLNAImageProfile toDLNAImageProfile(String argument, DLNAImageProfile defaultImageProfile, MimeType mimeType, RendererConfiguration mediaRenderer) {
 		if (argument == null) {
 			return defaultImageProfile;
 		}
+
+		int jpegPngLrgWidthHeightLimit = getJpegPngLrgWidthHeightLimit(mediaRenderer);
 
 		argument = argument.toUpperCase(Locale.ROOT);
 		/*
@@ -463,7 +491,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			case JPEG_LRG_STRING:
 				return mimeType == null ?
 					DLNAImageProfile.JPEG_LRG :
-					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
+					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, jpegPngLrgWidthHeightLimit, jpegPngLrgWidthHeightLimit, mimeType);
 			case JPEG_MED_STRING:
 				return mimeType == null ?
 					DLNAImageProfile.JPEG_MED :
@@ -483,7 +511,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			case PNG_LRG_STRING:
 				return mimeType == null ?
 					DLNAImageProfile.PNG_LRG :
-					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
+					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, jpegPngLrgWidthHeightLimit, jpegPngLrgWidthHeightLimit, mimeType);
 			case PNG_TN_STRING:
 				return mimeType == null ?
 					DLNAImageProfile.PNG_TN :
@@ -563,7 +591,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 					}
 				} else {
 					// Handles specified JPEG_RES_H_V profiles and any other "unknowns"
-					DLNAImageProfile profile = toDLNAImageProfile(dlnaProfileName.getValue(), null, protocolInfo.getMimeType());
+					DLNAImageProfile profile = toDLNAImageProfile(dlnaProfileName.getValue(), null, protocolInfo.getMimeType(), null);
 					if (profile != null) {
 						result.add(profile);
 						LOGGER.trace(

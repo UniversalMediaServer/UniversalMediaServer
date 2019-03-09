@@ -67,6 +67,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
+import net.pms.configuration.RendererConfiguration;
 
 public class ImagesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
@@ -1925,7 +1926,7 @@ public class ImagesUtil {
 		if (fileName.startsWith("thumbnail0000")) {
 			fileName = fileName.substring(13);
 
-			return parseImageRequest(fileName, DLNAImageProfile.JPEG_TN);
+			return parseImageRequest(fileName, DLNAImageProfile.JPEG_TN, null);
 		}
 		LOGGER.warn("Could not parse thumbnail DLNAImageProfile from \"{}\"");
 		return DLNAImageProfile.JPEG_TN;
@@ -1935,13 +1936,14 @@ public class ImagesUtil {
 	 * @param fileName the "file name" part of the HTTP request.
 	 * @param defaultProfile the {@link DLNAImageProfile} to return if parsing
 	 *            fails.
+	 * @param mediaRenderer
 	 * @return The "decoded" {@link ImageProfile} or {@code defaultProfile} if
 	 *         the parsing fails.
 	 */
-	public static DLNAImageProfile parseImageRequest(String fileName, DLNAImageProfile defaultProfile) {
+	public static DLNAImageProfile parseImageRequest(String fileName, DLNAImageProfile defaultProfile, RendererConfiguration mediaRenderer) {
 		Matcher matcher = Pattern.compile("^([A-Z]+_(?:(?!R)[A-Z]+|RES_?\\d+[Xx_]\\d+))_").matcher(fileName);
 		if (matcher.find()) {
-			DLNAImageProfile imageProfile = DLNAImageProfile.toDLNAImageProfile(matcher.group(1));
+			DLNAImageProfile imageProfile = DLNAImageProfile.toDLNAImageProfile(matcher.group(1), null, null, mediaRenderer);
 			if (imageProfile == null) {
 				LOGGER.warn("Could not parse DLNAImageProfile from \"{}\"", matcher.group(1));
 			} else {
