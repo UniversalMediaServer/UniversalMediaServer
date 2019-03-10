@@ -53,7 +53,7 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 /**
- * Test the recognition of formats.
+ * Test the recognition of formats using the MediaInfo and renderer configuration.
  */
 public class FormatRecognitionTest {
 	private static boolean mediaInfoParserIsValid;
@@ -320,8 +320,8 @@ public class FormatRecognitionTest {
 	public void testSubtitlesRecognition() {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Panasonic TX-L32V10E");
-		assertNotNull("Renderer named \"Panasonic TX-L32V10E\" found.", conf);
+		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByName("Panasonic TX-L32V10E");
+		assertNotNull("Renderer named \"Panasonic TX-L32V10E\" found.", renderer);
 		
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		DLNAMediaAudio audio = new DLNAMediaAudio();
@@ -336,7 +336,7 @@ public class FormatRecognitionTest {
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(true);
 		Format format = new MPG();
-		assertTrue("isCompatible() gives the outcome true for SUBRIP format", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the outcome true for external SUBRIP format", renderer.isCompatible(info, format, configuration));
 
 		//ASS external: false
 		subs = new DLNAMediaSubtitle();
@@ -344,7 +344,7 @@ public class FormatRecognitionTest {
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(true);
-		assertFalse("isCompatible() gives the outcome false for ASS format", conf.isCompatible(info, format, configuration));
+		assertFalse("isCompatible() gives the outcome false for external ASS format", renderer.isCompatible(info, format, configuration));
 		
 		//DIVX internal: true
 		subs = new DLNAMediaSubtitle();
@@ -352,6 +352,14 @@ public class FormatRecognitionTest {
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(false);
-		assertTrue("isCompatible() gives the outcome fase for DIVX format", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the outcome true for embedded DIVX format", renderer.isCompatible(info, format, configuration));
+
+		//PGS internal: false
+		subs = new DLNAMediaSubtitle();
+		subs.setType(SubtitleType.PGS);
+		info.getSubtitleTracksList().clear();
+		info.getSubtitleTracksList().add(subs);
+		info.setExternalSubsExist(false);
+		assertFalse("isCompatible() gives the outcome false for embedded PGS format", renderer.isCompatible(info, format, configuration));
 	}
 }
