@@ -336,7 +336,7 @@ public class FormatRecognitionTest {
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(true);
 		Format format = new MPG();
-		assertTrue("isCompatible() gives the outcome false for SUBRIP format", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the outcome true for SUBRIP format", conf.isCompatible(info, format, configuration));
 
 		//ASS external: false
 		subs = new DLNAMediaSubtitle();
@@ -344,7 +344,7 @@ public class FormatRecognitionTest {
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(true);
-		assertFalse("isCompatible() gives the outcome true for ASS format", conf.isCompatible(info, format, configuration));
+		assertFalse("isCompatible() gives the outcome false for ASS format", conf.isCompatible(info, format, configuration));
 		
 		//DIVX internal: true
 		subs = new DLNAMediaSubtitle();
