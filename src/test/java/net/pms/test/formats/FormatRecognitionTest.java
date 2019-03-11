@@ -193,67 +193,58 @@ public class FormatRecognitionTest {
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("dvr");
 		Format format = new DVRMS();
-		format.match("test.dvr");
+		assertTrue("Format \"test.dvr\" not matches DVRMS", format.match("test.dvr"));
 		assertFalse("isCompatible() gives the wrong outcome \"true\" for DVRMS",	conf.isCompatible(info, format, configuration));
 
 		// ISO: false
-		info = new DLNAMediaInfo();
 		info.setContainer("iso");
 		format = new ISO();
-		format.match("test.iso");
+		assertTrue("Format not matches ISO", format.match("test.iso"));
 		assertFalse("isCompatible() gives the wrong outcome \"true\" for ISO", conf.isCompatible(info, format, configuration));
 
 		// M4A: true
-		info = new DLNAMediaInfo();
 		info.setContainer("m4a");
 		format = new M4A();
-		format.match("test.m4a");
+		assertTrue("Format \"test.m4a\" not matches M4A", format.match("test.m4a"));
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for M4A", conf.isCompatible(info, format, configuration));
 
 		// MKV: false
-		info = new DLNAMediaInfo();
 		info.setContainer("mkv");
 		format = new MKV();
-		format.match("test.mkv");
+		assertTrue("Format \"test.mkv\" not matches MKV", format.match("test.mkv"));
 		assertFalse("isCompatible() gives the wrong outcome \"true\" for MKV", conf.isCompatible(info, format, configuration));
 
 		// MP3: true
-		info = new DLNAMediaInfo();
 		info.setContainer("mp3");
 		format = new MP3();
-		format.match("test.mp3");
+		assertTrue("Format \"test.mkv\" does not match MP3", format.match("test.mp3"));
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for MP3", conf.isCompatible(info, format, configuration));
 
-		// MPG: true
-		info = new DLNAMediaInfo();
+		// MPG: true);
 		info.setContainer("avi");
 		format = new MPG();
-		format.match("test.mpg");
+		assertTrue("Format \"test.mpg\" does not match MPG", format.match("test.mpg"));
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for MPG", conf.isCompatible(info, format, configuration));
 
 		// OGG: false
-		info = new DLNAMediaInfo();
 		info.setContainer("ogg");
 		format = new OGA();
-		format.match("test.ogg");
+		assertFalse("Format \"test.ogg\" does not match OGA", format.match("test.ogg"));
 		assertFalse("isCompatible() gives the wrong outcome \"true\" for OGG", conf.isCompatible(info, format, configuration));
 
 		// RAW: false
-		info = new DLNAMediaInfo();
 		info.setContainer("raw");
 		format = new RAW();
-		format.match("test.arw");
+		assertTrue("Format \"test.raw\" does not match RAW", format.match("test.raw"));
 		assertFalse("isCompatible() gives the wrong outcome \"true\"for RAW", conf.isCompatible(info, format, configuration));
 
 		// WAV: true
-		info = new DLNAMediaInfo();
 		info.setContainer("wav");
 		format = new WAV();
-		format.match("test.wav");
+		assertTrue("Format \"test.raw\" does not match WAV", format.match("test.wav"));
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for WAV", conf.isCompatible(info, format, configuration));
 
 		// WEB: type=VIDEO
-		info = new DLNAMediaInfo();
 		info.setContainer("avi");
 		format.setType(Format.VIDEO);
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for WEB video", conf.isCompatible(info, format, configuration));
@@ -325,13 +316,13 @@ public class FormatRecognitionTest {
 		
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		DLNAMediaAudio audio = new DLNAMediaAudio();
+		DLNAMediaSubtitle subs = new DLNAMediaSubtitle();
 		audio.setCodecA(FormatConfiguration.AC3);
 		info.setContainer(FormatConfiguration.AVI);
 		info.setCodecV(FormatConfiguration.MP4);
 		info.getAudioTracksList().add(audio);
 
 		// SUBRIP external: true
-		DLNAMediaSubtitle subs = new DLNAMediaSubtitle();
 		subs.setType(SubtitleType.SUBRIP);
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(true);
@@ -339,7 +330,6 @@ public class FormatRecognitionTest {
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for external SUBRIP format", renderer.isCompatible(info, format, configuration));
 
 		//ASS external: false
-		subs = new DLNAMediaSubtitle();
 		subs.setType(SubtitleType.ASS);
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
@@ -347,7 +337,6 @@ public class FormatRecognitionTest {
 		assertFalse("isCompatible() gives the wrong outcome \"true\" for external ASS format", renderer.isCompatible(info, format, configuration));
 		
 		//DIVX internal: true
-		subs = new DLNAMediaSubtitle();
 		subs.setType(SubtitleType.DIVX);
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
@@ -355,7 +344,6 @@ public class FormatRecognitionTest {
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for embedded DIVX format", renderer.isCompatible(info, format, configuration));
 
 		//PGS internal: false
-		subs = new DLNAMediaSubtitle();
 		subs.setType(SubtitleType.PGS);
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
