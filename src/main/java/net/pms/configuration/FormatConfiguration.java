@@ -40,7 +40,6 @@ import net.pms.io.OutputParams;
 import net.pms.util.AudioUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javafx.scene.Parent;
 
 public class FormatConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
