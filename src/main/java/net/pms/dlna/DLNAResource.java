@@ -871,13 +871,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		String rendererForceExtensions = null;
-		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
+		String rendererForceExtensions = renderer == null ? null : renderer.getTranscodedExtensions();
 		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
 		String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
-
-		// Should transcoding be forced for this format?
-		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
+		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
 
 		if (configurationSpecificToRenderer.isDisableTranscoding()) {
 			LOGGER.trace("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
@@ -892,16 +889,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
+		// Should transcoding be forced for this format?
+		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
+
 		// Try to match a player based on media information and format.
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
 		if (resolvedPlayer != null) {
-			if (renderer != null) {
-				rendererForceExtensions = renderer.getTranscodedExtensions();
-			}
-
 			boolean isIncompatible = false;
-
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
 				LOGGER.trace(prependTraceReason + "transcoding is forced by configuration", getName());
