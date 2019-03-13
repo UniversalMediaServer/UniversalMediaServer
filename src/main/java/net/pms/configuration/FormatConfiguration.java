@@ -366,13 +366,14 @@ public class FormatConfiguration {
 		 * 
 		 * <blockquote><pre>
 		 * 	Supported = f:mp4 n:2 se:SUBRIP
-		 *  
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, null,     true)  = true
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, null, null,     true)  = false 
-		 * match("wav", null, null, 2, 0, 0, 0, 0, null, null,     true)  = false
+		 *
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", true)  = true
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, null,     true)  = false 
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, null, "SUBRIP", true)  = false 
+		 * match("wav", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", true)  = false
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", false) = false
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "sub",    true)  = false </pre></blockquote>
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "sub",    true)  = false
+		 * </pre></blockquote>
 		 *
 		 * @param format
 		 * @param videoCodec
