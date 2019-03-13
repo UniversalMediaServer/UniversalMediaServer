@@ -1257,23 +1257,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	/**
 	 * Determine the mime type specific for this renderer, given a generic mime
-	 * type. This translation takes into account all configured "Supported"
+	 * type by resource. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.
 	 *
-	 * @param mimeType
-	 *            The mime type to look up. Special values are
-	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
-	 *            <code>HTTPResource.AUDIO_TRANSCODE</code>, which will be
-	 *            translated to the mime type of the transcoding profile
-	 *            configured for this renderer.
-	 * @return The mime type.
+	 * @param resource The resource with the generic mime type.
+	 * @return The renderer specific mime type  for given resource. If the generic mime
+	 * type given by resource is <code>null</code> this method returns <code>null</code>.
 	 */
-	public String getMimeType(String mimeType, DLNAMediaInfo media) {
+	public String getMimeType(DLNAResource resource) {
+		String mimeType = resource.mimeType();
 		if (mimeType == null) {
 			return null;
 		}
 
 		String matchedMimeType = null;
+		DLNAMediaInfo media = resource.getMedia();
 
 		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.

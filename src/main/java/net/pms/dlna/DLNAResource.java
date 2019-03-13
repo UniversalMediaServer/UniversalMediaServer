@@ -871,13 +871,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
+		String rendererForceExtensions = null;
+		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
+		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
+		String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
+
+		// Should transcoding be forced for this format?
+		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
+
 		if (configurationSpecificToRenderer.isDisableTranscoding()) {
 			LOGGER.trace("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
 			return null;
 		}
-
-		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
-		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
 
 		// Should transcoding be skipped for this format?
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
@@ -891,15 +896,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
 		if (resolvedPlayer != null) {
-			String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
-			String rendererForceExtensions = null;
-
 			if (renderer != null) {
 				rendererForceExtensions = renderer.getTranscodedExtensions();
 			}
 
-			// Should transcoding be forced for this format?
-			boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
 			boolean isIncompatible = false;
 
 			String prependTraceReason = "File \"{}\" will not be streamed because ";
@@ -941,6 +941,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 			}
+
 			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2 && renderer != null) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
@@ -983,17 +984,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			// Prefer transcoding over streaming if:
-			// 1) the media is unsupported by the renderer, or
-			// 2) there are subs to transcode
-			boolean preferTranscode = isIncompatible || hasSubsToTranscode;
-
 			// Transcode if:
 			// 1) transcoding is forced by configuration, or
-			// 2) transcoding is preferred and not prevented by configuration
-			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
+			// 2) transcoding is not prevented by configuration
+			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(mimeType(resolvedPlayer), media) : media.getMimeType());
+					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
 				} else {
 					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), resolvedPlayer.toString());
 				}
@@ -2176,7 +2172,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// is determined for the default renderer. This renderer may rewrite the
 		// mime type based on its configuration. Looking up that mime type is
 		// not guaranteed to return a match for another renderer.
-		String mime = mediaRenderer.getMimeType(mimeType(), media);
+		String mime = mediaRenderer.getMimeType(this);
 
 		// Use our best guess if we have no valid mime type
 		if (mime == null || mime.contains("/transcode")) {

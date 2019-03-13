@@ -254,8 +254,8 @@ public class HTTPResource {
 	 * @param renderer media renderer to customize the MIME type for.
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(String mimetype, RendererConfiguration renderer, DLNAMediaInfo media) {
-		return renderer.getMimeType(mimetype, media);
+	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+		return renderer.getMimeType(resource);
 	}
 
 	public int getDLNALocalesCount() {

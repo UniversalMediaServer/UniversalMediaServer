@@ -398,7 +398,7 @@ public class RequestV2 extends HTTPResource {
 		startStopListenerDelegate.start(dlna);
 
 		// Try to determine the content type of the file
-		String rendererMimeType = getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia());
+		String rendererMimeType = getRendererMimeType(mediaRenderer, dlna);
 
 		if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
