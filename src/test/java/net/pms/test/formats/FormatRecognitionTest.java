@@ -20,6 +20,7 @@
 package net.pms.test.formats;
 
 import ch.qos.logback.classic.LoggerContext;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,9 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.LibMediaInfoParser;
+import net.pms.dlna.RealFile;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
 import net.pms.formats.ISO;
@@ -99,6 +102,7 @@ public class FormatRecognitionTest {
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
 		// Construct regular two channel MP3 information
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mp3");
 		info.setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
@@ -107,15 +111,16 @@ public class FormatRecognitionTest {
 		List<DLNAMediaAudio> audioCodes = new ArrayList<>();
 		audioCodes.add(audio);
 		info.setAudioTracksList(audioCodes);
+		dlna.setMedia(info);
 		Format format = new MP3();
 		format.match("test.mp3");
 		assertEquals("PS3 is compatible with MP3", true,
-				conf.isCompatible(info, format, configuration));
+				conf.isCompatible(dlna, format, configuration));
 
 		// Construct five channel MP3 that the PS3 does not support natively
 		audio.getAudioProperties().setNumberOfChannels(5);
 		assertEquals("PS3 is incompatible with five channel MP3", false,
-				conf.isCompatible(info, format, configuration));
+				conf.isCompatible(dlna, format, configuration));
 	}
 
 	/**
@@ -129,6 +134,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// Construct regular two channel MPG information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("avi");
@@ -141,13 +147,14 @@ public class FormatRecognitionTest {
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.avi");
+		dlna.setMedia(info);
 		assertEquals("PS3 is compatible with MPG", true,
-				conf.isCompatible(info, format, configuration));
+				conf.isCompatible(dlna, format, configuration));
 
 		// Construct MPG with wmv codec that the PS3 does not support natively
 		info.setCodecV("wmv");
 		assertEquals("PS3 is incompatible with MPG with wmv codec", false,
-				conf.isCompatible(info, format, configuration));
+				conf.isCompatible(dlna, format, configuration));
 	}
 
 	/**
@@ -161,6 +168,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// Construct MKV information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mkv");
@@ -173,8 +181,9 @@ public class FormatRecognitionTest {
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.mkv");
+		dlna.setMedia(info);
 		assertEquals("PS3 is incompatible with MKV", false,
-				conf.isCompatible(info, format, configuration));
+				conf.isCompatible(dlna, format, configuration));
 	}
 
 	/**
@@ -190,65 +199,67 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// DVRMS: false
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("dvr");
 		Format format = new DVRMS();
+		dlna.setMedia(info);
 		assertTrue("Format \"test.dvr\" not matches DVRMS", format.match("test.dvr"));
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for DVRMS",	conf.isCompatible(info, format, configuration));
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for DVRMS",	conf.isCompatible(dlna, format, configuration));
 
 		// ISO: false
 		info.setContainer("iso");
 		format = new ISO();
 		assertTrue("Format not matches ISO", format.match("test.iso"));
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for ISO", conf.isCompatible(info, format, configuration));
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for ISO", conf.isCompatible(dlna, format, configuration));
 
 		// M4A: true
 		info.setContainer("m4a");
 		format = new M4A();
 		assertTrue("Format \"test.m4a\" not matches M4A", format.match("test.m4a"));
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for M4A", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for M4A", conf.isCompatible(dlna, format, configuration));
 
 		// MKV: false
 		info.setContainer("mkv");
 		format = new MKV();
 		assertTrue("Format \"test.mkv\" not matches MKV", format.match("test.mkv"));
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for MKV", conf.isCompatible(info, format, configuration));
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for MKV", conf.isCompatible(dlna, format, configuration));
 
 		// MP3: true
 		info.setContainer("mp3");
 		format = new MP3();
 		assertTrue("Format \"test.mkv\" does not match MP3", format.match("test.mp3"));
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for MP3", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for MP3", conf.isCompatible(dlna, format, configuration));
 
 		// MPG: true);
 		info.setContainer("avi");
 		format = new MPG();
 		assertTrue("Format \"test.mpg\" does not match MPG", format.match("test.mpg"));
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for MPG", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for MPG", conf.isCompatible(dlna, format, configuration));
 
 		// OGG: false
 		info.setContainer("ogg");
 		format = new OGA();
 		assertFalse("Format \"test.ogg\" does not match OGA", format.match("test.ogg"));
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for OGG", conf.isCompatible(info, format, configuration));
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for OGG", conf.isCompatible(dlna, format, configuration));
 
 		// RAW: false
 		info.setContainer("raw");
 		format = new RAW();
 		assertTrue("Format \"test.raw\" does not match RAW", format.match("test.raw"));
-		assertFalse("isCompatible() gives the wrong outcome \"true\"for RAW", conf.isCompatible(info, format, configuration));
+		assertFalse("isCompatible() gives the wrong outcome \"true\"for RAW", conf.isCompatible(dlna, format, configuration));
 
 		// WAV: true
 		info.setContainer("wav");
 		format = new WAV();
 		assertTrue("Format \"test.raw\" does not match WAV", format.match("test.wav"));
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for WAV", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for WAV", conf.isCompatible(dlna, format, configuration));
 
 		// WEB: type=VIDEO
 		info.setContainer("avi");
 		format.setType(Format.VIDEO);
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for WEB video", conf.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for WEB video", conf.isCompatible(dlna, format, configuration));
 	}
 
 	/**
@@ -284,6 +295,7 @@ public class FormatRecognitionTest {
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
 		assumeTrue(LibMediaInfoParser.isValid());
 
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// Construct media info exactly as VirtualVideoAction does
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mpegps");
@@ -294,12 +306,13 @@ public class FormatRecognitionTest {
 		info.setMediaparsed(true);
 		Format format = new MPG();
 		format.match("test.mpg");
+		dlna.setMedia(info);
 
 		// Test without rendererConfiguration, as can happen when plugins
 		// create virtual video actions under a folder.
 
 		assertEquals("VirtualVideoAction is initialized as compatible with null configuration",
-				true, format.isCompatible(info, null));
+				true, format.isCompatible(dlna, null));
 	}
 
 
@@ -316,6 +329,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByName("Panasonic TX-L32V10E");
 		assertNotNull("Renderer named \"Panasonic TX-L32V10E\" not found.", renderer);
 		
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		DLNAMediaAudio audio = new DLNAMediaAudio();
 		DLNAMediaSubtitle subs = new DLNAMediaSubtitle();
@@ -323,33 +337,42 @@ public class FormatRecognitionTest {
 		info.setContainer(FormatConfiguration.AVI);
 		info.setCodecV(FormatConfiguration.MP4);
 		info.getAudioTracksList().add(audio);
+		dlna.setMedia(info);
 
 		// SUBRIP external: true
 		subs.setType(SubtitleType.SUBRIP);
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(true);
+		dlna.setMedia(info);
+		dlna.setMediaSubtitle(subs);
 		Format format = new MPG();
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for external SUBRIP format", renderer.isCompatible(info, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for external SUBRIP format", renderer.isCompatible(dlna, format, configuration));
 
 		//ASS external: false
 		subs.setType(SubtitleType.ASS);
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(true);
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for external ASS format", renderer.isCompatible(info, format, configuration));
+		dlna.setMedia(info);
+		dlna.setMediaSubtitle(subs);
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for external ASS format", renderer.isCompatible(dlna, format, configuration));
 		
 		//DIVX internal: true
 		subs.setType(SubtitleType.DIVX);
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(false);
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for embedded DIVX format", renderer.isCompatible(info, format, configuration));
+		dlna.setMedia(info);
+		dlna.setMediaSubtitle(subs);
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for embedded DIVX format", renderer.isCompatible(dlna, format, configuration));
 
 		//PGS internal: false
 		subs.setType(SubtitleType.PGS);
 		info.getSubtitleTracksList().clear();
 		info.getSubtitleTracksList().add(subs);
 		info.setExternalSubsExist(false);
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for embedded PGS format", renderer.isCompatible(info, format, configuration));
+		dlna.setMedia(info);
+		dlna.setMediaSubtitle(subs);
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for embedded PGS format", renderer.isCompatible(dlna, format, configuration));
 	}
 }

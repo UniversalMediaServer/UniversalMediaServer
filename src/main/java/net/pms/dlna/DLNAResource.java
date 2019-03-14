@@ -742,7 +742,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								!defaultRenderer.isNoDynPlsFolder()) {
 								addDynamicPls(child);
 							}
-						} else if (!child.format.isCompatible(child.media, defaultRenderer) && !child.isFolder()) {
+						} else if (!child.format.isCompatible(child, defaultRenderer) && !child.isFolder()) {
 							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
 							children.remove(child);
 						}
@@ -772,7 +772,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						newChild.first = child;
 						child.second = newChild;
 
-						if (!newChild.format.isCompatible(newChild.media, defaultRenderer)) {
+						if (!newChild.format.isCompatible(newChild, defaultRenderer)) {
 							Player playerTranscoding = PlayerFactory.getPlayer(newChild);
 							newChild.setPlayer(playerTranscoding);
 							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(), player == null ? "null" : player.name(), newChild.getName());
@@ -903,7 +903,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else if (this instanceof DVDISOTitle) {
 				forceTranscode = true;
 				LOGGER.trace("DVD video track \"{}\" will be transcoded because streaming isn't supported", getName());
-			} else if (!format.isCompatible(media, renderer)) {
+			} else if (!format.isCompatible(this, renderer)) {
 				isIncompatible = true;
 				if (renderer == null) {
 					LOGGER.trace(prependTraceReason + "the renderer is not recognised", getName());
@@ -1011,7 +1011,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		if (parserV2 && (format == null || !format.isImage())) {
 			// See which MIME type the renderer prefers in case it supports the media
-			String preferred = renderer.getFormatConfiguration().match(media);
+			String preferred = renderer.getFormatConfiguration().match(this);
 			if (preferred != null) {
 				/**
 				 * Use the renderer's preferred MIME type for this file.

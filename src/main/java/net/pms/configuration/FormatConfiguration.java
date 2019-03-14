@@ -195,7 +195,9 @@ public class FormatConfiguration {
 		private String mimeType;
 		private String videoCodec;
 		private String supportLine;
+		/** List of embedded subs supported by renderer defined in the Supported line in the renderer.conf */
 		private String embeddedSubs;
+		/** List of external subs supported by renderer defined in the Supported line in the renderer.conf */
 		private String externalSubs;
 
 		SupportSpec() {
@@ -461,7 +463,7 @@ public class FormatConfiguration {
 			if (subsFormat != null) {
 				if (isExternalSubs) {
 					if (externalSubs == null) {
-						LOGGER.trace("External subtitles format undefined in support line, video will be transcoded");
+						LOGGER.trace("External subtitles format undefined in Supported lines, video will be transcoded");
 						return false;
 					} else if (!subsFormat.matches(externalSubs)) { 
 						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
@@ -469,7 +471,7 @@ public class FormatConfiguration {
 					}
 				} else {
 					if (embeddedSubs == null) {
-						LOGGER.trace("Internal subtitles format undefined in support line, video will be transcoded");
+						LOGGER.trace("Internal subtitles format undefined in Supported lines, video will be transcoded");
 						return false;
 					} else if (!subsFormat.matches(embeddedSubs)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
@@ -636,10 +638,11 @@ public class FormatConfiguration {
 	 * media is not natively supported by the renderer, which means it has
 	 * to be transcoded.
 	 *
-	 * @param media The MediaInfo metadata
+	 * @param dlna The DLNAResource
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String match(DLNAMediaInfo media) {
+	public String match(DLNAResource dlna) {
+		DLNAMediaInfo media = dlna.getMedia();
 		if (media == null) {
 			return null;
 		}
@@ -670,66 +673,64 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getExtras(),
-				media.getSubtitleTracksList().size() != 0 ? media.getSubtitleTracksList().get(0).getType().toString() : null,
-				media.getSubtitleTracksList().size() != 0 ? media.isExternalSubsExist() : false
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false
 			);
 		}
 
 		if (media.isSLS()) {
-			/*
-			 * MPEG-4 SLS is a special case and must be treated differently. It
-			 * consists of a MPEG-4 ISO container with two audio tracks, the
-			 * first is the lossy "core" stream and the second is the SLS
-			 * correction stream. When the SLS stream is applied to the core
-			 * stream the result is lossless. It is arranged this way so that
-			 * players that can't play SLS can still play the (lossy) core
-			 * stream. Because of this, only compatibility for the first audio
-			 * track needs to be checked.
-			 */
-			DLNAMediaAudio audio = media.getFirstAudioTrack();
-			return match(
-				media.getContainer(),
-				media.getCodecV(),
-				audio.getCodecA(),
-				audio.getAudioProperties().getNumberOfChannels(),
-				audio.getSampleRate(),
-				audio.getBitRate(),
-				frameRate,
-				media.getWidth(),
-				media.getHeight(),
-				media.getExtras(),
-				null,
-				false
-			);
-		}
+		/*
+		 * MPEG-4 SLS is a special case and must be treated differently. It
+		 * consists of a MPEG-4 ISO container with two audio tracks, the
+		 * first is the lossy "core" stream and the second is the SLS
+		 * correction stream. When the SLS stream is applied to the core
+		 * stream the result is lossless. It is arranged this way so that
+		 * players that can't play SLS can still play the (lossy) core
+		 * stream. Because of this, only compatibility for the first audio
+		 * track needs to be checked.
+		 */
+		DLNAMediaAudio audio = media.getFirstAudioTrack();
+		return match(
+			media.getContainer(),
+			media.getCodecV(),
+			audio.getCodecA(),
+			audio.getAudioProperties().getNumberOfChannels(),
+			audio.getSampleRate(),
+			audio.getBitRate(),
+			frameRate,
+			media.getWidth(),
+			media.getHeight(),
+			media.getExtras(),
+			dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
+			dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false
+		);
+	}
 
-		String finalMimeType = null;
+	String finalMimeType = null;
 
-		for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-			String mimeType = match(
-				media.getContainer(),
-				media.getCodecV(),
-				audio.getCodecA(),
-				audio.getAudioProperties().getNumberOfChannels(),
-				audio.getSampleRate(),
-				media.getBitrate(),
-				media.getWidth(),
-				media.getHeight(),
-				frameRate,
-				media.getExtras(),
-				media.getSubtitleTracksList().size() != 0 ? media.getSubtitleTracksList().get(0).getType().toString() : null,
-				media.getSubtitleTracksList().size() != 0 ? media.isExternalSubsExist() : false
-			);
-
+	for (DLNAMediaAudio audio : media.getAudioTracksList()) {
+		String mimeType = match(
+			media.getContainer(),
+			media.getCodecV(),
+			audio.getCodecA(),
+			audio.getAudioProperties().getNumberOfChannels(),
+			audio.getSampleRate(),
+			media.getBitrate(),
+			media.getWidth(),
+			media.getHeight(),
+			frameRate,
+			media.getExtras(),
+			dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
+			dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false
+		);
 			finalMimeType = mimeType;
-
 			if (mimeType == null) { // if at least one audio track is not compatible, the file must be transcoded.
 				return null;
 			}
 		}
 
-			return finalMimeType;
-		}
+		return finalMimeType;
+	}
 
 	public String match(String container, String videoCodec, String audioCodec) {
 		return match(
