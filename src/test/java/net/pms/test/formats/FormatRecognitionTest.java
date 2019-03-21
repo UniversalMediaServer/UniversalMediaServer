@@ -343,25 +343,24 @@ public class FormatRecognitionTest {
 		subs.setExternalFileOnly(new File("test.srt"));
 		subs.setType(SubtitleType.SUBRIP);
 		dlna.setMediaSubtitle(subs);
-		Format format = new MPG();
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for external SUBRIP format", renderer.isCompatible(dlna, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for external SUBRIP format", renderer.isCompatible(dlna, null));
 
 		//ASS external: false
 		subs.setExternalFileOnly(new File("test.ass"));
 		subs.setType(SubtitleType.ASS);
 		dlna.setMediaSubtitle(subs);
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for external ASS format", renderer.isCompatible(dlna, format, configuration));
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for external ASS format", renderer.isCompatible(dlna, null));
 		
 		//DIVX internal: true
 		subs.setExternalFileOnly(null);
 		subs.setType(SubtitleType.DIVX);
 		dlna.setMediaSubtitle(subs);
-		assertTrue("isCompatible() gives the wrong outcome \"false\" for embedded DIVX format", renderer.isCompatible(dlna, format, configuration));
+		assertTrue("isCompatible() gives the wrong outcome \"false\" for embedded DIVX format", renderer.isCompatible(dlna, null));
 
 		//PGS internal: false
 		subs.setExternalFileOnly(null);
 		subs.setType(SubtitleType.PGS);
 		dlna.setMediaSubtitle(subs);
-		assertFalse("isCompatible() gives the wrong outcome \"true\" for embedded PGS format", renderer.isCompatible(dlna, format, configuration));
+		assertFalse("isCompatible() gives the wrong outcome \"true\" for embedded PGS format", renderer.isCompatible(dlna, null));
 	}
 }
