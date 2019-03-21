@@ -3425,14 +3425,4 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 	}
-
-	private boolean externalSubsFileExist;
-	
-	public boolean isExternalSubsExist() {
-		return externalSubsFileExist;
-	}
-
-	public void setExternalSubsExist(boolean b) {
-		externalSubsFileExist = b;
-	}
 }

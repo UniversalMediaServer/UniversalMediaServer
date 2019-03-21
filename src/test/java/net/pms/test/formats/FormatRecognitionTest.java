@@ -329,7 +329,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByName("Panasonic TX-L32V10E");
 		assertNotNull("Renderer named \"Panasonic TX-L32V10E\" not found.", renderer);
 		
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		DLNAResource dlna = new RealFile(new File("test.avi"));
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		DLNAMediaAudio audio = new DLNAMediaAudio();
 		DLNAMediaSubtitle subs = new DLNAMediaSubtitle();
@@ -340,38 +340,27 @@ public class FormatRecognitionTest {
 		dlna.setMedia(info);
 
 		// SUBRIP external: true
+		subs.setExternalFileOnly(new File("test.srt"));
 		subs.setType(SubtitleType.SUBRIP);
-		info.getSubtitleTracksList().add(subs);
-		info.setExternalSubsExist(true);
-		dlna.setMedia(info);
 		dlna.setMediaSubtitle(subs);
 		Format format = new MPG();
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for external SUBRIP format", renderer.isCompatible(dlna, format, configuration));
 
 		//ASS external: false
+		subs.setExternalFileOnly(new File("test.ass"));
 		subs.setType(SubtitleType.ASS);
-		info.getSubtitleTracksList().clear();
-		info.getSubtitleTracksList().add(subs);
-		info.setExternalSubsExist(true);
-		dlna.setMedia(info);
 		dlna.setMediaSubtitle(subs);
 		assertFalse("isCompatible() gives the wrong outcome \"true\" for external ASS format", renderer.isCompatible(dlna, format, configuration));
 		
 		//DIVX internal: true
+		subs.setExternalFileOnly(null);
 		subs.setType(SubtitleType.DIVX);
-		info.getSubtitleTracksList().clear();
-		info.getSubtitleTracksList().add(subs);
-		info.setExternalSubsExist(false);
-		dlna.setMedia(info);
 		dlna.setMediaSubtitle(subs);
 		assertTrue("isCompatible() gives the wrong outcome \"false\" for embedded DIVX format", renderer.isCompatible(dlna, format, configuration));
 
 		//PGS internal: false
+		subs.setExternalFileOnly(null);
 		subs.setType(SubtitleType.PGS);
-		info.getSubtitleTracksList().clear();
-		info.getSubtitleTracksList().add(subs);
-		info.setExternalSubsExist(false);
-		dlna.setMedia(info);
 		dlna.setMediaSubtitle(subs);
 		assertFalse("isCompatible() gives the wrong outcome \"true\" for embedded PGS format", renderer.isCompatible(dlna, format, configuration));
 	}
