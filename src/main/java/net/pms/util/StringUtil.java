@@ -24,6 +24,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Formatter;
 import java.util.Locale;
@@ -32,7 +34,6 @@ import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.JTextPane;
 import javax.swing.text.html.HTMLEditorKit;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -45,8 +46,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -895,6 +896,8 @@ public class StringUtil {
 	 * Formats a XML string to be easier to read with newlines and indentations.
 	 *
 	 * @param xml the {@link String} to "prettify".
+	 * @param charset the {@link Charset} to use when reading {@code xml} or
+	 *            {@code null} for {@link StandardCharsets#UTF_8}.
 	 * @param indentWidth the width of one indentation in number of characters.
 	 * @return The "prettified" {@link String}.
 	 * @throws SAXException If a parsing error occurs.
@@ -904,15 +907,44 @@ public class StringUtil {
 	 */
 	public static String prettifyXML(
 		String xml,
+		Charset charset,
 		int indentWidth
 	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
+		if (isBlank(xml)) {
+			return "";
+		}
+		if (charset == null) {
+			charset = StandardCharsets.UTF_8;
+		}
+		// Turn XML string into a document
 		try {
-			// Turn XML string into a document
-			Document xmlDocument =
-				DocumentBuilderFactory.newInstance().
-				newDocumentBuilder().
-				parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+			Document xmlDocument = XmlUtils.xxeDisabledDocumentBuilderFactory()
+				.newDocumentBuilder()
+				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+			return prettifyXML(xmlDocument, indentWidth);
+		} catch (IOException e) {
+			LOGGER.warn("Failed to read XML document, returning the source document: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return xml;
+		}
+	}
 
+
+	/**
+	 * Formats a XML string to be easier to read with newlines and indentations.
+	 *
+	 * @param xmlDocument the {@link Document} to "prettify".
+	 * @param indentWidth the width of one indentation in number of characters.
+	 * @return The "prettified" {@link String}.
+	 * @throws SAXException If a parsing error occurs.
+	 * @throws ParserConfigurationException If a parsing error occurs.
+	 * @throws XPathExpressionException If a parsing error occurs.
+	 * @throws TransformerException If a parsing error occurs.
+	 */
+	public static String prettifyXML(
+		Document xmlDocument,
+		int indentWidth
+	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
 			// Remove whitespaces outside tags
 			xmlDocument.normalize();
 			XPath xPath = XPathFactory.newInstance().newXPath();
@@ -928,7 +960,7 @@ public class StringUtil {
 			}
 
 			// Setup pretty print options
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			TransformerFactory transformerFactory = XmlUtils.xxeDisabledTransformerFactory();
 			transformerFactory.setAttribute("indent-number", indentWidth);
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
@@ -939,11 +971,6 @@ public class StringUtil {
 			StringWriter stringWriter = new StringWriter();
 			transformer.transform(new DOMSource(xmlDocument), new StreamResult(stringWriter));
 			return stringWriter.toString();
-		} catch (IOException e) {
-			LOGGER.warn("Failed to read XML document, returning the source document: {}", e.getMessage());
-			LOGGER.trace("", e);
-			return xml;
-		}
 	}
 
 	/**
@@ -956,14 +983,29 @@ public class StringUtil {
 	 * @return The combined "readable" {@link String}.
 	 */
 	public static String createReadableCombinedString(Collection<String> strings) {
-		return createReadableCombinedString(strings, null, null);
+		return createReadableCombinedString(strings, false, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form
+	 * "{@code element 1, element2 and element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(Collection<String> strings, boolean quote) {
+		return createReadableCombinedString(strings, quote, null, null);
 	}
 
 	/**
 	 * Creates a "readable" string by combining the strings in {@code strings}
 	 * while inserting {@code separator} and {@code lastSeparator} as
-	 * appropriate. The resulting {@link String} is in the form
-	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 * appropriate. The resulting {@link String} is in the form "
+	 * {@code element 1<separator> element2 <lastSeparator> element3}".
 	 *
 	 * @param strings the {@link Collection} of {@link String} to combine.
 	 * @param separator the "normal" separator used everywhere except between
@@ -975,7 +1017,33 @@ public class StringUtil {
 		if (strings == null || strings.isEmpty()) {
 			return "";
 		}
-		return createReadableCombinedString(strings.toArray(new String[strings.size()]), separator, lastSeparator);
+		return createReadableCombinedString(strings.toArray(new String[strings.size()]), false, separator, lastSeparator);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form "
+	 * {@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the {@link Collection} of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(
+		Collection<String> strings,
+		boolean quote,
+		String separator,
+		String lastSeparator
+	) {
+		if (strings == null || strings.isEmpty()) {
+			return "";
+		}
+		return createReadableCombinedString(strings.toArray(new String[strings.size()]), quote, separator, lastSeparator);
 	}
 
 	/**
@@ -988,7 +1056,22 @@ public class StringUtil {
 	 * @return The combined "readable" {@link String}.
 	 */
 	public static String createReadableCombinedString(String[] strings) {
-		return createReadableCombinedString(strings, null, null);
+		return createReadableCombinedString(strings, false, null, null);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting "{@code ,}" and "{@code and}" as appropriate. The
+	 * resulting {@link String} is in the form "
+	 * {@code element 1, element2 and element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(String[] strings, boolean quote) {
+		return createReadableCombinedString(strings, quote, null, null);
 	}
 
 	/**
@@ -1004,6 +1087,29 @@ public class StringUtil {
 	 * @return The combined "readable" {@link String}.
 	 */
 	public static String createReadableCombinedString(String[] strings, String separator, String lastSeparator) {
+		return createReadableCombinedString(strings, false, separator, lastSeparator);
+	}
+
+	/**
+	 * Creates a "readable" string by combining the strings in {@code strings}
+	 * while inserting {@code separator} and {@code lastSeparator} as
+	 * appropriate. The resulting {@link String} is in the form
+	 * "{@code element 1<separator> element2 <lastSeparator> element3}".
+	 *
+	 * @param strings the array of {@link String} to combine.
+	 * @param quote if {@code true}, all elements will be quoted in
+	 *            double-quotes.
+	 * @param separator the "normal" separator used everywhere except between
+	 *            the last two elements.
+	 * @param lastSeparator the separator used between the last two elements.
+	 * @return The combined "readable" {@link String}.
+	 */
+	public static String createReadableCombinedString(
+		String[] strings,
+		boolean quote,
+		String separator,
+		String lastSeparator
+	) {
 		if (strings == null || strings.length == 0) {
 			return "";
 		}
@@ -1012,9 +1118,9 @@ public class StringUtil {
 		} else {
 			separator += " ";
 		}
-		if (lastSeparator == null) {
+		if (isBlank(lastSeparator)) {
 			lastSeparator = " and ";
-		} else if (!isBlank(lastSeparator)) {
+		} else {
 			if (!lastSeparator.substring(0, 1).equals(" ")) {
 				lastSeparator = " " + lastSeparator;
 			}
@@ -1025,13 +1131,17 @@ public class StringUtil {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < strings.length; i++) {
 			if (i > 0) {
-				if (i == strings.length) {
+				if (i == strings.length - 1) {
 					sb.append(lastSeparator);
 				} else {
 					sb.append(separator);
 				}
 			}
-			sb.append(strings[i]);
+			if (quote) {
+				sb.append("\"").append(strings[i]).append("\"");
+			} else {
+				sb.append(strings[i]);
+			}
 		}
 		return sb.toString();
 	}
@@ -1092,7 +1202,157 @@ public class StringUtil {
 	}
 
 	/**
-	 * An enum representing letter cases.
+	 * Parses the specified {@code float} to a {@code boolean} value.
+	 * <p>
+	 * The following in considered {@code false}: {@code 0}<br>
+	 * The following in considered {@code true}: {@code 1}<br>
+	 *
+	 * @param value the value to parse to a {@code boolean}.
+	 * @param unknownTrue if {@code true} all values that isn't defined as
+	 *            either {@code true} or {@code false} are considered to be
+	 *            {@code true}, otherwise they are considered to be
+	 *            {@code false}.
+	 * @return The parsed {@code boolean} value.
+	 */
+	public static boolean parseBoolean(float value, boolean unknownTrue) {
+		return unknownTrue ? Float.compare(value, 0f) != 0 : Float.compare(value, 1f) == 0;
+	}
+
+	/**
+	 * Parses the specified {@code double} to a {@code boolean} value.
+	 * <p>
+	 * The following in considered {@code false}: {@code 0}<br>
+	 * The following in considered {@code true}: {@code 1}<br>
+	 *
+	 * @param value the value to parse to a {@code boolean}.
+	 * @param unknownTrue if {@code true} all values that isn't defined as
+	 *            either {@code true} or {@code false} are considered to be
+	 *            {@code true}, otherwise they are considered to be
+	 *            {@code false}.
+	 * @return The parsed {@code boolean} value.
+	 */
+	public static boolean parseBoolean(double value, boolean unknownTrue) {
+		return unknownTrue ? Double.compare(value, 0d) != 0 : Double.compare(value, 1d) == 0;
+	}
+
+	/**
+	 * Parses the specified {@code long} to a {@code boolean} value.
+	 * <p>
+	 * The following in considered {@code false}: {@code 0}<br>
+	 * The following in considered {@code true}: {@code 1}<br>
+	 *
+	 * @param value the value to parse to a {@code boolean}.
+	 * @param unknownTrue if {@code true} all values that isn't defined as
+	 *            either {@code true} or {@code false} are considered to be
+	 *            {@code true}, otherwise they are considered to be
+	 *            {@code false}.
+	 * @return The parsed {@code boolean} value.
+	 */
+	public static boolean parseBoolean(long value, boolean unknownTrue) {
+		return unknownTrue ? value != 0 : value == 1;
+	}
+
+	/**
+	 * Parses the specified {@code int} to a {@code boolean} value.
+	 * <p>
+	 * The following in considered {@code false}: {@code 0}<br>
+	 * The following in considered {@code true}: {@code 1}<br>
+	 *
+	 * @param value the value to parse to a {@code boolean}.
+	 * @param unknownTrue if {@code true} all values that isn't defined as
+	 *            either {@code true} or {@code false} are considered to be
+	 *            {@code true}, otherwise they are considered to be
+	 *            {@code false}.
+	 * @return The parsed {@code boolean} value.
+	 */
+	public static boolean parseBoolean(int value, boolean unknownTrue) {
+		return unknownTrue ? value != 0 : value == 1;
+	}
+
+	/**
+	 * Parses the specified {@code short} to a {@code boolean} value.
+	 * <p>
+	 * The following in considered {@code false}: {@code 0}<br>
+	 * The following in considered {@code true}: {@code 1}<br>
+	 *
+	 * @param value the value to parse to a {@code boolean}.
+	 * @param unknownTrue if {@code true} all values that isn't defined as
+	 *            either {@code true} or {@code false} are considered to be
+	 *            {@code true}, otherwise they are considered to be
+	 *            {@code false}.
+	 * @return The parsed {@code boolean} value.
+	 */
+	public static boolean parseBoolean(short value, boolean unknownTrue) {
+		return unknownTrue ? value != (short) 0 : value == (short) 1;
+	}
+
+	/**
+	 * Parses the specified {@code byte} to a {@code boolean} value.
+	 * <p>
+	 * The following in considered {@code false}: {@code 0}<br>
+	 * The following in considered {@code true}: {@code 1}<br>
+	 *
+	 * @param value the value to parse to a {@code boolean}.
+	 * @param unknownTrue if {@code true} all values that isn't defined as
+	 *            either {@code true} or {@code false} are considered to be
+	 *            {@code true}, otherwise they are considered to be
+	 *            {@code false}.
+	 * @return The parsed {@code boolean} value.
+	 */
+	public static boolean parseBoolean(byte value, boolean unknownTrue) {
+		return unknownTrue ? value != (byte) 0 : value == (byte) 1;
+	}
+
+	/**
+	 * Parses the specified {@link Object} to a {@code boolean} value.
+	 * <p>
+	 * The following in considered {@code false}: {@code null}, {@code 0}, an
+	 * empty string, {@code "0"}, {@code "false"} and {@code "no"}<br>
+	 * The following in considered {@code true}: {@code 1}, {@code "1"},
+	 * {@code "true"} and {@code "yes"}<br>
+	 * <p>
+	 * If {@code value} isn't a {@link Boolean} or a {@link Number}, the
+	 * {@link String} representation of {@code value} is used for evaluation.
+	 * The evaluation is case-insensitive.
+	 *
+	 * @param value the value to parse to a {@code boolean}.
+	 * @param unknownTrue if {@code true} all values that isn't defined as
+	 *            either {@code true} or {@code false} are considered to be
+	 *            {@code true}, otherwise they are considered to be
+	 *            {@code false}.
+	 * @return The parsed {@code boolean} value.
+	 */
+	public static boolean parseBoolean(Object value, boolean unknownTrue) {
+		if (value == null) {
+			return false;
+		}
+		if (value instanceof Boolean) {
+			return ((Boolean) value).booleanValue();
+		}
+		if (value instanceof Number) {
+			return unknownTrue ? ((Number) value).intValue() != 0 : ((Number) value).intValue() == 1;
+		}
+		String stringValue = value.toString();
+		if (isBlank(stringValue)) {
+			return false;
+		}
+		stringValue = stringValue.trim().toLowerCase(Locale.ROOT);
+		switch (stringValue) {
+			case "0":
+			case "false":
+			case "no":
+				return false;
+			case "1":
+			case "true":
+			case "yes":
+				return true;
+			default:
+				return unknownTrue;
+		}
+	}
+
+	/**
+	 * An {@code enum} representing letter cases.
 	 */
 	public static enum LetterCase {
 

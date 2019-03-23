@@ -36,19 +36,15 @@ import org.slf4j.LoggerFactory;
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
-	private boolean useSuperThumb;
-
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
 		setLastModified(file.lastModified());
-		useSuperThumb = false;
 	}
 
 	public RealFile(File file, String name) {
 		getConf().getFiles().add(file);
 		getConf().setName(name);
 		setLastModified(file.lastModified());
-		useSuperThumb = false;
 	}
 
 	@Override
@@ -62,9 +58,6 @@ public class RealFile extends MapFile {
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
 			return false;
-		}
-		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
-			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
@@ -179,8 +172,15 @@ public class RealFile extends MapFile {
 					try {
 						medias = database.getData(fileName, file.lastModified());
 
+						setExternalSubtitlesParsed();
 						if (medias.size() == 1) {
 							setMedia(medias.get(0));
+							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
+								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
+								getMedia().getSubtitleTracksList().clear();
+								resetSubtitlesStatus();
+							}
+
 							getMedia().postParse(getType(), input);
 							found = true;
 						} else if (medias.size() > 1) {
@@ -208,9 +208,6 @@ public class RealFile extends MapFile {
 
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
-					if (getMedia() != null && getMedia().isSLS()) {
-						setFormat(getMedia().getAudioVariantFormat());
-					}
 				} else {
 					// Don't think that will ever happen
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
@@ -221,6 +218,15 @@ public class RealFile extends MapFile {
 
 					if (database != null) {
 						try {
+							/*
+							 * Even though subtitles will be resolved later in
+							 * DLNAResource.syncResolve, we must make sure that
+							 * they are resolved before insertion into the
+							 * database
+							 */
+							if (getMedia() != null && getMedia().isVideo()) {
+								registerExternalSubtitles(false);
+							}
 							database.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
 						} catch (SQLException e) {
 							LOGGER.error(
@@ -241,14 +247,14 @@ public class RealFile extends MapFile {
 					}
 				}
 			}
+			if (getMedia() != null && getMedia().isSLS()) {
+				setFormat(getMedia().getAudioVariantFormat());
+			}
 		}
 	}
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
-			return super.getThumbnailInputStream();
-		}
 
 		File file = getFile();
 		File cachedThumbnail = null;
@@ -326,7 +332,41 @@ public class RealFile extends MapFile {
 		return getName() + ">" + getFile().getAbsolutePath();
 	}
 
-	public void ignoreThumbHandling() {
-		useSuperThumb = true;
+	private volatile String baseNamePrettified;
+	private volatile String baseNameWithoutExtension;
+	private final Object displayNameBaseLock = new Object();
+
+	@SuppressWarnings("deprecation")
+	@Override
+	protected String getDisplayNameBase() {
+		if (parent instanceof SubSelFile && media_subtitle instanceof DLNAMediaOnDemandSubtitle) {
+			return ((DLNAMediaOnDemandSubtitle) media_subtitle).getName();
+		}
+		if (isFolder()) {
+			return super.getDisplayNameBase();
+		}
+		if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
+			// Double-checked locking
+			if (baseNamePrettified == null) {
+				synchronized (displayNameBaseLock) {
+					if (baseNamePrettified == null) {
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile());
+					}
+				}
+			}
+			return baseNamePrettified;
+		} else if (configuration.isHideExtensions()) {
+			// Double-checked locking
+			if (baseNameWithoutExtension == null) {
+				synchronized (displayNameBaseLock) {
+					if (baseNameWithoutExtension == null) {
+						baseNameWithoutExtension = FileUtil.getFileNameWithoutExtension(super.getDisplayNameBase());
+					}
+				}
+			}
+			return baseNameWithoutExtension;
+		}
+
+		return super.getDisplayNameBase();
 	}
 }

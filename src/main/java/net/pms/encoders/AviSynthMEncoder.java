@@ -300,14 +300,21 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			}
 
 			String subLine = null;
-			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
+			if (
+				subTrack != null &&
+				subTrack.isExternal() &&
+				configuration.isAutoloadExternalSubtitles() &&
+				!configuration.isDisableSubtitles()
+			) {
 				if (subTrack.getExternalFile() != null) {
-					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
+					LOGGER.info("AviSynth script: Using subtitle track: {}", subTrack);
 					String function = "TextSub";
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+				} else {
+					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}
 			}
 
@@ -373,7 +380,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		// Uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// This engine only supports external subtitles
-			if (subtitle.getExternalFile() != null) {
+			if (subtitle.isExternal()) {
 				return true;
 			}
 

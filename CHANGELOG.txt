@@ -1,3 +1,10 @@
+8.0.0-RC1 - 2019-2-22
+
+	General
+		Database cleanup step removes files that are no longer shared
+		Cleanup of new config settings
+		All changes in 7.9.0
+
 7.9.0 - 2019-2-22
 
 	General:
@@ -20,6 +27,19 @@
 			Korean translation updated
 			Swedish translation updated
 			Turkish translation updated
+
+8.0.0-b1 - 2019-01-12
+
+	General:
+		Added option to disable FFmpeg GPU acceleration
+		Fixed too much transcoding due to not respecting language priority settings
+		Fixed failure to store audio stream information
+		Fixed failure to start
+		Fixed missing text when adding web content
+		Fixed missing text on the first time language chooser
+		Fixed text clash on the Subtitles settings subtab of the Transcoding settings tab
+		Fixed logspam
+		All changes in 7.8.0
 
 7.8.0 - 2019-01-12
 

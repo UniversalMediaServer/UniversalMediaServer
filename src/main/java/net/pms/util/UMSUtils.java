@@ -366,13 +366,24 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null && sub.getId() != -1) {
+							if (
+								sub.getLang() != null &&
+								(
+									(
+										sub.isExternal() &&
+										sub.getExternalFile() != null
+									) || (
+										sub.isEmbedded() &&
+										sub.getId() != -1
+									)
+								)
+							) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(',');
 								if (sub.isExternal()) {
 									sb.append("file:");
-									sb.append(sub.getExternalFile().getAbsolutePath());
+									sb.append(sub.getExternalFile().getPath());
 								} else {
 									sb.append("id:");
 									sb.append("").append(sub.getId());
@@ -518,8 +529,7 @@ public class UMSUtils {
 							subData = tmp[1];
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile), null);
-								s.setId(100);
+								s.setExternalFile(new File(sFile));
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
 							} else if (subData.startsWith("id:")) {
@@ -574,7 +584,8 @@ public class UMSUtils {
 		pw.run();
 		List<String> result = pw.getOtherResults();
 		List<String> availableMethods = new ArrayList<String>(1);
-		availableMethods.addAll(Arrays.asList("auto"));
+		availableMethods.addAll(Arrays.asList("none"));
+		availableMethods.add("auto");
 		if (result != null) {
 			for (String line : result) {
 				line = line.trim();
@@ -592,5 +603,28 @@ public class UMSUtils {
 
 		configuration.setFFmpegAvailableGPUDecodingAccelerationMethods(availableMethods);
 		configuration.save();
+	}
+
+	/**
+	 * @see https://stackoverflow.com/a/19155453/2049714
+	 * @param a first list to compare
+	 * @param b second list to compare
+	 * @return whether the lists are equal
+	 */
+	public static boolean isListsEqual(ArrayList<String> a, ArrayList<String> b) {
+		// Check for sizes and nulls
+		if (a == null && b == null) {
+			return true;
+		}
+
+		if ((a == null && b != null) || (a != null && b == null) || (a.size() != b.size())) {
+			return false;
+		}
+
+		// Sort and compare the two lists          
+		Collections.sort(a);
+		Collections.sort(b);
+
+		return a.equals(b);
 	}
 }
