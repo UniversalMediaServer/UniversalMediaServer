@@ -5161,4 +5161,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isAddToMediaLibrary() {
 		return true;
 	}
+
+	public boolean isAddToMediaLibrary() {
+		return true;
+	}
 }
