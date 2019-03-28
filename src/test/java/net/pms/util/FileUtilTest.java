@@ -550,7 +550,7 @@ public class FileUtilTest {
 		FileUtil.convertFileFromUtf16ToUtf8(file_cp1251, new File("output.srt"));
 	}
 
-	@Test(expected = FileNotFoundException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testConvertFileFromUtf16ToUtf8_inputFileNotFound() throws Exception {
 		FileUtil.convertFileFromUtf16ToUtf8(new File("no-such-file.xyz"), new File("output.srt"));
 	}

@@ -159,8 +159,7 @@ Nothing to do.
 
 These are needed by the build process:
 
-    mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
-    mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
+    mvn external:install
 
 At this point all required software packages are present.
 UMS is now ready to be built.
