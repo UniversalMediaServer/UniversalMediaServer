@@ -1,4 +1,4 @@
-8.0.1 - 2019-03-??
+8.0.1 - 2019-03-31
 
 	Dependencies:
 		Rolled back h2database to 1.4.196, which fixes broken music metadata
