@@ -78,8 +78,12 @@ public class DLNAMediaDatabase implements Runnable {
 	 * - 20: No db changes, bumped version because a parsing bug was fixed
 	 *       Released in version 8.0.0-b1
 	 * - 21: No db changes, bumped version because a parsing bug was fixed
+	 *       Released in version 8.0.0
+	 * - 22: No db changes, bumped version because h2database was reverted
+	 *       to 1.4.196 because 1.4.197 broke audio metadata being
+	 *       inserted/updated
 	 */
-	private final int latestVersion = 21;
+	private final int latestVersion = 22;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
