@@ -70,9 +70,9 @@ The result will be built in the "target" directory:
 
 First all required software has to be installed:
 
-## 1. Download and install the Java JDK
+## 1. Download and install the Java 8 JDK
 
-Note: the JRE is not enough.
+Note: the JRE is not enough, and versions higher than Java 8 are not recommended.
 
 ### Windows
 
