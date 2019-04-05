@@ -1,3 +1,9 @@
+8.0.2 - 2019-04-??
+
+	General:
+		Fixed error when browsing web folders
+		Updated build documentation
+
 8.0.1 - 2019-03-31
 
 	Dependencies:
