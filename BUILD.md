@@ -3,7 +3,7 @@
 - [Build instructions](#build-instructions)
 - [Short instructions](#short-instructions)
 - [Full instructions](#full-instructions)
-	- [1. Download and install the Java JDK](#1-download-and-install-the-java-jdk)
+	- [1. Download and install the Java JDK](#1-download-and-install-the-java-8-jdk)
 		- [Windows](#windows)
 		- [Linux](#linux)
 		- [macOS](#macos)
