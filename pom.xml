@@ -214,7 +214,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.196</version><!-- Versions 1.4.197-199 break the way we insert audio metadata (artist, album, etc.) -->
+			<version>1.4.199</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
