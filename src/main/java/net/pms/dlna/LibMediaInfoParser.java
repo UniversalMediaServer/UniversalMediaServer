@@ -47,9 +47,9 @@ public class LibMediaInfoParser {
 			MI.Option("Complete", "1");
 			MI.Option("Language", "en");
 			MI.Option("File_TestContinuousFileNames", "0");
-			Matcher matcher = Pattern.compile("MediaInfoLib[\\s-]*(\\S+)", Pattern.CASE_INSENSITIVE).matcher(MI.Option("Info_Version"));
+			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(MI.Option("Info_Version"));
 			if (matcher.find() && isNotBlank(matcher.group(1))) {
-				VERSION = new Version(matcher.group(1).substring(1));
+				VERSION = new Version(matcher.group(1));
 			} else {
 				VERSION = null;
 			}
