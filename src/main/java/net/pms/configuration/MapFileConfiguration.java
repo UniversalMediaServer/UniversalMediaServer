@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
@@ -66,7 +67,7 @@ public class MapFileConfiguration {
 			conf = null;
 
 			try {
-				conf = FileUtils.readFileToString(file);
+				conf = FileUtils.readFileToString(file, StandardCharsets.US_ASCII);
 			} catch (FileNotFoundException ex) {
 				LOGGER.warn("Can't read file: {}", ex.getMessage());
 				return null;
@@ -87,29 +88,36 @@ public class MapFileConfiguration {
 			conf = configuration.getVirtualFolders().trim().replaceAll("&comma;", ",");
 
 			// Convert our syntax into JSON syntax
-			String arrayLevel1[] = conf.split("\\|");
-			int i = 0;
-			boolean firstLoop = true;
+			String[] arrayLevel0 = conf.split(";");
 			StringBuilder jsonStringFromConf = new StringBuilder();
-			for (String value : arrayLevel1) {
+			jsonStringFromConf.append("[");
+			boolean firstLoop = true;
+			int i = 0;
+			for (String folders : arrayLevel0) {
+				String[] arrayLevel1 = folders.split("\\|");
 				if (!firstLoop) {
 					jsonStringFromConf.append(',');
 				}
 
-				if (i == 0) {
-					jsonStringFromConf.append("[{\"name\":\"").append(value).append("\",files:[");
-					i++;
-				} else {
-					String arrayLevel2[] = value.split(",");
-					for (String value2 : arrayLevel2) {
-						jsonStringFromConf.append("\"").append(value2).append("\",");
-					}
+				for (String value : arrayLevel1) {
+					if (i == 0) {
+						jsonStringFromConf.append("{\"name\":\"").append(value).append("\",\"files\":[");
+						i++;
+					} else {
+						String[] arrayLevel2 = value.split(",");
+						for (String value2 : arrayLevel2) {
+							jsonStringFromConf.append("\"").append(value2).append("\",");
+						}
 
-					jsonStringFromConf.append("]}]");
-					firstLoop = false;
-					i = 0;
+						jsonStringFromConf.append("]}");
+					}
 				}
+
+				firstLoop = false;
+				i = 0;
 			}
+
+			jsonStringFromConf.append("]");
 
 			GsonBuilder gsonBuilder = new GsonBuilder();
 			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
