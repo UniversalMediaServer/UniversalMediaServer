@@ -68,21 +68,11 @@ public class MapFileConfiguration {
 
 			try {
 				conf = FileUtils.readFileToString(file, StandardCharsets.US_ASCII);
-			} catch (FileNotFoundException ex) {
-				LOGGER.warn("Can't read file: {}", ex.getMessage());
-				return null;
 			} catch (IOException e) {
 				LOGGER.warn("Unexpected exeption while reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
 				LOGGER.debug("",e);
 				return null;
 			}
-
-			GsonBuilder gsonBuilder = new GsonBuilder();
-			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
-			Gson gson = gsonBuilder.create();
-			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
-			List<MapFileConfiguration> out = gson.fromJson(conf, listType);
-			return out;
 		} else if (isNotBlank(configuration.getVirtualFolders())) {
 			// Get the virtual folder info from the config string
 			conf = configuration.getVirtualFolders().trim().replaceAll("&comma;", ",");
@@ -125,15 +115,17 @@ public class MapFileConfiguration {
 
 			jsonStringFromConf.append("]");
 
-			GsonBuilder gsonBuilder = new GsonBuilder();
-			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
-			Gson gson = gsonBuilder.create();
-			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
-			List<MapFileConfiguration> out = gson.fromJson(jsonStringFromConf.toString().replaceAll("\\\\","\\\\\\\\"), listType);
+			conf = jsonStringFromConf.toString().replaceAll("\\\\","\\\\\\\\");
 
-			return out;
+		} else {
+			return null;
 		}
-		return null;
+
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
+		Gson gson = gsonBuilder.create();
+		Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
+		return gson.fromJson(conf, listType);
 	}
 }
 
