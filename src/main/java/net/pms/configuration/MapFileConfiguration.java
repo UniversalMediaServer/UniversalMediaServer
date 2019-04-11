@@ -105,8 +105,14 @@ public class MapFileConfiguration {
 						i++;
 					} else {
 						String[] arrayLevel2 = value.split(",");
+						boolean firstFile = true;
 						for (String value2 : arrayLevel2) {
-							jsonStringFromConf.append("\"").append(value2).append("\",");
+							if (!firstFile) {
+								jsonStringFromConf.append(",");
+							}
+
+							jsonStringFromConf.append("\"").append(value2).append("\"");
+							firstFile = false;
 						}
 
 						jsonStringFromConf.append("]}");

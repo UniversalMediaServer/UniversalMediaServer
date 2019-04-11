@@ -287,10 +287,6 @@ public class MapFile extends DLNAResource {
 		String filename;
 
 		for (File file : this.conf.getFiles()) {
-			if (file == null) {
-				continue;
-			}
-
 			filename = file.getName() == null ? "unnamed" : file.getName();
 			if (file == null || !file.isDirectory()) {
 				LOGGER.trace("Ignoring {} because it is not a valid directory", filename);
