@@ -931,10 +931,7 @@ public class FFMpegVideo extends Player {
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.sid.isEmbedded() &&
 			(
-				(
-					params.sid.getType().isText() &&
-					params.sid.getType() != SubtitleType.ASS
-				) ||
+				params.sid.getType().isText() ||
 				params.sid.getType() == SubtitleType.VOBSUB
 			)
 		) {
@@ -1059,7 +1056,7 @@ public class FFMpegVideo extends Player {
 		// give the renderer the final say on the command
 		boolean override = false;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(cmdList, dlna, this, params);
+			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
 
 		if (!override) {

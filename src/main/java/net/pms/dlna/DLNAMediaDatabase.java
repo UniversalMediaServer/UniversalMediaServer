@@ -78,8 +78,12 @@ public class DLNAMediaDatabase implements Runnable {
 	 * - 20: No db changes, bumped version because a parsing bug was fixed
 	 *       Released in version 8.0.0-b1
 	 * - 21: No db changes, bumped version because a parsing bug was fixed
+	 *       Released in version 8.0.0
+	 * - 22: No db changes, bumped version because h2database was reverted
+	 *       to 1.4.196 because 1.4.197 broke audio metadata being
+	 *       inserted/updated
 	 */
-	private final int latestVersion = 21;
+	private final int latestVersion = 22;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -753,16 +757,15 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateInt("BITSPERSAMPLE", audioTrack.getBitsperSample());
 						rs.updateString("ALBUM", left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
 						rs.updateString("ARTIST", left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
-						
+
 						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
 						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
 						if (albumartist.isEmpty()) {
 							rs.updateNull("ALBUMARTIST");
-						}
-						else {
+						} else {
 							rs.updateString("ALBUMARTIST", albumartist);
 						}
-						
+
 						rs.updateString("SONGNAME", left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
 						rs.updateString("GENRE", left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
 						rs.updateInt("YEAR", audioTrack.getYear());
@@ -783,17 +786,15 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setInt(8, audioTrack.getBitsperSample());
 						insertStatement.setString(9, left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
 						insertStatement.setString(10, left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
-						
+
 						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
 						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
 						if (albumartist.isEmpty()) {
 							insertStatement.setNull(11, Types.VARCHAR);
-						}
-						else {
+						} else {
 							insertStatement.setString(11, albumartist);
-							
 						}
-						
+
 						insertStatement.setString(12, left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
 						insertStatement.setString(13, left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
 						insertStatement.setInt(14, audioTrack.getYear());
@@ -929,7 +930,8 @@ public class DLNAMediaDatabase implements Runnable {
 						"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, YEAR, MOVIEORSHOWNAME, " +
 						"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION) VALUES " +
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+						Statement.RETURN_GENERATED_KEYS
 					)
 				) {
 					int databaseColumnIterator = 0;
