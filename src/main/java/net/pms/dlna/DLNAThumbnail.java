@@ -231,6 +231,7 @@ public class DLNAThumbnail extends DLNAImage {
 			inputImage,
 			outputProfile,
 			true,
+			true,
 			padToSize,
 			null
 		);
@@ -459,6 +460,7 @@ public class DLNAThumbnail extends DLNAImage {
 		return (DLNAThumbnail) ImagesUtil.transcodeImage(
 			this,
 			outputProfile,
+			true,
 			true,
 			padToSize,
 			null

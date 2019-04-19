@@ -140,6 +140,38 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	}
 
 	/**
+	 * Creates a {@link DLNAImageInputStream} from {@code inputStream}.
+	 * <p>
+	 * <b>{@code inputStream} is consumed and closed</b>
+	 * <p>
+	 * If {@code inputStream} is {@link ByteArrayInputStream} or a subclass the
+	 * underlying array is used - otherwise the stream is read into memory.
+	 * Format support is limited to that of {@link ImageIO}. Preserves aspect
+	 * ratio and rotates/flips the image according to Exif orientation.
+	 *
+	 * @param inputStream the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to adhere to for the
+	 *            output.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @return The populated {@link DLNAImageInputStream} or {@code null} if the
+	 *         source image is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static DLNAImageInputStream toImageInputStream(
+		InputStream inputStream,
+		DLNAImageProfile outputProfile,
+		boolean dlnaCompliant,
+		boolean padToSize
+	) throws IOException {
+		DLNAImage image = DLNAImage.toDLNAImage(inputStream, outputProfile, dlnaCompliant, padToSize);
+		return image != null ? new DLNAImageInputStream(image) : null;
+	}
+
+	/**
 	 * Creates a {@link DLNAImageInputStream} where it uses
 	 * {@code imageByteArray} as its buffer array. The buffer is only copied if
 	 * any conversion is needed. The initial value of {@code pos} is {@code 0}
@@ -251,9 +283,13 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	/**
 	 * Converts and scales a image according to the given
 	 * {@link DLNAImageProfile}. Preserves aspect ratio. Format support is
-	 * limited to that of {@link ImageIO}.
+	 * limited to that of {@link ImageIO}. DLNA compliance depends on the
+	 * renderer for non-thumbnails.
 	 *
 	 * @param outputProfile the DLNA media profile to adhere to for the output.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
 	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
@@ -264,6 +300,7 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 */
 	public DLNAImageInputStream transcode(
 		DLNAImageProfile outputProfile,
+		boolean dlnaCompliant,
 		boolean padToSize,
 		BufferedImageFilterChain filterChain
 	) throws IOException {
@@ -271,6 +308,7 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 		image = (DLNAImage) ImagesUtil.transcodeImage(
 			this.getBytes(false),
 			outputProfile,
+			dlnaCompliant,
 			false,
 			padToSize,
 			filterChain

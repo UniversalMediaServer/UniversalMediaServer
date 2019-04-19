@@ -579,8 +579,13 @@ public class RequestV2 extends HTTPResource {
 				LOGGER.error("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
 				throw new HttpException(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
 			}
+			
+			boolean doesRendererCareAboutDlnaFormat = false;
+			if (mediaRenderer != null && mediaRenderer.isDlnaLimitImageFormats() == true) {
+				doesRendererCareAboutDlnaFormat = true;
+			}
 
-			InputStream iStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+			InputStream iStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, doesRendererCareAboutDlnaFormat, false);
 			if (contentFeatures != null) {
 				output.headers().set(
 					"ContentFeatures.DLNA.ORG",

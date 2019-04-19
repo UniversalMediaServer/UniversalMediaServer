@@ -762,6 +762,9 @@ public class ImagesUtil {
 	 *
 	 * @param inputImage the source {@link Image}.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
 	 * @param dlnaThumbnail whether or not the output image should be restricted
 	 *            to DLNA thumbnail compliance. This also means that the output
 	 *            can be safely cast to {@link DLNAThumbnail}.
@@ -775,6 +778,7 @@ public class ImagesUtil {
 	public static Image transcodeImage(
 		Image inputImage,
 		DLNAImageProfile outputProfile,
+		boolean dlnaCompliant,
 		boolean dlnaThumbnail,
 		boolean padToSize,
 		BufferedImageFilterChain filterChain
@@ -785,7 +789,7 @@ public class ImagesUtil {
 			0,
 			null,
 			outputProfile,
-			true,
+			dlnaCompliant,
 			dlnaThumbnail,
 			padToSize,
 			filterChain
@@ -837,6 +841,50 @@ public class ImagesUtil {
 	 * {@link DLNAImageProfile}. Preserves aspect ratio and rotates/flips the
 	 * image according to Exif orientation. Format support is limited to that of
 	 * {@link ImageIO}.
+	 * <p>
+	 * <b> This method consumes and closes {@code inputStream}. </b>
+	 *
+	 * @param inputStream the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static Image transcodeImage(
+		InputStream inputStream,
+		DLNAImageProfile outputProfile,
+		boolean dlnaCompliant,
+		boolean dlnaThumbnail,
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
+	) throws IOException {
+		return transcodeImage(
+			inputStream,
+			0,
+			0,
+			null,
+			outputProfile,
+			dlnaCompliant,
+			dlnaThumbnail,
+			padToSize,
+			filterChain
+		);
+	}
+
+	/**
+	 * Converts and if necessary scales an image to comply with a
+	 * {@link DLNAImageProfile}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
 	 *
 	 * @param inputByteArray the source image in a supported format.
 	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
@@ -864,6 +912,48 @@ public class ImagesUtil {
 			null,
 			outputProfile,
 			true,
+			dlnaThumbnail,
+			padToSize,
+			filterChain
+		);
+	}
+
+	/**
+	 * Converts and if necessary scales an image to comply with a
+	 * {@link DLNAImageProfile}. Preserves aspect ratio and rotates/flips the
+	 * image according to Exif orientation. Format support is limited to that of
+	 * {@link ImageIO}.
+	 *
+	 * @param inputByteArray the source image in a supported format.
+	 * @param outputProfile the {@link DLNAImageProfile} to convert to.
+	 * @param dlnaCompliant whether or not the output image should be restricted
+	 *            to DLNA compliance. This also means that the output can be
+	 *            safely cast to {@link DLNAImage}.
+	 * @param dlnaThumbnail whether or not the output image should be restricted
+	 *            to DLNA thumbnail compliance. This also means that the output
+	 *            can be safely cast to {@link DLNAThumbnail}.
+	 * @param padToSize whether padding should be used if source aspect doesn't
+	 *            match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
+	 * @return The converted image or {@code null} if the source is {@code null}.
+	 * @throws IOException if the operation fails.
+	 */
+	public static Image transcodeImage(
+		byte[] inputByteArray,
+		DLNAImageProfile outputProfile,
+		boolean dlnaCompliant,
+		boolean dlnaThumbnail,
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
+	) throws IOException {
+		return transcodeImage(
+			inputByteArray,
+			0,
+			0,
+			null,
+			outputProfile,
+			dlnaCompliant,
 			dlnaThumbnail,
 			padToSize,
 			filterChain

@@ -139,11 +139,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
 	protected static final String DEVICE_ID = "Device";
 	protected static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
+	protected static final String DLNA_LIMIT_IMAGE_FORMATS = "DLNALimitImageFormats";
 	protected static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
+	protected static final String DLNA_LRG_IMAGE_RESOLUTION_LIMIT = "DLNALrgImageResolutionLimit";
 	protected static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
-	protected static final String DLNA_LRG_IMAGE_RESOLUTION_LIMIT = "DLNALrgImageResolutionLimit";
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
@@ -1983,6 +1984,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public int getDlnaLrgImageResolutionLimit() {
 		return getInt(DLNA_LRG_IMAGE_RESOLUTION_LIMIT, 100000);
+	}
+
+	/**
+	 * DLNA spec imposes a lot of limits on which types of images are valid
+	 * over the network, especially for JPEG, so this is a way for renderers
+	 * to opt-in to those restrictions.
+	 *
+	 * Defaults to false because we are very slow to convert images thanks
+	 * to ImageIO.
+	 *
+	 * @return whether to limit certain aspects of images to fit DLNA spec
+	 */
+	public boolean isDlnaLimitImageFormats() {
+		return getBoolean(DLNA_LIMIT_IMAGE_FORMATS, false);
 	}
 
 	/**
