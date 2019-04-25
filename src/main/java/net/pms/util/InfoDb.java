@@ -3,6 +3,7 @@ package net.pms.util;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,18 +37,18 @@ public class InfoDb implements DbHandler {
 
 
 	private void askAndInsert(File f, String formattedName) {
-		synchronized (db) {
-			try {
-				String[] tmp = OpenSubtitle.getInfo(f, formattedName);
-				Object obj = db.nullObj();
-				if (tmp != null) {
-					obj = create(tmp, 0);
-				}
-				db.add(f.getAbsolutePath(), obj);
-			} catch (Exception e) {
-				LOGGER.error("Error while inserting in InfoDb: {}", e.getMessage());
-				LOGGER.trace("", e);
+		try {
+			String[] tmp = OpenSubtitle.getInfo(f, formattedName);
+			Object obj = FileDb.nullObj();
+			if (tmp != null) {
+				obj = create(tmp, 0);
 			}
+			synchronized (db) {
+				db.add(f.getAbsolutePath(), obj);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while inserting in InfoDb: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
@@ -127,7 +128,7 @@ public class InfoDb implements DbHandler {
 		return "InfoDb.db";
 	}
 
-	private boolean redo() {
+	private static boolean redo() {
 		long now = System.currentTimeMillis();
 		long last = now;
 		try {
@@ -157,11 +158,11 @@ public class InfoDb implements DbHandler {
 				synchronized (db) {
 					// this whole iterator stuff is to avoid
 					// CMEs
-					Iterator it = db.iterator();
+					Iterator<Entry<String, Object>> it = db.iterator();
 					boolean sync = false;
 					while (it.hasNext()) {
-						Map.Entry kv = (Map.Entry) it.next();
-						String key = (String) kv.getKey();
+						Map.Entry<String, Object> kv = it.next();
+						String key = kv.getKey();
 
 						// nonNull -> no need to ask again
 						if (!db.isNull(kv.getValue())) {

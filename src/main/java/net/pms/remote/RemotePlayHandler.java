@@ -69,7 +69,7 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 	}
 
-	private String mkPage(String id, HttpExchange t) throws IOException {
+	private String mkPage(String id, HttpExchange t) throws IOException, InterruptedException {
 		HashMap<String, Object> vars = new HashMap<>();
 		vars.put("serverName", configuration.getServerDisplayName());
 
@@ -188,7 +188,7 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 			OutputParams p = new OutputParams(configuration);
 			p.sid = r.getMediaSubtitle();
-			Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
+			Player.setAudioAndSubs(r, p);
 			if (p.sid != null && p.sid.getType().isText()) {
 				try {
 					File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);

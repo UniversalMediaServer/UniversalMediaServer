@@ -27,7 +27,7 @@ import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
-import net.sf.sevenzipjbinding.ISevenZipInArchive;
+import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
@@ -41,7 +41,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private File file;
 	private String zeName;
 	private long length;
-	private ISevenZipInArchive arc;
+	private IInArchive arc;
 
 	@Override
 	protected String getThumbnailURL(DLNAImageProfile profile) {
@@ -91,7 +91,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -150,9 +149,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
-					} catch (SevenZipException e) {
-						LOGGER.debug("Caught 7-Zip exception", e);
-					}
+					} 
 				}
 			}
 		};

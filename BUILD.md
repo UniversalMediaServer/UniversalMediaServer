@@ -3,7 +3,7 @@
 - [Build instructions](#build-instructions)
 - [Short instructions](#short-instructions)
 - [Full instructions](#full-instructions)
-	- [1. Download and install the Java JDK](#1-download-and-install-the-java-jdk)
+	- [1. Download and install the Java JDK](#1-download-and-install-the-java-8-jdk)
 		- [Windows](#windows)
 		- [Linux](#linux)
 		- [macOS](#macos)
@@ -70,9 +70,9 @@ The result will be built in the "target" directory:
 
 First all required software has to be installed:
 
-## 1. Download and install the Java JDK
+## 1. Download and install the Java 8 JDK
 
-Note: the JRE is not enough.
+Note: the JRE is not enough, and versions higher than Java 8 are not recommended.
 
 ### Windows
 
@@ -159,8 +159,7 @@ Nothing to do.
 
 These are needed by the build process:
 
-    mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
-    mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
+    mvn external:install
 
 At this point all required software packages are present.
 UMS is now ready to be built.
@@ -242,7 +241,7 @@ The Windows installer can now be built with one of the following commands:
 
 ### On macOS
 
-    mvn package -P system-makensis,windows,-osx
+    mvn package -P system-makensis,windows,-osx-java7,-osx-java8
 
 ## Building the Linux tarball
 
@@ -252,24 +251,34 @@ The Windows installer can now be built with one of the following commands:
 
 ### On macOS
 
-    mvn package -P linux,-osx
+    mvn package -P linux,-osx-java7,-osx-java8
 
 ## Building the macOS installer tarball
 
 The macOS installer tarball can be built on any platform by specifying
 the "osx" profile explicity:
 
-    mvn package -P osx
+    mvn package -P osx-java7
+
+or
+
+    mvn package -P osx-java8
 
 ## Building the macOS wizard installer
 
 1) Build UMS
 2) Install http://s.sudre.free.fr/Software/Packages/about.html
 3) Set a variable storing the directory path of the build distribution file, e.g.
-`$ UMS_DIST_FOLDER="/Users/dev/ums/target/ums-7.3.1-SNAPSHOT-distribution/Universal Media Server.app"`
-`$ UMS_LOGO_FILE="/Users/dev/ums/src/main/external-resources/third-party/nsis/Contrib/Graphics/Wizard/win.png"`
+```
+export UMS_DIST_FOLDER="/Users/dev/ums/target/ums-7.3.1-SNAPSHOT-distribution/Universal Media Server.app"
+export UMS_LOGO_FILE="/Users/dev/ums/src/main/external-resources/third-party/nsis/Contrib/Graphics/Wizard/win.png"
+```
 4) Replace desired path inside the  .pkgproj file
-`$ sed -i '' "s#UMS_DIST_FOLDER#$UMS_DIST_FOLDER#g" src/main/assembly/osx-installer.pkgproj`
-`$ sed -i '' "s#UMS_LOGO_FILE#$UMS_LOGO_FILE#g" src/main/assembly/osx-installer.pkgproj`
+```
+sed -i '' "s#UMS_DIST_FOLDER#$UMS_DIST_FOLDER#g" src/main/assembly/osx-installer.pkgproj
+sed -i '' "s#UMS_LOGO_FILE#$UMS_LOGO_FILE#g" src/main/assembly/osx-installer.pkgproj
+```
 5) Build .pkg installer. This will output to `/target/Universal Media Server.pkg`
-`$ /usr/local/bin/packagesbuild src/main/assembly/osx-installer.pkgproj`
+```
+/usr/local/bin/packagesbuild src/main/assembly/osx-installer.pkgproj
+```

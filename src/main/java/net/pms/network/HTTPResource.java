@@ -18,19 +18,31 @@
  */
 package net.pms.network;
 
-import java.io.*;
+import static net.pms.util.StringUtil.convertURLToFileName;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
-import static net.pms.util.StringUtil.convertURLToFileName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
@@ -146,7 +158,7 @@ public class HTTPResource {
 	 * @throws IOException
 	 * @see #downloadAndSendBinary(String)
 	 */
-	protected static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
+	public static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
 		URL url = new URL(u);
 		File f = null;
 
@@ -206,6 +218,18 @@ public class HTTPResource {
 
 		// GameTrailers blocks user-agents that identify themselves as "Java"
 		conn.setRequestProperty("User-agent", PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
+
+		CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
+		if (
+			cookieManager != null &&
+			cookieManager.getCookieStore() != null &&
+			cookieManager.getCookieStore().getCookies() != null &&
+			cookieManager.getCookieStore().getCookies().size() > 0
+		) {
+			// While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
+			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
+		}
+
 		FileOutputStream fOUT;
 		try (InputStream in = conn.getInputStream()) {
 			fOUT = null;

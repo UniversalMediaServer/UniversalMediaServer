@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.UIManager;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
+import net.pms.util.FileUtil;
 
 public class JImageButton extends JButton implements AnimatedIconCallback {
 
@@ -62,14 +63,6 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 		setOpaque(false);
 	}
 
-	protected String appendToFileName(String fileName, String append) {
-		int i = fileName.lastIndexOf(".");
-		if (i < 0) {
-			return fileName + append;
-		}
-		return fileName.substring(0, i) + append + fileName.substring(i);
-	}
-
 	/**
 	 * Set icons from standard naming convention based on a base image name.
 	 * @param defaultIconName the base image resource name used when the
@@ -90,17 +83,17 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 		}
 		setIcon(icon);
 
-		icon = LooksFrame.readImageIcon(appendToFileName(defaultIconName, "_pressed"));
+		icon = LooksFrame.readImageIcon(FileUtil.appendToFileName(defaultIconName, "_pressed"));
 		if (icon != null) {
 			setPressedIcon(icon);
 		}
 
-		icon = LooksFrame.readImageIcon(appendToFileName(defaultIconName, "_disabled"));
+		icon = LooksFrame.readImageIcon(FileUtil.appendToFileName(defaultIconName, "_disabled"));
 		if (icon != null) {
 			setDisabledIcon(icon);
 		}
 
-		icon = LooksFrame.readImageIcon(appendToFileName(defaultIconName, "_mouseover"));
+		icon = LooksFrame.readImageIcon(FileUtil.appendToFileName(defaultIconName, "_mouseover"));
 		if (icon != null) {
 			setRolloverIcon(icon);
 		}

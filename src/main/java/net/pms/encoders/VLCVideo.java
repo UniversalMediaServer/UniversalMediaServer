@@ -30,13 +30,21 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
@@ -61,24 +69,27 @@ import org.slf4j.LoggerFactory;
  */
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
+	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO;
+
+	/** The {@link Configuration} key for the custom VLC path. */
+	public static final String KEY_VLC_PATH = "vlc_path";
+
+	/** The {@link Configuration} key for the VLC executable type. */
+	public static final String KEY_VLC_EXECUTABLE_TYPE = "vlc_executable_type";
+	public static final String NAME = "VLC Video";
+
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
-	public static final String ID = "VLCTranscoder";
 	protected JTextField scale;
 	protected JCheckBox experimentalCodecs;
 	protected JCheckBox audioSyncEnabled;
 	protected JTextField sampleRate;
 	protected JCheckBox sampleRateOverride;
-	SystemUtils registry = PMS.get().getRegistry();
 
 	protected boolean videoRemux;
 
-	@Deprecated
-	public VLCVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public VLCVideo() {
+	// Not to be instantiated by anything but PlayerFactory
+	VLCVideo() {
 	}
 
 	@Override
@@ -87,8 +98,18 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_VLC_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_VLC_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -113,7 +134,7 @@ public class VLCVideo extends Player {
 
 	@Override
 	public String name() {
-		return "VLC";
+		return NAME;
 	}
 
 	@Override
@@ -128,8 +149,8 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getVlcPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getVLCPaths();
 	}
 
 	/**
@@ -267,7 +288,7 @@ public class VLCVideo extends Player {
 		return args;
 	}
 
-	private int[] getVideoBitrateConfig(String bitrate) {
+	private static int[] getVideoBitrateConfig(String bitrate) {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
@@ -444,7 +465,7 @@ public class VLCVideo extends Player {
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(filename, media, params);
+		setAudioAndSubs(dlna, params);
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);
@@ -462,7 +483,7 @@ public class VLCVideo extends Player {
 		params.secondread_minsize = 100000;
 
 		List<String> cmdList = new ArrayList<>();
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
@@ -471,18 +492,19 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (registry.getVlcVersion() != null) {
-			String vlcVersion = registry.getVlcVersion();
-			Version currentVersion = new Version(vlcVersion);
+		if (BasicSystemUtils.INSTANCE.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (currentVersion.compareTo(requiredVersion) > 0) {
+			if (BasicSystemUtils.INSTANCE.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
 				}
 			} else if (!configuration.isGPUAcceleration()) {
-				LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
+				LOGGER.debug(
+					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
+					BasicSystemUtils.INSTANCE.getVlcVersion()
+				);
 			}
 		}
 
@@ -508,37 +530,51 @@ public class VLCVideo extends Player {
 				// VLC doesn't understand "und", so try to get audio track by ID
 				cmdList.add("--audio-track=" + params.aid.getId());
 			} else {
-				cmdList.add("--audio-language=" + params.aid.getLang());
+				if (
+					isBlank(params.aid.getLang()) ||
+					DLNAMediaLang.UND.equals(params.aid.getLang()) ||
+					"loc".equals(params.aid.getLang())
+				) {
+					cmdList.add("--audio-track=-1");
+				} else {
+					cmdList.add("--audio-language=" + params.aid.getLang());
+				}
 			}
 		} else {
-			// Not specified, use language from GUI
-			// FIXME: VLC does not understand "loc" or "und".
-			cmdList.add("--audio-language=" + configuration.getAudioLanguages());
+			cmdList.add("--audio-track=-1");
 		}
 
 		// Handle subtitle language
 		if (params.sid != null) { // User specified language at the client, acknowledge it
-			if (params.sid.isExternal() && !params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) {
-				String externalSubtitlesFileName;
+			if (params.sid.isExternal()) {
+				if (params.sid.getExternalFile() == null) {
+					cmdList.add("--sub-" + disableSuffix);
+					LOGGER.error("External subtitles file \"{}\" is unavailable", params.sid.getName());
+				} else if (
+					!params.mediaRenderer.streamSubsForTranscodedVideo() ||
+					!params.mediaRenderer.isExternalSubtitlesFormatSupported(params.sid, media)
+				) {
+					String externalSubtitlesFileName;
 
-				// External subtitle file
-				if (params.sid.isExternalFileUtf16()) {
-					try {
-						// Convert UTF-16 -> UTF-8
-						File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
-						FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
-					} catch (IOException e) {
-						LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+					// External subtitle file
+					if (params.sid.isExternalFileUtf16()) {
+						try {
+							// Convert UTF-16 -> UTF-8
+							File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getName());
+							FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
+							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+						} catch (IOException e) {
+							LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
+							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile());
+						}
+					} else {
+						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile());
 					}
-				} else {
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-				}
 
-				if (externalSubtitlesFileName != null) {
-					cmdList.add("--sub-file");
-					cmdList.add(externalSubtitlesFileName);
+					if (externalSubtitlesFileName != null) {
+						cmdList.add("--sub-file");
+						cmdList.add(externalSubtitlesFileName);
+					}
 				}
 			} else if (params.sid.getLang() != null && !params.sid.getLang().equals("und")) { // Load by ID (better)
 				cmdList.add("--sub-track=" + params.sid.getId());
@@ -673,6 +709,81 @@ public class VLCVideo extends Player {
 			return true;
 		}
 
+		return false;
+	}
+
+	@Override
+	public boolean excludeFormat(Format extension) {
+		return false;
+	}
+
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+		return true;
+	}
+
+	@Override
+	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		ExecutableInfoBuilder result = executableInfo.modify();
+		if (Platform.isWindows()) {
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.INSTANCE.getVlcPath())) {
+				result.version(BasicSystemUtils.INSTANCE.getVlcVersion());
+			}
+			result.available(Boolean.TRUE);
+		} else {
+			final String arg = "--version";
+			try {
+				ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+					30000,
+					1000,
+					executableInfo.getPath().toString(),
+					arg
+				);
+				if (output.getError() != null) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+					result.available(Boolean.FALSE);
+					LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
+					return result.build();
+				}
+				if (output.getExitCode() == 0) {
+					if (output.getOutput() != null && output.getOutput().size() > 0) {
+						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
+						Matcher matcher = pattern.matcher(output.getOutput().get(0));
+						if (matcher.find() && isNotBlank(matcher.group(1))) {
+							result.version(new Version(matcher.group(1)));
+						}
+					}
+					result.available(Boolean.TRUE);
+				} else {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.available(Boolean.FALSE);
+				}
+			} catch (InterruptedException e) {
+				return null;
+			}
+		}
+		if (result.version() != null) {
+			Version requiredVersion = new Version("2.0.2");
+			if (result.version().compareTo(requiredVersion) <= 0) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.VersionTooLow"), requiredVersion, this));
+				result.available(Boolean.FALSE);
+				LOGGER.warn(String.format(Messages.getRootString("Engine.VersionTooLow"), requiredVersion, this));
+			}
+		} else if (result.available() != null && result.available().booleanValue()) {
+			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
 		return false;
 	}
 }

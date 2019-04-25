@@ -4,9 +4,14 @@ import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -200,10 +205,10 @@ public class MediaMonitor extends VirtualFolder {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null) {
 				boolean isMonitored = false;
-				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
-				if (foldersMonitored != null && foldersMonitored.length > 0) {
-					for (File folderMonitored : foldersMonitored) {
-						if (realFile.getFile().getAbsolutePath().contains(folderMonitored.getAbsolutePath())) {
+				List<Path> foldersMonitored = configuration.getMonitoredFolders();
+				if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+					for (Path folderMonitored : foldersMonitored) {
+						if (realFile.getFile().getAbsolutePath().contains(folderMonitored.toAbsolutePath().toString())) {
 							isMonitored = true;
 						}
 					}
@@ -230,30 +235,29 @@ public class MediaMonitor extends VirtualFolder {
 							boolean moved = false;
 							File newFile = null;
 
-							if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
+							try {
+								Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
 								LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
 								newFile = new File(newDirectory + playedFile.getName());
 								moved = true;
-							} else {
-								LOGGER.debug("Moving {} failed, trying again in 3 seconds", playedFile.getName());
+							} catch (IOException e) {
+								LOGGER.debug("Moving {} failed, trying again in 3 seconds: {}", playedFile.getName(), e.getMessage());
 
 								try {
 									Thread.sleep(3000);
-
-									if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
-										LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
-										newFile = new File(newDirectory + playedFile.getName());
-										moved = true;
-									} else {
-										LOGGER.info("Failed to move {}", playedFile.getName());
-									}
-								} catch (InterruptedException e) {
-									LOGGER.warn(
-										"Abandoning moving of {} because the thread was interrupted, probably due to UMS shutdown",
-										e.getMessage()
+									Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
+									LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+									newFile = new File(newDirectory + playedFile.getName());
+									moved = true;
+								} catch (InterruptedException e2) {
+									LOGGER.debug(
+										"Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}",
+										playedFile.getName(),
+										e2.getMessage()
 									);
-									LOGGER.trace("", e);
 									Thread.currentThread().interrupt();
+								} catch (IOException e3) {
+									LOGGER.debug("Moving {} failed a second time: {}", playedFile.getName(), e3.getMessage());
 								}
 							}
 

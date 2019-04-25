@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -41,7 +42,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -701,6 +702,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		} catch (ConfigurationException e) {
 			LOGGER.error("Configuration error while resolving renderer: {}", e.getMessage());
 			LOGGER.trace("", e);
+		} catch (InterruptedException e) {
+			LOGGER.error("Interrupted while resolving renderer \"{}\": {}", ia, e.getMessage());
+			return null;
 		}
 		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
@@ -895,6 +899,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isLG() {
 		return getConfName().toUpperCase().contains("LG ");
+	}
+	
+	/**
+	 * @return whether this renderer is an Samsung device
+	 */
+	public boolean isSamsung() {
+		return getConfName().toUpperCase().contains("SAMSUNG");
 	}
 
 	// Ditlew
@@ -2328,6 +2339,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + truncate
 		int len = 0;
+		if (suffix == null) {
+			suffix = "";
+		}
+
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
 			if (lineHeight == 1) {
@@ -2352,15 +2367,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				name = name.substring(0, len).trim() + dots;
 			}
 		}
-		if (len > -1) {
-			name += suffix;
+		if (len > -1 && isNotBlank(suffix)) {
+			name += " " + suffix;
 		}
 
 		// Substitute
 		for (Entry<String, String> entry : charMap.entrySet()) {
-			String s = entry.getKey();
 			String repl = entry.getValue().replaceAll("###e", "");
-			name = name.replaceAll(s, repl);
+			name = name.replaceAll(entry.getKey(), repl);
 		}
 
 		return name;
