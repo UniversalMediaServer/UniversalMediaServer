@@ -3,7 +3,6 @@ package net.pms.util;
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
-import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
@@ -193,8 +192,7 @@ public class FileWatcher {
 		}
 
 		public boolean remove(Watch w) {
-			for (WatchKey k : keySet()) {
-				ArrayList<Watch> a = get(k);
+			for (ArrayList<Watch> a : values()) {
 				if (a.contains(w)) {
 					return a.remove(w);
 				}
