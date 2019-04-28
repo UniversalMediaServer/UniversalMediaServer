@@ -264,7 +264,7 @@ public class SubtitleUtils {
 		}
 
 		String filename = isEmbeddedSource ?
-			dlna.getSystemName() : params.sid.getName();
+			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
 
 		String basename;
 
