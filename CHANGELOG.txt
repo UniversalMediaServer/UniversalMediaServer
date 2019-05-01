@@ -1,8 +1,17 @@
-8.0.2 - 2019-04-??
+8.0.2 - 2019-05-??
 
 	General:
+		Performance improvements
+		Fixed conversion of 3D subtitles
+		Fixed bug with the computer sleep management feature (thanks, scriptorron and Nadahar!)
+		Fixed bugs with Virtual Folders
 		Fixed error when browsing web folders
-		Updated build documentation
+		Updated build and install documentation (thanks, Ruben Barkow!)
+	Renderers:
+		Improved support for LG webOS TVs
+		Improved support for Samsung MS750 soundbars
+	Dependencies:
+		Updated h2database to 1.4.199, which fixes broken music metadata
 
 8.0.1 - 2019-03-31
 
