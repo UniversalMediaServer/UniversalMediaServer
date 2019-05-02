@@ -54,6 +54,7 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.service.Services;
 import net.pms.network.message.BrowseRequest;
 import net.pms.network.message.BrowseSearchRequest;
 import net.pms.network.message.SamsungBookmark;
@@ -330,6 +331,7 @@ public class RequestV2 extends HTTPResource {
 				iStream = dlnaThumbnailHandler(output, dlna, fileName);
 			} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE) {
 				// This is a request for an image
+				Services.sleepManager().postponeSleep();
 				iStream = dlnaImageHandler(output, dlna, fileName);
 			} else if (dlna.getMedia() != null && fileName.contains("subtitle0000")) {
 				// This is a request for a subtitles file
