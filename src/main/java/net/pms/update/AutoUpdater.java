@@ -2,12 +2,16 @@ package net.pms.update;
 
 import java.awt.Desktop;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Observable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.util.UriFileRetriever;
 import net.pms.util.UriRetriever;
 import net.pms.util.UriRetrieverCallback;
 import net.pms.util.Version;
@@ -205,11 +209,13 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void downloadUpdate() throws UpdateException {
 		String downloadUrl = serverProperties.getDownloadUrl();
+		File target = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
 
 		try {
-			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
-			writeToDisk(download);
-		} catch (IOException e) {
+			target = new UriFileRetriever(new URI(downloadUrl), target, this).executeGetFile();
+//			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
+//			writeToDisk(download);
+		} catch (Exception e) {
 			wrapException("Cannot download update", e);
 		}
 	}

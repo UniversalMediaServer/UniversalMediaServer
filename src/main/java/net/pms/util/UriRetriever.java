@@ -102,7 +102,7 @@ public class UriRetriever {
 		return output.toByteArray();
 	}
 
-	private static void invokeCallback(String uri, UriRetrieverCallback callback, int totalBytes, int bytesWritten) throws IOException {
+	static void invokeCallback(String uri, UriRetrieverCallback callback, int totalBytes, int bytesWritten) throws IOException {
 		try {
 			callback.progressMade(uri, bytesWritten, totalBytes);
 		} catch (UriRetrieverCallback.CancelDownloadException e) {
