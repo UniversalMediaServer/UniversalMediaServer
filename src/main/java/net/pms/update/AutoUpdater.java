@@ -3,16 +3,13 @@ package net.pms.update;
 import java.awt.Desktop;
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Observable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.UriFileRetriever;
-import net.pms.util.UriRetriever;
 import net.pms.util.UriRetrieverCallback;
 import net.pms.util.Version;
 import org.apache.commons.io.IOUtils;
@@ -34,7 +31,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	private final String serverUrl;
-	private final UriRetriever uriRetriever = new UriRetriever();
+	private final UriFileRetriever uriRetriever = new UriFileRetriever();
 	public static final AutoUpdaterServerProperties serverProperties = new AutoUpdaterServerProperties();
 	private final Version currentVersion;
 	private Executor executor = Executors.newSingleThreadExecutor();
@@ -213,37 +210,8 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 		try {
 			target = new UriFileRetriever(new URI(downloadUrl), target, this).executeGetFile();
-//			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
-//			writeToDisk(download);
 		} catch (Exception e) {
 			wrapException("Cannot download update", e);
-		}
-	}
-
-	private void writeToDisk(byte[] download) throws IOException {
-		File target = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
-		InputStream downloadedFromNetwork = new ByteArrayInputStream(download);
-		FileOutputStream fileOnDisk = null;
-
-		try {
-			try {
-				fileOnDisk = new FileOutputStream(target);
-				fileOnDisk.write("test".getBytes());
-			} catch (Exception e) {
-				// seems no rights
-				LOGGER.debug("Failed to write file to profile directory, trying temp folder. Error was: {}", e);
-				target = new File(configuration.getTempFolder(), TARGET_FILENAME);
-			} finally {
-				if (fileOnDisk != null) {
-					fileOnDisk.close();
-				}
-			}
-			fileOnDisk = new FileOutputStream(target);
-			int bytesSaved = IOUtils.copy(downloadedFromNetwork, fileOnDisk);
-			LOGGER.info("Wrote " + bytesSaved + " bytes to " + target.getAbsolutePath());
-		} finally {
-			IOUtils.closeQuietly(downloadedFromNetwork);
-			IOUtils.closeQuietly(fileOnDisk);
 		}
 	}
 
