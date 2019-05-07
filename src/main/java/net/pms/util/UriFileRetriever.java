@@ -36,7 +36,7 @@ import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.nio.client.methods.HttpAsyncMethods;
 
 /**
- * Receiving file from the external server.
+ * Download file from the external server.
  *
  * @author valib
  */
@@ -45,7 +45,6 @@ public class UriFileRetriever {
 	private URI uri;
 	private File target;
 	private UriRetrieverCallback callback;
-	CloseableHttpAsyncClient httpclient;
 
 	/**
 	 * Download file from the external server.
@@ -58,7 +57,6 @@ public class UriFileRetriever {
 		this.uri = uri;
 		this.target = target;
 		this.callback = callback;
-		httpclient = HttpAsyncClients.createDefault();
 	}
 
 	public UriFileRetriever() {
