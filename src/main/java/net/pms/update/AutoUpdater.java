@@ -12,7 +12,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.util.UriFileRetriever;
 import net.pms.util.UriRetrieverCallback;
 import net.pms.util.Version;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,7 +208,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		File target = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
 
 		try {
-			target = new UriFileRetriever(new URI(downloadUrl), target, this).executeGetFile();
+			UriFileRetriever.getFile(new URI(downloadUrl), target, this);
 		} catch (Exception e) {
 			wrapException("Cannot download update", e);
 		}

@@ -41,26 +41,6 @@ import org.apache.http.nio.client.methods.HttpAsyncMethods;
  * @author valib
  */
 public class UriFileRetriever {
-	
-	private URI uri;
-	private File target;
-	private UriRetrieverCallback callback;
-
-	/**
-	 * Download file from the external server.
-	 *
-	 * @param uri The URI of the external server.
-	 * @param target The path the received file is stored in the system.
-	 * @param callback The calling process to be informed about the download progress.
-	 */
-	public UriFileRetriever(URI uri, File target, UriRetrieverCallback callback) {
-		this.uri = uri;
-		this.target = target;
-		this.callback = callback;
-	}
-
-	public UriFileRetriever() {
-	}
 
 	/**
 	 * Download file from the external server and return the
@@ -99,9 +79,8 @@ public class UriFileRetriever {
 	 * 
 	 * @throws Exception 
 	 */
-	public File executeGetFile() throws Exception {
+	public static void getFile(URI uri, File target, UriRetrieverCallback callback) throws Exception {
 		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-		File result;
 		try  {
 			httpclient.start();
 			ZeroCopyConsumerWithCallback<File> consumer = new ZeroCopyConsumerWithCallback<File>(target, uri.toString(), callback) {
@@ -120,11 +99,9 @@ public class UriFileRetriever {
 			};
 
 			Future<File> future = httpclient.execute(HttpAsyncMethods.createGet(uri), consumer, null, null);
-			result = future.get();
+			target = future.get();
 		} finally {
 			httpclient.close();
 		}
-
-		return result;
 	}
 }
