@@ -77,7 +77,7 @@ public class UriFileRetriever {
 	 * Download the file from the external server and store it at the defined path.
 	 * 
 	 * @param uri The URI of the external server file.
-	 * @param target The path to store downloaded file.
+	 * @param file The path to store downloaded file.
 	 * @param callback The calling class which will be informed about
 	 * the progress of the file download.
 	 * 
