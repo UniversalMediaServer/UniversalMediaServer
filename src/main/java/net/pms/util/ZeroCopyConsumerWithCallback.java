@@ -51,12 +51,13 @@ import org.apache.http.util.Asserts;
  * <p>
  * This consumer can be useful for file downloads.
  *
- * Original ZeroCopyConsumer modified by valib.
- * Updated the code and introduced {@code invokeCallback} to inform the calling
- * process about the progress of downloading the file.
  * 
  * @since 4.0
  * 
+ * <p>
+ * Original ZeroCopyConsumer modified by valib.
+ * Updated the code and introduced {@code invokeCallback} to inform the calling
+ * process about the progress of downloading the file.
  */
 public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncResponseConsumer<T> {
 
