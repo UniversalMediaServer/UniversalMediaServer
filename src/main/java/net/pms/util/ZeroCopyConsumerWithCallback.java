@@ -1,28 +1,21 @@
 /*
- * ====================================================================
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * ====================================================================
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.util;
 
@@ -45,17 +38,11 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Asserts;
 
 /**
- * {@link org.apache.http.nio.protocol.HttpAsyncResponseConsumer} implementation that
- * streams content entity enclosed in an HTTP response directly into a file
- * without an intermediate in-memory buffer.
- * <p>
- * This consumer can be useful for file downloads.
- *
- * Original ZeroCopyConsumer modified by valib.
- * Updated the code and introduced {@code invokeCallback} to inform the calling
- * process about the progress of downloading the file.
+ * Copy of the {@code org.apache.http.ZeroCopyConsumer}.
+ * Added the {@code invokeCallback} method to inform
+ * the calling process about the progress of downloading the file.
  * 
- * @since 4.0
+ * @author valib
  * 
  */
 public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncResponseConsumer<T> {
@@ -64,7 +51,6 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
     private final RandomAccessFile accessfile;
     private UriRetrieverCallback callback;
     private String uri;
-
     private HttpResponse response;
     private ContentType contentType;
     private Header contentEncoding;
@@ -94,7 +80,7 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
         this.contentType = contentType;
         this.contentEncoding = entity.getContentEncoding();
         this.fileChannel = this.accessfile.getChannel();
-        this.fileSize = fileChannel.size();
+        this.fileSize = this.fileChannel.size();
         this.idx = 0;
     }
 
