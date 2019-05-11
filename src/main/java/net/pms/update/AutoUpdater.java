@@ -210,6 +210,9 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		try {
 			UriFileRetriever.getFile(new URI(downloadUrl), target, this);
 		} catch (Exception e) {
+			// when the file download is canceled by user or an error happens
+			// during downloading than delete the partially downloaded file
+			target.delete();
 			wrapException("Cannot download update", e);
 		}
 	}

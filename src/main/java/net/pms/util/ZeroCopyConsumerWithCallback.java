@@ -95,7 +95,7 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
         this.contentType = contentType;
         this.contentEncoding = entity.getContentEncoding();
         this.fileChannel = this.accessfile.getChannel();
-        this.fileSize = fileChannel.size();
+        this.fileSize = entity.getContentLength();
         this.idx = 0;
     }
 
