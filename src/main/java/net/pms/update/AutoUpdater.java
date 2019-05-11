@@ -120,36 +120,17 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void doRunUpdateAndExit() throws UpdateException {
 		synchronized (stateLock) {
-			if (state != State.DOWNLOAD_FINISHED) {
-				try {
-					// If we are here, the file hasn't downloaded, but check if it's already there from last time
-					File exe = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
-					if (!exe.exists()) {
-						exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
-
-						if (!exe.exists()) {
-							throw new UpdateException("Must download before run");
-						}
-					}
-				} catch (IOException e) {
-					LOGGER.debug("Failed to run update: {}", e);
-					throw new UpdateException("Must download before run");
-				}
+			if (state == State.DOWNLOAD_FINISHED) {
+				setState(State.EXECUTING_SETUP);
+				launchExe();
+				System.exit(0);
 			}
 		}
-
-		setState(State.EXECUTING_SETUP);
-		launchExe();
-		System.exit(0);
 	}
 
 	private void launchExe() throws UpdateException {
 		try {
 			File exe = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
-			if (!exe.exists()) {
-				exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
-			}
-
 			Desktop desktop = Desktop.getDesktop();
 			desktop.open(exe);
 		} catch (IOException e) {
