@@ -83,7 +83,7 @@ public class UriFileRetriever {
 	 * 
 	 * @throws Exception
 	 */
-	public static void getFile(URI uri, File file, UriRetrieverCallback callback) throws Exception {
+	public void getFile(URI uri, File file, UriRetrieverCallback callback) throws Exception {
 		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
 		try  {
 			httpclient.start();

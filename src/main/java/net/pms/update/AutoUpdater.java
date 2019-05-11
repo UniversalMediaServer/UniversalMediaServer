@@ -189,7 +189,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		File target = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
 
 		try {
-			UriFileRetriever.getFile(new URI(downloadUrl), target, this);
+			uriRetriever.getFile(new URI(downloadUrl), target, this);
 		} catch (Exception e) {
 			// when the file download is canceled by user or an error happens
 			// during downloading than delete the partially downloaded file
