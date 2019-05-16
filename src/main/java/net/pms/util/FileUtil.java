@@ -1003,6 +1003,16 @@ public class FileUtil {
 			}
 		}
 
+		// If we still don't have anything for the name, try to just grab something
+		if (movieOrShowName == null) {
+			Pattern hailMaryPattern = Pattern.compile("([\\w\\d\\s]+)");
+			Matcher hailMaryMatcher = hailMaryPattern.matcher(formattedName);
+			if (hailMaryMatcher.find()) {
+				movieOrShowName = hailMaryMatcher.group();
+				movieOrShowName = movieOrShowName.trim();
+			}
+		}
+
 		// Retain the fact it is a sample clip
 		if (isSample) {
 			if (edition == null) {
