@@ -3172,7 +3172,7 @@ public class PmsConfiguration extends RendererConfiguration {
 							"The \"{}\" is not a folder! Please remove it from your shared folders " +
 							"list on the \"{}\" tab or in the configuration file.",
 							folder,
-							Messages.getString("LooksFrame.22")
+							Messages.getString("LooksFrame.TabSharedContent")
 						);
 					} else {
 						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
@@ -3183,7 +3183,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					"\"{}\" does not exist. Please remove it from your shared folders " +
 					"list on the \"{}\" tab or in the configuration file.",
 					folder,
-					Messages.getString("LooksFrame.22")
+					Messages.getString("LooksFrame.TabSharedContent")
 				);
 			} else {
 				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
