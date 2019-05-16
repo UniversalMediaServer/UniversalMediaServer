@@ -1767,12 +1767,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 
-		// Prefix
-		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
-		if (engineName != null) {
-			sb.append(engineName).append(" ");
-		}
-
 		// Base
 		if (parent instanceof ChapterFileTranscodeVirtualFolder && getSplitRange() != null) {
 			sb.append(">> ");
@@ -1792,6 +1786,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNotBlank(nameSuffix)) {
 				sb.append(" ").append(nameSuffix);
 			}
+		}
+
+		// Engine name
+		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
+		if (engineName != null) {
+			sb.append(" ").append(engineName);
 		}
 
 		// Truncate
