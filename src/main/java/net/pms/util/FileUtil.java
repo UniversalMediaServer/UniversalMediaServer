@@ -39,7 +39,6 @@ import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -648,31 +647,31 @@ public class FileUtil {
 		boolean isTVEpisode = false;
 
 		// Populate the variables from the data if we can, otherwise from the filename
-		if (media != null && getConfiguration().getUseCache() && StringUtils.isNotBlank(media.getMovieOrShowName())) {
+		if (media != null && getConfiguration().getUseCache() && isNotBlank(media.getMovieOrShowName())) {
 			title = media.getMovieOrShowName();
 
-			year             = StringUtils.isNotBlank(media.getYear())             ? media.getYear()             : "";
-			extraInformation = StringUtils.isNotBlank(media.getExtraInformation()) ? media.getExtraInformation() : "";
-			tvSeason         = StringUtils.isNotBlank(media.getTVSeason())         ? media.getTVSeason()         : "";
-			tvEpisodeNumber  = StringUtils.isNotBlank(media.getTVEpisodeNumber())  ? media.getTVEpisodeNumber()  : "";
-			tvEpisodeName    = StringUtils.isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
-			isTVEpisode      = StringUtils.isNotBlank(media.getTVSeason());
+			year             = isNotBlank(media.getYear())             ? media.getYear()             : "";
+			extraInformation = isNotBlank(media.getExtraInformation()) ? media.getExtraInformation() : "";
+			tvSeason         = isNotBlank(media.getTVSeason())         ? media.getTVSeason()         : "";
+			tvEpisodeNumber  = isNotBlank(media.getTVEpisodeNumber())  ? media.getTVEpisodeNumber()  : "";
+			tvEpisodeName    = isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
+			isTVEpisode      = isNotBlank(media.getTVSeason());
 		} else {
 			String[] metadataFromFilename = getFileNameMetadata(f);
 
-			title            = StringUtils.isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
-			year             = StringUtils.isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
-			extraInformation = StringUtils.isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
-			tvSeason         = StringUtils.isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
-			tvEpisodeNumber  = StringUtils.isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
-			tvEpisodeName    = StringUtils.isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
+			title            = isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
+			year             = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			extraInformation = isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
+			tvSeason         = isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
+			tvEpisodeNumber  = isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
+			tvEpisodeName    = isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
 
-			if (StringUtils.isNotBlank(tvSeason)) {
+			if (isNotBlank(tvSeason)) {
 				isTVEpisode = true;
 			}
 		}
 
-		if (StringUtils.isBlank(title)) {
+		if (isBlank(title)) {
 			return basicPrettify(f);
 		}
 
@@ -684,7 +683,7 @@ public class FileUtil {
 			}
 
 			// If the season is a year, anticipate a "/" for a date
-			if (StringUtils.isNotBlank(tvSeason) && StringUtils.isNotBlank(tvEpisodeNumber)) {
+			if (isNotBlank(tvSeason) && isNotBlank(tvEpisodeNumber)) {
 				if (tvSeason.matches("(19|20)\\d{2}")) {
 					tvSeason += "/";
 				}
@@ -696,12 +695,12 @@ public class FileUtil {
 			}
 		} else {
 			formattedName = title;
-			if (StringUtils.isNotBlank(year)) {
+			if (isNotBlank(year)) {
 				formattedName += " (" + year + ")";
 			}
 		}
 
-		if (StringUtils.isNotBlank(extraInformation)) {
+		if (isNotBlank(extraInformation)) {
 			formattedName += " " + extraInformation;
 		}
 
@@ -970,17 +969,17 @@ public class FileUtil {
 
 		if (tvSeason != null) {
 			// Remove leading 0 from the season if it exists
-			tvSeason = StringUtils.stripStart(tvSeason, "0");
+			tvSeason = stripStart(tvSeason, "0");
 			pattern = Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
 			int showNameIndex = indexOf(pattern, formattedName);
-			if (StringUtils.isEmpty(movieOrShowName)) {
+			if (isEmpty(movieOrShowName)) {
 				if (showNameIndex != -1) {
 					movieOrShowName = formattedName.substring(0, showNameIndex);
 
 					matcher = pattern.matcher(formattedName);
 					if (matcher.find()) {
 						tvEpisodeName = matcher.group(2).trim();
-						if (StringUtils.isEmpty(tvEpisodeName)) {
+						if (isEmpty(tvEpisodeName)) {
 							tvEpisodeName = null;
 						}
 					}
