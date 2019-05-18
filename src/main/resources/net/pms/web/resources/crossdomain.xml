@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!-- http://www.bitsontherun.com/crossdomain.xml -->
+<cross-domain-policy>
+	<allow-access-from domain="\" />
+</cross-domain-policy>

@@ -114,6 +114,9 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
+		<jetty.version>9.4.18.v20190429</jetty.version>
+		<resteasy.version>3.0.6.Final</resteasy.version>
+		<guice.version>4.1.0</guice.version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -359,12 +362,13 @@
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
+		<!-- 
 		<dependency>
 			<groupId>jwbroek.cuelib</groupId>
 			<artifactId>cuelib</artifactId>
 			<version>${cuelib-version}</version>
 		</dependency>
-
+ -->
 		<dependency>
 			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
@@ -584,6 +588,54 @@
 			<version>2.3.1</version>
 		</dependency>
 		<!-- end of JAXB dependencies -->
+
+		<!-- RESTEasy Dependencies -->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-servlet-initializer</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-guice</artifactId>
+			<version>${resteasy.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Guice runtime dependencies -->
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-servlet</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-multibindings</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+
+		<!-- Jetty runtime dependencies -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>

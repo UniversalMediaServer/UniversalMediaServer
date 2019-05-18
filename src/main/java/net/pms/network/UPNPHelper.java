@@ -19,26 +19,43 @@
  */
 package net.pms.network;
 
+import static net.pms.dlna.DLNAResource.Temp;
+
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.*;
+import java.net.BindException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAResource;
-import static net.pms.dlna.DLNAResource.Temp;
-import net.pms.util.BasicPlayer;
-import net.pms.util.StringUtil;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.TimeZone;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.fourthline.cling.model.meta.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
+import net.pms.util.BasicPlayer;
+import net.pms.util.StringUtil;
 
 /**
  * Helper class to handle the UPnP traffic that makes UMS discoverable by
@@ -95,7 +112,6 @@ public class UPNPHelper extends UPNPControl {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private static final UPNPHelper instance = new UPNPHelper();
-	private static PlayerControlHandler httpControlHandler;
 
 	/**
 	 * This utility class is not meant to be instantiated.
@@ -113,19 +129,6 @@ public class UPNPHelper extends UPNPControl {
 		if (configuration.isUpnpEnabled()) {
 			super.init();
 		}
-		getHttpControlHandler();
-	}
-
-	public static PlayerControlHandler getHttpControlHandler() {
-		if (
-			httpControlHandler == null &&
-			PMS.get().getWebServer() != null &&
-			!"false".equals(configuration.getBumpAddress().toLowerCase())
-		) {
-			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
-			LOGGER.debug("Attached http player control handler to web server");
-		}
-		return httpControlHandler;
 	}
 
 	private static String lastSearch = null;

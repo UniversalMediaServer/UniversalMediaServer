@@ -1,0 +1,29 @@
+ul#Folders {
+	background-color: #222;
+	display: block;
+	padding: 20px;
+	z-index: 1;
+}
+
+ul#Media {
+	margin: 0 -20px 0 0;
+	padding: 20px 0 20px 20px;
+}
+
+#ContentPage #Menu {
+	background: url('/menu-background-content.png');
+	background-repeat: repeat-x;
+	background-position: bottom;
+	height: 53px;
+	width: 100%;
+	z-index: 2;
+}
+
+#ContentPage #Menu #HomeButton {
+	height: 51px;
+}
+
+#ImageContainer {
+	position: static;
+}
+

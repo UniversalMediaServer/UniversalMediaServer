@@ -20,12 +20,20 @@
 package net.pms;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
-import com.sun.jna.Platform;
-import com.sun.net.httpserver.HttpServer;
-import java.awt.*;
-import java.io.*;
+
+import java.awt.AWTError;
+import java.awt.Component;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -33,22 +41,46 @@ import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.jmdns.JmDNS;
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.WordUtils;
+import org.fest.util.Files;
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -64,7 +96,10 @@ import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.io.*;
+import net.pms.io.BasicSystemUtils;
+import net.pms.io.OutputParams;
+import net.pms.io.ThreadedProcessWrapper;
+import net.pms.io.WinUtils;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
@@ -72,25 +107,37 @@ import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
-import net.pms.newgui.*;
+import net.pms.newgui.DbgPacker;
+import net.pms.newgui.DummyFrame;
+import net.pms.newgui.IFrame;
+import net.pms.newgui.LanguageSelection;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.Splash;
 import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
-import net.pms.remote.RemoteWeb;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
-import net.pms.util.*;
+import net.pms.util.CodeDb;
+import net.pms.util.CredMgr;
+import net.pms.util.FileUtil;
+import net.pms.util.FileWatcher;
+import net.pms.util.InfoDb;
+import net.pms.util.Languages;
+import net.pms.util.LogSystemInformationMode;
+import net.pms.util.ProcessUtil;
+import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
+import net.pms.util.SystemErrWrapper;
+import net.pms.util.SystemInformation;
+import net.pms.util.TaskRunner;
+import net.pms.util.TempFileMgr;
+import net.pms.util.UMSUtils;
+import net.pms.util.UmsKeysDb;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.WordUtils;
-import org.fest.util.Files;
-import org.slf4j.ILoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.web.WebServer;
 
-@SuppressWarnings("restriction")
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK = "nativelook";
@@ -515,8 +562,9 @@ public class PMS {
 		// Web stuff
 		if (configuration.useWebInterface()) {
 			try {
-				web = new RemoteWeb(configuration.getWebPort());
-			} catch (BindException b) {
+				web = new WebServer(configuration.getWebPort());
+				web.start();
+			} catch (Exception b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			}
@@ -1094,10 +1142,6 @@ public class PMS {
 		return server;
 	}
 
-	public HttpServer getWebServer() {
-		return web == null ? null : web.getServer();
-	}
-
 	public void save() {
 		try {
 			configuration.save();
@@ -1578,10 +1622,10 @@ public class PMS {
 		setLocale(language, "", "");
 	}
 
-	private RemoteWeb web;
+	private WebServer web;
 
 	@Nullable
-	public RemoteWeb getWebInterface() {
+	public WebServer getWebInterface() {
 		return web;
 	}
 

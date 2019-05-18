@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+		<script src="/jquery.min.js"></script>
+		<!-- New webUI -->
+		<script src="/util/bootstrap.min.js"></script>
+		<script src="/util/html5.js"></script>
+		<link rel="stylesheet" href="/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/util/keycode.js"></script>
+		<script src="/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<title>{{name}}</title>
+	</head>
+	<body id="ContentPage">
+		<script>
+{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}');}
+{{/prevId}}
+{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}');}
+{{#delay}}
+			setTimeout(next, {{delay}});
+{{/delay}}
+{{/nextId}}
+			var img, imgcontainer, zoomed = false;
+
+			function fit(event) {
+				var rx = 0, ry = 0;
+				zoomed = !zoomed;
+ 				if (!zoomed) {
+					img.addClass('imgfit');
+				} else {
+					// Get the relative click point
+					var pos = img.offset();
+					rx = (event.clientX - pos.left) / img.width();
+					ry = (event.clientY - pos.top) / img.height();
+					img.removeClass('imgfit');
+				}
+				zoom(rx, ry);
+			}
+
+			function zoom(rx, ry) {
+				var w = img.prop('naturalWidth'),
+					h = img.prop('naturalHeight');
+				if (w > img.width() || h > img.height()) {
+					img.addClass('zoomin');
+					img.removeClass('zoomout');
+					window.scrollTo(0, 0);
+					imgcontainer.addClass('noScroll');
+				} else {
+					img.removeClass('zoomin');
+					if (w > imgcontainer.width() || h > imgcontainer.height()) {
+						imgcontainer.removeClass('noScroll');
+						img.addClass('zoomout');
+						if (rx || ry) {
+							// Center on/near the relative click point
+							var pos = img.offset();
+							window.scrollTo(pos.left + rx * w - $(window).width() / 2,
+								pos.top + ry * h - $(window).height() / 2);
+						}
+					} else {
+						img.removeClass('zoomout');
+					}
+				}
+			}
+
+			$(window).bind('load resize', function(event) {
+				if (!img) {
+					img = $('#Image');
+					imgcontainer = $('#ImageContainer');
+				}
+				$('body').height($(window).height());
+				var top = $('#Menu').height();
+				imgcontainer.css({ top: '' + top + 'px' });
+				imgcontainer.height($('body').height() - top);
+				zoom();
+				if (event.type === 'load') {
+					imgcontainer.show();
+				}
+			});
+		</script>
+		<div id="Container">
+			<div id="Menu">
+				<a href="/browse/0" id="HomeButton"></a>
+				<a href="/doc" id="DocButton" title="Documentation"></a>
+			</div>
+
+			<div id="ImageContainer" style="display:none">
+				<img id="Image" class="imgfit" src="/raw/{{id1}}" alt="" onclick="fit(event)"><br>
+			</div>
+			<div id="ImageToolbar">
+				<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+				<button id="next" onclick="next()"{{nextAttr}}>>></button>
+			</div>
+		</div>
+		<script defer src="/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
+	</body>
+</html>
+

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="stylesheet" href="/functional.css" type="text/css">
+		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+		<script src="/jquery.min.js"></script>
+		<script src="/jquery.ums.js"></script>
+		<script src="/js.cookie-2.1.0.min.js"></script>
+		<script src="/flowplayer.min.js"></script>
+		<!-- New webUI -->
+		<script src="/util/bootstrap.min.js"></script>
+		<script src="/util/html5.js"></script>
+		<link rel="stylesheet" href="/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/util/keycode.js"></script>
+		<script src="/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<!--VideoJS Support -->
+		<link href="/util/video-js/video-js.min.css" rel="stylesheet">
+		<script src="/util/video-js/video.min.js"></script>
+		<title>{{name}}</title>
+	</head>
+	<body id="ContentPage">
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a  id="HomeButton" class="navbar-brand" href="javascript:history.back();" title="UMS"></a>
+			</div>
+		</div>
+	</nav>
+		<script>
+{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}?flash=1');}
+{{/prevId}}
+{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}?flash=1');}
+{{/nextId}}
+			function html5() {window.location.replace('/play/{{id1}}?html5=1'); }
+
+			var state = {};
+
+			function status(k, v, wait) {
+				//console.log('status '+JSON.stringify(arguments));
+				state[k] = v;
+				if (! wait) {
+					$.post('/playerstatus/', JSON.stringify(state));
+				}
+			}
+
+			$(function () {
+				var api = $('.player').flowplayer({
+					ratio: 9 / 16,
+					flashfit: true
+				});
+				api.bind('load', function(){status('playback', 'PLAYING');});
+				api.bind('pause',  function(){status('playback', 'PAUSED');});
+				api.bind('resume',  function(){status('playback', 'PLAYING');});
+				api.bind('stop', function(){status('playback','STOPPED');});
+				api.bind('finish', function(){status('playback', 'STOPPED');});
+				api.bind('unload', function(){status('playback', 'STOPPED');});
+				api.bind('progress', function(e, api, time){status('position', time.toFixed(0));});
+				api.bind('mute', function(e, api){status('mute', api.muted ? '1' : '0');});
+				api.bind('volume', function(e, api, vol){status('volume', (vol * 100).toFixed(0));});
+{{#autoContinue}}
+				api.bind('finish', next);
+{{/autoContinue}}
+				window.onbeforeunload = function(){status('playback','STOPPED');}
+				// Send initial status
+				status('mute', api.muted ? '1' : '0', true);
+				status('volume', (api.volume * 100).toFixed(0));
+			});
+{{#push}}
+			function control(op, arg) {
+				//console.log('control '+JSON.stringify(arguments));
+				var api = flowplayer();
+				switch (op) {
+					case 'play':
+						api.play();
+						break;
+					case 'pause':
+						api.pause();
+						break;
+					case 'stop':
+						api.stop();
+						break;
+					case 'setvolume':
+						api.volume(arg/100);
+						break;
+					case 'mute':
+						api.mute(!api.muted);
+						break;
+				}
+			}
+{{/push}}
+		</script>
+		<div id="Container">
+
+			<div id="VideoContainer">
+				<div class="player">
+					<{{mediaType}} id="player" controls {{auto}}>
+{{#src}}
+						<source src="/media/{{id1}}" type="{{mime}}">
+{{/src}}
+						<source src="/fmedia/{{id1}}" type="video/flash">
+{{#sub}}
+						<track kind="subtitles" src="/{{this}}" default>
+{{/sub}}
+					</{{mediaType}}>
+				</div>
+				<div id="toolbar">
+					<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-backward"></i></button>
+					<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-forward"></i></button>
+					<button id="html5" onclick="html5()" title="Switch to html5 player" type="button" class="btn btn-sm btn-playbar">HTML5</button>
+				</div>
+			</div>
+			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
+		</div>
+	<input type="hidden" class="jQKeyboard" name="dummy">
+	</body>
+	<script defer src="/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
+</html>
+

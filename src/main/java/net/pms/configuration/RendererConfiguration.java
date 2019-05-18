@@ -391,7 +391,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The list of enabled renderers.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
+		return enabledRendererConfs != null ? new ArrayList<>(enabledRendererConfs) : null;
 	}
 
 	/**

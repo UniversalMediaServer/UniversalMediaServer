@@ -1,0 +1,497 @@
+/* General */
+
+* {
+	z-index: 1;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	background: url('/background.jpg');
+	font-family: "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #333;
+}
+
+body#ContentPage {
+	background: url('/background-blank.jpg');
+}
+
+body#ContentPage.browsePage {
+	min-height: 100%;
+}
+
+/* Scaffolding */
+
+#FrontPage #Container {
+	width: 700px;
+	margin: 0 auto;
+	position: relative;
+}
+
+#FrontPage #Menu {
+	position: relative;
+}
+
+#ContentPage.Doc {
+	margin: 0 auto;
+}
+
+#ContentPage.Doc #Menu {
+	position: relative;
+}
+
+#ContentPage.Doc #Container {
+	margin:2em;
+	max-width:40em;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+#ContentPage.Doc ul {
+	margin: 0 0 0 1em;
+	list-style: disc inside none;
+}
+
+#ContentPage #Menu #HomeButton {
+	background: url('/menu-left-content.png');
+	background-repeat: no-repeat;
+	background-position: left bottom;
+	background-size: contain;
+	width: 125px;
+	height: 93px;
+	display: block;
+}
+
+#ContentPage #Menu #LogButton {
+	background: url('/icon-log2.jpg');
+	background-size: 125px 93px;
+	width: 125px;
+	height: 93px;
+	position: absolute;
+	left: 130px;
+	top: 0;
+	background-repeat: no-repeat;
+	display: block;
+}
+
+
+#VideoContainer {
+	max-width: 720px;
+	margin: 100px auto 0 auto;
+}
+
+/* Menu */
+
+#Logo {
+	position: absolute;
+	left: 237px;
+	top: 29px;
+	background: url('/logo.png') center no-repeat;
+	width: 230px;
+	height: 220px !important;
+	display: block;
+}
+
+#FrontPage #Menu a h1 {
+	margin-top: 240px;
+	text-align: center;
+	color: #5a5a5a;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+#FrontPage #Menu a {
+	text-decoration: none;
+}
+
+/* Content */
+
+ul li {
+	text-align: left;
+}
+
+ul li a {
+	text-decoration: none;
+}
+
+ul#Folders li a {
+	color: #aaa;
+	font-size: 14px;
+}
+
+ul#Folders li a:hover {
+	color: #fff !important;
+}
+
+ul#Folders li span {
+	display: block;
+	margin-bottom: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+ul#Media {
+	overflow-y: auto;
+}
+
+ul#Media li {
+	float: left;
+	margin-right: 20px;
+	margin-bottom: 20px;
+}
+
+ul#Media li {
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	width: 308px;
+	height: 173px;
+	display: block;
+}
+
+.PadBlack {
+	background-color: rgba(0, 0, 0, 1);
+}
+
+.PadGrey {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.PadNone {
+	background-color: transparent;
+}
+
+ul#Media .thumb {
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	max-width: 308px;
+	max-height: 173px;
+	height: 173px;
+	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
+	width: auto;
+	display: block;
+	margin: 0 auto;
+	object-fit: contain;
+}
+
+ul#Media .caption {
+	display: block;
+	max-width: 263px;
+	height: 16px;
+	overflow: hidden;
+	float: left;
+	font-size: 12px;
+	color: #444;
+	margin: 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	line-height: 16px;
+}
+
+.playlist_add {
+	background: url('/bump/skin/add16.png') no-repeat;
+}
+
+.playlist_del {
+	background: url('/bump/skin/remove16.png') no-repeat;
+}
+
+.playlist_add,
+.playlist_del,
+.bumpIcon,
+#ViewGrid,
+#ViewDynamic,
+#DocButton {
+	opacity: 0.7;
+}
+
+.playlist_add:hover,
+.playlist_del:hover,
+.bumpIcon:hover,
+#ViewGrid:hover,
+#ViewDynamic:hover,
+#ViewGrid.active,
+#ViewDynamic.active,
+#DocButton:hover {
+	opacity: 1.0;
+}
+
+.playlist_add, .playlist_del {
+	width: 13px;
+	height: 16px;
+	display: block;
+	float: right;
+	margin-right:1px;
+}
+
+ul#Media li:hover .caption {
+	color: #000 !important;
+}
+
+#ViewGrid,
+#ViewDynamic,
+#ViewPadColor {
+	width: 29px;
+	height: 20px;
+}
+
+#ViewGrid {
+	background-image: url('/view-grid.png');
+}
+
+#ViewDynamic {
+	background-image: url('/view-dynamic.png');
+	margin-left: 5px;
+}
+
+#ViewPadColor {
+	background-image: url('/view-padcolor.png');
+}
+
+ul#Media .caption:hover {
+	text-decoration: underline;
+}
+
+.bumpIcon {
+	width: 24px;
+	height: 16px;
+	display: block;
+	float: right;
+	clear: left;
+	background-image: url('/bump/skin/bump16.png');
+	background-position: 2px;
+	background-repeat: no-repeat;
+}
+
+.floatRight {
+	float: right;
+	clear: left;
+}
+
+#DownloadLink {
+	margin: 20px auto 0 auto;
+	background: url('/download.png');
+	display: block;
+	height: 48px;
+	width: 48px;
+}
+
+#DownloadLink:hover {
+	background-position: 0 -48px;
+}
+
+#Folders li:first-child span {
+	margin-bottom: 12px;
+}
+
+#OptionsMenu {
+	float: right;
+	margin: 10px 10px 0 0;
+	z-index: 2;
+}
+
+#OptionsMenu > form,
+#OptionsMenu > a {
+	float: left;
+	display: inline-block;
+	vertical-align: text-top;
+}
+
+#DocButton {
+	background: url('/settings32.png') no-repeat;
+}
+
+#Docs {
+	background: url('/view-info.png') no-repeat;
+	width: 20px;
+	height: 20px;
+}
+
+#Pad {
+	background: url('/pad32.png') no-repeat;
+	width: 32px;
+	height: 18px;
+}
+
+#SettingsMenu {
+	display: none;
+	z-index: 2;
+	background: url('/menu-background-content.png');
+	overflow: visible;
+	padding: 7px 0 5px 0;
+	border: 1px;
+	border-style: solid;
+	border-color: #777;
+	position: fixed;
+	right: 10px;
+}
+
+#SettingsMenu li {
+	padding: 0 8px;
+	display: inline-block;
+}
+
+#SettingsMenu li:nth-child(2) span {
+	background: url('/background.jpg');
+	display: inline-block;
+}
+
+#SettingsMenu li a {
+	float: left;
+}
+
+form#SearchForm {
+	z-index: 2;
+	position: relative;
+}
+
+#SearchInput {
+	border-radius: 10px;
+	padding: 4px 28px 4px 9px;
+	border: solid 1px #ccc;
+	color: #666;
+	width: 160px;
+	position: absolute;
+	top: 3px;
+	right: 10px;
+}
+
+#SearchSubmit {
+	background: url('/search32.png') no-repeat;
+	position: absolute;
+	top: 3px;
+	right: 5px;
+}
+
+#SearchSubmit, #DocButton {
+	cursor: pointer;
+	border: none;
+	width: 32px;
+	height: 32px;
+	display: block;
+}
+
+#SearchSubmit:hover {
+	background-position: 0 -32px;
+}
+
+.icondisabled {
+	opacity: 0.3;
+	cursor: default;
+}
+
+.webdisabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.webdisabled:hover {
+	text-decoration: none !important;
+}
+
+.noScroll {
+	overflow: hidden !important;
+}
+
+.noHzScroll {
+	overflow-x: hidden !important;
+}
+
+::cue {
+	color: #fff;
+	background: transparent;
+	text-shadow: black 0 0 0.2em;
+	font: 1.2em sans-serif;
+}
+
+#notices {
+	position: fixed;
+	z-index: 2;
+	top: 100px;
+	right: 12px;
+}
+
+.notice {
+	display: table;
+	width: 300px;
+	min-height: 32px;
+	margin: 0 0 6px 0;
+	padding: 5px;
+	background-color: #3E84C1;
+	border: 1px;
+	border-radius: 3px;
+/*	box-shadow: 4px 4px 2px rgba(136,136,136,0.5);*/
+}
+
+.notice .msg {
+	padding: 0;
+	color: #fff;
+	font: normal 13px sans-serif;
+	font-weight: 500;
+	text-decoration: none;
+	text-align: left;
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.notice .icon {
+	display:block;
+	width: 42px;
+	height: 32px;
+	margin: 0;
+	top: 5px;
+	float: left;
+}
+
+.notice .info {
+	background: url('/info32.png') no-repeat;
+}
+
+.notice .okay {
+	background: url('/ok32.png') no-repeat;
+}
+
+.notice .warn {
+	background: url('/warn32.png') no-repeat;
+}
+
+.notice .err {
+	background: url('/err32.png') no-repeat;
+}
+
+#ImageContainer {
+	position: relative;
+}
+
+#Image {
+	display: block;
+	margin: auto;
+}
+
+.imgfit {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.zoomin:hover {
+	cursor: -moz-zoom-in;
+	cursor: -webkit-zoom-in;
+	cursor: zoom-in;
+}
+
+.zoomout:hover {
+	cursor: -moz-zoom-out;
+	cursor: -webkit-zoom-out;
+	cursor: zoom-out;
+}
+
+#ImageToolbar {
+	display: block;
+	position: fixed;
+	bottom: 0;
+	z-index: 2;
+	width: 50%;
+	margin: 0;
+	left: 45%;
+}
+
