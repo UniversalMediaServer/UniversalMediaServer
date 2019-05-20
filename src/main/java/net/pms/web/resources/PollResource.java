@@ -12,16 +12,16 @@ import javax.ws.rs.core.SecurityContext;
 
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 
 @Singleton
 @Path("poll")
 public class PollResource {
 
-	private Roots roots;
+	private RootService roots;
 
 	@Inject
-	public PollResource(Roots roots) {
+	public PollResource(RootService roots) {
 		this.roots = roots;
 	}
 

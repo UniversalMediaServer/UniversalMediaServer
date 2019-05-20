@@ -33,7 +33,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.FileUtil;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 
 @Singleton
 @Path("media")
@@ -43,10 +43,10 @@ public class RemoteMediaResource {
 
 	private RendererConfiguration renderer;
 
-	private Roots roots;
+	private RootService roots;
 
 	@Inject
-	public RemoteMediaResource(Roots roots) {
+	public RemoteMediaResource(RootService roots) {
 		this.roots = roots;
 	}
 

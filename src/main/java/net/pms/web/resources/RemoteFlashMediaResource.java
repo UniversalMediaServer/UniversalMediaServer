@@ -31,7 +31,7 @@ import net.pms.dlna.RootFolder;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.remote.RemoteUtil;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 
 @Singleton
 @Path("fmedia")
@@ -41,10 +41,10 @@ public class RemoteFlashMediaResource {
 
 	private RendererConfiguration renderer;
 
-	private Roots roots;
+	private RootService roots;
 
 	@Inject
-	public RemoteFlashMediaResource(Roots roots) {
+	public RemoteFlashMediaResource(RootService roots) {
 		this.roots = roots;
 	}
 

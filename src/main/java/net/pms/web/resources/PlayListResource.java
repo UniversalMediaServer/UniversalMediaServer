@@ -20,7 +20,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 
 @Singleton
 @Path("playlist")
@@ -28,10 +28,10 @@ public class PlayListResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileResource.class);
 
-	private Roots roots;
+	private RootService roots;
 
 	@Inject
-	public PlayListResource(Roots roots) {
+	public PlayListResource(RootService roots) {
 		this.roots = roots;
 	}
 

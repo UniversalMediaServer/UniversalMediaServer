@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 
 @Singleton
 @Path("playerstatus")
@@ -27,10 +27,10 @@ public class PlayerStatusResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileResource.class);
 
-	private Roots roots;
+	private RootService roots;
 
 	@Inject
-	public PlayerStatusResource(Roots roots) {
+	public PlayerStatusResource(RootService roots) {
 		this.roots = roots;
 	}
 

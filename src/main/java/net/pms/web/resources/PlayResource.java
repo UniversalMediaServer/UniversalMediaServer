@@ -37,7 +37,7 @@ import net.pms.io.OutputParams;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteUtil.ResourceManager;
 import net.pms.util.SubtitleUtils;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 import net.pms.web.model.TemplateService;
 
 @Singleton
@@ -51,14 +51,14 @@ public class PlayResource {
 
 	private PmsConfiguration configuration;
 
-	private Roots roots;
+	private RootService roots;
 	
 	private TemplateService templates;
 
 	private ResourceManager resources;
 
 	@Inject
-	public PlayResource(Roots roots, ResourceManager resources, TemplateService templates, PmsConfiguration configuration) {
+	public PlayResource(RootService roots, ResourceManager resources, TemplateService templates, PmsConfiguration configuration) {
 		this.configuration = configuration;
 		this.roots = roots;
 		this.resources = resources;

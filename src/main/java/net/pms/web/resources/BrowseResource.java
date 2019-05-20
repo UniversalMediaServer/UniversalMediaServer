@@ -36,7 +36,7 @@ import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.util.UMSUtils;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 import net.pms.web.model.TemplateService;
 
 @Singleton
@@ -49,12 +49,12 @@ public class BrowseResource {
 	@Context
 	private SecurityContext securityContext;
 	
-	private Roots roots;
+	private RootService roots;
 
 	private TemplateService templates;
 	
 	@Inject
-	public BrowseResource(Roots roots, TemplateService templates) {
+	public BrowseResource(RootService roots, TemplateService templates) {
 		this.roots = roots;
 		this.templates = templates;
 	}

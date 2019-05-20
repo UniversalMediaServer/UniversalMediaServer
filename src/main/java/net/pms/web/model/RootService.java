@@ -21,15 +21,15 @@ import net.pms.dlna.RootFolder;
 import net.pms.web.resources.ResourceUtil;
 
 @Singleton
-public class Roots {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Roots.class);
+public class RootService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RootService.class);
 
 	private Map<String, RootFolder> roots = new HashMap<>();
 
 	private PmsConfiguration configuration;
 
 	@Inject
-	public Roots(PmsConfiguration configuration) {
+	public RootService(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
 

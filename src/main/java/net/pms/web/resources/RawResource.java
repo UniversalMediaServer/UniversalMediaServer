@@ -32,17 +32,17 @@ import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.remote.RemoteUtil;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 
 @Singleton
 @Path("raw")
 public class RawResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RawResource.class);
 
-	private Roots roots;
+	private RootService roots;
 
 	@Inject
-	public RawResource(Roots roots) {
+	public RawResource(RootService roots) {
 		this.roots = roots;
 	}
 

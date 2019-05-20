@@ -27,7 +27,7 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.util.FullyPlayed;
-import net.pms.web.model.Roots;
+import net.pms.web.model.RootService;
 
 @Singleton
 @Path("thumb")
@@ -35,12 +35,12 @@ public class ThumbResource {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(ThumbResource.class);
 
-	private Roots roots;
+	private RootService roots;
 
 	private PmsConfiguration configuration;
 
 	@Inject
-	public ThumbResource(Roots roots, PmsConfiguration configuration) {
+	public ThumbResource(RootService roots, PmsConfiguration configuration) {
 		this.roots = roots;
 		this.configuration = configuration;
 	}
