@@ -1,5 +1,5 @@
 (function() {
-	var module = angular.module('ums', ['ums.browse', 'ums.play', 'ngRoute']);
+	var module = angular.module('ums', ['ums.browse', 'ums.play', 'ums.doc', 'ngRoute']);
 
 	module.config(function($routeProvider) {
 		$routeProvider.otherwise('/browse/0');

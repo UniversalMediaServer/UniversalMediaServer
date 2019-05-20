@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -20,7 +22,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.newgui.DbgPacker;
 import net.pms.remote.RemoteUtil.ResourceManager;
-import net.pms.web.services.TemplateService;
 
 @Singleton
 @Path("doc")
@@ -32,15 +33,12 @@ public class DocResource {
 
 	private PmsConfiguration configuration;
 
-	private TemplateService templates;
-
 	private ResourceManager resources;
 
 	@Inject
-	public DocResource(PmsConfiguration configuration, ResourceManager resources, TemplateService templates) {
+	public DocResource(PmsConfiguration configuration, ResourceManager resources) {
 		this.configuration = configuration;
 		this.resources = resources;
-		this.templates = templates;
 		// Make sure logs are available right away
 		getLogs(false);
 	}
@@ -53,7 +51,8 @@ public class DocResource {
 	}
 
 	@GET
-	public Response handle() throws IOException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public Map<String, Object> handle() throws IOException {
 		HashMap<String, Object> vars = new HashMap<>();
 		vars.put("logs", getLogs(true));
 		if (configuration.getUseCache()) {
@@ -61,8 +60,7 @@ public class DocResource {
 					+ "/console/home");
 		}
 
-		String response = templates.getTemplate("doc.html").execute(vars);
-		return Response.ok(response, MediaType.TEXT_HTML).build();
+		return vars;
 	}
 
 	private ArrayList<HashMap<String, String>> getLogs(boolean asList) {
