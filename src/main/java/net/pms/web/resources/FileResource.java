@@ -38,7 +38,7 @@ import net.pms.PMS;
 import net.pms.network.HTTPResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteUtil.ResourceManager;
-import net.pms.web.model.TemplateService;
+import net.pms.web.services.TemplateService;
 
 @Singleton
 @Path("files")

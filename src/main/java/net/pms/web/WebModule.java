@@ -11,7 +11,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteUtil.ResourceManager;
 import net.pms.web.filters.AuthenticationFilter;
-import net.pms.web.model.TemplateService;
 import net.pms.web.resources.BrowseResource;
 import net.pms.web.resources.DocResource;
 import net.pms.web.resources.FileResource;
@@ -25,6 +24,7 @@ import net.pms.web.resources.RemoteFlashMediaResource;
 import net.pms.web.resources.RemoteMediaResource;
 import net.pms.web.resources.StartResource;
 import net.pms.web.resources.ThumbResource;
+import net.pms.web.services.TemplateService;
 
 public class WebModule extends RequestScopeModule {
 

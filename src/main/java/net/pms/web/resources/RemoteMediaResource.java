@@ -33,7 +33,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.FileUtil;
-import net.pms.web.model.RootService;
+import net.pms.web.services.RootService;
 
 @Singleton
 @Path("media")

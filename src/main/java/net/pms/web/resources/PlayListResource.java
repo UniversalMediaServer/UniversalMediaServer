@@ -20,7 +20,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
-import net.pms.web.model.RootService;
+import net.pms.web.services.RootService;
 
 @Singleton
 @Path("playlist")

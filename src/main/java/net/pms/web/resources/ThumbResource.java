@@ -27,7 +27,7 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.util.FullyPlayed;
-import net.pms.web.model.RootService;
+import net.pms.web.services.RootService;
 
 @Singleton
 @Path("thumb")

@@ -32,7 +32,7 @@ import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.remote.RemoteUtil;
-import net.pms.web.model.RootService;
+import net.pms.web.services.RootService;
 
 @Singleton
 @Path("raw")

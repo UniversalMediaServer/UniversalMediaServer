@@ -36,8 +36,8 @@ import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.util.UMSUtils;
-import net.pms.web.model.RootService;
-import net.pms.web.model.TemplateService;
+import net.pms.web.services.RootService;
+import net.pms.web.services.TemplateService;
 
 @Singleton
 @Path("browse")

@@ -1,4 +1,4 @@
-package net.pms.web.model;
+package net.pms.web.services;
 
 import java.net.InetAddress;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package net.pms.web.model;
+package net.pms.web.services;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

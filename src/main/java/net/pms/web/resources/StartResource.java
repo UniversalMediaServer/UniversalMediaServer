@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.samskivert.mustache.MustacheException;
 
 import net.pms.configuration.PmsConfiguration;
-import net.pms.web.model.TemplateService;
+import net.pms.web.services.TemplateService;
 
 @Singleton
 @Path("/")

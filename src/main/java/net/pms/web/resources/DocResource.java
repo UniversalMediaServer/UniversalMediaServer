@@ -20,7 +20,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.newgui.DbgPacker;
 import net.pms.remote.RemoteUtil.ResourceManager;
-import net.pms.web.model.TemplateService;
+import net.pms.web.services.TemplateService;
 
 @Singleton
 @Path("doc")

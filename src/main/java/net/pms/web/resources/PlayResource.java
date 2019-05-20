@@ -37,8 +37,8 @@ import net.pms.io.OutputParams;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteUtil.ResourceManager;
 import net.pms.util.SubtitleUtils;
-import net.pms.web.model.RootService;
-import net.pms.web.model.TemplateService;
+import net.pms.web.services.RootService;
+import net.pms.web.services.TemplateService;
 
 @Singleton
 @Path("play")
