@@ -19,12 +19,15 @@
 package net.pms;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -50,11 +53,11 @@ public class Messages {
 		 */
 		resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault());
 		ROOT_RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, Locale.ROOT, new ResourceBundle.Control() {
-	        @Override
-	        public List<Locale> getCandidateLocales(String name,
-	                                                Locale locale) {
-	            return Collections.singletonList(Locale.ROOT);
-	        }
+			@Override
+			public List<Locale> getCandidateLocales(String name,
+					Locale locale) {
+				return Collections.singletonList(Locale.ROOT);
+			}
 		});
 
 	}
@@ -150,6 +153,34 @@ public class Messages {
 			return rb.getString(key);
 		} catch (MissingResourceException e) {
 			return '!' + key + '!';
+		}
+	}
+
+	public static Map<String, String> getMessagesForLocale(String lang) {
+		Locale locale = Locale.forLanguageTag(lang);
+		resourceBundleLock.readLock().lock();
+		try {
+			ResourceBundle resourceBundle;
+			if (locale == null) {
+				resourceBundle = Messages.resourceBundle;
+			}
+			// Selecting base bundle (en-US) for all English variants but British
+			if (isRootEnglish(locale)) {
+				resourceBundle = ROOT_RESOURCE_BUNDLE;
+			}
+			resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+			if (resourceBundle == null) {
+				resourceBundle = ROOT_RESOURCE_BUNDLE;
+			}
+
+			Map<String, String> messages = new HashMap<>();
+			for (String key : resourceBundle.keySet()) {
+				messages.put(key, resourceBundle.getString(key));
+			}
+			return messages;
+
+		} finally {
+			resourceBundleLock.readLock().unlock();
 		}
 	}
 

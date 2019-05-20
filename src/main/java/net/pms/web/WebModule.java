@@ -24,6 +24,7 @@ import net.pms.web.resources.RemoteFlashMediaResource;
 import net.pms.web.resources.RemoteMediaResource;
 import net.pms.web.resources.StartResource;
 import net.pms.web.resources.ThumbResource;
+import net.pms.web.resources.UmsResource;
 import net.pms.web.services.TemplateService;
 
 public class WebModule extends RequestScopeModule {
@@ -63,6 +64,7 @@ public class WebModule extends RequestScopeModule {
 		bind(RemoteMediaResource.class);
 		bind(StartResource.class);
 		bind(ThumbResource.class);
+		bind(UmsResource.class);
 
 		bind(TemplateService.class);
 

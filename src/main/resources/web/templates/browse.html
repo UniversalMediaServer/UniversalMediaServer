@@ -1,0 +1,79 @@
+<div>
+	<div id="Container" class="noHzScroll">
+		<div id="FoldersContainer">
+			<ul id="Folders" class="nav nav-sidebar">
+				<li>
+					<!-- TODO backurl -->
+					<a href="#" ng-click="back($event)" title="{{::messages['Web.10']}}">
+						<span>{{::messages['Web.10']}}</span>
+					</a>
+				</li>
+				<li ng-repeat="folder in folders">
+					<a ng-href="#!/browse/{{::folder.id}}"
+						ng-on-contextmenu="searchFun(folder.id, folder.name);"
+						title="{{::folder.name}}"><span>{{::folder.name}}</span></a>
+				</li>
+			</ul>
+		</div>
+		<div id="MediaContainer" ng-if="medias.length > 0">
+			<!--<div id="bumplist"></div>-->
+			<ul id="Media" class="nav nav-sidebar row">
+				<li class="column" ng-repeat="media in medias">
+					<!-- thumb -->
+					<a ng-click="play(media)" title="{{::media.name}}" ng-class="{{::media.disabled}}">
+						<img class="thumb" ng-src="/thumb/{{::media.id}}" alt="{{::media.name}}">
+					</a>
+
+					<div class="box-meta row">
+						<!-- caption -->
+						<div class="col-xs-9 col-sm-9 col-lg-10 clearPadding">
+							<a ng-if="!media.disabled" ng-href="#!/play/{{::media.id}}" title="{{::media.name}}">
+								<span class="caption">{{::media.name}}</span>
+							</a>
+							<span ng-if="media.disabled" class="webdisabled caption">{{::media.name}}</span>
+						</div>
+
+						<!-- bump -->
+						<div class="expand-bump col-xs-3 col-sm-3 col-lg-2">
+							<span ng-if="media.vva" class="floatRight"></span>
+							<span ng-if="!media.vva && upnpAllowed">
+								<a ng-if="upnpControl"
+									href="#"
+									class="bumpIcon"
+									ng-click="bumpStart(media)"
+									title="{{::messages['Web.1']}}"></a>
+								<a ng-if="!upnpControl"
+									ng-href="#"
+									ng-click="warn()"
+									class="bumpIcon icondisabled"
+									title="{{::messages['Web.3']}}"></a>
+
+								<a ng-if="media.playlist"
+									ng-click="removeFromPlaylist(media, $event);return false;"
+									href="#"
+									class="playlist_del"
+									title="{{::messages['Web.4']}}"></a>
+								<a ng-if="!media.playlist"
+									ng-click="addToPlaylist(media, $event);return false;"
+									href="#"
+									class="playlist_add"
+									title="{{::messages['Web.5']}}"></a>
+							</span>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<!-- open/close -->
+	<div class="overlay overlay-contentscale">
+		<button type="button" class="jQKeyboardBtn overlay-close"><span class="icon-close"></span></button>
+		<nav>
+		<div id="searchbar">
+			<form  id="SearchForm" method="get" ng-if="medias.length > 0">
+				<input type="text" class="form-control jQKeyboard" placeholder="Search..." name="str">
+			</form>
+		</div>
+		</nav>
+	</div>
+</div>

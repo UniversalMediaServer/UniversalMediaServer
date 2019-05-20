@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			// reload if we have been sent back here after a VVA
+			if (typeof window.refresh != 'undefined' && window.refresh) {
+				window.refresh = false;
+				window.location.reload();
+			}
+			// ensure the browser info cookie is set
+			if ((' ' + document.cookie).indexOf(' UMSINFO=') == -1) {
+				document.cookie = 'UMSINFO=platform=' + navigator.platform + '&width=' + screen.width + '&height=' + screen.height + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)) + ';Path=/';
+			}
+		</script>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+		<script src="/jquery.min.js"></script>
+		<script src="/jquery.ums.js"></script>
+		<script src="/js.cookie-2.1.0.min.js"></script>
+		<script src="/bump/bump.js"></script>
+		<!-- New webUI -->
+		<script src="/util/bootstrap.min.js"></script>
+		<script src="/util/html5.js"></script>
+		<script src="/util/modernizr.custom.js"></script>
+		<link rel="stylesheet" href="/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/util/jQKeyboard.js"></script><!--load before keycontroller-->
+		<script src="/util/keycode.js"></script>
+		<script src="/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="/util/jQKeyboard.css" type="text/css">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular-sanitize.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular-route.min.js"></script>
+		
+		<script src="/js/ums.js"></script>
+		<script src="/js/ums.browse.js"></script>
+
+
+		<title>{{name}}</title>
+	</head>
+	<body id="ContentPage" ng-app="ums">
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a  id="HomeButton" class="navbar-brand" href="#!/browse/0" title="UMS"></a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+<!-- 
+						{{#hasFile}}
+							<li id="trigger-overlay">
+								<a role="button" type="button">
+									<i class="fa fa-search" aria-hidden="true"></i>
+								</a>
+							</li>
+						{{/hasFile}}
+ -->
+						<li class="dropdown" id="fontsChangerContainer">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="fontChanger"><i class="fa fa-font"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:chooseFontSize('small')" title="Switch to small font" class="small"><i class="fa fa-font" aria-hidden="true"></i> Switch to small font</a></li>
+								<li><a href="javascript:chooseFontSize('medium')" title="Switch to medium font" class="medium"><i class="fa fa-font" aria-hidden="true"></i> Switch to medium font</a></li>
+								<li><a href="javascript:chooseFontSize('big')" title="Switch to big font" class="big"><i class="fa fa-font" aria-hidden="true"></i> Switch to big font</a></li>
+								<li><a href="javascript:chooseFontSize('extrabig')" title="Switch to extra big font" class="big"><i class="fa fa-font" aria-hidden="true"></i> Switch to extra big font</a></li>
+							</ul>
+						</li>
+						<li class="dropdown" id="settingsContainer">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="settings"><i class="fa fa-cog"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="/doc" title="Documentation"><i class="fa fa-info-circle" aria-hidden="true"></i> Documentation</a></li>
+								<li><a href="/subs.html" title="Subtitle Translator"><i class="fa fa-file-export" aria-hidden="true"></i> Subtitle translator</a></li>
+								<li><a href="javascript:setPadColor(1)" title="Change padding color"><i class="fa fa-paint-brush" aria-hidden="true"></i> Change padding color</a></li>
+								<li><a href="javascript:chooseView('grid')" title="Switch to grid view"><i class="fa fa-th" aria-hidden="true"></i> Switch to grid view</a></li>
+								<li><a href="javascript:chooseView('dynamic')" title="Switch to dynamic view"><i class="fa fa-list" aria-hidden="true"></i> Switch to dynamic view</a></li>
+								<li><a href="javascript:chooseView('list')" title="Switch to list view"><i class="fa fa-bars" aria-hidden="true"></i> Switch to list view</a></li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+		<ng-view></ng-view>
+	</body>
+</html>
