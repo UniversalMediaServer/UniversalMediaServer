@@ -51,7 +51,7 @@ public class RemoteMediaResource {
 	}
 
 	@GET
-	@PathParam("{id:.*}")
+	@Path("{id}")
 	public Response handle(@PathParam("id") String id, @Context SecurityContext securityContext,
 			@Context HttpServletRequest t) throws InterruptedException, IOException {
 		RootFolder root = roots.getRoot(ResourceUtil.getUserName(securityContext), t);

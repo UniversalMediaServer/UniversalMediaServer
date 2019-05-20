@@ -59,10 +59,10 @@
 				// umsAjax('/play/' + media.id)
 			}
 			else if (media.disabled) {
-				// notify('warn','ResourceUtil.getMsgString("Web.6", language)');
+				$window.notify('warn', $scope.messages['Web.6']);
 			}
 			else {
-				// TODO redirect to "/play/" + media.id
+				$location.path('/play/' + media.id);
 			}
 			console.log("play:" + media);
 		}

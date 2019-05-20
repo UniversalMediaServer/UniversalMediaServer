@@ -1,0 +1,9 @@
+<div ng-if="media">
+	<div id="ImageContainer">
+		<img id="Image" class="imgfit" ng-src="/raw/{{::media.id}}" alt="" ng-click="fit($event)"><br>
+	</div>
+	<div id="ImageToolbar">
+		<button id="prev" ng-click="prev()" title="{{::media.prevStep.attr}}" ng-disabled="media.prevStep.id == null">&lt;&lt;</button>
+		<button id="next" ng-click="next()" title="{{::media.nextStep.attr}}" ng-disabled="media.nextStep.id == null">>></button>
+	</div>
+</div>

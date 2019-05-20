@@ -6,7 +6,7 @@ import java.io.InputStream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -34,7 +34,7 @@ public class PlayerStatusResource {
 		this.roots = roots;
 	}
 
-	@GET
+	@POST
 	public Response getPlayerStatus(@Context SecurityContext context, @Context HttpServletRequest request)
 			throws InterruptedException, IOException {
 

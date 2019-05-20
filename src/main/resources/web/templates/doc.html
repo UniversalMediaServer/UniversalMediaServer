@@ -1,0 +1,23 @@
+<div class="container-fluid Doc">
+	<div class="row">
+		<div class="col-sm-12 col-md-10 main">
+			<h1 class="page-header">Tools</h1>
+			<br>
+			<ul class="breadcrumb">
+				<li><a href="/util/logviewer.html" title="Open general purpose log viewer">View</a> <span class="badge"> logs and Confs:</span>
+					<ul class="breadcrumb">
+						<li ng-repeat="log in logs"><a ng-href="/files/log/{{::log.id}}">{{log.filename}}</a><span class="divider">/</span></li>
+					</ul>
+				</li>
+				<br ng-if="cache">
+				<li ng-if="cache"><a href="{{this}}">Manage cache.</a><span class="divider">/</span></li>
+			</ul>
+			<br><br>
+			<h1 class="page-header">Documentation</h1>
+			<br>
+			<ul class="breadcrumb">
+				<li><a href="/bump">Browser-to-UMS Media Player Setup.</a><span class="divider">/</span></li>
+			</ul>
+		</div>
+	</div>
+</div>

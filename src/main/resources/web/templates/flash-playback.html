@@ -1,0 +1,22 @@
+<div id="Container">
+	<div id="VideoContainer">
+		<div class="player">
+			<video id="player" controls {{auto}}>
+				<source ng-if="media.src" ng-src="/media/{{::media.id}}" type="{{::media.mime}}">
+				<source ng-src="/fmedia/{{::media.id}}" type="video/flash">
+				<track ng-if="media.sub" kind="subtitles" ng-src="/{{::media.sub}}" default>
+			</video>
+			<audio ng-if="media.type === 'audio'" id="player" controls {{auto}}>
+				<source ng-if="media.src" ng-src="/media/{{::media.id}}" type="{{::media.mime}}">
+				<source ng-src="/fmedia/{{::media.id}}" type="video/flash">
+				<track ng-if="media.sub" kind="subtitles" ng-src="/{{::media.sub}}" default>
+			</audio>
+		</div>
+		<div id="toolbar">
+			<button id="prev" ng-click="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-backward"></i></button>
+			<button id="next" ng-click="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-forward"></i></button>
+			<button id="html5" ng-click="html5(true)" title="Switch to html5 player" type="button" class="btn btn-sm btn-playbar">HTML5</button>
+		</div>
+	</div>
+	<a href="/raw/{{media.id}}" target="_blank" id="DownloadLink" title="Download this {{::media.type}}"></a>
+</div>

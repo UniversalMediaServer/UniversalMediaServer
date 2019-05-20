@@ -1,0 +1,5 @@
+<div ng-if="media">
+	<image-playback ng-if="media.type === 'image'" media="media" />
+	<flash-playback ng-if="!htmlPlayback && media.type !== 'image'" media="media" />
+	<html-playback ng-if="htmlPlayback && media.type !== 'image'"  media="media" />
+</div>

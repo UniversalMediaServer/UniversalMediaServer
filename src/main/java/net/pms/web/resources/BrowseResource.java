@@ -86,7 +86,7 @@ public class BrowseResource {
 				&& resources.get(0).getParent().getParent().isFolder()) {
 			String newId = resources.get(0).getParent().getParent().getResourceId();
 			String idForWeb = URLEncoder.encode(newId, "UTF-8"); // TODO should be done on the client
-			result.put("parentId", idForWeb); 
+			result.put("parentId", idForWeb);
 		}
 
 		// Calculate folders and media items
@@ -104,7 +104,7 @@ public class BrowseResource {
 			else {
 				// The resource is a media file
 				media.add(new Media(idForWeb, name,
-						WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE,
+						!(WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE),
 						resource.getParent() instanceof Playlist, false));
 			}
 		}

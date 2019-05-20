@@ -1,0 +1,42 @@
+<div id="Container">
+	<div id="VideoContainer">
+		<video ng-if="media.type === 'video'"
+				id="player" class="video-js vjs-default-skin full-card card" controls fullscreen width="{{::media.width}}" height="{{::media.height}}"
+				data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+				ums-poster="{{::media.id}}" data-setup="{}">
+			<source ng-src="/media/{{::media.id}}" type="{{::media.mime}}">
+			<track ng-if="media.sub" kind="captions" ng-src="/{{::media.sub}}" default>
+			<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+		</video>
+
+		<audio ng-if="media.type === 'audio'"
+				id="player" class="video-js vjs-default-skin full-card card" controls fullscreen width="{{::media.width}}" height="{{::media.height}}"
+				data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+				ums-poster="{{::media.id}}" data-setup="{}">
+			<source ng-src="/media/{{::media.id}}" type="{{::media.mime}}">
+			<track ng-if="media.sub" kind="captions" ng-src="/{{::media.sub}}" default> <!-- TODO is this a thing for audio?? -->
+			<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+		</audio>
+
+		<!-- TODO images -->
+
+		<div class="well" ng-class="{ 'full-card' : media.type !== 'video' }">
+			<h2>{{::media.name}}</h2>
+		</div>
+
+		<div id="toolbar" ng-class="{ 'full-card' : media.type !== 'video' }">
+			<button id="prev" ng-click="prev()" {{prevAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-prev"></span></button>
+			<button id="play" ng-click="play()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-play"></span></button>
+			<button id="pause" ng-click="pause()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-pause"></span></button>
+			<button id="next" ng-click="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-next"></span></button>
+
+			<button id="playlist" title="{{::getPlaylistTitle()}}" ng-click="changePlaylist($event)" type="button" class="btn btn-sm btn-playbar">{{::getPlaylistSymbol()}}</button>
+			<button ng-if="media.type === 'video'"
+					id="flash" ng-click="html5(false)" title="Switch to flash player" type="button" class="btn btn-sm btn-playbar"><span>Flash</span></button>
+
+			<a ng-href="/raw/{{::media.id}}" target="_blank" download="{{::media.name}}" id="DownloadLink" title="Download this {{::media.type}}" class="btn btn-sm btn-playbar"><span class="fa fa-download"></span></a>
+			<button id="fullscreen" onclick="GoInFullscreen(videojs('player'));" title="Fullscreen Mode" class="btn btn-sm btn-playbar"><span class="icon-player-size-fullscreen"></span></button>
+		</div>
+	</div>
+	<input type="hidden" class="jQKeyboard" name="dummy">
+</div>

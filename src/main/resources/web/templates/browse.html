@@ -49,12 +49,12 @@
 									title="{{::messages['Web.3']}}"></a>
 
 								<a ng-if="media.playlist"
-									ng-click="removeFromPlaylist(media, $event);return false;"
+									ng-click="removeFromPlaylist(media, $event);"
 									href="#"
 									class="playlist_del"
 									title="{{::messages['Web.4']}}"></a>
 								<a ng-if="!media.playlist"
-									ng-click="addToPlaylist(media, $event);return false;"
+									ng-click="addToPlaylist(media, $event);"
 									href="#"
 									class="playlist_add"
 									title="{{::messages['Web.5']}}"></a>
