@@ -18,11 +18,16 @@
 
 	module.service('browseService', browseService);
 
-	function browseController($scope, browseService, $route, $window, $location) {
+	function browseController($scope, browseService, $route, $window, $location, $cookies) {
 		browseService.get($route.current.params.id).then(function(response) {
 			$scope.medias = response.data.media;
 			$scope.folders = response.data.folders;
 			$scope.parentId = response.data.parentId;
+		});
+		$scope.$watch(function() {
+			return $cookies.get('pad');
+		}, function(newValue) {
+			$scope.pad = isNaN(newValue) ? 0 : newValue;
 		});
 
 		$scope.bumpStart = function(media) {

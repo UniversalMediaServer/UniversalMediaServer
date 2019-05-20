@@ -297,16 +297,6 @@ function chooseFontSize(font) {
 
 }
 
-function setPadColor(cycle) {
-	var pad = Cookies.get('pad') || 'PadBlack';
-	if (cycle) {
-		pad = pad === 'PadBlack' ? 'PadGrey' : pad === 'PadGrey' ? 'PadNone' : 'PadBlack';
-	}
-	//console.log('pad='+pad);
-	$('#Media li, #ViewPadColor').removeClass('PadBlack PadGrey PadNone').addClass(pad);
-	Cookies.set('pad', pad, { expires: 365, path: '/' });
-}
-
 function initSettings() {
 	$(".HoverMenu").hover(
 		function () {
@@ -326,7 +316,6 @@ $(document).ready(function() {
 	chooseView(viewType);
     fontSize = Cookies.get('font') || 'small';
     chooseFontSize(fontSize);
-	setPadColor();
 
 	if ($('#Media').length) {
 		$(window).bind('load resize', changeMargins);

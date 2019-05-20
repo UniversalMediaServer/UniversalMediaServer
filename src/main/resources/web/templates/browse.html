@@ -18,7 +18,7 @@
 		<div id="MediaContainer" ng-if="medias.length > 0">
 			<!--<div id="bumplist"></div>-->
 			<ul id="Media" class="nav nav-sidebar row">
-				<li class="column" ng-repeat="media in medias">
+				<li class="column" ng-repeat="media in medias" ng-class="{PadBlack: pad == 0, PadGrey: pad == 1, PadNone: pad == 2}">
 					<!-- thumb -->
 					<a ng-click="play(media)" title="{{::media.name}}" ng-class="{{::media.disabled}}">
 						<img class="thumb" ng-src="/thumb/{{::media.id}}" alt="{{::media.name}}">
