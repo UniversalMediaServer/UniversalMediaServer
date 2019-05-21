@@ -60,10 +60,7 @@
 		};
 
 		$scope.play = function(media) {
-			if (media.vva) {
-				// umsAjax('/play/' + media.id)
-			}
-			else if (media.disabled) {
+			if (media.disabled) {
 				$window.notify('warn', $scope.messages['Web.6']);
 			}
 			else {

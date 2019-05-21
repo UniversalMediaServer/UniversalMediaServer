@@ -197,14 +197,6 @@ function searchFun(url, txt) {
 	return false;
 }
 
-function umsAjax(u, reload) {
-	$.ajax({url: u}).done(function() {
-		if(reload) {
-			window.location.reload();
-		}
-	});
-}
-
 var polling, refused;
 
 function poll() {
