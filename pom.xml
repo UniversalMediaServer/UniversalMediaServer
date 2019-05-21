@@ -362,13 +362,11 @@
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
-		<!-- 
 		<dependency>
 			<groupId>jwbroek.cuelib</groupId>
 			<artifactId>cuelib</artifactId>
 			<version>${cuelib-version}</version>
 		</dependency>
- -->
 		<dependency>
 			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
