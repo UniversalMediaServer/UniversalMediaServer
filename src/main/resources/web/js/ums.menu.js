@@ -33,13 +33,7 @@
 		};
 		$scope.chooseView = function(view, $event) {
 			$event.preventDefault();
-
-			$cookies.remove('view');
-			
-			var d = new Date();
-			d.setFullYear(d.getFullYear()+1);
-			$cookies.put('view', view, { expires: d, path: '/' });
-			$window.changeMargins();
+			$window.chooseView(view);
 		};
 	}
 	module.controller('menuController', menuController);
