@@ -115,7 +115,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<jetty.version>9.4.18.v20190429</jetty.version>
-		<resteasy.version>3.0.6.Final</resteasy.version>
+		<resteasy.version>3.7.0.Final</resteasy.version>
 		<guice.version>4.1.0</guice.version>
 	</properties>
 	<pluginRepositories>
