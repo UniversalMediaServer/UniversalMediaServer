@@ -48,15 +48,8 @@
 			$window.umsAjax('/playlist/del/' + media.id, true);
 		};
 
-		$scope.back = function($event) {
-			$event.preventDefault();
-			if ($scope.parentId) {
-				$location.path('/browse/' + $scope.parentId);
-			}
-			else {
-				// TODO better ways to do this
-				$window.history.back();
-			}
+		$scope.getBackUri = function() {
+			return '#!/browse/' + ($scope.parentId || 0);
 		};
 
 		$scope.play = function(media) {
@@ -66,7 +59,6 @@
 			else {
 				$location.path('/play/' + media.id);
 			}
-			console.log("play:" + media);
 		}
 	}
 
