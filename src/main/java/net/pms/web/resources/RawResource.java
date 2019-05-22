@@ -3,6 +3,7 @@ package net.pms.web.resources;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -13,8 +14,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
@@ -50,10 +53,10 @@ public class RawResource {
 	@GET
 	@Path("{path:.*}")
 	public Response handle(@PathParam("path") String id, @Context SecurityContext context,
-			@Context HttpServletRequest request) throws Exception {
+			@Context HttpServletRequest httpRequest, @Context Request request) throws Exception {
 		try {
 			LOGGER.debug("got a raw request {}", id);
-			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), request);
+			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), httpRequest);
 			if (root == null) {
 				throw new IOException("Unknown root");
 			}
@@ -70,6 +73,14 @@ public class RawResource {
 			String mime = null;
 			InputStream in;
 			Range.Byte range;
+
+			// enable browser caching
+			Date lastModified = new Date(dlna.getLastModified());
+			ResponseBuilder response = request.evaluatePreconditions(lastModified);
+			if (response != null) {
+				return response.build();
+			}
+
 			if (dlna.getMedia() != null && dlna.getMedia().isImage() && dlna.getMedia().getImageInfo() != null) {
 				boolean supported = false;
 				ImageInfo imageInfo = dlna.getMedia().getImageInfo();
@@ -100,7 +111,7 @@ public class RawResource {
 			} else {
 				len = dlna.length();
 				dlna.setPlayer(null);
-				range = ResourceUtil.parseRange(request, len);
+				range = ResourceUtil.parseRange(httpRequest, len);
 				in = dlna.getInputStream(range, root.getDefaultRenderer());
 				if (len == 0) {
 					// For web resources actual length may be unknown until we open the stream
@@ -108,20 +119,21 @@ public class RawResource {
 				}
 				mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
 			}
-			ResponseBuilder response = Response.ok();
+			response = Response.ok(in, mime);
 			LOGGER.debug("Sending media \"{}\" with mime type \"{}\"", dlna, mime);
 			response.header("Content-Type", mime);
 			response.header("Accept-Ranges", "bytes");
 			response.header("Server", PMS.get().getServerName());
 			response.header("Connection", "keep-alive");
 			response.header("Transfer-Encoding", "chunked");
+			response.header(HttpHeaders.LAST_MODIFIED, lastModified);
 			response.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + dlna.getName() + "\"");
 			if (in != null && in.available() != len) {
 				response.header("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
-				response.status(206);
+				response.status(Status.PARTIAL_CONTENT);
 			}
 			LOGGER.debug("start raw dump");
-			return response.entity(in).build();
+			return response.build();
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {
