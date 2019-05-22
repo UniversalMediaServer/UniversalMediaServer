@@ -10,6 +10,7 @@
 			$rootScope.upnpAllowed = response.data.upnpAllowed;
 			$rootScope.upnpControl = response.data.upnpControl;
 			$rootScope.messages = response.data.messages;
+			$rootScope.title = response.data.title;
 		});
 
 		$rootScope.$watch(function() {

@@ -10,9 +10,12 @@ public class Ums {
 
 	private Map<String, String> messages;
 
-	public Ums(boolean upnpAllowed, boolean upnpControl, Map<String,String> messages) {
+	private String title;
+
+	public Ums(boolean upnpAllowed, boolean upnpControl, String title, Map<String, String> messages) {
 		this.upnpAllowed = upnpAllowed;
 		this.upnpControl = upnpControl;
+		this.title = title;
 		this.messages = messages;
 	}
 
@@ -24,8 +27,11 @@ public class Ums {
 		return upnpControl;
 	}
 
-	public Map<String,String> getMessages() {
+	public Map<String, String> getMessages() {
 		return messages;
 	}
-}
 
+	public String getTitle() {
+		return title;
+	}
+}
