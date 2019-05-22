@@ -1,5 +1,11 @@
-<div ng-if="media">
-	<image-playback ng-if="media.type === 'image'" media="media" />
-	<flash-playback ng-if="!htmlPlayback && media.type !== 'image'" media="media" />
-	<html-playback ng-if="htmlPlayback && media.type !== 'image'"  media="media" />
+<div>
+	<div id="loadingLink" ng-if="!media" >
+		<div class="loading"></div>
+		<div class="loadingAfter"></div>
+	</div>
+	<div ng-if="media">
+		<image-playback ng-if="media.type === 'image'" media="media" />
+		<flash-playback ng-if="!htmlPlayback && media.type !== 'image'" media="media" />
+		<html-playback ng-if="htmlPlayback && media.type !== 'image'"  media="media" />
+	</div>
 </div>
