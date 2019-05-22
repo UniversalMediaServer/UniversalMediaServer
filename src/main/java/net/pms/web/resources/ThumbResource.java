@@ -1,6 +1,7 @@
 package net.pms.web.resources;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -11,6 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
@@ -55,10 +57,10 @@ public class ThumbResource {
 	@GET
 	@Path("{id}")
 	public Response handle(@PathParam("id") String id, @Context SecurityContext context,
-			@Context HttpServletRequest request) throws Exception {
+			@Context HttpServletRequest httpRequest, @Context Request request) throws Exception {
 		try {
 			LOGGER.trace("web thumb req " + id);
-			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), request);
+			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), httpRequest);
 			if (root == null) {
 				LOGGER.debug("weird root in thumb req");
 				throw new NotFoundException("Unknown root");
@@ -69,6 +71,14 @@ public class ThumbResource {
 				LOGGER.debug("media unknown");
 				throw new NotFoundException("Bad id");
 			}
+
+			// enable browser caching
+			Date lastModified = new Date(r.getLastModified());
+			ResponseBuilder response = request.evaluatePreconditions(lastModified);
+			if (response != null) {
+				return response.build();
+			}
+
 			DLNAThumbnailInputStream in;
 			if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
 				// we shouldn't show the thumbs for coded objects
@@ -86,11 +96,12 @@ public class ThumbResource {
 			if (filterChain != null) {
 				in = in.transcode(in.getDLNAImageProfile(), false, filterChain);
 			}
-			ResponseBuilder response = Response.ok();
+			response = Response.ok();
 			response.header(HttpHeaders.CONTENT_TYPE,
 					ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
 			response.header("Accept-Ranges", "bytes");
 			response.header("Connection", "keep-alive");
+			response.header(HttpHeaders.LAST_MODIFIED, lastModified);
 			response.header(HttpHeaders.CONTENT_LENGTH, in.getSize());
 			LOGGER.trace("Web thumbnail: Input is {}", in);
 			return response.entity(in).build();
