@@ -1767,12 +1767,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 
-		// Prefix
-		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
-		if (engineName != null) {
-			sb.append(engineName).append(" ");
-		}
-
 		// Base
 		if (parent instanceof ChapterFileTranscodeVirtualFolder && getSplitRange() != null) {
 			sb.append(">> ");
@@ -1792,6 +1786,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNotBlank(nameSuffix)) {
 				sb.append(" ").append(nameSuffix);
 			}
+		}
+
+		// Engine name
+		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
+		if (engineName != null) {
+			sb.append(" ").append(engineName);
 		}
 
 		// Truncate
@@ -5084,6 +5084,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return scaleWidth + "x" + scaleHeight;
 	}
 
+
 	/**
 	 * Populates the media Title, Year, Edition, TVSeason, TVEpisodeNumber and TVEpisodeName
 	 * parsed from the media file name and if enabled insert them to the database.
@@ -5155,5 +5156,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				OpenSubtitle.backgroundLookupAndAdd(file, media);
 			}
 		}
+	}
+
+	public boolean isAddToMediaLibrary() {
+		return true;
 	}
 }
