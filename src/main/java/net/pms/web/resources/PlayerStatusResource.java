@@ -2,7 +2,6 @@ package net.pms.web.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -12,11 +11,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.web.services.RootService;
@@ -36,7 +33,7 @@ public class PlayerStatusResource {
 
 	@POST
 	public Response getPlayerStatus(@Context SecurityContext context, @Context HttpServletRequest request)
-			throws InterruptedException, IOException {
+		throws InterruptedException, IOException {
 
 		String json;
 		try (InputStream in = request.getInputStream()) {

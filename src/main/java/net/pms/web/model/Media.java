@@ -1,6 +1,7 @@
 package net.pms.web.model;
 
 public class Media {
+
 	private boolean disabled;
 
 	private String id;

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
@@ -14,10 +13,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.newgui.DbgPacker;
@@ -26,6 +23,7 @@ import net.pms.remote.RemoteUtil.ResourceManager;
 @Singleton
 @Path("doc")
 public class DocResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocResource.class);
 
 	@SuppressWarnings("unused")
@@ -56,8 +54,7 @@ public class DocResource {
 		HashMap<String, Object> vars = new HashMap<>();
 		vars.put("logs", getLogs(true));
 		if (configuration.getUseCache()) {
-			vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort()
-					+ "/console/home");
+			vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
 		}
 
 		return vars;

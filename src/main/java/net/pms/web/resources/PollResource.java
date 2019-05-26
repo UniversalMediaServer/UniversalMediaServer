@@ -9,7 +9,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.web.services.RootService;

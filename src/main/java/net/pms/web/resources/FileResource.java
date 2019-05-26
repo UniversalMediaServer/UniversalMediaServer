@@ -14,7 +14,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -28,12 +27,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.network.HTTPResource;
 import net.pms.remote.RemoteUtil;
@@ -59,7 +56,8 @@ public class FileResource {
 	@GET
 	@Path("crossdomain.xml")
 	public Response getCrossdomain() {
-		return Response.ok(resourceManager.getResourceAsStream("/net/pms/web/resources/crossdomain.xml"), MediaType.APPLICATION_XML_TYPE).build();
+		return Response.ok(resourceManager.getResourceAsStream("/net/pms/web/resources/crossdomain.xml"), MediaType.APPLICATION_XML_TYPE)
+			.build();
 	}
 
 	@GET
@@ -72,8 +70,7 @@ public class FileResource {
 		if (StringUtils.isNotEmpty(log)) {
 			x = x + fullLink;
 		}
-		return Response.ok("<html><title>UMS LOG</title><body>" + x + "</body></html>", MediaType.TEXT_HTML_TYPE)
-				.build();
+		return Response.ok("<html><title>UMS LOG</title><body>" + x + "</body></html>", MediaType.TEXT_HTML_TYPE).build();
 	}
 
 	@GET
@@ -84,8 +81,7 @@ public class FileResource {
 			filename = file.getName();
 			HashMap<String, Object> vars = new HashMap<>();
 			vars.put("title", filename);
-			vars.put("brush",
-					filename.endsWith("debug.log") ? "debug_log" : filename.endsWith(".log") ? "log" : "conf");
+			vars.put("brush", filename.endsWith("debug.log") ? "debug_log" : filename.endsWith(".log") ? "log" : "conf");
 			vars.put("log", RemoteUtil.read(file).replace("<", "&lt;"));
 			return Response.ok(templates.getTemplate("log.html").execute(vars), MediaType.TEXT_HTML).build();
 		} else {
@@ -95,8 +91,7 @@ public class FileResource {
 
 	@POST
 	@Path("proxy")
-	public Response postProxy(@Context HttpHeaders headers, @Context HttpServletRequest request, InputStream body)
-			throws IOException {
+	public Response postProxy(@Context HttpHeaders headers, @Context HttpServletRequest request, InputStream body) throws IOException {
 		String url = request.getQueryString();
 		CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
 		if (cookieManager == null) {
@@ -178,7 +173,6 @@ public class FileResource {
 	private Response createResponse(InputStream in) {
 		LOGGER.trace("input is {}", in);
 		return Response.ok(in, MediaType.TEXT_PLAIN).header("Access-Control-Allow-Origin", "*")
-				.header("Access-Control-Allow-Headers", "User-Agent")
-				.header("Access-Control-Allow-Headers", "Content-Type").build();
+			.header("Access-Control-Allow-Headers", "User-Agent").header("Access-Control-Allow-Headers", "Content-Type").build();
 	}
 }

@@ -2,25 +2,22 @@ package net.pms.web.resources;
 
 import java.io.IOException;
 import java.util.HashMap;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.samskivert.mustache.MustacheException;
-
 import net.pms.configuration.PmsConfiguration;
 import net.pms.web.services.TemplateService;
 
 @Singleton
 @Path("/")
 public class StartResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartResource.class);
 
 	private TemplateService templates;

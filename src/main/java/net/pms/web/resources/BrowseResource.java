@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -18,11 +17,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
@@ -38,6 +35,7 @@ import net.pms.web.services.RootService;
 @Singleton
 @Path("browse")
 public class BrowseResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseResource.class);
 
 	@Context
@@ -53,7 +51,8 @@ public class BrowseResource {
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Map<String, Object> getFolders(@PathParam("id") String id, @QueryParam("search") String search, @Context HttpServletRequest request) throws Exception {
+	public Map<String, Object> getFolders(@PathParam("id") String id, @QueryParam("search") String search,
+		@Context HttpServletRequest request) throws Exception {
 		LOGGER.debug("Make browse page " + id);
 		String user = ResourceUtil.getUserName(securityContext);
 		RootFolder root = roots.getRoot(user, true, request);
@@ -66,8 +65,7 @@ public class BrowseResource {
 		result.put("folders", folders);
 
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
-		if (!resources.isEmpty() && resources.get(0).getParent() != null
-				&& (resources.get(0).getParent() instanceof CodeEnter)) {
+		if (!resources.isEmpty() && resources.get(0).getParent() != null && (resources.get(0).getParent() instanceof CodeEnter)) {
 			// this is a code folder the search string is entered code
 			CodeEnter ce = (CodeEnter) resources.get(0).getParent();
 			ce.setEnteredCode(search);
@@ -81,34 +79,35 @@ public class BrowseResource {
 		}
 
 		// calculate parent
-		if (!resources.isEmpty() && resources.get(0).getParent() != null
-				&& resources.get(0).getParent().getParent() != null
-				&& resources.get(0).getParent().getParent().isFolder()) {
+		if (!resources.isEmpty() && resources.get(0).getParent() != null && resources.get(0).getParent().getParent() != null
+			&& resources.get(0).getParent().getParent().isFolder()) {
 			String newId = resources.get(0).getParent().getParent().getResourceId();
-			String idForWeb = URLEncoder.encode(newId, "UTF-8"); // TODO should be done on the client
+			String idForWeb = URLEncoder.encode(newId, "UTF-8"); // TODO should
+																 // be done on
+																 // the client
 			result.put("parentId", idForWeb);
 		}
 
 		// Calculate folders and media items
 		for (DLNAResource resource : resources) {
 			String newId = resource.getResourceId();
-			String idForWeb = URLEncoder.encode(newId, "UTF-8"); // TODO this should be done on the client
+			String idForWeb = URLEncoder.encode(newId, "UTF-8"); // TODO this
+																 // should be
+																 // done on the
+																 // client
 			String name = resource.resumeName();
 
 			if (resource instanceof VirtualVideoAction) {
 				media.add(new Media(id, name, false, false, true));
-			}
-			else if (resource.isFolder()) {
+			} else if (resource.isFolder()) {
 				folders.add(new Folder(idForWeb, name));
-			}
-			else {
+			} else {
 				// The resource is a media file
-				media.add(new Media(idForWeb, name,
-						!(WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE),
+				media.add(
+					new Media(idForWeb, name, !(WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE),
 						resource.getParent() instanceof Playlist, false));
 			}
 		}
-
 
 		return result;
 	}

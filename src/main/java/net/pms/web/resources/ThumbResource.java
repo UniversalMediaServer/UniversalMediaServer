@@ -2,7 +2,6 @@ package net.pms.web.resources;
 
 import java.io.IOException;
 import java.util.Date;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -16,10 +15,8 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -56,8 +53,8 @@ public class ThumbResource {
 
 	@GET
 	@Path("{id}")
-	public Response handle(@PathParam("id") String id, @Context SecurityContext context,
-			@Context HttpServletRequest httpRequest, @Context Request request) throws Exception {
+	public Response handle(@PathParam("id") String id, @Context SecurityContext context, @Context HttpServletRequest httpRequest,
+		@Context Request request) throws Exception {
 		try {
 			LOGGER.trace("web thumb req " + id);
 			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), httpRequest);
@@ -98,7 +95,7 @@ public class ThumbResource {
 			}
 			response = Response.ok();
 			response.header(HttpHeaders.CONTENT_TYPE,
-					ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
+				ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
 			response.header("Accept-Ranges", "bytes");
 			response.header("Connection", "keep-alive");
 			response.header(HttpHeaders.LAST_MODIFIED, lastModified);
@@ -108,7 +105,8 @@ public class ThumbResource {
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {
-			// Nothing should get here, this is just to avoid crashing the thread
+			// Nothing should get here, this is just to avoid crashing the
+			// thread
 			LOGGER.error("Unexpected error in RemoteThumbHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 			throw e;

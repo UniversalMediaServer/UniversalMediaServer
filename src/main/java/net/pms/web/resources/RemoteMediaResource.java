@@ -3,7 +3,6 @@ package net.pms.web.resources;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -15,10 +14,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -52,8 +49,8 @@ public class RemoteMediaResource {
 
 	@GET
 	@Path("{id}")
-	public Response handle(@PathParam("id") String id, @Context SecurityContext securityContext,
-			@Context HttpServletRequest t) throws InterruptedException, IOException {
+	public Response handle(@PathParam("id") String id, @Context SecurityContext securityContext, @Context HttpServletRequest t)
+		throws InterruptedException, IOException {
 		RootFolder root = roots.getRoot(ResourceUtil.getUserName(securityContext), t);
 		if (root == null) {
 			throw new NotFoundException("Unknown root");
@@ -103,8 +100,7 @@ public class RemoteMediaResource {
 				}
 				// code = 206;
 			}
-			if (PMS.getConfiguration().getWebSubs() && resource.getMediaSubtitle() != null
-					&& resource.getMediaSubtitle().isExternal()) {
+			if (PMS.getConfiguration().getWebSubs() && resource.getMediaSubtitle() != null && resource.getMediaSubtitle().isExternal()) {
 				// fetched on the side
 				sid = resource.getMediaSubtitle();
 				resource.setMediaSubtitle(null);
@@ -121,7 +117,8 @@ public class RemoteMediaResource {
 		LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 		InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 		if (range.getEnd() == 0) {
-			// For web resources actual length may be unknown until we open the stream
+			// For web resources actual length may be unknown until we open the
+			// stream
 			range.setEnd(resource.length());
 		}
 		response.header("Content-Type", mimeType);

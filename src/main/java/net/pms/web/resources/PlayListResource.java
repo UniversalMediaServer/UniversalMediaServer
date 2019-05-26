@@ -11,10 +11,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
@@ -43,7 +41,7 @@ public class PlayListResource {
 	@GET
 	@Path("{id}/{op}")
 	public Response get(@PathParam("id") String id, @PathParam("op") String op, @Context HttpServletRequest request,
-			@Context SecurityContext securityContext) throws InterruptedException {
+		@Context SecurityContext securityContext) throws InterruptedException {
 
 		DLNAResource r = PMS.getGlobalRepo().get(id);
 		if (r != null) {

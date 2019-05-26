@@ -2,7 +2,6 @@ package net.pms.web.filters;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -11,11 +10,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.Provider;
-
 import org.eclipse.jetty.util.B64Code;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 
 @Provider
@@ -48,7 +45,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 			}
 
 		}
-		requestContext.abortWith(Response.status(Status.UNAUTHORIZED)
-				.header(HttpHeaders.WWW_AUTHENTICATE, "basic realm=\"ums\"").build());
+		requestContext.abortWith(Response.status(Status.UNAUTHORIZED).header(HttpHeaders.WWW_AUTHENTICATE, "basic realm=\"ums\"").build());
 	}
 }

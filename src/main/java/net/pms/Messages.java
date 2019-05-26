@@ -27,7 +27,6 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -53,11 +52,11 @@ public class Messages {
 		 */
 		resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault());
 		ROOT_RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, Locale.ROOT, new ResourceBundle.Control() {
-			@Override
-			public List<Locale> getCandidateLocales(String name,
-					Locale locale) {
-				return Collections.singletonList(Locale.ROOT);
-			}
+	        @Override
+	        public List<Locale> getCandidateLocales(String name,
+	                                                Locale locale) {
+	            return Collections.singletonList(Locale.ROOT);
+	        }
 		});
 
 	}
@@ -164,7 +163,8 @@ public class Messages {
 			if (locale == null) {
 				resourceBundle = Messages.resourceBundle;
 			}
-			// Selecting base bundle (en-US) for all English variants but British
+			// Selecting base bundle (en-US) for all English variants but
+			// British
 			if (isRootEnglish(locale)) {
 				resourceBundle = ROOT_RESOURCE_BUNDLE;
 			}

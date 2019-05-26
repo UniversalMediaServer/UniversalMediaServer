@@ -3,13 +3,10 @@ package net.pms.web.resources;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.StreamingOutput;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.configuration.WebRender;
 
 public class StreamingRendererOutput implements StreamingOutput {

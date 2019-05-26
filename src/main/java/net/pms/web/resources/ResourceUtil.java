@@ -8,17 +8,14 @@ import java.security.Principal;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Locale;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
@@ -109,8 +106,7 @@ public class ResourceUtil {
 
 	public static InetAddress getAddress(HttpServletRequest request) {
 		try {
-			return InetAddress.getByAddress(request.getRemoteHost(),
-					InetAddress.getByName(request.getRemoteAddr()).getAddress());
+			return InetAddress.getByAddress(request.getRemoteHost(), InetAddress.getByName(request.getRemoteAddr()).getAddress());
 		} catch (UnknownHostException e) {
 			return null;
 		}
@@ -129,9 +125,7 @@ public class ResourceUtil {
 		int browser = WebRender.getBrowser(request.getHeader("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
 		RendererConfiguration r = RendererConfiguration.find(confName, getAddress(request));
-		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser())))
-				? (WebRender) r
-				: null;
+		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ? (WebRender) r : null;
 	}
 
 	public static Range.Byte parseRange(HttpServletRequest req, long length) {
@@ -151,8 +145,6 @@ public class ResourceUtil {
 	}
 
 	public static Response logoResponse() throws IOException {
-		return Response.ok(
-				new StreamingRendererOutput(LooksFrame.class.getResourceAsStream("/resources/images/logo.png"), null))
-				.build();
+		return Response.ok(new StreamingRendererOutput(LooksFrame.class.getResourceAsStream("/resources/images/logo.png"), null)).build();
 	}
 }

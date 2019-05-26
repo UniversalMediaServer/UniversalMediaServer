@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -19,10 +18,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
@@ -41,6 +38,7 @@ import net.pms.web.services.RootService;
 @Singleton
 @Path("raw")
 public class RawResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RawResource.class);
 
 	private RootService roots;
@@ -52,8 +50,8 @@ public class RawResource {
 
 	@GET
 	@Path("{path:.*}")
-	public Response handle(@PathParam("path") String id, @Context SecurityContext context,
-			@Context HttpServletRequest httpRequest, @Context Request request) throws Exception {
+	public Response handle(@PathParam("path") String id, @Context SecurityContext context, @Context HttpServletRequest httpRequest,
+		@Context Request request) throws Exception {
 		try {
 			LOGGER.debug("got a raw request {}", id);
 			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), httpRequest);
@@ -89,7 +87,7 @@ public class RawResource {
 					supported = renderer.isImageFormatSupported(imageInfo.getFormat());
 				}
 				mime = dlna.getFormat() != null ? dlna.getFormat().mimeType()
-						: root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
+					: root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
 
 				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : dlna.length();
 				range = new Range.Byte(0l, len);
@@ -99,7 +97,7 @@ public class RawResource {
 					InputStream imageInputStream;
 					if (dlna.getPlayer() instanceof ImagePlayer) {
 						ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(dlna, dlna.getMedia(),
-								new OutputParams(PMS.getConfiguration()));
+							new OutputParams(PMS.getConfiguration()));
 						imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
 					} else {
 						imageInputStream = dlna.getInputStream();
@@ -114,7 +112,8 @@ public class RawResource {
 				range = ResourceUtil.parseRange(httpRequest, len);
 				in = dlna.getInputStream(range, root.getDefaultRenderer());
 				if (len == 0) {
-					// For web resources actual length may be unknown until we open the stream
+					// For web resources actual length may be unknown until we
+					// open the stream
 					len = dlna.length();
 				}
 				mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
@@ -137,7 +136,8 @@ public class RawResource {
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {
-			// Nothing should get here, this is just to avoid crashing the thread
+			// Nothing should get here, this is just to avoid crashing the
+			// thread
 			LOGGER.error("Unexpected error in RemoteRawHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 			throw e;

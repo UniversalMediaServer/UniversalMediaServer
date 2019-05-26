@@ -33,7 +33,7 @@ public class PlayableMedia {
 	private PlayableStep prevStep;
 
 	public PlayableMedia(String id, String name, String type, boolean autoplay, String mime, Integer sub, Integer height, Integer width,
-			boolean inPlaylist, PlayableStep[] steps, Integer delay, boolean push, boolean src, boolean autoContinue) {
+		boolean inPlaylist, PlayableStep[] steps, Integer delay, boolean push, boolean src, boolean autoContinue) {
 		this.id = id;
 		this.name = name;
 		this.type = type;
@@ -110,6 +110,5 @@ public class PlayableMedia {
 	public boolean isSrc() {
 		return src;
 	}
-
 
 }

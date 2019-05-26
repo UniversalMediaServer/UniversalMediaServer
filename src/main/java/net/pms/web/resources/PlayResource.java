@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -16,11 +15,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.WebRender;
@@ -63,7 +60,8 @@ public class PlayResource {
 
 	@GET
 	@Path("{id}")
-	public PlayableMedia play(@PathParam("id") String id,  @Context HttpServletRequest t) throws UnsupportedEncodingException, InterruptedException {
+	public PlayableMedia play(@PathParam("id") String id, @Context HttpServletRequest t)
+		throws UnsupportedEncodingException, InterruptedException {
 		LOGGER.debug("Make play page " + id);
 
 		RootFolder root = roots.getRoot(ResourceUtil.getUserName(securityContext), t);
@@ -74,7 +72,8 @@ public class PlayResource {
 
 		WebRender renderer = (WebRender) root.getDefaultRenderer();
 		renderer.setBrowserInfo(ResourceUtil.getCookie(t, "UMSINFO"), t.getHeader("User-agent"));
-		// List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
+		// List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0,
+		// renderer);
 		DLNAResource r = root.getDLNAResource(id, renderer);
 		if (r == null) {
 			LOGGER.debug("Bad web play id: " + id);
@@ -86,16 +85,16 @@ public class PlayResource {
 		}
 
 		//
-		//		if (r instanceof VirtualVideoAction) {
-		//			// for VVA we just call the enable fun directly
-		//			// waste of resource to play dummy video
-		//			if (((VirtualVideoAction) r).enable()) {
-		//				renderer.notify(renderer.INFO, r.getName() + " enabled");
-		//			} else {
-		//				renderer.notify(renderer.INFO, r.getName() + " disabled");
-		//			}
-		//			return Response.ok(returnPage(), MediaType.TEXT_HTML).build();
-		//		}
+		// if (r instanceof VirtualVideoAction) {
+		// // for VVA we just call the enable fun directly
+		// // waste of resource to play dummy video
+		// if (((VirtualVideoAction) r).enable()) {
+		// renderer.notify(renderer.INFO, r.getName() + " enabled");
+		// } else {
+		// renderer.notify(renderer.INFO, r.getName() + " disabled");
+		// }
+		// return Response.ok(returnPage(), MediaType.TEXT_HTML).build();
+		// }
 
 		boolean inPlaylist = false;
 		boolean push = false;
@@ -115,7 +114,8 @@ public class PlayResource {
 		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
 		boolean autoContinue = configuration.getWebAutoCont(format);
 
-		// hack here to ensure we got a root folder to use for recently played etc.
+		// hack here to ensure we got a root folder to use for recently played
+		// etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String name = r.resumeName();
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType(), r.getMedia());
@@ -144,7 +144,9 @@ public class PlayResource {
 		if (isImage) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
-			delay = configuration.getWebImgSlideDelay() > 0 && configuration.getWebAutoCont(format) ? configuration.getWebImgSlideDelay() * 1000 : 0;
+			delay = configuration.getWebImgSlideDelay() > 0 && configuration.getWebAutoCont(format)
+				? configuration.getWebImgSlideDelay() * 1000
+				: 0;
 		} else {
 			autoplay = false;
 			if (flowplayer) {
@@ -164,7 +166,8 @@ public class PlayResource {
 			// only if subs are requested as <track> tags
 			// otherwise we'll transcode them in
 			boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
-			if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
+			if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer
+										 // subs
 				configuration.setFFmpegFontConfig(false);
 			}
 			OutputParams p = new OutputParams(configuration);
@@ -182,16 +185,22 @@ public class PlayResource {
 				}
 			}
 
-			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
+			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return
+																	 // back
+																	 // original
+																	 // fontconfig
+																	 // value
 		}
 
-		return new PlayableMedia(URLEncoder.encode(id, "UTF-8"), name, mediaType, autoplay, mime, sub, height, width, inPlaylist, steps, delay, push, src, autoContinue);
+		return new PlayableMedia(URLEncoder.encode(id, "UTF-8"), name, mediaType, autoplay, mime, sub, height, width, inPlaylist, steps,
+			delay, push, src, autoContinue);
 	}
 
-	//	private static String returnPage() {
-	//		// special page to return
-	//		return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
-	//	}
+	// private static String returnPage() {
+	// // special page to return
+	// return
+	// "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+	// }
 
 	private PlayableStep[] getNextByType(DLNAResource d) {
 		List<DLNAResource> children = d.getParent().getChildren();
@@ -218,7 +227,7 @@ public class PlayResource {
 				next = null;
 			}
 
-			steps[step>0 ? 1 : 0] = new PlayableStep(next != null ? next.getResourceId() : null, next != null ? next.resumeName() : null);
+			steps[step > 0 ? 1 : 0] = new PlayableStep(next != null ? next.getResourceId() : null, next != null ? next.resumeName() : null);
 		}
 		return steps;
 	}

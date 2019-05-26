@@ -7,7 +7,6 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -19,12 +18,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -38,6 +35,7 @@ import net.pms.util.StringUtil;
 @Singleton
 @Path("bump")
 public class PlayerControlResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlResource.class);
 
 	private int port;
@@ -72,15 +70,15 @@ public class PlayerControlResource {
 
 	@GET
 	public Response bump() throws IOException {
-		return Response.ok(ResourceUtil.read("bump/bump.html").replace("http://127.0.0.1:9001",
-				protocol + PMS.get().getServer().getHost() + ":" + port), MediaType.TEXT_HTML).build();
+		return Response.ok(
+			ResourceUtil.read("bump/bump.html").replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port),
+			MediaType.TEXT_HTML).build();
 	}
 
 	@GET
 	@Path("{path:.*}")
-	public Response handle(@PathParam("path") String path, @QueryParam("uri") String uri,
-			@QueryParam("title") String title, @QueryParam("vol") String vol, @Context SecurityContext context,
-			@Context HttpServletRequest request) throws IOException {
+	public Response handle(@PathParam("path") String path, @QueryParam("uri") String uri, @QueryParam("title") String title,
+		@QueryParam("vol") String vol, @Context SecurityContext context, @Context HttpServletRequest request) throws IOException {
 
 		InetAddress address = ResourceUtil.getAddress(request);
 		String[] p = path.split("/");
@@ -95,47 +93,47 @@ public class PlayerControlResource {
 
 		if (player != null) {
 			switch (p[1]) {
-			case "status":
-				// limit status updates to one per second
-				UPNPHelper.sleep(1000);
-				log = false;
-				break;
-			case "play":
-				player.pressPlay(translate(uri), title);
-				break;
-			case "stop":
-				player.pressStop();
-				break;
-			case "prev":
-				player.prev();
-				break;
-			case "next":
-				player.next();
-				break;
-			case "fwd":
-				player.forward();
-				break;
-			case "rew":
-				player.rewind();
-				break;
-			case "mute":
-				player.mute();
-				break;
-			case "setvolume":
-				player.setVolume(Integer.parseInt(vol));
-				break;
-			case "add":
-				player.add(-1, translate(uri), title, null, true);
-				break;
-			case "remove":
-				player.remove(translate(uri));
-				break;
-			case "clear":
-				player.clear();
-				break;
-			case "seturi":
-				player.setURI(translate(uri), title);
-				break;
+				case "status":
+					// limit status updates to one per second
+					UPNPHelper.sleep(1000);
+					log = false;
+					break;
+				case "play":
+					player.pressPlay(translate(uri), title);
+					break;
+				case "stop":
+					player.pressStop();
+					break;
+				case "prev":
+					player.prev();
+					break;
+				case "next":
+					player.next();
+					break;
+				case "fwd":
+					player.forward();
+					break;
+				case "rew":
+					player.rewind();
+					break;
+				case "mute":
+					player.mute();
+					break;
+				case "setvolume":
+					player.setVolume(Integer.parseInt(vol));
+					break;
+				case "add":
+					player.add(-1, translate(uri), title, null, true);
+					break;
+				case "remove":
+					player.remove(translate(uri));
+					break;
+				case "clear":
+					player.clear();
+					break;
+				case "seturi":
+					player.setURI(translate(uri), title);
+					break;
 			}
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
@@ -149,7 +147,7 @@ public class PlayerControlResource {
 			mime = "text/javascript";
 		} else {
 			Format format = FormatFactory.getAssociatedFormat(p[0]);
-			return Response.ok(ResourceUtil.open("bump/"+p[0]), format != null ? format.mimeType() : null).build();
+			return Response.ok(ResourceUtil.open("bump/" + p[0]), format != null ? format.mimeType() : null).build();
 		}
 
 		if (json.size() > 0) {
@@ -187,9 +185,9 @@ public class PlayerControlResource {
 	public String getPlayerState(Logical player) {
 		if (player != null) {
 			Logical.State state = player.getState();
-			return String.format(jsonState, state.playback, state.mute, state.volume,
-					StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4),
-					state.uri/* , state.metadata */);
+			return String.format(jsonState, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4),
+				StringUtil.shortTime(state.duration, 4),
+				state.uri/* , state.metadata */);
 		}
 		return "";
 	}
@@ -210,8 +208,7 @@ public class PlayerControlResource {
 		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
-			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.uuid : r, r == selected ? 1 : 0,
-					r.uuid));
+			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.uuid : r, r == selected ? 1 : 0, r.uuid));
 		}
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
 	}
@@ -224,21 +221,17 @@ public class PlayerControlResource {
 		int i;
 		for (i = 0; i < playlist.getSize(); i++) {
 			Logical.Playlist.Item item = (Logical.Playlist.Item) playlist.getElementAt(i);
-			json.add(String.format("[\"%s\",%d,\"%s\"]", item.toString().replace("\"", "\\\""),
-					item == selected ? 1 : 0, "$i$" + i));
+			json.add(String.format("[\"%s\",%d,\"%s\"]", item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
 		}
 		return "\"playlist\":[" + StringUtils.join(json, ",") + "]";
 	}
 
 	public String getBumpJS() throws IOException {
-		return ResourceUtil.read("bump/bump.js") + "\nvar bumpskin = function() {\n"
-				+ ResourceUtil.read("bump/skin/skin.js") + "\n}";
+		return ResourceUtil.read("bump/bump.js") + "\nvar bumpskin = function() {\n" + ResourceUtil.read("bump/skin/skin.js") + "\n}";
 	}
 
 	public static String translate(String uri) {
-		return uri.startsWith("/play/")
-				? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$"))
-				: uri;
+		return uri.startsWith("/play/") ? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
 	@SuppressWarnings("unused")
