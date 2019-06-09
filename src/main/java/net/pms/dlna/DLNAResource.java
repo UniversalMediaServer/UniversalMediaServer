@@ -5084,6 +5084,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return scaleWidth + "x" + scaleHeight;
 	}
 
+
 	/**
 	 * Populates the media Title, Year, Edition, TVSeason, TVEpisodeNumber and TVEpisodeName
 	 * parsed from the media file name and if enabled insert them to the database.
@@ -5155,5 +5156,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				OpenSubtitle.backgroundLookupAndAdd(file, media);
 			}
 		}
+	}
+
+	public boolean isAddToMediaLibrary() {
+		return true;
 	}
 }
