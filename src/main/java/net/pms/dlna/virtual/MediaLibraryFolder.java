@@ -170,7 +170,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			getChildren().remove(virtualFolderResource);
 		}
 		for (File file : newFiles) {
-			if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
+			if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || (expectedOutput == EPISODES && !configuration.isPrettifyFilenames())) {
 				addChild(new RealFile(file));
 			} else if (expectedOutput == EPISODES) {
 				addChild(new RealFile(file, FileUtil.getFileNamePrettified(file.getName(), file, null, true)));
