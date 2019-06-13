@@ -18,7 +18,7 @@ matrix:
     - os: linux
       jdk: oraclejdk9
     - os: linux
-      jdk: oraclejdk13
+      jdk: oraclejdk11
     - os: osx
       osx_image: xcode9.3
 
