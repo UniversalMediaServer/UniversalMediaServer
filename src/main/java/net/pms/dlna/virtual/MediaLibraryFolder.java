@@ -170,10 +170,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 			getChildren().remove(virtualFolderResource);
 		}
 		for (File file : newFiles) {
-			if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || (expectedOutput == EPISODES && !configuration.isPrettifyFilenames())) {
+			if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
 				addChild(new RealFile(file));
 			} else if (expectedOutput == EPISODES) {
-				addChild(new RealFile(file, FileUtil.getFileNamePrettified(file.getName(), file, null, true)));
+				addChild(new RealFile(file, true));
 			} else if (expectedOutput == PLAYLISTS) {
 				addChild(new PlaylistFolder(file));
 			} else if (expectedOutput == ISOS) {
@@ -200,7 +200,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (isDiscovered()) {
 			setUpdateId(this.getIntId());
 		}
-		//return oldFiles.size() != 0 || newFiles.size() != 0 || oldVirtualFolders.size() != 0 || newVirtualFolders.size() != 0;
 	}
 
 	@Override
