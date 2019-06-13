@@ -12,11 +12,13 @@ addons:
 matrix:
   include:
     - os: linux
-      jdk: openjdk7
+      jdk: openjdk9
     - os: linux
-      jdk: oraclejdk8
+      jdk: openjdk13
     - os: linux
-      jdk: openjdk8
+      jdk: oraclejdk9
+    - os: linux
+      jdk: oraclejdk13
     - os: osx
       osx_image: xcode9.3
 
