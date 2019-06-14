@@ -42,8 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -56,13 +56,11 @@ import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SharedContentTab {
-	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
-		Arrays.asList(new String[] {Messages.getString("Generic.Folder"), Messages.getString("FoldTab.65")})
-	);
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 
@@ -448,10 +446,10 @@ public class SharedContentTab {
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text.
 		 */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) webContentList.getCellRenderer(0, 0);
-		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		webContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-		webContentList.setIntercellSpacing(new Dimension(8, 2));
+//		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) webContentList.getCellRenderer(0, 0);
+//		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
+//		webContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+//		webContentList.setIntercellSpacing(new Dimension(8, 2));
 
 		JImageButton but = new JImageButton("button-add-webcontent.png");
 		but.setToolTipText(Messages.getString("SharedContentTab.AddNewWebContent"));
@@ -640,12 +638,13 @@ public class SharedContentTab {
 		scanButton.setToolTipText(Messages.getString("FoldTab.40"));
 	}
 
-	public class SharedFoldersTableModel extends DefaultTableModel {
-		private static final long serialVersionUID = -4247839506937958655L;
+	public class SharedFoldersTableModel extends WebContentTableModel {
+		private final String[] columnNames = {
+			Messages.getString("Generic.Folder"),
+			Messages.getString("FoldTab.65")
+		};
 
-		public SharedFoldersTableModel() {
-			super(FOLDERS_COLUMN_NAMES, 0);
-		}
+		private Object[][] data;
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
@@ -657,60 +656,111 @@ public class SharedContentTab {
 			return column == 1;
 		}
 
-		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
-		public void setValueAt(Object aValue, int row, int column) {
-			Vector rowVector = (Vector) dataVector.elementAt(row);
-			if (aValue instanceof Boolean && column == 1) {
-				rowVector.setElementAt(aValue, 1);
-			} else {
-				rowVector.setElementAt(aValue, column);
-			}
-			fireTableCellUpdated(row, column);
+		public void setValueAt(Object value, int row, int col) {
+			data[row][col] = value;
+			fireTableCellUpdated(row, col);
 			configuration.setSharedFolders(folderTableModel.getDataVector());
 		}
 
-		@Override
-		public void insertRow(int row, Vector rowData) {
-			super.insertRow(row, rowData);
+		public void insertRow(int row, Object[] values) {
+			data = ArrayUtils.add(data, row, values);
+			fireTableCellUpdated(row, 0);
 			configuration.setSharedFolders(folderTableModel.getDataVector());
 		}
 
 		@Override
 		public void removeRow(int row) {
-			super.removeRow(row);
+			if (data == null) {
+				return;
+			}
+
+			data = ArrayUtils.removeElement(data, row);
 			configuration.setSharedFolders(folderTableModel.getDataVector());
 		}
 	}
 
-	public class WebContentTableModel extends DefaultTableModel {
-		private static final long serialVersionUID = -4247839506937958655L;
+	public class WebContentTableModel extends AbstractTableModel {
+		private final String[] columnNames = {
+			Messages.getString("SharedContentTab.Type"),
+			Messages.getString("SharedContentTab.FolderName"),
+			Messages.getString("SharedContentTab.Source"),
+		};
 
-		public WebContentTableModel() {
-			// Column headings
-			super(new String[]{
-				Messages.getString("SharedContentTab.Type"),
-				Messages.getString("SharedContentTab.FolderName"),
-				Messages.getString("SharedContentTab.Source"),
-			}, 0);
+		private Object[][] data;
+
+		@Override
+		public int getColumnCount() {
+			return columnNames.length;
 		}
 
 		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			return String.class;
+		public int getRowCount() {
+			if (data == null) {
+				return 0;
+			}
+
+			return data.length;
 		}
 
 		@Override
-		public boolean isCellEditable(int row, int column) {
-			return false;
+		public String getColumnName(int col) {
+			return columnNames[col];
 		}
 
 		@Override
-		public void setValueAt(Object aValue, int row, int column) {
-			Vector rowVector = (Vector) dataVector.elementAt(row);
-			rowVector.setElementAt(aValue, column);
-			fireTableCellUpdated(row, column);
-			updateWebContentModel();
+		public Object getValueAt(int row, int col) {
+			if (data == null || data[row] == null) {
+				return null;
+			}
+
+			return data[row][col];
+		}
+
+		@Override
+		public void setValueAt(Object value, int row, int col) {
+			data[row][col] = value;
+			fireTableCellUpdated(row, col);
+		}
+
+		@Override
+		public Class getColumnClass(int c) {
+			if (data == null || data[0] == null) {
+				return null;
+			}
+
+			return getValueAt(0, c).getClass();
+		}
+
+		@Override
+		public boolean isCellEditable(int row, int col) {
+			if (col < 2) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		public void addRow(Object[] values) {
+			int newRowIndex = getRowCount();
+			data = ArrayUtils.add(data, values);
+			fireTableCellUpdated(newRowIndex, 0);
+		}
+
+		public void removeRow(int row) {
+			if (data == null) {
+				return;
+			}
+
+			data = ArrayUtils.removeElement(data, row);
+		}
+
+		public void removeAllRows(int row) {
+			if (data == null) {
+				return;
+			}
+
+			data = ArrayUtils.removeAll(data);
 		}
 	}
 
@@ -818,7 +868,7 @@ public class SharedContentTab {
 	public static void parseWebConf(File webConf) {
 		try {
 			// Remove any existing rows
-			((WebContentTableModel) webContentList.getModel()).setRowCount(0);
+			((WebContentTableModel) webContentList.getModel()).removeAllRows(0);
 
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
