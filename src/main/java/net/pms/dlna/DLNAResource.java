@@ -155,6 +155,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Deprecated
 	protected long lastmodified; // TODO make private and rename lastmodified -> lastModified
 
+	private boolean isEpisodeWithinSeasonFolder = false;
+
 	/**
 	 * Represents the transformation to be used to the file. If null, then
 	 *
@@ -3818,6 +3820,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void setLastModified(long lastModified) {
 		this.lastmodified = lastModified; // TODO rename lastmodified -> lastModified
+	}
+
+	/**
+	 * @return Whether this is a TV episode being accessed within a season
+	 *         folder in the Media Library.
+	 */
+	public boolean isEpisodeWithinSeasonFolder() {
+		return isEpisodeWithinSeasonFolder;
+	}
+
+	/**
+	 * Sets whether this is a TV episode being accessed within a season
+	 * folder in the Media Library.
+	 *
+	 * @param isEpisodeWithinSeasonFolder
+	 */
+	protected void setIsEpisodeWithinSeasonFolder(boolean isEpisodeWithinSeasonFolder) {
+		this.isEpisodeWithinSeasonFolder = isEpisodeWithinSeasonFolder;
 	}
 
 	/**
