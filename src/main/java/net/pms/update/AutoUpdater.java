@@ -194,15 +194,6 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			downloadUrl = downloadUrl.replace(".exe", "-standalone-x86.exe");
 		}
 
-		try {
-			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
-			writeToDisk(download);
-		} catch (IOException e) {
-			wrapException("Cannot download update", e);
-		}
-	}
-
-	private void writeToDisk(byte[] download) throws IOException {
 		File target = new File(configuration.getProfileDirectory(), TARGET_FILENAME);
 
 		try {
