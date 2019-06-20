@@ -47,6 +47,12 @@ public class RealFile extends MapFile {
 		setLastModified(file.lastModified());
 	}
 
+	public RealFile(File file, boolean isEpisodeWithinSeasonFolder) {
+		getConf().getFiles().add(file);
+		setLastModified(file.lastModified());
+		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
+	}
+
 	@Override
 	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
@@ -213,7 +219,7 @@ public class RealFile extends MapFile {
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 				}
 
-				if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing()) {
+				if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
@@ -350,7 +356,7 @@ public class RealFile extends MapFile {
 			if (baseNamePrettified == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNamePrettified == null) {
-						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile());
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile(), null, isEpisodeWithinSeasonFolder());
 					}
 				}
 			}

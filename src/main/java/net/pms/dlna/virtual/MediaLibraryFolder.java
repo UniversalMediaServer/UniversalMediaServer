@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
+import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
 
 /**
@@ -21,6 +22,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int SEASONS = 4;
 	public static final int FILES_NOSORT = 5;
 	public static final int TEXTS_NOSORT = 6;
+	public static final int EPISODES = 7;
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
@@ -98,7 +100,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			if (sql != null) {
 				sql = transformSQL(sql);
 
-				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
+				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == EPISODES || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					return !UMSUtils.isListsEqual(populatedFilesListFromDb, database.getStrings(sql));
 				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 					return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, database.getStrings(sql));
@@ -123,7 +125,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			expectedOutput = expectedOutputs[0];
 			if (sql != null) {
 				sql = transformSQL(sql);
-				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
+				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == EPISODES || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
 					filesListFromDb = database.getFiles(sql);
 					populatedFilesListFromDb = database.getStrings(sql);
 				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
@@ -170,6 +172,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 		for (File file : newFiles) {
 			if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
 				addChild(new RealFile(file));
+			} else if (expectedOutput == EPISODES) {
+				addChild(new RealFile(file, true));
 			} else if (expectedOutput == PLAYLISTS) {
 				addChild(new PlaylistFolder(file));
 			} else if (expectedOutput == ISOS) {
@@ -196,7 +200,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (isDiscovered()) {
 			setUpdateId(this.getIntId());
 		}
-		//return oldFiles.size() != 0 || newFiles.size() != 0 || oldVirtualFolders.size() != 0 || newVirtualFolders.size() != 0;
 	}
 
 	@Override

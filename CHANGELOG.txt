@@ -1,3 +1,47 @@
+8.2.0 - 2019-06-21
+
+	General:
+		Removed duplicate information from TV episode filenames in the Media Library
+		Improved filename recognition
+		Append engines to filenames instead of prepend, to stop breaking alphabetization
+		Added the possibility to have a virtual folder without adding it to the Media Library (thanks, maciekberry!)
+		Fixed UMS not starting as a service on Windows (thanks, pponce!)
+		Fixed a broken translation when alerting a user that they are sharing a non-existing folder
+	Languages:
+		Updated translations via Crowdin:
+			Afrikaans translation updated
+			Arabic translation updated
+			Catalan translation updated
+			Croatian translation updated
+			Czech translation updated
+			Danish translation updated
+			Dutch translation completed
+			German translation updated
+			Greek translation updated
+			English (UK) translation updated
+			Finnish translation updated
+			French translation updated
+			Hebrew translation updated
+			Hungarian translation updated
+			Icelandic translation updated
+			Italian translation updated
+			Japanese translation completed
+			Korean translation completed
+			Norwegian translation updated
+			Persian translation updated
+			Polish translation updated
+			Portuguese translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Serbian (Cyrillic) translation updated
+			Slovak translation updated
+			Slovenian translation updated
+			Spanish translation updated
+			Thai translation updated
+	Dependencies:
+		Updated Apache HttpAsyncClient to 4.1.4
+
 8.1.0 - 2019-05-03
 
 	General:

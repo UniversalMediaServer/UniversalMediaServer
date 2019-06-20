@@ -61,10 +61,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		@Override
 		public void actionPerformed(ActionEvent event) {
 			autoUpdater.getUpdateFromNetwork();
-
-			if (!autoUpdater.isDownloadCancelled()) {
-				autoUpdater.runUpdateAndExit();
-			}
+			autoUpdater.runUpdateAndExit();
 		}
 	}
 
