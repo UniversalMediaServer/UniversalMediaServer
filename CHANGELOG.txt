@@ -1,4 +1,4 @@
-8.2.0 - 2019-06-??
+8.2.0 - 2019-06-21
 
 	General:
 		Removed duplicate information from TV episode filenames in the Media Library
