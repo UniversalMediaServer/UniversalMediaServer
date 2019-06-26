@@ -8,16 +8,17 @@ import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.WebRender;
@@ -52,10 +53,10 @@ public class BrowseResource {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Map<String, Object> getFolders(@PathParam("id") String id, @QueryParam("search") String search,
-		@Context HttpServletRequest request) throws Exception {
+		@Context HttpHeaders headers, @Context ChannelHandlerContext chc) throws Exception {
 		LOGGER.debug("Make browse page " + id);
 		String user = ResourceUtil.getUserName(securityContext);
-		RootFolder root = roots.getRoot(user, true, request);
+		RootFolder root = roots.getRoot(user, true, headers, chc);
 
 		List<Folder> folders = new ArrayList<>();
 		List<Media> media = new ArrayList<>();

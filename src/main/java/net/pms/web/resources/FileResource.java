@@ -10,13 +10,13 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.OPTIONS;
@@ -27,8 +27,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.util.IO;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -91,15 +92,15 @@ public class FileResource {
 
 	@POST
 	@Path("proxy")
-	public Response postProxy(@Context HttpHeaders headers, @Context HttpServletRequest request, InputStream body) throws IOException {
-		String url = request.getQueryString();
+	public Response postProxy(@Context HttpHeaders headers, @Context HttpRequest request, InputStream body) throws IOException {
+		String url = URI.create(request.getUri()).getRawQuery();
 		CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
 		if (cookieManager == null) {
 			cookieManager = new CookieManager();
 			CookieHandler.setDefault(cookieManager);
 		}
 
-		String str = IO.toString(body);
+		String str = IOUtils.toString(body);
 
 		URLConnection conn = new URL(url).openConnection();
 		((HttpURLConnection) conn).setRequestMethod("POST");
@@ -134,8 +135,8 @@ public class FileResource {
 
 	@GET
 	@Path("proxy")
-	public Response proxyGet(@Context HttpServletRequest request) throws IOException {
-		String url = request.getQueryString();
+	public Response proxyGet(@Context HttpRequest request) throws IOException {
+		String url = URI.create(request.getUri()).getRawQuery();
 		CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
 		if (cookieManager == null) {
 			cookieManager = new CookieManager();

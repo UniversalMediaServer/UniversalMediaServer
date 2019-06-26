@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -18,8 +17,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -78,9 +79,10 @@ public class PlayerControlResource {
 	@GET
 	@Path("{path:.*}")
 	public Response handle(@PathParam("path") String path, @QueryParam("uri") String uri, @QueryParam("title") String title,
-		@QueryParam("vol") String vol, @Context SecurityContext context, @Context HttpServletRequest request) throws IOException {
+		@QueryParam("vol") String vol, @Context SecurityContext context, @Context ChannelHandlerContext chc, @Context UriInfo uriInfo)
+		throws IOException {
 
-		InetAddress address = ResourceUtil.getAddress(request);
+		InetAddress address = ResourceUtil.getAddress(chc);
 		String[] p = path.split("/");
 
 		String response = "";
@@ -158,7 +160,7 @@ public class PlayerControlResource {
 		}
 
 		if (log) {
-			LOGGER.debug("Received http player control request from {}: {}", address, request.getRequestURI());
+			LOGGER.debug("Received http player control request from {}: {}", address, uriInfo.getAbsolutePath());
 		}
 
 		byte[] bytes = response.getBytes(StandardCharsets.UTF_8);

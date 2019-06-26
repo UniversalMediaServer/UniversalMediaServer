@@ -2,18 +2,18 @@ package net.pms.web.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -49,18 +49,17 @@ public class RemoteMediaResource {
 
 	@GET
 	@Path("{id}")
-	public Response handle(@PathParam("id") String id, @Context SecurityContext securityContext, @Context HttpServletRequest t)
+	public Response handle(@PathParam("id") String id, @Context SecurityContext securityContext, @Context HttpHeaders headers, @Context ChannelHandlerContext chc)
 		throws InterruptedException, IOException {
-		RootFolder root = roots.getRoot(ResourceUtil.getUserName(securityContext), t);
+		RootFolder root = roots.getRoot(ResourceUtil.getUserName(securityContext), headers, chc);
 		if (root == null) {
 			throw new NotFoundException("Unknown root");
 		}
 
-		Enumeration<String> headers = t.getHeaderNames();
-		while (headers.hasMoreElements()) {
-			String h1 = headers.nextElement();
-			LOGGER.debug("key " + h1 + "=" + t.getHeader(h1));
-		}
+		// TODO
+//		headers.getRequestHeaders().forEach((k,v) -> {
+//			LOGGER.debug("Key " + k + "=" + v.toString());
+//		});
 		id = RemoteUtil.strip(id);
 		RendererConfiguration defaultRenderer = renderer;
 		if (renderer == null) {
@@ -113,7 +112,7 @@ public class RemoteMediaResource {
 		}
 
 		media.setMimeType(mimeType);
-		Range.Byte range = ResourceUtil.parseRange(t, resource.length());
+		Range.Byte range = ResourceUtil.parseRange(headers, resource.length());
 		LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 		InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 		if (range.getEnd() == 0) {

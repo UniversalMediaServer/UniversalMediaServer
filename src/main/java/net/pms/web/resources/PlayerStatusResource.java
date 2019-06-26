@@ -4,14 +4,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.io.IOUtils;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.WebRender;
@@ -32,16 +33,13 @@ public class PlayerStatusResource {
 	}
 
 	@POST
-	public Response getPlayerStatus(@Context SecurityContext context, @Context HttpServletRequest request)
-		throws InterruptedException, IOException {
+	public Response getPlayerStatus(@Context SecurityContext context, @Context HttpHeaders headers, @Context ChannelHandlerContext chc,
+		InputStream in) throws InterruptedException, IOException {
 
-		String json;
-		try (InputStream in = request.getInputStream()) {
-			json = IOUtils.toString(request.getInputStream(), "UTF-8");
-		}
+		String json = IOUtils.toString(in, "UTF-8");
 		LOGGER.trace("got player status: " + json);
 
-		RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), request);
+		RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), headers, chc);
 		if (root == null) {
 			LOGGER.debug("root not found");
 			throw new IOException("Unknown root");

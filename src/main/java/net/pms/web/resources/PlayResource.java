@@ -6,16 +6,18 @@ import java.net.URLEncoder;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.FormatConfiguration;
@@ -60,18 +62,18 @@ public class PlayResource {
 
 	@GET
 	@Path("{id}")
-	public PlayableMedia play(@PathParam("id") String id, @Context HttpServletRequest t)
+	public PlayableMedia play(@PathParam("id") String id, @Context HttpHeaders headers, @Context ChannelHandlerContext chc, @Context UriInfo uriInfo)
 		throws UnsupportedEncodingException, InterruptedException {
 		LOGGER.debug("Make play page " + id);
 
-		RootFolder root = roots.getRoot(ResourceUtil.getUserName(securityContext), t);
+		RootFolder root = roots.getRoot(ResourceUtil.getUserName(securityContext), headers, chc);
 		if (root == null) {
 			LOGGER.debug("root not found");
 			throw new NotFoundException("Unknown root");
 		}
 
 		WebRender renderer = (WebRender) root.getDefaultRenderer();
-		renderer.setBrowserInfo(ResourceUtil.getCookie(t, "UMSINFO"), t.getHeader("User-agent"));
+		renderer.setBrowserInfo(headers.getHeaderString("UMSINFO"), headers.getHeaderString(HttpHeaders.USER_AGENT));
 		// List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0,
 		// renderer);
 		DLNAResource r = root.getDLNAResource(id, renderer);
@@ -108,9 +110,9 @@ public class PlayResource {
 		boolean isImage = format.isImage();
 		boolean isVideo = format.isVideo();
 		boolean isAudio = format.isAudio();
-		String query = t.getQueryString();
-		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
-		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));
+		
+		boolean forceFlash = StringUtils.isNotEmpty(uriInfo.getQueryParameters().getFirst("flash"));
+		boolean forcehtml5 = StringUtils.isNotEmpty(uriInfo.getQueryParameters().getFirst("html5"));
 		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
 		boolean autoContinue = configuration.getWebAutoCont(format);
 

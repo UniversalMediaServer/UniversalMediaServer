@@ -2,6 +2,7 @@ package net.pms.web.filters;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -10,7 +11,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.Provider;
-import org.eclipse.jetty.util.B64Code;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -30,7 +30,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 				String method = credentials.substring(0, space);
 				if ("basic".equalsIgnoreCase(method)) {
 					credentials = credentials.substring(space + 1);
-					credentials = B64Code.decode(credentials, StandardCharsets.ISO_8859_1);
+					credentials = new String(Base64.getDecoder().decode(credentials), StandardCharsets.ISO_8859_1);
 					int i = credentials.indexOf(':');
 					if (i > 0) {
 						String user = credentials.substring(0, i);

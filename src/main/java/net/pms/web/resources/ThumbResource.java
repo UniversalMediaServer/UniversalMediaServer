@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
@@ -15,6 +14,7 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.PmsConfiguration;
@@ -53,11 +53,11 @@ public class ThumbResource {
 
 	@GET
 	@Path("{id}")
-	public Response handle(@PathParam("id") String id, @Context SecurityContext context, @Context HttpServletRequest httpRequest,
-		@Context Request request) throws Exception {
+	public Response handle(@PathParam("id") String id, @Context SecurityContext context, @Context HttpHeaders headers,
+		@Context ChannelHandlerContext chc, @Context Request request) throws Exception {
 		try {
 			LOGGER.trace("web thumb req " + id);
-			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), httpRequest);
+			RootFolder root = roots.getRoot(ResourceUtil.getUserName(context), headers, chc);
 			if (root == null) {
 				LOGGER.debug("weird root in thumb req");
 				throw new NotFoundException("Unknown root");

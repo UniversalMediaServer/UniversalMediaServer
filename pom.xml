@@ -115,7 +115,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<jetty.version>9.4.18.v20190429</jetty.version>
-		<resteasy.version>3.7.0.Final</resteasy.version>
+		<resteasy.version>3.0.26.Final</resteasy.version>
 		<guice.version>4.1.0</guice.version>
 	</properties>
 	<pluginRepositories>
@@ -620,6 +620,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-netty</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-guice</artifactId>
 			<version>${resteasy.version}</version>
 			<exclusions>
@@ -641,28 +646,10 @@
 			<version>${guice.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-servlet</artifactId>
-			<version>${guice.version}</version>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
 		</dependency>
-		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-multibindings</artifactId>
-			<version>${guice.version}</version>
-		</dependency>
-
-		<!-- Jetty runtime dependencies -->
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-servlet</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>${jetty.version}</version>
-		</dependency>
-
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>

@@ -3,19 +3,18 @@ package net.pms.web.resources;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.InetSocketAddress;
 import java.security.Principal;
-import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Locale;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
@@ -81,7 +80,7 @@ public class ResourceUtil {
 		return Messages.getString(key);
 	}
 
-	public static String getMsgString(String key, HttpServletRequest req) {
+	public static String getMsgString(String key, HttpRequest req) {
 		return getMsgString(key, getFirstSupportedLanguage(HttpHeaders.ACCEPT_LANGUAGE));
 	}
 
@@ -93,51 +92,49 @@ public class ResourceUtil {
 		return p.getName();
 	}
 
-	public static String getCookie(HttpServletRequest request, String cookieName) {
-		if (request.getCookies() != null) {
-			for (Cookie cookie : request.getCookies()) {
-				if (cookie.getName().equals(cookieName)) {
-					return cookie.getValue();
+	public static String getCookie(HttpHeaders headers, String cookieName) {
+		String cookieHeader = headers.getHeaderString(HttpHeaders.USER_AGENT);
+		if (cookieHeader != null) {
+			for (String cookie : cookieHeader.split("")) {
+				if (cookie.startsWith(cookieName + "=")) {
+					return cookie.substring(cookieName.length() + 1);
 				}
 			}
 		}
 		return null;
 	}
 
-	public static InetAddress getAddress(HttpServletRequest request) {
-		try {
-			return InetAddress.getByAddress(request.getRemoteHost(), InetAddress.getByName(request.getRemoteAddr()).getAddress());
-		} catch (UnknownHostException e) {
-			return null;
-		}
+	public static InetAddress getAddress(ChannelHandlerContext chc) {
+		return ((InetSocketAddress) chc.getChannel().getRemoteAddress()).getAddress();
 	}
 
 	private static IpFilter bumpFilter = null;
 
-	public static boolean bumpAllowed(HttpServletRequest t) {
+	public static boolean bumpAllowed(ChannelHandlerContext chc) {
 		if (bumpFilter == null) {
 			bumpFilter = new IpFilter(PMS.getConfiguration().getBumpAllowedIps());
 		}
-		return bumpFilter.allowed(getAddress(t));
+		return bumpFilter.allowed(getAddress(chc));
 	}
 
-	public static WebRender matchRenderer(String user, HttpServletRequest request) {
-		int browser = WebRender.getBrowser(request.getHeader("User-agent"));
+	public static WebRender matchRenderer(String user, HttpHeaders header, ChannelHandlerContext chc) {
+		int browser = WebRender.getBrowser(header.getHeaderString(HttpHeaders.USER_AGENT));
 		String confName = WebRender.getBrowserName(browser);
-		RendererConfiguration r = RendererConfiguration.find(confName, getAddress(request));
+		RendererConfiguration r = RendererConfiguration.find(confName, getAddress(chc));
 		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ? (WebRender) r : null;
 	}
 
-	public static Range.Byte parseRange(HttpServletRequest req, long length) {
-		if (req == null) {
+	public static Range.Byte parseRange(HttpHeaders headers, long length) {
+		if (headers == null) {
 			return new Range.Byte(0L, length);
 		}
-		Enumeration<String> r = req.getHeaders("Range");
-		if (r == null || !r.hasMoreElements()) { // no range
+		return parseRange(headers.getHeaderString("Range"), length);
+	}
+
+	public static Range.Byte parseRange(String range, long length) {
+		if (range == null) {
 			return new Range.Byte(0L, length);
 		}
-		// assume only one
-		String range = r.nextElement();
 		String[] tmp = range.split("=")[1].split("-");
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? length : Long.parseLong(tmp[1]);

@@ -4,7 +4,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import org.jboss.resteasy.plugins.guice.ext.RequestScopeModule;
-
+import com.google.inject.name.Names;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
 import net.pms.configuration.PmsConfiguration;
@@ -25,6 +25,7 @@ import net.pms.web.resources.RemoteMediaResource;
 import net.pms.web.resources.StartResource;
 import net.pms.web.resources.ThumbResource;
 import net.pms.web.resources.UmsResource;
+import net.pms.web.resources.WebFileResource;
 import net.pms.web.services.TemplateService;
 
 public class WebModule extends RequestScopeModule {
@@ -65,6 +66,8 @@ public class WebModule extends RequestScopeModule {
 		bind(StartResource.class);
 		bind(ThumbResource.class);
 		bind(UmsResource.class);
+		bind(WebFileResource.class);
+		bind(String.class).annotatedWith(Names.named("ums.web.root")).toInstance("/resources/web/");
 
 		bind(TemplateService.class);
 
