@@ -290,7 +290,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
-	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
