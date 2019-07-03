@@ -18,7 +18,8 @@
  */
 package net.pms.util.jna.macos.corefoundation;
 
-import com.sun.jna.Pointer;
+import com.sun.jna.Native;
+//import com.sun.jna.Pointer;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.util.jna.ArrayByReference;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFTypeRef;
@@ -45,7 +46,7 @@ public class CFTypeArrayRef extends ArrayByReference<CFTypeRef> {
 	 * @param size the number of {@link CFTypeRef}'s in the array.
 	 */
 	public CFTypeArrayRef(long size) {
-		setSize(Pointer.SIZE * size, 0);
+		setSize(Native.POINTER_SIZE * size, 0);
 	}
 
 	/**
@@ -133,7 +134,7 @@ public class CFTypeArrayRef extends ArrayByReference<CFTypeRef> {
 
 	@Override
 	public int getElementSize() {
-		return Pointer.SIZE;
+		return Native.POINTER_SIZE;
 	}
 
 	@Override

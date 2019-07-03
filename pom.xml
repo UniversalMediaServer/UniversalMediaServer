@@ -98,7 +98,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<logback-version>1.2.3</logback-version>
-		<surefire-version>2.20</surefire-version>
+		<surefire-version>2.22.2</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -106,7 +106,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>4.4.0</jna-version>
+		<jna-version>5.3.1</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -449,12 +449,12 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>0.10.0</version>
+			<version>0.11.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>59.1</version>
+			<version>64.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -483,7 +483,7 @@
 
 				Check the commons-io:commons-io version before upgrading
 			-->
-			<version>2.1.0</version>
+			<version>2.1.1</version>
 			<exclusions>
 				<!-- This should never have been a dependency in the first place -->
 				<exclusion>
@@ -501,6 +501,10 @@
 				<exclusion>
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpclient</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -520,7 +524,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>3.4.3</version>
+			<version>3.13.3</version>
 		</dependency>
 		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
 		<dependency>
