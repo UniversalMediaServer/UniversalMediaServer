@@ -19,7 +19,6 @@
 package net.pms.util.jna.macos.corefoundation;
 
 import com.sun.jna.Native;
-//import com.sun.jna.Pointer;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.util.jna.ArrayByReference;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFTypeRef;
