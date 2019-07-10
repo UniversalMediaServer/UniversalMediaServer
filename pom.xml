@@ -2153,7 +2153,6 @@
 
 										<get src="${project.binaries-base}/linux/jre-x86/COPYRIGHT?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/COPYRIGHT" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/list.txt?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/list.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/README?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/README" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/release?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/release" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/THIRDPARTYLICENSEREADME.txt?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/THIRDPARTYLICENSEREADME.txt" usetimestamp="true" />
@@ -2636,7 +2635,6 @@
 										<get src="${project.binaries-base}/osx/jre-x64/._THIRDPARTYLICENSEREADME-JAVAFX.txt" dest="${project.binaries}/osx/jre-x64/._THIRDPARTYLICENSEREADME-JAVAFX.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/jre-x64/COPYRIGHT" dest="${project.binaries}/osx/jre-x64/COPYRIGHT" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/jre-x64/LICENSE" dest="${project.binaries}/osx/jre-x64/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/jre-x64/list.txt" dest="${project.binaries}/osx/jre-x64/list.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/jre-x64/README" dest="${project.binaries}/osx/jre-x64/README" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/jre-x64/release" dest="${project.binaries}/osx/jre-x64/release" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/jre-x64/THIRDPARTYLICENSEREADME.txt" dest="${project.binaries}/osx/jre-x64/THIRDPARTYLICENSEREADME.txt" usetimestamp="true" />
