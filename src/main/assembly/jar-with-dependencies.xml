@@ -19,7 +19,7 @@
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>true</useProjectArtifact>
 			<unpack>true</unpack>
-            <unpackOptions>
+			<unpackOptions>
 				<excludes>
 					<exclude>META-INF/services/javax.imageio.spi.ImageReaderSpi</exclude>
 					<exclude>META-INF/services/javax.imageio.spi.ImageWriterSpi</exclude>
