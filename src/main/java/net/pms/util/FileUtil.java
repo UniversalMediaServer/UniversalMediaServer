@@ -616,11 +616,11 @@ public class FileUtil {
 	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
 
 	public static String getFileNamePrettified(String f) {
-		return getFileNamePrettified(f, null, null);
+		return getFileNamePrettified(f, null, null, false);
 	}
 
 	public static String getFileNamePrettified(String f, File file) {
-		return getFileNamePrettified(f, file, null);
+		return getFileNamePrettified(f, file, null, false);
 	}
 
 	/**
@@ -632,10 +632,13 @@ public class FileUtil {
 	 *
 	 * @param f The filename
 	 * @param file The file to possibly be used by the InfoDb
+	 * @param media
+	 * @param isEpisodeWithinSeasonFolder whether this is an episode within
+	 *                                    a season folder in the Media Library
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, File file, DLNAMediaInfo media) {
+	public static String getFileNamePrettified(String f, File file, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder) {
 		String formattedName = null;
 
 		String title;
@@ -682,16 +685,32 @@ public class FileUtil {
 				tvEpisodeNumber = "0" + tvEpisodeNumber;
 			}
 
-			// If the season is a year, anticipate a "/" for a date
-			if (isNotBlank(tvSeason) && isNotBlank(tvEpisodeNumber)) {
-				if (tvSeason.matches("(19|20)\\d{2}")) {
-					tvSeason += "/";
-				}
-				formattedName = title + " - " + tvSeason + tvEpisodeNumber;
-			}
+			/*
+			 * If we are accessing this file via a Season folder within
+			 * the Media Library, we already have the show name and the
+			 * season in the preceding folders, so we only show the episode
+			 * number and title.
+			 */
+			if (isEpisodeWithinSeasonFolder) {
+				formattedName = tvEpisodeNumber + " - ";
 
-			if (isNotBlank(tvEpisodeName)) {
-				formattedName += " - " + tvEpisodeName;
+				if (isBlank(tvEpisodeName)) {
+					formattedName += "Episode " + tvEpisodeNumber;
+				} else {
+					formattedName += tvEpisodeName;
+				}
+			} else {
+				// If the season is a year, anticipate a "/" for a date
+				if (isNotBlank(tvSeason) && isNotBlank(tvEpisodeNumber)) {
+					if (tvSeason.matches("(19|20)\\d{2}")) {
+						tvSeason += "/";
+					}
+					formattedName = title + " - " + tvSeason + tvEpisodeNumber;
+				}
+
+				if (isNotBlank(tvEpisodeName)) {
+					formattedName += " - " + tvEpisodeName;
+				}
 			}
 		} else {
 			formattedName = title;
@@ -999,16 +1018,6 @@ public class FileUtil {
 					movieOrShowName = formattedName.substring(0, yearIndex);
 					year = formattedName.substring(yearIndex + 2, yearIndex + 6);
 				}
-			}
-		}
-
-		// If we still don't have anything for the name, try to just grab something
-		if (movieOrShowName == null) {
-			Pattern hailMaryPattern = Pattern.compile("([\\w\\d\\s]+)");
-			Matcher hailMaryMatcher = hailMaryPattern.matcher(formattedName);
-			if (hailMaryMatcher.find()) {
-				movieOrShowName = hailMaryMatcher.group();
-				movieOrShowName = movieOrShowName.trim();
 			}
 		}
 
