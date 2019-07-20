@@ -1970,6 +1970,8 @@
 										<mkdir dir="${project.binaries}/linux/jre-x64/lib/security/policy" />
 										<mkdir dir="${project.binaries}/linux/jre-x64/lib/security/policy/limited" />
 										<mkdir dir="${project.binaries}/linux/jre-x64/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/linux/jre-x64/plugin" />
+										<mkdir dir="${project.binaries}/linux/jre-x64/plugin/desktop" />
 										<mkdir dir="${project.binaries}/linux/jre-x86" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/bin" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib" />
@@ -2048,6 +2050,8 @@
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/security/policy" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/security/policy/limited" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/linux/jre-x86/plugin" />
+										<mkdir dir="${project.binaries}/linux/jre-x86/plugin/desktop" />
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/ffmpeg" usetimestamp="true" />
