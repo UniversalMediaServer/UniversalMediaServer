@@ -652,6 +652,12 @@ public class FormatConfigurationRegressionTest0 {
 	}
 
 	@Test
+	public void test81() throws Throwable {
+		String str0 = FormatConfiguration.MI_VBD;
+		assertTrue("'" + str0 + "' != '" + "vbd"+ "'", str0.equals("vbd"));
+	}
+
+	@Test
 	public void testALS() throws Throwable {
 		String str0 = FormatConfiguration.ALS;
 
