@@ -1,3 +1,20 @@
+9.0.0-b1
+
+	General:
+		We no longer require Java installation on any operating system
+		Added new renderer setting vbd (video bit depth) to allow filetype-specific bit-depth support configuration
+		Fixed filename prettifying not displaying episode names and other related problems
+		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
+	Languages:
+		Fixed broken "hide engines" string
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.0
+		Updated fm.last coverartarchive-api to 2.1.1
+		Updated icu4j to 64.2
+		Updated JNA to 5.3.1
+		Updated Oshi to 3.13.3
+		Updated Surefire to 2.22.2
+
 8.2.0 - 2019-06-21
 
 	General:
