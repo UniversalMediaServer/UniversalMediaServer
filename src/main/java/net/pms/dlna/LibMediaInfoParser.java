@@ -211,6 +211,7 @@ public class LibMediaInfoParser {
 						value = MI.Get(video, i, "BitDepth");
 						if (!value.isEmpty()) {
 							try {
+								media.putExtra(FormatConfiguration.MI_VBD, value);
 								media.setVideoBitDepth(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
 								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
@@ -268,9 +269,24 @@ public class LibMediaInfoParser {
 					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
 					currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
 					currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
+
 					currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
+					currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
+					currentAudioTrack.setAlbumArtist(MI.Get(general, 0, "Album/Performer"));
+					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
+					currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
+
+					value = MI.Get(general, 0, "Track/Position");
+					if (!value.isEmpty()) {
+						try {
+							currentAudioTrack.setTrack(Integer.parseInt(value));
+						} catch (NumberFormatException nfe) {
+							LOGGER.debug("Could not parse track \"" + value + "\"");
+						}
+					}
 
 					if (
+						renderer != null &&
 						renderer.isPrependTrackNumbers() &&
 						currentAudioTrack.getTrack() > 0 &&
 						currentAudioTrack.getSongname() != null &&
@@ -278,11 +294,6 @@ public class LibMediaInfoParser {
 					) {
 						currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
 					}
-
-					currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
-					currentAudioTrack.setAlbumArtist(MI.Get(general, 0, "Album/Performer"));
-					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
-					currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
 
 					// Try to parse the year from the stored date
 					String recordedDate = MI.Get(general, 0, "Recorded_Date");
@@ -302,15 +313,6 @@ public class LibMediaInfoParser {
 							currentAudioTrack.setId(getSpecificID(value));
 						} else {
 							currentAudioTrack.setId(media.getAudioTracksList().size());
-						}
-					}
-
-					value = MI.Get(general, i, "Track/Position");
-					if (!value.isEmpty()) {
-						try {
-							currentAudioTrack.setTrack(Integer.parseInt(value));
-						} catch (NumberFormatException nfe) {
-							LOGGER.debug("Could not parse track \"" + value + "\"");
 						}
 					}
 
