@@ -1087,12 +1087,6 @@
 		-->
 		<profile>
 			<id>windows</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<os>
-					<family>windows</family>
-				</os>
-			</activation>
 
 			<build>
 				<plugins>
@@ -2231,10 +2225,6 @@
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-archive.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-archive.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-text-x-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-text-x-java.png" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/mimetypes?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/mimetypes" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps/sun-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps/sun-java.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps/sun-javaws.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps/sun-javaws.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps/sun-jcontrol.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/16x16/apps/sun-jcontrol.png" usetimestamp="true" />
@@ -2247,10 +2237,6 @@
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-archive.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-archive.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-text-x-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-text-x-java.png" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/mimetypes?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/mimetypes" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-java.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-javaws.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-javaws.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-jcontrol.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-jcontrol.png" usetimestamp="true" />
@@ -2263,10 +2249,6 @@
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-archive.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-archive.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-text-x-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-text-x-java.png" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/LowContrast/48x48?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/LowContrast/48x48" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/mimetypes?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/mimetypes" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps/sun-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps/sun-java.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps/sun-javaws.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps/sun-javaws.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps/sun-jcontrol.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x64/lib/desktop/icons/LowContrast/16x16/apps/sun-jcontrol.png" usetimestamp="true" />
@@ -2373,19 +2355,6 @@
 										<get src="${project.binaries-base}/linux/jre-x86/bin/servertool?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/bin/servertool" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/bin/tnameserv?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/bin/tnameserv" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/bin/unpack200?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/bin/unpack200" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/applet?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/applet" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/cmm?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/cmm" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/deploy?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/deploy" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/ext?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/ext" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/fonts?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/fonts" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/i386?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/i386" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/images?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/images" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/jfr?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/jfr" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/locale?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/locale" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/management?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/management" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/oblique-fonts?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/oblique-fonts" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/security?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/security" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/calendars.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/charsets.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/classlist?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/classlist" usetimestamp="true" />
@@ -2467,10 +2436,6 @@
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-archive.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-archive.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-text-x-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/hicolor/48x48/mimetypes/gnome-mime-text-x-java.png" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/mimetypes?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/mimetypes" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps/sun-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps/sun-java.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps/sun-javaws.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps/sun-javaws.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps/sun-jcontrol.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/16x16/apps/sun-jcontrol.png" usetimestamp="true" />
@@ -2483,10 +2448,6 @@
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-archive.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-archive.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-text-x-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrast/48x48/mimetypes/gnome-mime-text-x-java.png" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/mimetypes?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/mimetypes" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-java.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-javaws.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-javaws.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-jcontrol.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/16x16/apps/sun-jcontrol.png" usetimestamp="true" />
@@ -2499,10 +2460,6 @@
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-archive.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-archive.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-application-x-java-jnlp-file.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-text-x-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/HighContrastInverse/48x48/mimetypes/gnome-mime-text-x-java.png" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/LowContrast/48x48?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/LowContrast/48x48" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/mimetypes?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/mimetypes" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps/sun-java.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps/sun-java.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps/sun-javaws.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps/sun-javaws.png" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps/sun-jcontrol.png?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/desktop/icons/LowContrast/16x16/apps/sun-jcontrol.png" usetimestamp="true" />
