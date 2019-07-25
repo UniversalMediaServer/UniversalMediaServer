@@ -2010,6 +2010,7 @@
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/fonts" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/i386" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/i386/jli" />
+										<mkdir dir="${project.binaries}/linux/jre-x86/lib/i386/client" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/i386/server" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/images" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib/images/cursors" />
@@ -2536,9 +2537,6 @@
 										<get src="${project.binaries-base}/linux/jre-x86/lib/fonts/LucidaSansRegular.ttf?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/fonts/LucidaSansRegular.ttf" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/fonts/LucidaTypewriterBold.ttf?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/fonts/LucidaTypewriterBold.ttf" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/fonts/LucidaTypewriterRegular.ttf?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/fonts/LucidaTypewriterRegular.ttf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/i386/client?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/i386/client" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/i386/jli?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/i386/jli" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/jre-x86/lib/i386/server?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/i386/server" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/i386/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/i386/jvm.cfg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/i386/libavplugin-53.so?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/i386/libavplugin-53.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/jre-x86/lib/i386/libavplugin-54.so?p=${binary-revision}" dest="${project.binaries}/linux/jre-x86/lib/i386/libavplugin-54.so" usetimestamp="true" />
