@@ -1,4 +1,4 @@
-9.0.0-b1 - 2019-07-??
+9.0.0-b1 - 2019-07-26
 
 	General:
 		We no longer require Java installation on any operating system
