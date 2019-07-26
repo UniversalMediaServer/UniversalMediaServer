@@ -1,4 +1,4 @@
-9.0.0-b1
+9.0.0-b1 - 2019-07-??
 
 	General:
 		We no longer require Java installation on any operating system
@@ -7,6 +7,20 @@
 		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
 	Languages:
 		Fixed broken "hide engines" string
+		Updated translations via Crowdin:
+			Chinese Simplified updated
+			French translation updated
+			German translation updated
+			Hungarian translation updated
+			Italian translation updated
+			Japanese translation updated
+			Norwegian translation updated
+			Polish translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Spanish translation updated
+			Swedish translation updated
 	Dependencies:
 		Updated Chromecast api-v2 to 0.11.0
 		Updated fm.last coverartarchive-api to 2.1.1
