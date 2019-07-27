@@ -37,6 +37,17 @@ if [ "x$JAVA" = "x" ]; then
     fi
 fi
 
+# Use our JVM if it exists
+if [ "$(uname -m | grep '64')" != "" ]; then
+    if [ -d jre-x64/bin/java ]; then 
+        JAVA="jre-x64/bin/java"
+    fi
+else
+    if [ -d jre-x86/bin/java ]; then 
+        JAVA="jre-x86/bin/java"
+    fi
+fi
+
 # Setup the classpath
 # since we always cd to the working dir, these a) can be unqualified and b) *must*
 # be unqualified: https://code.google.com/p/ps3mediaserver/issues/detail?id=1122

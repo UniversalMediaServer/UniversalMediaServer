@@ -118,15 +118,8 @@ Function AdvancedSettings
 	${If} ${RunningX64}
 		SetRegView 64
 	${EndIf}
-	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
-	IfErrors 0 CheckMemAmnt
-
-	; This is where the registry entries go in JRE9+
-	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\JRE" "CurrentVersion"
-	IfErrors SetLowMemoryLimit CheckMemAmnt
 
 	; Get the amount of RAM on the computer
-	CheckMemAmnt:
 	System::Alloc 64
 	Pop $1
 	System::Call "*$1(i64)"
@@ -142,12 +135,7 @@ Function AdvancedSettings
 	${Else}
 		StrCpy $MaximumMemoryJava "768"
 	${EndIf}
-	Goto NSDContinue
 
-	SetLowMemoryLimit:
-	StrCpy $MaximumMemoryJava "768" 
-
-	NSDContinue:
 	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
 	Pop $DescMemoryLimit
 
@@ -200,13 +188,26 @@ Section "Program Files"
 	File /r /x "*.conf" /x "*.zip" /x "*.dll" /x "third-party" "${PROJECT_BASEDIR}\src\main\external-resources\plugins"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
-	File /r "${PROJECT_BASEDIR}\target\bin\win32"
+
+	${If} ${RunningX64}
+		File /r "${PROJECT_BASEDIR}\target\bin\jre-x64"
+		File /r /x "ffmpeg.exe" "${PROJECT_BASEDIR}\target\bin\win32"
+	${Else}
+		File /r "${PROJECT_BASEDIR}\target\bin\jre-x86"
+		File /r /x "ffmpeg64.exe" "${PROJECT_BASEDIR}\target\bin\win32"
+	${EndIf}
+
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.bat"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
 	File "${PROJECT_BUILD_DIR}\ums.jar"
-	File "${PROJECT_BASEDIR}\MediaInfo.dll"
-	File "${PROJECT_BASEDIR}\MediaInfo64.dll"
+
+	${If} ${RunningX64}
+		File "${PROJECT_BASEDIR}\MediaInfo64.dll"
+	${Else}
+		File "${PROJECT_BASEDIR}\MediaInfo.dll"
+	${EndIf}
+
 	File "${PROJECT_BASEDIR}\MediaInfo-License.html"
 	File "${PROJECT_BASEDIR}\CHANGELOG.txt"
 	File "${PROJECT_BASEDIR}\README.md"
@@ -323,7 +324,6 @@ Section "Program Files"
 	CreateDirectory "$R0\UMS\data"
 
 	AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
-; 	AccessControl::GrantOnFile "$R0\UMS\data" "(BU)" "FullAccess"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
@@ -354,6 +354,13 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
+
+	${If} ${RunningX64}
+		RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
+	${Else}
+		RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+	${EndIf}
+
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
@@ -582,8 +589,13 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\UMS.exe"
 	Delete /REBOOTOK "$INSTDIR\UMS.bat"
 	Delete /REBOOTOK "$INSTDIR\ums.jar"
-	Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
-	Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
+
+	${If} ${RunningX64}
+		Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
+	${Else}
+		Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
+	${EndIf}
+
 	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
 	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
 	Delete /REBOOTOK "$INSTDIR\WEB.conf"
