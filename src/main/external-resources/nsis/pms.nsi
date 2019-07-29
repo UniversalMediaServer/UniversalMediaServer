@@ -24,11 +24,6 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
 !define PRODUCT_NAME "UMS"
 !define REG_KEY_SOFTWARE "SOFTWARE\${PROJECT_NAME}"
 
-; Definitions for Java
-!define MIN_JRE_VERSION "7.0"
-!define JRE_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/win32/jre-x86.exe"
-!define JRE64_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/win32/jre-x64.exe"
-
 ; use javaw.exe to avoid dosbox.
 ; use java.exe to keep stdout/stderr
 !define JAVAEXE "javaw.exe"

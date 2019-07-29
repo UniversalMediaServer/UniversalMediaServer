@@ -181,20 +181,16 @@ FunctionEnd
 Section "Program Files"
 	SetOutPath "$INSTDIR"
 	SetOverwrite on
-	
-	CreateDirectory "$INSTDIR\plugins"
-	AccessControl::GrantOnFile "$INSTDIR\plugins" "(S-1-5-32-545)" "FullAccess"
-		
-	File /r /x "*.conf" /x "*.zip" /x "*.dll" /x "third-party" "${PROJECT_BASEDIR}\src\main\external-resources\plugins"
+
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\jre-x64"
-		File /r /x "ffmpeg.exe" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x64"
+		File /r /x "ffmpeg.exe" /x "target\bin\win32\jre-x64" /x "target\bin\win32\jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\jre-x86"
-		File /r /x "ffmpeg64.exe" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x86"
+		File /r /x "ffmpeg64.exe" /x "target\bin\win32\jre-x64" /x "target\bin\win32\jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
