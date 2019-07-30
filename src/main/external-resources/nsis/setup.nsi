@@ -187,10 +187,10 @@ Section "Program Files"
 
 	${If} ${RunningX64}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x64"
-		File /r /x "ffmpeg.exe" /x "target\bin\win32\jre-x64" /x "target\bin\win32\jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r /x "ffmpeg.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
 	${Else}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x86"
-		File /r /x "ffmpeg64.exe" /x "target\bin\win32\jre-x64" /x "target\bin\win32\jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r /x "ffmpeg64.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -350,13 +350,8 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
-
-	${If} ${RunningX64}
-		RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
-	${Else}
-		RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
-	${EndIf}
-
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
