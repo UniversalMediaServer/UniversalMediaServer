@@ -285,16 +285,6 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					if (
-						renderer != null &&
-						renderer.isPrependTrackNumbers() &&
-						currentAudioTrack.getTrack() > 0 &&
-						currentAudioTrack.getSongname() != null &&
-						currentAudioTrack.getSongname().length() > 0
-					) {
-						currentAudioTrack.setSongname(currentAudioTrack.getTrack() + ": " + currentAudioTrack.getSongname());
-					}
-
 					// Try to parse the year from the stored date
 					String recordedDate = MI.Get(general, 0, "Recorded_Date");
 					Matcher matcher = yearPattern.matcher(recordedDate);

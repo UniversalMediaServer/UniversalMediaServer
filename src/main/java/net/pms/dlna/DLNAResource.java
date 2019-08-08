@@ -2285,7 +2285,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media.isAudio() &&
 			StringUtils.isNotBlank(firstAudioTrack.getSongname())
 		) {
-			title = firstAudioTrack.getSongname();
+			title = "";
+			if (mediaRenderer != null && mediaRenderer.isPrependTrackNumbers() && firstAudioTrack.getTrack() > 0) {
+				// zero pad for proper numeric sorting on all devices
+				title += String.format("%03d - ", firstAudioTrack.getTrack());
+			}
+			title += firstAudioTrack.getSongname();
 		} else if (isFolder || subsAreValidForStreaming) {
 			title = getDisplayName(mediaRenderer, false);
 		} else {
