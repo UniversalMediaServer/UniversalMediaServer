@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
  * To add a new language, the following must be done:
  * <ul>
  * <li>Add the BCP47 code to {@link #UMS_BCP47_CODES}</li>
+ * <li>Add a new label called "{@code Language.<BCP47 tag>}" to {@code messages.properties}</li>
  * <li>Add the language to UMS.conf</li>
  * <li>Modify {@link #localeToLanguageTag(Locale)} to handle the language</li>
  * <li>Modify {@link #languageTagToUMSLanguageTag(String)} to handle the language</li>
@@ -55,43 +56,50 @@ import org.slf4j.LoggerFactory;
  * <li>Pull crowdin translations containing the new language so that the language file is committed</li>
  * </ul>
  *
- * @author Nadahar
  * @since 5.2.3
+ * @author Nadahar
  */
-
 public final class Languages {
+	/**
+	 * Not to be instantiated.
+	 */
+	private Languages() {
+	}
 
 	/**
 	 * Defines the minimum translation percentage a language can have and still
 	 * be included in the list over language choices.
 	 */
-	private static final int minimumTranslatePct = 20;
+	private static final int MINIMUM_TRANSLATE_PCT = 20;
 
 	/**
 	 * Defines the minimum translation percentage a language can have to be
 	 * the recommended/default language.
 	 */
-	private static final int recommendedTranslatePct = 90;
+	private static final int RECOMMENDED_TRANSLATE_PCT = 90;
 
 	/**
 	 * Defines the minimum approved translation percentage a language can have
 	 * to be the recommended/default language.
 	 */
-	private static final int recommendedApprovedPct = 85;
+	private static final int RECOMMENDED_APPROVED_PCT = 85;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Languages.class);
+
 	/**
 	 * If the below list is changed, methods {@link #localeToLanguageTag(Locale)} and
 	 * {@link #languageTagToUMSLanguageTag(String)} must be updated correspondingly.
 	 */
-	private final static String[] UMS_BCP47_CODES = {
+	private static final String[] UMS_BCP47_CODES = {
 		"af",      // Afrikaans
 		"ar",      // Arabic
+		"bn",      // Bengali (Bangladesh)
 		"pt-BR",   // Brazilian Portuguese
 		"bg",      // Bulgarian
 		"ca",      // Catalan, Valencian
 		"zh-Hans", // Chinese, Han (Simplified variant)
 		"zh-Hant", // Chinese, Han (Traditional variant)
+		"hr",      // Croatian
 		"cs",      // Czech
 		"da",      // Danish
 		"nl",      // Dutch, Flemish
@@ -128,7 +136,9 @@ public final class Languages {
 	 * This map is also used as a synchronization object for {@link #translationsStatistics},
 	 * {@link #lastpreferredLocale} and {@link #sortedLanguages}
 	 */
-	private static HashMap<String, TranslationStatistics> translationsStatistics = new HashMap<>((int) Math.round(UMS_BCP47_CODES.length * 1.34));
+	private static HashMap<String, TranslationStatistics> translationsStatistics = new HashMap<>(
+		(int) Math.round(UMS_BCP47_CODES.length * 1.34)
+	);
 	private static Locale lastpreferredLocale = null;
 	private static List<LanguageEntry> sortedLanguages = new ArrayList<>();
 
@@ -145,7 +155,7 @@ public final class Languages {
 		public int translated;
 	}
 
-	/**
+	/*
 	 * Note: this class has a natural ordering that is inconsistent with equals.
 	 */
 	private static class LanguageEntry implements Comparable<LanguageEntry> {
@@ -229,6 +239,7 @@ public final class Languages {
 	private static class LanguageEntryCoverageComparator implements Comparator<LanguageEntry>, Serializable {
 		private static final long serialVersionUID = 1974719326731763265L;
 
+		@Override
 		public int compare(LanguageEntry o1, LanguageEntry o2) {
 			// Descending
 			return o2.coveragePercent - o1.coveragePercent;
@@ -255,15 +266,13 @@ public final class Languages {
 				case "en":
 					if (locale.getCountry().equalsIgnoreCase("GB")) {
 						return "en-GB";
-					} else {
-						return "en-US";
 					}
+					return "en-US";
 				case "pt":
 					if (locale.getCountry().equalsIgnoreCase("BR")) {
 						return "pt-BR";
-					} else {
-						return "pt";
 					}
+					return "pt";
 				case "nb":
 				case "nn":
 					return "no";
@@ -279,9 +288,8 @@ public final class Languages {
 				default:
 					return languageTag;
 			}
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	private static String languageTagToUMSLanguageTag(String languageTag) {
@@ -325,7 +333,12 @@ public final class Languages {
 	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	private static void populateTranslationsStatistics() {
 		if (translationsStatistics.size() < 1) {
-			try (BufferedReader reader = new BufferedReader(new InputStreamReader(Languages.class.getResourceAsStream("/resources/languages.properties"), StandardCharsets.UTF_8))) {
+			try (
+				BufferedReader reader = new BufferedReader(new InputStreamReader(
+					Languages.class.getResourceAsStream("/resources/languages.properties"),
+					StandardCharsets.UTF_8
+				))
+			) {
 				Pattern pattern = Pattern.compile("^\\s*(?!#)\\b([^\\.=][^=]+[^\\.=])=(.*[^\\s])\\s*$");
 				String line;
 				while ((line = reader.readLine()) != null) {
@@ -463,7 +476,10 @@ public final class Languages {
 	 * @return The result
 	 */
 	private static boolean isRecommended(LanguageEntry language) {
-		return language.tag.startsWith("en") || language.coveragePercent >= recommendedTranslatePct || language.approvedPercent >= recommendedApprovedPct;
+		return
+			language.tag.startsWith("en") ||
+			language.coveragePercent >= RECOMMENDED_TRANSLATE_PCT ||
+			language.approvedPercent >= RECOMMENDED_APPROVED_PCT;
 	}
 
 	/**
@@ -475,7 +491,7 @@ public final class Languages {
 	 */
 
 	private static boolean isRecommended(TranslationStatistics languageStatistics) {
-		return languageStatistics.translated >= recommendedTranslatePct || languageStatistics.approved >= recommendedApprovedPct;
+		return languageStatistics.translated >= RECOMMENDED_TRANSLATE_PCT || languageStatistics.approved >= RECOMMENDED_APPROVED_PCT;
 
 	}
 
@@ -490,8 +506,8 @@ public final class Languages {
 	 * <ul>
 	 *   <li>The base language (en-US) and the language closest matching
 	 *       <code>preferredLocale</code> is looked up. If the closest matching
-	 *       language has a coverage greater or equal to {@link #recommendedTranslatePct}
-	 *       or an approval greater or equal to {@link #recommendedApprovedPct} it
+	 *       language has a coverage greater or equal to {@link #RECOMMENDED_TRANSLATE_PCT}
+	 *       or an approval greater or equal to {@link #RECOMMENDED_APPROVED_PCT} it
 	 *       will be placed on top. If not, the base language will be placed on
 	 *       top. Whichever of these is not placed on top is placed second. If
 	 *       a closely matching language cannot be found, only the base language
@@ -549,7 +565,7 @@ public final class Languages {
 					}
 				}
 
-				if (entry.coveragePercent >= minimumTranslatePct) {
+				if (entry.coveragePercent >= MINIMUM_TRANSLATE_PCT) {
 					sortedLanguages.add(entry);
 				}
 			}
@@ -564,7 +580,7 @@ public final class Languages {
 			}
 			if (sortedLanguages.remove(baseLanguage)) {
 				sortedLanguages.add(0, baseLanguage);
-			};
+			}
 
 			// Put matched language first or second depending on coverage
 			LanguageEntry preferredLanguage = getSortedLanguageByLocale(preferredLocale);
@@ -645,6 +661,7 @@ public final class Languages {
 	 * language. English languages always return 100% since we have no way
 	 * to calculate their coverage due to the fact that only those strings
 	 * that differ from US-English is translated.
+	 *
 	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The percentage
 	 */
@@ -665,6 +682,7 @@ public final class Languages {
 	/**
 	 * Verifies if a given <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 * language tag is supported by UMS.
+	 *
 	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The result.
 	 */
@@ -681,6 +699,7 @@ public final class Languages {
 
 	/**
 	 * Verifies if a given {@link java.util.Locale} is supported by UMS.
+	 *
 	 * @param locale The {@link java.util.Locale}.
 	 * @return The result.
 	 */
@@ -691,6 +710,7 @@ public final class Languages {
 	/**
 	 * Verifies if a given <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 * language tag is or can be converted into a language tag supported by UMS.
+	 *
 	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The result.
 	 */
@@ -698,8 +718,10 @@ public final class Languages {
 		return isValid(languageTagToUMSLanguageTag(languageTag));
 	}
 
-	/** Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
-	 *  language tag if the language tag is supported by UMS, or returns null.
+	/**
+	 * Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
+	 * language tag if the language tag is supported by UMS, or returns null.
+	 *
 	 * @param languageTag The IEFT BCP 47 compatible language tag.
 	 * @return The IEFT BCP 47 formatted language tag.
 	 */
@@ -715,8 +737,10 @@ public final class Languages {
 		return null;
 	}
 
-	/** Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
-	 *  language tag if the language tag is supported by UMS, or returns null.
+	/**
+	 * Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
+	 * language tag if the language tag is supported by UMS, or returns null.
+	 *
 	 * @param locale The {@link java.util.Locale}.
 	 * @return The IEFT BCP 47 formatted language tag.
 	 */
@@ -732,6 +756,7 @@ public final class Languages {
 	 * <code>Local</code> if it can be found (<code>en</code> is translated to
 	 * <code>en-US</code>, <code>zh</code> to <code>zh-Hant</code> etc.).
 	 * Returns <code>null</code> if a valid <code>Locale</code> cannot be found.
+	 *
 	 * @param locale Source {@link java.util.Locale}.
 	 * @return Resulting {@link java.util.Locale}.
 	 */
@@ -746,13 +771,14 @@ public final class Languages {
 	}
 
 	/**
-	 * Returns a UMS supported {@link java.util.Locale} from the given
-	 * <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
-	 * if it can be found (<code>en</code> is translated to <code>en-US</code>,
-	 * <code>zh</code> to <code>zh-Hant</code> etc.). Returns <code>null</code>
-	 * if a valid <code>Locale</code> cannot be found.
-	 * @param locale Source {@link java.util.Locale}.
-	 * @return Resulting {@link java.util.Locale}.
+	 * Returns a UMS supported {@link Locale} from the given <a
+	 * href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> if
+	 * it can be found ({@code en} is translated to {@code en-US}, {@code zh} to
+	 * {@code zh-Hant} etc.). Returns {@code null} if a valid {@link Locale}
+	 * cannot be found.
+	 *
+	 * @param languageTag the IEFT BCP 47 code to convert.
+	 * @return The resulting {@link Locale}.
 	 */
 	public static Locale toLocale(String languageTag) {
 		if (languageTag != null) {
@@ -765,18 +791,17 @@ public final class Languages {
 	}
 
 	/**
-	 * Returns a sorted string array of UMS supported language tags. The
-	 * sorting will match that returned by {@link #getLanguageNames(Locale)}
-	 * for the same <code>preferredLocale</code> for easy use with
-	 * {@link JComboBox}. For sorting details see
-	 * {@link #createSortedList(Locale)}.
+	 * Returns a sorted string array of UMS supported language tags. The sorting
+	 * will match that returned by {@link #getLanguageNames(Locale)} for the
+	 * same {@code preferredLocale} for easy use with {@link JComboBox}. For
+	 * sorting details see {@link #createSortedList(Locale)}.
 	 *
-	 * @param preferredLocale the locale to be seen as preferred when sorting
-	 *        the array.
+	 * @param preferredLocale the {@link Locale} to be seen as preferred when
+	 *            sorting the array.
 	 * @return The sorted string array of language tags.
 	 */
 	public static String[] getLanguageTags(Locale preferredLocale) {
-		synchronized(translationsStatistics) {
+		synchronized (translationsStatistics) {
 			createSortedList(preferredLocale);
 			String[] tags = new String[sortedLanguages.size()];
 			for (int i = 0; i < sortedLanguages.size(); i++) {
@@ -791,11 +816,11 @@ public final class Languages {
 	 * Returns a sorted string array of localized UMS supported language names
 	 * with coverage/translation percentage in parenthesis. The sorting will
 	 * match that returned by {@link #getLanguageTags(Locale)} for the same
-	 * <code>preferredLocale</code> for easy use with {@link JComboBox}. For
-	 * sorting details see {@link #createSortedList(Locale)}.
+	 * {@code preferredLocale} for easy use with {@link JComboBox}. For sorting
+	 * details see {@link #createSortedList(Locale)}.
 	 *
-	 * @param preferredLocale the locale to be seen as preferred when sorting
-	 *        the array, and used when localizing language names.
+	 * @param preferredLocale the {@link Locale} to be seen as preferred when
+	 *            sorting the array, and used when localizing language names.
 	 * @return The sorted string array of localized language names.
 	 */
 	public static String[] getLanguageNames(Locale preferredLocale) {

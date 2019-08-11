@@ -48,7 +48,7 @@ import net.pms.util.ParseException;
  *
  * The class itself is immutable although some of the objects it or it's
  * subclasses references might not be. The definition of immutable requires any
- * immutable class to also be {@code final] because otherwise a subclass could
+ * immutable class to also be {@code final} because otherwise a subclass could
  * break the immutability. Instead, any subclasses must make sure not to break
  * the immutability.
  *

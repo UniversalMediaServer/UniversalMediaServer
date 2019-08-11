@@ -69,6 +69,8 @@ public class Tables {
 
 					TableMusicBrainzReleases.checkTable(connection);
 					TableCoverArtArchive.checkTable(connection);
+					TableFilesStatus.checkTable(connection);
+					TableThumbnails.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -208,13 +210,13 @@ public class Tables {
 	 * @throws SQLException
 	 */
 	protected final static void dropTable(final Connection connection, final String tableName) throws SQLException {
-		LOGGER.debug("Dropping database table \"{}\"", tableName);
+		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
 		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE " + tableName);
+			statement.execute("DROP TABLE IF EXISTS " + tableName);
 		}
 	}
 
-	private final static void createTablesTable(final Connection connection) throws SQLException {
+	protected final static void createTablesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"TABLES\"");
 		try (Statement statement = connection.createStatement()) {
 			statement.execute("CREATE TABLE TABLES(NAME VARCHAR(50) PRIMARY KEY, VERSION INT NOT NULL)");
@@ -250,27 +252,41 @@ public class Tables {
 	}
 
 	/**
-	 * Surrounds the argument with single quotes {@link String} and escapes any
-	 * existing single quotes.
+	 * Surrounds the argument with single quotes and escapes any existing single
+	 * quotes.
 	 *
-	 * @param s the {@link String} to quote.
-	 * @return The quoted {@link String}.
+	 * @see #sqlEscape(String)
+	 *
+	 * @param s the {@link String} to escape and quote.
+	 * @return The escaped and quoted {@code s}.
 	 */
 	public final static String sqlQuote(final String s) {
 		return s == null ? null : "'" + s.replace("'", "''") + "'";
 	}
 
 	/**
+	 * Escapes any existing single quotes in the argument but doesn't quote it.
+	 *
+	 * @see #sqlQuote(String)
+	 *
+	 * @param s the {@link String} to escape.
+	 * @return The escaped {@code s}.
+	 */
+	public static String sqlEscape(final String s) {
+		return s == null ? null : s.replace("'", "''");
+	}
+
+	/**
 	 * Escapes the argument with the default H2 escape character for the
 	 * escape character itself and the two wildcard characters <code>%</code>
-	 * and <code>_<code>. This escaping is only valid when using,
-	 *  <code>LIKE</code>, not when using <code>=</code>.
+	 * and <code>_</code>. This escaping is only valid when using,
+	 * <code>LIKE</code>, not when using <code>=</code>.
 	 *
 	 * TODO: Escaping should be generalized so that any escape character could
 	 *       be used and that the class would set the correct escape character
 	 *       when opening the database.
 	 *
-	 * @param the {@link String} to be SQL escaped.
+	 * @param s the {@link String} to be SQL escaped.
 	 * @return The escaped {@link String}.
 	 */
 	public final static String sqlLikeEscape(final String s) {

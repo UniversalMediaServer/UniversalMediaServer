@@ -25,7 +25,7 @@
 
 		<!-- Include the 32-bit FFmpeg binary -->
 		<file>
-			<source>${project.binaries}/ffmpeg</source>
+			<source>${project.binaries}/linux/ffmpeg</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
@@ -33,7 +33,7 @@
 
 		<!-- Include the 64-bit FFmpeg binary -->
 		<file>
-			<source>${project.binaries}/ffmpeg64</source>
+			<source>${project.binaries}/linux/ffmpeg64</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
@@ -41,13 +41,13 @@
 
 		<!-- Include the tsMuxeR binaries -->
 		<file>
-			<source>${project.binaries}/tsMuxeR</source>
+			<source>${project.binaries}/linux/tsMuxeR</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
 		</file>
 		<file>
-			<source>${project.binaries}/tsMuxeR-new</source>
+			<source>${project.binaries}/linux/tsMuxeR-new</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
@@ -62,6 +62,16 @@
 		</file>
 	</files>
 	<fileSets>
+		<fileSet>
+			<directory>${project.binaries}</directory>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0644</fileMode>
+			<directoryMode>0755</directoryMode>
+			<includes>
+				<include>linux/jre-x64/**</include>
+				<include>linux/jre-x86/**</include>
+			</includes>
+		</fileSet>
 
 		<!-- Include documentation -->
 		<fileSet>
@@ -70,6 +80,7 @@
 			<fileMode>0644</fileMode>
 			<lineEnding>unix</lineEnding>
 			<includes>
+				<include>BUILD.md</include>
 				<include>README.md</include>
 				<include>CHANGELOG.txt</include>
 				<include>INSTALL.txt</include>

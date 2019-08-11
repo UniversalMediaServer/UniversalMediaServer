@@ -19,6 +19,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
+import net.pms.network.HTTPResource;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileWatcher;
 import net.pms.util.H264Level;
@@ -29,19 +30,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemoteUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteUtil.class);
 
-	public static final String MIME_MP4 = "video/mp4";
-	public static final String MIME_OGG = "video/ogg";
-	public static final String MIME_WEBM = "video/webm";
 	//public static final String MIME_TRANS = MIME_MP4;
-	public static final String MIME_TRANS = MIME_OGG;
+	public static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
 	//public static final String MIME_TRANS = MIME_WEBM;
-	public static final String MIME_MP3 = "audio/mpeg";
-	public static final String MIME_WAV = "audio/wav";
-	public static final String MIME_PNG = "image/png";
-	public static final String MIME_JPG = "image/jpeg";
 
 	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
@@ -180,12 +175,14 @@ public class RemoteUtil {
 		if (
 			mime != null &&
 			(
-				mime.equals(MIME_MP4) ||
-				mime.equals(MIME_WEBM) ||
-				mime.equals(MIME_OGG) ||
-				mime.equals(MIME_MP3) ||
-				mime.equals(MIME_PNG) ||
-				mime.equals(MIME_JPG)
+				mime.equals(HTTPResource.MP4_TYPEMIME) ||
+				mime.equals(HTTPResource.WEBM_TYPEMIME) ||
+				mime.equals(HTTPResource.OGG_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
+				mime.equals(HTTPResource.PNG_TYPEMIME) ||
+				mime.equals(HTTPResource.JPEG_TYPEMIME) ||
+				mime.equals(HTTPResource.GIF_TYPEMIME)
 			)
 		) {
 			return true;
@@ -475,6 +472,8 @@ public class RemoteUtil {
 					t = compile(getInputStream(filename));
 					templates.put(filename, t);
 					PMS.getFileWatcher().add(new FileWatcher.Watch(url.getFile(), recompiler));
+				} else {
+					LOGGER.warn("Couldn't find web template \"{}\"", filename);
 				}
 			}
 			return t;

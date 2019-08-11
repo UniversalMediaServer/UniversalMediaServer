@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -39,11 +41,10 @@ import net.pms.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,8 +191,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
 	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
-	protected static final String THUMBNAIL_HEIGHT = "ThumbnailHeight";
-	protected static final String THUMBNAIL_WIDTH = "ThumbnailWidth";
 	protected static final String THUMBNAIL_PADDING = "ThumbnailPadding";
 	protected static final String THUMBNAILS = "Thumbnails";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
@@ -340,9 +339,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		List<String> result = configurationReader.getStringList(key, def);
 		if (result.size() == 1 && result.get(0).equalsIgnoreCase("None")) {
 			return new ArrayList<>();
-		} else {
-			return result;
 		}
+		return result;
 	}
 
 	public void setStringList(String key, List<String> value) {
@@ -485,9 +483,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				if (file.isDirectory()) {
 					if (file.canRead()) {
 						return file;
-					} else {
-						LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
 					}
+					LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
 				}
 			}
 		}
@@ -508,15 +505,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			ArrayList<String> tags = new ArrayList<>();
-			tags.add(getRendererName());
-			for (InetAddress sa : addressAssociation.keySet()) {
-				if (addressAssociation.get(sa) == this) {
-					tags.add(sa.getHostAddress());
-				}
-			}
-
-			rootFolder = new RootFolder(tags);
+			rootFolder = new RootFolder();
 			if (pmsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
@@ -576,11 +565,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void calculateAllSpeeds() {
-		for (InetAddress sa : addressAssociation.keySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			InetAddress sa = entry.getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
-			RendererConfiguration r = addressAssociation.get(sa);
+			RendererConfiguration r = entry.getValue();
 			if (!r.isOffline()) {
 				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
 			}
@@ -715,6 +705,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		} catch (ConfigurationException e) {
 			LOGGER.error("Configuration error while resolving renderer: {}", e.getMessage());
 			LOGGER.trace("", e);
+		} catch (InterruptedException e) {
+			LOGGER.error("Interrupted while resolving renderer \"{}\": {}", ia, e.getMessage());
+			return null;
 		}
 		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
@@ -816,7 +809,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
 					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
 				boolean header = true;
-				for (String line : FileUtils.readLines(ref, Charsets.UTF_8)) {
+				for (String line : FileUtils.readLines(ref, StandardCharsets.UTF_8)) {
 					if (
 						skip.reset(line).matches() ||
 						(
@@ -864,22 +857,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return rank;
 	}
 
-	public int getThumbnailWidth() {
-		return getInt(THUMBNAIL_WIDTH, 320);
-	}
-
-	public int getThumbnailHeight() {
-		return getInt(THUMBNAIL_HEIGHT, 180);
-	}
-
-	/**
-	 * @return the desired aspect ratio for thumbnails to two decimal places
-	 */
-	// TODO: Cache this
-	public double getThumbnailRatio() {
-		return Math.round(((double) getThumbnailWidth() / getThumbnailHeight()) * 100.0) / 100.0;
-	}
-
 	/**
 	 * @see #isXbox360()
 	 * @deprecated
@@ -925,6 +902,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isLG() {
 		return getConfName().toUpperCase().contains("LG ");
+	}
+	
+	/**
+	 * @return whether this renderer is an Samsung device
+	 */
+	public boolean isSamsung() {
+		return getConfName().toUpperCase().contains("SAMSUNG");
 	}
 
 	// Ditlew
@@ -1016,7 +1000,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			boolean addWatch = file != f;
 			file = f;
 			if (addWatch) {
-				PMS.getFileWatcher().add(new FileWatcher.Watch(getFile().getPath(), reloader, this));
+				FileWatcher.add(new FileWatcher.Watch(getFile().getPath(), reloader, this));
 			}
 			return true;
 		}
@@ -1408,9 +1392,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			String p = StringUtils.join(upnpDetails.split(" , "), ".*");
 			pattern = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
 			return pattern.matcher(details.replace("\n", " ")).find();
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -1568,9 +1551,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		// Otherwise check the address association
-		for (InetAddress sa : addressAssociation.keySet()) {
-			if (addressAssociation.get(sa) == this) {
-				return sa;
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			if (entry.getValue() == this) {
+				return entry.getKey();
 			}
 		}
 		return null;
@@ -2366,6 +2349,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + truncate
 		int len = 0;
+		if (suffix == null) {
+			suffix = "";
+		}
+
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
 			if (lineHeight == 1) {
@@ -2390,14 +2377,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				name = name.substring(0, len).trim() + dots;
 			}
 		}
-		if (len > -1) {
-			name += suffix;
+		if (len > -1 && isNotBlank(suffix)) {
+			name += " " + suffix;
 		}
 
 		// Substitute
-		for (String s : charMap.keySet()) {
-			String repl = charMap.get(s).replaceAll("###e", "");
-			name = name.replaceAll(s, repl);
+		for (Entry<String, String> entry : charMap.entrySet()) {
+			String repl = entry.getValue().replaceAll("###e", "");
+			name = name.replaceAll(entry.getKey(), repl);
 		}
 
 		return name;
@@ -2532,13 +2519,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isEmbeddedSubtitlesSupported() {
 		return StringUtils.isNotBlank(getSupportedEmbeddedSubtitles());
-	}
-
-	public ArrayList<String> tags() {
-		if (rootFolder != null) {
-			return rootFolder.getTags();
-		}
-		return null;
 	}
 
 	/**
@@ -2690,7 +2670,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	};
 
-	private int[] getVideoBitrateConfig(String bitrate) {
+	private static int[] getVideoBitrateConfig(String bitrate) {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
@@ -2779,7 +2759,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					while (res == renderer.getPlayingRes()) {
 						long elapsed;
 						if ((long) res.getLastStartPosition() == 0) {
-							elapsed = System.currentTimeMillis() - (long) res.getStartTime();
+							elapsed = System.currentTimeMillis() - res.getStartTime();
 						} else {
 							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
 							elapsed += (long) (res.getLastStartPosition() * 1000);
@@ -2813,6 +2793,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public final String WARN = "warn";
 	public final String ERR = "err";
 
+	@SuppressWarnings("unused")
 	public void notify(String type, String msg) {
 		// Implemented by subclasses
 	}

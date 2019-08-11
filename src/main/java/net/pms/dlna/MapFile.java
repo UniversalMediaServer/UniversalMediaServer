@@ -32,7 +32,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
-import net.pms.util.StringUtil.LetterCase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,18 +212,18 @@ public class MapFile extends DLNAResource {
 	 *         otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
-		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName, LetterCase.LOWER, Locale.ROOT));
+		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
 	}
 
-	private void manageFile(File f) {
+	private void manageFile(File f, boolean isAddGlobally) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
 
 			if (!f.isHidden()) {
 				if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
-					addChild(new ZippedFile(f));
+					addChild(new ZippedFile(f), true, isAddGlobally);
 				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
-					addChild(new RarredFile(f));
+					addChild(new RarredFile(f), true, isAddGlobally);
 				} else if (
 					configuration.isArchiveBrowsing() && (
 						lcFilename.endsWith(".tar") ||
@@ -233,7 +232,7 @@ public class MapFile extends DLNAResource {
 						lcFilename.endsWith(".7z")
 					)
 				) {
-					addChild(new SevenZipFile(f));
+					addChild(new SevenZipFile(f), true, isAddGlobally);
 				} else if (
 					lcFilename.endsWith(".iso") ||
 					lcFilename.endsWith(".img") || (
@@ -241,7 +240,7 @@ public class MapFile extends DLNAResource {
 						f.getName().toUpperCase(Locale.ROOT).equals("VIDEO_TS")
 					)
 				) {
-					addChild(new DVDISOFile(f));
+					addChild(new DVDISOFile(f), true, isAddGlobally);
 				} else if (
 					lcFilename.endsWith(".m3u") ||
 					lcFilename.endsWith(".m3u8") ||
@@ -251,9 +250,11 @@ public class MapFile extends DLNAResource {
 				) {
 					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
 					if (d != null) {
-						addChild(d);
+						addChild(d, true, isAddGlobally);
 					}
 				} else {
+					ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
+
 					/* Optionally ignore empty directories */
 					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 						LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
@@ -265,12 +266,17 @@ public class MapFile extends DLNAResource {
 						if (!emptyFoldersToRescan.contains(f)) {
 							emptyFoldersToRescan.add(f);
 						}
-					} else { // Otherwise add the file
+					} else if (f.isDirectory() && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(f.getName())) {
+						LOGGER.debug("Ignoring {} because it is in the ignored folders list", f.getName());
+					} else {
+						// Otherwise add the file
 						RealFile rf = new RealFile(f);
+						//we need to propagate the flag in ordet to make all hierarchy stay outside the media library if needed
+						rf.getConf().setAddToMediaLibrary(this.getConf().isAddToMediaLibrary());
 						if (searchList != null) {
 							searchList.add(rf);
 						}
-						addChild(rf);
+						addChild(rf, true, isAddGlobally);
 					}
 				}
 			}
@@ -279,20 +285,32 @@ public class MapFile extends DLNAResource {
 
 	private List<File> getFileList() {
 		List<File> out = new ArrayList<>();
+		ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
+		String filename;
 
 		for (File file : this.conf.getFiles()) {
-			if (file != null && file.isDirectory()) {
-				if (file.canRead()) {
-					File[] files = file.listFiles();
+			filename = file.getName() == null ? "unnamed" : file.getName();
+			if (file == null || !file.isDirectory()) {
+				LOGGER.trace("Ignoring {} because it is not a valid directory", filename);
+				continue;
+			}
 
-					if (files == null) {
-						LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
-					} else {
-						out.addAll(Arrays.asList(files));
-					}
+			// Skip if ignored
+			if (!ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(filename)) {
+				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.getName());
+				continue;
+			}
+
+			if (file.canRead()) {
+				File[] files = file.listFiles();
+
+				if (files == null) {
+					LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
 				} else {
-					LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+					out.addAll(Arrays.asList(files));
 				}
+			} else {
+				LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
 			}
 		}
 
@@ -306,6 +324,10 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public boolean analyzeChildren(int count) {
+		return analyzeChildren(count, true);
+	}
+
+	public boolean analyzeChildren(int count, boolean isAddGlobally) {
 		int currentChildrenCount = getChildren().size();
 		int vfolder = 0;
 		FileSearch fs = null;
@@ -316,13 +338,13 @@ public class MapFile extends DLNAResource {
 		}
 		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
 			if (vfolder < getConf().getChildren().size()) {
-				addChild(new MapFile(getConf().getChildren().get(vfolder)));
+				addChild(new MapFile(getConf().getChildren().get(vfolder)), true, isAddGlobally);
 				++vfolder;
 			} else {
 				if (discoverable.isEmpty()) {
 					break;
 				}
-				manageFile(discoverable.remove(0));
+				manageFile(discoverable.remove(0), isAddGlobally);
 			}
 		}
 		if (fs != null) {
@@ -333,11 +355,15 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void discoverChildren() {
-		discoverChildren(null);
+		discoverChildren(null, true);
 	}
 
 	@Override
 	public void discoverChildren(String str) {
+		discoverChildren(str, true);
+	}
+
+	public void discoverChildren(String str, boolean isAddGlobally) {
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
 		} else {
@@ -438,7 +464,7 @@ public class MapFile extends DLNAResource {
 				UMSUtils.sort(entry.getValue(), sm);
 				MapFile mf = new MapFile(getConf(), entry.getValue());
 				mf.forcedName = entry.getKey();
-				addChild(mf);
+				addChild(mf, true, isAddGlobally);
 			}
 			return;
 		}
@@ -491,16 +517,20 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void doRefreshChildren() {
-		doRefreshChildren(null);
+		doRefreshChildren(null, true);
 	}
 
 	@Override
 	public void doRefreshChildren(String str) {
+		doRefreshChildren(str, true);
+	}
+
+	public void doRefreshChildren(String str, boolean isAddGlobally) {
 		getChildren().clear();
 		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;
-		discoverChildren(str);
-		analyzeChildren(-1);
+		discoverChildren(str, isAddGlobally);
+		analyzeChildren(-1, isAddGlobally);
 	}
 
 	@Override
@@ -538,7 +568,26 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public String toString() {
-		return "MapFile [name=" + getName() + ", id=" + getResourceId() + ", format=" + getFormat() + ", children=" + getChildren() + "]";
+		StringBuilder result = new StringBuilder();
+		result.append(getClass().getSimpleName());
+		result.append(" [id=").append(getId());
+		result.append(", name=").append(getName());
+		result.append(", format=").append(getFormat());
+		result.append(", discovered=").append(isDiscovered());
+		if (getMediaAudio() != null) {
+			result.append(", selected audio=[").append(getMediaAudio()).append("]");
+		}
+		if (getMediaSubtitle() != null) {
+			result.append(", selected subtitles=[").append(getMediaSubtitle()).append("]");
+		}
+		if (getPlayer() != null) {
+			result.append(", player=").append(getPlayer());
+		}
+		if (getChildren() != null && !getChildren().isEmpty()) {
+			result.append(", children=").append(getChildren());
+		}
+		result.append(']');
+		return result.toString();
 	}
 
 	/**
@@ -584,4 +633,10 @@ public class MapFile extends DLNAResource {
 		}
 		return null;
 	}
+	
+	@Override
+	public boolean isAddToMediaLibrary() {
+		return getConf().isAddToMediaLibrary();
+	}
+	
 }

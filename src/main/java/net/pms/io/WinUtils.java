@@ -20,14 +20,22 @@ package net.pms.io;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.Platform;
 import com.sun.jna.WString;
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinReg;
 import com.sun.jna.ptr.LongByReference;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.CharBuffer;
-import java.util.prefs.Preferences;
-import net.pms.PMS;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import javax.annotation.Nullable;
+import net.pms.util.FileUtil;
+import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +48,7 @@ public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 
 	public interface Kernel32 extends Library {
-		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
+		Kernel32 INSTANCE = Native.loadLibrary("kernel32", Kernel32.class);
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
 
 		int GetShortPathNameW(WString lpszLongPath, char[] lpdzShortPath, int cchBuffer);
@@ -66,22 +74,20 @@ public class WinUtils extends BasicSystemUtils {
 
 		int GetACP();
 		int GetOEMCP();
+		int GetConsoleOutputCP();
 	}
 
-	private static final int KEY_READ = 0x20019;
-	private boolean kerio;
-	private String avsPluginsDir;
-	private String kLiteFiltersDir;
+	private final boolean kerio;
+	protected final Path psPing;
+	protected final String avsPluginsFolder;
+	protected final String kLiteFiltersDir;
 
-	/* (non-Javadoc)
-	 * @see net.pms.io.SystemUtils#getAvsPluginsDir()
-	 */
 	@Override
 	public File getAvsPluginsDir() {
-		if (avsPluginsDir == null) {
+		if (avsPluginsFolder == null) {
 			return null;
 		}
-		File pluginsDir = new File(avsPluginsDir);
+		File pluginsDir = new File(avsPluginsFolder);
 		if (!pluginsDir.exists()) {
 			pluginsDir = null;
 		}
@@ -103,11 +109,11 @@ public class WinUtils extends BasicSystemUtils {
 		return filtersDir;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.pms.io.SystemUtils#getShortPathNameW(java.lang.String)
-	 */
 	@Override
 	public String getShortPathNameW(String longPathName) {
+		if (longPathName == null) {
+			return null;
+		}
 		boolean unicodeChars;
 		try {
 			byte b1[] = longPathName.getBytes("UTF-8");
@@ -124,8 +130,9 @@ public class WinUtils extends BasicSystemUtils {
 				char test[] = new char[2 + pathname.length() * 2];
 				int r = Kernel32.INSTANCE.GetShortPathNameW(pathname, test, test.length);
 				if (r > 0) {
-					LOGGER.trace("Forcing short path name on " + pathname);
-					return Native.toString(test);
+					String result = Native.toString(test);
+					LOGGER.trace("Using short path name of \"{}\": \"{}\"", pathname, result);
+					return result;
 				}
 				LOGGER.debug("Can't find \"{}\"", pathname);
 				return null;
@@ -137,9 +144,6 @@ public class WinUtils extends BasicSystemUtils {
 		return longPathName;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.pms.io.SystemUtils#getWindowsDirectory()
-	 */
 	@Override
 	public String getWindowsDirectory() {
 		char test[] = new char[2 + 256 * 2];
@@ -150,9 +154,6 @@ public class WinUtils extends BasicSystemUtils {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.pms.io.SystemUtils#getDiskLabel(java.io.File)
-	 */
 	@Override
 	public String getDiskLabel(File f) {
 		String driveName;
@@ -192,7 +193,10 @@ public class WinUtils extends BasicSystemUtils {
 	}
 
 	/**
-	 * For description see <a HREF="https://msdn.microsoft.com/en-us/library/windows/desktop/dd318070%28v=vs.85%29.aspx">MSDN GetACP</a>
+	 * For description see <a HREF=
+	 * "https://msdn.microsoft.com/en-us/library/windows/desktop/dd318070%28v=vs.85%29.aspx"
+	 * >MSDN GetACP</a>
+	 *
 	 * @return the value from Windows API GetACP()
 	 */
 	public static int getACP() {
@@ -200,14 +204,43 @@ public class WinUtils extends BasicSystemUtils {
 	}
 
 	/**
-	 * For description see <a HREF="https://msdn.microsoft.com/en-us/library/windows/desktop/dd318114%28v=vs.85%29.aspx">MSDN GetOEMCP</a>
+	 * For description see <a HREF=
+	 * "https://msdn.microsoft.com/en-us/library/windows/desktop/dd318114%28v=vs.85%29.aspx"
+	 * >MSDN GetOEMCP</a>
+	 *
 	 * @return the value from Windows API GetOEMCP()
 	 */
 	public static int getOEMCP() {
 		return Kernel32.INSTANCE.GetOEMCP();
 	}
 
-	private String charString2String(CharBuffer buf) {
+	/**
+	 * @return The result of {@link #getOEMCP()} converted to a {@link Charset}
+	 *         or {@code null} if it couldn't be converted.
+	 */
+	public static Charset getOEMCharset() {
+		int codepage = Kernel32.INSTANCE.GetOEMCP();
+		Charset result = null;
+		String[] aliases = {"cp" + codepage, "MS" + codepage};
+		for (String alias : aliases) {
+			try {
+				result = Charset.forName(alias);
+				break;
+			} catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
+				result = null;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * @return The result from the Windows API {@code GetConsoleOutputCP()}.
+	 */
+	public static int getConsoleOutputCP() {
+		return Kernel32.INSTANCE.GetConsoleOutputCP();
+	}
+
+	private static String charString2String(CharBuffer buf) {
 		char[] chars = buf.array();
 		int i;
 		for (i = 0; i < chars.length; i++) {
@@ -218,120 +251,146 @@ public class WinUtils extends BasicSystemUtils {
 		return new String(chars, 0, i);
 	}
 
-	public WinUtils() {
-		start();
+	/** Only to be instantiated by {@link BasicSystemUtils#createInstance()}. */
+	protected WinUtils() {
+		getVLCRegistryInfo();
+		avsPluginsFolder = getAviSynthPluginsFolder();
+		aviSynth = avsPluginsFolder != null;
+		kLiteFiltersDir = getKLiteFiltersFolder();
+		kerio = isKerioInstalled();
+		psPing = findPsPing();
 	}
 
-	private void start() {
-		final Preferences userRoot = Preferences.userRoot();
-		final Preferences systemRoot = Preferences.systemRoot();
-		final Class<? extends Preferences> clz = userRoot.getClass();
+	protected void getVLCRegistryInfo() {
+		String key = "SOFTWARE\\VideoLAN\\VLC";
 		try {
-			if (clz.getName().endsWith("WindowsPreferences")) {
-				final Method openKey = clz.getDeclaredMethod("WindowsRegOpenKey", int.class, byte[].class, int.class);
-				openKey.setAccessible(true);
-
-				final Method closeKey = clz.getDeclaredMethod("WindowsRegCloseKey", int.class);
-				closeKey.setAccessible(true);
-
-				final Method winRegQueryValue = clz.getDeclaredMethod("WindowsRegQueryValueEx", int.class, byte[].class);
-				winRegQueryValue.setAccessible(true);
-
-				byte[] valb;
-				String key;
-
-				// Check if VLC is installed
-				key = "SOFTWARE\\VideoLAN\\VLC";
-				int handles[] = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
-				if (!(handles.length == 2 && handles[0] != 0 && handles[1] == 0)) {
-					key = "SOFTWARE\\Wow6432Node\\VideoLAN\\VLC";
-					handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
-				}
-				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
-					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr(""));
-					vlcp = (valb != null ? new String(valb).trim() : null);
-					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("Version"));
-					vlcv = (valb != null ? new String(valb).trim() : null);
-					closeKey.invoke(systemRoot, handles[0]);
-				}
-
-				// Check if AviSynth is installed
-				key = "SOFTWARE\\AviSynth";
-				handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
-				if (!(handles.length == 2 && handles[0] != 0 && handles[1] == 0)) {
-					key = "SOFTWARE\\Wow6432Node\\AviSynth";
-					handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
-				}
-				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
-					avis = true;
-					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("plugindir2_5"));
-					avsPluginsDir = (valb != null ? new String(valb).trim() : null);
-					closeKey.invoke(systemRoot, handles[0]);
-				}
-
-				// Check if K-Lite Codec Pack is installed
-				key = "SOFTWARE\\Wow6432Node\\KLCodecPack";
-				handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
-				if (!(handles.length == 2 && handles[0] != 0 && handles[1] == 0)) {
-					key = "SOFTWARE\\KLCodecPack";
-					handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
-				}
-				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
-					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("installdir"));
-					kLiteFiltersDir = (valb != null ? new String(valb).trim() : null);
-					closeKey.invoke(systemRoot, handles[0]);
-				}
-
-				// Check if Kerio is installed
-				key = "SOFTWARE\\Kerio";
-				handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
-				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
-					kerio = true;
+			if (!Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key)) {
+				key = "SOFTWARE\\Wow6432Node\\VideoLAN\\VLC";
+				if (!Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key)) {
+					return;
 				}
 			}
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			LOGGER.debug("Caught exception", e);
+			vlcPath = Paths.get(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, ""));
+			vlcVersion = new Version(Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, "Version"));
+		} catch (Win32Exception e) {
+			LOGGER.debug("Could not get VLC information from Windows registry: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see net.pms.io.SystemUtils#isKerioFirewall()
-	 */
+	protected String getAviSynthPluginsFolder() {
+		String key = "SOFTWARE\\AviSynth";
+		try {
+			if (!Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key)) {
+				key = "SOFTWARE\\Wow6432Node\\AviSynth";
+				if (!Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key)) {
+					return null;
+				}
+			}
+			return Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, "plugindir2_5");
+		} catch (Win32Exception e) {
+			LOGGER.debug("Could not get AviSynth information from Windows registry: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	protected String getKLiteFiltersFolder() {
+		String key = "SOFTWARE\\Wow6432Node\\KLCodecPack";
+		try {
+			if (!Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key)) {
+				key = "SOFTWARE\\KLCodecPack";
+				if (!Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key)) {
+					return null;
+				}
+			}
+			return Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, "installdir");
+		} catch (Win32Exception e) {
+			LOGGER.debug("Could not get K-Lite Codec Pack information from Windows registry: {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	protected boolean isKerioInstalled() {
+		try {
+			String key = "SOFTWARE\\Kerio";
+			if (!Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key)) {
+				key = "SOFTWARE\\Wow6432Node\\Kerio";
+				return Advapi32Util.registryKeyExists(WinReg.HKEY_LOCAL_MACHINE, key);
+			}
+			return true;
+		} catch (Win32Exception e) {
+			LOGGER.debug("Could not get Kerio information from Windows registry: {}", e.getMessage());
+			LOGGER.trace("", e);
+			return false;
+		}
+	}
+
+	protected Path findPsPing() {
+		// PsPing
+		Path tmpPsPing = null;
+		tmpPsPing = FileUtil.findExecutableInOSPath(Paths.get("psping64.exe"));
+		if (tmpPsPing == null) {
+			tmpPsPing = FileUtil.findExecutableInOSPath(Paths.get("psping.exe"));
+		}
+		return tmpPsPing;
+	}
+
 	@Override
 	public boolean isKerioFirewall() {
 		return kerio;
 	}
 
-	private static byte[] toCstr(String str) {
-		byte[] result = new byte[str.length() + 1];
-		for (int i = 0; i < str.length(); i++) {
-			result[i] = (byte) str.charAt(i);
-		}
-		result[str.length()] = 0;
-		return result;
-	}
-
 	@Override
 	public String[] getPingCommand(String hostAddress, int count, int packetSize) {
-		String cmd = PMS.getConfiguration().pingPath();
-		if (cmd == null) {
-			return new String[]{"ping", /* count */ "-n", Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress};
-		} else {
-			return new String[]{cmd, /*warmup */ "-w", "0", "-i", "0", /* count */ "-n", Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress};
+		if (psPing != null) {
+			return new String[] {
+				psPing.toString(),
+				"-w", // warmup
+				"0",
+				"-i", // interval
+				"0",
+				"-n", // count
+				Integer.toString(count),
+				"-l", // size
+				Integer.toString(packetSize),
+				hostAddress
+			};
 		}
-
+		return new String[] {
+			"ping",
+			"-n", // count
+			Integer.toString(count),
+			"-l", // size
+			Integer.toString(packetSize),
+			hostAddress
+		};
 	}
 
 	@Override
 	public String parsePingLine(String line) {
-		if (PMS.getConfiguration().pingPath() == null) {
-			return super.parsePingLine(line);
-		}
-		int msPos = line.indexOf("ms");
+		if (psPing != null) {
+			int msPos = line.indexOf("ms");
 
-		if (msPos == -1) {
+			if (msPos == -1) {
+				return null;
+			}
+			return line.substring(line.lastIndexOf(':', msPos) + 1, msPos).trim();
+		}
+		return super.parsePingLine(line);
+	}
+
+	@Override
+	@Nullable
+	public Double getWindowsVersion() {
+		if (!Platform.isWindows()) {
 			return null;
 		}
-		return line.substring(line.lastIndexOf(':', msPos) + 1, msPos).trim();
+		try {
+			return Double.valueOf(System.getProperty("os.version"));
+		} catch (NullPointerException | NumberFormatException e) {
+			return null;
+		}
 	}
 }

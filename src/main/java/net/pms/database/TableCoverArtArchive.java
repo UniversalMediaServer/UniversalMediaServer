@@ -39,7 +39,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @author Nadahar
  */
 
-public final class TableCoverArtArchive extends Tables{
+public final class TableCoverArtArchive extends Tables {
 
 	/**
 	 * tableLock is used to synchronize database access on table level.
@@ -104,7 +104,7 @@ public final class TableCoverArtArchive extends Tables{
 			tableLock.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)){
 				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)){
+				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
 						if (cover != null || result.getBlob("COVER") == null) {
 							if (trace) {
@@ -205,9 +205,9 @@ public final class TableCoverArtArchive extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
 							database.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
@@ -243,6 +243,7 @@ public final class TableCoverArtArchive extends Tables{
 		tableLock.writeLock().lock();
 		try {
 			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					//case 1: Alter table to version 2
 					default:
@@ -259,7 +260,7 @@ public final class TableCoverArtArchive extends Tables{
 	}
 
 	/**
-	 * Must be called in inside a table lock
+	 * Must be called from inside a table lock
 	 */
 	private static void createCoverArtArchiveTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
