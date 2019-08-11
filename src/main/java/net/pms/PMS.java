@@ -539,12 +539,20 @@ public class PMS {
 		jmDNS = null;
 		launchJmDNSRenderers();
 
+		OutputParams outputParams = new OutputParams(configuration);
+
+		// Prevent unwanted GUI buffer artifacts (and runaway timers)
+		outputParams.hidebuffer = true;
+
+		// Make sure buffer is destroyed
+		outputParams.cleanup = true;
+
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
 		if (!configuration.isDisableSubtitles()) {
 			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
-			//TODO: Rewrite fontconfig generation
-			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, configuration.getMPlayerPath(), "dummy");
+			ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMPlayerPath(), "dummy"}, outputParams);
+			mplayer.runInNewThread();
 
 			/**
 			 * Note: Different versions of fontconfig and bitness require
@@ -553,22 +561,8 @@ public class PMS {
 			 * This should result in all of the necessary caches being built.
 			 */
 			if (!Platform.isWindows() || Platform.is64Bit()) {
-				ThreadedProcessWrapper.runProcessNullOutput(
-					5,
-					TimeUnit.MINUTES,
-					2000,
-					configuration.getFFmpegPaths().getDefaultPath().toString(),
-					"-y",
-					"-f",
-					"lavfi",
-					"-i",
-					"nullsrc=s=720x480:d=1:r=1",
-					"-vf",
-					"ass=DummyInput.ass",
-					"-target",
-					"ntsc-dvd",
-					"-"
-				);
+				ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFFmpegPaths().getDefaultPath().toString(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+				ffmpeg.runInNewThread();
 			}
 		}
 
