@@ -2254,7 +2254,12 @@ public class FileUtil {
 
 		String[] paths = osPath.split(File.pathSeparator);
 		for (String path : paths) {
-			result.add(Paths.get(path));
+			try {
+				Path pathToAdd = Paths.get(path);
+				result.add(pathToAdd);
+			} catch (InvalidPathException e) {
+				LOGGER.debug("Skipping invalid path {}", e.getMessage());
+			}
 		}
 
 		return result;
