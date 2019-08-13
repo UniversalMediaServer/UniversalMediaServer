@@ -216,7 +216,7 @@ public class RemoteUtil {
 	public static WebRender matchRenderer(String user, HttpExchange t) {
 		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
-		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
+		RendererConfiguration r = RendererConfiguration.searchRendererConfigurtion(confName, t.getRemoteAddress().getAddress());
 		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
 			(WebRender) r : null;
 	}

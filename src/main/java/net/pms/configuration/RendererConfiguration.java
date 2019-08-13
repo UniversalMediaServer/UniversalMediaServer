@@ -451,7 +451,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return the matching renderer or null.
 	 */
 	public static RendererConfiguration find(RendererConfiguration r, InetAddress ia) {
-		return find(r.getConfName(), ia);
+		return searchRendererConfigurtion(r.getConfName(), ia);
 	}
 
 	/**
@@ -461,7 +461,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param ia the address.
 	 * @return the matching renderer or null.
 	 */
-	public static RendererConfiguration find(String name, InetAddress ia) {
+	public static RendererConfiguration searchRendererConfigurtion(String name, InetAddress ia) {
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
 			if (ia.equals(r.getAddress()) && name.equals(r.getConfName())) {
 				return r;
