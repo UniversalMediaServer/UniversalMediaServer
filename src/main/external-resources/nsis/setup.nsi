@@ -324,6 +324,12 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
+
+	${If} ${RunningX64}
+		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x64\bin\javaw.exe" enable=yes profile=public,private'
+	${Else}
+		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x86\bin\javaw.exe" enable=yes profile=public,private'
+	${EndIf}
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -615,6 +621,8 @@ Section "Uninstall"
 
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+
+	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 
 	nsSCM::Stop "${PROJECT_NAME}"
 	nsSCM::Remove "${PROJECT_NAME}"
