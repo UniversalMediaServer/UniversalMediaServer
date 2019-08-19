@@ -63,6 +63,7 @@ public class RealFile extends MapFile {
 
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
+			getConf().getFiles().remove(file);
 			return false;
 		}
 
@@ -74,7 +75,8 @@ public class RealFile extends MapFile {
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
-			if (getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
+			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
+				getConf().getFiles().remove(file);
 				valid = false;
 				if (getMedia().isEncrypted()) {
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
@@ -87,6 +89,9 @@ public class RealFile extends MapFile {
 			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 				checkThumbnail();
 			}
+		} else if (this.getType() == Format.UNKNOWN && !this.isFolder()) {
+			getConf().getFiles().remove(file);
+			return false;
 		}
 
 		return valid;
