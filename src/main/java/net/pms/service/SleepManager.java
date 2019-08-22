@@ -108,6 +108,12 @@ public class SleepManager {
 		playingCount--;
 		if (isPreventSleepSupported() && playingCount == 0 && sleepPrevented && mode == PreventSleepMode.PLAYBACK) {
 			allowSleep();
+			/* 
+			 * Between ES_SYSTEM_REQUIRED|ES_CONTINUOUS and ES_CONTINUOUS the Windows does not go to sleep.
+			 * But both do not restart the system idle timer. In worst case Windows goes
+			 * to sleep short after ES_CONTINUOUS. To avoid this the system idle timer gets restarted here.
+			 */
+			postponeSleep();
 		}
 	}
 

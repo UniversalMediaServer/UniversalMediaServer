@@ -18,6 +18,7 @@
  */
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,7 +52,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.newgui.NavigationShareTab.SharedFoldersTableModel;
+import net.pms.newgui.SharedContentTab.SharedFoldersTableModel;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
@@ -72,14 +74,13 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Container for all configurable DMS settings. Settings are typically defined by three things:
- * a unique key for use in the configuration file "DMS.conf", a getter (and setter) method and
+ * Container for all configurable UMS settings. Settings are typically defined by three things:
+ * a unique key for use in the configuration file "UMS.conf", a getter (and setter) method and
  * a default value. When a key cannot be found in the current configuration, the getter will
  * return a default value. Setters only store a value, they do not permanently save it to
  * file.
@@ -150,6 +151,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
+	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
@@ -177,6 +179,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
+	protected static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
 	protected static final String KEY_FOLDERS = "folders";
 	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
@@ -193,6 +196,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	
+	/**
+	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
+	 */
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
@@ -203,7 +210,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LANGUAGE = "language";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
-	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
 	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
@@ -310,6 +316,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SORT_PATHS = "sort_paths";
 	protected static final String KEY_SPEED_DBG = "speed_debug";
 	protected static final String KEY_SUBS_COLOR = "subtitles_color";
+	protected static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
 	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
 	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
@@ -367,7 +374,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Deprecated
 	protected static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 
-	// The name of the subdirectory under which DMS config files are stored for this build (default: DMS).
+	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
 	protected static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
 
@@ -406,7 +413,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_HIDE_EMPTY_FOLDERS,
 			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
-			KEY_HIDE_SUBS_INFO,
 			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
@@ -422,54 +428,56 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
+			KEY_SUBS_INFO_LEVEL,
 			KEY_SORT_METHOD,
+			KEY_SUBS_INFO_LEVEL,
 			KEY_USE_CACHE
 		)
 	);
 
 	/*
-		The following code enables a single setting - DMS_PROFILE - to be used to
-		initialize PROFILE_PATH i.e. the path to the current session's profile (AKA DMS.conf).
+		The following code enables a single setting - UMS_PROFILE - to be used to
+		initialize PROFILE_PATH i.e. the path to the current session's profile (AKA UMS.conf).
 		It also initializes PROFILE_DIRECTORY - i.e. the directory the profile is located in -
 		which is needed to detect the default WEB.conf location (anything else?).
 
 		While this convention - and therefore PROFILE_DIRECTORY - will remain,
 		adding more configurables - e.g. web_conf = ... - is on the TODO list.
 
-		DMS_PROFILE is read (in this order) from the property dms.profile.path or the
-		environment variable DMS_PROFILE. If DMS is launched with the command-line option
+		UMS_PROFILE is read (in this order) from the property ums.profile.path or the
+		environment variable UMS_PROFILE. If UMS is launched with the command-line option
 		"profiles" (e.g. from a shortcut), it displays a file chooser dialog that
-		allows the dms.profile.path property to be set. This makes it easy to run DMS
+		allows the ums.profile.path property to be set. This makes it easy to run UMS
 		under multiple profiles without fiddling with environment variables, properties or
 		command-line arguments.
 
-		1) if DMS_PROFILE is not set, DMS.conf is located in:
+		1) if UMS_PROFILE is not set, UMS.conf is located in:
 
 			Windows:             %ALLUSERSPROFILE%\$build
 			Mac OS X:            $HOME/Library/Application Support/$build
 			Everything else:     $HOME/.config/$build
 
-		- where $build is a subdirectory that ensures incompatible DMS builds don't target/clobber
-		the same configuration files. The default value for $build is "DMS". Other builds might use e.g.
-		"DMS Rendr Edition" or "dms-mlx".
+		- where $build is a subdirectory that ensures incompatible UMS builds don't target/clobber
+		the same configuration files. The default value for $build is "UMS". Other builds might use e.g.
+		"UMS Rendr Edition" or "ums-mlx".
 
 		2) if a relative or absolute *directory path* is supplied (the directory must exist),
-		it is used as the profile directory and the profile is located there under the default profile name (DMS.conf):
+		it is used as the profile directory and the profile is located there under the default profile name (UMS.conf):
 
-			DMS_PROFILE = /absolute/path/to/dir
-			DMS_PROFILE = relative/path/to/dir # relative to the working directory
+			UMS_PROFILE = /absolute/path/to/dir
+			UMS_PROFILE = relative/path/to/dir # relative to the working directory
 
-		Amongst other things, this can be used to restore the legacy behaviour of locating DMS.conf in the current
+		Amongst other things, this can be used to restore the legacy behaviour of locating UMS.conf in the current
 		working directory e.g.:
 
-			DMS_PROFILE=. ./DMS.sh
+			UMS_PROFILE=. ./UMS.sh
 
 		3) if a relative or absolute *file path* is supplied (the file doesn't have to exist),
 		it is taken to be the profile, and its parent dir is taken to be the profile (i.e. config file) dir:
 
-			DMS_PROFILE = DMS.conf            # profile dir = .
-			DMS_PROFILE = folder/dev.conf     # profile dir = folder
-			DMS_PROFILE = /path/to/some.file  # profile dir = /path/to/
+			UMS_PROFILE = UMS.conf            # profile dir = .
+			UMS_PROFILE = folder/dev.conf     # profile dir = folder
+			UMS_PROFILE = /path/to/some.file  # profile dir = /path/to/
 	 */
 	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
@@ -479,13 +487,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	// Path to directory containing UMS config files
 	protected static final String PROFILE_DIRECTORY;
 
-	// Absolute path to profile file e.g. /path/to/DMS.conf
+	// Absolute path to profile file e.g. /path/to/UMS.conf
 	protected static final String PROFILE_PATH;
 
 	// Absolute path to WEB.conf file e.g. /path/to/WEB.conf
 	protected static String WEB_CONF_PATH;
 
-	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/digitalmediaserver/DMS.conf
+	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
 	// "project.skelprofile.dir" project property
 	protected static final String SKEL_PROFILE_PATH;
 
@@ -555,7 +563,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Default constructor that will attempt to load the DMS configuration file
+	 * Default constructor that will attempt to load the PMS configuration file
 	 * from the profile path.
 	 *
 	 * @throws org.apache.commons.configuration.ConfigurationException
@@ -566,9 +574,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Constructor that will initialize the DMS configuration.
+	 * Constructor that will initialize the PMS configuration.
 	 *
-	 * @param loadFile Set to true to attempt to load the DMS configuration
+	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
 	 * @throws InterruptedException
@@ -671,14 +679,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @return first writable folder in the following order:
 	 * <p>
-	 *     1. (On Linux only) path to {@code /var/log/dms/%USERNAME%/}.
+	 *     1. (On Linux only) path to {@code /var/log/ums/%USERNAME%/}.
 	 * </p>
 	 * <p>
-	 *     2. Path to profile folder ({@code ~/.config/DigitalMediaServer/} on Linux, {@code %ALLUSERSPROFILE%\DigitalMediaServer} on Windows and
-	 *     {@code ~/Library/Application Support/DigitalMediaServer/} on Mac).
+	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
+	 *     {@code ~/Library/Application Support/UMS/} on Mac).
 	 * </p>
 	 * <p>
-	 *     3. Path to user-defined temporary folder specified by {@code temp_directory} parameter in DMS.conf.
+	 *     3. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
 	 * </p>
 	 * <p>
 	 *     4. Path to system temporary folder.
@@ -1139,7 +1147,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * The server port where DMS listens for TCP/IP traffic. Default value is 5001.
+	 * The server port where PMS listens for TCP/IP traffic. Default value is 5001.
 	 * @return The port number.
 	 */
 	public int getServerPort() {
@@ -1147,7 +1155,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set the server port where DMS must listen for TCP/IP traffic.
+	 * Set the server port where PMS must listen for TCP/IP traffic.
 	 * @param value The TCP/IP port number.
 	 */
 	public void setServerPort(int value) {
@@ -1215,7 +1223,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets the {@link java.util.Locale} of the preferred language for the DMS
+	 * Gets the {@link java.util.Locale} of the preferred language for the UMS
 	 * user interface. The default is based on the default (OS) locale.
 	 * @param log determines if any issues should be logged.
 	 * @return The {@link java.util.Locale}.
@@ -1246,7 +1254,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets the {@link java.util.Locale} of the preferred language for the DMS
+	 * Gets the {@link java.util.Locale} of the preferred language for the UMS
 	 * user interface. The default is based on the default (OS) locale. Doesn't
 	 * log potential issues.
 	 * @return The {@link java.util.Locale}.
@@ -1257,7 +1265,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Gets the {@link java.util.Locale} compatible tag of the preferred
-	 * language for the DMS user interface. The default is based on the default (OS) locale.
+	 * language for the UMS user interface. The default is based on the default (OS) locale.
 	 * @return The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
 	 */
 	public String getLanguageTag() {
@@ -1274,7 +1282,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets the preferred language for the DMS user interface.
+	 * Sets the preferred language for the UMS user interface.
 	 * @param value The {@link java.net.Locale}.
 	 */
 	public void setLanguage(Locale locale) {
@@ -1293,7 +1301,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets the preferred language for the DMS user interface.
+	 * Sets the preferred language for the UMS user interface.
 	 * @param value The <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> language tag.
 	 */
 	public void setLanguage(String value) {
@@ -2079,7 +2087,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if DMS should generate thumbnails for images. Default value
+	 * Returns true if PMS should generate thumbnails for images. Default value
 	 * is true.
 	 *
 	 * @return True if image thumbnails should be generated.
@@ -2089,7 +2097,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set to true if DMS should generate thumbnails for images.
+	 * Set to true if PMS should generate thumbnails for images.
 	 *
 	 * @param value True if image thumbnails should be generated.
 	 */
@@ -2120,7 +2128,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * get much information about CPUs from AMD and Intel from their Wikipedia
 	 * articles.
 	 * <p>
-	 * DMS will detect and set the correct amount of cores as the default value.
+	 * PMS will detect and set the correct amount of cores as the default value.
 	 *
 	 * @param value The number of CPU cores.
 	 */
@@ -2129,10 +2137,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if DMS should start minimized, i.e. without its window
-	 * opened. Default value false: to start with a window.
+	 * Whether we should start minimized, i.e. without its window opened.
+	 * Always returns false on macOS since it makes it impossible(?) for the
+	 * program to open.
 	 *
-	 * @return True if DMS should start minimized, false otherwise.
+	 * @return whether we should start minimized
 	 */
 	public boolean isMinimized() {
 		if (Platform.isMac()) {
@@ -2143,19 +2152,18 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set to true if DMS should start minimized, i.e. without its window
-	 * opened.
+	 * Whether we should start minimized, i.e. without its window opened.
 	 *
-	 * @param value True if DMS should start minimized, false otherwise.
+	 * @param value whether we should start minimized, false otherwise.
 	 */
 	public void setMinimized(boolean value) {
 		configuration.setProperty(KEY_MINIMIZED, value);
 	}
 
 	/**
-	 * Returns true if DMS should automatically start on Windows.
+	 * Returns true if UMS should automatically start on Windows.
 	 *
-	 * @return True if DMS should start automatically, false otherwise.
+	 * @return True if UMS should start automatically, false otherwise.
 	 */
 	public boolean isAutoStart() {
 		if (Platform.isWindows()) {
@@ -2170,9 +2178,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set to true if DMS should automatically start on Windows.
+	 * Set to true if UMS should automatically start on Windows.
 	 *
-	 * @param value True if DMS should start automatically, false otherwise.
+	 * @param value True if UMS should start automatically, false otherwise.
 	 */
 	public void setAutoStart(boolean value) {
 		File sourceFile = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Programs") + "\\Universal Media Server.lnk");
@@ -2257,20 +2265,18 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if DMS should hide the "# Videosettings #" folder on the
-	 * DLNA device. The default value is false: DMS will display the folder.
+	 * Whether to show the "Server Settings" folder on the renderer.
 	 *
-	 * @return True if DMS should hide the folder, false othewise.
+	 * @return whether the folder is shown
 	 */
 	public boolean isShowServerSettingsFolder() {
 		return getBoolean(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
 	}
 
 	/**
-	 * Set to true if DMS should hide the "# Videosettings #" folder on the
-	 * DLNA device, or set to false to make DMS display the folder.
+	 * Whether to show the "Server Settings" folder on the renderer.
 	 *
-	 * @param value True if DMS should hide the folder.
+	 * @param value whether the folder is shown
 	 */
 	public void setShowServerSettingsFolder(boolean value) {
 		configuration.setProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, value);
@@ -2288,7 +2294,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the {@link FullyPlayedAction}.
 	 *
-	 * @param value what to do with a file after it has been fully played
+	 * @param action what to do with a file after it has been fully played
 	 */
 	public void setFullyPlayedAction(FullyPlayedAction action) {
 		configuration.setProperty(KEY_FULLY_PLAYED_ACTION, action.getValue());
@@ -2315,21 +2321,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if DMS should cache scanned media in its internal database,
-	 * speeding up later retrieval. When false is returned, DMS will not use
+	 * Returns true if PMS should cache scanned media in its internal database,
+	 * speeding up later retrieval. When false is returned, PMS will not use
 	 * cache and media will have to be rescanned.
 	 *
-	 * @return True if DMS should cache media.
+	 * @return True if PMS should cache media.
 	 */
 	public boolean getUseCache() {
 		return getBoolean(KEY_USE_CACHE, true);
 	}
 
 	/**
-	 * Set to true if DMS should cache scanned media in its internal database,
+	 * Set to true if PMS should cache scanned media in its internal database,
 	 * speeding up later retrieval.
 	 *
-	 * @param value True if DMS should cache media.
+	 * @param value True if PMS should cache media.
 	 */
 	public void setUseCache(boolean value) {
 		configuration.setProperty(KEY_USE_CACHE, value);
@@ -2417,7 +2423,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns the maximum size (in MB) that DMS should use for buffering
+	 * Returns the maximum size (in MB) that PMS should use for buffering
 	 * audio.
 	 *
 	 * @return The maximum buffer size.
@@ -2427,7 +2433,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns the minimum size (in MB) that DMS should use for the buffer used
+	 * Returns the minimum size (in MB) that PMS should use for the buffer used
 	 * for streaming media.
 	 *
 	 * @return The minimum buffer size.
@@ -2460,7 +2466,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getFFmpegGPUDecodingAccelerationMethod() {
-		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "auto");
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"));
 	}
 
 	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
@@ -2476,7 +2482,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, "auto").split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled")).split(",");
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
@@ -3025,6 +3031,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	@GuardedBy("sharedFoldersLock")
 	private ArrayList<Path> ignoredFolders;
 
+	private ArrayList<String> ignoredFolderNames;
+
+	/**
+	 * Whether folder_names_ignored has been read.
+	 */
+	private boolean ignoredFolderNamesRead;
+
 	private void readSharedFolders() {
 		synchronized (sharedFoldersLock) {
 			if (!sharedFoldersRead) {
@@ -3091,6 +3104,38 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * @return The {@link List} of {@link Path}s of ignored folder names.
+	 */
+	@Nonnull
+	public ArrayList<String> getIgnoredFolderNames() {
+		if (!ignoredFolderNamesRead) {
+			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted");
+
+			ArrayList<String> folders = new ArrayList<>();
+			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
+				return folders;
+			}
+			String[] foldersArray = ignoredFolderNamesString.trim().split("\\s*,\\s*");
+			ignoredFolderNames = new ArrayList<>();
+
+			for (String folder : foldersArray) {
+				/*
+				 * Unescape embedded commas. Note: Backslashing isn't safe as it
+				 * conflicts with the Windows path separator.
+				 */
+				folder = folder.replaceAll("&comma;", ",");
+
+				// add the path even if there are problems so that the user can update the shared folders as required.
+				ignoredFolderNames.add(folder);
+			}
+
+			ignoredFolderNamesRead = true;
+		}
+
+		return ignoredFolderNames;
+	}
+
+	/**
 	 * Transforms a comma-separated list of directory entries into an
 	 * {@link ArrayList} of {@link Path}s. Verifies that the folder exists and
 	 * is valid.
@@ -3127,7 +3172,7 @@ public class PmsConfiguration extends RendererConfiguration {
 							"The \"{}\" is not a folder! Please remove it from your shared folders " +
 							"list on the \"{}\" tab or in the configuration file.",
 							folder,
-							Messages.getString("LooksFrame.22")
+							Messages.getString("LooksFrame.TabSharedContent")
 						);
 					} else {
 						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
@@ -3138,7 +3183,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					"\"{}\" does not exist. Please remove it from your shared folders " +
 					"list on the \"{}\" tab or in the configuration file.",
 					folder,
-					Messages.getString("LooksFrame.22")
+					Messages.getString("LooksFrame.TabSharedContent")
 				);
 			} else {
 				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
@@ -3261,6 +3306,32 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setHideEngineNames(boolean value) {
 		configuration.setProperty(KEY_HIDE_ENGINENAMES, value);
+	}
+
+	/**
+	 * @return {@code true} if subtitles information should be added to video
+	 *         names, {@code false} otherwise.
+	 */
+	public SubtitlesInfoLevel getSubtitlesInfoLevel() {
+		SubtitlesInfoLevel subtitlesInfoLevel = SubtitlesInfoLevel.typeOf(getString(KEY_SUBS_INFO_LEVEL, null));
+		if (subtitlesInfoLevel != null) {
+			return subtitlesInfoLevel;
+		}
+		// Check the old parameter for backwards compatibility
+		Boolean value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
+		if (value != null) {
+			return value.booleanValue() ? SubtitlesInfoLevel.NONE : SubtitlesInfoLevel.FULL;
+		}
+		return SubtitlesInfoLevel.BASIC; // Default
+	}
+
+	/**
+	 * Sets if subtitles information should be added to video names.
+	 *
+	 * @param value whether or not subtitles information should be added.
+	 */
+	public void setSubtitlesInfoLevel(SubtitlesInfoLevel value) {
+		configuration.setProperty(KEY_SUBS_INFO_LEVEL, value == null ? "" : value.toString());
 	}
 
 	public boolean isHideExtensions() {
@@ -3900,11 +3971,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Returns the name of the renderer to fall back on when header matching
-	 * fails. DMS will recognize the configured renderer instead of "Unknown
-	 * renderer". Default value is "", which means DMS will return the unknown
+	 * fails. PMS will recognize the configured renderer instead of "Unknown
+	 * renderer". Default value is "", which means PMS will return the unknown
 	 * renderer when no match can be made.
 	 *
-	 * @return The name of the renderer DMS should fall back on when header
+	 * @return The name of the renderer PMS should fall back on when header
 	 *         matching fails.
 	 * @see #isRendererForceDefault()
 	 */
@@ -3914,8 +3985,8 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets the name of the renderer to fall back on when header matching
-	 * fails. DMS will recognize the configured renderer instead of "Unknown
-	 * renderer". Set to "" to make DMS return the unknown renderer when no
+	 * fails. PMS will recognize the configured renderer instead of "Unknown
+	 * renderer". Set to "" to make PMS return the unknown renderer when no
 	 * match can be made.
 	 *
 	 * @param value The name of the renderer to fall back on. This has to be
@@ -3928,9 +3999,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true when DMS should not try to guess connecting renderers
+	 * Returns true when PMS should not try to guess connecting renderers
 	 * and instead force picking the defined fallback renderer. Default
-	 * value is false, which means DMS will attempt to recognize connecting
+	 * value is false, which means PMS will attempt to recognize connecting
 	 * renderers by their headers.
 	 *
 	 * @return True when the fallback renderer should always be picked.
@@ -3941,9 +4012,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set to true when DMS should not try to guess connecting renderers
+	 * Set to true when PMS should not try to guess connecting renderers
 	 * and instead force picking the defined fallback renderer. Set to false
-	 * to make DMS attempt to recognize connecting renderers by their headers.
+	 * to make PMS attempt to recognize connecting renderers by their headers.
 	 *
 	 * @param value True when the fallback renderer should always be picked.
 	 * @see #setRendererDefault(String)
@@ -4267,20 +4338,30 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, value);
 	}
 
+	/**
+	 * @deprecated Use {@link #getLiveSubtitlesLimit()} instead.
+	 */
+	@Deprecated
 	public int liveSubtitlesLimit() {
+		return getLiveSubtitlesLimit();
+	}
+
+	public int getLiveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
 
+	public void setLiveSubtitlesLimit(int value) {
+		if (value > 0) {
+			configuration.setProperty(KEY_LIVE_SUBTITLES_LIMIT, value);
+		}
+	}
+
 	public boolean isLiveSubtitlesKeep() {
-		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
+		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, true);
 	}
 
-	public int getLiveSubtitlesTimeout() {
-		return getInt(KEY_LIVE_SUBTITLES_TMO, 0) * 24 * 3600 * 1000;
-	}
-
-	public void setLiveSubtitlesTimeout(int t) {
-		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	public void setLiveSubtitlesKeep(boolean value) {
+		configuration.setProperty(KEY_LIVE_SUBTITLES_KEEP, value);
 	}
 
 	public boolean getLoggingBuffered() {
@@ -4481,14 +4562,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
 	}
 
-	public boolean hideSubsInfo() {
-		return getBoolean(KEY_HIDE_SUBS_INFO, false);
-	}
-
-	public String getPlugins() {
-		return getString("dummy", "");
-	}
-
 	/**
 	 * Whether the profile name should be appended to the server name when
 	 * displayed on the renderer
@@ -4527,10 +4600,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Set whether DMS should allow only one instance by shutting down
+	 * Set whether UMS should allow only one instance by shutting down
 	 * the first one when a second one is launched.
 	 *
-	 * @param value whether to kill the old DMS instance
+	 * @param value whether to kill the old UMS instance
 	 */
 	public void setRunSingleInstance(boolean value) {
 		configuration.setProperty(KEY_SINGLE, value);
@@ -4546,10 +4619,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Whether DMS should allow only one instance by shutting down
+	 * Whether UMS should allow only one instance by shutting down
 	 * the first one when a second one is launched.
 	 *
-	 * @return value whether to kill the old DMS instance
+	 * @return value whether to kill the old UMS instance
 	 */
 	public boolean isRunSingleInstance() {
 		return getBoolean(KEY_SINGLE, true);
@@ -4559,7 +4632,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Web stuff
 	 */
 	protected static final String KEY_NO_FOLDERS = "no_shared";
-	protected static final String KEY_WEB_HTTPS = "use_https";
+	protected static final String KEY_WEB_HTTPS = "web_https";
 	protected static final String KEY_WEB_PORT = "web_port";
 	protected static final int WEB_MAX_THREADS = 100;
 
@@ -4821,5 +4894,159 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getAliveDelay() {
 		return getInt(KEY_ALIVE_DELAY, 0);
+	}
+
+	/**
+	 * This {@code enum} represents the available "levels" for subtitles
+	 * information display that is to be appended to the video name.
+	 */
+	public static enum SubtitlesInfoLevel {
+
+		/** Don't show subtitles information */
+		NONE,
+
+		/** Show only basic subtitles information */
+		BASIC,
+
+		/** Show full subtitles information */
+		FULL;
+
+		@Override
+		public String toString() {
+			switch (this) {
+				case BASIC:
+					return "basic";
+				case FULL:
+					return "full";
+				case NONE:
+					return "none";
+				default:
+					throw new AssertionError("Missing implementation of SubtitlesInfoLevel \"" + name() + "\"");
+			}
+		}
+
+		/**
+		 * Tries to parse the specified {@link String} and return the
+		 * corresponding {@link SubtitlesInfoLevel}.
+		 *
+		 * @param infoLevelString the {@link String} to parse.
+		 * @return The corresponding {@link SubtitlesInfoLevel} or {@code null}
+		 *         if the parsing failed.
+		 */
+		public static SubtitlesInfoLevel typeOf(String infoLevelString) {
+			if (isBlank(infoLevelString)) {
+				return null;
+			}
+			infoLevelString = infoLevelString.trim().toLowerCase(Locale.ROOT);
+			switch (infoLevelString) {
+				case "off":
+				case "none":
+				case "0":
+					return NONE;
+				case "basic":
+				case "simple":
+				case "1":
+					return BASIC;
+				case "full":
+				case "advanced":
+				case "2":
+					return FULL;
+				default:
+					return null;
+			}
+		}
+	}
+
+	/**
+	 * Whether to disable connection to external entities to prevent the XML External Entity vulnerability.
+	 *
+	 * @return default {@code true} whether to disable external entities.
+	 */
+	public boolean disableExternalEntities() {
+		return getBoolean(KEY_DISABLE_EXTERNAL_ENTITIES, true);
+	}
+
+	public List<String> getWebConfigurationFileHeader() {
+		return Arrays.asList(
+			"##########################################################################################################",
+			"#                                                                                                        #",
+			"# WEB.conf: configure support for web feeds and streams                                                  #",
+			"#                                                                                                        #",
+			"# NOTE: This file must be placed in the profile directory to work:                                       #",
+			"#                                                                                                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"#                                                                                                        #",
+			"# Supported types:                                                                                       #",
+			"#                                                                                                        #",
+			"#     imagefeed, audiofeed, videofeed, audiostream, videostream                                          #",
+			"#                                                                                                        #",
+			"# Format for feeds:                                                                                      #",
+			"#                                                                                                        #",
+			"#     type.folders,separated,by,commas=URL                                                               #",
+			"#                                                                                                        #",
+			"# Format for streams:                                                                                    #",
+			"#                                                                                                        #",
+			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
+			"#                                                                                                        #",
+			"# For more web feed/stream options, see:                                                                 #",
+			"#                                                                                                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
+			"#                                                                                                        #",
+			"##########################################################################################################"
+		);
+	}
+
+	public void writeWebConfigurationFile() {
+		List<String> defaultWebConfContents = new ArrayList<>();
+		defaultWebConfContents.addAll(getWebConfigurationFileHeader());
+		defaultWebConfContents.addAll(Arrays.asList(
+			"",
+			"# image feeds",
+			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?format=rss2",
+			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=39453068@N05&format=rss2",
+			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=14362684@N08&format=rss2",
+			"imagefeed.Web,Pictures=http://picasaweb.google.fr/data/feed/base/user/nefuisalbum/albumid/5218433104757705489?alt=rss&kind=photo&hl=en_US",
+			"imagefeed.Web,Pictures=http://picasaweb.google.com/data/feed/base/user/FenderStratRocker?alt=rss&kind=album&hl=en_US&access=public",
+			"",
+			"# audio feeds",
+			"audiofeed.Web,Podcasts=https://rss.art19.com/caliphate",
+			"audiofeed.Web,Podcasts=https://www.nasa.gov/rss/dyn/Gravity-Assist.rss",
+			"audiofeed.Web,Podcasts=http://podcasts.joerogan.net/feed",
+			"audiofeed.Web,Podcasts=http://wakingup.libsyn.com/rss",
+			"audiofeed.Web,Podcasts=https://rss.art19.com/wolverine-the-long-night",
+			"",
+			"# video feeds",
+			"videofeed.Web,Vodcasts=http://feeds.feedburner.com/tedtalks_video",
+			"videofeed.Web,Vodcasts=https://www.nasa.gov/rss/dyn/nasax_vodcast.rss",
+			"videofeed.Web,Vodcasts=https://www.unicef.org/rss/unicef_television_vodcast.xml",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC0PEAMcRK7Mnn2G1bCBXOWQ",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCccjdJEay2hpb5scz61zY6Q",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCOiUKJ6lMU3yHbVNtNXJyfw",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCqFzWxSCi39LnW1JKFR3efg",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCfAOh2t5DpxVrgS9NQKjC7A",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC8-Th83bH_thdKZDJCrn88g",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCzRBkt4a2hy6HObM3cl-x7g",
+			"",
+			"# video streams",
+			"# videostream.Web,TV=France 24,mms://stream1.france24.yacast.net/f24_liveen,http://www.france24.com/en/sites/france24.com.en/themes/france24/logo-fr.png",
+			"# videostream.Web,TV=BFM TV (French TV),mms://vipmms9.yacast.net/bfm_bfmtv,http://upload.wikimedia.org/wikipedia/en/6/62/BFMTV.png",
+			"# videostream.Web,Webcams=View of Shanghai Harbour,mmst://www.onedir.com/cam3,http://media-cdn.tripadvisor.com/media/photo-s/00/1d/4b/d8/pudong-from-the-bund.jpg")
+		);
+
+		writeWebConfigurationFile(defaultWebConfContents);
+	}
+
+	public void writeWebConfigurationFile(List<String> fileContents) {
+		List<String> contentsToWrite = new ArrayList<>();
+		contentsToWrite.addAll(getWebConfigurationFileHeader());
+		contentsToWrite.addAll(fileContents);
+
+		try {
+			Path webConfFilePath = Paths.get(getWebConfPath());
+			Files.write(webConfFilePath, contentsToWrite, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+		}
 	}
 }

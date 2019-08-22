@@ -253,30 +253,201 @@ TV - REMOTE CONTROL
 	box-shadow: 0px 0px 10px #aaa;
 }
 .onFocus.different{
-	box-shadow: 0px 0px 20px #337ab7;
+	box-shadow: 0px 0px 5px #2979FF;
 	-webkit-transform: scale(1);
 	-moz-transform: scale(1);
 	-ms-transform: scale(1);
 	-o-transform: scale(1);
 	transform: scale(1);
 }
+.onFocus.different.btn-primary,.onFocus.different.btn-primary:visited{
+	color: #fff;
+    background-color: #2979FF;
+    border-color: #2962FF;
+	-webkit-border-radius: 50px;
+	-moz-border-radius: 50px;
+	border-radius: 50px;
+	border: none;
+	outline: none;
+}
+.onFocus.different.btn-primary:hover {
+    color: #fff;
+    background-color: #1565C0;
+    border-color: #0D47A1;
+	-webkit-border-radius: 50px;
+	-moz-border-radius: 50px;
+	border-radius: 50px;
+}
+.onFocus.different.btn:focus {
+    outline: none !important;
+}
 .onFocus a .caption {
 	color: #fff !important;
 }
+/*Loading screen*/
+#loadingLink{
+	position: absolute;
+	left: 50%;
+	top: 45%;
+	margin: 0;
+}
+.loading {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -60px 0 0 -60px;
+  background: url(/files/logo1.png) no-repeat;
+  background-size: 100px 100px;
+  width: 100px;
+  height: 100px;
+}
+.loadingAfter {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin: -80px 0 0 -80px;
+	width: 140px;
+	height: 140px;
+	background: transparent;
+	border-radius: 100%;
+	opacity: 0.7;
+	-webkit-box-shadow: rgba(255, 255, 255, 0.6) -4px -5px 3px -3px;
+	-moz-box-shadow: rgba(255, 255, 255, 0.6) -4px -5px 3px -3px;
+	-o-box-shadow: rgba(255, 255, 255, 0.6) -4px -5px 3px -3px;
+	box-shadow: rgba(255, 255, 255, 0.6) -4px -5px 3px -3px;
+	-webkit-animation: rotate 2s infinite linear;
+	-moz-animation: rotate 2s infinite linear;
+	-o-animation: rotate 2s infinite linear;
+	animation: rotate 2s infinite linear;
+}
+#ButtonContainer {
+	position: absolute;
+	align-items: center;
+    display: flex;
+    justify-content: center;
+    left: 50%;
+    top: 50%;
+	margin-top:100px;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	-o-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);	
+	border: none;
+	outline: none;
+}
+@keyframes rotate {
+  0% {
+    transform: rotateZ(0deg);
+  }
+  100% {
+    transform: rotateZ(360deg);
+  }
+}
+@-webkit-keyframes rotate {
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@-moz-keyframes rotate {
+  0% {
+    -moz-transform: rotateZ(0deg);
+  }
+  100% {
+    -moz-transform: rotateZ(360deg);
+  }
+}
+
+@-o-keyframes rotate {
+  0% {
+    -o-transform: rotateZ(0deg);
+  }
+  100% {
+    -o-transform: rotateZ(360deg);
+  }
+}
+.loading-page {
+  top: 10em;
+  position: relative;
+}
+.loading-page .counter {
+  text-align: center;
+}
+.loading-page .counter p {
+  font-size: 22px;
+  font-weight: 100;
+  color: #f60d54;
+}
+.loading-page .counter h1 {
+  color: white;
+  font-size: 40px;
+}
+.loading-page .counter hr {
+  background: #f60d54;
+  border: none;
+  height: 1px;
+}
+.loading-page .counter {
+  position: relative;
+  width: 100px;
+}
+.loading-page .counter h1.abs {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.loading-page .counter .color {
+  width: 0px;
+  overflow: hidden;
+  color: #f60d54;
+}
+/*END Loading screen*/
 a#HomeButton {
-	background: url(/files/menu-left-content.png);
+	background: url(/files/logo1.png);
 	background-repeat: no-repeat;
 	background-position: left bottom;
 	background-size: contain;
-	width: 67px;
-	height: 50px;
+	width: 50px;
 	display: block;
 }
 #settings>.fa{
 	font-size: 16px;
 }
+#fontChanger{
+	color: #ffffff;
+}
+.small .active{
+	font-size: 12px;
+	background-color: lightgray;
+}
+.medium .active{
+	font-size: 16px;
+	background-color: lightgray;
+}
+.big .active{
+	font-size: 18px;
+	background-color: lightgray;
+}
+.extrabig .active{
+	font-size: 22px;
+	background-color: lightgray;
+}
+.dropdown-menu li .small{
+	font-size: 12px;
+}
+.dropdown-menu li .medium{
+	font-size: 16px;
+}
+.dropdown-menu li .big{
+	font-size: 18px;
+}
+.dropdown-menu li .extrabig{
+	font-size: 22px;
+}
+
 .box-meta {
-	background-color: #111111 !important; /*Android TV NO Official Color*/
+	background-color: #212121 !important; /*Android TV Official Color*/
 	border-bottom-left-radius: 3px;
 	border-bottom-right-radius: 3px;
 	height: 40px;
@@ -303,11 +474,14 @@ REWRITE DEFAULT STYLE
  ***********************************/
 body{
 	color: #FFFFFF;
+	background: #212121;/*Loading screen starting color*/
 }
 #toolbar{
 	color: #000000;
-    background-color: rgba(43,51,63,.7);
+    background-color: #212121;
     padding: 5px 2px;
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
 }
 #toolbar button{
     font-weight: 600;
@@ -321,12 +495,37 @@ body{
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 }
-#FrontPage #Menu a h3 {
+/*Frontpage logo and button*/
+#FrontPage{
+    width: 100%;
+    min-height: 500px;
+    height: auto;
+    position: relative;
+}
+#FrontPage #Container{
+	width: 640px; /*can be in percentage also.*/
+    min-height: 500px;
+    height: inherit;
+    margin: 0 auto;
+    padding: 0 10px;
+    position: relative;
+}
+#FrontPage #Container a button {
 	color: #FFFFFF;
-	width: 100%;
 	font-size: 18px;
 	margin-top: 230px;
 }
+#FrontPage #Container #LogoContainer {
+	position: relative;
+    top: 29px;
+}
+#Logo {
+	position: relative;
+    margin: 0 auto;
+    left: auto;
+    top: auto;
+}
+/*END Frontpage logo and button*/
 #ContentPage .fa-cog{
 	color: #FFFFFF;
 	font-size: 18px;
@@ -334,6 +533,7 @@ body{
 #ContentPage.Doc {
 	margin: 70px auto;
 }
+
 @media screen and (max-width: 1080px) {
 	#bumplist{
 		position: relative;
@@ -367,56 +567,6 @@ body{
 		text-align: left;
 	}
 }
-/*****************************
-SCROLLBAR
-/********Media(Body)**********/
-/* width */
-::-webkit-scrollbar {
-	width: 6px;
-}
-/* Track */
-::-webkit-scrollbar-track {
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-::-webkit-scrollbar-track {
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-/* Handle */
-::-webkit-scrollbar-thumb {
-	background: #888;
-	border-radius: 10px;
-}
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-	background: #555;
-}
-/**********Folders**********/
-ul#Folders::-webkit-scrollbar {
-	width: 6px;
-}
-/* Track */
-ul#Folders::-webkit-scrollbar-track {
-	display: none;
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-ul#Folders::-webkit-scrollbar-track {
-	display: none;
-	background: #f1f1f1;
-	border-radius: 10px;
-}
-/* Handle */
-ul#Folders::-webkit-scrollbar-thumb {
-	background: #888;
-	border-radius: 10px;
-}
-/* Handle on hover */
-ul#Folders::-webkit-scrollbar-thumb:hover {
-	background: #555;
-}
-/**********END SCROLLBAR**********/
 
 /*****************************
 Sticky footer styles
@@ -528,21 +678,16 @@ ul#Folders li span {
 }
 #DownloadLink {
 	margin: 0px;
-	background: #222;
-	border-color: #fff;
 	background-image: none;
 	display: inline-block;
 	height: auto;
 	width: auto;
 }
 .btn-playbar {
-	background: #222;
-	border-color: #fff;
-	color: #fff;
+	background: #212121;
+	color: #FAFAFA;
 }
-.btn-playbar:hover {
 
-}
 @media screen and (max-width: 1080px) {
 	ul#Media{
 		padding-top: 0px;
@@ -558,13 +703,15 @@ ul#Folders li span {
 ul#Media .caption {
 	color: #eeeeee;
 	font-weight: 300;
-	padding-right: 35px;
+	padding-right: 20px;
+	line-height: 20px;
+	height: 22px;
 }
 ul#Media .expand-bump{
 	padding: 0;
 }
 ul#Media .playlist_add{
-	color: #eeeeee;
+	color: #fafafa;
 	font-weight: 300;
 }
 ul#Media li {
@@ -578,6 +725,9 @@ ul#Media li:hover {
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 	transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
 }
+ul#Media li>a{
+	width: 100%;
+}
 ul#Media li>a:hover {
 	background-color: #000 !important;
 	border-top-left-radius: 3px;
@@ -585,6 +735,9 @@ ul#Media li>a:hover {
 }
 ul#Media li:hover .caption {
 	color: #fff !important;
+}
+ul#Media li .clearPadding{
+	padding-left: 0px;
 }
 ul#Media .onFocus {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
@@ -601,7 +754,7 @@ ul#Media .thumb{
 ul#Media .caption:hover {
 	text-decoration: none;
 }
-#toolbar button.onFocus,#toolbar button:hover{
+#toolbar button.onFocus,#toolbar button:hover,#toolbar a.onFocus,#toolbar a:hover{
 	background-color:#ebebeb;
 	color:#2f2f2f !important;
 	-moz-transform:scale(1.1);
@@ -615,6 +768,14 @@ ul#Media .caption:hover {
 	-o-transition: transform 0.2s;
 	transition: transform 0.2s;
 	transform-origin: 50% 50%;
+	border: none;
+	outline: none;
+}
+#toolbar .btn .focus, #toolbar .btn:focus{
+    color: #000000;
+    background-color: white;
+	border: none;
+	outline: none;
 }
 /*
 * VIDEOJS CSS REWRITE, TODO: REVIEW THIS IN ALL BROWSERS

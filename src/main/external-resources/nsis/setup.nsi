@@ -118,15 +118,8 @@ Function AdvancedSettings
 	${If} ${RunningX64}
 		SetRegView 64
 	${EndIf}
-	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
-	IfErrors 0 CheckMemAmnt
-
-	; This is where the registry entries go in JRE9+
-	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\JRE" "CurrentVersion"
-	IfErrors SetLowMemoryLimit CheckMemAmnt
 
 	; Get the amount of RAM on the computer
-	CheckMemAmnt:
 	System::Alloc 64
 	Pop $1
 	System::Call "*$1(i64)"
@@ -142,12 +135,7 @@ Function AdvancedSettings
 	${Else}
 		StrCpy $MaximumMemoryJava "768"
 	${EndIf}
-	Goto NSDContinue
 
-	SetLowMemoryLimit:
-	StrCpy $MaximumMemoryJava "768" 
-
-	NSDContinue:
 	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
 	Pop $DescMemoryLimit
 
@@ -193,20 +181,29 @@ FunctionEnd
 Section "Program Files"
 	SetOutPath "$INSTDIR"
 	SetOverwrite on
-	
-	CreateDirectory "$INSTDIR\plugins"
-	AccessControl::GrantOnFile "$INSTDIR\plugins" "(S-1-5-32-545)" "FullAccess"
-		
-	File /r /x "*.conf" /x "*.zip" /x "*.dll" /x "third-party" "${PROJECT_BASEDIR}\src\main\external-resources\plugins"
+
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
-	File /r "${PROJECT_BASEDIR}\target\bin\win32"
+
+	${If} ${RunningX64}
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x64"
+		File /r /x "ffmpeg.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+	${Else}
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x86"
+		File /r /x "ffmpeg64.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+	${EndIf}
+
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.bat"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
 	File "${PROJECT_BUILD_DIR}\ums.jar"
-	File "${PROJECT_BASEDIR}\MediaInfo.dll"
-	File "${PROJECT_BASEDIR}\MediaInfo64.dll"
+
+	${If} ${RunningX64}
+		File "${PROJECT_BASEDIR}\MediaInfo64.dll"
+	${Else}
+		File "${PROJECT_BASEDIR}\MediaInfo.dll"
+	${EndIf}
+
 	File "${PROJECT_BASEDIR}\MediaInfo-License.html"
 	File "${PROJECT_BASEDIR}\CHANGELOG.txt"
 	File "${PROJECT_BASEDIR}\README.md"
@@ -323,11 +320,16 @@ Section "Program Files"
 	CreateDirectory "$R0\UMS\data"
 
 	AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
-; 	AccessControl::GrantOnFile "$R0\UMS\data" "(BU)" "FullAccess"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
+
+	${If} ${RunningX64}
+		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x64\bin\javaw.exe" enable=yes profile=public,private'
+	${Else}
+		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x86\bin\javaw.exe" enable=yes profile=public,private'
+	${EndIf}
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -354,6 +356,8 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
@@ -390,6 +394,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\LG-LS5700.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\LG-ST600.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\LG-UB820V.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\LG-UH770.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\LG-WebOS.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Logitech-Squeezebox.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Microsoft-WindowsMediaPlayer.conf"
@@ -469,6 +474,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-NotCD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-PL51E490.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMTG7400.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar-MS750.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-WiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sharp-Aquos.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime3.conf"
@@ -580,8 +586,13 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\UMS.exe"
 	Delete /REBOOTOK "$INSTDIR\UMS.bat"
 	Delete /REBOOTOK "$INSTDIR\ums.jar"
-	Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
-	Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
+
+	${If} ${RunningX64}
+		Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
+	${Else}
+		Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
+	${EndIf}
+
 	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
 	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
 	Delete /REBOOTOK "$INSTDIR\WEB.conf"
@@ -610,6 +621,8 @@ Section "Uninstall"
 
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+
+	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 
 	nsSCM::Stop "${PROJECT_NAME}"
 	nsSCM::Remove "${PROJECT_NAME}"

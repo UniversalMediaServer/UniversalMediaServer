@@ -168,7 +168,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getFileName();
-		setAudioAndSubs(filename, media, params);
+		setAudioAndSubs(dlna, params);
 
 		// Workaround an FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		// Also see static init
@@ -378,7 +378,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 			ExecutableInfo executableInfo = programInfo.getExecutableInfo(currentExecutableType);
 			if (executableInfo instanceof FFmpegExecutableInfo) {
-				List<String> protocols = ((FFmpegExecutableInfo) executableInfo).getProtocols();
+				List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
 				if (protocols == null || !protocols.contains(url.split(":")[0])) {
 					return false;
 				}

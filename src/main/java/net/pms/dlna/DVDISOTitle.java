@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.ISOVOB;
@@ -42,6 +43,7 @@ import net.pms.util.Iso639;
 import net.pms.util.MPlayerDvdAudioStreamChannels;
 import net.pms.util.MPlayerDvdAudioStreamTypes;
 import net.pms.util.ProcessUtil;
+import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -495,5 +497,21 @@ public class DVDISOTitle extends DLNAResource {
 		}
 		LOGGER.warn("Could not parse DVD subtitle stream \"{}\"", line);
 		return null;
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);
+		if (
+			media != null &&
+			renderer != null &&
+			media.getDurationInSeconds() > 0 &&
+			renderer.isShowDVDTitleDuration()
+		) {
+			nameSuffix += " (" + StringUtil.convertTimeToString(media.getDurationInSeconds(), "%01d:%02d:%02.0f") + ")";
+		}
+
+		return nameSuffix;
 	}
 }

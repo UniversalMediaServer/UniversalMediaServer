@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -37,11 +39,10 @@ import net.pms.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -561,11 +562,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void calculateAllSpeeds() {
-		for (InetAddress sa : addressAssociation.keySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			InetAddress sa = entry.getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
-			RendererConfiguration r = addressAssociation.get(sa);
+			RendererConfiguration r = entry.getValue();
 			if (!r.isOffline()) {
 				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
 			}
@@ -804,7 +806,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
 					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
 				boolean header = true;
-				for (String line : FileUtils.readLines(ref, Charsets.UTF_8)) {
+				for (String line : FileUtils.readLines(ref, StandardCharsets.UTF_8)) {
 					if (
 						skip.reset(line).matches() ||
 						(
@@ -1539,9 +1541,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		// Otherwise check the address association
-		for (InetAddress sa : addressAssociation.keySet()) {
-			if (addressAssociation.get(sa) == this) {
-				return sa;
+		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+			if (entry.getValue() == this) {
+				return entry.getKey();
 			}
 		}
 		return null;
@@ -2337,6 +2339,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + truncate
 		int len = 0;
+		if (suffix == null) {
+			suffix = "";
+		}
+
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
 			int suffix_len = dots.length() + suffix.length();
 			if (lineHeight == 1) {
@@ -2361,14 +2367,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				name = name.substring(0, len).trim() + dots;
 			}
 		}
-		if (len > -1) {
-			name += suffix;
+		if (len > -1 && isNotBlank(suffix)) {
+			name += " " + suffix;
 		}
 
 		// Substitute
-		for (String s : charMap.keySet()) {
-			String repl = charMap.get(s).replaceAll("###e", "");
-			name = name.replaceAll(s, repl);
+		for (Entry<String, String> entry : charMap.entrySet()) {
+			String repl = entry.getValue().replaceAll("###e", "");
+			name = name.replaceAll(entry.getKey(), repl);
 		}
 
 		return name;
