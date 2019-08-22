@@ -34,7 +34,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
-	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
+	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
@@ -43,13 +43,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
-		if (!resources.isEmpty() &&
+		if (
+			!resources.isEmpty() &&
 			resources.get(0).getParent() != null &&
-			(resources.get(0).getParent() instanceof CodeEnter)) {
+			(resources.get(0).getParent() instanceof CodeEnter)
+		) {
 			// this is a code folder the search string is  entered code
 			CodeEnter ce = (CodeEnter) resources.get(0).getParent();
 			ce.setEnteredCode(search);
-			if(!ce.validCode(ce)) {
+			if (!ce.validCode(ce)) {
 				// invalid code throw error
 				throw new IOException("Auth error");
 			}
@@ -77,9 +79,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
+		
+		String backUri = "javascript:history.back()";
+		if (
+			!resources.isEmpty() &&
+			resources.get(0).getParent() != null &&
+			resources.get(0).getParent().getParent() != null &&
+			resources.get(0).getParent().getParent().isFolder()
+		) {
+			String newId = resources.get(0).getParent().getParent().getResourceId();
+			String idForWeb = URLEncoder.encode(newId, "UTF-8");
+			backUri = "/browse/" + idForWeb;
+		}
 
 		sb.setLength(0);
-		sb.append("<a href=\"javascript:history.back()\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
+		sb.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
 		sb.append("<span>").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
 		sb.append("</a>");
 		folders.add(sb.toString());
@@ -218,13 +232,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
-		if (RemoteUtil.deny(t)) {
-			throw new IOException("Access denied");
+		try {
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String id = RemoteUtil.getId("browse/", t);
+			LOGGER.debug("Got a browse request found id " + id);
+			String response = mkBrowsePage(id, t);
+			LOGGER.trace("Browse page:\n{}", response);
+			RemoteUtil.respond(t, response, 200, "text/html");
+		} catch (IOException e) {
+			throw e;
+		} catch (Exception e) {
+			// Nothing should get here, this is just to avoid crashing the thread
+			LOGGER.error("Unexpected error in RemoteBrowseHandler.handle(): {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
-		String id = RemoteUtil.getId("browse/", t);
-		LOGGER.debug("Got a browse request, found id {}", id);
-		String response = mkBrowsePage(id, t);
-		LOGGER.trace("Browse page:\n{}", response);
-		RemoteUtil.respond(t, response, 200, "text/html");
 	}
 }

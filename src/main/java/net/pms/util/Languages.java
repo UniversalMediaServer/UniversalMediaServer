@@ -38,7 +38,6 @@ import net.pms.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * This class is a utility class for translation between {@link java.util.Locale}'s
  * <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a> and
@@ -61,8 +60,6 @@ import org.slf4j.LoggerFactory;
  * @author Nadahar
  */
 public final class Languages {
-
-
 	/**
 	 * Not to be instantiated.
 	 */
@@ -102,6 +99,7 @@ public final class Languages {
 		"ca",      // Catalan, Valencian
 		"zh-Hans", // Chinese, Han (Simplified variant)
 		"zh-Hant", // Chinese, Han (Traditional variant)
+		"hr",      // Croatian
 		"cs",      // Czech
 		"da",      // Danish
 		"nl",      // Dutch, Flemish
@@ -663,6 +661,7 @@ public final class Languages {
 	 * language. English languages always return 100% since we have no way
 	 * to calculate their coverage due to the fact that only those strings
 	 * that differ from US-English is translated.
+	 *
 	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The percentage
 	 */
@@ -683,6 +682,7 @@ public final class Languages {
 	/**
 	 * Verifies if a given <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 * language tag is supported by UMS.
+	 *
 	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The result.
 	 */
@@ -699,6 +699,7 @@ public final class Languages {
 
 	/**
 	 * Verifies if a given {@link java.util.Locale} is supported by UMS.
+	 *
 	 * @param locale The {@link java.util.Locale}.
 	 * @return The result.
 	 */
@@ -709,6 +710,7 @@ public final class Languages {
 	/**
 	 * Verifies if a given <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
 	 * language tag is or can be converted into a language tag supported by UMS.
+	 *
 	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return The result.
 	 */
@@ -716,8 +718,10 @@ public final class Languages {
 		return isValid(languageTagToUMSLanguageTag(languageTag));
 	}
 
-	/** Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
-	 *  language tag if the language tag is supported by UMS, or returns null.
+	/**
+	 * Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
+	 * language tag if the language tag is supported by UMS, or returns null.
+	 *
 	 * @param languageTag The IEFT BCP 47 compatible language tag.
 	 * @return The IEFT BCP 47 formatted language tag.
 	 */
@@ -733,8 +737,10 @@ public final class Languages {
 		return null;
 	}
 
-	/** Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
-	 *  language tag if the language tag is supported by UMS, or returns null.
+	/**
+	 * Returns a correctly capitalized <a href="https://en.wikipedia.org/wiki/IETF_language_tag">IEFT BCP 47</a>
+	 * language tag if the language tag is supported by UMS, or returns null.
+	 *
 	 * @param locale The {@link java.util.Locale}.
 	 * @return The IEFT BCP 47 formatted language tag.
 	 */
@@ -750,6 +756,7 @@ public final class Languages {
 	 * <code>Local</code> if it can be found (<code>en</code> is translated to
 	 * <code>en-US</code>, <code>zh</code> to <code>zh-Hant</code> etc.).
 	 * Returns <code>null</code> if a valid <code>Locale</code> cannot be found.
+	 *
 	 * @param locale Source {@link java.util.Locale}.
 	 * @return Resulting {@link java.util.Locale}.
 	 */

@@ -19,6 +19,7 @@
 package net.pms.dlna;
 
 import com.github.junrar.Archive;
+import com.github.junrar.impl.FileVolumeManager;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
 import java.io.File;
@@ -91,7 +92,6 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -107,7 +107,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 			public void run() {
 				Archive rarFile = null;
 				try {
-					rarFile = new Archive(file);
+					rarFile = new Archive(new FileVolumeManager(file),null);
 					FileHeader header = null;
 					for (FileHeader fh : rarFile.getFileHeaders()) {
 						if (fh.getFileNameString().equals(fileHeaderName)) {

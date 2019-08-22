@@ -18,11 +18,11 @@
  */
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Frame;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,15 +31,30 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.RootFolder;
+import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.PlayerId;
+import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.io.SystemUtils;
+import net.pms.newgui.SharedContentTab.SharedFoldersTableModel;
+import net.pms.service.PreventSleepMode;
+import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
@@ -48,12 +63,12 @@ import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
-import net.pms.util.PreventSleepMode;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
+import net.pms.util.UniqueList;
 import net.pms.util.WindowsRegistry;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -79,6 +94,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
+	private static volatile boolean enabledEnginesBuilt = false;
+	private static final ReentrantReadWriteLock enabledEnginesLock = new ReentrantReadWriteLock();
+	private static UniqueList<PlayerId> enabledEngines;
+
+	private static volatile boolean enginesPriorityBuilt = false;
+	private static final ReentrantReadWriteLock enginesPriorityLock = new ReentrantReadWriteLock();
+	private static UniqueList<PlayerId> enginesPriority;
+
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
 	 * for -lavdopts.
@@ -86,9 +109,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * for compatibility with other operating systems.
 	 */
 	protected static final int MENCODER_MAX_THREADS = 8;
-
-	// TODO: Get this out of here
-	protected static boolean avsHackLogged = false;
 
 	protected static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
 	protected static final String KEY_ALIVE_DELAY = "ALIVE_delay";
@@ -131,6 +151,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
+	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
@@ -142,17 +163,23 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_DYNAMIC_PLS_SAVE_PATH = "dynamic_playlist_save_path";
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
+	protected static final String KEY_ENGINES_PRIORITY = "engines_priority";
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
+	protected static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
+	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
+	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	protected static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
+	protected static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
 	protected static final String KEY_FOLDERS = "folders";
 	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
@@ -169,6 +196,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	
+	/**
+	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
+	 */
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
@@ -179,7 +210,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LANGUAGE = "language";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
-	protected static final String KEY_LIVE_SUBTITLES_TMO = "live_subtitles_timeout";
 	protected static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
 	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
 	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
@@ -190,6 +220,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
 	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
+	protected static final String KEY_LOG_DATABASE = "log_database";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -232,7 +263,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
-	protected static final String KEY_PING_PATH = "ping_path";
 	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL= "playlist_auto_add_all";
 	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
 	protected static final String KEY_PLAYLIST_AUTO_PLAY= "playlist_auto_play";
@@ -259,7 +289,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
 	protected static final String KEY_RUN_WIZARD = "run_wizard";
 	protected static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
-	protected static final String KEY_SCREEN_SIZE = "screen_size";
 	protected static final String KEY_SCRIPT_DIR = "script_dir";
 	protected static final String KEY_SEARCH_FOLDER = "search_folder";
 	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
@@ -287,13 +316,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SORT_PATHS = "sort_paths";
 	protected static final String KEY_SPEED_DBG = "speed_debug";
 	protected static final String KEY_SUBS_COLOR = "subtitles_color";
+	protected static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
 	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
 	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
 	protected static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
 	protected static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
-	protected static final String KEY_TOOLTIP_BACKGROUND_COLOR = "tooltip_background";
-	protected static final String KEY_TOOLTIP_FOREGROUND_COLOR = "tooltip_foreground";
 	protected static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
 	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
@@ -320,14 +348,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
 	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
-	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome_mkv_as_webm_spoof";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
 	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
-	protected static final String KEY_WEB_FIREFOX_LINUX_MP4 = "web_firefox_linux_mp4";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
 	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
@@ -342,8 +368,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
-	protected static final String KEY_WINDOW_EXTENDED_STATE = "window_extended_state";
-	protected static final String KEY_WINDOW_GEOMETRY = "window_geometry";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// Deprecated settings
@@ -368,7 +392,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected String defaultLogFileDir = null;
 
 	public TempFolder tempFolder;
-	public ProgramPaths programPaths;
+	@Nonnull
+	protected final PlatformProgramPaths programPaths;
 	public IpFilter filter;
 
 	/**
@@ -382,13 +407,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_CHAPTER_SUPPORT,
 			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_DISABLE_TRANSCODING,
-			KEY_ENGINES,
 			KEY_FOLDERS,
+			KEY_FOLDERS_MONITORED,
 			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_HIDE_EMPTY_FOLDERS,
 			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
-			KEY_HIDE_SUBS_INFO,
 			KEY_IGNORE_THE_WORD_A_AND_THE,
 			KEY_IP_FILTER,
 			KEY_NETWORK_INTERFACE,
@@ -404,7 +428,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
+			KEY_SUBS_INFO_LEVEL,
 			KEY_SORT_METHOD,
+			KEY_SUBS_INFO_LEVEL,
 			KEY_USE_CACHE
 		)
 	);
@@ -541,8 +567,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * from the profile path.
 	 *
 	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws InterruptedException
 	 */
-	public PmsConfiguration() throws ConfigurationException {
+	public PmsConfiguration() throws ConfigurationException, InterruptedException {
 		this(true);
 	}
 
@@ -552,8 +579,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
+	 * @throws InterruptedException
 	 */
-	public PmsConfiguration(boolean loadFile) {
+	public PmsConfiguration(boolean loadFile) throws ConfigurationException, InterruptedException {
 		super(0);
 
 		if (loadFile) {
@@ -582,7 +610,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		((PropertiesConfiguration)configuration).setPath(PROFILE_PATH);
 
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
-		programPaths = createProgramPathsChain(configuration);
+		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = new IpFilter();
 		PMS.setLocale(getLanguageLocale(true));
 		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
@@ -606,7 +634,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		// Just instantiate
 		super(0);
 		tempFolder = null;
-		programPaths = null;
+		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = null;
 	}
 
@@ -614,7 +642,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		// Just initialize super
 		super(f, uuid);
 		tempFolder = null;
-		programPaths = null;
+		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = null;
 	}
 
@@ -622,20 +650,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void reset() {
 		// This is just to prevent super.reset() from being invoked. Actual resetting would
 		// require rebooting here, since all of the application settings are implicated.
-	}
-
-	/**
-	 * Check if we have disabled something first, then check the config file,
-	 * then the Windows registry, then check for a platform-specific
-	 * default.
-	 */
-	protected static ProgramPaths createProgramPathsChain(Configuration configuration) {
-		return new ConfigurationProgramPaths(
-			configuration,
-			new WindowsRegistryProgramPaths(
-				new PlatformSpecificDefaultPathsFactory().get()
-			)
-		);
 	}
 
 	private static String verifyLogFolder(File folder, String fallbackTo) {
@@ -740,51 +754,369 @@ public class PmsConfiguration extends RendererConfiguration {
 		return tempFolder.getTempFolder();
 	}
 
-	public String getVlcPath() {
-		return programPaths.getVlcPath();
-	}
-
-	public String getMencoderPath() {
-		return programPaths.getMencoderPath();
+	public LogSystemInformationMode getLogSystemInformation() {
+		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
+		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
+		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
+		return result != null ? result : defaultValue;
 	}
 
 	public int getMencoderMaxThreads() {
 		return Math.min(getInt(KEY_MENCODER_MAX_THREADS, getNumberOfCpuCores()), MENCODER_MAX_THREADS);
 	}
 
-	public String getDCRawPath() {
+	/**
+	 * @return {@code true} if custom program paths are supported, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isCustomProgramPathsSupported() {
+		return programPaths instanceof ConfigurableProgramPaths;
+	}
+
+	/**
+	 * Returns the configured {@link ProgramExecutableType} for the specified
+	 * {@link Player}. Note that this can be different from the
+	 * {@link Player#currentExecutableType} for the same {@link Player}.
+	 *
+	 * @param player the {@link Player} for which to get the configured
+	 *            {@link ProgramExecutableType}.
+	 * @return The configured {@link ProgramExecutableType}, the default
+	 *         {@link ProgramExecutableType} if none is configured or
+	 *         {@code null} if there is no default.
+	 *
+	 * @see Player#getCurrentExecutableType()
+	 */
+	@Nullable
+	public ProgramExecutableType getPlayerExecutableType(@Nonnull Player player) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			getString(player.getExecutableTypeKey(), null),
+			player.getProgramInfo().getDefault()
+		);
+
+		// The default might also be null, in which case the current should be used.
+		return executableType == null ? player.getCurrentExecutableType() : executableType;
+	}
+
+	/**
+	 * Sets the configured {@link ProgramExecutableType} for the specified
+	 * {@link Player}.
+	 *
+	 * @param player the {@link Player} for which to set the configured
+	 *            {@link ProgramExecutableType}.
+	 * @param executableType the {@link ProgramExecutableType} to set.
+	 * @return {@code true} if a change was made, {@code false} otherwise.
+	 */
+	public boolean setPlayerExecutableType(@Nonnull Player player, @Nonnull ProgramExecutableType executableType) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		if (executableType == null) {
+			throw new IllegalArgumentException("executableType cannot be null");
+		}
+		String key = player.getExecutableTypeKey();
+		if (key != null) {
+			String currentValue = configuration.getString(key);
+			String newValue = executableType.toRootString();
+			if (newValue.equals(currentValue)) {
+				return false;
+			}
+			configuration.setProperty(key, newValue);
+			player.determineCurrentExecutableType(executableType);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Gets the configured {@link Path} for the specified {@link PlayerId}. The
+	 * {@link Player} must be registered. No check for existence or search in
+	 * the OS path is performed.
+	 *
+	 * @param playerId the {@link PlayerId} for the registered {@link Player}
+	 *            whose configured {@link Path} to get.
+	 * @return The configured {@link Path} or {@code null} if missing, blank or
+	 *         invalid.
+	 */
+	@Nullable
+	public Path getPlayerCustomPath(@Nullable PlayerId playerId) {
+		if (playerId == null) {
+			return null;
+		}
+		return getPlayerCustomPath(PlayerFactory.getPlayer(playerId, false, false));
+	}
+
+	/**
+	 * Gets the configured {@link Path} for the specified {@link Player}. No
+	 * check for existence or search in the OS path is performed.
+	 *
+	 * @param player the {@link Player} whose configured {@link Path} to get.
+	 * @return The configured {@link Path} or {@code null} if missing, blank or
+	 *         invalid.
+	 */
+	@Nullable
+	public Path getPlayerCustomPath(@Nullable Player player) {
+		if (
+			player == null ||
+			isBlank(player.getConfigurablePathKey()) ||
+			!(programPaths instanceof ConfigurableProgramPaths)
+		) {
+			return null;
+		}
+
+		try {
+			return ((ConfigurableProgramPaths) programPaths).getCustomProgramPath(player.getConfigurablePathKey());
+		} catch (ConfigurationException e) {
+			LOGGER.warn(
+				"An invalid executable path is configured for transcoding engine {}. The path is being ignored: {}",
+				player,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Sets the custom executable {@link Path} for the specified {@link Player}
+	 * in the configuration.
+	 * <p>
+	 * <b>Note:</b> This isn't normally what you'd want. To change the
+	 * {@link Path} <b>for the {@link Player} instance</b> in the same
+	 * operation, use {@link Player#setCustomExecutablePath} instead.
+	 *
+	 * @param player the {@link Player} whose custom executable {@link Path} to
+	 *            set.
+	 * @param path the {@link Path} to set or {@code null} to clear.
+	 * @return {@code true} if a change was made to the configuration,
+	 *         {@code false} otherwise.
+	 * @throws IllegalStateException If {@code player} has no configurable path
+	 *             key or custom program paths aren't supported.
+	 */
+	public boolean setPlayerCustomPath(@Nonnull Player player, @Nullable Path path) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		if (isBlank(player.getConfigurablePathKey())) {
+			throw new IllegalStateException(
+				"Can't set custom executable path for player " + player + "because it has no configurable path key"
+			);
+		}
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		return ((ConfigurableProgramPaths) programPaths).setCustomProgramPathConfiguration(
+			path,
+			player.getConfigurablePathKey()
+		);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for VLC.
+	 */
+	@Nullable
+	public ExternalProgramInfo getVLCPaths() {
+		return programPaths.getVLC();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for MEncoder.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMEncoderPaths() {
+		return programPaths.getMEncoder();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for DCRaw.
+	 */
+	@Nullable
+	public ExternalProgramInfo getDCRawPaths() {
 		return programPaths.getDCRaw();
 	}
 
-	public String getFfmpegPath() {
-		return programPaths.getFfmpegPath();
+	/**
+	 * @return The {@link ExternalProgramInfo} for FFmpeg.
+	 */
+	@Nullable
+	public ExternalProgramInfo getFFmpegPaths() {
+		return programPaths.getFFmpeg();
 	}
 
-	public String getMplayerPath() {
-		return programPaths.getMplayerPath();
+	/**
+	 * @return The {@link ExternalProgramInfo} for MPlayer.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMPlayerPaths() {
+		return programPaths.getMPlayer();
 	}
 
-	public String getTsmuxerPath() {
-		return programPaths.getTsmuxerPath();
+	/**
+	 * @return The configured path to the MPlayer executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMPlayerPath() {
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_MPLAYER_EXECUTABLE_TYPE,
+			getMPlayerPaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getMPlayerPaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getMPlayerPaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
 	}
 
-	public String getTsmuxerNewPath() {
-		return programPaths.getTsmuxerNewPath();
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for MPlayer
+	 * both in {@link PmsConfiguration} and the {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomMPlayerPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomMPlayerPath(customPath);
 	}
 
-	public String getFlacPath() {
-		return programPaths.getFlacPath();
+	/**
+	 * @return The {@link ExternalProgramInfo} for tsMuxeR.
+	 */
+	@Nullable
+	public ExternalProgramInfo getTsMuxeRPaths() {
+		return programPaths.getTsMuxeR();
 	}
 
+	/**
+	 * @return The {@link ExternalProgramInfo} for tsMuxeRNew.
+	 */
+	@Nullable
+	public ExternalProgramInfo getTsMuxeRNewPaths() {
+		return programPaths.getTsMuxeRNew();
+	}
+
+	/**
+	 * @return The configured path to the tsMuxeRNew executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getTsMuxeRNewPath() {
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_TSMUXER_NEW_EXECUTABLE_TYPE,
+			getTsMuxeRNewPaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getTsMuxeRNewPaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getTsMuxeRNewPaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * "tsMuxeR new" both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomTsMuxeRNewPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomTsMuxeRNewPath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for FLAC.
+	 */
+	@Nullable
+	public ExternalProgramInfo getFLACPaths() {
+		return programPaths.getFLAC();
+	}
+
+	/**
+	 * @return The configured path to the FLAC executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getFLACPath() {
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_FLAC_EXECUTABLE_TYPE,
+			getFLACPaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getFLACPaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getFLACPaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for FLAC
+	 * both in {@link PmsConfiguration} and the {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomFlacPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomFlacPath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for Interframe.
+	 */
+	@Nullable
+	public ExternalProgramInfo getInterFramePaths() {
+		return programPaths.getInterFrame();
+	}
+
+	/**
+	 * @return The configured path to the Interframe folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
 	public String getInterFramePath() {
-		return programPaths.getInterFramePath();
+		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+			ConfigurableProgramPaths.KEY_INTERFRAME_EXECUTABLE_TYPE,
+			getInterFramePaths().getDefault()
+		);
+		Path executable = null;
+		if (executableType != null) {
+			executable = getInterFramePaths().getPath(executableType);
+		}
+		if (executable == null) {
+			executable = getInterFramePaths().getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
 	}
 
-	public LogSystemInformationMode getLogSystemInformation() {
-		LogSystemInformationMode defaultValue = LogSystemInformationMode.TRACE_ONLY;
-		String value = getString(KEY_LOG_SYSTEM_INFO, defaultValue.toString());
-		LogSystemInformationMode result = LogSystemInformationMode.typeOf(value);
-		return result != null ? result : defaultValue;
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * Interframe both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomInterFramePath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
 	}
 
 	/**
@@ -849,9 +1181,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getServerDisplayName() {
 		if (isAppendProfileName()) {
 			return String.format("%s [%s]", getString(KEY_SERVER_NAME, PMS.NAME), getProfileName());
-		} else {
-			return getString(KEY_SERVER_NAME, PMS.NAME);
 		}
+		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
 	/**
 	 * The name of the server.
@@ -1806,20 +2137,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true if PMS should start minimized, i.e. without its window
-	 * opened. Default value false: to start with a window.
+	 * Whether we should start minimized, i.e. without its window opened.
+	 * Always returns false on macOS since it makes it impossible(?) for the
+	 * program to open.
 	 *
-	 * @return True if PMS should start minimized, false otherwise.
+	 * @return whether we should start minimized
 	 */
 	public boolean isMinimized() {
+		if (Platform.isMac()) {
+			return false;
+		}
+
 		return getBoolean(KEY_MINIMIZED, false);
 	}
 
 	/**
-	 * Set to true if PMS should start minimized, i.e. without its window
-	 * opened.
+	 * Whether we should start minimized, i.e. without its window opened.
 	 *
-	 * @param value True if PMS should start minimized, false otherwise.
+	 * @param value whether we should start minimized, false otherwise.
 	 */
 	public void setMinimized(boolean value) {
 		configuration.setProperty(KEY_MINIMIZED, value);
@@ -2130,6 +2465,30 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
 	}
 
+	public String getFFmpegGPUDecodingAccelerationMethod() {
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"));
+	}
+
+	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, value);
+	}
+
+	public String getFFmpegGPUDecodingAccelerationThreadNumber() {
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER,"1");
+	}
+
+	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, value);
+	}
+
+	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled")).split(",");
+	}
+
+	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
+		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, collectionToString(methods));
+	}
+
 	public void setFfmpegAviSynthMultithreading(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, value);
 	}
@@ -2205,14 +2564,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	public String getFfmpegAlternativePath() {
-		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
-	}
-
-	public void setFfmpegAlternativePath(String value) {
-		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
-	}
-
 	public boolean getSkipLoopFilterEnabled() {
 		return getBoolean(KEY_SKIP_LOOP_FILTER_ENABLED, false);
 	}
@@ -2280,104 +2631,665 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT, value);
 	}
 
-	public void setEnginesAsList(ArrayList<String> enginesAsList) {
-		configuration.setProperty(KEY_ENGINES, listToString(enginesAsList));
+	/**
+	 * Lazy implementation, call before accessing {@link #enabledEngines}.
+	 */
+	private void buildEnabledEngines() {
+		if (enabledEnginesBuilt) {
+			return;
+		}
+		enabledEnginesLock.writeLock().lock();
+		try {
+			// Not a bug, using double checked locking
+			if (enabledEnginesBuilt) {
+				return;
+			}
+			String engines = configuration.getString(KEY_ENGINES);
+			enabledEngines = stringToPlayerIdSet(engines);
+			if (isBlank(engines)) {
+				configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
+			}
+
+			enabledEnginesBuilt = true;
+		} finally {
+			enabledEnginesLock.writeLock().unlock();
+		}
 	}
 
 	/**
-	 * TODO look at the changes that were made to this in PMS and if they seem
-	 * stable, merge them.
+	 * Gets a {@link UniqueList} of the {@link PlayerId}s in no particular
+	 * order. Returns a new instance, any modifications won't affect original
+	 * list.
+	 *
+	 * @return A copy of the {@link List} of {@link PlayerId}s.
 	 */
-	public List<String> getEnginesAsList(SystemUtils registry) {
-		String defaultEngines = StringUtils.join(
-			new String[] {
-				"ffmpegvideo",
-				"mencoder",
-				"tsmuxer",
-				"ffmpegaudio",
-				"tsmuxeraudio",
-				"ffmpegwebvideo",
-				"vlcwebvideo", // (VLCWebVideo)
-				"vlcvideo", // (VideoLanVideoStreaming) TODO (legacy web video engine): remove
-				"mencoderwebvideo",
-				"vlcaudio", // (VideoLanAudioStreaming) TODO (legacy web audio engine): remove
-				"ffmpegdvrmsremux",
-				"dcraw"
-			},
-			","
-		);
-		List<String> engines = stringToList(
-			// Possibly blank: An empty string means: disable all engines
-			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15416
-			configurationReader.getPossiblyBlankConfigurationString(
-				KEY_ENGINES,
-				defaultEngines
-			)
-		);
+	public List<PlayerId> getEnabledEngines() {
+		buildEnabledEngines();
+		enabledEnginesLock.readLock().lock();
+		try {
+			return new ArrayList<PlayerId>(enabledEngines);
+		} finally {
+			enabledEnginesLock.readLock().unlock();
+		}
+	}
 
-		engines = hackAvs(registry, engines);
-		// Backwards compatibility, can be removed when sufficient time has passed - 2017-01
-		int i = engines.indexOf("rawthumbs");
-		if (i >= 0) {
-			engines.set(i, "dcraw");
+	/**
+	 * Gets the enabled status of the specified {@link PlayerId}.
+	 *
+	 * @param id the {@link PlayerId} to check.
+	 * @return {@code true} if the {@link Player} with {@code id} is enabled,
+	 *         {@code false} otherwise.
+	 */
+	public boolean isEngineEnabled(PlayerId id) {
+		if (id == null) {
+			throw new NullPointerException("id cannot be null");
+		}
+		buildEnabledEngines();
+		enabledEnginesLock.readLock().lock();
+		try {
+			return enabledEngines.contains(id);
+		} finally {
+			enabledEnginesLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Gets the enabled status of the specified {@link Player}.
+	 *
+	 * @param player the {@link Player} to check.
+	 * @return {@code true} if {@code player} is enabled, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isEngineEnabled(Player player) {
+		if (player == null) {
+			throw new NullPointerException("player cannot be null");
 		}
 
-		return engines;
+		return isEngineEnabled(player.id());
 	}
 
-	private static String listToString(List<String> enginesAsList) {
-		return StringUtils.join(enginesAsList, LIST_SEPARATOR);
+	/**
+	 * Sets the enabled status of the specified {@link PlayerId}.
+	 *
+	 * @param id the {@link PlayerId} whose enabled status to set.
+	 * @param enabled the enabled status to set.
+	 */
+	public void setEngineEnabled(PlayerId id, boolean enabled) {
+		if (id == null) {
+			throw new IllegalArgumentException("Unrecognized id");
+		}
+
+		enabledEnginesLock.writeLock().lock();
+		try {
+			buildEnabledEngines();
+			if (enabledEngines.contains(id)) {
+				if (!enabled) {
+					enabledEngines.remove(id);
+				}
+			} else {
+				if (enabled) {
+					enabledEngines.add(id);
+				}
+			}
+			configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
+		} finally {
+			enabledEnginesLock.writeLock().unlock();
+		}
 	}
 
-	private static List<String> stringToList(String input) {
+	/**
+	 * Sets the enabled status of the specified {@link Player}.
+	 *
+	 * @param player the {@link Player} whose enabled status to set.
+	 * @param enabled the enabled status to set.
+	 */
+	public void setEngineEnabled(Player player, boolean enabled) {
+		setEngineEnabled(player.id(), enabled);
+	}
+
+	/**
+	 * This is to make sure that any incorrect capitalization in the
+	 * configuration file is corrected. This should only need to be called from
+	 * {@link PlayerFactory#registerPlayer(Player)}.
+	 *
+	 * @param player the {@link Player} for which to assure correct
+	 *            capitalization.
+	 */
+	public void capitalizeEngineId(Player player) {
+		if (player == null) {
+			throw new NullPointerException("player cannot be null");
+		}
+
+		String engines = configuration.getString(KEY_ENGINES);
+		if (StringUtils.isNotBlank(engines)) {
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), player.id().toString());
+			if (!engines.equals(capitalizedEngines)) {
+				configuration.setProperty(KEY_ENGINES, capitalizedEngines);
+			}
+		}
+
+		engines = configuration.getString(KEY_ENGINES_PRIORITY);
+		if (StringUtils.isNotBlank(engines)) {
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), player.id().toString());
+			if (!engines.equals(capitalizedEngines)) {
+				configuration.setProperty(KEY_ENGINES_PRIORITY, capitalizedEngines);
+			}
+		}
+	}
+
+	/**
+	 * Lazy implementation, call before accessing {@link #enginesPriority}.
+	 */
+	private void buildEnginesPriority() {
+		if (enginesPriorityBuilt) {
+			return;
+		}
+		enginesPriorityLock.writeLock().lock();
+		try {
+			// Not a bug, using double checked locking
+			if (enginesPriorityBuilt) {
+				return;
+			}
+			String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
+			enginesPriority = stringToPlayerIdSet(enginesPriorityString);
+			if (isBlank(enginesPriorityString)) {
+				configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
+			}
+			enginesPriorityBuilt = true;
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Gets a {@link UniqueList} of the {@link PlayerId}s ordered by priority.
+	 * Returns a new instance, any modifications won't affect priority list.
+	 *
+	 * @return A copy of the priority list.
+	 */
+	public UniqueList<PlayerId> getEnginesPriority() {
+		buildEnginesPriority();
+		enginesPriorityLock.readLock().lock();
+		try {
+			return new UniqueList<PlayerId>(enginesPriority);
+		} finally {
+			enginesPriorityLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns the priority index according to the rules of {@link List#indexOf}.
+	 *
+	 * @param id the {@link PlayerId} whose position to return.
+	 * @return The priority index of {@code id}, or {@code -1} if the priority
+	 *         list doesn't contain {@code id}.
+	 */
+	public int getEnginePriority(PlayerId id) {
+		if (id == null) {
+			throw new NullPointerException("id cannot be null");
+		}
+
+		buildEnginesPriority();
+		enginesPriorityLock.readLock().lock();
+		try {
+			int index = enginesPriority.indexOf(id);
+			if (index >= 0) {
+				return index;
+			}
+		} finally {
+			enginesPriorityLock.readLock().unlock();
+		}
+
+		// The engine isn't listed, add it last
+		enginesPriorityLock.writeLock().lock();
+		try {
+			enginesPriority.add(id);
+			return enginesPriority.indexOf(id);
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Returns the priority index according to the rules of {@link List#indexOf}.
+	 *
+	 * @param player the {@link Player} whose position to return.
+	 * @return the priority index of {@code player}, or -1 if this the priority
+	 *         list doesn't contain {@code player}.
+	 */
+	public int getEnginePriority(Player player) {
+		if (player == null) {
+			throw new NullPointerException("player cannot be null");
+		}
+		return getEnginePriority(player.id());
+	}
+
+	/**
+	 * Moves or inserts a {@link Player} directly above another {@link Player}
+	 * in the priority list. If {code abovePlayer} is {@code null},
+	 * {@code player} will be placed first in the list. If {@code abovePlayer}
+	 * isn't found, {@code player} will be placed last in the list.
+	 *
+	 * @param player the {@link Player} to move or insert in the priority list.
+	 * @param abovePlayer the {@link Player} to place {@code player} relative
+	 *            to.
+	 */
+	public void setEnginePriorityAbove(@Nonnull Player player, @Nullable Player abovePlayer) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		setEnginePriorityAbove(player.id(), abovePlayer == null ? null : abovePlayer.id());
+	}
+
+	/**
+	 * Moves or inserts a {@link PlayerId} directly above another
+	 * {@link PlayerId} in the priority list. If {code aboveId} is {@code null},
+	 * {@code id} will be placed first in the list. If {@code aboveId} isn't
+	 * found, {@code id} will be placed last in the list.
+	 *
+	 * @param id the {@link PlayerId} to move or insert in the priority list.
+	 * @param aboveId the {@link PlayerId} to place {@code id} relative to.
+	 */
+	public void setEnginePriorityAbove(PlayerId id, PlayerId aboveId) {
+		if (id == null) {
+			throw new IllegalArgumentException("Unrecognized id");
+		}
+
+		enginesPriorityLock.writeLock().lock();
+		try {
+			buildEnginesPriority();
+
+			if (enginesPriority.indexOf(id) > -1) {
+				enginesPriority.remove(id);
+			}
+
+			int newPosition;
+			if (aboveId == null) {
+				newPosition = 0;
+			} else {
+				newPosition = enginesPriority.indexOf(aboveId);
+				if (newPosition < 0) {
+					newPosition = enginesPriority.size();
+				}
+			}
+			enginesPriority.add(newPosition, id);
+			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+		PlayerFactory.sortPlayers();
+	}
+
+	/**
+	 * Moves or inserts a {@link Player} directly below another {@link Player}
+	 * in the priority list. If {code belowPlayer} is {@code null} or isn't
+	 * found, {@code player} will be placed last in the list.
+	 *
+	 * @param player the {@link Player} to move or insert in the priority list.
+	 * @param belowPlayer the {@link Player} to place {@code player} relative
+	 *            to.
+	 */
+	public void setEnginePriorityBelow(Player player, Player belowPlayer) {
+		if (player == null) {
+			throw new IllegalArgumentException("player cannot be null");
+		}
+		setEnginePriorityBelow(player.id(), belowPlayer == null ? null : belowPlayer.id());
+	}
+
+	/**
+	 * Moves or inserts a {@link PlayerId} directly below another
+	 * {@link PlayerId} in the priority list. If {code belowId} is {@code null}
+	 * or isn't found, {@code id} will be placed last in the list.
+	 *
+	 * @param id the {@link PlayerId} to move or insert in the priority list.
+	 * @param belowId the {@link PlayerId} to place {@code id} relative to.
+	 */
+	public void setEnginePriorityBelow(PlayerId id, PlayerId belowId) {
+		if (id == null) {
+			throw new IllegalArgumentException("Unrecognized id");
+		}
+
+		enginesPriorityLock.writeLock().lock();
+		try {
+			buildEnginesPriority();
+
+			if (enginesPriority.indexOf(id) > -1) {
+				enginesPriority.remove(id);
+			}
+
+			int newPosition;
+			if (belowId == null) {
+				newPosition = enginesPriority.size();
+			} else {
+				newPosition = enginesPriority.indexOf(belowId) + 1;
+				if (newPosition < 0) {
+					newPosition = enginesPriority.size();
+				}
+			}
+			enginesPriority.add(newPosition, id);
+			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
+		} finally {
+			enginesPriorityLock.writeLock().unlock();
+		}
+		PlayerFactory.sortPlayers();
+	}
+
+	private static String collectionToString(Collection<?> list) {
+		return StringUtils.join(list, LIST_SEPARATOR);
+	}
+
+	@SuppressWarnings("unused")
+	private static List<String> stringToStringList(String input) {
 		List<String> output = new ArrayList<>();
 		Collections.addAll(output, StringUtils.split(input, LIST_SEPARATOR));
 		return output;
 	}
 
-	// TODO: Get this out of here
-	private static List<String> hackAvs(SystemUtils registry, List<String> input) {
-		List<String> toBeRemoved = new ArrayList<>();
-		for (String engineId : input) {
-			if (engineId.startsWith("avs") && !registry.isAvis() && Platform.isWindows()) {
-				if (!avsHackLogged) {
-					LOGGER.info("AviSynth is not installed. You cannot use " + engineId + " as a transcoding engine.");
-					avsHackLogged = true;
-				}
-
-				toBeRemoved.add(engineId);
+	private static UniqueList<PlayerId> stringToPlayerIdSet(String input) {
+		UniqueList<PlayerId> output = new UniqueList<>();
+		if (isBlank(input)) {
+			output.addAll(StandardPlayerId.ALL);
+			return output;
+		}
+		input = input.trim().toLowerCase(Locale.ROOT);
+		if ("none".equals(input)) {
+			return output;
+		}
+		for (String s : StringUtils.split(input, LIST_SEPARATOR)) {
+			PlayerId playerId = StandardPlayerId.toPlayerID(s);
+			if (playerId != null) {
+				output.add(playerId);
+			} else {
+				LOGGER.warn("Unknown transcoding engine \"{}\"", s);
 			}
 		}
-
-		List<String> output = new ArrayList<>();
-		output.addAll(input);
-		output.removeAll(toBeRemoved);
 		return output;
 	}
 
 	public void save() throws ConfigurationException {
-		((PropertiesConfiguration)configuration).save();
-		LOGGER.info("Configuration saved to: " + PROFILE_PATH);
+		((PropertiesConfiguration) configuration).save();
+		LOGGER.info("Configuration saved to \"{}\"", PROFILE_PATH);
 	}
 
-	public String getFolders(ArrayList<String> tags) {
-		return tagLoop(tags, ".folders", KEY_FOLDERS);
+	private final Object sharedFoldersLock = new Object();
+
+	@GuardedBy("sharedFoldersLock")
+	private boolean sharedFoldersRead;
+
+	@GuardedBy("sharedFoldersLock")
+	private ArrayList<Path> sharedFolders;
+
+	@GuardedBy("sharedFoldersLock")
+	private boolean monitoredFoldersRead;
+
+	@GuardedBy("sharedFoldersLock")
+	private ArrayList<Path> monitoredFolders;
+
+	@GuardedBy("sharedFoldersLock")
+	private boolean ignoredFoldersRead;
+
+	@GuardedBy("sharedFoldersLock")
+	private ArrayList<Path> ignoredFolders;
+
+	private ArrayList<String> ignoredFolderNames;
+
+	/**
+	 * Whether folder_names_ignored has been read.
+	 */
+	private boolean ignoredFolderNamesRead;
+
+	private void readSharedFolders() {
+		synchronized (sharedFoldersLock) {
+			if (!sharedFoldersRead) {
+				sharedFolders = getFolders(KEY_FOLDERS);
+				sharedFoldersRead = true;
+			}
+		}
 	}
 
-	public String getFoldersIgnored(ArrayList<String> tags) {
-		return tagLoop(tags, ".ignore", KEY_FOLDERS_IGNORED);
+	/**
+	 * @return {@code true} if the configured shared folders are empty,
+	 *         {@code false} otherwise.
+	 */
+	public boolean isSharedFoldersEmpty() {
+		synchronized (sharedFoldersLock) {
+			readSharedFolders();
+			return sharedFolders.isEmpty();
+		}
 	}
 
-	public void setFolders(String value) {
-		configuration.setProperty(KEY_FOLDERS, value);
+	/**
+	 * @return The {@link List} of {@link Path}s of shared folders.
+	 */
+	@Nonnull
+	public List<Path> getSharedFolders() {
+		synchronized (sharedFoldersLock) {
+			if (isSharedFoldersEmpty()) {
+				setSharedFoldersToDefault();
+			}
+			readSharedFolders();
+			return new ArrayList<>(sharedFolders);
+		}
 	}
 
-	public String getFoldersMonitored() {
-		return getString(KEY_FOLDERS_MONITORED, "");
+	/**
+	 * @return The {@link List} of {@link Path}s of monitored folders.
+	 */
+	@Nonnull
+	public List<Path> getMonitoredFolders() {
+		synchronized (sharedFoldersLock) {
+			if (isSharedFoldersEmpty()) {
+				setSharedFoldersToDefault();
+			}
+			if (!monitoredFoldersRead) {
+				monitoredFolders = getFolders(KEY_FOLDERS_MONITORED);
+				monitoredFoldersRead = true;
+			}
+			return new ArrayList<>(monitoredFolders);
+		}
 	}
 
-	public void setFoldersMonitored(String value) {
-		configuration.setProperty(KEY_FOLDERS_MONITORED, value);
+	/**
+	 * @return The {@link List} of {@link Path}s of ignored folders.
+	 */
+	@Nonnull
+	public List<Path> getIgnoredFolders() {
+		synchronized (sharedFoldersLock) {
+			if (!ignoredFoldersRead) {
+				ignoredFolders = getFolders(KEY_FOLDERS_IGNORED);
+				ignoredFoldersRead = true;
+			}
+			return ignoredFolders;
+		}
+	}
+
+	/**
+	 * @return The {@link List} of {@link Path}s of ignored folder names.
+	 */
+	@Nonnull
+	public ArrayList<String> getIgnoredFolderNames() {
+		if (!ignoredFolderNamesRead) {
+			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted");
+
+			ArrayList<String> folders = new ArrayList<>();
+			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
+				return folders;
+			}
+			String[] foldersArray = ignoredFolderNamesString.trim().split("\\s*,\\s*");
+			ignoredFolderNames = new ArrayList<>();
+
+			for (String folder : foldersArray) {
+				/*
+				 * Unescape embedded commas. Note: Backslashing isn't safe as it
+				 * conflicts with the Windows path separator.
+				 */
+				folder = folder.replaceAll("&comma;", ",");
+
+				// add the path even if there are problems so that the user can update the shared folders as required.
+				ignoredFolderNames.add(folder);
+			}
+
+			ignoredFolderNamesRead = true;
+		}
+
+		return ignoredFolderNames;
+	}
+
+	/**
+	 * Transforms a comma-separated list of directory entries into an
+	 * {@link ArrayList} of {@link Path}s. Verifies that the folder exists and
+	 * is valid.
+	 *
+	 * @param key the {@link Configuration} key to read.
+	 * @return The {@link List} of folders or {@code null}.
+	 */
+	@Nonnull
+	protected ArrayList<Path> getFolders(String key) {
+		String foldersString = configuration.getString(key, null);
+
+		ArrayList<Path> folders = new ArrayList<>();
+		if (foldersString == null || foldersString.length() == 0) {
+			return folders;
+		}
+		String[] foldersArray = foldersString.trim().split("\\s*,\\s*");
+
+		for (String folder : foldersArray) {
+			/*
+			 * Unescape embedded commas. Note: Backslashing isn't safe as it
+			 * conflicts with the Windows path separator.
+			 */
+			folder = folder.replaceAll("&comma;", ",");
+
+			if (KEY_FOLDERS.equals(key)) {
+				LOGGER.info("Checking shared folder: \"{}\"", folder);
+			}
+
+			Path path = Paths.get(folder);
+			if (Files.exists(path)) {
+				if (!Files.isDirectory(path)) {
+					if (KEY_FOLDERS.equals(key)) {
+						LOGGER.warn(
+							"The \"{}\" is not a folder! Please remove it from your shared folders " +
+							"list on the \"{}\" tab or in the configuration file.",
+							folder,
+							Messages.getString("LooksFrame.TabSharedContent")
+						);
+					} else {
+						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
+					}
+				}
+			} else if (KEY_FOLDERS.equals(key)) {
+				LOGGER.warn(
+					"\"{}\" does not exist. Please remove it from your shared folders " +
+					"list on the \"{}\" tab or in the configuration file.",
+					folder,
+					Messages.getString("LooksFrame.TabSharedContent")
+				);
+			} else {
+				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
+			}
+
+			// add the path even if there are problems so that the user can update the shared folders as required.
+			folders.add(path);
+		}
+
+		return folders;
+	}
+
+	/**
+	 * This just preserves wizard functionality of offering the user a choice
+	 * to share a directory.
+	 *
+	 * @param directoryPath 
+	 */
+	public void setOnlySharedDirectory(String directoryPath) {
+		synchronized (sharedFoldersLock) {
+			configuration.setProperty(KEY_FOLDERS, directoryPath);
+			ArrayList<Path> tmpSharedfolders = new ArrayList<>();
+			Path folder = Paths.get(directoryPath);
+			tmpSharedfolders.add(folder);
+			sharedFolders = tmpSharedfolders;
+			sharedFoldersRead = true;
+		}
+	}
+
+	/**
+	 * Stores the shared folders in the configuration from the specified
+	 * {@link SharedFoldersTableModel#getDataVector()} value. This is expected
+	 * to be a {@link Vector} of rows containing a {@link Vector} of column
+	 * values where the first column is a {@link String} and the seconds is a
+	 * {@link Boolean}.
+	 *
+	 * @param tableVector the {@link SharedFoldersTableModel#getDataVector()}
+	 *            value to use.
+	 */
+	@SuppressWarnings("rawtypes")
+	public void setSharedFolders(Vector<Vector<?>> tableVector) {
+		if (tableVector == null || tableVector.isEmpty()) {
+			synchronized (sharedFoldersLock) {
+				if (!sharedFoldersRead || !sharedFolders.isEmpty()) {
+					configuration.setProperty(KEY_FOLDERS, "");
+					sharedFolders.clear();
+					sharedFoldersRead = true;
+				}
+				if (!monitoredFoldersRead || !monitoredFolders.isEmpty()) {
+					configuration.setProperty(KEY_FOLDERS_MONITORED, "");
+					monitoredFolders.clear();
+					monitoredFoldersRead = true;
+				}
+			}
+			return;
+		}
+		String listSeparator = String.valueOf(LIST_SEPARATOR);
+		ArrayList<Path> tmpSharedfolders = new ArrayList<>();
+		ArrayList<Path> tmpMonitoredFolders = new ArrayList<>();
+		for (Vector rowVector : tableVector) {
+			if (rowVector != null && rowVector.size() == 2 && rowVector.get(0) instanceof String) {
+				String folderPath = (String) rowVector.get(0);
+				/*
+				 * Escape embedded commas. Note: Backslashing isn't safe as it
+				 * conflicts with the Windows path separator.
+				 */
+				if (folderPath.contains(listSeparator)) {
+					folderPath = folderPath.replace(listSeparator, "&comma;");
+				}
+				Path folder = Paths.get(folderPath);
+				tmpSharedfolders.add(folder);
+				if ((boolean) rowVector.get(1)) {
+					tmpMonitoredFolders.add(folder);
+				}
+			} else {
+				LOGGER.error("Unexpected vector content in setSharedFolders(), saving of shared folders failed");
+				return;
+			}
+		}
+		synchronized (sharedFoldersLock) {
+			if (!sharedFoldersRead || !sharedFolders.equals(tmpSharedfolders)) {
+				configuration.setProperty(KEY_FOLDERS, StringUtils.join(tmpSharedfolders, LIST_SEPARATOR));
+				sharedFolders = tmpSharedfolders;
+				sharedFoldersRead = true;
+			}
+			if (!monitoredFoldersRead || !monitoredFolders.equals(tmpMonitoredFolders)) {
+				configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(tmpMonitoredFolders, LIST_SEPARATOR));
+				monitoredFolders = tmpMonitoredFolders;
+				monitoredFoldersRead = true;
+			}
+		}
+	}
+
+	/**
+	 * Sets the shared folders and the monitor folders to the platform default
+	 * folders.
+	 */
+	public void setSharedFoldersToDefault() {
+		synchronized (sharedFoldersLock) {
+			sharedFolders = new ArrayList<>(RootFolder.getDefaultFolders());
+			configuration.setProperty(KEY_FOLDERS, StringUtils.join(sharedFolders, LIST_SEPARATOR));
+			sharedFoldersRead = true;
+			monitoredFolders = new ArrayList<>(RootFolder.getDefaultFolders());
+			configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(monitoredFolders, LIST_SEPARATOR));
+			monitoredFoldersRead = true;
+		}
 	}
 
 	public String getNetworkInterface() {
@@ -2394,6 +3306,32 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setHideEngineNames(boolean value) {
 		configuration.setProperty(KEY_HIDE_ENGINENAMES, value);
+	}
+
+	/**
+	 * @return {@code true} if subtitles information should be added to video
+	 *         names, {@code false} otherwise.
+	 */
+	public SubtitlesInfoLevel getSubtitlesInfoLevel() {
+		SubtitlesInfoLevel subtitlesInfoLevel = SubtitlesInfoLevel.typeOf(getString(KEY_SUBS_INFO_LEVEL, null));
+		if (subtitlesInfoLevel != null) {
+			return subtitlesInfoLevel;
+		}
+		// Check the old parameter for backwards compatibility
+		Boolean value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
+		if (value != null) {
+			return value.booleanValue() ? SubtitlesInfoLevel.NONE : SubtitlesInfoLevel.FULL;
+		}
+		return SubtitlesInfoLevel.BASIC; // Default
+	}
+
+	/**
+	 * Sets if subtitles information should be added to video names.
+	 *
+	 * @param value whether or not subtitles information should be added.
+	 */
+	public void setSubtitlesInfoLevel(SubtitlesInfoLevel value) {
+		configuration.setProperty(KEY_SUBS_INFO_LEVEL, value == null ? "" : value.toString());
 	}
 
 	public boolean isHideExtensions() {
@@ -2447,6 +3385,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isAudioRemuxAC3() {
 		return getBoolean(KEY_AUDIO_REMUX_AC3, true);
+	}
+
+	public void setFFmpegSoX(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_SOX, value);
+	}
+
+	public boolean isFFmpegSoX() {
+		return getBoolean(KEY_FFMPEG_SOX, false);
 	}
 
 	public void setMencoderRemuxMPEG2(boolean value) {
@@ -2535,7 +3481,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	private int findPathSort(String[] paths, String path) throws NumberFormatException{
+	private static int findPathSort(String[] paths, String path) throws NumberFormatException{
 		for (String path1 : paths) {
 			String[] kv = path1.split(",");
 			if (kv.length < 2) {
@@ -2751,7 +3697,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new NullPointerException("value cannot be null");
 		}
 		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
-		PMS.get().getSleepManager().setMode(value);
+		Services.sleepManager().setMode(value);
 	}
 
 	public PreventSleepMode getPreventSleep() {
@@ -3077,12 +4023,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
 	}
 
-	public String getVirtualFolders(ArrayList<String> tags) {
-		return tagLoop(tags, ".vfolders", KEY_VIRTUAL_FOLDERS);
+	public String getVirtualFolders() {
+		return getString(KEY_VIRTUAL_FOLDERS, "");
 	}
 
-	public String getVirtualFoldersFile(ArrayList<String> tags) {
-		return tagLoop(tags, ".vfolders.file", KEY_VIRTUAL_FOLDERS_FILE);
+	public String getVirtualFoldersFile() {
+		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
 	}
 
 	public String getProfilePath() {
@@ -3392,20 +4338,30 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, value);
 	}
 
+	/**
+	 * @deprecated Use {@link #getLiveSubtitlesLimit()} instead.
+	 */
+	@Deprecated
 	public int liveSubtitlesLimit() {
+		return getLiveSubtitlesLimit();
+	}
+
+	public int getLiveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
 
+	public void setLiveSubtitlesLimit(int value) {
+		if (value > 0) {
+			configuration.setProperty(KEY_LIVE_SUBTITLES_LIMIT, value);
+		}
+	}
+
 	public boolean isLiveSubtitlesKeep() {
-		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
+		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, true);
 	}
 
-	public int getLiveSubtitlesTimeout() {
-		return getInt(KEY_LIVE_SUBTITLES_TMO, 0) * 24 * 3600 * 1000;
-	}
-
-	public void setLiveSubtitlesTimeout(int t) {
-		configuration.setProperty(KEY_LIVE_SUBTITLES_TMO, t);
+	public void setLiveSubtitlesKeep(boolean value) {
+		configuration.setProperty(KEY_LIVE_SUBTITLES_KEEP, value);
 	}
 
 	public boolean getLoggingBuffered() {
@@ -3465,9 +4421,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		int i = getInt(KEY_LOGGING_SYSLOG_PORT, 514);
 		if (i < 1 || i > 65535) {
 			return 514;
-		} else {
-			return i;
 		}
+		return i;
 	}
 
 	public void setLoggingSyslogPort(int value) {
@@ -3488,6 +4443,19 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setLoggingUseSyslog(boolean value) {
 		configuration.setProperty(KEY_LOGGING_USE_SYSLOG, value);
+	}
+
+	/**
+	 * Returns whether database logging is enabled. The returned value is
+	 * {@code true} if either the value is {@code true} or a command line
+	 * argument has forced it to {@code true}.
+	 *
+	 * @return {@code true} if database logging is enabled, {@code false}
+	 *         otherwise.
+	 */
+	public boolean getDatabaseLogging() {
+		boolean dbLog = getBoolean(KEY_LOG_DATABASE, false);
+		return dbLog || PMS.getLogDB();
 	}
 
 	public boolean isVlcUseHardwareAccel() {
@@ -3594,47 +4562,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
 	}
 
-	public boolean hideSubsInfo() {
-		return getBoolean(KEY_HIDE_SUBS_INFO, false);
-	}
-
-	public String getPlugins(ArrayList<String> tags) {
-		return tagLoop(tags, ".plugins", "dummy");
-	}
-
-	public boolean isHideWebFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".web", "dummy", false);
-	}
-
-	private String tagLoop(ArrayList<String> tags, String suff, String fallback) {
-		if (tags == null || tags.isEmpty()) {
-			// no tags use fallback
-			return getString(fallback, "");
-		}
-
-		for (String tag : tags) {
-			String x = (tag.toLowerCase() + suff).replaceAll(" ", "_");
-			String res = getString(x, "");
-			if (StringUtils.isNotBlank(res)) {
-				// use first tag found
-				return res;
-			}
-		}
-
-		// down here no matching tag was found
-		// return fallback
-		return getString(fallback, "");
-	}
-
-	private boolean tagLoopBool(ArrayList<String> tags, String suff, String fallback, boolean def) {
-		String b = tagLoop(tags, suff, fallback);
-		if (StringUtils.isBlank(b)) {
-			return def;
-		}
-
-		return b.trim().equalsIgnoreCase("true");
-	}
-
 	/**
 	 * Whether the profile name should be appended to the server name when
 	 * displayed on the renderer
@@ -3705,7 +4632,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Web stuff
 	 */
 	protected static final String KEY_NO_FOLDERS = "no_shared";
-	protected static final String KEY_WEB_HTTPS = "use_https";
+	protected static final String KEY_WEB_HTTPS = "web_https";
 	protected static final String KEY_WEB_PORT = "web_port";
 	protected static final int WEB_MAX_THREADS = 100;
 
@@ -3785,10 +4712,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
 	}
 
-	public String pingPath() {
-		return getString(KEY_PING_PATH, null);
-	}
-
 	public boolean isSpeedDbg() {
 		return getBoolean(KEY_SPEED_DBG, false);
 	}
@@ -3840,14 +4763,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getWebFlash() {
 		return getBoolean(KEY_WEB_FLASH, false);
-	}
-
-	public boolean getWebChrome() {
-		return getBoolean(KEY_WEB_CHROME_TRICK, false);
-	}
-
-	public boolean getWebFirefoxLinuxMp4() {
-		return getBoolean(KEY_WEB_FIREFOX_LINUX_MP4, false);
 	}
 
 	public boolean getWebSubs() {
@@ -3938,19 +4853,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean useChromecastExt() {
-		return getBoolean(KEY_CHROMECAST_EXT, true);
+		return getBoolean(KEY_CHROMECAST_EXT, false);
 	}
 
 	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
-	}
-
-	public Color getToolTipForegroundColor() {
-		return getColor(KEY_TOOLTIP_FOREGROUND_COLOR, "255,255,255");
-	}
-
-	public Color getToolTipBackgroundColor() {
-		return getColor(KEY_TOOLTIP_BACKGROUND_COLOR, "125,184,47");
 	}
 
 	/**
@@ -3973,30 +4880,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_ROOT_LOG_LEVEL, level.toString());
 	}
 
-	public void setWindowGeometry(String value) {
-		configuration.setProperty(KEY_WINDOW_GEOMETRY, value);
-	}
-
-	public String getWindowGeometry() {
-		return getString(KEY_WINDOW_GEOMETRY, "x=-1,y=-1,width=1000,height=750");
-	}
-
-	public void setScreenSize(String value) {
-		configuration.setProperty(KEY_SCREEN_SIZE, value);
-	}
-
-	public String getScreenSize() {
-		return getString(KEY_SCREEN_SIZE, "-1x-1");
-	}
-
-	public void setWindowExtendedState(int value) {
-		configuration.setProperty(KEY_WINDOW_EXTENDED_STATE, value);
-	}
-
-	public int getWindowExtendedState() {
-		return getInt(KEY_WINDOW_EXTENDED_STATE, Frame.NORMAL);
-	}
-
 	public boolean isShowSplashScreen() {
 		return getBoolean(KEY_SHOW_SPLASH_SCREEN, true);
 	}
@@ -4011,5 +4894,159 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getAliveDelay() {
 		return getInt(KEY_ALIVE_DELAY, 0);
+	}
+
+	/**
+	 * This {@code enum} represents the available "levels" for subtitles
+	 * information display that is to be appended to the video name.
+	 */
+	public static enum SubtitlesInfoLevel {
+
+		/** Don't show subtitles information */
+		NONE,
+
+		/** Show only basic subtitles information */
+		BASIC,
+
+		/** Show full subtitles information */
+		FULL;
+
+		@Override
+		public String toString() {
+			switch (this) {
+				case BASIC:
+					return "basic";
+				case FULL:
+					return "full";
+				case NONE:
+					return "none";
+				default:
+					throw new AssertionError("Missing implementation of SubtitlesInfoLevel \"" + name() + "\"");
+			}
+		}
+
+		/**
+		 * Tries to parse the specified {@link String} and return the
+		 * corresponding {@link SubtitlesInfoLevel}.
+		 *
+		 * @param infoLevelString the {@link String} to parse.
+		 * @return The corresponding {@link SubtitlesInfoLevel} or {@code null}
+		 *         if the parsing failed.
+		 */
+		public static SubtitlesInfoLevel typeOf(String infoLevelString) {
+			if (isBlank(infoLevelString)) {
+				return null;
+			}
+			infoLevelString = infoLevelString.trim().toLowerCase(Locale.ROOT);
+			switch (infoLevelString) {
+				case "off":
+				case "none":
+				case "0":
+					return NONE;
+				case "basic":
+				case "simple":
+				case "1":
+					return BASIC;
+				case "full":
+				case "advanced":
+				case "2":
+					return FULL;
+				default:
+					return null;
+			}
+		}
+	}
+
+	/**
+	 * Whether to disable connection to external entities to prevent the XML External Entity vulnerability.
+	 *
+	 * @return default {@code true} whether to disable external entities.
+	 */
+	public boolean disableExternalEntities() {
+		return getBoolean(KEY_DISABLE_EXTERNAL_ENTITIES, true);
+	}
+
+	public List<String> getWebConfigurationFileHeader() {
+		return Arrays.asList(
+			"##########################################################################################################",
+			"#                                                                                                        #",
+			"# WEB.conf: configure support for web feeds and streams                                                  #",
+			"#                                                                                                        #",
+			"# NOTE: This file must be placed in the profile directory to work:                                       #",
+			"#                                                                                                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"#                                                                                                        #",
+			"# Supported types:                                                                                       #",
+			"#                                                                                                        #",
+			"#     imagefeed, audiofeed, videofeed, audiostream, videostream                                          #",
+			"#                                                                                                        #",
+			"# Format for feeds:                                                                                      #",
+			"#                                                                                                        #",
+			"#     type.folders,separated,by,commas=URL                                                               #",
+			"#                                                                                                        #",
+			"# Format for streams:                                                                                    #",
+			"#                                                                                                        #",
+			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
+			"#                                                                                                        #",
+			"# For more web feed/stream options, see:                                                                 #",
+			"#                                                                                                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
+			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
+			"#                                                                                                        #",
+			"##########################################################################################################"
+		);
+	}
+
+	public void writeWebConfigurationFile() {
+		List<String> defaultWebConfContents = new ArrayList<>();
+		defaultWebConfContents.addAll(getWebConfigurationFileHeader());
+		defaultWebConfContents.addAll(Arrays.asList(
+			"",
+			"# image feeds",
+			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?format=rss2",
+			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=39453068@N05&format=rss2",
+			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=14362684@N08&format=rss2",
+			"imagefeed.Web,Pictures=http://picasaweb.google.fr/data/feed/base/user/nefuisalbum/albumid/5218433104757705489?alt=rss&kind=photo&hl=en_US",
+			"imagefeed.Web,Pictures=http://picasaweb.google.com/data/feed/base/user/FenderStratRocker?alt=rss&kind=album&hl=en_US&access=public",
+			"",
+			"# audio feeds",
+			"audiofeed.Web,Podcasts=https://rss.art19.com/caliphate",
+			"audiofeed.Web,Podcasts=https://www.nasa.gov/rss/dyn/Gravity-Assist.rss",
+			"audiofeed.Web,Podcasts=http://podcasts.joerogan.net/feed",
+			"audiofeed.Web,Podcasts=http://wakingup.libsyn.com/rss",
+			"audiofeed.Web,Podcasts=https://rss.art19.com/wolverine-the-long-night",
+			"",
+			"# video feeds",
+			"videofeed.Web,Vodcasts=http://feeds.feedburner.com/tedtalks_video",
+			"videofeed.Web,Vodcasts=https://www.nasa.gov/rss/dyn/nasax_vodcast.rss",
+			"videofeed.Web,Vodcasts=https://www.unicef.org/rss/unicef_television_vodcast.xml",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC0PEAMcRK7Mnn2G1bCBXOWQ",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCccjdJEay2hpb5scz61zY6Q",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCOiUKJ6lMU3yHbVNtNXJyfw",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCqFzWxSCi39LnW1JKFR3efg",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCfAOh2t5DpxVrgS9NQKjC7A",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC8-Th83bH_thdKZDJCrn88g",
+			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCzRBkt4a2hy6HObM3cl-x7g",
+			"",
+			"# video streams",
+			"# videostream.Web,TV=France 24,mms://stream1.france24.yacast.net/f24_liveen,http://www.france24.com/en/sites/france24.com.en/themes/france24/logo-fr.png",
+			"# videostream.Web,TV=BFM TV (French TV),mms://vipmms9.yacast.net/bfm_bfmtv,http://upload.wikimedia.org/wikipedia/en/6/62/BFMTV.png",
+			"# videostream.Web,Webcams=View of Shanghai Harbour,mmst://www.onedir.com/cam3,http://media-cdn.tripadvisor.com/media/photo-s/00/1d/4b/d8/pudong-from-the-bund.jpg")
+		);
+
+		writeWebConfigurationFile(defaultWebConfContents);
+	}
+
+	public void writeWebConfigurationFile(List<String> fileContents) {
+		List<String> contentsToWrite = new ArrayList<>();
+		contentsToWrite.addAll(getWebConfigurationFileHeader());
+		contentsToWrite.addAll(fileContents);
+
+		try {
+			Path webConfFilePath = Paths.get(getWebConfPath());
+			Files.write(webConfFilePath, contentsToWrite, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+		}
 	}
 }

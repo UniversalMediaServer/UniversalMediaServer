@@ -1,10 +1,11 @@
 package net.pms.encoders;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import net.pms.configuration.PmsConfiguration;
+import javax.annotation.Nonnull;
 import net.pms.util.ProcessUtil;
 
 public class FFmpegOptions extends optionsHashMap {
@@ -85,9 +86,10 @@ public class FFmpegOptions extends optionsHashMap {
 	public FFmpegOptions() {
 	}
 
-	public static List<String> getSupportedProtocols(PmsConfiguration configuration) {
-		ArrayList<String> protocols = new ArrayList<>();
-		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
+	@Nonnull
+	public static List<String> getSupportedProtocols(@Nonnull Path executable) {
+		List<String> result = new ArrayList<>();
+		String output = ProcessUtil.run(executable.toString(), "-protocols");
 		boolean add = false;
 		boolean old = false;
 		for (String line : output.split("\\s*\n\\s*")) {
@@ -97,16 +99,21 @@ public class FFmpegOptions extends optionsHashMap {
 			} else if (line.equals("Output:")) {
 				break;
 			} else if (add) {
-				protocols.add(line);
+				result.add(line);
 
 			// old style - see http://git.videolan.org/?p=ffmpeg.git;a=commitdiff;h=cdc6a87f193b1bf99a640a44374d4f2597118959
 			} else if (line.startsWith("I.. = Input")) {
 				old = true;
 			} else if (old && line.startsWith("I")) {
-				protocols.add(line.split("\\s+")[1]);
+				result.add(line.split("\\s+")[1]);
 			}
 		}
-		return protocols;
+		if (result.contains("mmsh")) {
+			// Workaround a FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+			// Also see launchTranscode()
+			result.add("mms");
+		}
+		return result;
 	}
 }
 

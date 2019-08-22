@@ -53,16 +53,20 @@ import org.slf4j.LoggerFactory;
  * Test the recognition of formats.
  */
 public class FormatRecognitionTest {
-	private final static boolean mediaInfoParserIsValid = LibMediaInfoParser.isValid();
-	private final static PmsConfiguration configuration = new PmsConfiguration(false);
+	private static boolean mediaInfoParserIsValid;
+	private static PmsConfiguration configuration;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws ConfigurationException {
-		// Silence all log messages from the PMS code that is being tested
+	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
+		PMS.configureJNA();
+		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
+
+		// Silence all log messages from the DMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 
 		// Initialize the RendererConfiguration
+		configuration = new PmsConfiguration(false);
 		RendererConfiguration.loadRendererConfigurations(configuration);
 	}
 
@@ -253,7 +257,7 @@ public class FormatRecognitionTest {
 	}
 
 	/**
-	 * When PMS is in the process of starting up, something particular happens.
+	 * When DMS is in the process of starting up, something particular happens.
 	 * The RootFolder is initialized and several VirtualVideoActions are added
 	 * as children. VirtualVideoActions use the MPG format and at the time of
 	 * initialization getDefaultRenderer() is used to determine whether or not
@@ -264,13 +268,14 @@ public class FormatRecognitionTest {
 	 * message.
 	 * <p>
 	 * This test verifies the case above.
+	 * @throws InterruptedException
 	 */
 	@Test
-	public void testVirtualVideoActionInitializationCompatibility() {
+	public void testVirtualVideoActionInitializationCompatibility() throws InterruptedException {
 		boolean configurationLoaded = false;
 
 		try {
-			// Initialize PMS configuration like at initialization time, this
+			// Initialize DMS configuration like at initialization time, this
 			// is relevant for RendererConfiguration.isCompatible().
 			PMS.setConfiguration(new PmsConfiguration());
 			configurationLoaded = true;

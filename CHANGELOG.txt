@@ -1,3 +1,525 @@
+9.0.0-b1 - 2019-07-26
+
+	General:
+		We no longer require Java installation on any operating system
+		Added new renderer setting vbd (video bit depth) to allow filetype-specific bit-depth support configuration
+		Fixed filename prettifying not displaying episode names and other related problems
+		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
+	Languages:
+		Fixed broken "hide engines" string
+		Updated translations via Crowdin:
+			Chinese Simplified updated
+			French translation updated
+			German translation updated
+			Hungarian translation updated
+			Italian translation updated
+			Japanese translation updated
+			Norwegian translation updated
+			Polish translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Spanish translation updated
+			Swedish translation updated
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.0
+		Updated fm.last coverartarchive-api to 2.1.1
+		Updated icu4j to 64.2
+		Updated JNA to 5.3.1
+		Updated Oshi to 3.13.3
+		Updated Surefire to 2.22.2
+
+8.2.0 - 2019-06-21
+
+	General:
+		Removed duplicate information from TV episode filenames in the Media Library
+		Improved filename recognition
+		Append engines to filenames instead of prepend, to stop breaking alphabetization
+		Added the possibility to have a virtual folder without adding it to the Media Library (thanks, maciekberry!)
+		Fixed UMS not starting as a service on Windows (thanks, pponce!)
+		Fixed a broken translation when alerting a user that they are sharing a non-existing folder
+	Languages:
+		Updated translations via Crowdin:
+			Afrikaans translation updated
+			Arabic translation updated
+			Catalan translation updated
+			Croatian translation updated
+			Czech translation updated
+			Danish translation updated
+			Dutch translation completed
+			German translation updated
+			Greek translation updated
+			English (UK) translation updated
+			Finnish translation updated
+			French translation updated
+			Hebrew translation updated
+			Hungarian translation updated
+			Icelandic translation updated
+			Italian translation updated
+			Japanese translation completed
+			Korean translation completed
+			Norwegian translation updated
+			Persian translation updated
+			Polish translation updated
+			Portuguese translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Serbian (Cyrillic) translation updated
+			Slovak translation updated
+			Slovenian translation updated
+			Spanish translation updated
+			Thai translation updated
+	Dependencies:
+		Updated Apache HttpAsyncClient to 4.1.4
+
+8.1.0 - 2019-05-03
+
+	General:
+		Performance improvements
+		Fixed conversion of 3D subtitles
+		Fixed bug with the computer sleep management feature (thanks, scriptorron and Nadahar!)
+		Fixed bugs with Virtual Folders
+		Fixed error when browsing web folders
+		Updated build and install documentation (thanks, Ruben Barkow!)
+	Renderers:
+		Improved support for 4k and h265 videos on LG webOS TVs
+		Improved support for Samsung MS750 soundbars
+	Languages:
+		Updated translations via Crowdin:
+			Danish translation updated
+			Dutch translation updated
+			French translation updated
+			Japanese translation validated
+			Portuguese (Brazilian) translation updated
+			Russian translation updated
+			Turkish translation updated
+	Dependencies:
+		Updated h2database to 1.4.199, which improves speed and memory use
+
+8.0.1 - 2019-03-31
+
+	Dependencies:
+		Rolled back h2database to 1.4.196, which fixes broken music metadata
+
+8.0.0 - Changes since 7.9.0 - 2019-03-29
+
+	General:
+		Added new Shared Content tab for managing all local and web content
+		Added country flags for audio and subtitles to video thumbnails in TRANSCODE folders
+		Added option to customize the subtitles info that is appended to filenames
+		Made the subtitles info more standardized
+		Greatly optimized memory use and long-term stability (thanks, skeptical!)
+		Improved default web content entries
+		Database cleanup step removes files that are no longer shared
+		Fixed a lot of bugs related to subtitles
+		Fixed functionality of the Back button on the web interface in some situations
+		Fixed "Season" not displaying on subsequent visits in Media Library
+		Optimized performance of Media Library folders
+		Improved reliability when using "Defer to MEncoder" option
+		Fixed some broken Media Library queries
+	Renderers:
+		Allow MP3 streaming on VLC
+		Transcode unsupported audio to MP3 on Samsung JU6400
+		Fixed video transcoding on Sony Bravia EX TVs
+	Languages:
+		Updated translations via Crowdin:
+			Dutch translation updated
+			Italian translation completed
+			Japanese translation completed
+			Persian translation updated
+			Polish translation completed and validated
+			Russian translation updated
+			Slovenian translation updated
+			Serbian (Cyrillic) translation updated
+			Ukrainian translation updated
+	Dependencies:
+		Updated MediaInfo to 18.12 on Windows and macOS
+		Updated h2database to 1.4.198
+
+8.0.0 - Changes since 8.0.0-RC1 - 2019-03-29
+
+	General:
+		Improved reliability when using "Defer to MEncoder" option
+		Fixed functionality of the Back button on the web interface in some situations
+		Fixed "Season" not displaying on subsequent visits in Media Library
+		Optimized performance of Media Library folders
+		Fixed some broken Media Library queries
+		Fixed music info (artist, album, genre, album artist, and year) not being saved to the resource or database
+	Renderers:
+		Allow MP3 streaming on VLC
+		Transcode unsupported audio to MP3 on Samsung JU6400
+		Fixed video transcoding on Sony Bravia EX TVs
+	Languages:
+		Updated translations via Crowdin:
+			Dutch translation updated
+			Italian translation completed
+			Japanese translation completed
+			Persian translation updated
+			Polish translation completed and validated
+			Russian translation updated
+			Slovenian translation updated
+			Serbian (Cyrillic) translation updated
+			Ukrainian translation updated
+	Dependencies:
+		Updated h2database to 1.4.198
+
+8.0.0-RC1 - 2019-2-22
+
+	General
+		Database cleanup step removes files that are no longer shared
+		Cleanup of new config settings
+		All changes in 7.9.0
+
+7.9.0 - 2019-02-22
+
+	General:
+		Added the ability to ignore folders by name, which defaults to ".unwanted"
+		The server shows up on devices sooner
+		Increased the difference between button hover/pressed states
+		Improved stability and logging when moving files after fully playing
+		Improved recognition of AAC
+		Fixed H.264 profile not updating
+		Fixed low bitrate audio on transcoded web videos (thanks, SsJVasto!)
+		Fixed content updating in the Media Library on some devices
+		Logging fixes
+	Renderers:
+		Improved support for Roku 4
+		Improved support for Samsung 9 Series TVs
+	Languages:
+		Updated translations via Crowdin:
+			Dutch translation updated
+			Bulgarian translation updated
+			Korean translation updated
+			Swedish translation updated
+			Turkish translation updated
+
+8.0.0-b1 - 2019-01-12
+
+	General:
+		Added option to disable FFmpeg GPU acceleration
+		Fixed too much transcoding due to not respecting language priority settings
+		Fixed failure to store audio stream information
+		Fixed failure to start
+		Fixed missing text when adding web content
+		Fixed missing text on the first time language chooser
+		Fixed text clash on the Subtitles settings subtab of the Transcoding settings tab
+		Fixed logspam
+		All changes in 7.8.0
+
+7.8.0 - 2019-01-12
+
+	General:
+		Added examples for all binary tools paths in UMS.conf (thanks, Amadeus-!)
+		Added detection of JDK to the Windows installer (thanks, siboXD!)
+		Fixed custom option parsing for ffmpeg_gpu_decoding_acceleration_method (thanks, goncalossilva!)
+		Fixed error when FFmpeg deferred to MEncoder
+	Web interface:
+		Added Subtitle Translator to the menu (thanks, atamariya!)
+		Added new home screen with automatic entry (thanks, Abel Espinosa!)
+		Added player navigation using keys to return to home screen (thanks, Abel Espinosa!)
+		Added new logo icon fully displayed and transparent in web interface browse view (thanks, Abel Espinosa!)
+		Made caption, folder list and play toolbar buttons compliant with material design (thanks, Abel Espinosa!)
+		Fixed audio thumbnails (thanks, Abel Espinosa!)
+		Fixed some buttons not displaying correctly (thanks, Abel Espinosa!)
+		Fixed broken hover effect on Firefox (thanks, Abel Espinosa!)
+		Modified menu icons
+	Languages:
+		Updated translations via Crowdin:
+			French translation updated
+			Icelandic translation updated
+			Japanese translation updated
+			Ukranian translation updated
+
+8.0.0-a2 - 2018-12-27 - Changes since 8.0.0-a1
+
+	General:
+		Fixed support for picture-based subtitles
+		Fixed images being displayed in low quality
+		Fixed a bug when writing OpenSubtitles data to the database
+		Fixed audio flags in TRANSCODE folders
+		All changes in 7.7.1
+	Dependencies:
+		Updated MediaInfo to 18.12 on Windows and macOS
+
+7.7.1 - 2018-12-27
+
+	General:
+		Fixed broken transcoding via MEncoder on Windows and Linux
+		Improved support for Sony BRAVIA EX Series TVs
+	Languages:
+		Updated translations via Crowdin:
+			French translation updated
+			German translation completed
+			Portuguese translation completed
+			Portuguese (Brazilian) translation completed
+
+8.0.0-a1 - 2018-12-21 - Changes since 7.7.0
+
+	General:
+		Added new Shared Content tab for managing all local and web content
+		Added country flags for audio and subtitles to video thumbnails in TRANSCODE folders
+		Added option to customize the subtitles info that is appended to filenames
+		Made the subtitles info more standardized
+		Greatly optimized memory use and long-term stability (thanks, skeptical!)
+		Improved default web content entries
+		Fixed a lot of bugs related to subtitles
+
+7.7.0 - 2018-12-21
+
+	General:
+		Improved code formatting (thanks, drakulis!)
+		Fixed double subtitles when transcoding video
+		Fixed XViD recognition
+		Fixed incorrect music genre labels (thanks, maciekberry!)
+		Fixed web stream transcoding
+	Renderers:
+		Improved support for Philips PUS TVs
+		Improved support for Samsung Q6 Series TVs
+		Improved support for Samsung Q9 Series TVs
+	Web interface:
+		Use H.264 on the web interface in Chrome and Firefox
+		Removed the limit on resolution
+		Added font scaling setting (thanks, Abel Espinosa!)
+		Removed custom scrollbar styling (thanks, Abel Espinosa!)
+		Fixed a hover effect bug on Firefox (thanks, Abel Espinosa!)
+		Fixed the dynamic view (thanks, Abel Espinosa!)
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Simplified translation completed
+			Czech translation completed and validated
+			German translation updated
+			Hungarian translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation completed and validated
+			Russian translation updated
+			Slovak translation updated
+			Thai translation updated
+
+7.6.2 - 2018-11-22
+
+	General:
+		Fixed broken browsing on some devices
+
+7.6.1 - 2018-11-22
+
+	General:
+		Increased thumbnail compression for less memory use
+		Fixed broken browsing on some Samsung devices (thanks, drakulis!)
+		Fixed fully played thumbnails not working after restarts
+		Improved code formatting (thanks, drakulis!)
+	Languages:
+		Chinese Simplified translation updated
+		Swedish translation updated
+
+7.6.0 - 2018-11-16
+
+	General:
+		Started to release installer wizard for macOS (thanks, js-kyle!)
+		Started to use the "Album Artist" field for better audio file browsing of compilations (thanks, maciekberry!)
+		Improved network connection stability (thanks, reorder!)
+		Improved the web interface's accessibility and support for remote controls (thanks, acanive!)
+		Removed the broken whitelist functionality (thanks, Nadahar!)
+		Removed the broken plugins functionality (thanks, Nadahar!)
+		Improved the Docker configuration (thanks, atamariya!)
+		Improved the speed of our automated testing suite
+		Improved automated testing of filename prettifying (thanks, stasinos!)
+		Improved our default folder sharing stability (thanks, Nadahar!)
+		Improved support for aspect ratio and scan order (thanks, Nadahar!)
+		Improved file scanning/parsing speed
+		Fixed tsMuxeR on macOS (thanks, onon765trb!)
+		Fixed burning picture subtitles when other filters are also used in FFmpeg
+		Fixed FFmpeg not enabling the GPU configuration toggle
+		Fixed thumbnails not persisting to the database unless TRACE logging is enabled
+		Fixed binaries not being picked up from the PATH on Linux (thanks, Nadahar!)
+		Fixed support for Java 10+ on Linux
+		Added build documentation to BUILD.md
+		Updated documentation in CONTRIBUTING.md and STYLEGUIDE.md
+		Improved code formatting (thanks, drakulis!)
+	Formats/Codecs: (thanks, Sami32!)
+		Added recognition of video codecs: ASF, FFV1, RLE, S4UD, TGA and VRO
+		Added recognition of audio formats: CAF
+		Added recognition of audio codecs: CELP, MACE, Nellymoser and QCELP
+		Fixed parsing of framerates via MediaInfo
+		Improved recognition of AAC, FLV and WMA
+	Renderers:
+		Added support for Bush Freeview (thanks, atamariya!)
+		Added support for the built-in "Resume" functionality on Samsung TVs (thanks, drakulis!)
+		Improved support for H.264 codec and SRT subtitles on PS4 (thanks, fgimenezm!)
+	Languages:
+		Updated translations via Crowdin:
+			Arabic translation updated
+			Bulgarian translation updated
+			Catalan translation updated
+			Chinese Simplified translation updated
+			Chinese Traditional translation updated
+			Croatian translation updated
+			Czech translation updated
+			Danish translation updated
+			Dutch translation updated
+			Finnish translation updated
+			French translation completed and validated
+			German translation updated
+			Greek translation updated
+			Hungarian translation updated
+			Italian translation completed
+			Japanese translation updated
+			Korean translation updated
+			Norwegian translation updated
+			Persian translation updated
+			Polish translation completed and validated
+			Portuguese translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Slovak translation updated
+			Slovenian translation updated
+			Serbian (Cyrillic) translation updated
+			Spanish translation completed
+			Swedish translation updated
+			Turkish translation updated
+	Dependencies:
+		Added commons-text 1.3 (thanks, Nadahar!)
+		Updated Cling to 2.1.2
+		Updated commons-io to 2.6 (thanks, Nadahar!)
+		Updated commons-lang3 to 3.7
+		Updated JUnrar to 1.0.1 (thanks, Nadahar!)
+		Updated Seamless to 1.1.2
+		Updated sevenzip jbinding to 9.20-2.00beta
+		Updated tsMuxeR on macOS to 2.6.11
+
+7.5.0 - 2018-10-13
+
+	General:
+		Added animated Restart Server button when a restart is needed to apply a new setting (thanks, Nadahar!)
+		Added hover and push effects to buttons (thanks, Nadahar!)
+		Added Docker build files (thanks, atamariya!)
+		Added ability to specify supported framerates in renderer configs (thanks, Nadahar!)
+		Improved support for Windows XP (thanks, Nadahar!)
+		Improved support for DFF, DSF, MP4 and WAV files (thanks, Sami32!)
+		Updated the GUI for FFmpeg options
+		Fixed duplicate hardware acceleration options
+		Fixed the state of scan buttons while startup scan is running
+		Fixed the display of the web interface on Safari
+		Fixed MEncoder not transcoding to H.264 on macOS
+		Fixed a lot of minor bugs
+	Renderers:
+		Added detection of more Samsung mobile devices (thanks, Sami32!)
+		Improved support for Onkyo audio receivers
+		Improved support for Samsung UHD (4k) TVs (thanks, SurfaceS!)
+		Improved support for Samsung Galaxy Note Tab (thanks, Sami32!)
+		Fixed FLAC playback on Xbox One (thanks, 25233Guyver!)
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Simplified translation completed
+			Czech translation completed and validated
+			Portuguese (Brazilian) translation updated
+			Slovak translation updated
+			Spanish translation completed
+	Dependencies:
+		Updated Maven Assembly plugin to 3.1.0
+		Updated Maven Compiler plugin to 3.7.0
+		Updated Maven Enforcer plugin to 1.4.1
+		Updated Maven Findbugs plugin to 3.0.5
+		Updated Git Commit ID plugin to 2.2.3
+		Updated gson to 2.8.2
+
+7.4.0 - 2018-09-22
+
+	General:
+		Uses the media folders by default on Windows and macOS instead of the whole user directory
+		Added support for using GPU (video cards) for decoding via FFmpeg (thanks, onon765trb!)
+		Added option for higher quality audio resampling via FFmpeg (thanks, onon765trb!)
+		Files downloaded via the web interface have the correct filename (thanks, js-kyle!)
+		Improved stability when using custom FFmpeg settings (thanks, onon765trb!)
+		Made plugin web queries use SSL/HTTPS
+		Stop sometimes throwing errors when downgrading versions
+		Disabled the broken minimization on macOS
+		Fixed the wizard file chooser not working on macOS
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Traditional translation completed
+			French translation completed and validated
+			Italian translation updated
+			Polish translation completed and validated
+	Renderers:
+		Fixed aspect ratio of transcoded videos on Panasonic ST60 TVs
+
+7.3.1 - 2018-09-01
+
+	General:
+		Fixed transcoding of videos with multiple audio streams with FFmpeg
+		Fixed not being able to delete folders containing folders that are within watched folders on Windows
+		Fixed Fully Played status not saving for some users
+		Fixed files not being immediately deleted from the database if their parent folder was deleted
+		Fixed standalone build auto updater downloading non-standalone builds
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Simplified translation completed
+			French translation completed and validated
+			Italian translation updated
+			German translation completed
+			Polish translation completed and validated
+			Portuguese translation completed
+			Portuguese (Brazilian) translation updated
+			Romanian translation completed
+			Russian translation completed
+			Spanish translation completed
+
+7.3.0 - 2018-08-13
+
+	General:
+		Started to release standalone builds for Windows (no Java installation required)
+		Added option to disable startup folder scanning in the first-run wizard
+		Fixed fully played status sometimes not saving
+	Languages:
+		Updated translations via Crowdin
+
+7.2.1 - 2018-07-29
+
+	General:
+		Fixed a database upgrade bug
+	Languages:
+		Updated Bulgarian translation via Crowdin
+
+7.2.0 - 2018-07-27
+
+	General:
+		Auto-updater no longer requires UMS to be run with admin rights on Windows
+		Improved support for ATRAC and DolbyE formats
+		Reduced size of local database dramatically
+		Increased maximum memory limit on macOS to match Windows
+		Disabled Chromecast Extension API by default
+		Improved documentation
+		Improved database referential integrity
+		Fixed bugs with the auto-updater on Windows
+	Languages:
+		Allow translation of more of the auto-updater
+		Updated translations via Crowdin
+
+7.1.0 - 2018-06-16
+
+	General:
+		Aspect ratio is maintained in web interface thumbnails
+		Updated web interface to play OGA audio
+		Cleaned up and fixed DefaultRenderer.conf
+		Display whether video is a sample with prettifying enabled
+		Fixed AAC audio parsing via FFmpeg
+		Fixed movie edition not being displayed
+		Fixed handling of multiple video streams while transcoding
+		Improved logging
+		Fixed Resume file support on some renderers
+		Fixed maximum memory setting on Java 9+
+	Languages:
+		Added Croatian translation (thanks, Ram Demon!)
+		Updated translations via Crowdin
+		Fixed incorrect translations being applied to some settings
+	Renderers:
+		Improved support for Panasonic DX series TVs
+		Fixed external ASS/SSA subtitles support on Samsung 8 and 9 series TVs
+	Dependencies:
+		Updated MediaInfo to 18.03.1
+
 7.0.1 - 2018-04-15
 
 	General:
