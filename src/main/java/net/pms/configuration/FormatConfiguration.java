@@ -100,6 +100,7 @@ public class FormatConfiguration {
 	public static final String LPCM = "lpcm";
 	public static final String M4A = "m4a";
 	public static final String MKV = "mkv";
+	public static final String MI_VBD = "vbd";
 	public static final String MI_GMC = "gmc";
 	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
@@ -487,13 +488,18 @@ public class FormatConfiguration {
 					String key = keyIt.next().getKey();
 					String value = extras.get(key).toLowerCase();
 
+					if (key.equals(MI_VBD) && miExtras.get(MI_VBD) != null && !miExtras.get(MI_VBD).matcher(value).matches()) {
+						LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", value, supportLine);
+						return false;
+					}
+
 					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
-						LOGGER.trace("QPel value \"{}\" failed to match support line {}", miExtras.get(MI_QPEL), supportLine);
+						LOGGER.trace("QPel value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 
 					if (key.equals(MI_GMC) && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
-						LOGGER.trace("GMC value \"{}\" failed to match support line {}", miExtras.get(MI_GMC), supportLine);
+						LOGGER.trace("GMC value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 

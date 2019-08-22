@@ -31,6 +31,8 @@ public class MapFileConfiguration {
 	private String name;
 	private List<MapFileConfiguration> children;
 	private List<File> files;
+	
+	private boolean addToMediaLibrary = true;
 
 	public String getName() {
 		return name;
@@ -44,6 +46,10 @@ public class MapFileConfiguration {
 		return files;
 	}
 
+	public boolean isAddToMediaLibrary() {
+		return addToMediaLibrary;
+	}
+
 	public void setName(String n) {
 		name = n;
 	}
@@ -51,6 +57,11 @@ public class MapFileConfiguration {
 	public void setFiles(List<File> f) {
 		files = f;
 	}
+	
+	public void setAddToMediaLibrary(boolean addToMediaLibrary) {
+		this.addToMediaLibrary = addToMediaLibrary;
+	}
+
 
 	public MapFileConfiguration() {
 		children = new ArrayList<>();

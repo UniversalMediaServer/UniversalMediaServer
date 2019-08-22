@@ -875,11 +875,7 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 					}
 
-					if (StringUtils.isNotBlank(audio.getSongname())) {
-						if (renderer != null && renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
-							audio.setSongname(audio.getTrack() + ": " + audio.getSongname());
-						}
-					} else {
+					if (StringUtils.isBlank(audio.getSongname())) {
 						audio.setSongname(file.getName());
 					}
 

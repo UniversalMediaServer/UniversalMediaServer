@@ -33,7 +33,6 @@
 	- [Building the Linux tarball](#building-the-linux-tarball)
 		- [On Windows](#on-windows)
 		- [On macOS](#on-macos-1)
-	- [Building the Mac DMG file](#building-the-mac-dmg-file)
 	- [Building the macOS wizard installer](#building-the-macos-wizard-installer)
 
 # Build instructions

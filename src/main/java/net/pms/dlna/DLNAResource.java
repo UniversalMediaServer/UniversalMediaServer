@@ -155,6 +155,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	@Deprecated
 	protected long lastmodified; // TODO make private and rename lastmodified -> lastModified
 
+	private boolean isEpisodeWithinSeasonFolder = false;
+
 	/**
 	 * Represents the transformation to be used to the file. If null, then
 	 *
@@ -1758,12 +1760,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 
-		// Prefix
-		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
-		if (engineName != null) {
-			sb.append(engineName).append(" ");
-		}
-
 		// Base
 		if (parent instanceof ChapterFileTranscodeVirtualFolder && getSplitRange() != null) {
 			sb.append(">> ");
@@ -1783,6 +1779,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNotBlank(nameSuffix)) {
 				sb.append(" ").append(nameSuffix);
 			}
+		}
+
+		// Engine name
+		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
+		if (engineName != null) {
+			sb.append(" ").append(engineName);
 		}
 
 		// Truncate
@@ -2274,7 +2276,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media.isAudio() &&
 			StringUtils.isNotBlank(firstAudioTrack.getSongname())
 		) {
-			title = firstAudioTrack.getSongname();
+			title = "";
+			if (mediaRenderer != null && mediaRenderer.isPrependTrackNumbers() && firstAudioTrack.getTrack() > 0) {
+				// zero pad for proper numeric sorting on all devices
+				title += String.format("%03d - ", firstAudioTrack.getTrack());
+			}
+			title += firstAudioTrack.getSongname();
 		} else if (isFolder || subsAreValidForStreaming) {
 			title = getDisplayName(mediaRenderer, false);
 		} else {
@@ -3812,6 +3819,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * @return Whether this is a TV episode being accessed within a season
+	 *         folder in the Media Library.
+	 */
+	public boolean isEpisodeWithinSeasonFolder() {
+		return isEpisodeWithinSeasonFolder;
+	}
+
+	/**
+	 * Sets whether this is a TV episode being accessed within a season
+	 * folder in the Media Library.
+	 *
+	 * @param isEpisodeWithinSeasonFolder
+	 */
+	protected void setIsEpisodeWithinSeasonFolder(boolean isEpisodeWithinSeasonFolder) {
+		this.isEpisodeWithinSeasonFolder = isEpisodeWithinSeasonFolder;
+	}
+
+	/**
 	 * Returns the {@link Player} object that is used to encode this resource
 	 * for the renderer. Can be null.
 	 *
@@ -5075,6 +5100,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return scaleWidth + "x" + scaleHeight;
 	}
 
+
 	/**
 	 * Populates the media Title, Year, Edition, TVSeason, TVEpisodeNumber and TVEpisodeName
 	 * parsed from the media file name and if enabled insert them to the database.
@@ -5146,5 +5172,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				OpenSubtitle.backgroundLookupAndAdd(file, media);
 			}
 		}
+	}
+
+	public boolean isAddToMediaLibrary() {
+		return true;
 	}
 }

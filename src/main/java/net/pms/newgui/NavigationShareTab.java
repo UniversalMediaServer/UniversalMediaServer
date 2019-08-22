@@ -455,8 +455,8 @@ public class NavigationShareTab {
 		});
 
 		// Hide transcoding engine names
-		hideengines = new JCheckBox(Messages.getString("FoldTab.showEngineNames"), !configuration.isHideEngineNames());
-		hideengines.setToolTipText(Messages.getString("FoldTab.showEngineNamesToolTip"));
+		hideengines = new JCheckBox(Messages.getString("FoldTab.showEngineNamesAfterFilenames"), !configuration.isHideEngineNames());
+		hideengines.setToolTipText(Messages.getString("FoldTab.showEngineNamesAfterFilenamesToolTip"));
 		hideengines.setContentAreaFilled(false);
 		hideengines.addItemListener(new ItemListener() {
 			@Override

@@ -3,28 +3,40 @@ Installers for Windows and Mac OS X and tarballs for Linux can be found at:
     http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
 
 To install UMS from the tarball on Linux, open a terminal and enter the
-following commands (replace <version> with the version you're installing):
-Note: These instructions have been tested on Ubuntu 12.04, but something similar
+following commands (set VERSION to the version you're installing):
+Note: These instructions have been tested on Ubuntu 16.04, but something similar
 should work on most Unix distributions)
 
-1) Install the dependencies (this only needs to be done once):
+1. Install the dependencies (this only needs to be done once):
+    
+    First you must have Java 8 JRE installed on the server. OpenJava will not work.
 
-    sudo apt-get install mediainfo openjdk-7-jre
-    # you can also optionally install dcraw and VLC: sudo apt-get install dcraw vlc
+        sudo apt-get install software-properties-common
+        sudo apt-get update
+        sudo apt-get install openjdk-8-jre openjdk-8-jre-headless
 
-2) Download the tarball e.g.:
+    With Java installed, we now need to add some other pre-reqs:
 
-    # if wget isn't installed, run: sudo apt-get install wget
-    wget http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-<version>.tgz/download
+        sudo apt-get install mediainfo dcraw vlc-nox mplayer mencoder
+      
+  you can also optionally install dcraw and VLC: `sudo apt-get install dcraw vlc`
 
-3) Extract the tarball into a ums-<version> directory:
+2. Download the tarball e.g.:
 
-    tar xzvf ums-<version>.tgz
+    get the direct link from http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
+  
+    if wget isn't installed, run: `sudo apt-get install wget`
+    
+        wget <insert the direct link here>
 
-4) Run (note: UMS should NOT be run as root):
+3. Extract the tarball into a ums-$VERSION directory:
 
-    cd ums-<version>
-    ./UMS.sh
+        tar xzvf ums-$VERSION.tgz
 
-UMS accesses some files in the ums-<version> directory (the working directory).
-Other files will be looked for in ~/.config/UMS
+4. Run (note: UMS should NOT be run as root):
+
+        cd ums-$VERSION
+        ./UMS.sh
+
+UMS accesses some files in the `ums-$VERSION/` directory (the working directory).
+Other files will be looked for in `~/.config/UMS`

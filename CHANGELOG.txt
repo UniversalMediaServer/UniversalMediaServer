@@ -1,8 +1,101 @@
-8.0.2 - 2019-04-??
+9.0.0-b1 - 2019-07-26
 
 	General:
+		We no longer require Java installation on any operating system
+		Added new renderer setting vbd (video bit depth) to allow filetype-specific bit-depth support configuration
+		Fixed filename prettifying not displaying episode names and other related problems
+		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
+	Languages:
+		Fixed broken "hide engines" string
+		Updated translations via Crowdin:
+			Chinese Simplified updated
+			French translation updated
+			German translation updated
+			Hungarian translation updated
+			Italian translation updated
+			Japanese translation updated
+			Norwegian translation updated
+			Polish translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Spanish translation updated
+			Swedish translation updated
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.0
+		Updated fm.last coverartarchive-api to 2.1.1
+		Updated icu4j to 64.2
+		Updated JNA to 5.3.1
+		Updated Oshi to 3.13.3
+		Updated Surefire to 2.22.2
+
+8.2.0 - 2019-06-21
+
+	General:
+		Removed duplicate information from TV episode filenames in the Media Library
+		Improved filename recognition
+		Append engines to filenames instead of prepend, to stop breaking alphabetization
+		Added the possibility to have a virtual folder without adding it to the Media Library (thanks, maciekberry!)
+		Fixed UMS not starting as a service on Windows (thanks, pponce!)
+		Fixed a broken translation when alerting a user that they are sharing a non-existing folder
+	Languages:
+		Updated translations via Crowdin:
+			Afrikaans translation updated
+			Arabic translation updated
+			Catalan translation updated
+			Croatian translation updated
+			Czech translation updated
+			Danish translation updated
+			Dutch translation completed
+			German translation updated
+			Greek translation updated
+			English (UK) translation updated
+			Finnish translation updated
+			French translation updated
+			Hebrew translation updated
+			Hungarian translation updated
+			Icelandic translation updated
+			Italian translation updated
+			Japanese translation completed
+			Korean translation completed
+			Norwegian translation updated
+			Persian translation updated
+			Polish translation updated
+			Portuguese translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Serbian (Cyrillic) translation updated
+			Slovak translation updated
+			Slovenian translation updated
+			Spanish translation updated
+			Thai translation updated
+	Dependencies:
+		Updated Apache HttpAsyncClient to 4.1.4
+
+8.1.0 - 2019-05-03
+
+	General:
+		Performance improvements
+		Fixed conversion of 3D subtitles
+		Fixed bug with the computer sleep management feature (thanks, scriptorron and Nadahar!)
+		Fixed bugs with Virtual Folders
 		Fixed error when browsing web folders
-		Updated build documentation
+		Updated build and install documentation (thanks, Ruben Barkow!)
+	Renderers:
+		Improved support for 4k and h265 videos on LG webOS TVs
+		Improved support for Samsung MS750 soundbars
+	Languages:
+		Updated translations via Crowdin:
+			Danish translation updated
+			Dutch translation updated
+			French translation updated
+			Japanese translation validated
+			Portuguese (Brazilian) translation updated
+			Russian translation updated
+			Turkish translation updated
+	Dependencies:
+		Updated h2database to 1.4.199, which improves speed and memory use
 
 8.0.1 - 2019-03-31
 
