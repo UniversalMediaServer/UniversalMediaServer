@@ -9,6 +9,17 @@
 		Fixed adding unsupported files to the database
 	Renderers:
 		Improved support for TrueHD videos on Samsung UHD TVs
+	Translation updates via Crowdin:
+		Chinese Traditional (94%)
+		Croatian (20%)
+		Czech (100%)
+		Danish (89%)
+		Finnish (32%)
+		Japanese (100%)
+		Polish (100%)
+		Russian (93%)
+		Slovak (88%)
+		Thai (11%)
 	Dependencies:
 		Updated Git Commit ID Plugin to 2.2.4
 		Updated JUnit to 5.2.0
@@ -35,19 +46,26 @@
 	Languages:
 		Fixed broken "hide engines" string
 		Updated translations via Crowdin:
-			Chinese Simplified updated
-			French translation updated
-			German translation updated
-			Hungarian translation updated
-			Italian translation updated
-			Japanese translation updated
-			Norwegian translation updated
-			Polish translation updated
-			Portuguese (Brazilian) translation updated
-			Romanian translation updated
-			Russian translation updated
-			Spanish translation updated
-			Swedish translation updated
+			Chinese Simplified (100%)
+			Chinese Traditional (94%)
+			Croatian (20%)
+			Czech (100%)
+			Danish (89%)
+			Finnish (32%)
+			French (100%)
+			German (100%)
+			Hungarian (68%)
+			Italian (98%)
+			Japanese (100%)
+			Norwegian (89%)
+			Polish (100%)
+			Portuguese (Brazilian) (100%)
+			Romanian (100%)
+			Russian (93%)
+			Slovak (88%)
+			Spanish (96%)
+			Swedish (93%)
+			Thai (11%)
 	Dependencies:
 		Updated Chromecast api-v2 to 0.11.0
 		Updated fm.last coverartarchive-api to 2.1.1
