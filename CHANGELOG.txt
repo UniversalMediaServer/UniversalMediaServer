@@ -1,3 +1,73 @@
+9.0.0 - Changes since 9.0.0-b2 - 2019-09-06
+
+	General:
+		Adds UMS to Windows Firewall exceptions on install
+		Better cleanup of install directory on install/uninstall on Windows
+		Fixed transcoding when using our Docker image
+		Fixed track numbers not prepending in Media Library
+		Fixed startup crash when invalid characters are in the OS Path
+		Fixed adding unsupported files to the database
+	Renderers:
+		Improved support for TrueHD videos on Samsung UHD TVs
+	Dependencies:
+		Updated Git Commit ID Plugin to 2.2.4
+		Updated JUnit to 5.2.0
+		Updated Maven Compiler Plugin to 3.8.0
+		Updated Maven Enforcer Plugin to 3.0.0-M1
+		Updated Maven Javadoc Plugin to 3.0.1
+		Updated Maven Site Plugin to 3.7
+		Updated Metadata Extractor to 2.12.0 for improved image parsing performance
+
+9.0.0 - Changes since 8.2.0 - 2019-09-06
+
+	General:
+		We no longer require Java installation on any operating system
+		Adds UMS to Windows Firewall exceptions on install
+		Added new renderer setting vbd (video bit depth) to allow filetype-specific bit-depth support configuration
+		Fixed filename prettifying not displaying episode names and other related problems
+		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
+		Fixed transcoding when using our Docker image
+		Fixed track numbers not prepending in Media Library
+		Fixed startup crash when invalid characters are in the OS Path
+		Fixed adding unsupported files to the database
+	Renderers:
+		Improved support for TrueHD videos on Samsung UHD TVs
+	Languages:
+		Fixed broken "hide engines" string
+		Updated translations via Crowdin:
+			Chinese Simplified updated
+			French translation updated
+			German translation updated
+			Hungarian translation updated
+			Italian translation updated
+			Japanese translation updated
+			Norwegian translation updated
+			Polish translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Spanish translation updated
+			Swedish translation updated
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.0
+		Updated fm.last coverartarchive-api to 2.1.1
+		Updated Git Commit ID Plugin to 2.2.4
+		Updated icu4j to 64.2
+		Updated JNA to 5.3.1
+		Updated JUnit to 5.2.0
+		Updated Maven Compiler Plugin to 3.8.0
+		Updated Maven Enforcer Plugin to 3.0.0-M1
+		Updated Maven Javadoc Plugin to 3.0.1
+		Updated Maven Site Plugin to 3.7
+		Updated Metadata Extractor to 2.12.0 for improved image parsing performance
+		Updated Oshi to 3.13.3
+		Updated Surefire to 2.22.2
+
+9.0.0-b2 - 2019-07-30
+
+	General:
+		Fixed startup on Windows and Linux
+
 9.0.0-b1 - 2019-07-26
 
 	General:
