@@ -3,7 +3,7 @@
 	General:
 		Adds UMS to Windows Firewall exceptions on install
 		Better cleanup of install directory on install/uninstall on Windows
-		Fixed transcoding when using our Docker image
+		Fixed transcoding when using our Docker image (thanks, tcely!)
 		Fixed track numbers not prepending in Media Library
 		Fixed startup crash when invalid characters are in the OS Path
 		Fixed adding unsupported files to the database
@@ -37,8 +37,7 @@
 		Added new renderer setting vbd (video bit depth) to allow filetype-specific bit-depth support configuration
 		Fixed filename prettifying not displaying episode names and other related problems
 		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
-		Fixed transcoding when using our Docker image
-		Fixed track numbers not prepending in Media Library
+		Fixed transcoding when using our Docker image (thanks, tcely!)
 		Fixed startup crash when invalid characters are in the OS Path
 		Fixed adding unsupported files to the database
 	Renderers:
