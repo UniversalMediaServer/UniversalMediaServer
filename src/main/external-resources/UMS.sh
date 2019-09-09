@@ -71,7 +71,7 @@ fi
 
 # Provide a means of setting max memory using an environment variable
 if [ "x$UMS_MAX_MEMORY" = "x" ]; then
-    UMS_MAX_MEMORY=768M
+    UMS_MAX_MEMORY=1280M
 fi
 
 # Execute the JVM
