@@ -39,11 +39,11 @@ fi
 
 # Use our JVM if it exists
 if [ "$(uname -m | grep '64')" != "" ]; then
-    if [ -d jre-x64/bin/java ]; then 
+    if [ -f linux/jre-x64/bin/java ]; then 
         JAVA="linux/jre-x64/bin/java"
     fi
 else
-    if [ -d jre-x86/bin/java ]; then 
+    if [ -f linux/jre-x86/bin/java ]; then 
         JAVA="linux/jre-x86/bin/java"
     fi
 fi
