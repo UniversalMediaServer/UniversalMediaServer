@@ -39,11 +39,11 @@ fi
 
 # Use our JVM if it exists
 if [ "$(uname -m | grep '64')" != "" ]; then
-    if [ -d jre-x64/bin/java ]; then 
+    if [ -f linux/jre-x64/bin/java ]; then 
         JAVA="linux/jre-x64/bin/java"
     fi
 else
-    if [ -d jre-x86/bin/java ]; then 
+    if [ -f linux/jre-x86/bin/java ]; then 
         JAVA="linux/jre-x86/bin/java"
     fi
 fi
@@ -71,7 +71,7 @@ fi
 
 # Provide a means of setting max memory using an environment variable
 if [ "x$UMS_MAX_MEMORY" = "x" ]; then
-    UMS_MAX_MEMORY=768M
+    UMS_MAX_MEMORY=1280M
 fi
 
 # Execute the JVM

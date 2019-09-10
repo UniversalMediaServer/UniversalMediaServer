@@ -307,7 +307,7 @@ public class SharedContentTab {
 		});
 		builderFolder.add(removeButton, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		arrowDownButton.setToolTipText(Messages.getString("SharedFolders.ArrowDown"));
+		arrowDownButton.setToolTipText(Messages.getString("SharedContentTab.ArrowDown"));
 		arrowDownButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -329,7 +329,7 @@ public class SharedContentTab {
 		});
 		builderFolder.add(arrowDownButton, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		arrowUpButton.setToolTipText(Messages.getString("SharedFolders.ArrowUp"));
+		arrowUpButton.setToolTipText(Messages.getString("SharedContentTab.ArrowUp"));
 		arrowUpButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
