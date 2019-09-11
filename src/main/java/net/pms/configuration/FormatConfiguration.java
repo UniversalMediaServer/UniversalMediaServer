@@ -590,54 +590,6 @@ public class FormatConfiguration {
 		return match(MPEGPS, MPEG2, null) != null || match(MPEGTS, MPEG2, null) != null;
 	}
 
-	// XXX Unused
-	@Deprecated
-	public boolean isHiFiMusicFileSupported() {
-		return match(WAV, null, null, 0, 96000, 0, 0, 0, 0, null, null, false) != null || match(MP3, null, null, 0, 96000, 0, 0, 0, 0, null, null, false) != null;
-	}
-
-	// XXX Unused
-	@Deprecated
-	public String getPrimaryVideoTranscoder() {
-		for (SupportSpec supportSpec : supportSpecs) {
-			if (supportSpec.match(MPEGPS, MPEG2, AC3)) {
-				return MPEGPS;
-			}
-
-			if (
-				supportSpec.match(MPEGTS, MPEG2, AC3) ||
-				supportSpec.match(MPEGTS, H264, AAC_LC) ||
-				supportSpec.match(MPEGTS, H264, AC3)
-			) {
-				return MPEGTS;
-			}
-
-			if (supportSpec.match(WMV, WMV, WMA)) {
-				return WMV;
-			}
-		}
-
-		return null;
-	}
-
-	// XXX Unused
-	@Deprecated
-	public String getPrimaryAudioTranscoder() {
-		for (SupportSpec supportSpec : supportSpecs) {
-			if (supportSpec.match(WAV, null, null)) {
-				return WAV;
-			}
-
-			if (supportSpec.match(MP3, null, null)) {
-				return MP3;
-			}
-
-			// FIXME LPCM?
-		}
-
-		return null;
-	}
-
 	/**
 	 * Match media information to audio codecs supported by the renderer and
 	 * return its MIME-type if the match is successful. Returns null if the
