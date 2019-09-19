@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -24,8 +24,8 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -37,7 +37,14 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
+import net.pms.formats.audio.MP3;
+import net.pms.formats.image.BMP;
+import net.pms.formats.image.GIF;
+import net.pms.formats.image.JPG;
+import net.pms.formats.image.PNG;
+import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
+import net.pms.network.HTTPResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
@@ -67,7 +74,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		new GIF(),
 		new JPG(),
 		new MP3(),
-		new PNG()
+		new PNG(),
+		new BMP()
 	};
 
 	private static final Matcher umsInfo = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
@@ -80,10 +88,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int XBOX1 = 6;
 	protected static final int OPERA = 7;
 	protected static final int EDGE = 8;
+	protected static final int CHROMIUM = 9;
+	protected static final int VIVALDI = 10;
 
 	private StartStopListenerDelegate startStop;
 
-	public WebRender(String user) throws ConfigurationException {
+	public WebRender(String user) throws ConfigurationException, InterruptedException {
 		super(NOFILE, null);
 		this.user = user;
 		ip = "";
@@ -106,10 +116,14 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		// FIXME: These are just preliminary
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
-		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac m:video/flash");
+		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac-lc m:video/flash");
 		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
-//		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
+		configuration.addProperty(SUPPORTED, "f:ogg v:theora m:video/ogg");
+		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
+		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
+		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
+		configuration.addProperty(SUPPORTED, "f:bmp m:image/bmp");
 		configuration.addProperty(SUPPORTED, "f:jpg m:image/jpeg");
 		configuration.addProperty(SUPPORTED, "f:png m:image/png");
 		configuration.addProperty(SUPPORTED, "f:gif m:image/gif");
@@ -152,6 +166,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case XBOX1:   return "Xbox One";
 			case OPERA:   return "Opera";
 			case EDGE:    return "Edge";
+			case CHROMIUM:return "Chromium";
+			case VIVALDI: return "Vivaldi";
 			default:      return Messages.getString("PMS.142");
 		}
 	}
@@ -168,6 +184,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			ua.contains("playstation 4") ? PS4 :
 			ua.contains("xbox one")      ? XBOX1 :
 			ua.contains("opera")         ? OPERA :
+			ua.contains("chromium")      ? CHROMIUM :
+			ua.contains("vivaldi")       ? VIVALDI :
 			0;
 	}
 
@@ -217,6 +235,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case XBOX1:   return "xbox-one.png";
 			case OPERA:   return "opera.png";
 			case EDGE:    return "edge.png";
+			case CHROMIUM:return "chromium.png";
+			case VIVALDI: return "vivaldi.png";
 			default:      return super.getRendererIcon();
 		}
 	}
@@ -237,14 +257,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	public boolean isChromeTrick() {
-		return browser == CHROME && pmsconfiguration.getWebChrome();
-	}
-
-	public boolean isFirefoxLinuxMp4() {
-		return browser == FIREFOX && platform != null && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
-	}
-
 	public boolean isScreenSizeConstrained() {
 		return (screenWidth != 0 && RemoteUtil.getWidth() > screenWidth) ||
 			(screenHeight != 0 && RemoteUtil.getHeight() > screenHeight);
@@ -259,10 +271,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getVideoMimeType() {
-		if (isChromeTrick()) {
-			return RemoteUtil.MIME_WEBM;
-		} else if (isFirefoxLinuxMp4()) {
-			return RemoteUtil.MIME_MP4;
+		if (browser == CHROME) {
+			return HTTPResource.WEBM_TYPEMIME;
+		} else if (browser == FIREFOX) {
+			return HTTPResource.MP4_TYPEMIME;
 		}
 		return defaultMime;
 	}
@@ -290,32 +302,29 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params) {
+	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Player player, OutputParams params) {
 		if (player instanceof FFMpegVideo) {
-			if (dlna.getFormat().isVideo()) {
-				DLNAMediaInfo media = dlna.getMedia();
+			if (resource.getFormat().isVideo()) {
+				DLNAMediaInfo media = resource.getMedia();
 				boolean flash = media != null && "video/flash".equals(media.getMimeType());
 				if (flash) {
-					fflashCmds(cmdList, media);
+					ffFlashCmds(cmdList, media);
 				} else {
-					String mime = getVideoMimeType();
-					switch (mime) {
-						case RemoteUtil.MIME_OGG:
-							ffoggCmd(cmdList);
+					String mimeType = getVideoMimeType();
+					switch (mimeType) {
+						case HTTPResource.OGG_TYPEMIME:
+							ffOggCmd(cmdList);
 							break;
-						case RemoteUtil.MIME_MP4:
-							ffmp4Cmd(cmdList);
+						case HTTPResource.MP4_TYPEMIME:
+							ffMp4Cmd(cmdList);
 							break;
-						case RemoteUtil.MIME_WEBM:
-							if (isChromeTrick()) {
-								chromeCmd(cmdList);
-							} else {
-								// nothing here yet
-							}	break;
+						case HTTPResource.WEBM_TYPEMIME:
+							ffWebmCmd(cmdList);
+							break;
 					}
 				}
 				if (isLowBitrate()) {
-					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
+					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(resource, media, params));
 				}
 			} else {
 				// nothing here yet
@@ -327,7 +336,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	private void fflashCmds(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffFlashCmds(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -351,7 +360,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("flv");
 	}
 
-	private void ffoggCmd(List<String> cmdList) {
+	private static void ffOggCmd(List<String> cmdList) {
 		/*cmdList.add("-c:v");
 		cmdList.add("libtheora");*/
 		cmdList.add("-qscale:v");
@@ -368,7 +377,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("ogg");
 	}
 
-	private void ffmp4Cmd(List<String> cmdList) {
+	private static void ffMp4Cmd(List<String> cmdList) {
 		// see http://stackoverflow.com/questions/8616855/how-to-output-fragmented-mp4-with-ffmpeg
 		cmdList.add(1, "-re");
 		cmdList.add("-g");
@@ -378,22 +387,20 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("libx264");
 		cmdList.add("-preset");
 		cmdList.add("ultrafast");
-		/*cmdList.add("-tune");
+		cmdList.add("-tune");
 		cmdList.add("zerolatency");
-		cmdList.add("-profile:v");
-		cmdList.add("high");
-		cmdList.add("-level:v");
-		cmdList.add("3.1");*/
+//		cmdList.add("-profile:v");
+//		cmdList.add("high");
+//		cmdList.add("-level:v");
+//		cmdList.add("3.1");
 		cmdList.add("-c:a");
 		cmdList.add("aac");
 		cmdList.add("-ab");
-		cmdList.add("16k");
+		cmdList.add("128k");
 //		cmdList.add("-ar");
 //		cmdList.add("44100");
-		cmdList.add("-strict");
-		cmdList.add("experimental");
-		/*cmdList.add("-pix_fmt");
-		cmdList.add("yuv420p");*/
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
 //		cmdList.add("-frag_duration");
 //		cmdList.add("300");
 //		cmdList.add("-frag_size");
@@ -406,7 +413,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("mp4");
 	}
 
-	private void chromeCmd(List<String> cmdList) {
+	private static void ffWebmCmd(List<String> cmdList) {
 		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
@@ -427,7 +434,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@SuppressWarnings("unused")
-	private void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -451,6 +458,28 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("HLS");
 	}
 
+	public boolean isImageFormatSupported(ImageFormat format) {
+		if (format == null) {
+			return false;
+		}
+		if (format == ImageFormat.GIF || format == ImageFormat.JPEG || format == ImageFormat.PNG) {
+			return true;
+		}
+		switch (format) {
+			case BMP:
+				return
+					browser == FIREFOX || browser == CHROME ||
+					browser == CHROMIUM || browser == OPERA ||
+					browser == MSIE || browser == EDGE || browser == SAFARI;
+			case TIFF:
+				return browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
+			case WEBP:
+				return browser == CHROME || browser == CHROMIUM || browser == OPERA;
+			default:
+				return false;
+		}
+	}
+
 	public static boolean supportedFormat(Format f) {
 		for (Format f1 : supportedFormats) {
 			if (f.getIdentifier() == f1.getIdentifier() || f1.mimeType().equals(f.mimeType())) {
@@ -464,15 +493,22 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		if (dlna instanceof VirtualVideoAction) {
 			return true;
 		}
-		DLNAMediaInfo m = dlna.getMedia();
-		return (m != null && RemoteUtil.directmime(m.getMimeType())) ||
-			(supportedFormat(dlna.getFormat())) ||
-			(dlna.getPlayer() instanceof FFMpegVideo);
+		DLNAMediaInfo media = dlna.getMedia();
+		return
+			media != null && RemoteUtil.directmime(media.getMimeType()) ||
+			supportedFormat(dlna.getFormat()) ||
+			dlna.getPlayer() instanceof FFMpegVideo;
 	}
 
+	/**
+	 * libvorbis transcodes very slowly, so we scale the video down to
+	 * speed it up.
+	 *
+	 * @return 
+	 */
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return "scale=" + getVideoWidth() + ":" + getVideoHeight();
+		return getVideoMimeType() == HTTPResource.OGG_TYPEMIME ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
 	}
 
 	@Override
@@ -626,8 +662,19 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				"PAUSED".equals(s) ? PAUSED : -1;
 			state.mute = "0".equals(data.get("mute")) ? false : true;
 			s = data.get("volume");
-			state.volume = s == null ? 0 : Integer.valueOf(s);
-			long seconds = Integer.valueOf(data.get("position"));
+			try {
+				state.volume = StringUtil.hasValue(s) ? Integer.valueOf(s) : 0;
+			} catch (NumberFormatException e) {
+				LOGGER.debug("Unexpected volume value \"{}\"", data.get("volume"));
+			}
+			long seconds = 0;
+			if (data.get("position") != null) {
+				try {
+					seconds = Integer.valueOf(data.get("position"));
+				} catch (NumberFormatException e) {
+					LOGGER.debug("Unexpected position value \"{}\"", data.get("position"));
+				}
+			}
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
 			alert();
 			if (state.playback == STOPPED) {

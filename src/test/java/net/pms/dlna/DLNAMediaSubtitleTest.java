@@ -65,7 +65,7 @@ public class DLNAMediaSubtitleTest {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("../util/russian-utf8-without-bom.srt"));
 		DLNAMediaSubtitle sub1 = new DLNAMediaSubtitle();
 		sub1.setExternalFile(file_utf8);
-		assertThat(sub1.getExternalFileCharacterSet()).isEqualTo(CHARSET_UTF_8);
+		assertThat(sub1.getSubCharacterSet()).isEqualTo(CHARSET_UTF_8);
 		assertThat(sub1.isExternalFileUtf8()).isTrue();
 		assertThat(sub1.isExternalFileUtf16()).isFalse();
 		assertThat(sub1.isExternalFileUtf()).isTrue();
@@ -73,7 +73,7 @@ public class DLNAMediaSubtitleTest {
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("../util/russian-utf8-with-bom.srt"));
 		DLNAMediaSubtitle sub2 = new DLNAMediaSubtitle();
 		sub2.setExternalFile(file_utf8_2);
-		assertThat(sub2.getExternalFileCharacterSet()).isEqualTo(CHARSET_UTF_8);
+		assertThat(sub2.getSubCharacterSet()).isEqualTo(CHARSET_UTF_8);
 		assertThat(sub2.isExternalFileUtf8()).isTrue();
 		assertThat(sub2.isExternalFileUtf16()).isFalse();
 		assertThat(sub2.isExternalFileUtf()).isTrue();
@@ -81,7 +81,7 @@ public class DLNAMediaSubtitleTest {
 		File file_utf16_le = FileUtils.toFile(CLASS.getResource("../util/russian-utf16-le.srt"));
 		DLNAMediaSubtitle sub3 = new DLNAMediaSubtitle();
 		sub3.setExternalFile(file_utf16_le);
-		assertThat(sub3.getExternalFileCharacterSet()).isEqualTo(CHARSET_UTF_16LE);
+		assertThat(sub3.getSubCharacterSet()).isEqualTo(CHARSET_UTF_16LE);
 		assertThat(sub3.isExternalFileUtf8()).isFalse();
 		assertThat(sub3.isExternalFileUtf16()).isTrue();
 		assertThat(sub3.isExternalFileUtf()).isTrue();
@@ -89,7 +89,7 @@ public class DLNAMediaSubtitleTest {
 		File file_utf16_be = FileUtils.toFile(CLASS.getResource("../util/russian-utf16-be.srt"));
 		DLNAMediaSubtitle sub4 = new DLNAMediaSubtitle();
 		sub4.setExternalFile(file_utf16_be);
-		assertThat(sub4.getExternalFileCharacterSet()).isEqualTo(CHARSET_UTF_16BE);
+		assertThat(sub4.getSubCharacterSet()).isEqualTo(CHARSET_UTF_16BE);
 		assertThat(sub4.isExternalFileUtf8()).isFalse();
 		assertThat(sub4.isExternalFileUtf16()).isTrue();
 		assertThat(sub4.isExternalFileUtf()).isTrue();
@@ -97,7 +97,7 @@ public class DLNAMediaSubtitleTest {
 		File file_utf32_le = FileUtils.toFile(CLASS.getResource("../util/russian-utf32-le.srt"));
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
 		sub5.setExternalFile(file_utf32_le);
-		assertThat(sub5.getExternalFileCharacterSet()).isEqualTo(CHARSET_UTF_32LE);
+		assertThat(sub5.getSubCharacterSet()).isEqualTo(CHARSET_UTF_32LE);
 		assertThat(sub5.isExternalFileUtf8()).isFalse();
 		assertThat(sub5.isExternalFileUtf16()).isFalse();
 		assertThat(sub5.isExternalFileUtf()).isTrue();
@@ -105,7 +105,7 @@ public class DLNAMediaSubtitleTest {
 		File file_utf32_be = FileUtils.toFile(CLASS.getResource("../util/russian-utf32-be.srt"));
 		DLNAMediaSubtitle sub6 = new DLNAMediaSubtitle();
 		sub6.setExternalFile(file_utf32_be);
-		assertThat(sub6.getExternalFileCharacterSet()).isEqualTo(CHARSET_UTF_32BE);
+		assertThat(sub6.getSubCharacterSet()).isEqualTo(CHARSET_UTF_32BE);
 		assertThat(sub6.isExternalFileUtf8()).isFalse();
 		assertThat(sub6.isExternalFileUtf16()).isFalse();
 		assertThat(sub6.isExternalFileUtf()).isTrue();
@@ -113,7 +113,7 @@ public class DLNAMediaSubtitleTest {
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("../util/english-utf8-with-bom.srt"));
 		DLNAMediaSubtitle sub7 = new DLNAMediaSubtitle();
 		sub7.setExternalFile(file_utf8_3);
-		assertThat(sub7.getExternalFileCharacterSet()).isEqualTo(CHARSET_UTF_8);
+		assertThat(sub7.getSubCharacterSet()).isEqualTo(CHARSET_UTF_8);
 		assertThat(sub7.isExternalFileUtf8()).isTrue();
 		assertThat(sub7.isExternalFileUtf16()).isFalse();
 		assertThat(sub7.isExternalFileUtf()).isTrue();
@@ -124,34 +124,65 @@ public class DLNAMediaSubtitleTest {
 		File file_big5 = FileUtils.toFile(CLASS.getResource("../util/chinese-big5.srt"));
 		DLNAMediaSubtitle sub1 = new DLNAMediaSubtitle();
 		sub1.setExternalFile(file_big5);
-		assertThat(sub1.getExternalFileCharacterSet()).isEqualTo(CHARSET_BIG5);
+		assertThat(sub1.getSubCharacterSet()).isEqualTo(CHARSET_BIG5);
 		assertThat(sub1.isExternalFileUtf8()).isFalse();
 		assertThat(sub1.isExternalFileUtf16()).isFalse();
 		assertThat(sub1.isExternalFileUtf()).isFalse();
+		assertThat(sub1.getLang()).isEqualTo("zh");
 
 		File file_gb18030 = FileUtils.toFile(CLASS.getResource("../util/chinese-gb18030.srt"));
 		DLNAMediaSubtitle sub2 = new DLNAMediaSubtitle();
 		sub2.setExternalFile(file_gb18030);
-		assertThat(sub2.getExternalFileCharacterSet()).isEqualTo(CHARSET_GB18030);
+		assertThat(sub2.getSubCharacterSet()).isEqualTo(CHARSET_GB18030);
 		assertThat(sub2.isExternalFileUtf8()).isFalse();
 		assertThat(sub2.isExternalFileUtf16()).isFalse();
 		assertThat(sub2.isExternalFileUtf()).isFalse();
+		assertThat(sub2.getLang()).isEqualTo("zh");
 
-		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../util/russian-cp1251.srt"));
+		File file_cp1250 = FileUtils.toFile(CLASS.getResource("../util/czech-cp1250.srt"));
 		DLNAMediaSubtitle sub3 = new DLNAMediaSubtitle();
-		sub3.setExternalFile(file_cp1251);
-		assertThat(sub3.getExternalFileCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
+		sub3.setExternalFile(file_cp1250);
+		assertThat(sub3.getSubCharacterSet()).isEqualTo(CHARSET_WINDOWS_1250);
 		assertThat(sub3.isExternalFileUtf8()).isFalse();
 		assertThat(sub3.isExternalFileUtf16()).isFalse();
 		assertThat(sub3.isExternalFileUtf()).isFalse();
+		assertThat(sub3.getLang()).isEqualTo("cs");
 
-		File file_koi8_r = FileUtils.toFile(CLASS.getResource("../util/russian-koi8-r.srt"));
+		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../util/russian-cp1251.srt"));
+		DLNAMediaSubtitle sub4 = new DLNAMediaSubtitle();
+		sub4.setExternalFile(file_cp1251);
+		assertThat(sub4.getSubCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
+		assertThat(sub4.isExternalFileUtf8()).isFalse();
+		assertThat(sub4.isExternalFileUtf16()).isFalse();
+		assertThat(sub4.isExternalFileUtf()).isFalse();
+		assertThat(sub4.getLang()).isEqualTo("ru");
+
+		File file_iso_8859_2 = FileUtils.toFile(CLASS.getResource("../util/hungarian-iso-8859-2.srt"));
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
-		sub5.setExternalFile(file_koi8_r);
-		assertThat(sub5.getExternalFileCharacterSet()).isEqualTo(CHARSET_KOI8_R);
+		sub5.setExternalFile(file_iso_8859_2);
+		assertThat(sub5.getSubCharacterSet()).isEqualTo(CHARSET_ISO_8859_2);
 		assertThat(sub5.isExternalFileUtf8()).isFalse();
 		assertThat(sub5.isExternalFileUtf16()).isFalse();
 		assertThat(sub5.isExternalFileUtf()).isFalse();
+		assertThat(sub5.getLang()).isEqualTo("hu");
+
+		File file_koi8_r = FileUtils.toFile(CLASS.getResource("../util/russian-koi8-r.srt"));
+		DLNAMediaSubtitle sub6 = new DLNAMediaSubtitle();
+		sub6.setExternalFile(file_koi8_r);
+		assertThat(sub6.getSubCharacterSet()).isEqualTo(CHARSET_KOI8_R);
+		assertThat(sub6.isExternalFileUtf8()).isFalse();
+		assertThat(sub6.isExternalFileUtf16()).isFalse();
+		assertThat(sub6.isExternalFileUtf()).isFalse();
+		assertThat(sub6.getLang()).isEqualTo("ru");
+
+		File file_iso_8859_8 = FileUtils.toFile(CLASS.getResource("../util/hebrew-iso-8859-8.srt"));
+		DLNAMediaSubtitle sub7 = new DLNAMediaSubtitle();
+		sub7.setExternalFile(file_iso_8859_8);
+		assertThat(sub7.getSubCharacterSet()).isEqualTo(CHARSET_ISO_8859_8);
+		assertThat(sub7.isExternalFileUtf8()).isFalse();
+		assertThat(sub7.isExternalFileUtf16()).isFalse();
+		assertThat(sub7.isExternalFileUtf()).isFalse();
+		assertThat(sub7.getLang()).isEqualTo("he");
 	}
 
 	@Test
@@ -161,22 +192,22 @@ public class DLNAMediaSubtitleTest {
 		DLNAMediaSubtitle sub1 = new DLNAMediaSubtitle();
 		sub1.setType(VOBSUB);
 		sub1.setExternalFile(file_cp1251);
-		assertThat(sub1.getExternalFileCharacterSet()).isNull();
+		assertThat(sub1.getSubCharacterSet()).isNull();
 
 		DLNAMediaSubtitle sub2 = new DLNAMediaSubtitle();
 		sub2.setType(BMP);
 		sub2.setExternalFile(file_cp1251);
-		assertThat(sub2.getExternalFileCharacterSet()).isNull();
+		assertThat(sub2.getSubCharacterSet()).isNull();
 
 		DLNAMediaSubtitle sub3 = new DLNAMediaSubtitle();
 		sub3.setType(DIVX);
 		sub3.setExternalFile(file_cp1251);
-		assertThat(sub3.getExternalFileCharacterSet()).isNull();
+		assertThat(sub3.getSubCharacterSet()).isNull();
 
 		DLNAMediaSubtitle sub4 = new DLNAMediaSubtitle();
 		sub4.setType(PGS);
 		sub4.setExternalFile(file_cp1251);
-		assertThat(sub4.getExternalFileCharacterSet()).isNull();
+		assertThat(sub4.getSubCharacterSet()).isNull();
 	}
 
 	@Test
@@ -186,12 +217,12 @@ public class DLNAMediaSubtitleTest {
 		DLNAMediaSubtitle sub1 = new DLNAMediaSubtitle();
 		sub1.setType(SUBRIP);
 		sub1.setExternalFile(file_cp1251);
-		assertThat(sub1.getExternalFileCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
+		assertThat(sub1.getSubCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
 
 		DLNAMediaSubtitle sub2 = new DLNAMediaSubtitle();
 		sub2.setType(ASS);
 		sub2.setExternalFile(file_cp1251);
-		assertThat(sub2.getExternalFileCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
+		assertThat(sub2.getSubCharacterSet()).isEqualTo(CHARSET_WINDOWS_1251);
 	}
 
 	@Test

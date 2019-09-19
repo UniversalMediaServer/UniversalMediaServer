@@ -34,6 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class AboutTab {
 	public JComponent build() {
 		FormLayout layout = new FormLayout(
 			"0:grow, pref, 0:grow",
-			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -82,45 +83,60 @@ public class AboutTab {
 
 		builder.addLabel(Messages.getString("LinksTab.5"), cc.xy(2, 7, "center, fill"));
 
+		final LinkMouseListener crowdinLink = new LinkMouseListener(String.format(Messages.getString("LinksTab.7"), PMS.NAME), PMS.CROWDIN_LINK);
+		JLabel lCrowdinLink = builder.addLabel(crowdinLink.getLabel(), cc.xy(2, 9, "center, fill"));
+		lCrowdinLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lCrowdinLink.addMouseListener(crowdinLink);
+
 		final LinkMouseListener ps3msLink = new LinkMouseListener("PS3 Media Server", "http://www.ps3mediaserver.org/");
-		JLabel lPs3msLink = builder.addLabel(ps3msLink.getLabel(), cc.xy(2, 9, "center, fill"));
+		JLabel lPs3msLink = builder.addLabel(ps3msLink.getLabel(), cc.xy(2, 11, "center, fill"));
 		lPs3msLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lPs3msLink.addMouseListener(ps3msLink);
 
 		final LinkMouseListener ffmpegLink = new LinkMouseListener("FFmpeg", "http://ffmpeg.mplayerhq.hu");
-		JLabel lFfmpegLink = builder.addLabel(ffmpegLink.getLabel(), cc.xy(2, 11, "center, fill"));
+		JLabel lFfmpegLink = builder.addLabel(ffmpegLink.getLabel(), cc.xy(2, 13, "center, fill"));
 		lFfmpegLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lFfmpegLink.addMouseListener(ffmpegLink);
 
 		final LinkMouseListener mplayerLink = new LinkMouseListener("MPlayer", "http://www.mplayerhq.hu");
-		JLabel lMplayerLink = builder.addLabel(mplayerLink.getLabel(), cc.xy(2, 13, "center, fill"));
+		JLabel lMplayerLink = builder.addLabel(mplayerLink.getLabel(), cc.xy(2, 15, "center, fill"));
 		lMplayerLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMplayerLink.addMouseListener(mplayerLink);
 
 		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder and InterFrame builds", "http://www.spirton.com");
-		JLabel lSpirtonLink = builder.addLabel(spirtonLink.getLabel(), cc.xy(2, 15, "center, fill"));
+		JLabel lSpirtonLink = builder.addLabel(spirtonLink.getLabel(), cc.xy(2, 17, "center, fill"));
 		lSpirtonLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSpirtonLink.addMouseListener(spirtonLink);
 
 		final LinkMouseListener mediaInfoLink = new LinkMouseListener("MediaInfo", "http://mediainfo.sourceforge.net/en");
-		JLabel lMediaInfoLink = builder.addLabel(mediaInfoLink.getLabel(), cc.xy(2, 17, "center, fill"));
+		JLabel lMediaInfoLink = builder.addLabel(mediaInfoLink.getLabel(), cc.xy(2, 19, "center, fill"));
 		lMediaInfoLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMediaInfoLink.addMouseListener(mediaInfoLink);
 
 		final LinkMouseListener avisynthMTLink = new LinkMouseListener("AviSynth MT", "http://forum.doom9.org/showthread.php?t=148782");
-		JLabel lAvisynthMTLink = builder.addLabel(avisynthMTLink.getLabel(), cc.xy(2, 19, "center, fill"));
+		JLabel lAvisynthMTLink = builder.addLabel(avisynthMTLink.getLabel(), cc.xy(2, 21, "center, fill"));
 		lAvisynthMTLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lAvisynthMTLink.addMouseListener(avisynthMTLink);
 
 		final LinkMouseListener dryIconsLink = new LinkMouseListener("DryIcons", "http://dryicons.com");
-		JLabel lDryIconsLink = builder.addLabel(dryIconsLink.getLabel(), cc.xy(2, 21, "center, fill"));
+		JLabel lDryIconsLink = builder.addLabel(dryIconsLink.getLabel(), cc.xy(2, 23, "center, fill"));
 		lDryIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lDryIconsLink.addMouseListener(dryIconsLink);
 
+		final LinkMouseListener jmgIconsLink = new LinkMouseListener("Jordan Michael Groll's Icons", "http://jrdng.deviantart.com/art/File-Icons-Version-3-68597653");
+		JLabel lJmgIconsLink = builder.addLabel(jmgIconsLink.getLabel(), cc.xy(2, 25, "center, fill"));
+		lJmgIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lJmgIconsLink.addMouseListener(jmgIconsLink);
+
 		final LinkMouseListener svpLink = new LinkMouseListener("SVP", "http://www.svp-team.com/");
-		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, 23, "center, fill"));
+		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, 27, "center, fill"));
 		lSVPLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSVPLink.addMouseListener(svpLink);
+
+		final LinkMouseListener openSubtitlesLink = new LinkMouseListener("OpenSubtitles.org", "http://www.opensubtitles.org/");
+		JLabel lOpenSubtitlesLink = builder.addLabel(openSubtitlesLink.getLabel(), cc.xy(2, 29, "center, fill"));
+		lOpenSubtitlesLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lOpenSubtitlesLink.addMouseListener(openSubtitlesLink);
 
 		JScrollPane scrollPane = new JScrollPane(builder.getPanel());
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -151,7 +167,7 @@ public class AboutTab {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			try {
-				PMS.get().getRegistry().browseURI(link);
+				BasicSystemUtils.INSTANCE.browseURI(link);
 			} catch (Exception e1) {
 				LOGGER.debug("Caught exception", e1);
 			}

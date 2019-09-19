@@ -2,23 +2,34 @@ package net.pms.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileDb {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileDb.class);
+	private static final String NULLOBJ_STR = "@@@NULLOBJ@@@";
 	private Map<String, Object> db;
 	private int minCnt;
-	private String sep;
+	private String separator;
+	private String encodedSeparator;
 	private File file;
 	private DbHandler handler;
 	private boolean autoSync;
 	private boolean overwrite;
+	private boolean useNullObj;
+	private static final Object NULL_OBJ = new Object();
+	private boolean hasNulls;
 
 	public FileDb(DbHandler h) {
 		this(PMS.getConfiguration().getDataFile(h.name()), h);
@@ -31,14 +42,21 @@ public class FileDb {
 		file = new File(f);
 		handler = h;
 		minCnt = 2;
-		sep = ",";
+		separator = ",";
+		encodedSeparator = "&comma;";
 		autoSync = true;
 		overwrite = false;
+		useNullObj = false;
 		db = new HashMap<>();
+		hasNulls = false;
 	}
 
-	public void setSep(String s) {
-		sep = s;
+	public void setSep(String separator, String encodedSeparator) {
+		if (separator == null || encodedSeparator == null) {
+			throw new IllegalArgumentException("Neither argument can be null");
+		}
+		this.separator = separator;
+		this.encodedSeparator = encodedSeparator;
 	}
 
 	public void setMinCnt(int c) {
@@ -53,31 +71,65 @@ public class FileDb {
 		overwrite = b;
 	}
 
+	public void setUseNullObj(boolean b) { useNullObj = b; }
+
+	public static Object nullObj() { return NULL_OBJ; }
+
+	public boolean isNull(Object obj) { return ((obj == null) || (obj == NULL_OBJ)); }
+
+	public boolean hasNulls() { return hasNulls; }
+
 	public Set<String> keys() {
 		return db.keySet();
+	}
+
+	public Iterator<Entry<String, Object>> iterator() {
+		return db.entrySet().iterator();
+	}
+
+	private String recode(String str) {
+		return Pattern.compile(encodedSeparator, Pattern.LITERAL | Pattern.CASE_INSENSITIVE).
+				matcher(str).replaceAll(Matcher.quoteReplacement(separator));
 	}
 
 	public void init() {
 		if (!file.exists()) {
 			return;
 		}
-		try {
-			BufferedReader in;
-			in = new BufferedReader(new FileReader(file));
-			String str;
-			while ((str = in.readLine()) != null) {
-				str = str.trim();
-				if (StringUtils.isEmpty(str) || str.startsWith("#")) {
+		hasNulls = false;
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+			String line;
+			while ((line = in.readLine()) != null) {
+				line = line.trim();
+				if (StringUtils.isEmpty(line) || line.startsWith("#")) {
 					continue;
 				}
-				String tmp[] = str.split(sep);
-				if (tmp.length < minCnt) {
+				if (useNullObj) {
+					String re = ".*" + separator + NULLOBJ_STR + "$";
+					if (line.matches(re)) {
+						// we got a line which is key, NULL
+						// translate to nullobj
+						hasNulls = true;
+						String[] key = Pattern.compile(separator, Pattern.LITERAL).split(line);
+						db.put(recode(key[0]), NULL_OBJ);
+						continue;
+					}
+				}
+				String[] entry = Pattern.compile(separator, Pattern.LITERAL).split(line);
+				if (entry.length < minCnt) {
 					continue;
 				}
-				db.put(tmp[0], handler.create(tmp));
+				// Substitute the encoded separator with the separator
+				for (int i = 0; i < entry.length; i++) {
+					if (entry[i] != null) {
+						entry[i] = recode(entry[i]);
+					}
+				}
+				db.put(entry[0], handler.create(entry));
 			}
-			in.close();
-		} catch (Exception e) {
+		} catch (IOException e) {
+			LOGGER.warn("Could not read file database file \"{}\": {}", file.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
@@ -88,6 +140,7 @@ public class FileDb {
 			}
 		}
 		db.put(key, obj);
+		hasNulls |= isNull(obj);
 	}
 
 	public void removeNoSync(String key) {
@@ -116,25 +169,42 @@ public class FileDb {
 		try (FileOutputStream out = new FileOutputStream(file)) {
 			// Write a dummy line to make sure the file exists
 			Date now = new Date();
-			String data = "#########################\n#### Db file generated " + now.toString() + "\n" +
-					"#### Edit with care\n#########################\n";
-			out.write(data.getBytes(), 0, data.length());
-			for (String key : db.keySet()) {
-				Object obj = db.get(key);
-				if (obj == null) {
-					data = key;
-					for (int i = 1; i < minCnt; i++) {
-						data += sep;
+			StringBuilder data = new StringBuilder();
+			data.append("#########################\n#### Db file generated ").append(now.toString()).append("\n")
+				.append("#### Edit with care\n#########################\n");
+			out.write(data.toString().getBytes(StandardCharsets.UTF_8));
+			hasNulls = false;
+			for (Entry<String, Object> entry : db.entrySet()) {
+				Object obj = entry.getValue();
+				data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).
+										 matcher(entry.getKey()).
+										 replaceAll(Matcher.quoteReplacement(encodedSeparator)));
+				if (isNull(obj)) {
+					hasNulls = true;
+					if (useNullObj) {
+						data.append(separator);
+						data.append(NULLOBJ_STR);
+					} else {
+						for (int i = 1; i < minCnt; i++) {
+							data.append(separator);
+						}
 					}
-					data += "\n";
+					data.append("\n");
 				} else {
 					String[] data1 = handler.format(obj);
-					data = key + sep + StringUtils.join(data1, sep) + "\n";
+
+					// Substitute the separator with the encoded separator
+					for (int i = 0; i < data1.length; i++) {
+						data1[i] = Pattern.compile(separator, Pattern.LITERAL).matcher(data1[i]).replaceAll(Matcher.quoteReplacement(encodedSeparator));
+					}
+					data.append(separator).append(StringUtils.join(data1, separator)).append("\n");
 				}
-				out.write(data.getBytes(), 0, data.length());
+				out.write(data.toString().getBytes(StandardCharsets.UTF_8));
 			}
 			out.flush();
-		} catch (Exception e) {
+		} catch (IOException e) {
+			LOGGER.warn("Could not write file database file \"{}\": {}", file.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 

@@ -1,21 +1,20 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Digital Media Server, for streaming digital media to UPnP AV or DLNA
+ * compatible devices based on PS3 Media Server and Universal Media Server.
+ * Copyright (C) 2016 Digital Media Server developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see http://www.gnu.org/licenses/.
  */
 package net.pms.newgui.components;
 
@@ -25,12 +24,12 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import javax.annotation.Nonnull;
 import javax.swing.FocusManager;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.JToolTip;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
@@ -71,7 +70,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 	 * @throws NullPointerException
 	 *             if <code>model</code> is <code>null</code>.
 	 */
-	public CustomJSpinner(SpinnerModel model, boolean enterMoveFocus) {
+	public CustomJSpinner(@Nonnull SpinnerModel model, boolean enterMoveFocus) {
 		super(model);
 		if (model instanceof SpinnerIntModel) {
 			this.addMouseWheelListener(new MouseWheelRoll(
@@ -114,12 +113,12 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 		}
 	}
 
-	public JToolTip createToolTip() {
-	    JToolTip tip = new HyperLinkToolTip();
-	    tip.setComponent(this);
-	    return tip;
-	}
-
+	/**
+	 * This {@link MouseWheelListener} makes the spinner increment or decrement
+	 * its value by rolling the mouse wheel.
+	 *
+	 * @author Nadahar
+	 */
 	protected static class MouseWheelRoll implements MouseWheelListener {
 
 		private int minimum, maximum, stepSize;
@@ -218,17 +217,15 @@ public class CustomJSpinner extends javax.swing.JSpinner {
             ftf.setFormatterFactory(factory);
             ftf.setHorizontalAlignment(JTextField.RIGHT);
 
-            try {
-                String minString = formatter.valueToString(model.getMinimum());
-                String maxString = formatter.valueToString(model.getMaximum());
-                // Trying to approximate the width difference between "m" and "0" by multiplying with 0.7
-                ftf.setColumns((int) Math.round(0.7 * Math.max(maxString.length(),
-                                        minString.length())));
-            }
-            catch (ParseException e) {
-            	// Nothing to do, the component width will simply be the default
-            }
-        }
+			try {
+				String minString = formatter.valueToString(model.getMinimum());
+				String maxString = formatter.valueToString(model.getMaximum());
+				// Trying to approximate the width difference between "m" and "0" by multiplying with 0.7
+				ftf.setColumns((int) Math.round(0.7 * Math.max(maxString.length(), minString.length())));
+			} catch (ParseException e) {
+				// Nothing to do, the component width will simply be the default
+			}
+		}
 
         /**
          * This subclass of javax.swing.NumberFormatter maps the minimum/maximum
@@ -248,10 +245,11 @@ public class CustomJSpinner extends javax.swing.JSpinner {
                 return  model.getMinimum();
             }
 
-            public Comparable getMaximum() {
-                return model.getMaximum();
-            }
-        }
+			@Override
+			public Comparable getMaximum() {
+				return model.getMaximum();
+			}
+		}
 
         /**
          * Return our spinner ancestor's <code>SpinnerIntModel</code>.

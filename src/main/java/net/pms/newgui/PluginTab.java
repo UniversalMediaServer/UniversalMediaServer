@@ -4,7 +4,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -16,11 +15,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,7 +34,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -49,12 +45,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.newgui.components.CustomJButton;
-import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -69,14 +63,12 @@ public class PluginTab {
 	private static final String ROW_SPEC = "p, 3dlu, fill:p, 3dlu, p, 15dlu, p, 8dlu, p, 8dlu, p, 3dlu, fill:p:grow, 3dlu, p, 3dlu, p";
 	private JPanel pPlugins;
 	private JPanel installedPluginsSeparator;
-	private ArrayList<DownloadPlugins> plugins;
 	private LooksFrame looksFrame;
 
 	PluginTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 		pPlugins = null;
-		plugins = null;
 		setupCred();
 	}
 
@@ -90,159 +82,6 @@ public class PluginTab {
 		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
-
-		// Available Plugins section
-		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
-		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
-		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
-
-		final String[] cols = {
-			Messages.getString("NetworkTab.41"),
-			Messages.getString("PluginTab.3"),
-			Messages.getString("NetworkTab.42"),
-			Messages.getString("NetworkTab.43"),
-			Messages.getString("NetworkTab.53")
-		};
-
-		final JTable table = new JTable(1, cols.length) {
-			private static final long serialVersionUID = -5032210766949508624L;
-
-			@Override
-			public boolean isCellEditable(int rowIndex, int vColIndex) {
-				return false;
-			}
-
-			@Override
-			public String getToolTipText(MouseEvent e) {
-				java.awt.Point p = e.getPoint();
-				int rowIndex = rowAtPoint(p);
-
-				DownloadPlugins plugin = plugins.get(rowIndex);
-				return plugin.htmlString();
-			}
-		};
-
-		refresh(table, cols);
-
-		/* An attempt to set the correct row height adjusted for font scaling.
-		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
-		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) table.getCellRenderer(0,0);
-		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		table.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-
-		table.setIntercellSpacing(new Dimension(8, 2));
-
-		// Define column widths
-		TableColumn nameColumn = table.getColumnModel().getColumn(0);
-		nameColumn.setMinWidth(70);
-		TableColumn versionColumn = table.getColumnModel().getColumn(2);
-		versionColumn.setPreferredWidth(45);
-		TableColumn ratingColumn = table.getColumnModel().getColumn(2);
-		ratingColumn.setPreferredWidth(45);
-		TableColumn authorColumn = table.getColumnModel().getColumn(3);
-		authorColumn.setMinWidth(150);
-		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
-		descriptionColumn.setMinWidth(300);
-
-		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		pane.setBorder(BorderFactory.createEmptyBorder());
-		pane.setPreferredSize(new Dimension(200, 139));
-		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
-
-		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
-		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-		install.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog(
-						looksFrame,
-						Messages.getString("NetworkTab.40")
-					);
-					return;
-				}
-
-				// See if we have write permission in 'plugins'. We don't necessarily
-				// need admin rights here.
-				try {
-					if (!FileUtil.getFilePermissions(configuration.getPluginDirectory()).isWritable()) {
-						JOptionPane.showMessageDialog(
-							looksFrame,
-							Messages.getString("PluginTab.16") + (Platform.isWindows() ? "\n" + Messages.getString("AutoUpdate.13") : ""),
-							Messages.getString("Dialog.PermissionsError"),
-							JOptionPane.ERROR_MESSAGE
-						);
-						return;
-					}
-				} catch (FileNotFoundException e1) {
-					JOptionPane.showMessageDialog(
-							looksFrame,
-							String.format(Messages.getString("PluginTab.17"), configuration.getPluginDirectory()),
-							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE
-						);
-					return;
-				}
-
-				final int[] rows = table.getSelectedRows();
-				JPanel panel = new JPanel();
-				GridLayout layout = new GridLayout(3, 1);
-				panel.setLayout(layout);
-				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
-				frame.setSize(250, 110);
-				JProgressBar progressBar = new JProgressBar();
-				progressBar.setIndeterminate(true);
-				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
-				panel.add(inst);
-				panel.add(label);
-				frame.add(panel);
-
-				// Center the installation progress window
-				frame.setLocationRelativeTo(null);
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						for (int i = 0; i < rows.length; i++) {
-							DownloadPlugins plugin = plugins.get(rows[i]);
-							if (plugin.isOld()) {
-								// This plugin requires newer UMS
-								// display error and skip it.
-								JOptionPane.showMessageDialog(
-										looksFrame,
-										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
-										"Version Error",
-										JOptionPane.ERROR_MESSAGE
-									);
-									frame.setVisible(false);
-									continue;
-							}
-							frame.setVisible(true);
-							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
-							try {
-								plugin.install(label);
-							} catch (Exception e) {
-								LOGGER.debug("An error occurred when trying to install the plugin: " + plugin.getName());
-								LOGGER.debug("Full error: " + e);
-							}
-						}
-						frame.setVisible(false);
-					}
-				};
-				new Thread(r).start();
-			}
-		});
-
-		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
-		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
-		refresh.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				refresh(table, cols);
-			}
-		});
 
 		// Installed Plugins section
 		JComponent component;
@@ -263,8 +102,8 @@ public class PluginTab {
 		/* An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text. */
-		cellRenderer = (DefaultTableCellRenderer) credTable.getCellRenderer(0,0);
-		metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) credTable.getCellRenderer(0,0);
+		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
 		credTable.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		credTable.setFillsViewportHeight(true);
 
@@ -280,7 +119,7 @@ public class PluginTab {
 		TableColumn pwdColumn = credTable.getColumnModel().getColumn(3);
 		pwdColumn.setPreferredWidth(45);
 
-		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 95));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
@@ -432,25 +271,6 @@ public class PluginTab {
 		return scrollPane;
 	}
 
-	private void refresh(JTable table, String[] cols) {
-		plugins = DownloadPlugins.downloadList();
-		prepareTable(table, cols);
-
-		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
-		tableModel.setRowCount(0);
-
-		for (int i = 0; i < plugins.size(); i++) {
-			tableModel.insertRow(i, (Object[]) null);
-			DownloadPlugins p = plugins.get(i);
-			table.setValueAt(p.getName(), i, 0);
-			table.setValueAt(p.getVersion(), i, 1);
-			table.setValueAt(p.getRating(), i, 2);
-			table.setValueAt(p.getAuthor(), i, 3);
-			table.setValueAt(p.getDescription(), i, 4);
-		}
-		tableModel.fireTableDataChanged();
-	}
-
 	public void addPlugins() {
 		FormLayout layout = new FormLayout(
 			"fill:10:grow",
@@ -512,7 +332,7 @@ public class PluginTab {
 		}
 	}
 
-	private void prepareTable(JTable table,String[] cols) {
+	private static void prepareTable(JTable table,String[] cols) {
 		JTableHeader hdr = table.getTableHeader();
 		TableColumnModel tcm = hdr.getColumnModel();
 
@@ -582,7 +402,7 @@ public class PluginTab {
 
 		int i = 0;
 		while (itr.hasNext()) {
-			String key = (String) itr.next();
+			String key = itr.next();
 			if (StringUtils.isEmpty(key)) {
 				continue;
 			}

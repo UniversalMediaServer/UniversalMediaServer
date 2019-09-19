@@ -61,8 +61,8 @@ bump.addButton('clear', '#bplaylistctrl', 'Clear playlist');
 // css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax 
 
 $('.bumpcontainer').css({
-	position:'fixed',
-	zIndex:'2147483647',
+	position:'fixed',    /* Do not scroll out of view on this or other websites */
+	zIndex:'2147483647', /* MAX_INT, i.e. hopefully topmost when invoked as bookmarklet on other websites */
 	right:'22px',
 	top:'55px',
 });
@@ -84,9 +84,9 @@ $('* .bumppanel').css({
 	borderRadius:'2px',
 	'-moz-border-radius':'2px',
 	'-webkit-border-radius':'2px',
-	boxShadow:' 16px 4px 2px rgba(136,136,136,0.5)',
-	'-moz-box-shadow':'16px 4px 2px rgba(136,136,136,0.5)',
-	'-webkit-box-shadow':'16px 4px 2px rgba(136,136,136,0.5)',
+	boxShadow:' 0px 4px 2px rgba(136,136,136,0.5)',
+	'-moz-box-shadow':'0px 4px 2px rgba(136,136,136,0.5)',
+	'-webkit-box-shadow':'0px 4px 2px rgba(136,136,136,0.5)',
 	appearance:'none',
 	'-moz-appearance':'none',
 	'-webkit-appearance':'none',
@@ -111,7 +111,6 @@ $('#bumppos').css({
 
 $('#bexit').css({
 	verticalAlign:'top',
-	marginRight:'-20px',
 	color:'#fff',
 	cursor:'pointer',
 });

@@ -1,5 +1,9 @@
 /* General */
 
+* {
+	z-index: 1;
+}
+
 html {
 	height: 100%;
 }
@@ -23,10 +27,6 @@ body#ContentPage.browsePage {
 #FrontPage #Container {
 	width: 700px;
 	margin: 0 auto;
-	position: relative;
-}
-
-#ContentPage #Container {
 	position: relative;
 }
 
@@ -86,18 +86,17 @@ body#ContentPage.browsePage {
 
 #Logo {
 	position: absolute;
-	left: 243px;
+	left: 237px;
 	top: 29px;
-	background: url('/files/logo.png') !important;
-	width: 217px;
+	background: url('/files/logo.png') center no-repeat;
+	width: 230px;
 	height: 220px !important;
 	display: block;
 }
 
-#FrontPage #Menu a h3 {
+#FrontPage #Menu a h1 {
 	margin-top: 240px;
 	text-align: center;
-	font-family: Arial, Verdana, Tahoma, sans-serif;
 	color: #5a5a5a;
 	font-size: 22px;
 	text-decoration: none;
@@ -129,6 +128,13 @@ ul#Folders li a:hover {
 ul#Folders li span {
 	display: block;
 	margin-bottom: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+ul#Media {
+	overflow-y: auto;
 }
 
 ul#Media li {
@@ -137,26 +143,49 @@ ul#Media li {
 	margin-bottom: 20px;
 }
 
+ul#Media li {
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	width: 308px;
+	height: 173px;
+	display: block;
+}
+
+.PadBlack {
+	background-color: rgba(0, 0, 0, 1);
+}
+
+.PadGrey {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.PadNone {
+	background-color: transparent;
+}
+
 ul#Media .thumb {
-	max-width: 253px;
-	max-height: 142px;
-	height: 142px;
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	max-width: 308px;
+	max-height: 173px;
+	height: 173px;
 	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
 	width: auto;
-	float: left;
-	display:block;
-	margin : 0;	
+	display: block;
+	margin: 0 auto;
+	object-fit: contain;
 }
 
 ul#Media .caption {
 	display: block;
-	max-width: 205px;
+	max-width: 263px;
 	height: 16px;
 	overflow: hidden;
 	float: left;
 	font-size: 12px;
 	color: #444;
-	margin : 0;
+	margin: 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	line-height: 16px;
 }
 
 .playlist_add {
@@ -167,8 +196,28 @@ ul#Media .caption {
 	background: url('/files/bump/skin/remove16.png') no-repeat;
 }
 
+.playlist_add,
+.playlist_del,
+.bumpIcon,
+#ViewGrid,
+#ViewDynamic,
+#DocButton {
+	opacity: 0.7;
+}
+
+.playlist_add:hover,
+.playlist_del:hover,
+.bumpIcon:hover,
+#ViewGrid:hover,
+#ViewDynamic:hover,
+#ViewGrid.active,
+#ViewDynamic.active,
+#DocButton:hover {
+	opacity: 1.0;
+}
+
 .playlist_add, .playlist_del {
-	width: 16px;
+	width: 13px;
 	height: 16px;
 	display: block;
 	float: right;
@@ -179,21 +228,39 @@ ul#Media li:hover .caption {
 	color: #000 !important;
 }
 
+#ViewGrid,
+#ViewDynamic,
+#ViewPadColor {
+	width: 29px;
+	height: 20px;
+}
+
+#ViewGrid {
+	background-image: url('/files/view-grid.png');
+}
+
+#ViewDynamic {
+	background-image: url('/files/view-dynamic.png');
+	margin-left: 5px;
+}
+
+#ViewPadColor {
+	background-image: url('/files/view-padcolor.png');
+}
+
 ul#Media .caption:hover {
 	text-decoration: underline;
 }
 
 .bumpIcon {
-	background: url('/files/bump/bump16-2.png') no-repeat;
-	width: 28px;
+	width: 24px;
 	height: 16px;
 	display: block;
 	float: right;
 	clear: left;
-}
-
-.bumpIcon:hover {
-	background-position: 0 -16px;
+	background-image: url('/files/bump/skin/bump16.png');
+	background-position: 2px;
+	background-repeat: no-repeat;
 }
 
 .floatRight {
@@ -213,22 +280,69 @@ ul#Media .caption:hover {
 	background-position: 0 -48px;
 }
 
-div#FoldersContainer.noFolders {
-	display: none !important;
+#Folders li:first-child span {
+	margin-bottom: 12px;
+}
+
+#OptionsMenu {
+	float: right;
+	margin: 10px 10px 0 0;
+	z-index: 2;
+}
+
+#OptionsMenu > form,
+#OptionsMenu > a {
+	float: left;
+	display: inline-block;
+	vertical-align: text-top;
 }
 
 #DocButton {
 	background: url('/files/settings32.png') no-repeat;
-	position: absolute;
-	top: 10px;
+}
+
+#Docs {
+	background: url('/files/view-info.png') no-repeat;
+	width: 20px;
+	height: 20px;
+}
+
+#Pad {
+	background: url('/files/pad32.png') no-repeat;
+	width: 32px;
+	height: 18px;
+}
+
+#SettingsMenu {
+	display: none;
+	z-index: 2;
+	background: url('/files/menu-background-content.png');
+	overflow: visible;
+	padding: 7px 0 5px 0;
+	border: 1px;
+	border-style: solid;
+	border-color: #777;
+	position: fixed;
 	right: 10px;
 }
 
+#SettingsMenu li {
+	padding: 0 8px;
+	display: inline-block;
+}
+
+#SettingsMenu li:nth-child(2) span {
+	background: url('/files/background.jpg');
+	display: inline-block;
+}
+
+#SettingsMenu li a {
+	float: left;
+}
+
 form#SearchForm {
-	z-index: 3;
-	position: absolute;
-	top: 10px;
-	right: 50px;
+	z-index: 2;
+	position: relative;
 }
 
 #SearchInput {
@@ -257,7 +371,7 @@ form#SearchForm {
 	display: block;
 }
 
-#SearchSubmit:hover, #DocButton:hover {
+#SearchSubmit:hover {
 	background-position: 0 -32px;
 }
 
@@ -292,7 +406,7 @@ form#SearchForm {
 
 #notices {
 	position: fixed;
-	z-index: 99999;
+	z-index: 2;
 	top: 100px;
 	right: 12px;
 }
@@ -375,8 +489,9 @@ form#SearchForm {
 	display: block;
 	position: fixed;
 	bottom: 0;
-	z-index: 2147483647;
-	width:50%;
+	z-index: 2;
+	width: 50%;
 	margin: 0;
 	left: 45%;
 }
+

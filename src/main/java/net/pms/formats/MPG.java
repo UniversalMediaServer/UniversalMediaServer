@@ -20,7 +20,7 @@ package net.pms.formats;
 
 public class MPG extends Format {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {
@@ -45,16 +45,20 @@ public class MPG extends Format {
 			"avi",
 			"div",
 			"divx",
+			"ismv",
 			"m2p",
 			"m2t",
 			"m2ts",
 			"m4v",
+			"mj2",
+			"mjp2",
 			"mod",
 			"mp4",
 			"mpe",
 			"mpeg",
 			"mpg",
 			"mts",
+			"s4ud",
 			"tivo",
 			"tmf",
 			"tp",
@@ -62,24 +66,10 @@ public class MPG extends Format {
 			"ty",
 			"vdr",
 			"vob",
+			"vro",
 			"wm",
 			"wmv",
 			"wtv"
 		};
-	}
-
-	/**
-	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
-	 * <p>
-	 * Returns whether or not a format can be handled by the PS3 natively.
-	 * This means the format can be streamed to PS3 instead of having to be
-	 * transcoded.
-	 * 
-	 * @return True if the format can be handled by PS3, false otherwise.
-	 */
-	@Deprecated
-	@Override
-	public boolean ps3compatible() {
-		return true;
 	}
 }

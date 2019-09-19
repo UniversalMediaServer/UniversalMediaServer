@@ -167,20 +167,16 @@
 		<dd>Enable deinterlace filter which will usually is done by your
 			PS3 or TV.</dd>
 
-		<dt>Switch to tsMuxeR when video when H.264 video is PS3
-			compatible</dt>
-		<dd>Enable this! When MEncoder transcoding engine is used and UMS
-			recognizes a PS3 compatible video it will switch to transcoding
-			engine tsMuxeR. The video will then be streamed directly or muxed but
-			not transcoded! This setting will dramatically reduce the need of
-			transcoding. Matroska video (mkv) for example aren't supported on
-			PS3. Mostly the contained audio and video stream is PS3 compatible.
-			So tsMuxeR creates a PS3 compatible m2ts container which contains the
-			original audio and video stream and the PS3 is able to playback. This
-			feature reduces both network traffic (because of better compression
-			as MPEG2) and CPU power needed for playback.</dd>
+		<dt>Remux videos with tsMuxeR when possible instead of transcoding</dt>
+		<dd>When MEncoder transcoding engine is used and UMS
+			recognizes a compatible video it will stream to tsMuxeR,
+			which means there is no quality loss. Matroska video (mkv)
+			for example aren't supported on	PS3 but often the audio
+			and video streams are compatible, so tsMuxeR creates a 
+			compatible m2ts container which contains the original
+			audio and video stream and the PS3 is able to playback.</dd>
 
-		<dt>Expert settings: Codec-specific parameters</dt>
+		<dt>Codec-specific parameters (Advanced)</dt>
 		<dd>Press the button to change MEncoder parameters for certain codecs</dd>
 
 		<dt>Custom options</dt>
@@ -192,7 +188,7 @@
 
 		</dl>
 		
-		<h3>Subtitle settings</h3>
+		<h3>Subtitles settings</h3>
 		<dl>
 		<dt>Subtitles language priority</dt>
 		<dd>Fill in the abbreviation of your native language so that UMS
@@ -251,19 +247,6 @@
 		<dt>Mux all audio tracks</dt>
 		<dd>Enable it in order to get all audio tracks muxed.</dd>
 	</dl>
-
-
-	<h2>FFmpeg DVR-MS remux</h2>
-
-	<dl>
-		<dt>Alternative FFmpeg path</dt>
-		<dd>This feature is for users of Microsoft Windows Mediacenter
-			Edition. If you have recorded some TV shows and want to watch the
-			DVR-MS files with UMS/PS3 you need a special version of FFmpeg.
-			Download and unzip this file in your UMS installation directory and
-			restart UMS.</dd>
-	</dl>
-
 
 	<!--  Navigation -->
 	<hr />

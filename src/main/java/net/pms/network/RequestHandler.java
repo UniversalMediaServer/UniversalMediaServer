@@ -25,15 +25,27 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 public class RequestHandler implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
@@ -62,7 +74,7 @@ public class RequestHandler implements Runnable {
 	public RequestHandler(Socket socket) throws IOException {
 		this.socket = socket;
 		this.output = socket.getOutputStream();
-		this.br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		this.br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 	}
 
 	@Override
@@ -86,8 +98,6 @@ public class RequestHandler implements Runnable {
 				throw new IOException("Access denied for address " + ia + " based on IP filter");
 			}
 
-			LOGGER.trace("Opened request handler on socket " + socket);
-			PMS.get().getRegistry().disableGoToSleep();
 
 			// The handler makes a couple of attempts to recognize a renderer from its requests.
 			// IP address matches from previous requests are preferred, when that fails request
@@ -107,7 +117,7 @@ public class RequestHandler implements Runnable {
 			String line = br.readLine();
 			while (line != null && line.length() > 0) {
 				headerLines.add(line);
-				if (unrecognized) {
+				if (sortedHeaders != null) {
 					sortedHeaders.put(line);
 				}
 				line = br.readLine();
@@ -119,7 +129,6 @@ public class RequestHandler implements Runnable {
 			}
 
 			for (String headerLine : headerLines) {
-				LOGGER.trace("Received on socket: " + headerLine);
 
 				// The request object is created inside the while loop.
 				if (request != null && request.getMediaRenderer() == null && renderer != null) {
@@ -128,10 +137,12 @@ public class RequestHandler implements Runnable {
 				if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
 					// Is the request from our own Cling service, i.e. self-originating?
 					if (isSelf && headerLine.contains("UMS/")) {
-						LOGGER.trace("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort());
+						//LOGGER.trace("Ignoring self-originating request from {}:{}", ia, remoteAddress.getPort());
 						return;
 					}
 					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+				} else if (renderer != null && headerLine.startsWith("X-PANASONIC-DMP-Profile:")) {
+					PanasonicDmpProfiles.parsePanasonicDmpProfiles(headerLine, renderer);
 				}
 
 				try {
@@ -210,7 +221,8 @@ public class RequestHandler implements Runnable {
 						}
 					}
 				} catch (IllegalArgumentException e) {
-					LOGGER.error("Error in parsing HTTP headers", e);
+					LOGGER.error("Error parsing HTTP headers: {}", e.getMessage());
+					LOGGER.trace("", e);
 				}
 			}
 
@@ -223,25 +235,24 @@ public class RequestHandler implements Runnable {
 					renderer = RendererConfiguration.resolve(ia, null);
 					request.setMediaRenderer(renderer);
 					if (renderer != null) {
-						LOGGER.trace("Using default media renderer: " + renderer.getConfName());
+						LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
 
 						if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 							// We have found an unknown renderer
 							identifiers.add(0, "User-Agent: " + userAgentString);
 							renderer.setIdentifiers(identifiers);
-							LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers:"
-								+ StringUtils.join(identifiers, ", "));
+							LOGGER.info(
+								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
+								StringUtils.join(identifiers, "\n")
+							);
 						}
 					} else {
 						// If RendererConfiguration.resolve() didn't return the default renderer
 						// it means we know via upnp that it's not really a renderer.
 						return;
 					}
-				} else {
-					if (userAgentString != null) {
-						LOGGER.trace("HTTP User-Agent: " + userAgentString);
-					}
-					LOGGER.trace("Recognized media renderer: " + renderer.getRendererName());
+				} else if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
 				}
 			}
 
@@ -249,12 +260,14 @@ public class RequestHandler implements Runnable {
 				char buf[] = new char[receivedContentLength];
 				br.read(buf);
 				if (request != null) {
-					request.setTextContent(new String(buf));
+					String textContent = new String(buf);
+					request.setTextContent(textContent);
+					if (LOGGER.isTraceEnabled()) {
+						logMessageReceived(headerLines, textContent, socket.getRemoteSocketAddress(), renderer);
+					}
+				} else if (LOGGER.isTraceEnabled() ){
+					logMessageReceived(headerLines, null, socket.getRemoteSocketAddress(), renderer);
 				}
-			}
-
-			if (request != null) {
-				LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 			}
 
 			if (request != null) {
@@ -265,28 +278,105 @@ public class RequestHandler implements Runnable {
 				request.getInputStream().close();
 			}
 		} catch (IOException e) {
-			LOGGER.trace("Unexpected IO error: " + e.getClass().getName() + ": " + e.getMessage());
+			LOGGER.error("Unexpected IO error in {}: {}", getClass().getName(), e.getMessage());
+			// "An established connection was aborted by the software in your host machine"
+			// is localized on Windows so there's no way to differentiate it
+			// from other IOExceptions.
+			//LOGGER.trace("", e);
 			if (request != null && request.getInputStream() != null) {
 				try {
-					LOGGER.trace("Closing input stream: " + request.getInputStream());
+					LOGGER.trace("Closing input stream: {}", request.getInputStream());
 					request.getInputStream().close();
 				} catch (IOException e1) {
-					LOGGER.error("Error closing input stream", e1);
+					LOGGER.error("Error closing input stream: {}", e1);
+					LOGGER.trace("", e1);
 				}
 			}
 		} finally {
 			try {
-				PMS.get().getRegistry().reenableGoToSleep();
 				output.close();
 				br.close();
 				socket.close();
 			} catch (IOException e) {
-				LOGGER.error("Error closing connection: ", e);
+				LOGGER.error("Error closing connection: {}", e.getMessage());
+				LOGGER.trace("", e);
 			}
 
 			startStopListenerDelegate.stop();
-			LOGGER.trace("Close connection");
 		}
+	}
+
+	private static void logMessageReceived(List<String> headerLines, String content, SocketAddress remote, RendererConfiguration renderer) {
+		StringBuilder header = new StringBuilder();
+		String soapAction = null;
+
+		if (headerLines != null) {
+			if (!headerLines.isEmpty()) {
+				header.append(headerLines.get(0)).append("\n\n");
+			}
+			if (headerLines.size() > 1) {
+				header.append("HEADER:\n");
+				for (int i = 1; i < headerLines.size(); i++) {
+					if (isNotBlank(headerLines.get(i))) {
+						header.append("  ").append(headerLines.get(i)).append("\n");
+						if (headerLines.get(i).toUpperCase(Locale.ROOT).contains("SOAPACTION")) {
+							soapAction = headerLines.get(i).toUpperCase(Locale.ROOT).replaceFirst("\\s*SOAPACTION:\\s*", "");
+						}
+					}
+				}
+			}
+		} else {
+			header.append("No header information available\n");
+		}
+
+		String formattedContent = null;
+		if (StringUtils.isNotBlank(content)) {
+			try {
+				formattedContent = StringUtil.prettifyXML(content, StandardCharsets.UTF_8, 2);
+			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+				LOGGER.trace("XML parsing failed with:\n{}", e);
+				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
+			}
+		}
+		String requestType = "";
+		// Map known requests to request type
+		if (soapAction != null) {
+			if (soapAction.contains("CONTENTDIRECTORY:1#BROWSE")) {
+				requestType = "browse ";
+			} else if (soapAction.contains("CONTENTDIRECTORY:1#SEARCH")) {
+				requestType = "search ";
+			}
+		}
+		String rendererName;
+		if (renderer != null) {
+			if (isNotBlank(renderer.getRendererName())) {
+				if (isBlank(renderer.getConfName()) || renderer.getRendererName().equals(renderer.getConfName())) {
+					rendererName = renderer.getRendererName();
+				} else {
+					rendererName = renderer.getRendererName() + " [" + renderer.getConfName() + "]";
+				}
+			} else if (isNotBlank(renderer.getConfName())) {
+				rendererName = renderer.getConfName();
+			} else {
+				rendererName = "Unnamed";
+			}
+		} else {
+			rendererName = "Unknown";
+		}
+		if (remote instanceof InetSocketAddress) {
+			rendererName +=
+				" (" + ((InetSocketAddress) remote).getAddress().getHostAddress() +
+				":" + ((InetSocketAddress) remote).getPort() + ")";
+		}
+
+		LOGGER.trace(
+			"Received a {}request from {}:\n\n{}{}",
+			requestType,
+			rendererName,
+			header,
+			StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+		);
 	}
 
 	/**
@@ -297,7 +387,7 @@ public class RequestHandler implements Runnable {
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
-	private boolean filterIp(InetAddress inetAddress) {
+	private static boolean filterIp(InetAddress inetAddress) {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 }

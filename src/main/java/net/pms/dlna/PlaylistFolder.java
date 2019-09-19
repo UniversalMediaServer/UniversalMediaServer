@@ -2,6 +2,8 @@ package net.pms.dlna;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import net.pms.PMS;
@@ -11,6 +13,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,12 +75,24 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	private BufferedReader getBufferedReader() throws IOException {
+		String extension;
+		Charset charset;
 		if (FileUtil.isUrl(uri)) {
-			return new BufferedReader(new InputStreamReader(new URL(uri).openStream()));
+			extension = FileUtil.getUrlExtension(uri).toLowerCase(PMS.getLocale());
+		} else {
+			extension = FileUtil.getExtension(uri).toLowerCase(PMS.getLocale());
+		}
+		if (extension != null && (extension.equals("m3u8") || extension.equals(".cue"))) {
+			charset = StandardCharsets.UTF_8;
+		} else {
+			charset = StandardCharsets.ISO_8859_1;
+		}
+		if (FileUtil.isUrl(uri)) {
+			return new BufferedReader(new InputStreamReader(new BOMInputStream(new URL(uri).openStream()), charset));
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
-				return new BufferedReader(new FileReader(playlistfile));
+				return new BufferedReader(new InputStreamReader(new BOMInputStream(new FileInputStream(playlistfile)), charset));
 			}
 		}
 		return null;

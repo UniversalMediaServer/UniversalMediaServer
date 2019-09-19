@@ -19,6 +19,7 @@
 package net.pms.dlna;
 
 import com.github.junrar.Archive;
+import com.github.junrar.impl.FileVolumeManager;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
 import java.io.File;
@@ -38,12 +39,12 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	private long length;
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) { // no thumbnail support for now for rarred videos
 			return null;
 		}
 
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	public RarredEntry(String name, File file, String fileHeaderName, long length) {
@@ -91,7 +92,6 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -107,7 +107,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 			public void run() {
 				Archive rarFile = null;
 				try {
-					rarFile = new Archive(file);
+					rarFile = new Archive(new FileVolumeManager(file),null);
 					FileHeader header = null;
 					for (FileHeader fh : rarFile.getFileHeaders()) {
 						if (fh.getFileNameString().equals(fileHeaderName)) {
@@ -123,7 +123,9 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
 				} finally {
 					try {
-						rarFile.close();
+						if (rarFile != null) {
+							rarFile.close();
+						}
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
@@ -155,12 +157,15 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 				input.setPush(this);
 				input.setSize(length());
 				getFormat().parse(getMedia(), input, getType(), null);
+				if (getMedia() != null && getMedia().isSLS()) {
+					setFormat(getMedia().getAudioVariantFormat());
+				}
 			}
 		}
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

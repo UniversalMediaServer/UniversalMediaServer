@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,20 +19,19 @@
  */
 package net.pms.newgui.components;
 
-import static org.junit.Assert.*;
-import net.pms.configuration.PmsConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import net.pms.configuration.PmsConfiguration;
+import org.apache.commons.configuration.ConfigurationException;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 public class TextAreaFIFOTest {
-
 	@Before
-	public void setUp() throws ConfigurationException {
+	public void setUp() throws ConfigurationException, InterruptedException {
 		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
@@ -40,7 +39,7 @@ public class TextAreaFIFOTest {
 
 	@Test
 	public void testTextAreaFIFO() {
-		TextAreaFIFO textArea = new TextAreaFIFO(950);
+		TextAreaFIFO textArea = new TextAreaFIFO(950, 100);
 
 		assertEquals("InitialLines", textArea.getMaxLines(), 950);
 		textArea.setMaxLines(0);

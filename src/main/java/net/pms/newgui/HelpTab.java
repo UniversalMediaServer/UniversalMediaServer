@@ -152,8 +152,8 @@ public class HelpTab {
 		int baseSize = editorPane.getFont().getSize();
 		String rule = String.format(
 			"body { font-size: %dpt; padding: %dpx; }",
-			Math.round(baseSize * 7 / 6),
-			Math.round(baseSize * 5 / 6)
+			Math.round((double) baseSize * 7 / 6),
+			Math.round((double) baseSize * 5 / 6)
 		);
 		styleSheet.addRule(rule);
 
@@ -169,7 +169,7 @@ public class HelpTab {
 		rule = String.format("pre, tt { font-size: %dpt; }", baseSize);
 		styleSheet.addRule(rule);
 
-		rule = String.format("dd { margin-bottom: %dpx; }", Math.round(baseSize * 10 / 6));
+		rule = String.format("dd { margin-bottom: %dpx; }", Math.round((double) baseSize * 10 / 6));
 		styleSheet.addRule(rule);
 	}
 }

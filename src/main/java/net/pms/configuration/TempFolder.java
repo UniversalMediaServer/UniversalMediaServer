@@ -1,13 +1,13 @@
 package net.pms.configuration;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
-import net.pms.util.FileUtil;
 import net.pms.util.FilePermissions;
+import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 
 /**
  * Handles finding a temporary directory.
@@ -86,7 +86,7 @@ class TempFolder {
 			throw new IOException("Temporary folder isn't browsable: " + folder.getAbsolutePath());
 		}
 		if (!permission.isWritable()) {
-			throw new IOException("Temporary folder isn't writable:" + folder.getAbsolutePath());
+			throw new IOException("Temporary folder isn't writable: " + folder.getAbsolutePath());
 		}
 	}
 }

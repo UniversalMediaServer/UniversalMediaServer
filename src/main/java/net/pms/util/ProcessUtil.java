@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -20,6 +20,7 @@
 
 package net.pms.util;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,13 +28,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +53,7 @@ public class ProcessUtil {
 	private static final int ALRM_TIMEOUT = 2000;
 
 	// work around a Java bug
-	// see: http://kylecartmell.com/?p=9
+	// see: http://www.cnblogs.com/abnercai/archive/2012/12/27/2836008.html
 	public static int waitFor(Process p) {
 		int exit = -1;
 
@@ -172,8 +175,31 @@ public class ProcessUtil {
 		}
 	}
 
+	/**
+	 * Converts the path of the specified {@link File} to the equivalent MS-DOS
+	 * style 8.3 path using the Windows API function {@code GetShortPathNameW()}
+	 * if the path contains Unicode characters.
+	 *
+	 * @param file the {@link File} whose path to convert.
+	 * @return The resulting non-Unicode file path.
+	 */
+	public static String getShortFileNameIfWideChars(File file) {
+		if (file == null) {
+			return null;
+		}
+		return getShortFileNameIfWideChars(file.getPath());
+	}
+
+	/**
+	 * Converts the specified file path to the equivalent MS-DOS style 8.3 path
+	 * using the Windows API function {@code GetShortPathNameW()} if the path
+	 * contains Unicode characters.
+	 *
+	 * @param name the file path to convert.
+	 * @return The resulting non-Unicode file path.
+	 */
 	public static String getShortFileNameIfWideChars(String name) {
-		return PMS.get().getRegistry().getShortPathNameW(name);
+		return BasicSystemUtils.INSTANCE.getShortPathNameW(name);
 	}
 
 	// Run cmd and return combined stdout/stderr
@@ -218,14 +244,35 @@ public class ProcessUtil {
 	// Whitewash any arguments not suitable to display in dbg messages
 	// and make one single printable string
 	public static String dbgWashCmds(String[] cmd) {
-		for(int i=0; i < cmd.length; i++) {
-			if(cmd[i].contains("headers")) {
-				cmd[i+1]= cmd[i+1].replaceAll("Authorization: [^\n]+\n", "Authorization: ****\n");
-				i++;
-				continue;
+		StringBuilder sb = new StringBuilder();
+		boolean prevHeader = false;
+		for (String argument : cmd) {
+			if (isNotBlank(argument)) {
+				if (sb.length() > 0) {
+					sb.append(" ");
+				}
+
+				// Hide sensitive information from the log
+				String modifiedArgument;
+				if (prevHeader) {
+					modifiedArgument = argument.replaceAll("Authorization: [^\n]+\n", "Authorization: ****\n");
+					prevHeader = false;
+				} else {
+					if (argument.contains("headers")) {
+						prevHeader = true;
+					}
+					modifiedArgument = argument;
+				}
+
+				// Wrap arguments with spaces in double quotes to make them runnable if copy-pasted
+				if (modifiedArgument.contains(" ")) {
+					sb.append("\"").append(modifiedArgument).append("\"");
+				} else {
+					sb.append(modifiedArgument);
+				}
 			}
 		}
-		return StringUtils.join(cmd, " ");
+		return sb.toString();
 	}
 
 	// Rebooting
@@ -242,7 +289,31 @@ public class ProcessUtil {
 
 	// Shutdown UMS and either reboot or run the given command (e.g. a script to restart UMS)
 	public static void reboot(ArrayList<String> cmd, Map<String,String> env, String startdir, String... UMSOptions) {
-		final ArrayList<String> reboot = getUMSCommand();
+		final ArrayList<String> reboot;
+		String macAppPath = null;
+		if (Platform.isMac()) {
+			String libraryPath = ManagementFactory.getRuntimeMXBean().getLibraryPath();
+			if (StringUtils.isNotBlank(libraryPath)) {
+				Pattern pattern = Pattern.compile("(.+?\\.app)/Contents/MacOS");
+				Matcher matcher = pattern.matcher(libraryPath);
+				if (matcher.find()) {
+					macAppPath = matcher.group(1);
+				}
+			}
+		}
+		if (StringUtils.isNotBlank(macAppPath)) {
+			reboot = new ArrayList<>();
+			reboot.add("open");
+			reboot.add("-n");
+			reboot.add("-a");
+			reboot.add(macAppPath);
+			if (UMSOptions.length > 0) {
+				reboot.add("--args");
+			}
+		} else {
+			reboot = getUMSCommand();
+		}
+
 		if (UMSOptions.length > 0) {
 			reboot.addAll(Arrays.asList(UMSOptions));
 		}
@@ -262,14 +333,14 @@ public class ProcessUtil {
 			startdir = System.getProperty("user.dir");
 		}
 
-		System.out.println("starting: " + StringUtils.join(cmd, " "));
+		System.out.println("Starting: " + StringUtils.join(cmd, " "));
 
 		final ProcessBuilder pb = new ProcessBuilder(cmd);
 		if (env != null) {
 			pb.environment().putAll(env);
 		}
 		pb.directory(new File(startdir));
-		System.out.println("in directory: " + pb.directory());
+		System.out.println("In folder: " + pb.directory());
 		try {
 			pb.start();
 		} catch (Exception e) {
@@ -284,9 +355,23 @@ public class ProcessUtil {
 	//     http://stackoverflow.com/questions/1518213/read-java-jvm-startup-parameters-eg-xmx
 	public static ArrayList<String> getUMSCommand() {
 		ArrayList<String> reboot = new ArrayList<>();
-		reboot.add(StringUtil.quoteArg(
-			System.getProperty("java.home") + File.separator + "bin" + File.separator +
-			((Platform.isWindows() && System.console() == null) ? "javaw" : "java")));
+		File jvmPath = new File(System.getProperty("java.home"));
+		String jvmExecutableName = Platform.isWindows() && System.console() == null ? "javaw" : "java";
+		File jvmExecutable = new File(jvmPath, jvmExecutableName);
+		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
+			jvmPath = new File(jvmPath, "bin");
+			jvmExecutable = new File(jvmPath, jvmExecutableName);
+		}
+		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
+			LOGGER.error(
+				"Can´t find Java executable \"{}\", falling back to pathless execution using \"{}\"",
+				jvmExecutable.getAbsolutePath(),
+				jvmExecutableName
+			);
+			reboot.add(jvmExecutableName);
+		} else {
+			reboot.add(StringUtil.quoteArg(jvmExecutable.getAbsolutePath()));
+		}
 		for (String jvmArg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
 			reboot.add(StringUtil.quoteArg(jvmArg));
 		}

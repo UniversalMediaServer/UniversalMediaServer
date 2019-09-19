@@ -27,7 +27,7 @@ import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
-import net.sf.sevenzipjbinding.ISevenZipInArchive;
+import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
@@ -41,16 +41,16 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private File file;
 	private String zeName;
 	private long length;
-	private ISevenZipInArchive arc;
+	private IInArchive arc;
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) {
 			// no thumbnail support for now for zipped videos
 			return null;
 		}
 
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	public SevenZipEntry(File file, String zeName, long length) {
@@ -91,7 +91,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -150,9 +149,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
-					} catch (SevenZipException e) {
-						LOGGER.debug("Caught 7-Zip exception", e);
-					}
+					} 
 				}
 			}
 		};
@@ -180,6 +177,9 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 				input.setPush(this);
 				input.setSize(length());
 				getFormat().parse(getMedia(), input, getType(), null);
+				if (getMedia() != null && getMedia().isSLS()) {
+					setFormat(getMedia().getAudioVariantFormat());
+				}
 			}
 		}
 
@@ -187,7 +187,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

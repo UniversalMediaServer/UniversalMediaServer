@@ -26,7 +26,6 @@ var bump = (function() {
 			hookup();
 			setButtons();
 			getRenderers();
-			status();
 		}
 		here = [title !== undefined ? title:document.title,0,uri !== undefined ? uri:location];
 		selindex = -1;
@@ -56,6 +55,7 @@ var bump = (function() {
 
 	function setRenderer() {
 		renderer = $("#brenderers option:selected").attr('value');
+		status();
 		getPlaylist();
 	}
 
@@ -77,7 +77,7 @@ var bump = (function() {
 			var title = sel.html();
 			query = '?uri='+encodeURIComponent(uri)+'&title='+encodeURIComponent(title);
 		}
-		console.log('press: '+addr+b+'/'+renderer+query);
+//		console.log('press: '+addr+b+'/'+renderer+query);
 		$.get(addr+b+'/'+renderer+query, refresh);
 		selindex = -1;
 	}

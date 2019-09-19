@@ -1,0 +1,15 @@
+com.twelvemonkeys.imageio.plugins.bmp.BMPImageReaderSpi
+com.twelvemonkeys.imageio.plugins.bmp.CURImageReaderSpi
+com.twelvemonkeys.imageio.plugins.bmp.ICOImageReaderSpi
+com.twelvemonkeys.imageio.plugins.hdr.HDRImageReaderSpi
+com.twelvemonkeys.imageio.plugins.icns.ICNSImageReaderSpi
+com.twelvemonkeys.imageio.plugins.iff.IFFImageReaderSpi
+com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageReaderSpi
+com.twelvemonkeys.imageio.plugins.pcx.PCXImageReaderSpi
+com.twelvemonkeys.imageio.plugins.dcx.DCXImageReaderSpi
+com.twelvemonkeys.imageio.plugins.pict.PICTImageReaderSpi
+com.twelvemonkeys.imageio.plugins.pnm.PNMImageReaderSpi
+com.twelvemonkeys.imageio.plugins.psd.PSDImageReaderSpi
+com.twelvemonkeys.imageio.plugins.sgi.SGIImageReaderSpi
+com.twelvemonkeys.imageio.plugins.tga.TGAImageReaderSpi
+com.twelvemonkeys.imageio.plugins.tiff.TIFFImageReaderSpi

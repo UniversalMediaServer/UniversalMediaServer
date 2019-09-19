@@ -23,26 +23,18 @@ import java.io.InputStream;
 
 public class FeedItem extends DLNAResource {
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (thumbURL == null) {
 			return null;
 		}
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	@Override
-	public String getThumbnailContentType() {
-		if (thumbURL != null && thumbURL.toLowerCase().endsWith(".jpg")) {
-			return JPEG_TYPEMIME;
-		} else {
-			return super.getThumbnailContentType();
-		}
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbURL, true));
 	}
 
-	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
-		return downloadAndSend(thumbURL, true);
-	}
 	private String title;
 	private String itemURL;
 	private String thumbURL;

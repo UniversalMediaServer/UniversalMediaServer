@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,15 +19,15 @@
  */
 package net.pms.util;
 
-import static org.junit.Assert.*;
-import java.util.Locale;
-import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import java.util.Locale;
+import org.apache.commons.configuration.ConfigurationException;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 public class LanguagesTest {
 
@@ -84,29 +84,29 @@ public class LanguagesTest {
 	@Test
 	public void testToLanguageCode() {
 		// Test the string version
-		assertEquals("EnIsen-US", Languages.toLanguageCode("En"), "en-US");
-		assertEquals("EN-USIsen-US", Languages.toLanguageCode("EN-US"), "en-US");
-		assertEquals("En-gBIsen-GB", Languages.toLanguageCode("En-gB"), "en-GB");
-		assertEquals("zh-hansIszh-Hans", Languages.toLanguageCode("zh-hans"), "zh-Hans");
-		assertEquals("cmn-HantIszh-Hant", Languages.toLanguageCode("cmn-HantIs"), "zh-Hant");
-		assertNull("EmptyIsNull", Languages.toLanguageCode(""));
+		assertEquals("EnIsen-US", Languages.toLanguageTag("En"), "en-US");
+		assertEquals("EN-USIsen-US", Languages.toLanguageTag("EN-US"), "en-US");
+		assertEquals("En-gBIsen-GB", Languages.toLanguageTag("En-gB"), "en-GB");
+		assertEquals("zh-hansIszh-Hans", Languages.toLanguageTag("zh-hans"), "zh-Hans");
+		assertEquals("cmn-HantIszh-Hant", Languages.toLanguageTag("cmn-HantIs"), "zh-Hant");
+		assertNull("EmptyIsNull", Languages.toLanguageTag(""));
 		String code = null;
-		assertNull("NullIsNull", Languages.toLanguageCode(code));
+		assertNull("NullIsNull", Languages.toLanguageTag(code));
 
 		// Test the locale version
-		assertEquals("enIsen-US", Languages.toLanguageCode(Locale.forLanguageTag("en")), "en-US");
-		assertEquals("en-USIsen-US", Languages.toLanguageCode(Locale.forLanguageTag("en-US")), "en-US");
-		assertEquals("en-GBIsen-GB", Languages.toLanguageCode(Locale.forLanguageTag("en-GB")), "en-GB");
-		assertEquals("zh-HansIszh-Hans", Languages.toLanguageCode(Locale.forLanguageTag("zh-Hans")), "zh-Hans");
-		assertEquals("cmn-HantIszh-Hant", Languages.toLanguageCode(Locale.forLanguageTag("cmn-Hant")), "zh-Hant");
-		assertEquals("zh-CNIszh-Hans", Languages.toLanguageCode(Locale.forLanguageTag("zh-CN")), "zh-Hans");
-		assertEquals("zh-SGIszh-Hans", Languages.toLanguageCode(Locale.forLanguageTag("zh-SG")), "zh-Hans");
-		assertEquals("zh-TWIszh-Hant", Languages.toLanguageCode(Locale.forLanguageTag("zh-TW")), "zh-Hant");
-		assertEquals("pt-PTIspt", Languages.toLanguageCode(Locale.forLanguageTag("pt-PT")), "pt");
-		assertEquals("no-NOIsno", Languages.toLanguageCode(Locale.forLanguageTag("no-NO")), "no");
-		assertNull("EmptyIsNull", Languages.toLanguageCode(Locale.forLanguageTag("")));
+		assertEquals("enIsen-US", Languages.toLanguageTag(Locale.forLanguageTag("en")), "en-US");
+		assertEquals("en-USIsen-US", Languages.toLanguageTag(Locale.forLanguageTag("en-US")), "en-US");
+		assertEquals("en-GBIsen-GB", Languages.toLanguageTag(Locale.forLanguageTag("en-GB")), "en-GB");
+		assertEquals("zh-HansIszh-Hans", Languages.toLanguageTag(Locale.forLanguageTag("zh-Hans")), "zh-Hans");
+		assertEquals("cmn-HantIszh-Hant", Languages.toLanguageTag(Locale.forLanguageTag("cmn-Hant")), "zh-Hant");
+		assertEquals("zh-CNIszh-Hans", Languages.toLanguageTag(Locale.forLanguageTag("zh-CN")), "zh-Hans");
+		assertEquals("zh-SGIszh-Hans", Languages.toLanguageTag(Locale.forLanguageTag("zh-SG")), "zh-Hans");
+		assertEquals("zh-TWIszh-Hant", Languages.toLanguageTag(Locale.forLanguageTag("zh-TW")), "zh-Hant");
+		assertEquals("pt-PTIspt", Languages.toLanguageTag(Locale.forLanguageTag("pt-PT")), "pt");
+		assertEquals("no-NOIsno", Languages.toLanguageTag(Locale.forLanguageTag("no-NO")), "no");
+		assertNull("EmptyIsNull", Languages.toLanguageTag(Locale.forLanguageTag("")));
 		Locale locale = null;
-		assertNull("NullIsNull", Languages.toLanguageCode(locale));
+		assertNull("NullIsNull", Languages.toLanguageTag(locale));
 	}
 
 	@Test

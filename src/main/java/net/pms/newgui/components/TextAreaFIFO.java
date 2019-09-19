@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,15 +19,17 @@
  */
 package net.pms.newgui.components;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
+import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.configuration.PmsConfiguration;
 
 
 /**
@@ -40,52 +42,62 @@ import net.pms.configuration.PmsConfiguration;
 public class TextAreaFIFO extends JTextArea implements DocumentListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TextAreaFIFO.class);
 	private int maxLines;
+	private final Timer removeTimer;
 
-    public TextAreaFIFO(int lines) {
-        maxLines = lines;
-        getDocument().addDocumentListener(this);
-    }
+	public TextAreaFIFO(int lines, int removeDelayMS) {
+		maxLines = lines;
+		removeTimer = new Timer(removeDelayMS, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removeLines();
+			}
+		});
+		getDocument().addDocumentListener(this);
+	}
 
-    public void insertUpdate(DocumentEvent e) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                removeLines();
-            }
-        });
-    }
+	@Override
+	public void insertUpdate(DocumentEvent e) {
+		if (removeTimer.isRunning()) {
+			return;
+		}
+		removeTimer.start();
+	}
 
-    public void removeUpdate(DocumentEvent e) {
-    }
+	@Override
+	public void removeUpdate(DocumentEvent e) {
+	}
 
-    public void changedUpdate(DocumentEvent e) {
-    }
+	@Override
+	public void changedUpdate(DocumentEvent e) {
+	}
 
-    public void removeLines() {
-        Element root = getDocument().getDefaultRootElement();
-        while (root.getElementCount() > maxLines) {
-            Element firstLine = root.getElement(0);
-            try {
-                getDocument().remove(0, firstLine.getEndOffset());
-            } catch (BadLocationException ble) {
-            	LOGGER.warn("Can't remove excess lines: {}", ble);
-            }
-        }
-    }
+	public void removeLines() {
+		Element root = getDocument().getDefaultRootElement();
+		int remove = root.getElementCount() - maxLines;
+		if (remove > 0) {
+			Element line = root.getElement(remove - 1);
+			try {
+				getDocument().remove(0, line.getEndOffset());
+			} catch (BadLocationException ble) {
+				LOGGER.warn("Can't remove {} excess line{}: {}", remove, remove == 1 ? "" : "s", ble);
+			}
+		}
+	}
 
-    /**
-     * Get how many lines {@link TextAreaFIFO} keeps
-     * @return the current number of kept lines
-     */
-    public int getMaxLines() {
-    	return maxLines;
-    }
+	/**
+	 * Get how many lines {@link TextAreaFIFO} keeps
+	 * @return the current number of kept lines
+	 */
+	public int getMaxLines() {
+		return maxLines;
+	}
 
-    /**
-     * Set how many lines {@link TextAreaFIFO} should keep
-     * @param lines the new number of kept lines
-     */
-    public void setMaxLines(int lines) {
+	/**
+	 * Set how many lines {@link TextAreaFIFO} should keep
+	 * @param lines the new number of kept lines
+	 */
+	public void setMaxLines(int lines) {
 		lines = Math.min(Math.max(lines, PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN),PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);
-    	maxLines = lines;
-    }
+		maxLines = lines;
+	}
 }

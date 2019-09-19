@@ -1,50 +1,84 @@
 package net.pms.util;
 
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
+import com.sun.jna.Platform;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.charset.IllegalCharsetNameException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.pms.PMS;
+import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.WindowsProgramPaths;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.v2.SubtitleType;
+import net.pms.io.BasicSystemUtils;
+import net.pms.util.FilePermissions.FileFlag;
+import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
-import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.*;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import com.ibm.icu.text.CharsetDetector;
-import com.ibm.icu.text.CharsetMatch;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
-	private static Map<File, File[]> cache;
-	private static int S_ISVTX = 512; // Unix sticky bit mask
+	private static final int S_ISVTX = 512; // Unix sticky bit mask
+
+	/**
+	 * An array of chars that qualifies as file path separators. For Windows
+	 * filesystems that is forward slash in addition to
+	 * {@link File#separatorChar}, for other filesystems it is only
+	 * {@link File#separatorChar}. This is to be compatible with Java's behavior
+	 * of accepting forward slash as a separator also on Windows.
+	 */
+	private static final char[] FILE_SEPARATORS;
 
 	// Signal an invalid parameter in getFileLocation() without raising an exception or returning null
 	private static final String DEFAULT_BASENAME = "NO_DEFAULT_BASENAME_SUPPLIED.conf";
 
+	static {
+		char separator = File.separatorChar;
+		if (separator == '\\') {
+			FILE_SEPARATORS = new char[2];
+			FILE_SEPARATORS[0] = separator;
+			FILE_SEPARATORS[1] = '/';
+		} else {
+			FILE_SEPARATORS = new char[1];
+			FILE_SEPARATORS[0] = separator;
+		}
+	}
+
 	// This class is not instantiable
-	private FileUtil() { }
+	private FileUtil() {
+	}
 
 	/**
 	 * A helper class used by {@link #getFileLocation(String, String, String)}
-	 * which provides access to a file's absolute path and that of its directory.
+	 * which provides access to a file's absolute path and that of its
+	 * directory.
 	 *
 	 * @since 1.90.0
 	 */
@@ -67,23 +101,26 @@ public class FileUtil {
 	}
 
 	/**
-	 * Returns a {@link FileLocation} object which provides access to the directory
-	 * and file paths of the specified file as normalised, absolute paths.
+	 * Returns a {@link FileLocation} object which provides access to the
+	 * directory and file paths of the specified file as normalised, absolute
+	 * paths.
 	 *
-	 * This determines the directory and file path of a file according to the rules
-	 * outlined here: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=49895#p49895
+	 * This determines the directory and file path of a file according to the
+	 * rules outlined here:
+	 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=49895#p49895
 	 *
 	 * @param customPath an optional user-defined path for the resource
-	 * @param defaultDirectory a default directory path used if no custom path is provided
-	 * @param defaultBasename a default filename used if a) no custom path is provided
-	 *                        or b) the custom path is a directory
-	 * @return a {@link FileLocation} object providing access to the file's directory and file paths
+	 * @param defaultDirectory a default directory path used if no custom path
+	 *            is provided
+	 * @param defaultBasename a default filename used if a) no custom path is
+	 *            provided or b) the custom path is a directory
+	 * @return a {@link FileLocation} object providing access to the file's
+	 *         directory and file paths
 	 * @since 1.90.0
 	 */
 	// this is called from a static initialiser, where errors aren't clearly reported,
-	// so do everything possible to return a valid reponse, even if the parameters
-	// aren't sane
-	static public FileLocation getFileLocation(
+	// so do everything possible to return a valid reponse, even if the parameters aren't sane
+	public static FileLocation getFileLocation(
 		String customPath,
 		String defaultDirectory,
 		String defaultBasename
@@ -132,7 +169,7 @@ public class FileUtil {
 		return new FileLocation(directory, file);
 	}
 
-	public final static class InvalidFileSystemException extends Exception {
+	public static final class InvalidFileSystemException extends Exception {
 
 		private static final long serialVersionUID = -4545843729375389876L;
 
@@ -143,9 +180,11 @@ public class FileUtil {
 		public InvalidFileSystemException(String message) {
 			super(message);
 		}
+
 		public InvalidFileSystemException(Throwable cause) {
 			super(cause);
 		}
+
 		public InvalidFileSystemException(String message, Throwable cause) {
 			super(message, cause);
 		}
@@ -161,20 +200,23 @@ public class FileUtil {
 		public String folder;
 
 		@Override
-	    public boolean equals(Object obj) {
+		public boolean equals(Object obj) {
 			if (obj == null) {
 				return false;
 			}
+
 			if (this == obj) {
 				return true;
 			}
-	    	if (!(obj instanceof UnixMountPoint)) {
-	    		return false;
-	    	}
-	    	return
-	    		this.device.equals(((UnixMountPoint) obj).device) &&
-	    		this.folder.equals(((UnixMountPoint) obj).folder);
-	    }
+
+			if (!(obj instanceof UnixMountPoint)) {
+				return false;
+			}
+
+			return
+				device.equals(((UnixMountPoint) obj).device) &&
+				folder.equals(((UnixMountPoint) obj).folder);
+		}
 
 		@Override
 		public int hashCode() {
@@ -187,8 +229,63 @@ public class FileUtil {
 		}
 	}
 
-	public static File isFileExists(String f, String ext) {
-		return isFileExists(new File(f), ext);
+	/**
+	 * Checks if the specified {@link String} is the file path separator. On
+	 * Windows filesystems both {@code "\"} and {@code "/"} is considered as
+	 * such by this method.
+	 *
+	 * @param character the character to check.
+	 * @return {@code true} if {@code character} is the file path separator,
+	 *         {@code false} otherwise.
+	 */
+	public static boolean isSeparator(String character) {
+		if (character == null || character.length() != 1) {
+			return false;
+		}
+
+		return isSeparator(character.charAt(0));
+	}
+
+	/**
+	 * Checks if the specified {@code char} is the file path separator. On
+	 * Windows filesystems both {@code "\"} and {@code "/"} is considered as
+	 * such by this method.
+	 *
+	 * @param character the character to check.
+	 * @return {@code true} if {@code character} is the file path separator,
+	 *         {@code false} otherwise.
+	 */
+	public static boolean isSeparator(char character) {
+		for (char entry : FILE_SEPARATORS) {
+			if (character == entry) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns the last index position of the file path separator in the same
+	 * way as {@link String#lastIndexOf(String)} does. On Windows filesystems
+	 * both {@code "\"} and {@code "/"} is considered a file path separator by
+	 * this method.
+	 *
+	 * @param fileName the filename for which to find the last file path
+	 *            separator.
+	 * @return The index of the last file path separator or {@code -1} if not
+	 *         found.
+	 */
+	public static int getIndexOfLastSeparator(String fileName) {
+		if (fileName == null) {
+			return -1;
+		}
+
+		if (FILE_SEPARATORS.length == 2) {
+			return Math.max(fileName.lastIndexOf(FILE_SEPARATORS[0]), fileName.lastIndexOf(FILE_SEPARATORS[1]));
+		}
+
+		return fileName.lastIndexOf(FILE_SEPARATORS[0]);
 	}
 
 	public static boolean isUrl(String filename) {
@@ -200,8 +297,9 @@ public class FileUtil {
 	public static String getProtocol(String filename) {
 		// Intentionally avoids URI.getScheme(), see above
 		if (isUrl(filename)) {
-			return filename.split("://")[0].toLowerCase();
+			return filename.split("://")[0].toLowerCase(Locale.ROOT);
 		}
+
 		return null;
 	}
 
@@ -209,6 +307,7 @@ public class FileUtil {
 		if (isUrl(filename)) {
 			return filename;
 		}
+
 		try {
 			return new URL(new URL(base), filename).toString();
 		} catch (MalformedURLException e) {
@@ -218,408 +317,723 @@ public class FileUtil {
 
 	public static String getUrlExtension(String u) {
 		// Omit the query string, if any
-		return getExtension(substringBefore(u, "?"));
+		return getExtension(substringBefore(u, "?"), null, null);
 	}
 
-	public static String getExtension(String f) {
-		int point = f.lastIndexOf('.');
 
-		if (point == -1) {
-			return null;
-		}
-
-		return f.substring(point + 1);
-	}
-
-	public static String getFileNameWithoutExtension(String f) {
-		int point = f.lastIndexOf('.');
-
-		if (point == -1) {
-			point = f.length();
-		}
-
-		return f.substring(0, point);
+	/**
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable File file) {
+		return getExtension(file.getName(), null, null);
 	}
 
 	/**
-	 * Returns the filename after being "prettified", which involves
-	 * attempting to strip away certain things like information about the
-	 * quality, resolution, codecs, release groups, fansubbers, etc.,
-	 * replacing periods with spaces, and various other things to produce a
-	 * more "pretty" and standardized filename.
+	 * Returns the file extension from the specified {@link File} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link File} from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable File file, LetterCase convertTo, Locale locale) {
+		if (file == null || file.getName() == null) {
+			return null;
+		}
+
+		return getExtension(file.getName(), convertTo, locale);
+	}
+
+	/**
+	 * Returns the file extension from the specified {@link Path} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link Path} from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable Path file) {
+		return getExtension(file, null, null);
+	}
+
+	
+	/**
+	 * Returns the file extension from the specified {@link Path} or
+	 * {@code null} if it has no extension.
+	 *
+	 * @param file the {@link Path} from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable Path file, LetterCase convertTo, Locale locale) {
+		if (file == null) {
+			return null;
+		}
+
+		Path fileName = file.getFileName();
+		if (fileName == null || isBlank(fileName.toString())) {
+			return null;
+		}
+
+		return getExtension(fileName.toString(), convertTo, locale);
+	}
+
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @return The extracted extension or {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable String fileName) {
+		return getExtension(fileName, null, null);
+	}
+
+	/**
+	 * Returns the file extension from {@code fileName} or {@code null} if
+	 * {@code fileName} has no extension.
+	 *
+	 * @param fileName the file name from which to extract the extension.
+	 * @param convertTo if {@code null} makes no letter case change to the
+	 *            returned {@link String}, otherwise converts the extracted
+	 *            extension (if any) to the corresponding letter case.
+	 * @param locale the {@link Locale} to use for letter case conversion.
+	 *            Defaults to {@link Locale#ROOT} if {@code null}.
+	 * @return The extracted and potentially letter case converted extension or
+	 *         {@code null}.
+	 */
+	@Nullable
+	public static String getExtension(@Nullable String fileName, LetterCase convertTo, Locale locale) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+
+		int dot = fileName.lastIndexOf('.');
+		if (dot == -1 || getIndexOfLastSeparator(fileName) > dot) {
+			return null;
+		}
+
+		if (convertTo != null && locale == null) {
+			locale = Locale.ROOT;
+		}
+
+		String extension = fileName.substring(dot + 1);
+		if (convertTo == LetterCase.UPPER) {
+			return extension.toUpperCase(locale);
+		}
+
+		if (convertTo == LetterCase.LOWER) {
+			return extension.toLowerCase(locale);
+		}
+
+		return extension;
+	}
+
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link File}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(File file) {
+		if (file == null) {
+			return null;
+		}
+
+		return getFileNameWithoutExtension(file.getName());
+	}
+
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param file the {@link Path}.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(Path file) {
+		if (file == null) {
+			return null;
+		}
+
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+
+		return getFileNameWithoutExtension(fileName.toString());
+	}
+
+	/**
+	 * Returns a filename with the extension (if any) stripped off.
+	 *
+	 * @param fileName the filename.
+	 * @return The extensionless filename.
+	 */
+	public static String getFileNameWithoutExtension(String fileName) {
+		if (isBlank(fileName)) {
+			return fileName;
+		}
+
+		int point = fileName.lastIndexOf('.');
+		if (point == -1 || getIndexOfLastSeparator(fileName) > point) {
+			return fileName;
+		}
+
+		return fileName.substring(0, point);
+	}
+
+	private static final class FormattedNameAndEdition {
+		public String formattedName;
+		public String edition;
+
+		public FormattedNameAndEdition(String formattedName, String edition) {
+			this.formattedName = formattedName;
+			this.edition = edition;
+		}
+	}
+
+	/**
+	 * Remove and save edition information to be added later.
+	 */
+	private static FormattedNameAndEdition removeAndSaveEditionToBeAddedLater(String formattedName) {
+		String edition = null;
+		Matcher m = COMMON_FILE_EDITIONS_PATTERN.matcher(formattedName);
+		if (m.find()) {
+			edition = m.group().replaceAll("\\.", " ");
+			edition = "(" + WordUtils.capitalizeFully(edition) + ")";
+			formattedName = formattedName.replaceAll(" - " + COMMON_FILE_EDITIONS, "");
+			formattedName = formattedName.replaceAll(COMMON_FILE_EDITIONS, "");
+		}
+
+		return new FormattedNameAndEdition(formattedName, edition);
+	}
+
+	/**
+	 * Capitalize the first letter of each word if the string contains no
+	 * capital letters.
+	 */
+	private static String convertFormattedNameToTitleCaseParts(String formattedName) {
+		if (formattedName.equals(formattedName.toLowerCase())) {
+			StringBuilder formattedNameBuilder = new StringBuilder();
+			for (String part : formattedName.split(" - ")) {
+				if (formattedNameBuilder.length() > 0) {
+					formattedNameBuilder.append(" - ");
+				}
+
+				formattedNameBuilder.append(convertLowerCaseStringToTitleCase(part));
+			}
+
+			formattedName = formattedNameBuilder.toString();
+		}
+
+		return formattedName;
+	}
+
+	/**
+	 * Capitalize the first letter of each word if the string contains no
+	 * capital letters.
+	 */
+	private static String convertFormattedNameToTitleCase(String formattedName) {
+		if (formattedName.equals(formattedName.toLowerCase())) {
+			formattedName = convertLowerCaseStringToTitleCase(formattedName);
+		}
+
+		return formattedName;
+	}
+
+	/**
+	 * Remove group name from the beginning of the filename.
+	 */
+	private static String removeGroupNameFromBeginning(String formattedName) {
+		if (!"".equals(formattedName) && formattedName.startsWith("[")) {
+			Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
+			Matcher matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				formattedName = matcher.group(1);
+			} else if (formattedName.endsWith("]")) {
+				pattern = Pattern.compile("^\\[([^\\[\\]]+)\\]\\s*$");
+				matcher = pattern.matcher(formattedName);
+				if (matcher.find()) {
+					formattedName = matcher.group(1);
+				}
+			}
+		}
+
+		return formattedName;
+	}
+
+	/**
+	 * Remove stuff at the end of the filename like release group, quality,
+	 * source, etc.
+	 */
+	private static String removeFilenameEndMetadata(String formattedName) {
+		formattedName = formattedName.replaceAll(COMMON_FILE_ENDS_CASE_SENSITIVE, "");
+		formattedName = formattedName.replaceAll("(?i)" + COMMON_FILE_ENDS, "");
+		return formattedName;
+	}
+
+	/**
+	 * Strings that only occur after all useful information. When we encounter
+	 * one of these strings, the string and everything after them will be
+	 * removed.
+	 */
+	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+
+	/**
+	 * Same as above, but they are common words so we reduce the chances of a
+	 * false-positive by being case-sensitive.
+	 */
+	private static final String COMMON_FILE_ENDS_CASE_SENSITIVE = "\\sPROPER\\s.*|\\siNTERNAL\\s.*|\\sLIMITED\\s.*|\\sLiMiTED\\s.*|\\sFESTiVAL\\s.*|\\sNORDIC\\s.*|\\sREAL\\s.*|\\sSUBBED\\s.*|\\sRETAIL\\s.*|\\sEXTENDED\\s.*|\\sNEWEDIT\\s.*|\\sWEB\\s.*";
+
+	/**
+	 * Editions to be added to the end of the prettified name
+	 */
+	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special\\sEdition|Unrated|Final\\sCut|Remastered|Extended\\sCut|IMAX\\sEdition|Uncensored|Directors\\sCut|Uncut)(?!\\))";
+	private static final Pattern COMMON_FILE_EDITIONS_PATTERN = Pattern.compile(COMMON_FILE_EDITIONS);
+
+	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d)(?:[\\s']|v\\d)";
+	private static final Pattern COMMON_ANIME_EPISODE_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
+
+	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d-\\d\\d)(?:[\\s']|v\\d)";
+	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
+
+	public static String getFileNamePrettified(String f) {
+		return getFileNamePrettified(f, null, null, false);
+	}
+
+	public static String getFileNamePrettified(String f, File file) {
+		return getFileNamePrettified(f, file, null, false);
+	}
+
+	/**
+	 * Returns the filename after being "prettified", which involves attempting
+	 * to strip away certain things like information about the quality,
+	 * resolution, codecs, release groups, fansubbers, etc., replacing periods
+	 * with spaces, and various other things to produce a more "pretty" and
+	 * standardized filename.
 	 *
 	 * @param f The filename
 	 * @param file The file to possibly be used by the InfoDb
+	 * @param media
+	 * @param isEpisodeWithinSeasonFolder whether this is an episode within
+	 *                                    a season folder in the Media Library
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNameWithRewriting(String f, File file) {
-		String fileNameWithoutExtension;
+	public static String getFileNamePrettified(String f, File file, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder) {
+		String formattedName = null;
+
+		String title;
+		String year;
+		String extraInformation;
+		String tvSeason;
+		String tvEpisodeNumber;
+		String tvEpisodeName;
+		boolean isTVEpisode = false;
+
+		// Populate the variables from the data if we can, otherwise from the filename
+		if (media != null && getConfiguration().getUseCache() && isNotBlank(media.getMovieOrShowName())) {
+			title = media.getMovieOrShowName();
+
+			year             = isNotBlank(media.getYear())             ? media.getYear()             : "";
+			extraInformation = isNotBlank(media.getExtraInformation()) ? media.getExtraInformation() : "";
+			tvSeason         = isNotBlank(media.getTVSeason())         ? media.getTVSeason()         : "";
+			tvEpisodeNumber  = isNotBlank(media.getTVEpisodeNumber())  ? media.getTVEpisodeNumber()  : "";
+			tvEpisodeName    = isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
+			isTVEpisode      = isNotBlank(media.getTVSeason());
+		} else {
+			String[] metadataFromFilename = getFileNameMetadata(f);
+
+			title            = isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
+			year             = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			extraInformation = isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
+			tvSeason         = isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
+			tvEpisodeNumber  = isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
+			tvEpisodeName    = isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
+
+			if (isNotBlank(tvSeason)) {
+				isTVEpisode = true;
+			}
+		}
+
+		if (isBlank(title)) {
+			return basicPrettify(f);
+		}
+
+		// Build the prettified filename from the metadata
+		if (isTVEpisode) {
+			// Make sure the episode number has a leading zero
+			if (tvEpisodeNumber.length() == 1) {
+				tvEpisodeNumber = "0" + tvEpisodeNumber;
+			}
+
+			/*
+			 * If we are accessing this file via a Season folder within
+			 * the Media Library, we already have the show name and the
+			 * season in the preceding folders, so we only show the episode
+			 * number and title.
+			 */
+			if (isEpisodeWithinSeasonFolder) {
+				formattedName = tvEpisodeNumber + " - ";
+
+				if (isBlank(tvEpisodeName)) {
+					formattedName += "Episode " + tvEpisodeNumber;
+				} else {
+					formattedName += tvEpisodeName;
+				}
+			} else {
+				// If the season is a year, anticipate a "/" for a date
+				if (isNotBlank(tvSeason) && isNotBlank(tvEpisodeNumber)) {
+					if (tvSeason.matches("(19|20)\\d{2}")) {
+						tvSeason += "/";
+					}
+					formattedName = title + " - " + tvSeason + tvEpisodeNumber;
+				}
+
+				if (isNotBlank(tvEpisodeName)) {
+					formattedName += " - " + tvEpisodeName;
+				}
+			}
+		} else {
+			formattedName = title;
+			if (isNotBlank(year)) {
+				formattedName += " (" + year + ")";
+			}
+		}
+
+		if (isNotBlank(extraInformation)) {
+			formattedName += " " + extraInformation;
+		}
+
+		return formattedName;
+	}
+
+	/**
+	 * Returns metadata from the filename which we will use to check the
+	 * validity of online lookups.
+	 *
+	 * @param filename The filename to extract metadata from
+	 *
+	 * @return The metadata
+	 */
+	public static String[] getFileNameMetadata(String filename) {
+		if (filename == null) {
+			return new String[] { null, null, null, null, null, null };
+		}
+
 		String formattedName;
-		String formattedNameTemp;
-		String searchFormattedName;
-		boolean loopedOnce = false;
 
-		// These are false unless we recognize that we could use some info on the video from IMDB
-		boolean isEpisodeToLookup = false;
-		boolean isMovieToLookup   = false;
+		// These are false unless we recognize that we could use some info on the video from IMDb
+		boolean isMovieWithoutYear = false;
+		boolean isSample = false;
 
-		// Remove file extension
-		fileNameWithoutExtension = getFileNameWithoutExtension(f);
-		formattedName = fileNameWithoutExtension;
-		searchFormattedName = "";
+		String movieOrShowName = null;
+		String year            = null;
+		String tvSeason        = null;
+		String tvEpisodeName   = null;
+		String tvEpisodeNumber = null;
+		String edition         = null;
+		
+		// This can contain editions and "Sample" for now
+		String extraInformation = null;
 
-		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]2160p.*|[\\s\\.]WEB-DL.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BRRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*|[\\s\\.]60FPS.*";
-		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]2160p.*|.*[\\s\\.]WEB-DL.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BRRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*|.*[\\s\\.]60FPS.*";
-		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER[\\s\\.].*|[\\s\\.]iNTERNAL[\\s\\.].*|[\\s\\.]LIMITED[\\s\\.].*|[\\s\\.]LiMiTED[\\s\\.].*|[\\s\\.]FESTiVAL[\\s\\.].*|[\\s\\.]NORDIC[\\s\\.].*|[\\s\\.]REAL[\\s\\.].*|[\\s\\.]SUBBED[\\s\\.].*|[\\s\\.]RETAIL[\\s\\.].*|[\\s\\.]EXTENDED[\\s\\.].*";
+		Pattern pattern;
+		Matcher matcher;
 
-		String commonFileMiddle = "(?i)(?!\\()(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|IMAX[\\s\\.]Edition|Uncensored|Directors[\\s\\.]Cut)(?!\\))";
+		formattedName = basicPrettify(filename);
 
-		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d[eE]\\d\\d.*")) {
-			// This matches scene and most p2p TV episodes within the first 9 seasons that are double or triple episodes
+		if (formattedName.toLowerCase(Locale.ENGLISH).endsWith("sample")) {
+			isSample = true;
+		}
+
+		if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
+			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)(?:[eE]|-[eE])(\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+				tvEpisodeNumber += "-" + matcher.group(3);
+			}
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3-$1$4$5");
-			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3-$1$4$5");
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
-
-			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)\\s", " - $1$2$3-$5$6 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
 			}
 
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+			formattedName = removeFilenameEndMetadata(formattedName);
 
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedNameTemp = "";
-				for (String part : formattedName.split(" - ")) {
-					if (loopedOnce) {
-						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
-					} else {
-						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
-					}
-					loopedOnce = true;
-				}
-				formattedName = formattedNameTemp;
-			}
-		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d[eE]\\d\\d.*")) {
-			// This matches scene and most p2p TV episodes after their first 9 seasons that are double episodes
-
-			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3-$1$4$5");
-			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3-$1$4$5");
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
-
-			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
-			}
-
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedNameTemp = "";
-				for (String part : formattedName.split(" - ")) {
-					if (loopedOnce) {
-						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
-					} else {
-						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
-					}
-					loopedOnce = true;
-				}
-				formattedName = formattedNameTemp;
-			}
-		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
+			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
-			formattedName = formattedName.replaceAll("[\\s\\.]S0(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
-
-			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s\\d[xX]\\d\\d.*")) {
+			// This matches older scene and most p2p TV episodes within the first 9 seasons
+			pattern = Pattern.compile("\\s(\\d)[xX](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "0" + matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
 			}
 
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedNameTemp = "";
-				for (String part : formattedName.split(" - ")) {
-					if (loopedOnce) {
-						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
-					} else {
-						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
-					}
-					loopedOnce = true;
-				}
-				formattedName = formattedNameTemp;
-			}
-		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
-			// This matches scene and most p2p TV episodes after their first 9 seasons
-
-			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
-			formattedName = formattedName.replaceAll("[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
-
-			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
 			}
 
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedNameTemp = "";
-				for (String part : formattedName.split(" - ")) {
-					if (loopedOnce) {
-						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
-					} else {
-						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
-					}
-					loopedOnce = true;
-				}
-				formattedName = formattedNameTemp;
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s\\d\\d[xX]\\d\\d.*")) {
+			// This matches older scene and most p2p TV episodes after the first 9 seasons
+			pattern = Pattern.compile("\\s(\\d\\d)[xX](\\d\\d)");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
 			}
-		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Rename the season/episode numbers. For example, "12x01" changes to " - 1201"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
+			pattern = Pattern.compile("\\s((?:19|20)\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				tvEpisodeNumber = matcher.group(2);
+				tvEpisodeNumber += "/" + matcher.group(3);
+			}
 
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
-			formattedName = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + commonFileEnds + ")", " - $1$2/$3/$4");
-			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2/$3/$4");
-
-			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
-
-			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.equals(formattedNameTemp)) {
-				isEpisodeToLookup = true;
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s", " - $1$2/$3/$4 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
 			}
 
-			// Wrap edition information in brackets
-			formattedName = formattedNameTemp.replaceAll(" - " + commonFileMiddle, " ($1)");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedNameTemp = "";
-				for (String part : formattedName.split(" - ")) {
-					if (loopedOnce) {
-						formattedNameTemp += " - " + convertLowerCaseStringToTitleCase(part);
-					} else {
-						formattedNameTemp += convertLowerCaseStringToTitleCase(part);
-					}
-					loopedOnce = true;
-				}
-				formattedName = formattedNameTemp;
-			}
-		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s.*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)", " ($1$2)");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
 			}
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
+			formattedName = removeFilenameEndMetadata(formattedName);
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = convertLowerCaseStringToTitleCase(formattedName);
-			}
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
+			formattedName = removeFilenameEndMetadata(formattedName);
 
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = convertLowerCaseStringToTitleCase(formattedName);
-			}
-		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
-			// This matches rarer types of movies
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = convertLowerCaseStringToTitleCase(formattedName);
-			}
-		} else if (formattedName.matches(commonFileEndsMatch)) {
-			// This is probably a movie that doesn't specify a year
-			isMovieToLookup = true;
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = convertLowerCaseStringToTitleCase(formattedName);
-			}
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
-			// This matches anime with a hash at the end of the name
+			// This matches a single episode anime with a hash at the end of the name
+			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "1";
+				tvEpisodeNumber = matcher.group(1);
 
-			// Remove underscores
-			formattedName = formattedName.replaceAll("_", " ");
-
-			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
-
-			// Remove group name from the beginning of the filename
-			if (!"".equals(formattedName)) {
-				if (formattedName.substring(0, 1).matches("\\[")) {
-					int closingBracketIndex = formattedName.indexOf(']');
-					if (closingBracketIndex != -1) {
-						formattedName = formattedName.substring(closingBracketIndex + 1);
-					}
-
-					if (formattedName.substring(0, 1).matches("\\s")) {
-						formattedName = formattedName.substring(1);
-					}
+				int showNameIndex = indexOf(COMMON_ANIME_EPISODE_NUMBERS_PATTERN, formattedName);
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
 				}
 			} else {
-				formattedName = fileNameWithoutExtension;
+				// This matches a multiple episode anime with a hash at the end of the name
+				matcher = COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN.matcher(formattedName);
+				if (matcher.find()) {
+					tvSeason = "1";
+					tvEpisodeNumber = matcher.group(1);
+
+					int showNameIndex = indexOf(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN, formattedName);
+					if (showNameIndex != -1) {
+						movieOrShowName = formattedName.substring(0, showNameIndex);
+					}
+				}
 			}
 
-			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
-				isEpisodeToLookup = true;
-				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
-			}
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll(
+				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|"+
+				"\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*",
+				""
+			);
 
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = convertLowerCaseStringToTitleCase(formattedName);
-			}
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
+			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "1";
+				tvEpisodeNumber = matcher.group(1);
 
-			// Remove underscores
-			formattedName = formattedName.replaceAll("_", " ");
+				int showNameIndex = indexOf(COMMON_ANIME_EPISODE_NUMBERS_PATTERN, formattedName);
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
+				}
+			}
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
+			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*|\\[h264.*", "");
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
+			// This is probably a movie that doesn't specify a year
+			isMovieWithoutYear = true;
+			formattedName = removeFilenameEndMetadata(formattedName);
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
 
-			// Remove group name from the beginning of the filename
-			if (!"".equals(formattedName)) {
-				if (formattedName.substring(0, 1).matches("\\[")) {
-					int closingBracketIndex = formattedName.indexOf(']');
-					if (closingBracketIndex != -1) {
-						formattedName = formattedName.substring(closingBracketIndex + 1);
+			formattedName = convertFormattedNameToTitleCase(formattedName);
+		}
+
+		// Remove extra spaces
+		formattedName = formattedName.replaceAll("\\s+", " ");
+		formattedName = formattedName.trim();
+		if (movieOrShowName != null) {
+			movieOrShowName = movieOrShowName.trim();
+			String substr = movieOrShowName.substring(Math.max(0, movieOrShowName.length() - 2));
+			if (" -".equals(substr)) {
+				movieOrShowName = movieOrShowName.substring(0, movieOrShowName.length() - 2);
+			}
+		}
+
+		if (tvSeason != null) {
+			// Remove leading 0 from the season if it exists
+			tvSeason = stripStart(tvSeason, "0");
+			pattern = Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
+			int showNameIndex = indexOf(pattern, formattedName);
+			if (isEmpty(movieOrShowName)) {
+				if (showNameIndex != -1) {
+					movieOrShowName = formattedName.substring(0, showNameIndex);
+
+					matcher = pattern.matcher(formattedName);
+					if (matcher.find()) {
+						tvEpisodeName = matcher.group(2).trim();
+						if (isEmpty(tvEpisodeName)) {
+							tvEpisodeName = null;
+						}
 					}
-
-					if (formattedName.substring(0, 1).matches("\\s")) {
-						formattedName = formattedName.substring(1);
+				} else {
+					showNameIndex = indexOf(Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
+					if (showNameIndex != -1) {
+						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
 				}
+			}
+		} else {
+			if (isMovieWithoutYear) {
+				movieOrShowName = formattedName;
 			} else {
-				formattedName = fileNameWithoutExtension;
-			}
-
-			if (PMS.getConfiguration().isUseInfoFromIMDB() && formattedName.substring(formattedName.length() - 3).matches("[\\s\\._]\\d\\d")) {
-				isEpisodeToLookup = true;
-				searchFormattedName = formattedName.substring(0, formattedName.length() - 2) + "S01E" + formattedName.substring(formattedName.length() - 2);
-			}
-
-			// Capitalize the first letter of each word if the string contains no capital letters
-			if (formattedName.equals(formattedName.toLowerCase())) {
-				formattedName = convertLowerCaseStringToTitleCase(formattedName);
+				int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), formattedName);
+				if (yearIndex > -1) {
+					movieOrShowName = formattedName.substring(0, yearIndex);
+					year = formattedName.substring(yearIndex + 2, yearIndex + 6);
+				}
 			}
 		}
 
-		// Add episode name (if not there)
-		if (file != null && (isEpisodeToLookup || isMovieToLookup)) {
-			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
-			if (info == null) {
-				PMS.get().infoDbAdd(file, searchFormattedName);
-			} else if (isEpisodeToLookup && StringUtils.isNotEmpty(info.ep_name)) {
-				formattedName += " - " + info.ep_name;
-			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {
-				formattedName += " (" + info.year + ")";
+		// Retain the fact it is a sample clip
+		if (isSample) {
+			if (edition == null) {
+				extraInformation = "";
+			} else {
+				extraInformation = edition + " ";
 			}
+			extraInformation += "(Sample)";
+		} else {
+			extraInformation = edition;
 		}
 
-		return formattedName;
+		return new String[] { movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName };
 	}
 
 	/**
@@ -632,10 +1046,11 @@ public class FileUtil {
 	 * @return the converted string
 	 */
 	public static String convertLowerCaseStringToTitleCase(String value) {
-		String convertedValue = "";
+		value = value.trim();
+		StringBuilder convertedValue = new StringBuilder();
 		boolean loopedOnce = false;
 
-		for (String word : value.split(" ")) {
+		for (String word : value.split("\\s+")) {
 			if (loopedOnce) {
 				switch (word) {
 					case "a":
@@ -649,23 +1064,32 @@ public class FileUtil {
 					case "the":
 					case "to":
 					case "vs":
-						convertedValue += ' ' + word;
+						convertedValue.append(' ').append(word);
 						break;
 					default:
-						convertedValue += ' ' + word.substring(0, 1).toUpperCase() + word.substring(1);
+						convertedValue.append(' ').append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
 				}
 			} else {
 				// Always capitalize the first letter of the string
-				convertedValue += word.substring(0, 1).toUpperCase() + word.substring(1);
+				convertedValue.append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
+				loopedOnce = true;
 			}
-			loopedOnce = true;
 		}
 
-		return convertedValue;
+		return convertedValue.toString();
 	}
 
+	public static int indexOf(Pattern pattern, String s) {
+		Matcher matcher = pattern.matcher(s);
+		return matcher.find() ? matcher.start() : -1;
+	}
+
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
-		return isFileExists(new File(parent, file.getName()), ext);
+		return replaceExtension(parent, file, ext, true, true);
 	}
 
 	/**
@@ -673,7 +1097,7 @@ public class FileUtil {
 	 */
 	@Deprecated
 	public static File getFileNameWitNewExtension(File parent, File f, String ext) {
-		return getFileNameWithNewExtension(parent, f, ext);
+		return replaceExtension(parent, f, ext, true, true);
 	}
 
 	public static File getFileNameWithAddedExtension(File parent, File f, String ext) {
@@ -694,271 +1118,478 @@ public class FileUtil {
 		return getFileNameWithAddedExtension(parent, file, ext);
 	}
 
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
+	public static File isFileExists(String f, String ext) {
+		return replaceExtension(new File(f), ext, true, true);
+	}
+
+	/**
+	 * @deprecated Use {@link #replaceExtension} instead.
+	 */
+	@Deprecated
 	public static File isFileExists(File f, String ext) {
-		int point = f.getName().lastIndexOf('.');
+		return replaceExtension(f, ext, true, true);
+	}
 
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param file the {@link File} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		return replaceExtension(
+			file.getParentFile(),
+			file.getName(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link File} instance representing the folder for the
+	 *            constructed {@link File}. Use {@code null} or an empty string
+	 *            for the current folder.
+	 * @param file the {@link File} for which to replace the extension. Only the
+	 *            file name will be used, its path will be discarded.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File folder,
+		File file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		return replaceExtension(
+			folder,
+			file.getName(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link File} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link File} instance representing the folder for the
+	 *            constructed {@link File}. Use {@code null} or an empty string
+	 *            for the current folder.
+	 * @param fileName the {@link String} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link File} instance if the constructed
+	 *            {@link File} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link File} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link File} instance will be returned.
+	 * @return The constructed {@link File} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static File replaceExtension(
+		File folder,
+		String fileName,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+
+		int dot = fileName.lastIndexOf('.');
+
+		String baseFileName;
+		if (dot == -1 || getIndexOfLastSeparator(fileName) > dot) {
+			baseFileName = fileName;
+		} else {
+			baseFileName = fileName.substring(0, dot);
+		}
+
+		if (isBlank(extension)) {
+			File result = new File(folder, baseFileName);
+			return !nullIfNonExisting || result.exists() ? result : null;
+		}
+
+		File result = new File(folder, baseFileName + "." + extension);
+		if (result.exists() || !nullIfNonExisting && !adjustExtensionCase) {
+			return result;
+		}
+
+		if (!Platform.isWindows() && adjustExtensionCase) {
+			File adjustedResult = new File(folder, baseFileName + "." + extension.toLowerCase(Locale.ROOT));
+			if (adjustedResult.exists()) {
+				return adjustedResult;
+			}
+			adjustedResult = new File(folder, baseFileName + "." + extension.toUpperCase(Locale.ROOT));
+			if (adjustedResult.exists()) {
+				return adjustedResult;
+			}
+		}
+
+		return nullIfNonExisting ? null : result;
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param file the {@link Path} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return replaceExtension(
+			file.getParent(),
+			fileName.toString(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link Path} instance representing the folder for the
+	 *            constructed {@link Path}. Use {@code null} for the current
+	 *            folder.
+	 * @param file the {@link Path} for which to replace the extension. Only the
+	 *            file name will be used, its path will be discarded.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path folder,
+		Path file,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (file == null) {
+			return null;
+		}
+		Path fileName = file.getFileName();
+		if (fileName == null) {
+			return null;
+		}
+		return replaceExtension(
+			folder,
+			fileName.toString(),
+			extension,
+			nullIfNonExisting,
+			adjustExtensionCase
+		);
+	}
+
+	/**
+	 * Returns a new {@link Path} instance where the file extension has been
+	 * replaced.
+	 *
+	 * @param folder the {@link Path} instance representing the folder for the
+	 *            constructed {@link Path}. Use {@code null} for the current
+	 *            folder.
+	 * @param fileName the {@link String} for which to replace the extension.
+	 * @param extension the new file extension.
+	 * @param nullIfNonExisting whether or not to return {@code null} or a
+	 *            non-existing {@link Path} instance if the constructed
+	 *            {@link Path} doesn't exist.
+	 * @param adjustExtensionCase whether or not to try upper- and lower-case
+	 *            variants of the extension. If {@code true} and the constructed
+	 *            {@link Path} doesn't exist with the given case but does exist
+	 *            with an either upper or lower case version of the extension,
+	 *            the existing {@link Path} instance will be returned.
+	 * @return The constructed {@link Path} instance or {@code null} if the
+	 *         target file doesn't exist and {@code nullIfNonExisting} is true.
+	 */
+	public static Path replaceExtension(
+		Path folder,
+		String fileName,
+		String extension,
+		boolean nullIfNonExisting,
+		boolean adjustExtensionCase
+	) {
+		if (isBlank(fileName)) {
+			return null;
+		}
+
+		int point = fileName.lastIndexOf('.');
+
+		String baseFileName;
 		if (point == -1) {
-			point = f.getName().length();
+			baseFileName = fileName;
+		} else {
+			baseFileName = fileName.substring(0, point);
 		}
 
-		File lowerCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toLowerCase());
-		if (lowerCasedFile.exists()) {
-			return lowerCasedFile;
-		}
-
-		File upperCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toUpperCase());
-		if (upperCasedFile.exists()) {
-			return upperCasedFile;
-		}
-
-		return null;
-	}
-
-	/**
-	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media)} instead.
-	 */
-	@Deprecated
-	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
-		return isSubtitlesExists(file, media);
-	}
-
-	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media) {
-		return isSubtitlesExists(file, media, true);
-	}
-
-	/**
-	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache)} instead.
-	 */
-	@Deprecated
-	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
-		return isSubtitlesExists(file, media, usecache);
-	}
-
-	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
-		boolean found = false;
-		if (file.exists()) {
-			found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
-		}
-		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
-
-		if (isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
-			File subFolder = new File(alternate);
-
-			if (!subFolder.isAbsolute()) {
-				subFolder = new File(file.getParent() + "/" + alternate);
-				try {
-					subFolder = subFolder.getCanonicalFile();
-				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
-				}
+		try {
+			if (folder == null) {
+				folder = Paths.get("");
+			}
+			if (isBlank(extension)) {
+				Path result = folder.resolve(baseFileName);
+				return !nullIfNonExisting || Files.exists(result) ? result : null;
 			}
 
-			if (subFolder.exists()) {
-				found = found || browseFolderForSubtitles(subFolder, file, media, usecache);
+			Path result = folder.resolve(baseFileName + "." + extension);
+			if (Files.exists(result) || !nullIfNonExisting && !adjustExtensionCase) {
+				return result;
 			}
-		}
 
-		return found;
-	}
-
-	private synchronized static boolean browseFolderForSubtitles(File subFolder, File file, DLNAMediaInfo media, boolean usecache) {
-		boolean found = false;
-
-		if (!usecache) {
-			cache = null;
-		}
-
-		if (cache == null) {
-			cache = new HashMap<>();
-		}
-
-		final Set<String> supported = SubtitleType.getSupportedFileExtensions();
-
-		File[] allSubs = cache.get(subFolder);
-		if (allSubs == null) {
-			allSubs = subFolder.listFiles(
-				new FilenameFilter() {
-					@Override
-					public boolean accept(File dir, String name) {
-						String ext = FilenameUtils.getExtension(name).toLowerCase();
-						if ("sub".equals(ext)) {
-							// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
-							// they'll come in unambiguously as vobsub via the idx file anyway
-							return isFileExists(new File(dir, name), "idx") == null;
-						}
-						return supported.contains(ext);
-					}
+			if (!Platform.isWindows() && adjustExtensionCase) {
+				Path adjustedResult = folder.resolve(baseFileName + "." + extension.toLowerCase(Locale.ROOT));
+				if (Files.exists(adjustedResult)) {
+					return adjustedResult;
 				}
+				adjustedResult = folder.resolve(baseFileName + "." + extension.toUpperCase(Locale.ROOT));
+				if (Files.exists(adjustedResult)) {
+					return adjustedResult;
+				}
+			}
+			return nullIfNonExisting ? null : result;
+		} catch (InvalidPathException e) {
+			LOGGER.error(
+				"Unexpected error during replaceExtension for folder \"{}\", file \"{}\" and extension \"{}\": {}",
+				folder,
+				fileName,
+				extension,
+				e.getMessage()
 			);
-
-			if (allSubs != null) {
-				cache.put(subFolder, allSubs);
-			}
-		}
-
-		String fileName = getFileNameWithoutExtension(file.getName()).toLowerCase();
-		if (allSubs != null) {
-			for (File f : allSubs) {
-				if (f.isFile() && !f.isHidden()) {
-					String fName = f.getName().toLowerCase();
-					for (String ext : supported) {
-						if (fName.length() > ext.length() && fName.startsWith(fileName) && endsWithIgnoreCase(fName, "." + ext)) {
-							int a = fileName.length();
-							int b = fName.length() - ext.length() - 1;
-							String code = "";
-
-							if (a <= b) { // handling case with several dots: <video>..<extension>
-								code = fName.substring(a, b);
-							}
-
-							if (code.startsWith(".")) {
-								code = code.substring(1);
-							}
-
-							boolean exists = false;
-							if (media != null) {
-								for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-									if (f.equals(sub.getExternalFile())) {
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
-										sub.setType(SubtitleType.VOBSUB);
-										exists = true;
-									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
-										try {
-											sub.setExternalFile(f);
-										} catch (FileNotFoundException ex) {
-											LOGGER.warn("Exception during external subtitles scan.", ex);
-										}
-
-										exists = true;
-									}
-								}
-							}
-
-							if (!exists) {
-								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
-								if (code.length() == 0 || !Iso639.codeIsValid(code)) {
-									sub.setLang(DLNAMediaSubtitle.UND);
-									sub.setType(SubtitleType.valueOfFileExtension(ext));
-									if (code.length() > 0) {
-										sub.setSubtitlesTrackTitleFromMetadata(code);
-										if (sub.getSubtitlesTrackTitleFromMetadata().contains("-")) {
-											String flavorLang = sub.getSubtitlesTrackTitleFromMetadata().substring(0, sub.getSubtitlesTrackTitleFromMetadata().indexOf('-'));
-											String flavorTitle = sub.getSubtitlesTrackTitleFromMetadata().substring(sub.getSubtitlesTrackTitleFromMetadata().indexOf('-') + 1);
-											if (Iso639.codeIsValid(flavorLang)) {
-												sub.setLang(flavorLang);
-												sub.setSubtitlesTrackTitleFromMetadata(flavorTitle);
-											}
-										}
-									}
-								} else {
-									sub.setLang(code);
-									sub.setType(SubtitleType.valueOfFileExtension(ext));
-								}
-
-								try {
-									sub.setExternalFile(f);
-								} catch (FileNotFoundException ex) {
-									LOGGER.warn("Exception during external subtitles scan.", ex);
-								}
-
-								found = true;
-								if (media != null) {
-									media.getSubtitleTracksList().add(sub);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return found;
-	}
-
-	/**
-	 * Detects charset/encoding for given file. Not 100% accurate for
-	 * non-Unicode files.
-	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The match object form the detection process or <code>null</code> if no match was found
-	 * @throws IOException
-	 */
-	public static CharsetMatch getFileCharsetMatch(File file) throws IOException {
-		CharsetMatch result = null;
-		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-			CharsetDetector detector = new CharsetDetector();
-			detector.enableInputFilter(true);
-			detector.setText(in);
-			// Results are sorted on descending confidence, so we're only after the first one.
-			result = detector.detectAll()[0];
-		}
-
-		if (result != null) {
-			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), result.getName());
-		} else {
-			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
-		}
-
-		return result;
-	}
-
-	/**
-	 * Detects charset/encoding for given file. Not 100% accurate for
-	 * non-Unicode files.
-	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The detected <code>Charset</code> or <code>null</code> if not detected
-	 * @throws IOException
-	 */
-	public static Charset getFileCharset(File file) throws IOException {
-		CharsetMatch match = getFileCharsetMatch(file);
-		if (match != null) {
-			try {
-				if (Charset.isSupported(match.getName())) {
-					LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
-					return Charset.forName(match.getName());
-				} else {
-					LOGGER.debug(
-						"Detected charset \"{}\" in file {}, but cannot use it because it's not supported by the Java Virual Machine",
-						match.getName(),
-						file.getAbsolutePath()
-					);
-					return null;
-				}
-			} catch (IllegalCharsetNameException e) {
-				LOGGER.debug("Illegal charset deteceted \"{}\" in file {}", match.getName(), file.getAbsolutePath());
-			}
-		}
-		LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
-		return null;
-	}
-
-	/**
-	 * Detects charset/encoding for given file. Not 100% accurate for
-	 * non-Unicode files.
-	 *
-	 * @param file the file for which to detect charset/encoding
-	 * @return The name of the detected charset or <code>null</code> if not detected
-	 * @throws IOException
-	 */
-	public static String getFileCharsetName(File file) throws IOException {
-		CharsetMatch match = getFileCharsetMatch(file);
-		if (match != null) {
-			LOGGER.debug("Detected charset \"{}\" in file {}", match.getName(), file.getAbsolutePath());
-			return match.getName().toUpperCase(PMS.getLocale());
-		} else {
-			LOGGER.debug("Found no matching charset for file {}", file.getAbsolutePath());
+			LOGGER.trace("", e);
 			return null;
 		}
 	}
 
 	/**
-	 * Tests if file is UTF-8 encoded with or without BOM.
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
 	 *
-	 * @param file File to test
-	 * @return True if file is UTF-8 encoded with or without BOM, false otherwise.
+	 * @param file the file for which to detect charset/encoding
+	 * @return The match object form the detection process or {@code null} if no
+	 *         match was found
+	 * @throws IOException
+	 */
+	@Nonnull
+	public static CharsetMatch getFileCharsetMatch(@Nonnull File file) throws IOException {
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+		CharsetDetector detector = new CharsetDetector();
+		detector.setText(in);
+		// Get best match only.
+		return detector.detect();
+	}
+
+	/**
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 *
+	 * @param file the file for which to detect charset/encoding
+	 * @return The detected {@link Charset} or {@code null} if not detected
+	 * @throws IOException
+	 */
+	@Nullable
+	public static Charset getFileCharset(@Nullable File file) throws IOException {
+		if (file == null) {
+			return null;
+		}
+		CharsetMatch match = getFileCharsetMatch(file);
+		try {
+			if (Charset.isSupported(match.getName())) {
+				LOGGER.debug("Detected charset \"{}\" in file \"{}\"", match.getName(), file.getAbsolutePath());
+				return Charset.forName(match.getName());
+			}
+			LOGGER.debug(
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				match.getName(),
+				file.getAbsolutePath()
+			);
+			return null;
+		} catch (IllegalCharsetNameException e) {
+			LOGGER.debug("Illegal charset \"{}\" deteceted in file \"{}\"", match.getName(), file.getAbsolutePath());
+		}
+		LOGGER.debug("Found no matching charset for file \"{}\"", file.getAbsolutePath());
+		return null;
+	}
+
+	/**
+	 * Tries to detect the {@link Charset}/encoding for the specified file. If
+	 * no valid {@link Charset} is detected or the confidence of the best match
+	 * is below the threshold, {@code null} will be returned.
+	 *
+	 * @param file the text file whose {@link Charset} to detect.
+	 * @return The most confidently detected {@link Charset} or {@code null}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static Charset detectCharset(Path file, int confidenceThreshold) throws IOException {
+		if (file == null || !Files.exists(file)) {
+			return null;
+		}
+		CharsetDetector detector = new CharsetDetector();
+		CharsetMatch[] matches;
+		try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file))) {
+			detector.setText(bis);
+			detector.enableInputFilter(true);
+			matches = detector.detectAll();
+		}
+		for (CharsetMatch match : matches) {
+			if (match.getConfidence() < confidenceThreshold) {
+				LOGGER.debug(
+					"Detected charset \"{}\" in \"{}\" but not with enough confidence ({} < {})",
+					match.getName(),
+					file,
+					match.getConfidence(),
+					confidenceThreshold
+				);
+				break;
+			}
+			try {
+				if (Charset.isSupported(match.getName())) {
+					return Charset.forName(match.getName());
+				}
+				LOGGER.debug(
+					"The detected charset \"{}\" in \"{}\" isn't supported by the JVM - skipping",
+					match.getName(),
+					file
+				);
+			} catch (IllegalCharsetNameException e) {
+				LOGGER.debug(
+					"Detected an illegal charset \"{}\" in \"{}\" - skipping: {}",
+					match.getName(),
+					file,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
+
+		if (matches.length == 0) {
+			LOGGER.debug("Found no matching charset for \"{}\"", file);
+		} else {
+			LOGGER.debug(
+				"Found {} matching charset{} for \"{}\", but {} both supported by the JVM and {} a high enough confidence ({})",
+				matches.length,
+				matches.length > 1 ? "s" : "",
+				file,
+				matches.length > 1 ? "none are" : "it isn't",
+				matches.length > 1 ? "have" : "has",
+				confidenceThreshold
+			);
+		}
+		return null;
+	}
+
+	/**
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 *
+	 * @param file the {@link File} for which to detect charset/encoding
+	 * @return The name of the detected {@link Charset} or {@code null} if not
+	 *         detected
+	 * @throws IOException
+	 */
+	@Nullable
+	public static String getFileCharsetName(@Nullable File file) throws IOException {
+		if (file == null) {
+			return null;
+		}
+		CharsetMatch match = getFileCharsetMatch(file);
+		try {
+			if (Charset.isSupported(match.getName())) {
+				LOGGER.debug("Detected charset \"{}\" in file \"{}\"", match.getName(), file.getAbsolutePath());
+				return match.getName().toUpperCase(Locale.ROOT);
+			}
+			LOGGER.debug(
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				match.getName(),
+				file.getAbsolutePath()
+			);
+			return null;
+		} catch (IllegalCharsetNameException e) {
+			LOGGER.debug("Illegal charset \"{}\" deteceted in file \"{}\"", match.getName(), file.getAbsolutePath());
+		}
+		LOGGER.debug("Found no matching charset for file \"{}\"", file.getAbsolutePath());
+		return null;
+	}
+
+	/**
+	 * Tests if the {@link File} is UTF-8 encoded with or without BOM.
+	 *
+	 * @param file {@link File} to test.
+	 * @return {@code true} if {@link File} is UTF-8 encoded with or without
+	 *         BOM, {@code false} otherwise.
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF8(File file) throws IOException {
@@ -966,30 +1597,32 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-8.
+	 * Tests if the {@link Charset} is UTF-8.
 	 *
-	 * @param charset <code>Charset</code> to test
-	 * @return True if charset is UTF-8, false otherwise.
+	 * @param charset the {@link Charset} to test.
+	 * @return {@code true} if {@link Charset} is UTF-8, {@code false}
+	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF8(Charset charset) {
 		return charset != null && charset.equals(StandardCharsets.UTF_8);
 	}
 
 	/**
-	 * Tests if charset is UTF-8.
+	 * Tests if the charset name is UTF-8.
 	 *
-	 * @param charset charset name to test
-	 * @return True if charset is UTF-8, false otherwise.
+	 * @param charsetName the charset name to test.
+	 * @return {@code true} if charset name is UTF-8, {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF8(String charsetName) {
 		return equalsIgnoreCase(charsetName, CHARSET_UTF_8);
 	}
 
 	/**
-	 * Tests if file is UTF-16 encoded.
+	 * Tests if the {@link File} is UTF-16 encoded.
 	 *
-	 * @param file File to test
-	 * @return True if file is UTF-16 encoded, false otherwise.
+	 * @param file the {@link File} to test.
+	 * @return {@code true} if {@link File} is UTF-16 encoded, {@code false}
+	 *         otherwise.
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF16(File file) throws IOException {
@@ -997,84 +1630,94 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset <code>Charset</code> to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charset the {@link Charset} to test.
+	 * @return {@code true} if {@code charset} is {@code UTF-16}, {@code false}
+	 *         otherwise.
 	 */
 	public static boolean isCharsetUTF16(Charset charset) {
-		return charset != null && (charset.equals(StandardCharsets.UTF_16) || charset.equals(StandardCharsets.UTF_16BE) || charset.equals(StandardCharsets.UTF_16LE));
+		return
+			charset != null &&
+			(
+				charset.equals(StandardCharsets.UTF_16) ||
+				charset.equals(StandardCharsets.UTF_16BE) ||
+				charset.equals(StandardCharsets.UTF_16LE)
+			);
 	}
 
 	/**
-	 * Tests if charset is UTF-16.
+	 * Tests if {@code charset} is {@code UTF-16}.
 	 *
-	 * @param charset charset name to test
-	 * @return True if charset is UTF-16, false otherwise.
+	 * @param charsetName the charset name to test
+	 * @return {@code true} if {@code charsetName} is {@code UTF-16},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF16(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_16LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_16BE));
 	}
 
 	/**
-	 * Tests if charset is UTF-32.
+	 * Tests if {@code charsetName} is {@code UTF-32}.
 	 *
-	 * @param charsetName charset name to test
-	 * @return True if charset is UTF-32, false otherwise.
+	 * @param charsetName the charset name to test.
+	 * @return {@code true} if {@code charsetName} is {@code UTF-32},
+	 *         {@code false} otherwise.
 	 */
 	public static boolean isCharsetUTF32(String charsetName) {
 		return (equalsIgnoreCase(charsetName, CHARSET_UTF_32LE) || equalsIgnoreCase(charsetName, CHARSET_UTF_32BE));
 	}
 
 	/**
-	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 * Converts an {@code UTF-16} input file to an {@code UTF-8} output file.
+	 * Does not overwrite an existing output file.
 	 *
-	 * @param inputFile UTF-16 file
-	 * @param outputFile UTF-8 file after conversion
-	 * @throws IOException
+	 * @param inputFile an {@code UTF-16} {@link File}.
+	 * @param outputFile the {@code UTF-8} {@link File} after conversion.
+	 * @throws IOException If an IO error occurs during the operation.
 	 */
 	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
 		Charset charset;
-		if (inputFile == null || !inputFile.canRead()) {
-			throw new FileNotFoundException("Can't read inputFile.");
+		if (inputFile == null) {
+			throw new IllegalArgumentException("inputFile cannot be null");
 		}
 
 		try {
 			charset = getFileCharset(inputFile);
 		} catch (IOException ex) {
 			LOGGER.debug("Exception during charset detection.", ex);
-			throw new IllegalArgumentException("Can't confirm inputFile is UTF-16.");
+			throw new IllegalArgumentException("Can't confirm that inputFile is UTF-16.");
 		}
 
 		if (isCharsetUTF16(charset)) {
 			if (!outputFile.exists()) {
-				BufferedReader reader = null;
 				/*
 				 * This is a strange hack, and I'm not sure if it's needed. I
 				 * did it this way to conform to the tests, which dictates that
 				 * UTF-16LE should produce UTF-8 without BOM while UTF-16BE
 				 * should produce UTF-8 with BOM.
 				 *
-				 * For some reason creating a FileInputStream with UTF_16 produces
-				 * an UTF-8 outputfile without BOM, while using UTF_16LE or
-				 * UTF_16BE produces an UTF-8 outputfile with BOM.
+				 * For some reason creating a FileInputStream with UTF_16
+				 * produces an UTF-8 outputfile without BOM, while using
+				 * UTF_16LE or UTF_16BE produces an UTF-8 outputfile with BOM.
+				 *
 				 * @author Nadahar
 				 */
-				if (charset.equals(StandardCharsets.UTF_16LE)) {
-					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16));
-				} else {
-					reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset));
+				try (BufferedReader reader =
+					charset.equals(StandardCharsets.UTF_16LE) ?
+						new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16)) :
+						new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset))
+				) {
+					try (BufferedWriter writer = new BufferedWriter(
+						new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))
+					) {
+						int c;
+
+						while ((c = reader.read()) != -1) {
+							writer.write(c);
+						}
+					}
 				}
-
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8));
-				int c;
-
-				while ((c = reader.read()) != -1) {
-					writer.write(c);
-				}
-
-				writer.close();
-				reader.close();
 			}
 		} else {
 			throw new IllegalArgumentException("File is not UTF-16");
@@ -1082,24 +1725,28 @@ public class FileUtil {
 	}
 
 	/**
-	 * Return a file or folder's permissions.<br><br>
-	 *
+	 * Return a file or folder's permissions.
+	 * <p>
 	 * This should <b>NOT</b> be used for checking e.g. read permissions before
 	 * trying to open a file, because you can't assume that the same is true
 	 * when you actually open the file. Other threads or processes could have
 	 * locked the file (or changed it's permissions) in the meanwhile. Instead,
-	 * use e.g <code>FileNotFoundException</code> like this:
-	 * <pre><code>
-	 * } catch (FileNotFoundException e) {
-	 * 	LOGGER.debug("Can't read xxx {}", e.getMessage());
-	 * }
-	 * </code></pre>
-	 * <code>e.getMessage()</code> will contain both the full path to the file
-	 * the reason it couldn't be read (e.g. no permission).
+	 * use e.g {@link FileNotFoundException} like this:
 	 *
-	 * @param file The file or folder to check permissions for
-	 * @return A <code>FilePermissions</code> object holding the permissions
-	 * @throws FileNotFoundException
+	 * <pre>
+	 * <code>
+	 * } catch (FileNotFoundException e) {
+	 *     LOGGER.debug("Can't read xxx {}", e.getMessage());
+	 * }
+	 * </code>
+	 * </pre>
+	 *
+	 * {@code e.getMessage()} will contain both the full path to the file the
+	 * reason it couldn't be read (e.g. no permission).
+	 *
+	 * @param file the {@link File} to check permissions for.
+	 * @return A {@link FilePermissions} object holding the permissions.
+	 * @throws FileNotFoundException If {@code file} can't be found/read.
 	 * @see {@link #getFilePermissions(String)}
 	 */
 	public static FilePermissions getFilePermissions(File file) throws FileNotFoundException {
@@ -1107,9 +1754,9 @@ public class FileUtil {
 	}
 
 	/**
-	 * Like {@link #getFilePermissions(File)} but returns <code>null</code>
-	 * instead of throwing <code>FileNotFoundException</code> if the file or
-	 * folder isn't found.
+	 * Like {@link #getFilePermissions(File)} but returns {@code null} instead
+	 * of throwing {@link FileNotFoundException} if the file or folder isn't
+	 * found.
 	 */
 	public static FilePermissions getFilePermissionsNoThrow(File file) {
 		try {
@@ -1120,39 +1767,43 @@ public class FileUtil {
 	}
 
 	/**
-	 * Return a file or folder's permissions.<br><br>
-	 *
+	 * Return a file or folder's permissions.
+	 * <p>
 	 * This should <b>NOT</b> be used for checking e.g. read permissions before
 	 * trying to open a file, because you can't assume that the same is true
 	 * when you actually open the file. Other threads or processes could have
 	 * locked the file (or changed it's permissions) in the meanwhile. Instead,
-	 * use e.g <code>FileNotFoundException</code> like this:
-	 * <pre><code>
-	 * } catch (FileNotFoundException e) {
-	 * 	LOGGER.debug("Can't read xxx {}", e.getMessage());
-	 * }
-	 * </code></pre>
-	 * <code>e.getMessage()</code> will contain both the full path to the file
-	 * the reason it couldn't be read (e.g. no permission).
+	 * use e.g {@link FileNotFoundException} like this:
 	 *
-	 * @param path The file or folder name to check permissions for
-	 * @return A <code>FilePermissions</code> object holding the permissions
-	 * @throws FileNotFoundException
+	 * <pre>
+	 * <code>
+	 * } catch (FileNotFoundException e) {
+	 *     LOGGER.debug("Can't read xxx {}", e.getMessage());
+	 * }
+	 * </code>
+	 * </pre>
+	 *
+	 * {@code e.getMessage()} will contain both the full path to the file the
+	 * reason it couldn't be read (e.g. no permission).
+	 *
+	 * @param path the file or folder name to check permissions for.
+	 * @return A {@link FilePermissions} object holding the permissions.
+	 * @throws FileNotFoundException If {@code path} can't be found/read.
 	 * @see {@link #getFilePermissions(File)}
 	 */
 	public static FilePermissions getFilePermissions(String path) throws FileNotFoundException {
 		if (path != null) {
 			return new FilePermissions(new File(path));
-		} else {
-			File file = null;
-			return new FilePermissions(file);
 		}
+
+		File file = null;
+		return new FilePermissions(file);
 	}
 
 	/**
-	 * Like {@link #getFilePermissions(String)} but returns <code>null</code>
-	 * instead of throwing <code>FileNotFoundException</code> if the file or
-	 * folder isn't found.
+	 * Like {@link #getFilePermissions(String)} but returns {@code null} instead
+	 * of throwing {@link FileNotFoundException} if the file or folder isn't
+	 * found.
 	 */
 	public static FilePermissions getFilePermissionsNoThrow(String path) {
 		if (path != null) {
@@ -1161,9 +1812,9 @@ public class FileUtil {
 			} catch (FileNotFoundException | IllegalArgumentException e) {
 				return null;
 			}
-		} else {
-			return null;
 		}
+
+		return null;
 	}
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
@@ -1199,7 +1850,7 @@ public class FileUtil {
 		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 
-			/**
+			/*
 			 * listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
 			 * in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
 			 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
@@ -1209,7 +1860,7 @@ public class FileUtil {
 				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
 			} else {
 				for (File child : children) {
-					if (ignoreFiles.contains(child.getAbsolutePath())) {
+					if (ignoreFiles != null && ignoreFiles.contains(child.getAbsolutePath())) {
 						continue;
 					}
 
@@ -1225,46 +1876,89 @@ public class FileUtil {
 				}
 			}
 		}
+
 		return false;
+	}
+
+	/**
+	 * Removes the file extension, fansub group name, and replaces periods
+	 * and underscores with spaces.
+	 *
+	 * @param filename
+	 * @return prettified filename
+	 */
+	public static String basicPrettify(String filename) {
+		// Remove file extension
+		filename = getFileNameWithoutExtension(filename);
+
+		// Remove possible fansub group name
+		filename = removeGroupNameFromBeginning(filename);
+
+		// Replace periods and underscores with spaces
+		return  filename.replaceAll("\\.|_", " ");
 	}
 
 	public static String renameForSorting(String filename) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			// This chunk makes anime sort properly
-			int squareBracketIndex;
-			if (filename.substring(0, 1).matches("\\[")) {
-				filename = filename.replaceAll("_", " ");
-				squareBracketIndex = filename.indexOf(']');
-				if (squareBracketIndex != -1) {
-					filename = filename.substring(squareBracketIndex + 1);
-					if (filename.substring(0, 1).matches("\\s")) {
-						filename = filename.substring(1);
-					}
-				}
-			}
-
-			// Replace periods with spaces
-			filename = filename.replaceAll("\\.", " ");
+			filename = basicPrettify(filename);
 		}
 
-		if (PMS.getConfiguration().isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			filename = filename.replaceAll("^(?i)The[ .]", "");
+		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
+			// Remove "a" and "the" from filename
+			filename = filename.replaceAll("^(?i)A[ .]|The[ .]", "");
+
+			// Replace multiple whitespaces with space
+			filename = filename.replaceAll("\\s{2,}", " ");
 		}
 
 		return filename;
 	}
 
+	/**
+	 * @deprecated Use {@link #createBufferedReaderDetectCharset(File, Charset)}
+	 *             instead.
+	 */
+	@Deprecated
 	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
+		return createBufferedReaderDetectCharset(file, StandardCharsets.UTF_8).getBufferedReader();
+	}
+
+	/**
+	 * Attempts to detect the {@link Charset} used in the specified {@link File}
+	 * and creates a {@link BufferedReader} using that {@link Charset}. If the
+	 * {@link Charset} detection fails, the specified default {@link Charset}
+	 * will be used.
+	 *
+	 * @param file the {@link File} to use.
+	 * @param defaultCharset the fallback {@link Charset} it automatic detection
+	 *            fails. If {@code null}, the JVM default {@link Charset} will
+	 *            be used.
+	 * @return The resulting {@link BufferedReaderDetectCharsetResult}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static BufferedReaderDetectCharsetResult createBufferedReaderDetectCharset(
+		File file,
+		Charset defaultCharset
+	) throws IOException {
 		BufferedReader reader;
 		Charset fileCharset = getFileCharset(file);
 		if (fileCharset != null) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), fileCharset));
-		} else {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
-			LOGGER.warn("Could not detect character encoding for file \"{}\". It will probably be interpreted wrong", file.getAbsolutePath());
+			return new BufferedReaderDetectCharsetResult(reader, fileCharset, true);
 		}
-		return reader;
+
+		if (defaultCharset == null) {
+			defaultCharset = Charset.defaultCharset();
+		}
+
+		reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), defaultCharset));
+		LOGGER.warn(
+			"Could not detect character encoding for file \"{}\"; using the default charset \"{}\"",
+			file.getAbsolutePath(),
+			defaultCharset
+		);
+
+		return new BufferedReaderDetectCharsetResult(reader, defaultCharset, false);
 	}
 
 	/**
@@ -1288,50 +1982,86 @@ public class FileUtil {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
 	/**
-	 * Appends a path separator of the same type last in the string if
-	 * it's not already there.
-	 * @param path the path to be modified
-	 * @return the corrected path
+	 * Appends a path separator of the same type last in the string if it's not
+	 * already there.
+	 *
+	 * @param path the path to be modified.
+	 * @return The corrected path or {@code null} if {@code path} is
+	 *         {@code null}.
 	 */
 	public static String appendPathSeparator(String path) {
+		if (path == null) {
+			return null;
+		}
+
 		if (!path.endsWith("\\") && !path.endsWith("/")) {
 			if (path.contains("\\")) {
 				path += "\\";
-			} else {
+			} else if (path.contains("/")) {
 				path += "/";
+			} else {
+				path += File.separator;
 			}
 		}
+
 		return path;
 	}
 
-	private static Boolean admin = null;
+	/**
+	 * Appends a suffix to a filename before the last {@code "."} if there is
+	 * one. If not, simply appends the suffix to the filename.
+	 *
+	 * @param fileName the filename to append to.
+	 * @param suffix the suffix to append.
+	 * @return The modified filename.
+	 */
+	@Nonnull
+	public static String appendToFileName(@Nonnull String fileName, @Nullable String suffix) {
+		if (fileName == null) {
+			throw new IllegalArgumentException("fileName cannot be null");
+		}
+
+		if (isBlank(suffix)) {
+			return fileName;
+		}
+
+		int i = fileName.lastIndexOf(".");
+		if (i < 0) {
+			return fileName + suffix;
+		}
+
+		return fileName.substring(0, i) + suffix + fileName.substring(i);
+	}
+
+	private static Boolean isAdmin = null;
 	private static Object isAdminLock = new Object();
 
 	/**
 	 * Determines whether or not the program has admin/root permissions.
 	 */
 	public static boolean isAdmin() {
-		synchronized(isAdminLock) {
-			if (admin != null) {
-				return admin;
+		synchronized (isAdminLock) {
+			if (isAdmin != null) {
+				return isAdmin;
 			}
+
 			if (Platform.isWindows()) {
-				Float ver = null;
-				try {
-					ver = Float.valueOf(System.getProperty("os.version"));
-				} catch (NullPointerException | NumberFormatException e) {
+				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
+				if (version == null) {
 					LOGGER.error(
-						"Could not determine Windows version from {}. Administrator privileges is undetermined: {}",
-						System.getProperty("os.version"), e.getMessage()
+						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
+						System.getProperty("os.version")
 					);
-					admin = false;
+					isAdmin = false;
 					return false;
 				}
-				if (ver >= 5.1) {
+
+				if (version >= 5.1) {
 					try {
 						String command = "reg query \"HKU\\S-1-5-19\"";
 						Process p = Runtime.getRuntime().exec(command);
@@ -1339,16 +2069,17 @@ public class FileUtil {
 						int exitValue = p.exitValue();
 
 						if (0 == exitValue) {
-							admin = true;
+							isAdmin = true;
 							return true;
 						}
-						admin = false;
+
+						isAdmin = false;
 						return false;
 					} catch (IOException | InterruptedException e) {
 						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
 					}
 				} else {
-					admin = true;
+					isAdmin = true;
 					return true;
 				}
 			} else if (Platform.isLinux() || Platform.isMac()) {
@@ -1358,32 +2089,43 @@ public class FileUtil {
 					Process p = Runtime.getRuntime().exec(command);
 					InputStream is = p.getInputStream();
 					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
-					BufferedReader br = new BufferedReader(isr);
-					p.waitFor();
-					int exitValue = p.exitValue();
-					String exitLine = br.readLine();
+					int exitValue;
+					String exitLine;
+					try (BufferedReader br = new BufferedReader(isr)) {
+						p.waitFor();
+						exitValue = p.exitValue();
+						exitLine = br.readLine();
+					}
+
 					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
 						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
-						admin = false;
+						isAdmin = false;
 						return false;
 					}
+
 					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
-					if
-						((Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
-						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*")))
-					{
+					if (
+						(Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
+						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*"))
+					) {
 						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
-						admin = true;
+						isAdmin = true;
 						return true;
 					}
+
 					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
-					admin = false;
+					isAdmin = false;
 					return false;
 				} catch (IOException | InterruptedException e) {
-					LOGGER.error("An error prevented UMS from checking {} permissions: {}", Platform.isMac() ? "OS X" : "Linux" ,e.getMessage());
+					LOGGER.error(
+						"An error prevented UMS from checking {} permissions: {}",
+						Platform.isMac() ? "OS X" : "Linux",
+						e.getMessage()
+					);
 				}
 			}
-			admin = false;
+
+			isAdmin = false;
 			return false;
 		}
 	}
@@ -1392,7 +2134,8 @@ public class FileUtil {
 	 * Finds the {@link UnixMountPoint} for a {@link java.nio.file.Path} given
 	 * that the file resides on a Unix file system.
 	 *
-	 * @param path the {@link java.nio.file.Path} for which to find the Unix mount point.
+	 * @param path the {@link java.nio.file.Path} for which to find the Unix
+	 *            mount point.
 	 * @return The {@link UnixMountPoint} for the given path.
 	 *
 	 * @throws InvalidFileSystemException
@@ -1423,17 +2166,22 @@ public class FileUtil {
 			throw new InvalidFileSystemException(String.format("File \"%s\" is not on a Unix file system", path.isAbsolute()), e);
 		} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			throw new InvalidFileSystemException(
-				String.format("An error occurred while trying to find mount point for file \"%s\": %s", path.toAbsolutePath(), e.getMessage()),
+				String.format(
+					"An error occurred while trying to find mount point for file \"%s\": %s",
+					path.toAbsolutePath(),
+					e.getMessage()
+				),
 				e
 			);
 		}
 	}
 
 	/**
-	 * Finds the {@link UnixMountPoint} for a {@link java.io.File} given
-	 * that the file resides on a Unix file system.
+	 * Finds the {@link UnixMountPoint} for a {@link java.io.File} given that
+	 * the file resides on a Unix file system.
 	 *
-	 * @param file the {@link java.io.File} for which to find the Unix mount point.
+	 * @param file the {@link java.io.File} for which to find the Unix mount
+	 *            point.
 	 * @return The {@link UnixMountPoint} for the given path.
 	 *
 	 * @throws InvalidFileSystemException
@@ -1473,21 +2221,248 @@ public class FileUtil {
 			synchronized (unixUIDLock) {
 				if (unixUID < 0) {
 					String response;
-				    Process id;
+					Process id;
 					id = Runtime.getRuntime().exec("id -u");
-				    try (BufferedReader reader = new BufferedReader(new InputStreamReader(id.getInputStream(), Charset.defaultCharset()))) {
-				    	response = reader.readLine();
-				    }
-				    try {
-				    	unixUID = Integer.parseInt(response);
-				    } catch (NumberFormatException e) {
-				    	throw new UnsupportedOperationException("Unexpected response from OS: " + response, e);
-				    }
+					try (BufferedReader reader = new BufferedReader(new InputStreamReader(id.getInputStream(), Charset.defaultCharset()))) {
+						response = reader.readLine();
+					}
+
+					try {
+						unixUID = Integer.parseInt(response);
+					} catch (NumberFormatException e) {
+						throw new UnsupportedOperationException("Unexpected response from OS: " + response, e);
+					}
 				}
+
 				return unixUID;
 			}
-		} else {
-			throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
 		}
+		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
+	}
+
+	/**
+	 * @return The OS {@code PATH} environment variable as a {@link List} of
+	 *         {@link Path}s.
+	 */
+	@Nonnull
+	public static List<Path> getOSPath() {
+		List<Path> result = new ArrayList<>();
+		String osPath = System.getenv("PATH");
+		if (isBlank(osPath)) {
+			return result;
+		}
+
+		String[] paths = osPath.split(File.pathSeparator);
+		for (String path : paths) {
+			try {
+				Path pathToAdd = Paths.get(path);
+				result.add(pathToAdd);
+			} catch (InvalidPathException e) {
+				LOGGER.debug("Skipping invalid path {}", e.getMessage());
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Tries to find the specified relative file that is both executable and
+	 * readable using the system {@code PATH} environment variable while
+	 * following symbolic links. Returns the first match in the order of the
+	 * system {@code PATH} or {@code null} is no match was found.
+	 *
+	 * @param relativePath the relative {@link Path} describing the file or
+	 *            folder to return.
+	 * @return The matched {@link Path} or {@code null} if no match was found.
+	 * @throws IllegalArgumentException if {@code relativePath} is absolute.
+	 */
+	@Nullable
+	public static Path findExecutableInOSPath(@Nullable Path relativePath) {
+		return findInOSPath(relativePath, true, FileFlag.FILE, FileFlag.READ, FileFlag.EXECUTE);
+	}
+
+	/**
+	 * Tries to find the specified relative file or folder using the system
+	 * {@code PATH} environment variable. Returns the first match in the order
+	 * of the system {@code PATH} or {@code null} is no match was found.
+	 *
+	 * @param relativePath the relative {@link Path} describing the file or
+	 *            folder to return.
+	 * @param followSymlinks whether or not to follow symbolic links (NIO
+	 *            default is {@code true}).
+	 * @param requiredFlags zero or more {@link FileFlag}s that specify
+	 *            permissions or properties that must be met for a file object
+	 *            to match. Use for example {@link FileFlag#FILE} to only find
+	 *            files or {@link FileFlag#FOLDER} to only find folders.
+	 * @return The matched {@link Path} or {@code null} if no match was found.
+	 * @throws IllegalArgumentException if {@code relativePath} is absolute.
+	 */
+	@Nullable
+	public static Path findInOSPath(
+		@Nullable Path relativePath,
+		boolean followSymlinks,
+		FileFlag... requiredFlags
+	) {
+		if (relativePath == null) {
+			return null;
+		}
+
+		if (relativePath.isAbsolute()) {
+			throw new IllegalArgumentException("relativePath must be relative");
+		}
+
+		LinkOption[] options = followSymlinks ? new LinkOption[] {} : new LinkOption[] {LinkOption.NOFOLLOW_LINKS};
+		List<Path> osPath = new ArrayList<>();
+		osPath.add(null);
+		osPath.addAll(getOSPath());
+		Path result = null;
+		List<String> extensions = new ArrayList<>();
+		extensions.add(null);
+		if (Platform.isWindows() && getExtension(relativePath) == null) {
+			for (String s : WindowsProgramPaths.getWindowsPathExtensions()) {
+				if (isNotBlank(s)) {
+					extensions.add("." + s);
+				}
+			}
+		}
+
+		for (String extension : extensions) {
+			for (Path path : osPath) {
+				if (path == null) {
+					path = Paths.get("").toAbsolutePath();
+				}
+
+				if (extension == null) {
+					result = path.resolve(relativePath);
+				} else {
+					result = path.resolve(relativePath.toString() + extension);
+				}
+
+				if (Files.exists(result, options)) {
+					if (requiredFlags.length == 0) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Resolved \"{}\" from \"{}\" using OS path", result, relativePath);
+						}
+
+						try {
+							return result.toRealPath(options);
+						} catch (IOException e) {
+							LOGGER.warn("Could not get the real path of \"{}\": {}", result, e.getMessage());
+							LOGGER.trace("", e);
+							return result;
+						}
+					}
+
+					try {
+						FilePermissions permissions = new FilePermissions(result, options);
+						Set<FileFlag> flags = permissions.getFlags(requiredFlags);
+						if (flags.containsAll(Arrays.asList(requiredFlags))) {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Resolved \"{}\" from \"{}\" using OS path", result, relativePath);
+							}
+
+							try {
+								return result.toRealPath(options);
+							} catch (IOException e) {
+								LOGGER.warn("Could not get the real path of \"{}\": {}", result, e.getMessage());
+								LOGGER.trace("", e);
+								return result;
+							}
+						}
+					} catch (FileNotFoundException e) {
+						continue;
+					}
+				}
+			}
+		}
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Failed to resolve \"{}\" using OS path", relativePath);
+		}
+
+		return null;
+	}
+
+	/**
+	 * This class holds the results from
+	 * {@link FileUtil#createBufferedReaderDetectCharset}.
+	 *
+	 * @author Nadahar
+	 */
+	public static class BufferedReaderDetectCharsetResult implements Closeable {
+		private final BufferedReader reader;
+		private final Charset charset;
+		private final boolean successfulDetection;
+
+		/**
+		 * Creates a new instance with the given parameters.
+		 *
+		 * @param reader the {@link BufferedReader}.
+		 * @param charset the {@link Charset}.
+		 * @param successfulDetection {@code true} is {@link Charset} detection
+		 *            was successful, {@code false} otherwise.
+		 */
+		public BufferedReaderDetectCharsetResult(BufferedReader reader, Charset charset, boolean successfulDetection) {
+			this.reader = reader;
+			this.charset = charset;
+			this.successfulDetection = successfulDetection;
+		}
+
+		/**
+		 * @return The {@link BufferedReader}.
+		 */
+		public BufferedReader getBufferedReader() {
+			return reader;
+		}
+
+		/**
+		 * @return The {@link Charset} used for the {@link BufferedReader}.
+		 */
+		public Charset getCharset() {
+			return charset;
+		}
+
+		/**
+		 * @return {@code true} if {@link Charset} detection was successful,
+		 *         {@code false} if the default was used..
+		 */
+		public boolean isSuccessfulDetection() {
+			return successfulDetection;
+		}
+
+		@Override
+		public void close() throws IOException {
+			if (reader != null) {
+				reader.close();
+			}
+		}
+	}
+
+	/**
+	 * This reduces the incoming title to a lowercase, alphanumeric string
+	 * for searching in order to prevent titles like "Word of the Word" and
+	 * "Word Of The Word!" from being seen as different shows.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public static String getSimplifiedShowName(String title) {
+		if (title == null) {
+			return null;
+		}
+
+		return title.toLowerCase().replaceAll("[^a-z0-9]", "");
+	}
+
+	/**
+	 * Check if the provided {@code filename} string can be a directory
+	 * by checking if the string contains extension. 
+	 *
+	 * @param filename the string represented the directory
+	 * @return {@code true} if the string doesn't contain the extension
+	 * {@code false} otherwise.
+	 */
+	public static boolean isDirectory(String filename) {
+		return FileUtil.getExtension(filename) == null;
 	}
 }

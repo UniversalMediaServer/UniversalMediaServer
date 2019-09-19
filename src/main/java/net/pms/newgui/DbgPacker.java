@@ -1,5 +1,6 @@
 package net.pms.newgui;
 
+import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,19 +19,15 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.external.DebugPacker;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 
 public class DbgPacker implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbgPacker.class);
@@ -113,17 +110,6 @@ public class DbgPacker implements ActionListener {
 
 	private void poll() {
 		// call the client callbacks
-		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (listener instanceof DebugPacker) {
-				LOGGER.debug("Found client {}",listener.name());
-				Object obj = ((DebugPacker) listener).dbgpack_cb();
-				if (obj instanceof String) {
-					add(((String) obj).split(","));
-				} else if (obj instanceof String[]) {
-					add((String[]) obj);
-				}
-			}
-		}
 		PmsConfiguration configuration = PMS.getConfiguration();
 
 		// check dbgpack property in UMS.conf
@@ -145,9 +131,9 @@ public class DbgPacker implements ActionListener {
 		String profileDirectory = configuration.getProfileDirectory();
 
 		// add virtual folders file if it exists
-		String vfolders = configuration.getVirtualFoldersFile(null);
+		String vfolders = configuration.getVirtualFoldersFile();
 		if (StringUtils.isNotEmpty(vfolders)) {
-			add(new File(profileDirectory, vfolders.substring(1)));
+			add(new File(profileDirectory, vfolders));
 		}
 
 		add(new File(profileDirectory, "WEB.conf"));
@@ -286,7 +272,7 @@ public class DbgPacker implements ActionListener {
 		JOptionPane.showOptionDialog(
 			SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 			config(),
-			"Options",
+			Messages.getString("Dialog.Options"),
 			JOptionPane.CLOSED_OPTION,
 			JOptionPane.PLAIN_MESSAGE,
 			null,

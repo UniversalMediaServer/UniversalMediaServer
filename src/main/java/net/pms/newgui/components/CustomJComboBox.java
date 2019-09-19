@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -21,7 +21,6 @@ package net.pms.newgui.components;
 
 import java.util.Vector;
 import javax.swing.ComboBoxModel;
-import javax.swing.JToolTip;
 import javax.swing.JComboBox;
 
 /**
@@ -46,11 +45,5 @@ public class CustomJComboBox<E> extends JComboBox<E> {
 
 	public CustomJComboBox(Vector<E> items) {
 	    super(items);
-	}
-
-	public JToolTip createToolTip() {
-	    JToolTip tip = new HyperLinkToolTip();
-	    tip.setComponent(this);
-	    return tip;
 	}
 }

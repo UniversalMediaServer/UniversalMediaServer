@@ -20,41 +20,110 @@
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
 		<script src="/files/jquery.min.js"></script>
 		<script src="/files/jquery.ums.js"></script>
+		<script src="/files/js.cookie-2.1.0.min.js"></script>
 		<script src="/bump/bump.js"></script>
+		<!-- New webUI -->
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<script src="/files/util/modernizr.custom.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/jQKeyboard.js"></script><!--load before keycontroller-->
+		<script src="/files/util/keycode.js"></script>
+		<script src="/files/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="/files/util/jQKeyboard.css" type="text/css">
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage" class="browsePage">
-		<div id="Container" class="noHzScroll">
-			<div id="Menu">
-				<a href="/browse/0" id="HomeButton"></a>
-{{#hasFile}}
-				<form id="SearchForm" method="get">
-					<input type="text" id="SearchInput" name="str">
-					<input type="submit" id="SearchSubmit" title="Search" value="&nbsp;">
-				</form>
-{{/hasFile}}
-				<a href="/doc" id="DocButton" title="Documentation"></a>
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a  id="HomeButton" class="navbar-brand" href="/browse/0" title="UMS"></a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+						{{#hasFile}}
+							<li id="trigger-overlay">
+								<a role="button" type="button">
+									<i class="fa fa-search" aria-hidden="true"></i>
+								</a>
+							</li>
+						{{/hasFile}}
+						<li class="dropdown" id="fontsChangerContainer">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="fontChanger"><i class="fa fa-font"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:chooseFontSize('small')" title="Switch to small font" class="small"><i class="fa fa-font" aria-hidden="true"></i> Switch to small font</a></li>
+								<li><a href="javascript:chooseFontSize('medium')" title="Switch to medium font" class="medium"><i class="fa fa-font" aria-hidden="true"></i> Switch to medium font</a></li>
+								<li><a href="javascript:chooseFontSize('big')" title="Switch to big font" class="big"><i class="fa fa-font" aria-hidden="true"></i> Switch to big font</a></li>
+								<li><a href="javascript:chooseFontSize('extrabig')" title="Switch to extra big font" class="big"><i class="fa fa-font" aria-hidden="true"></i> Switch to extra big font</a></li>
+							</ul>
+						</li>
+						<li class="dropdown" id="settingsContainer">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="settings"><i class="fa fa-cog"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="/doc" title="Documentation"><i class="fa fa-info-circle" aria-hidden="true"></i> Documentation</a></li>
+								<li><a href="/files/subs.html" title="Subtitle Translator"><i class="fa fa-file-export" aria-hidden="true"></i> Subtitle translator</a></li>
+								<li><a href="javascript:setPadColor(1)" title="Change padding color"><i class="fa fa-paint-brush" aria-hidden="true"></i> Change padding color</a></li>
+								<li><a href="javascript:chooseView('grid')" title="Switch to grid view"><i class="fa fa-th" aria-hidden="true"></i> Switch to grid view</a></li>
+								<li><a href="javascript:chooseView('dynamic')" title="Switch to dynamic view"><i class="fa fa-list" aria-hidden="true"></i> Switch to dynamic view</a></li>
+								<li><a href="javascript:chooseView('list')" title="Switch to list view"><i class="fa fa-bars" aria-hidden="true"></i> Switch to list view</a></li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</div>
-
-			<div id="FoldersContainer"{{noFoldersCSS}}>
-				<ul id="Folders">
-{{#folders}}
+		</nav>
+		<div id="Container" class="noHzScroll">
+			<div id="FoldersContainer">
+				<ul id="Folders" class="nav nav-sidebar">
+					{{#folders}}
 					<li>{{this}}</li>
-{{/folders}}
+					{{/folders}}
 				</ul>
 			</div>
-
-{{#hasFile}}
-			<ul id="Media"{{noFoldersCSS}}>
-{{#media}}
-				<li>
-					{{thumb}}
-					{{bump}}
-					{{caption}}
-				</li>
-{{/media}}
-			</ul>
-{{/hasFile}}
+			{{#hasFile}}
+			<div id="MediaContainer">
+				<!--<div id="bumplist"></div>-->
+				<ul id="Media" class="nav nav-sidebar row">
+					{{#media}}
+					<li class="column">
+						{{thumb}}
+						<div class="box-meta row">
+							<div class="col-xs-9 col-sm-9 col-lg-10 clearPadding">{{caption}}</div>
+							<div class="expand-bump col-xs-3 col-sm-3 col-lg-2">{{bump}}</div>
+						</div>
+					</li>
+					{{/media}}
+				</ul>
+			</div>
+			{{/hasFile}}			
+		</div>
+		<!-- open/close -->
+		<div class="overlay overlay-contentscale">
+			<button type="button" class="jQKeyboardBtn overlay-close"><span class="icon-close"></span></button>
+			<nav>
+			<div id="searchbar">
+				{{#hasFile}}
+					<form  id="SearchForm" method="get">
+						<input type="text" class="form-control jQKeyboard" placeholder="Search..." name="str">
+					</form>
+				{{/hasFile}}				
+			</div>
+			</nav>
 		</div>
 	</body>
+	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
+	{{#hasFile}}
+	<script src="/files/util/searchclassie.js"></script>
+	<script src="/files/util/search.js"></script>
+	{{/hasFile}}
+	<script>$('input.jQKeyboard').initKeypad({'keyboardLayout': keyboard});</script>
 </html>

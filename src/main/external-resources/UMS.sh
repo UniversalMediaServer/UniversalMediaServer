@@ -37,6 +37,17 @@ if [ "x$JAVA" = "x" ]; then
     fi
 fi
 
+# Use our JVM if it exists
+if [ "$(uname -m | grep '64')" != "" ]; then
+    if [ -f linux/jre-x64/bin/java ]; then 
+        JAVA="linux/jre-x64/bin/java"
+    fi
+else
+    if [ -f linux/jre-x86/bin/java ]; then 
+        JAVA="linux/jre-x86/bin/java"
+    fi
+fi
+
 # Setup the classpath
 # since we always cd to the working dir, these a) can be unqualified and b) *must*
 # be unqualified: https://code.google.com/p/ps3mediaserver/issues/detail?id=1122
@@ -60,7 +71,7 @@ fi
 
 # Provide a means of setting max memory using an environment variable
 if [ "x$UMS_MAX_MEMORY" = "x" ]; then
-    UMS_MAX_MEMORY=768M
+    UMS_MAX_MEMORY=1280M
 fi
 
 # Execute the JVM

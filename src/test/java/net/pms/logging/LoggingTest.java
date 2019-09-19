@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -32,7 +32,6 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.OutputStreamAppender;
 import ch.qos.logback.core.encoder.Encoder;
-import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.filter.Filter;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -51,17 +50,25 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingTest {
 
-	class TestAppender<E> extends AppenderBase<E> {
+	private static class TestAppender<E> extends AppenderBase<E> {
 
-		public E lastEvent = null;
+		private final Object lastEventLock = new Object();
+		private E lastEvent = null;
 
+		public E getLastEvent() {
+			synchronized (lastEventLock) {
+				return lastEvent;
+			}
+		}
 		@Override
 		protected void append(E eventObject) {
-			lastEvent = eventObject;
+			synchronized (lastEventLock) {
+				lastEvent = eventObject;
+			}
 		}
 	}
 
-	class TestFileAppender<E> extends FileAppender<E> {
+	private static class TestFileAppender<E> extends FileAppender<E> {
 
 		@Override
 		protected void append(E eventObject) {
@@ -75,7 +82,7 @@ public class LoggingTest {
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 	}
 
-	private boolean findAppender(Iterator<Appender<ILoggingEvent>> iterator, Appender<ILoggingEvent> appender) {
+	private static boolean findAppender(Iterator<Appender<ILoggingEvent>> iterator, Appender<ILoggingEvent> appender) {
 		boolean found = false;
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> a = iterator.next();
@@ -86,7 +93,7 @@ public class LoggingTest {
 		return found;
 	}
 
-	private boolean syslogAppenderFound(Iterator<Appender<ILoggingEvent>> iterator) {
+	private static boolean syslogAppenderFound(Iterator<Appender<ILoggingEvent>> iterator) {
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> appender = iterator.next();
 			if (appender instanceof SyslogAppender) {
@@ -121,7 +128,7 @@ public class LoggingTest {
 		rootLogger.error(testMessage);
 		assertTrue("CacheLoggerActive", CacheLogger.isActive());
 		CacheLogger.stopAndFlush();
-		assertEquals("LoggedMessage", testAppender.lastEvent.getMessage(), testMessage);
+		assertEquals("LoggedMessage", testAppender.getLastEvent().getMessage(), testMessage);
 		assertFalse("CacheLoggerInactive", CacheLogger.isActive());
 		rootLogger.setLevel(Level.OFF);
 
@@ -143,10 +150,11 @@ public class LoggingTest {
 
 	/**
 	 * Test
+	 * @throws InterruptedException
 	 *
 	 */
 	@Test
-	public void testDebugLogPropertyDefiner() throws ConfigurationException {
+	public void testDebugLogPropertyDefiner() throws ConfigurationException, InterruptedException {
 
 		// Set up PMS configuration
 		PMS.get();
@@ -169,7 +177,7 @@ public class LoggingTest {
 	}
 
 	@Test
-	public void testLoggingConfig() throws ConfigurationException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	public void testLoggingConfig() throws ConfigurationException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, InterruptedException {
 
 		// Set up a test (default) configuration
 		PMS.get();
@@ -248,12 +256,8 @@ public class LoggingTest {
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> appender = iterator.next();
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
-				// Appender has Encoder property
-				Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
-				if (encoder instanceof LayoutWrappingEncoder) {
-					// Encoder has ImmediateFlush property
-					assertFalse("LogFileIsBuffered", ((LayoutWrappingEncoder<ILoggingEvent>) encoder).isImmediateFlush());
-				}
+				// Appender has ImmediateFlush property
+				assertFalse("LogFileIsBuffered", ((OutputStreamAppender<ILoggingEvent>) appender).isImmediateFlush());
 			}
 		}
 		LoggingConfig.setBuffered(false);
@@ -261,12 +265,8 @@ public class LoggingTest {
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> appender = iterator.next();
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
-				// Appender has Encoder property
-				Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
-				if (encoder instanceof LayoutWrappingEncoder) {
-					// Encoder has ImmediateFlush property
-					assertTrue("LogFileIsNotBuffered", ((LayoutWrappingEncoder<ILoggingEvent>) encoder).isImmediateFlush());
-				}
+				assertTrue("LogFileIsNotBuffered", ((OutputStreamAppender<ILoggingEvent>) appender).isImmediateFlush());
+				// Appender has ImmediateFlush property
 			}
 		}
 
@@ -298,7 +298,7 @@ public class LoggingTest {
 		ThresholdFilter thresholdFilter = (ThresholdFilter) filterList.get(0);
 		Field field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("ConsoleFilterLevel", (Level) field.get(thresholdFilter), Level.WARN);
+		assertEquals("ConsoleFilterLevel", field.get(thresholdFilter), Level.WARN);
 		configuration.setLoggingFilterConsole(Level.TRACE);
 		LoggingConfig.setConsoleFilter();
 		filterList = consoleAppender.getCopyOfAttachedFiltersList();
@@ -307,7 +307,7 @@ public class LoggingTest {
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
 		field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("ConsoleFilterLevel", (Level) field.get(thresholdFilter), Level.TRACE);
+		assertEquals("ConsoleFilterLevel", field.get(thresholdFilter), Level.TRACE);
 		rootLogger.detachAppender(consoleAppender);
 
 		// Test setTracesFilter()
@@ -328,7 +328,7 @@ public class LoggingTest {
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
 		field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("TracesFilterLevel", (Level) field.get(thresholdFilter), Level.WARN);
+		assertEquals("TracesFilterLevel", field.get(thresholdFilter), Level.WARN);
 		configuration.setLoggingFilterLogsTab(Level.TRACE);
 		LoggingConfig.setTracesFilter();
 		filterList = frameAppender.getCopyOfAttachedFiltersList();
@@ -337,7 +337,7 @@ public class LoggingTest {
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
 		field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("TracesFilterLevel", (Level) field.get(thresholdFilter), Level.TRACE);
+		assertEquals("TracesFilterLevel", field.get(thresholdFilter), Level.TRACE);
 		rootLogger.detachAppender(frameAppender);
 
 		// Test isSyslogDisabled()

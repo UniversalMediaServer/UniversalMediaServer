@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,11 +19,11 @@
  */
 package net.pms.logging;
 
-import java.util.LinkedList;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.status.ErrorStatus;
+import java.util.LinkedList;
 
 /**
  * Special LogBack appender that simply caches all messages and repost them
@@ -33,12 +33,15 @@ import ch.qos.logback.core.status.ErrorStatus;
  */
 public class CacheAppender<E> extends AppenderBase<E> {
 
+	private final Object eventListLock = new Object();
 	private LinkedList<E> eventList = new LinkedList<>();
 
 	@Override
 	protected void append(E eventObject) {
 		try {
-			eventList.add(eventObject);
+			synchronized (eventListLock) {
+				eventList.add(eventObject);
+			}
 		} catch (Exception e) {
 			addStatus(new ErrorStatus(
 						getName() + " failed to append event: " + e.getLocalizedMessage(), this, e)
@@ -47,8 +50,10 @@ public class CacheAppender<E> extends AppenderBase<E> {
 	}
 
 	public void flush(Logger rootLogger) {
-		while (!eventList.isEmpty()) {
-			rootLogger.callAppenders((ILoggingEvent) eventList.poll());
+		synchronized (eventListLock) {
+			while (!eventList.isEmpty()) {
+				rootLogger.callAppenders((ILoggingEvent) eventList.poll());
+			}
 		}
 	}
 }

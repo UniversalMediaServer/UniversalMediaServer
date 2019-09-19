@@ -4,15 +4,18 @@
  */
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -26,16 +29,13 @@ public class MapFileConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFileConfiguration.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private String name;
-	private String thumbnailIcon;
 	private List<MapFileConfiguration> children;
 	private List<File> files;
+	
+	private boolean addToMediaLibrary = true;
 
 	public String getName() {
 		return name;
-	}
-
-	public String getThumbnailIcon() {
-		return thumbnailIcon;
 	}
 
 	public List<MapFileConfiguration> getChildren() {
@@ -46,92 +46,97 @@ public class MapFileConfiguration {
 		return files;
 	}
 
-	public void setName(String n) {
-		name = n;
+	public boolean isAddToMediaLibrary() {
+		return addToMediaLibrary;
 	}
 
-	public void setThumbnailIcon(String t) {
-		thumbnailIcon = t;
+	public void setName(String n) {
+		name = n;
 	}
 
 	public void setFiles(List<File> f) {
 		files = f;
 	}
+	
+	public void setAddToMediaLibrary(boolean addToMediaLibrary) {
+		this.addToMediaLibrary = addToMediaLibrary;
+	}
+
 
 	public MapFileConfiguration() {
 		children = new ArrayList<>();
 		files = new ArrayList<>();
 	}
 
-	@Deprecated
-	public static List<MapFileConfiguration> parse(String conf) {
-		return parseVirtualFolders(null);
-	}
-
-	public static List<MapFileConfiguration> parseVirtualFolders(ArrayList<String> tags) {
+	public static List<MapFileConfiguration> parseVirtualFolders() {
 		String conf;
 
-		if (configuration.getVirtualFoldersFile(tags).trim().length() > 0) {
+		if (isNotBlank(configuration.getVirtualFoldersFile())) {
 			// Get the virtual folder info from the user's file
-			conf = configuration.getVirtualFoldersFile(tags).trim().replaceAll("&comma;", ",");
+			conf = configuration.getVirtualFoldersFile().trim().replaceAll("&comma;", ",");
 			File file = new File(configuration.getProfileDirectory(), conf);
 			conf = null;
 
 			try {
-				conf = FileUtils.readFileToString(file);
-			} catch (FileNotFoundException ex) {
-				LOGGER.warn("Can't read file: {}", ex.getMessage());
-				return null;
+				conf = FileUtils.readFileToString(file, StandardCharsets.US_ASCII);
 			} catch (IOException e) {
 				LOGGER.warn("Unexpected exeption while reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
 				LOGGER.debug("",e);
 				return null;
 			}
-
-			GsonBuilder gsonBuilder = new GsonBuilder();
-			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
-			Gson gson = gsonBuilder.create();
-			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
-			List<MapFileConfiguration> out = gson.fromJson(conf, listType);
-			return out;
-		} else if (configuration.getVirtualFolders(tags).trim().length() > 0) {
+		} else if (isNotBlank(configuration.getVirtualFolders())) {
 			// Get the virtual folder info from the config string
-			conf = configuration.getVirtualFolders(tags).trim().replaceAll("&comma;", ",");
+			conf = configuration.getVirtualFolders().trim().replaceAll("&comma;", ",");
 
 			// Convert our syntax into JSON syntax
-			String arrayLevel1[] = conf.split("\\|");
-			int i = 0;
-			boolean firstLoop = true;
+			String[] arrayLevel0 = conf.split(";");
 			StringBuilder jsonStringFromConf = new StringBuilder();
-			for (String value : arrayLevel1) {
+			jsonStringFromConf.append("[");
+			boolean firstLoop = true;
+			int i = 0;
+			for (String folders : arrayLevel0) {
+				String[] arrayLevel1 = folders.split("\\|");
 				if (!firstLoop) {
-					jsonStringFromConf.append(",");
+					jsonStringFromConf.append(',');
 				}
 
-				if (i == 0) {
-					jsonStringFromConf.append("[{\"name\":\"").append(value).append("\",files:[");
-					i++;
-				} else {
-					String arrayLevel2[] = value.split(",");
-					for (String value2 : arrayLevel2) {
-						jsonStringFromConf.append("\"").append(value2).append("\",");
+				for (String value : arrayLevel1) {
+					if (i == 0) {
+						jsonStringFromConf.append("{\"name\":\"").append(value).append("\",\"files\":[");
+						i++;
+					} else {
+						String[] arrayLevel2 = value.split(",");
+						boolean firstFile = true;
+						for (String value2 : arrayLevel2) {
+							if (!firstFile) {
+								jsonStringFromConf.append(",");
+							}
+
+							jsonStringFromConf.append("\"").append(value2).append("\"");
+							firstFile = false;
+						}
+
+						jsonStringFromConf.append("]}");
 					}
-
-					jsonStringFromConf.append("]}]");
-					firstLoop = false;
-					i = 0;
 				}
+
+				firstLoop = false;
+				i = 0;
 			}
 
-			GsonBuilder gsonBuilder = new GsonBuilder();
-			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
-			Gson gson = gsonBuilder.create();
-			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
-			List<MapFileConfiguration> out = gson.fromJson(jsonStringFromConf.toString().replaceAll("\\\\","\\\\\\\\"), listType);
+			jsonStringFromConf.append("]");
 
-			return out;
+			conf = jsonStringFromConf.toString().replaceAll("\\\\","\\\\\\\\");
+
+		} else {
+			return null;
 		}
-		return null;
+
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
+		Gson gson = gsonBuilder.create();
+		Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
+		return gson.fromJson(conf, listType);
 	}
 }
 
@@ -148,12 +153,12 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 		File file = new File(json.getAsJsonPrimitive().getAsString());
 
 		try {
-			if (FileUtil.getFilePermissions(file).isBrowsable()) {
+			FilePermissions permissions = FileUtil.getFilePermissions(file);
+			if (permissions.isBrowsable()) {
 				return file;
-			} else {
-				LOGGER.warn("Can't read folder: {}", file.getAbsolutePath());
-				return null;
 			}
+			LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
+			return null;
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Folder not found: {}", e.getMessage());
 			return null;

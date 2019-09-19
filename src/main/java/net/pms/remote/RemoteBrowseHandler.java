@@ -17,12 +17,14 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.formats.Format;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
 	private RemoteWeb parent;
@@ -32,21 +34,24 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
-	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
+	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
+		LOGGER.debug("Make browse page " + id);
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
-		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
+		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
-		if (!res.isEmpty() &&
-			res.get(0).getParent() != null &&
-			(res.get(0).getParent() instanceof CodeEnter)) {
+		if (
+			!resources.isEmpty() &&
+			resources.get(0).getParent() != null &&
+			(resources.get(0).getParent() instanceof CodeEnter)
+		) {
 			// this is a code folder the search string is  entered code
-			CodeEnter ce = (CodeEnter)res.get(0).getParent();
+			CodeEnter ce = (CodeEnter) resources.get(0).getParent();
 			ce.setEnteredCode(search);
-			if(!ce.validCode(ce)) {
+			if (!ce.validCode(ce)) {
 				// invalid code throw error
 				throw new IOException("Auth error");
 			}
@@ -56,36 +61,51 @@ public class RemoteBrowseHandler implements HttpHandler {
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Location", "/play/" + real.getId());
 				RemoteUtil.respond(t, "", 302, "text/html");
-				// return null here to avoid multipl responses
+				// return null here to avoid multiple responses
 				return null;
 			}
-			else {
-				// redirect to ourself
-				Headers hdr = t.getResponseHeaders();
-				hdr.add("Location", "/browse/" + real.getResourceId());
-				RemoteUtil.respond(t, "", 302, "text/html");
-				return null;
-			}
+			// redirect to ourself
+			Headers hdr = t.getResponseHeaders();
+			hdr.add("Location", "/browse/" + real.getResourceId());
+			RemoteUtil.respond(t, "", 302, "text/html");
+			return null;
 		}
-		if (StringUtils.isNotEmpty(search) && !(res instanceof CodeEnter)) {
-			UMSUtils.postSearch(res, search);
+		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
+			UMSUtils.postSearch(resources, search);
 		}
 
-		boolean showFolders = false;
-		boolean hasFile     = false;
+		boolean hasFile = false;
 
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
+		
+		String backUri = "javascript:history.back()";
+		if (
+			!resources.isEmpty() &&
+			resources.get(0).getParent() != null &&
+			resources.get(0).getParent().getParent() != null &&
+			resources.get(0).getParent().getParent().isFolder()
+		) {
+			String newId = resources.get(0).getParent().getParent().getResourceId();
+			String idForWeb = URLEncoder.encode(newId, "UTF-8");
+			backUri = "/browse/" + idForWeb;
+		}
+
+		sb.setLength(0);
+		sb.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
+		sb.append("<span>").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
+		sb.append("</a>");
+		folders.add(sb.toString());
 
 		// Generate innerHtml snippets for folders and media items
-		for (DLNAResource r : res) {
-			String newId = r.getResourceId();
+		for (DLNAResource resource : resources) {
+			String newId = resource.getResourceId();
 			String idForWeb = URLEncoder.encode(newId, "UTF-8");
 			String thumb = "/thumb/" + idForWeb;
-			String name = StringEscapeUtils.escapeHtml(r.resumeName());
+			String name = StringEscapeUtils.escapeHtml(resource.resumeName());
 
-			if (r instanceof VirtualVideoAction) {
+			if (resource instanceof VirtualVideoAction) {
 				// Let's take the VVA real early
 				sb.setLength(0);
 				HashMap<String, String> item = new HashMap<>();
@@ -106,16 +126,16 @@ public class RemoteBrowseHandler implements HttpHandler {
 				continue;
 			}
 
-			if (r.isFolder()) {
+			if (resource.isFolder()) {
 				sb.setLength(0);
 				// The resource is a folder
 				String p = "/browse/" + idForWeb;
-				boolean code = (r instanceof CodeEnter);
+				boolean code = (resource instanceof CodeEnter);
 				String txt = RemoteUtil.getMsgString("Web.8", t);
 				if (code) {
 					txt = RemoteUtil.getMsgString("Web.9", t);
 				}
-				if (r.getClass().getName().contains("SearchFolder") || code) {
+				if (resource.getClass().getName().contains("SearchFolder") || code) {
 					// search folder add a prompt
 					// NOTE!!!
 					// Yes doing getClass.getname is REALLY BAD, but this
@@ -129,7 +149,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("<span>").append(name).append("</span>");
 				sb.append("</a>");
 				folders.add(sb.toString());
-				showFolders = true;
 			} else {
 				// The resource is a media file
 				sb.setLength(0);
@@ -145,7 +164,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						   .append(RemoteUtil.getMsgString("Web.2", t))
 						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 					}
-					if (r.getParent() instanceof Playlist) {
+					if (resource.getParent() instanceof Playlist) {
 						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 							.append(idForWeb).append("', true);return false;\" title=\"")
 						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
@@ -162,7 +181,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				item.put("bump", sb.toString());
 				sb.setLength(0);
 
-				if (WebRender.supports(r) || r.isResume()) {
+				if (WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
 					sb.append("<a href=\"/play/").append(idForWeb)
 						.append("\" title=\"").append(name).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
@@ -178,7 +197,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					// Include it as a web-disabled item so it can be thrown via upnp
 					sb.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
 						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
-						.append(" title=\"").append(name).append(" " + RemoteUtil.getMsgString("Web.7", t) + "\">")
+						.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());
@@ -192,10 +211,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 
 		HashMap<String, Object> vars = new HashMap<>();
-		vars.put("name", id.equals("0") ? configuration.getServerName() :
+		vars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
 			StringEscapeUtils.escapeHtml(root.getDLNAResource(id, null).getDisplayName()));
 		vars.put("hasFile", hasFile);
-		vars.put("noFoldersCSS", showFolders ? "" : " class=\"noFolders\"");
 		vars.put("folders", folders);
 		vars.put("media", media);
 		if (configuration.useWebControl()) {
@@ -207,13 +225,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
-		if (RemoteUtil.deny(t)) {
-			throw new IOException("Access denied");
+		try {
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String id = RemoteUtil.getId("browse/", t);
+			LOGGER.debug("Got a browse request found id " + id);
+			String response = mkBrowsePage(id, t);
+			LOGGER.trace("Browse page:\n{}", response);
+			RemoteUtil.respond(t, response, 200, "text/html");
+		} catch (IOException e) {
+			throw e;
+		} catch (Exception e) {
+			// Nothing should get here, this is just to avoid crashing the thread
+			LOGGER.error("Unexpected error in RemoteBrowseHandler.handle(): {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
-		String id = RemoteUtil.getId("browse/", t);
-		LOGGER.debug("Got a browse request found id " + id);
-		String response = mkBrowsePage(id, t);
-		LOGGER.debug("Write page " + response);
-		RemoteUtil.respond(t, response, 200, "text/html");
 	}
 }

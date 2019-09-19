@@ -3,9 +3,12 @@ package net.pms.dlna;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
@@ -15,7 +18,7 @@ public class ResumeObj {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 	private static final int DAYS = 3600 * 24 * 1000;
-	
+
 	public static final String CLEAN_REG = "_hash_(\\d+)";
 
 	private File file;
@@ -32,7 +35,7 @@ public class ResumeObj {
 	private static File resumeFile(DLNAResource r) {
 		String wName = r.getName().replaceAll("[:\\[\\]\n\r]", "").trim();
 		String fName = wName + "_hash_" + r.resumeHash() + ".resume";
-		return new File(resumePath().getAbsolutePath() + File.separator + fName);
+		return new File(resumePath(), fName);
 	}
 
 	public static File[] resumeFiles() {
@@ -40,29 +43,40 @@ public class ResumeObj {
 		return path.listFiles();
 	}
 
-	public static ResumeObj create(DLNAResource r) {
-		if (!r.configuration.isResumeEnabled()) {
-			// resume is off bail early
+	/**
+	 * Creates a "Resume" version of the incoming resource, which is a
+	 * video that has a particular starting point past the beginning.
+	 *
+	 * @param originalResource
+	 * @return
+	 */
+	public static ResumeObj create(DLNAResource originalResource) {
+		// resume is off bail early
+		if (!originalResource.configuration.isResumeEnabled()) {
 			return null;
 		}
-		File f = resumeFile(r);
-		if (!f.exists()) {
-			// no file no resume
+
+		// no file no resume
+		File resumeFile = resumeFile(originalResource);
+		if (!resumeFile.exists()) {
 			return null;
 		}
-		ResumeObj res = new ResumeObj(f);
+
+		ResumeObj res = new ResumeObj(resumeFile);
 		res.read();
 		if (res.noResume()) {
 			return null;
 		}
 
-		if (r.getMedia() != null) {
-			double dur = r.getMedia().getDurationInSeconds();
+		if (originalResource.getMedia() != null) {
+			double dur = originalResource.getMedia().getDurationInSeconds();
 			if (dur == 0.0 || dur == DLNAMediaInfo.TRANS_SIZE) {
-				r.getMedia().setDuration(res.resDuration / 1000.0);
+				originalResource.getMedia().setDuration(res.resDuration / 1000.0);
 			}
 		}
-		res.setMinDuration(r.minPlayTime());
+
+		res.setMinDuration(originalResource.minPlayTime());
+
 		return res;
 	}
 
@@ -92,7 +106,7 @@ public class ResumeObj {
 	}
 
 	public void read() {
-		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 			String str;
 			while ((str = in.readLine()) != null) {
 				String[] tmp = str.split(",");
@@ -108,7 +122,7 @@ public class ResumeObj {
 
 	private static void write(long time, long duration, File f) {
 		try {
-			try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
+			try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8))) {
 				out.write(time + "," + duration);
 				out.flush();
 				out.close();
@@ -142,7 +156,12 @@ public class ResumeObj {
 
 	public void update(Range.Time range, DLNAResource r) {
 		if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
-			stop(System.currentTimeMillis() + getTimeOffset() - (long) (range.getStart() * 1000), (long) ((r.getMedia() != null ? r.getMedia().getDuration() : 0) * 1000));
+			long now = System.currentTimeMillis();
+			if (r.getMedia() != null) {
+				stop(now + getTimeOffset() - (long) (range.getStart() * 1000), (long) (r.getMedia().getDuration() * 1000));
+			} else {
+				stop(now + getTimeOffset() - (long) (range.getStart() * 1000), 0);
+			}
 		}
 	}
 

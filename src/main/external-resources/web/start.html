@@ -1,20 +1,31 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<!-- New webUI -->
+		<script src="/files/jquery.min.js"></script>
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
 		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/keycode.js"></script>
+		<script src="/files/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
 		<title>{{serverName}}</title>
 	</head>
-	<body id="FrontPage">
-		<div id="Container">
-			<div id="Menu">
-				<a href="/browse/0" id="Logo" title="Browse Media">
-					<h3>Browse the media on {{profileName}}</h3>
-				</a>
-			</div>
-		</div>
+	<body>
+	<a href="/browse/0" id="loadingLink">
+		<div class="loading"></div>
+		<div class="loadingAfter"></div>
+		<div id="ButtonContainer">
+		<button class="onFocus different btn btn-lg btn-primary" role="button" onclick="location.href = '/browse/0';">{{serverName}}</button>
+	</div>
+	</a>
+	
 	</body>
+	<script>var delay = 3000; setTimeout(function(){ window.location = "/browse/0"; }, delay);</script>
 </html>

@@ -59,7 +59,7 @@ public class SubtitleUtilsTest {
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("../../util/russian-cp1251.srt"));
 		subtitle.setType(VOBSUB);
 		subtitle.setExternalFile(file_cp1251);
-		assertThat(subtitle.getExternalFileCharacterSet()).isNull();
+		assertThat(subtitle.getSubCharacterSet()).isNull();
 		assertThat(getSubCpOptionForMencoder(subtitle)).isNull();
 	}
 
@@ -89,7 +89,7 @@ public class SubtitleUtilsTest {
 		DLNAMediaSubtitle sub5 = new DLNAMediaSubtitle();
 		sub5.setExternalFile(file_koi8_r);
 		assertThat(getSubCpOptionForMencoder(sub5)).isEqualTo("enca:ru:cp1251");
-		
+
 		File file_cp1250 = FileUtils.toFile(CLASS.getResource("../../util/czech-cp1250.srt"));
 		DLNAMediaSubtitle sub6 = new DLNAMediaSubtitle();
 		sub6.setExternalFile(file_cp1250);

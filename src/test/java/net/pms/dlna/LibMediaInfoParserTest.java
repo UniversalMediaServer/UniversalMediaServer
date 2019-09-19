@@ -18,13 +18,21 @@
  */
 package net.pms.dlna;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.sun.syndication.io.impl.Base64;
+import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
+import net.pms.dlna.MediaInfo.StreamType;
 
-import static org.assertj.core.api.Assertions.*;
-
-public class LibMediaInfoParserTest {
+public class LibMediaInfoParserTest extends LibMediaInfoParser {
+	@BeforeClass
+	public static void SetUPClass() {
+		PMS.configureJNA();
+	}
+	
 	@Test
 	public void testGetReferenceFrameCount() throws Exception {
 		assertThat(LibMediaInfoParser.getReferenceFrameCount("-5 6")).isEqualTo((byte) -5);
@@ -106,14 +114,21 @@ public class LibMediaInfoParserTest {
 		assertThat(LibMediaInfoParser.getLang("ptBR (Brazil)")).isEqualTo("ptBR");
 		assertThat(LibMediaInfoParser.getLang("enUS/GB")).isEqualTo("enUS");
 	}
-	
+
 	@Test
-	public void testGetCover() throws Exception {
-		assertThat(LibMediaInfoParser.getCover("SGVsbG8gV29ybGQ=")).isEqualTo(Base64.decode("SGVsbG8gV29ybGQ=".getBytes()));
-	}
-	
-	@Test
-	public void testGetCoverInvalidInput() throws Exception {
-		assertThat(LibMediaInfoParser.getCover(null)).isNull();
+	public void testSetFormat() throws Exception {
+		DLNAMediaInfo media = new DLNAMediaInfo();
+		DLNAMediaAudio audio = new DLNAMediaAudio();
+		setFormat(StreamType.General, media, audio, "XVID", null);
+		assertEquals(FormatConfiguration.DIVX, media.getContainer());
+		setFormat(StreamType.Video, media, audio, "XVID", null);
+		assertEquals(FormatConfiguration.DIVX, media.getCodecV());
+		media.setContainer("");
+		setFormat(StreamType.General, media, audio, "mp42 (mp42/isom)", null);
+		assertEquals(FormatConfiguration.MP4, media.getContainer());
+		media.setCodecV("");
+		setFormat(StreamType.Video, media, audio, "DIVX", null);
+		assertEquals(FormatConfiguration.DIVX, media.getCodecV());
+		// TODO this can continue with other container, video and audio formats
 	}
 }

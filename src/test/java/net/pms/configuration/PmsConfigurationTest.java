@@ -1,43 +1,42 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Digital Media Server, for streaming digital media to UPnP AV or DLNA
+ * compatible devices based on PS3 Media Server and Universal Media Server.
+ * Copyright (C) 2016 Digital Media Server developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see http://www.gnu.org/licenses/.
  */
 package net.pms.configuration;
 
-import static org.junit.Assert.*;
-import java.io.File;
-import java.util.Locale;
-import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import java.io.File;
+import java.util.Locale;
 import net.pms.util.FileUtil;
 import net.pms.util.Languages;
+import org.apache.commons.configuration.ConfigurationException;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 public class PmsConfigurationTest {
 
 	private PmsConfiguration configuration;
 	@Before
-	public void setUp() throws ConfigurationException {
-		// Silence all log messages from the UMS code that is being tested
+	public void setUp() throws ConfigurationException, InterruptedException {
+		// Silence all log messages from the DMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 
@@ -72,10 +71,10 @@ public class PmsConfigurationTest {
 		assertEquals("LoggingSyslogPortDefault", configuration.getLoggingSyslogPort(), 514);
 		assertFalse("LoggingUseSyslogDefault", configuration.getLoggingUseSyslog());
 		assertEquals("getLanguageLocaleDefault", configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()));
-		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageCode(Locale.getDefault()) );
+		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()) );
 		configuration.getConfiguration().setProperty("language", "");
 		assertEquals("getLanguageLocaleDefault", configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()));
-		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageCode(Locale.getDefault()) );
+		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()) );
 		configuration.getConfiguration().setProperty("language", "en-GB");
 		assertEquals("getLanguageLocaleBritishEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-GB"));
 		assertEquals("getLanguageTagBritishEnglish", configuration.getLanguageTag(), "en-GB");
@@ -101,5 +100,12 @@ public class PmsConfigurationTest {
 		assertEquals("setLanguageEmpty", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"));
 		configuration.setLanguage("en");
 		assertEquals("setLanguageEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-US"));
+	}
+
+	@Test
+	public void testDefaults() {
+		assertNull("getLanguageRawStringDefault", configuration.getLanguageRawString());
+		configuration.setLanguage((Locale) null);
+		assertEquals("setLanguage(null)SetsBlankString", configuration.getLanguageRawString(), "");
 	}
 }

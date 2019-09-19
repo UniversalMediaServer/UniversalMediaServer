@@ -21,7 +21,6 @@ public class ProfileChooser {
 	}
 
 	public static void display() {
-		LooksFrame.initializeLookAndFeel();
 		final JFileChooser fc = new JFileChooser();
 
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);

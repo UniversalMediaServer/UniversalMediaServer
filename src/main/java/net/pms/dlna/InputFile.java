@@ -32,7 +32,7 @@ public class InputFile {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public long size;
+	public Long size = null;
 
 	/**
 	 * Return the string representation of this InputFile.
@@ -102,6 +102,11 @@ public class InputFile {
 	 * @return the size
 	 */
 	public long getSize() {
+		if (size == null && file != null) {
+			return file.length();
+		} else if (size == null) {
+			return -1;
+		}
 		return size;
 	}
 
