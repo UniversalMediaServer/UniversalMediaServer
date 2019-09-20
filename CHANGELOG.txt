@@ -1,3 +1,15 @@
+9.0.1 - 
+
+	General:
+		Fixed not using standalone Java on Linux
+		Increased default maximum memory on Linux to match other OS (1280MB)
+		Logging improvements
+		Fixed broken tooltips
+		Fixed startup link not uninstalling on Windows
+	Renderers:
+		Improved support for Mirascreen  (thanks, Dušan Kazik)
+		Improved support for Sony BluRay BDP-S3700
+
 9.0.0 - Changes since 9.0.0-b2 - 2019-09-06
 
 	General:
