@@ -1037,6 +1037,7 @@
 				<version>2.0</version>
 			</plugin>
 
+			<!-- Spotbugs report -->
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
