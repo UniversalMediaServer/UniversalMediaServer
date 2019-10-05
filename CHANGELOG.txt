@@ -9,6 +9,16 @@
 	Renderers:
 		Improved support for Mirascreen  (thanks, Dušan Kazik)
 		Improved support for Sony BluRay BDP-S3700
+	Translation updates via Crowdin:
+		Bulgarian (91%)
+		Chinese Traditional (100%)
+		Croatian (28%)
+		Estonian (22%)
+		Hungarian (70%)
+		Russian (94%)
+		Slovak (88%)
+		Spanish (100%)
+		Swedish (93%)
 
 9.0.0 - Changes since 9.0.0-b2 - 2019-09-06
 
