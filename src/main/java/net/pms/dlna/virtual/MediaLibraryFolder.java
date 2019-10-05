@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.*;
-import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
 
 /**
