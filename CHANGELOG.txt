@@ -1,11 +1,15 @@
-9.0.1 - 
+9.0.1 - 2019-10-06
 
 	General:
 		Fixed not using standalone Java on Linux
 		Increased default maximum memory on Linux to match other OS (1280MB)
+		Improved speed of some database lookups
+		Improved speed of OpenSubtitles validation
 		Logging improvements
+		Switched from findbugs to spotbugs
 		Fixed broken tooltips
 		Fixed startup link not uninstalling on Windows
+		Fixed error when prettifying some filenames
 	Renderers:
 		Improved support for Mirascreen  (thanks, Dušan Kazik)
 		Improved support for Sony BluRay BDP-S3700
@@ -19,6 +23,8 @@
 		Slovak (88%)
 		Spanish (100%)
 		Swedish (93%)
+	Dependencies:
+		Updated ImageIO to 3.4.2
 
 9.0.0 - Changes since 9.0.0-b2 - 2019-09-06
 
