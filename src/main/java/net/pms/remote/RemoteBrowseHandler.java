@@ -18,6 +18,7 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
+import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -216,6 +217,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		vars.put("hasFile", hasFile);
 		vars.put("folders", folders);
 		vars.put("media", media);
+		vars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 		if (configuration.useWebControl()) {
 			vars.put("push", true);
 		}
