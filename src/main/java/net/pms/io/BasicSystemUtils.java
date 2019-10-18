@@ -239,11 +239,14 @@ public class BasicSystemUtils implements SystemUtils {
 	 * @return The tray icon.
 	 */
 	private Image resolveTrayIcon() {
-		String icon = "icon-16.png";
+		String icon = "icon-24.png";
 
 		if (Platform.isMac()) {
 			icon = "icon-22.png";
+		} else if (Platform.isWindows()) {
+			icon = "icon-16.png";
 		}
+
 		return Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/resources/images/" + icon));
 	}
 
