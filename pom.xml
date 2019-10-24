@@ -2748,7 +2748,7 @@
 			Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
 		-->
 		<profile>
-			<id>osx-java8</id>
+			<id>macos</id>
 			<activation>
 				<activeByDefault>false</activeByDefault>
 			</activation>
@@ -2789,7 +2789,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />
