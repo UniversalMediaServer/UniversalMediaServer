@@ -18,6 +18,10 @@
  */
 package net.pms.network;
 
+import static net.pms.util.StringUtil.convertStringToTime;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,10 +33,15 @@ import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,29 +49,7 @@ import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.database.TableFilesStatus;
-import net.pms.dlna.*;
-import net.pms.encoders.ImagePlayer;
-import net.pms.external.StartStopListenerDelegate;
-import net.pms.formats.Format;
-import net.pms.formats.v2.SubtitleType;
-import net.pms.image.ImagesUtil;
-import net.pms.io.OutputParams;
-import net.pms.io.ProcessWrapper;
-import net.pms.network.message.BrowseRequest;
-import net.pms.network.message.BrowseSearchRequest;
-import net.pms.network.message.SamsungBookmark;
-import net.pms.network.message.SearchRequest;
-import net.pms.util.FullyPlayed;
-import net.pms.util.StringUtil;
-import net.pms.util.SubtitleUtils;
-import static net.pms.util.StringUtil.convertStringToTime;
-import net.pms.util.UMSUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -77,6 +64,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableFilesStatus;
+import net.pms.dlna.DLNAImageInputStream;
+import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.FileTranscodeVirtualFolder;
+import net.pms.dlna.MediaType;
+import net.pms.dlna.Range;
+import net.pms.dlna.RealFile;
+import net.pms.encoders.ImagePlayer;
+import net.pms.external.StartStopListenerDelegate;
+import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImagesUtil;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapper;
+import net.pms.network.message.BrowseRequest;
+import net.pms.network.message.BrowseSearchRequest;
+import net.pms.network.message.SamsungBookmark;
+import net.pms.network.message.SearchRequest;
+import net.pms.util.FullyPlayed;
+import net.pms.util.StringUtil;
+import net.pms.util.SubtitleUtils;
+import net.pms.util.UMSUtils;
 
 /**
  * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
@@ -497,7 +514,7 @@ public class RequestV2 extends HTTPResource {
 						if (dlna.getMedia() != null && !configuration.isDisableSubtitles() && dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isStreamable()) {
 							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 							String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-							if (isNotBlank(subtitleHttpHeader)) {
+							if (isNotBlank(subtitleHttpHeader) && (dlna.getPlayer() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 								// Device allows a custom subtitle HTTP header; construct it
 								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 								String subtitleUrl;
