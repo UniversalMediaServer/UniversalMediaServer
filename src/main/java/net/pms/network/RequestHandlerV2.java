@@ -111,7 +111,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
+		request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
 
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
