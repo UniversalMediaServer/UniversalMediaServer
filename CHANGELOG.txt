@@ -1,3 +1,25 @@
+9.1.0 - 2019-11-01
+
+	General:
+		Added automatic updating to Linux and macOS (it already existed on Windows)
+		Added the UMS version to the web interface
+		Added a different icon in macOS dark mode (thanks, bcbomb47!)
+		Fixed pixelation of icon on some Linux distributions
+	Renderers:
+		Fixed support for external subtitles on some Samsung TVs (thanks, pipin!)
+	Translation updates via Crowdin:
+		Bulgarian (93%)
+		Croatian (29%)
+		Danish (99%)
+		Dutch (93%)
+		Finnish (100%)
+		Italian (100%)
+		Korean (33%)
+		Persian (35%)
+		Turkish (100%)
+	Dependencies:
+		Updated JRE to 1.8.231
+
 9.0.1 - 2019-10-06
 
 	General:
