@@ -86,6 +86,11 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
+		RequestV2 request = null;
+		RendererConfiguration renderer = null;
+		String userAgentString = null;
+		ArrayList<String> identifiers = new ArrayList<>();
+
 		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
 		HttpHeaders headers = nettyRequest.headers();
 
@@ -106,7 +111,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		RequestV2 request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
+		request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
 
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
@@ -114,7 +119,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// default renderer.
 
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
-		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
@@ -128,8 +133,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		Set<String> headerNames = headers.names();
-		String userAgentString = null;
-		ArrayList<String> identifiers = new ArrayList<>();
 		Iterator<String> iterator = headerNames.iterator();
 		while (iterator.hasNext()) {
 			String name = iterator.next();
@@ -374,17 +377,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-					nettyRequest.getProtocolVersion(),
-					HttpResponseStatus.PARTIAL_CONTENT
+				nettyRequest.getProtocolVersion(),
+				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
 			response = new DefaultHttpResponse(
-					nettyRequest.getProtocolVersion(),
-					HttpResponseStatus.OK
+				nettyRequest.getProtocolVersion(),
+				HttpResponseStatus.OK
 			);
 		}
-
-		response.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
@@ -424,7 +425,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				LOGGER.trace("", cause);
 			}
 		}
-
 		Channel ch = e.getChannel();
 		if (ch.isConnected()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
