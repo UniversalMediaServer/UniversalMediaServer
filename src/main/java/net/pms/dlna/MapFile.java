@@ -271,7 +271,12 @@ public class MapFile extends DLNAResource {
 					} else {
 						// Otherwise add the file
 						RealFile rf = new RealFile(f);
-						//we need to propagate the flag in ordet to make all hierarchy stay outside the media library if needed
+						if (rf.length() == 0  && !rf.isFolder()) {
+							LOGGER.debug("Ignoring {} because it seems corrupted when the lenght of the file is 0", f.getName());
+							return;
+						}
+
+						//we need to propagate the flag in order to make all hierarchy stay outside the media library if needed
 						rf.getConf().setAddToMediaLibrary(this.getConf().isAddToMediaLibrary());
 						if (searchList != null) {
 							searchList.add(rf);
