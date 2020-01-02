@@ -19,6 +19,4 @@ matrix:
 
 install: mvn external:install
 
-script:
-    - jdk_switcher use oraclejdk8
-    - mvn verify -B -V -P testing
+script: mvn verify -B -V -P testing
