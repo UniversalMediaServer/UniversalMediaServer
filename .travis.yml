@@ -7,7 +7,8 @@ cache:
 addons:
   apt:
     packages:
-    - mediainfo 
+    - mediainfo
+    - oracle-java8-installer
 
 matrix:
   include:
