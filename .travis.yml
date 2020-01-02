@@ -15,8 +15,8 @@ matrix:
     - os: osx
       osx_image: xcode9.3
 
-install:
-    - jdk_switcher use oraclejdk8
-    - mvn external:install
+install: mvn external:install
 
-script: mvn verify -B -V -P testing
+script:
+    - jdk_switcher use oraclejdk8
+    - mvn verify -B -V -P testing
