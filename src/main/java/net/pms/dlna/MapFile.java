@@ -272,7 +272,7 @@ public class MapFile extends DLNAResource {
 						// Otherwise add the file
 						RealFile rf = new RealFile(f);
 						if (rf.length() == 0  && !rf.isFolder()) {
-							LOGGER.debug("Ignoring {} because it seems corrupted when the lenght of the file is 0", f.getName());
+							LOGGER.debug("Ignoring {} because it seems corrupted when the length of the file is 0", f.getName());
 							return;
 						}
 
