@@ -214,7 +214,7 @@ public final class TableFilesStatus extends Tables {
 		Boolean result = null;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
@@ -237,13 +237,13 @@ public final class TableFilesStatus extends Tables {
 
 		return result;
 	}
-	
+
 	public static int getBookmark(final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 		int result = 0;
 		
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
@@ -264,7 +264,7 @@ public final class TableFilesStatus extends Tables {
 		}
 		return result;
 	}
-	
+
 	public static void setBookmark(final String fullPathToFile, final int bookmark) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;

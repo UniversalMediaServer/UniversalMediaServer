@@ -4801,25 +4801,21 @@ public class OpenSubtitle {
 	 * @param media 
 	 */
 	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
+		final boolean overTheTopLogging = false;
 		if (!PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
-			final boolean overTheTopLogging = false;
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
 					String[] metadataFromOpenSubtitles;
 					try {
-						if (overTheTopLogging) {
-							LOGGER.info("Looking up " + file.getName());
-						}
-
 						metadataFromOpenSubtitles = getInfo(file, file.getName());
 
 						if (metadataFromOpenSubtitles == null) {
+							LOGGER.trace("Failed lookup for " + file.getName());
 							return;
 						}
 
 						String titleFromFilename           = media.getMovieOrShowName();
-						String titleFromFilenameSimplified = media.getSimplifiedMovieOrShowName();
 						String yearFromFilename            = media.getYear();
 						String tvSeasonFromFilename        = media.getTVSeason();
 						String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
@@ -4842,7 +4838,7 @@ public class OpenSubtitle {
 						 * This is because sometimes OpenSubtitles reports incorrect data.
 						 */
 						if (overTheTopLogging) {
-							LOGGER.info("Found " + file.getName() + " : " + titleFromOpenSubtitles);
+							LOGGER.trace("Found " + file.getName() + " : " + titleFromOpenSubtitles);
 						}
 
 						// Proceed if the years match, or if there is no year then try the movie/show name.
@@ -4857,98 +4853,76 @@ public class OpenSubtitle {
 							)
 						) {
 							/**
-							 * If the name returned from OpenSubtitles is very similar to the one from the
-							 * filename, we regard it as a correct match.
-							 * This means we get proper case and special characters without worrying about
-							 * incorrect results being used.
+							 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
+							 * number, so we validate those as well.
+							 * This check will pass if either we don't know what the season and episode
+							 * numbers are from the filename, or we do and they match with our results
+							 * from OpenSubtitles.
 							 */
-							if (overTheTopLogging) {
-								LOGGER.info("Found " + file.getName() + " : " + titleFromOpenSubtitles);
-							}
-
-							// Proceed if the years match, or if there is no year then try the movie/show name.
 							if (
 								(
-									StringUtils.isNotBlank(yearFromFilename) &&
-									yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
-									StringUtils.isNotEmpty(titleFromFilename)
+									StringUtils.isNotBlank(tvSeasonFromFilename) &&
+									StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
+									tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
+									StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+									StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
+									tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)
 								) || (
-									StringUtils.isBlank(yearFromFilename) &&
-									StringUtils.isNotEmpty(titleFromFilename)
+									StringUtils.isBlank(tvSeasonFromFilename) &&
+									StringUtils.isBlank(tvEpisodeNumberFromFilename)
 								)
 							) {
+								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+								titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+								if (overTheTopLogging) {
+									LOGGER.trace("titleFromDatabase: " + titleFromDatabase);
+									LOGGER.trace("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+								}
+
 								/**
-								 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
-								 * number, so we validate those as well.
-								 * This check will pass if either we don't know what the season and episode
-								 * numbers are from the filename, or we do and they match with our results
-								 * from OpenSubtitles.
+								 * If there is a title from the database and it is not exactly the same as the
+								 * one from OpenSubtitles, continue to see if we want to change that to make
+								 * them all consistent.
 								 */
 								if (
-									(
-										StringUtils.isNotBlank(tvSeasonFromFilename) &&
-										StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
-										tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
-										StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
-										StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
-										tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)
-									) || (
-										StringUtils.isBlank(tvSeasonFromFilename) &&
-										StringUtils.isBlank(tvEpisodeNumberFromFilename)
-									)
+									!"".equals(titleFromDatabase) &&
+									!titleFromOpenSubtitles.equals(titleFromDatabase) &&
+									titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)
 								) {
-									titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
-									titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+									// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
+									PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
+								}
+
+								media.setIMDbID(metadataFromOpenSubtitles[0]);
+								media.setMovieOrShowName(titleFromOpenSubtitles);
+								media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
+								media.setYear(metadataFromOpenSubtitles[5]);
+
+								// If the filename has indicated this is a TV episode
+								if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
+									media.setTVSeason(tvSeasonFromOpenSubtitles);
+									media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
+									if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
+										media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+									}
+
 									if (overTheTopLogging) {
-										LOGGER.info("titleFromDatabase: " + titleFromDatabase);
-										LOGGER.info("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+										LOGGER.trace("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
 									}
 
-									/**
-									 * If there is a title from the database and it is not exactly the same as the
-									 * one from OpenSubtitles, continue to see if we want to change that to make
-									 * them all consistent.
-									 */
-									if (
-										!"".equals(titleFromDatabase) &&
-										!titleFromOpenSubtitles.equals(titleFromDatabase) &&
-										titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)
-									) {
-										// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
-										PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
-									}
+									media.setIsTVEpisode(true);
+								}
 
-									media.setIMDbID(metadataFromOpenSubtitles[0]);
-									media.setMovieOrShowName(titleFromOpenSubtitles);
-									media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
-									media.setYear(metadataFromOpenSubtitles[5]);
-
-									// If the filename has indicated this is a TV episode
-									if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
-										media.setTVSeason(tvSeasonFromOpenSubtitles);
-										media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
-										if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
-											media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
-										}
-
-										if (overTheTopLogging) {
-											LOGGER.info("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
-										}
-
-										media.setIsTVEpisode(true);
-									}
-
-									if (PMS.get().getConfiguration().getUseCache()) {
-										try {
-											PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
-										} catch (SQLException e) {
-											LOGGER.error(
-												"Could not update the database with information from OpenSubtitles for \"{}\": {}",
-												file.getAbsolutePath(),
-												e.getMessage()
-											);
-											LOGGER.trace("", e);
-										}
+								if (PMS.get().getConfiguration().getUseCache()) {
+									try {
+										PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+									} catch (SQLException e) {
+										LOGGER.error(
+											"Could not update the database with information from OpenSubtitles for \"{}\": {}",
+											file.getAbsolutePath(),
+											e.getMessage()
+										);
+										LOGGER.trace("", e);
 									}
 								}
 							}
@@ -4960,6 +4934,10 @@ public class OpenSubtitle {
 				}
 			};
 			backgroundExecutor.execute(r);
+		} else {
+			if (overTheTopLogging) {
+				LOGGER.trace("Metadata already exists for {}", file.getName());
+			}
 		}
 	}
 
