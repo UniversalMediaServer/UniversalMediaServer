@@ -1,3 +1,5 @@
+dist: trusty
+
 language: java
 
 cache:
@@ -11,21 +13,9 @@ addons:
 matrix:
   include:
     - os: linux
-      dist: xenial
-      env: JAVA_HOME=/usr/lib/jvm/java-8-oracle
-      sudo: true
+      jdk: oraclejdk8
     - os: osx
       osx_image: xcode9.3
-
-before_install:
-    # Install oracle java 8, because jarsigner in openjdk 11.0.1+13 breaks
-    # integration tests.
-    # https://github.com/mozilla-releng/signingscript/issues/80
-    - sudo add-apt-repository -y ppa:webupd8team/java
-    - sudo apt-get update
-    - echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
-    - echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
-    - sudo apt-get install oracle-java8-installer
 
 install: mvn external:install
 
