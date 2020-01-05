@@ -219,9 +219,9 @@ public class LibMediaInfoParser {
 						}
 
 						value = MI.Get(video, i, "Format_Profile");
-						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
-							media.setAvcLevel(getAvcLevel(value));
-							media.setH264Profile(getAvcProfile(value));
+						if (!value.isEmpty() && media.getCodecV() != null) {
+							// Value can look like "Advanced@L1", "Complex@L2", "MP@LL" or "Simple@L3" with VC-1 or MPEG-4 Visual.
+							media.setVideoFormatProfile(value);
 						}
 
 						if (parseLogger != null) {
@@ -891,9 +891,6 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
-		} else if (containsIgnoreCase(value, "@l") && streamType == StreamType.Video) {
-			media.setAvcLevel(getAvcLevel(value));
-			media.setH264Profile(getAvcProfile(value));
 		}
 
 		if (format != null) {
@@ -952,32 +949,6 @@ public class LibMediaInfoParser {
 			LOGGER.warn("Exception: ", ex);
 			return -1;
 		}
-	}
-
-	/**
-	 * @param value {@code Format_Profile} value to parse.
-	 * @return AVC level or {@code null} if could not parse.
-	 */
-	public static String getAvcLevel(String value) {
-		// Example values:
-		// High@L3.0
-		// High@L4.0
-		// High@L4.1
-		final String avcLevel = substringAfterLast(lowerCase(value), "@l");
-		if (isNotBlank(avcLevel)) {
-			return avcLevel;
-		}
-		LOGGER.warn("Could not parse AvcLevel value {}." , value);
-		return null;
-	}
-
-	public static String getAvcProfile(String value) {
-		String profile = substringBefore(lowerCase(value), "@l");
-		if (isNotBlank(profile)) {
-			return profile;
-		}
-		LOGGER.warn("Could not parse AvcProfile value {}." , value);
-		return null;
 	}
 
 	public static int getVideoBitrate(String value) {
