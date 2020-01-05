@@ -1258,23 +1258,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	/**
 	 * Determine the mime type specific for this renderer, given a generic mime
-	 * type. This translation takes into account all configured "Supported"
+	 * type by resource. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.
 	 *
-	 * @param mimeType
-	 *            The mime type to look up. Special values are
-	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
-	 *            <code>HTTPResource.AUDIO_TRANSCODE</code>, which will be
-	 *            translated to the mime type of the transcoding profile
-	 *            configured for this renderer.
-	 * @return The mime type.
+	 * @param resource The resource with the generic mime type.
+	 * @return The renderer specific mime type  for given resource. If the generic mime
+	 * type given by resource is <code>null</code> this method returns <code>null</code>.
 	 */
-	public String getMimeType(String mimeType, DLNAMediaInfo media) {
+	public String getMimeType(DLNAResource resource) {
+		String mimeType = resource.mimeType();
 		if (mimeType == null) {
 			return null;
 		}
 
 		String matchedMimeType = null;
+		DLNAMediaInfo media = resource.getMedia();
 
 		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
@@ -2166,15 +2164,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param mediaInfo The {@link DLNAMediaInfo} information parsed from the
+	 * @param dlna The {@link DLNAResource} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @param configuration The {@link PmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAMediaInfo mediaInfo, Format format, PmsConfiguration configuration) {
-
+	public boolean isCompatible(DLNAResource dlna, Format format, PmsConfiguration configuration) {
+		DLNAMediaInfo mediaInfo;
+		if (dlna != null) {
+			mediaInfo = dlna.getMedia();
+		} else {
+			mediaInfo = null;
+		}
+		
 		if (configuration == null) {
 			configuration = PMS.getConfiguration(this);
 		}
@@ -2218,7 +2222,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
-		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().match(mediaInfo) != null) {
+		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().match(dlna) != null) {
 			return true;
 		}
 
@@ -2231,14 +2235,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param mediainfo The {@link DLNAMediaInfo} information parsed from the
+	 * @param dlna The {@link DLNAResource} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAMediaInfo mediainfo, Format format) {
-		return isCompatible(mediainfo, format, null);
+	public boolean isCompatible(DLNAResource dlna, Format format) {
+		return isCompatible(dlna, format, null);
 	}
 
 	public int getAutoPlayTmo() {

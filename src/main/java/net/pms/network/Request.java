@@ -495,7 +495,7 @@ public class Request extends HTTPResource {
 						LOGGER.error("There is no inputstream to return for " + name);
 					} else {
 						startStopListenerDelegate.start(dlna);
-						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(dlna.mimeType(), mediaRenderer, dlna.getMedia()));
+						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(mediaRenderer, dlna)); 
 
 						MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
 						if (mediaType == MediaType.VIDEO) {
