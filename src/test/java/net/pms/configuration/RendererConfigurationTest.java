@@ -178,6 +178,19 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung Soundbar MS750", "User-Agent: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QN49Q70RAFXZA"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QN75Q90RAFXZA"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=UE43RU7179UXZG"
+		);
+
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
 
 		testHeaders("Showtime 3", "User-Agent: Showtime 3.0", "X-AV-Client-Info: Showtime 3.0");
