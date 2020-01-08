@@ -1,3 +1,14 @@
+9.2.0 - 2020-01-??
+
+	General:
+		Added more precise support for subtitles in renderer profiles (si and se). See DefaultRenderer.conf for details.
+		Fixed uninstallation of Windows service (thanks, pponce!)
+		Use secure connections for program updates (thanks, xaitax!)
+		Fixed startup on Linux using ARM processors (thanks, felsen2011!)
+	Renderers:
+		Added support Sony BRAVIA AG series TVs (thanks, rubin55!)
+		Improved support for 2019 Samsung TVs, including 8K streaming
+
 9.1.0 - 2019-11-01
 
 	General:
