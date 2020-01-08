@@ -31,19 +31,19 @@ cd "$PMS_HOME"
 # Setup the JVM
 if [ "x$JAVA" = "x" ]; then
     if [ "x$JAVA_HOME" != "x" ]; then
-		JAVA="$JAVA_HOME/bin/java"
+        JAVA="$JAVA_HOME/bin/java"
     else
-		JAVA="java"
+        JAVA="java"
     fi
 fi
 
-# Use our JVM if it exists
+# Use our JVM if it exists and the Linux distribution appears to be standard 32 or 64-bit
 if [ "$(uname -m | grep '64')" != "" ]; then
-    if [ -f linux/jre-x64/bin/java ]; then 
+    if [ -f linux/jre-x64/bin/java ]; then
         JAVA="linux/jre-x64/bin/java"
     fi
-else
-    if [ -f linux/jre-x86/bin/java ]; then 
+elif [ "$(uname -m | grep '86')" != "" ]; then
+    if [ -f linux/jre-x86/bin/java ]; then
         JAVA="linux/jre-x86/bin/java"
     fi
 fi
