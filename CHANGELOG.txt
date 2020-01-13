@@ -1,13 +1,15 @@
-9.2.0 - 2020-01-??
+9.2.0 - 2020-01-13
 
 	General:
 		Added more precise support for subtitles in renderer profiles. See the si and se options in DefaultRenderer.conf.
 		Fixed uninstallation of Windows service (thanks, pponce!)
 		Use secure connections for program updates (thanks, xaitax!)
 		Fixed startup on Linux using ARM processors (thanks, felsen2011!)
+		Logging improvements
 	Renderers:
 		Added support Sony BRAVIA AG series TVs (thanks, rubin55!)
 		Improved support for 2019 Samsung TVs, including 8K streaming
+		Improved support for Panasonic GX800B
 	Translation updates via Crowdin:
 		Chinese Traditional (100%)
 		Croatian (44%)
