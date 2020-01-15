@@ -22,31 +22,31 @@ function keyDown(event) {
 	switch (event.keyCode) {
 		case VK_LEFT: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MENU) {
+			if (curLevel === level.MENU) {
 				moveInMenu(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.FOOTER) {
+			if (curLevel === level.FOOTER) {
 				moveInFooter(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -54,35 +54,35 @@ function keyDown(event) {
 		}
 		case VK_RIGHT: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.BROWSE) {
+			if (curLevel === level.BROWSE) {
 				moveInBrowse(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MENU) {
+			if (curLevel === level.MENU) {
 				moveInMenu(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.FOOTER) {
+			if (curLevel === level.FOOTER) {
 				moveInFooter(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -90,31 +90,31 @@ function keyDown(event) {
 		}
 		case VK_DOWN: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.BROWSE) {
+			if (curLevel === level.BROWSE) {
 				moveInBrowse(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.VIDEO) {
+			if (curLevel === level.VIDEO) {
 				moveInVideo(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -122,31 +122,31 @@ function keyDown(event) {
 		}
 		case VK_UP: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.HOME) {
+			if (curLevel === level.HOME) {
 				moveInHome(event.keyCode);
 				break;
 			}
-			if (curLevel == level.HEADER) {
+			if (curLevel === level.HEADER) {
 				moveInHeader(event.keyCode);
 				break;
 			}
-			if (curLevel == level.BROWSE) {
+			if (curLevel === level.BROWSE) {
 				moveInBrowse(event.keyCode);
 				break;
 			}
-			if (curLevel == level.MEDIA) {
+			if (curLevel === level.MEDIA) {
 				moveInMedia(event.keyCode);
 				break;
 			}
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			}
-			if (curLevel == level.FOOTER) {
+			if (curLevel === level.FOOTER) {
 				moveInFooter(event.keyCode);
 				break;
 			}
-			if (curLevel == level.KEYBOARD) {
+			if (curLevel === level.KEYBOARD) {
 				moveInKeyboard(event.keyCode);
 				break;
 			}
@@ -154,12 +154,19 @@ function keyDown(event) {
 		}
 		case VK_ENTER: {
 			event.preventDefault(); //prevent default if it is body
-			if (curLevel == level.PLAY) {
-				moveInPlay(event.keyCode);
-				break;
-			} else {
-				emuleClick();
-			}
+			console.log('Dentro de enter');
+			if($('body').find('.onFocus').length==0)
+			{
+				console.log('Dentro de body');
+				$('#HomeButton').addClass('onFocus');
+			} else if (curLevel === level.PLAY) {
+				console.log('Dentro de play');
+                moveInPlay(event.keyCode);
+                break;
+            } else{
+            	console.log('emulate clic');
+                emuleClick();
+            }
 			break;
 		}
 		case VK_RETURN: {
@@ -167,7 +174,7 @@ function keyDown(event) {
 			break;
 		}
 		case VK_DASH: {
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 				break;
 			} else {
@@ -177,13 +184,13 @@ function keyDown(event) {
 			break;
 		}
 		case VK_PLAY: {
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 			}
 			break;
 		}
 		case VK_STOP: {
-			if (curLevel == level.PLAY) {
+			if (curLevel === level.PLAY) {
 				moveInPlay(event.keyCode);
 			}
 			break;
@@ -200,10 +207,35 @@ function keyDown(event) {
 //Function to navigate in home/header
 //key : ASCII code of pressed button/key
 function moveInHome(key) {
+	console.log('moving in home still');
 	var onFocus = $('.onFocus');
 	switch (key) {
 		case VK_DOWN: {
-			if($("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+            if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(2)").find("li:last").hasClass("onFocus")==true) {
+                    break;
+                }
+                if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
+                    onFocus.removeClass('onFocus');
+                    changeFocus(onFocus.next());
+                } else {
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(2)").find("li:first").addClass('onFocus');
+                }
+                break;
+            } else if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(3)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(3)").find("li:last").hasClass("onFocus")==true) {
+                    break;
+                }
+                if ($("#navbar").find("li:nth-child(3)").find("li").hasClass("onFocus")==true) {
+                    onFocus.removeClass('onFocus');
+                    changeFocus(onFocus.next());
+                } else {
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(3)").find("li:first").addClass('onFocus');
+                }
+                break;
+            } else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
 				if ($("#navbar").find("li:nth-child(2)").find("li:last").hasClass("onFocus")==true) {
 					break;
 				}
@@ -215,7 +247,19 @@ function moveInHome(key) {
 					$("#navbar").find("li:nth-child(2)").find("li:first").addClass('onFocus');
 				}
 				break;
-			} else if($('#Folders').text()!=""){
+			} else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(1)").find("li:last").hasClass("onFocus")==true) {
+                    break;
+                }
+                if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
+                    onFocus.removeClass('onFocus');
+                    changeFocus(onFocus.next());
+                } else {
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(1)").find("li:first").addClass('onFocus');
+                }
+                break;
+            } else if($('#Folders').text()!=""){
 				onFocus.removeClass('onFocus');
 				$('#Folders').find('li:first').addClass('onFocus');
 				curLevel = level.BROWSE;
@@ -233,7 +277,23 @@ function moveInHome(key) {
 			break;
 		}
 		case VK_UP: {
-			if($("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+            if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(3)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(3)").find("li:first").hasClass("onFocus")==true){
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(3) a.dropdown-toggle").addClass('onFocus');
+                    $("#navbar").find("li:nth-child(3)").removeClass("open");
+                } else if ($("#navbar").find("li:nth-child(3)").find("li").hasClass("onFocus")==true) {
+                    changeFocus(onFocus.prev());
+                }
+            } else if($("#trigger-overlay").length != 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(2)").find("li:first").hasClass("onFocus")==true){
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(2) a.dropdown-toggle").addClass('onFocus');
+                    $("#navbar").find("li:nth-child(2)").removeClass("open");
+                } else if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
+                    changeFocus(onFocus.prev());
+                }
+            } else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(2)").hasClass("open")==true) {
 				if ($("#navbar").find("li:nth-child(2)").find("li:first").hasClass("onFocus")==true){
 					onFocus.removeClass('onFocus');
 					$("#navbar").find("li:nth-child(2) a.dropdown-toggle").addClass('onFocus');
@@ -241,24 +301,55 @@ function moveInHome(key) {
 				} else if ($("#navbar").find("li:nth-child(2)").find("li").hasClass("onFocus")==true) {
 					changeFocus(onFocus.prev());
 				}
-			}
+			} else if($("#trigger-overlay").length == 0 && $("#navbar").find("li:nth-child(1)").hasClass("open")==true) {
+                if ($("#navbar").find("li:nth-child(1)").find("li:first").hasClass("onFocus")==true){
+                    onFocus.removeClass('onFocus');
+                    $("#navbar").find("li:nth-child(1) a.dropdown-toggle").addClass('onFocus');
+                    $("#navbar").find("li:nth-child(1)").removeClass("open");
+                } else if ($("#navbar").find("li:nth-child(1)").find("li").hasClass("onFocus")==true) {
+                    changeFocus(onFocus.prev());
+                }
+            }
 			break;
 		}
 		case VK_RIGHT: {
-			if($('#HomeButton').hasClass("onFocus")==true) {
+			if($('#HomeButton').hasClass("onFocus")==true && $("#trigger-overlay").length != 0) {
 				onFocus.removeClass('onFocus');
 				$("#trigger-overlay").addClass('onFocus');
-			} else {
+			}
+			else if($('#HomeButton').hasClass("onFocus")==true && $("#trigger-overlay").length == 0) {
+                onFocus.removeClass('onFocus');
+                $("#fontsChangerContainer").find(".dropdown-toggle").addClass('onFocus');
+            }
+            else if($("#trigger-overlay").length != 0 && $("#trigger-overlay").hasClass("onFocus")==true) {
+                onFocus.removeClass('onFocus');
+                $("#fontsChangerContainer").find(".dropdown-toggle").addClass('onFocus');
+            }
+            else {
+            	$("#fontsChangerContainer").removeClass("open");
 				onFocus.removeClass('onFocus');
-				$("#navbar").find(".dropdown-toggle").addClass('onFocus');
+				$("#settingsContainer").find(".dropdown-toggle").addClass('onFocus');
 			}			
 			break;
 		}
 		case VK_LEFT: {
-			if($("#navbar").find(".dropdown-toggle").hasClass("onFocus")==true) {
+            if($("#settingsContainer").find(".dropdown-toggle").hasClass("onFocus")==true || $("#settingsContainer").hasClass("open")==true) {
+            	console.log('Left: 1');
+            	$("#settingsContainer").removeClass("open");
+                onFocus.removeClass('onFocus');
+                $("#fontsChangerContainer").find(".dropdown-toggle").addClass('onFocus');
+            } else if(($("#fontsChangerContainer").find(".dropdown-toggle").hasClass("onFocus")==true || $("#fontsChangerContainer").hasClass("open")==true) && $("#trigger-overlay").length != 0) {
+            	console.log('Left: 2');
+            	$("#fontsChangerContainer").removeClass("open");
 				onFocus.removeClass('onFocus');
 				$("#trigger-overlay").addClass('onFocus');
-			} else {				
+            } else if(($("#fontsChangerContainer").find(".dropdown-toggle").hasClass("onFocus")==true || $("#fontsChangerContainer").hasClass("open")==true) && $("#trigger-overlay").length == 0) {
+            	console.log('Left: 3');
+            	$("#fontsChangerContainer").removeClass("open");
+                onFocus.removeClass('onFocus');
+                $('#HomeButton').addClass('onFocus');
+            } else {
+            	console.log('Left: 4');
 				onFocus.removeClass('onFocus');
 				$('#HomeButton').addClass('onFocus');
 			}			
@@ -372,6 +463,12 @@ function moveInPlay(key) {
 			} else if (onFocus.next().next().hasClass('btn') && onFocus.next().next().attr('disabled')!='disabled') {
 				changeFocus(onFocus.next().next());
 			}
+			break;
+		}
+		case VK_UP: {
+			$('.onFocus').removeClass('onFocus');
+			$('#HomeButton').addClass('onFocus');
+			curLevel = level.HOME;
 			break;
 		}
 		case VK_STOP: {
@@ -535,12 +632,16 @@ function changeFocus(newfocusOb) {
 }
 // Function to emulate click
 function emuleClick() {
+	console.log('dentro de emulate clic');
 	var link_level1 = $('.onFocus').attr('href');
 	var link_level2 = $('.onFocus').parent('a').attr('href');
 	var link_level3 = $('.onFocus').find('a:first').attr('href');
 	if (link_level1 != undefined) {
 		if(link_level1!="#keyboard" && link_level1!="#") {
-			window.location = link_level1;
+			if($('.onFocus').attr('id')=="DownloadLink"){
+					window.open(link_level1);
+				}
+			else{window.location = link_level1;}
 		} else if(link_level1=="#") {
 			$('.onFocus').click();
 		} else {launchVirtualKeyboard();}
@@ -559,6 +660,12 @@ function emuleClick() {
 	} else {
 		$('.onFocus').click();
 	}
+}
+function simulateClick(control)
+{
+    var evObj = document.createEvent('MouseEvents');
+	evObj.initMouseEvent('click', true, true, window, 1, 12, 345, 7, 220, false, false, true, false, 0, null );
+	control.dispatchEvent(evObj);
 }
 //Function to move focus to screen center
 function moveToFocus(){

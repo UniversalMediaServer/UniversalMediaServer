@@ -18,22 +18,22 @@
  */
 package net.pms.dlna;
 
-import com.sun.syndication.feed.synd.SyndCategory;
-import com.sun.syndication.feed.synd.SyndEnclosure;
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.io.SyndFeedInput;
-import com.sun.syndication.io.XmlReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.jdom.Content;
-import org.jdom.Element;
+import org.jdom2.Content;
+import org.jdom2.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.rometools.rome.feed.synd.SyndCategory;
+import com.rometools.rome.feed.synd.SyndEnclosure;
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 
 /**
  * TODO: Change all instance variables to private. For backwards compatibility
@@ -103,7 +103,6 @@ public class Feed extends DLNAResource {
 		this.name = name;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void parse() throws Exception {
 		SyndFeedInput input = new SyndFeedInput();
 		byte b[] = downloadAndSendBinary(url);
@@ -111,7 +110,7 @@ public class Feed extends DLNAResource {
 			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
 			name = feed.getTitle();
 			if (feed.getCategories() != null && feed.getCategories().size() > 0) {
-				SyndCategory category = (SyndCategory) feed.getCategories().get(0);
+				SyndCategory category = feed.getCategories().get(0);
 				tempCategory = category.getName();
 			}
 			List<SyndEntry> entries = feed.getEntries();

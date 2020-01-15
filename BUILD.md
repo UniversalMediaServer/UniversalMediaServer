@@ -3,7 +3,7 @@
 - [Build instructions](#build-instructions)
 - [Short instructions](#short-instructions)
 - [Full instructions](#full-instructions)
-	- [1. Download and install the Java JDK](#1-download-and-install-the-java-jdk)
+	- [1. Download and install the Java JDK](#1-download-and-install-the-java-8-jdk)
 		- [Windows](#windows)
 		- [Linux](#linux)
 		- [macOS](#macos)
@@ -33,7 +33,6 @@
 	- [Building the Linux tarball](#building-the-linux-tarball)
 		- [On Windows](#on-windows)
 		- [On macOS](#on-macos-1)
-	- [Building the Mac DMG file](#building-the-mac-dmg-file)
 	- [Building the macOS wizard installer](#building-the-macos-wizard-installer)
 
 # Build instructions
@@ -70,9 +69,9 @@ The result will be built in the "target" directory:
 
 First all required software has to be installed:
 
-## 1. Download and install the Java JDK
+## 1. Download and install the Java 8 JDK
 
-Note: the JRE is not enough.
+Note: the JRE is not enough, and versions higher than Java 8 are not recommended.
 
 ### Windows
 
@@ -159,8 +158,7 @@ Nothing to do.
 
 These are needed by the build process:
 
-    mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
-    mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
+    mvn external:install
 
 At this point all required software packages are present.
 UMS is now ready to be built.

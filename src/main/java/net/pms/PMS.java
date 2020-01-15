@@ -28,9 +28,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.sql.SQLException;
@@ -373,9 +371,6 @@ public class PMS {
 
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
-
-		// This should be removed soon
-		OpenSubtitle.convert();
 
 		// Start this here to let the converison work
 		tfm.schedule();
@@ -917,7 +912,7 @@ public class PMS {
 			}
 		} catch (Exception e) {
 			LOGGER.error("A serious error occurred during {} initialization: {}", PMS.NAME, e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.debug("", e);
 		}
 	}
 
@@ -1150,7 +1145,7 @@ public class PMS {
 			return title;
 		}
 
-		title = getSimplifiedShowName(title);
+		title = FileUtil.getSimplifiedShowName(title);
 		title = StringEscapeUtils.escapeSql(title);
 
 		if (getConfiguration().getUseCache()) {
@@ -1161,22 +1156,6 @@ public class PMS {
 		}
 
 		return "";
-	}
-
-	/**
-	 * This reduces the incoming title to a lowercase, alphanumeric string
-	 * for searching in order to prevent titles like "Word of the Word" and
-	 * "Word Of The Word!" from being seen as different shows.
-	 *
-	 * @param title
-	 * @return
-	 */
-	public String getSimplifiedShowName(String title) {
-		if (title == null) {
-			return null;
-		}
-
-		return title.toLowerCase().replaceAll("[^a-z0-9]", "");
 	}
 
 	/**
@@ -1360,20 +1339,10 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		Charset charset = null;
-		int codepage = WinUtils.getOEMCP();
-		String[] aliases = {"cp" + codepage, "MS" + codepage};
-		for (String alias : aliases) {
-			try {
-				charset = Charset.forName(alias);
-				break;
-			} catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
-				charset = null;
-			}
-		}
+		Charset charset = WinUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", aliases, charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WinUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
@@ -1777,6 +1746,9 @@ public class PMS {
 	private CredMgr credMgr;
 
 	public static CredMgr.Credential getCred(String owner) {
+		if (instance == null || instance.credMgr == null) {
+			return null;
+		}
 		return instance.credMgr.getCred(owner);
 	}
 

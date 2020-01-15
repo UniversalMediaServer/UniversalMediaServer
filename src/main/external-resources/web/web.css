@@ -495,3 +495,8 @@ form#SearchForm {
 	left: 45%;
 }
 
+.VersionNumber {
+	position: absolute;
+	bottom: 0;
+	padding-left: 10px;
+}

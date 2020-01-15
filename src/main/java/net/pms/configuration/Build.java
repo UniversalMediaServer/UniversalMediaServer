@@ -74,17 +74,14 @@ public class Build {
 	private static final String PROFILE_DIRECTORY_NAME = "UMS";
 
 	/**
-	 * Determines whether or not this PMS build can be updated to a more
-	 * recent version.
-	 * @return True if this build can be updated, false otherwise.
+	 * @return whether updating has been disabled, or there is no defined server.
 	 */
 	public static boolean isUpdatable() {
-		return IS_UPDATABLE && Platform.isWindows() && getUpdateServerURL() != null;
+		return IS_UPDATABLE && getUpdateServerURL() != null;
 	}
 
 	/**
-	 * Returns the URL where the newest version of the software can be downloaded.
-	 * @return The URL.
+	 * @return the URL where the newest version of the software can be downloaded.
 	 */
 	public static String getUpdateServerURL() {
 		return StringUtils.isNotBlank(UPDATE_SERVER_URL) ? UPDATE_SERVER_URL : null;

@@ -1,3 +1,5 @@
+dist: trusty
+
 language: java
 
 cache:
@@ -6,20 +8,15 @@ cache:
 
 addons:
   apt:
-    packages:
-    - mediainfo 
+    packages: mediainfo
 
 matrix:
   include:
     - os: linux
-      jdk: openjdk7
-    - os: linux
       jdk: oraclejdk8
-    - os: linux
-      jdk: openjdk8
     - os: osx
       osx_image: xcode9.3
 
-install: mvn external:install 
+install: mvn external:install
 
 script: mvn verify -B -V -P testing

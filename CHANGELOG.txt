@@ -1,3 +1,477 @@
+9.2.0 - 2020-01-13
+
+	General:
+		Added more precise support for subtitles in renderer profiles. See the si and se options in DefaultRenderer.conf.
+		Fixed uninstallation of Windows service (thanks, pponce!)
+		Use secure connections for program updates (thanks, xaitax!)
+		Fixed startup on Linux using ARM processors (thanks, felsen2011!)
+		Logging improvements
+	Renderers:
+		Added support Sony BRAVIA AG series TVs (thanks, rubin55!)
+		Improved support for 2019 Samsung TVs, including 8K streaming
+		Improved support for Panasonic GX800B
+	Translation updates via Crowdin:
+		Chinese Traditional (100%)
+		Croatian (44%)
+		Danish (100%)
+		English (United Kingdom) (3%)
+		Hungarian (71%)
+		Korean (33%)
+		Slovak (100%)
+		Slovenian (60%)
+		Swedish (97%)
+
+9.1.0 - 2019-11-01
+
+	General:
+		Added automatic updating to Linux and macOS (it already existed on Windows)
+		Added the UMS version to the web interface
+		Added a different icon in macOS dark mode (thanks, bcbomb47!)
+		Fixed pixelation of icon on some Linux distributions
+	Renderers:
+		Fixed support for external subtitles on some Samsung TVs (thanks, pipin!)
+	Translation updates via Crowdin:
+		Bulgarian (93%)
+		Croatian (29%)
+		Danish (99%)
+		Dutch (93%)
+		Finnish (100%)
+		Italian (100%)
+		Korean (33%)
+		Persian (35%)
+		Turkish (100%)
+	Dependencies:
+		Updated JRE to 1.8.231
+
+9.0.1 - 2019-10-06
+
+	General:
+		Fixed not using standalone Java on Linux
+		Increased default maximum memory on Linux to match other OS (1280MB)
+		Improved speed of some database lookups
+		Improved speed of OpenSubtitles validation
+		Logging improvements
+		Switched from findbugs to spotbugs
+		Fixed broken tooltips
+		Fixed startup link not uninstalling on Windows
+		Fixed error when prettifying some filenames
+	Renderers:
+		Improved support for Mirascreen  (thanks, Dušan Kazik)
+		Improved support for Sony BluRay BDP-S3700
+	Translation updates via Crowdin:
+		Bulgarian (91%)
+		Chinese Traditional (100%)
+		Croatian (28%)
+		Estonian (22%)
+		Hungarian (70%)
+		Russian (94%)
+		Slovak (88%)
+		Spanish (100%)
+		Swedish (93%)
+	Dependencies:
+		Updated ImageIO to 3.4.2
+
+9.0.0 - Changes since 9.0.0-b2 - 2019-09-06
+
+	General:
+		Adds UMS to Windows Firewall exceptions on install
+		Better cleanup of install directory on install/uninstall on Windows
+		Fixed transcoding when using our Docker image (thanks, tcely!)
+		Fixed track numbers not prepending in Media Library
+		Fixed startup crash when invalid characters are in the OS Path
+		Fixed adding unsupported files to the database
+	Renderers:
+		Improved support for TrueHD videos on Samsung UHD TVs
+	Translation updates via Crowdin:
+		Chinese Traditional (94%)
+		Croatian (20%)
+		Czech (100%)
+		Danish (89%)
+		Finnish (32%)
+		Japanese (100%)
+		Polish (100%)
+		Russian (93%)
+		Slovak (88%)
+		Thai (11%)
+	Dependencies:
+		Updated Git Commit ID Plugin to 2.2.4
+		Updated JUnit to 5.2.0
+		Updated Maven Compiler Plugin to 3.8.0
+		Updated Maven Enforcer Plugin to 3.0.0-M1
+		Updated Maven Javadoc Plugin to 3.0.1
+		Updated Maven Site Plugin to 3.7
+		Updated Metadata Extractor to 2.12.0 for improved image parsing performance
+
+9.0.0 - Changes since 8.2.0 - 2019-09-06
+
+	General:
+		We no longer require Java installation on any operating system
+		Adds UMS to Windows Firewall exceptions on install
+		Added new renderer setting vbd (video bit depth) to allow filetype-specific bit-depth support configuration
+		Fixed filename prettifying not displaying episode names and other related problems
+		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
+		Fixed transcoding when using our Docker image (thanks, tcely!)
+		Fixed startup crash when invalid characters are in the OS Path
+		Fixed adding unsupported files to the database
+	Renderers:
+		Improved support for TrueHD videos on Samsung UHD TVs
+	Languages:
+		Fixed broken "hide engines" string
+		Updated translations via Crowdin:
+			Chinese Simplified (100%)
+			Chinese Traditional (94%)
+			Croatian (20%)
+			Czech (100%)
+			Danish (89%)
+			Finnish (32%)
+			French (100%)
+			German (100%)
+			Hungarian (68%)
+			Italian (98%)
+			Japanese (100%)
+			Norwegian (89%)
+			Polish (100%)
+			Portuguese (Brazilian) (100%)
+			Romanian (100%)
+			Russian (93%)
+			Slovak (88%)
+			Spanish (96%)
+			Swedish (93%)
+			Thai (11%)
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.0
+		Updated fm.last coverartarchive-api to 2.1.1
+		Updated Git Commit ID Plugin to 2.2.4
+		Updated icu4j to 64.2
+		Updated JNA to 5.3.1
+		Updated JUnit to 5.2.0
+		Updated Maven Compiler Plugin to 3.8.0
+		Updated Maven Enforcer Plugin to 3.0.0-M1
+		Updated Maven Javadoc Plugin to 3.0.1
+		Updated Maven Site Plugin to 3.7
+		Updated Metadata Extractor to 2.12.0 for improved image parsing performance
+		Updated Oshi to 3.13.3
+		Updated Surefire to 2.22.2
+
+9.0.0-b2 - 2019-07-30
+
+	General:
+		Fixed startup on Windows and Linux
+
+9.0.0-b1 - 2019-07-26
+
+	General:
+		We no longer require Java installation on any operating system
+		Added new renderer setting vbd (video bit depth) to allow filetype-specific bit-depth support configuration
+		Fixed filename prettifying not displaying episode names and other related problems
+		Fixed the PrependTrackNumbers renderer setting (thanks, tcely!)
+	Languages:
+		Fixed broken "hide engines" string
+		Updated translations via Crowdin:
+			Chinese Simplified updated
+			French translation updated
+			German translation updated
+			Hungarian translation updated
+			Italian translation updated
+			Japanese translation updated
+			Norwegian translation updated
+			Polish translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Spanish translation updated
+			Swedish translation updated
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.0
+		Updated fm.last coverartarchive-api to 2.1.1
+		Updated icu4j to 64.2
+		Updated JNA to 5.3.1
+		Updated Oshi to 3.13.3
+		Updated Surefire to 2.22.2
+
+8.2.0 - 2019-06-21
+
+	General:
+		Removed duplicate information from TV episode filenames in the Media Library
+		Improved filename recognition
+		Append engines to filenames instead of prepend, to stop breaking alphabetization
+		Added the possibility to have a virtual folder without adding it to the Media Library (thanks, maciekberry!)
+		Fixed UMS not starting as a service on Windows (thanks, pponce!)
+		Fixed a broken translation when alerting a user that they are sharing a non-existing folder
+	Languages:
+		Updated translations via Crowdin:
+			Afrikaans translation updated
+			Arabic translation updated
+			Catalan translation updated
+			Croatian translation updated
+			Czech translation updated
+			Danish translation updated
+			Dutch translation completed
+			German translation updated
+			Greek translation updated
+			English (UK) translation updated
+			Finnish translation updated
+			French translation updated
+			Hebrew translation updated
+			Hungarian translation updated
+			Icelandic translation updated
+			Italian translation updated
+			Japanese translation completed
+			Korean translation completed
+			Norwegian translation updated
+			Persian translation updated
+			Polish translation updated
+			Portuguese translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation updated
+			Russian translation updated
+			Serbian (Cyrillic) translation updated
+			Slovak translation updated
+			Slovenian translation updated
+			Spanish translation updated
+			Thai translation updated
+	Dependencies:
+		Updated Apache HttpAsyncClient to 4.1.4
+
+8.1.0 - 2019-05-03
+
+	General:
+		Performance improvements
+		Fixed conversion of 3D subtitles
+		Fixed bug with the computer sleep management feature (thanks, scriptorron and Nadahar!)
+		Fixed bugs with Virtual Folders
+		Fixed error when browsing web folders
+		Updated build and install documentation (thanks, Ruben Barkow!)
+	Renderers:
+		Improved support for 4k and h265 videos on LG webOS TVs
+		Improved support for Samsung MS750 soundbars
+	Languages:
+		Updated translations via Crowdin:
+			Danish translation updated
+			Dutch translation updated
+			French translation updated
+			Japanese translation validated
+			Portuguese (Brazilian) translation updated
+			Russian translation updated
+			Turkish translation updated
+	Dependencies:
+		Updated h2database to 1.4.199, which improves speed and memory use
+
+8.0.1 - 2019-03-31
+
+	Dependencies:
+		Rolled back h2database to 1.4.196, which fixes broken music metadata
+
+8.0.0 - Changes since 7.9.0 - 2019-03-29
+
+	General:
+		Added new Shared Content tab for managing all local and web content
+		Added country flags for audio and subtitles to video thumbnails in TRANSCODE folders
+		Added option to customize the subtitles info that is appended to filenames
+		Made the subtitles info more standardized
+		Greatly optimized memory use and long-term stability (thanks, skeptical!)
+		Improved default web content entries
+		Database cleanup step removes files that are no longer shared
+		Fixed a lot of bugs related to subtitles
+		Fixed functionality of the Back button on the web interface in some situations
+		Fixed "Season" not displaying on subsequent visits in Media Library
+		Optimized performance of Media Library folders
+		Improved reliability when using "Defer to MEncoder" option
+		Fixed some broken Media Library queries
+	Renderers:
+		Allow MP3 streaming on VLC
+		Transcode unsupported audio to MP3 on Samsung JU6400
+		Fixed video transcoding on Sony Bravia EX TVs
+	Languages:
+		Updated translations via Crowdin:
+			Dutch translation updated
+			Italian translation completed
+			Japanese translation completed
+			Persian translation updated
+			Polish translation completed and validated
+			Russian translation updated
+			Slovenian translation updated
+			Serbian (Cyrillic) translation updated
+			Ukrainian translation updated
+	Dependencies:
+		Updated MediaInfo to 18.12 on Windows and macOS
+		Updated h2database to 1.4.198
+
+8.0.0 - Changes since 8.0.0-RC1 - 2019-03-29
+
+	General:
+		Improved reliability when using "Defer to MEncoder" option
+		Fixed functionality of the Back button on the web interface in some situations
+		Fixed "Season" not displaying on subsequent visits in Media Library
+		Optimized performance of Media Library folders
+		Fixed some broken Media Library queries
+		Fixed music info (artist, album, genre, album artist, and year) not being saved to the resource or database
+	Renderers:
+		Allow MP3 streaming on VLC
+		Transcode unsupported audio to MP3 on Samsung JU6400
+		Fixed video transcoding on Sony Bravia EX TVs
+	Languages:
+		Updated translations via Crowdin:
+			Dutch translation updated
+			Italian translation completed
+			Japanese translation completed
+			Persian translation updated
+			Polish translation completed and validated
+			Russian translation updated
+			Slovenian translation updated
+			Serbian (Cyrillic) translation updated
+			Ukrainian translation updated
+	Dependencies:
+		Updated h2database to 1.4.198
+
+8.0.0-RC1 - 2019-2-22
+
+	General
+		Database cleanup step removes files that are no longer shared
+		Cleanup of new config settings
+		All changes in 7.9.0
+
+7.9.0 - 2019-02-22
+
+	General:
+		Added the ability to ignore folders by name, which defaults to ".unwanted"
+		The server shows up on devices sooner
+		Increased the difference between button hover/pressed states
+		Improved stability and logging when moving files after fully playing
+		Improved recognition of AAC
+		Fixed H.264 profile not updating
+		Fixed low bitrate audio on transcoded web videos (thanks, SsJVasto!)
+		Fixed content updating in the Media Library on some devices
+		Logging fixes
+	Renderers:
+		Improved support for Roku 4
+		Improved support for Samsung 9 Series TVs
+	Languages:
+		Updated translations via Crowdin:
+			Dutch translation updated
+			Bulgarian translation updated
+			Korean translation updated
+			Swedish translation updated
+			Turkish translation updated
+
+8.0.0-b1 - 2019-01-12
+
+	General:
+		Added option to disable FFmpeg GPU acceleration
+		Fixed too much transcoding due to not respecting language priority settings
+		Fixed failure to store audio stream information
+		Fixed failure to start
+		Fixed missing text when adding web content
+		Fixed missing text on the first time language chooser
+		Fixed text clash on the Subtitles settings subtab of the Transcoding settings tab
+		Fixed logspam
+		All changes in 7.8.0
+
+7.8.0 - 2019-01-12
+
+	General:
+		Added examples for all binary tools paths in UMS.conf (thanks, Amadeus-!)
+		Added detection of JDK to the Windows installer (thanks, siboXD!)
+		Fixed custom option parsing for ffmpeg_gpu_decoding_acceleration_method (thanks, goncalossilva!)
+		Fixed error when FFmpeg deferred to MEncoder
+	Web interface:
+		Added Subtitle Translator to the menu (thanks, atamariya!)
+		Added new home screen with automatic entry (thanks, Abel Espinosa!)
+		Added player navigation using keys to return to home screen (thanks, Abel Espinosa!)
+		Added new logo icon fully displayed and transparent in web interface browse view (thanks, Abel Espinosa!)
+		Made caption, folder list and play toolbar buttons compliant with material design (thanks, Abel Espinosa!)
+		Fixed audio thumbnails (thanks, Abel Espinosa!)
+		Fixed some buttons not displaying correctly (thanks, Abel Espinosa!)
+		Fixed broken hover effect on Firefox (thanks, Abel Espinosa!)
+		Modified menu icons
+	Languages:
+		Updated translations via Crowdin:
+			French translation updated
+			Icelandic translation updated
+			Japanese translation updated
+			Ukranian translation updated
+
+8.0.0-a2 - 2018-12-27 - Changes since 8.0.0-a1
+
+	General:
+		Fixed support for picture-based subtitles
+		Fixed images being displayed in low quality
+		Fixed a bug when writing OpenSubtitles data to the database
+		Fixed audio flags in TRANSCODE folders
+		All changes in 7.7.1
+	Dependencies:
+		Updated MediaInfo to 18.12 on Windows and macOS
+
+7.7.1 - 2018-12-27
+
+	General:
+		Fixed broken transcoding via MEncoder on Windows and Linux
+		Improved support for Sony BRAVIA EX Series TVs
+	Languages:
+		Updated translations via Crowdin:
+			French translation updated
+			German translation completed
+			Portuguese translation completed
+			Portuguese (Brazilian) translation completed
+
+8.0.0-a1 - 2018-12-21 - Changes since 7.7.0
+
+	General:
+		Added new Shared Content tab for managing all local and web content
+		Added country flags for audio and subtitles to video thumbnails in TRANSCODE folders
+		Added option to customize the subtitles info that is appended to filenames
+		Made the subtitles info more standardized
+		Greatly optimized memory use and long-term stability (thanks, skeptical!)
+		Improved default web content entries
+		Fixed a lot of bugs related to subtitles
+
+7.7.0 - 2018-12-21
+
+	General:
+		Improved code formatting (thanks, drakulis!)
+		Fixed double subtitles when transcoding video
+		Fixed XViD recognition
+		Fixed incorrect music genre labels (thanks, maciekberry!)
+		Fixed web stream transcoding
+	Renderers:
+		Improved support for Philips PUS TVs
+		Improved support for Samsung Q6 Series TVs
+		Improved support for Samsung Q9 Series TVs
+	Web interface:
+		Use H.264 on the web interface in Chrome and Firefox
+		Removed the limit on resolution
+		Added font scaling setting (thanks, Abel Espinosa!)
+		Removed custom scrollbar styling (thanks, Abel Espinosa!)
+		Fixed a hover effect bug on Firefox (thanks, Abel Espinosa!)
+		Fixed the dynamic view (thanks, Abel Espinosa!)
+	Languages:
+		Updated translations via Crowdin:
+			Chinese Simplified translation completed
+			Czech translation completed and validated
+			German translation updated
+			Hungarian translation updated
+			Portuguese (Brazilian) translation updated
+			Romanian translation completed and validated
+			Russian translation updated
+			Slovak translation updated
+			Thai translation updated
+
+7.6.2 - 2018-11-22
+
+	General:
+		Fixed broken browsing on some devices
+
+7.6.1 - 2018-11-22
+
+	General:
+		Increased thumbnail compression for less memory use
+		Fixed broken browsing on some Samsung devices (thanks, drakulis!)
+		Fixed fully played thumbnails not working after restarts
+		Improved code formatting (thanks, drakulis!)
+	Languages:
+		Chinese Simplified translation updated
+		Swedish translation updated
+
 7.6.0 - 2018-11-16
 
 	General:
@@ -48,7 +522,7 @@
 			German translation updated
 			Greek translation updated
 			Hungarian translation updated
-			Italian translation updated
+			Italian translation completed
 			Japanese translation updated
 			Korean translation updated
 			Norwegian translation updated

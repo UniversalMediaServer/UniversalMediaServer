@@ -198,17 +198,32 @@ public class FFMpegVideo extends Player {
 					if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
 						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
 					} else if (!isSubsASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
-						originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
+						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+						if (subtitlesFile != null) {
+							originalSubsFilename = subtitlesFile.getAbsolutePath();
+						} else {
+							LOGGER.error("External subtitles file \"{}\" is unavailable", params.sid.getName());
+						}
 					} else {
-						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+						if (params.sid.getExternalFile() != null) {
+							originalSubsFilename = params.sid.getExternalFile().getPath();
+						} else {
+							LOGGER.error("External subtitles file \"{}\" is unavailable", params.sid.getName());
+						}
 					}
 				} else if (params.sid.isExternal()) {
-					if (params.sid.isStreamable() && renderer.streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
-						originalSubsFilename = null;
+					if (params.sid.getExternalFile() != null) {
+						if (
+							!renderer.streamSubsForTranscodedVideo() ||
+							!renderer.isExternalSubtitlesFormatSupported(params.sid, media)
+						) {
+							// Only transcode subtitles if they aren't streamable
+							originalSubsFilename = params.sid.getExternalFile().getPath();
+						}
 					} else {
-						originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
+						LOGGER.error("External subtitles file \"{}\" is unavailable", params.sid.getName());
 					}
-				} else if (params.sid.isEmbedded()) {
+				} else {
 					originalSubsFilename = dlna.getFileName();
 				}
 
@@ -250,14 +265,14 @@ public class FFMpegVideo extends Player {
 				}
 			} else if (params.sid.getType().isPicture()) {
 				StringBuilder subsPictureFilter = new StringBuilder();
-				if (params.sid.getId() < 100) {
+				if (params.sid.isEmbedded()) {
 					// Embedded
 					subsPictureFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
 					isSubsManualTiming = false;
-				} else {
+				} else if (params.sid.getExternalFile() != null) {
 					// External
 					videoFilterOptions.add("-i");
-					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
+					videoFilterOptions.add(params.sid.getExternalFile().getPath());
 					subsPictureFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
 				}
 				filterChain.add(0, subsPictureFilter.toString());
@@ -801,8 +816,7 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 2500;
 		}
 
-		setAudioAndSubs(filename, media, params);
-		dlna.setMediaSubtitle(params.sid);
+		setAudioAndSubs(dlna, params);
 		cmdList.add(getExecutable());
 
 		// Prevent FFmpeg timeout
@@ -824,14 +838,19 @@ public class FFMpegVideo extends Player {
 		if (nThreads > 0 && !configuration.isGPUAcceleration()) {
 			cmdList.add("-threads");
 			cmdList.add(String.valueOf(nThreads));
-		} else if (configuration.isGPUAcceleration() && !avisynth) {
+		} else if (
+			configuration.isGPUAcceleration() &&
+			!avisynth &&
+			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"))
+		) {
 			// GPU decoding method
 			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
 				cmdList.add("-hwaccel");
 				cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
 			} else {
 				if (configuration.getFFmpegGPUDecodingAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
-					cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					String[] hwaccelOptions = StringUtils.split(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					cmdList.addAll(Arrays.asList(hwaccelOptions));
 				} else {
 					cmdList.add("-hwaccel");
 					cmdList.add("auto");
@@ -912,15 +931,12 @@ public class FFMpegVideo extends Player {
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.sid.isEmbedded() &&
 			(
-				(
-					params.sid.getType().isText() &&
-					params.sid.getType() != SubtitleType.ASS
-				) ||
+				params.sid.getType().isText() ||
 				params.sid.getType() == SubtitleType.VOBSUB
 			)
 		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
-			MEncoderVideo mv = new MEncoderVideo();
+			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);
 			return mv.launchTranscode(dlna, media, params);
 		}
 
@@ -1040,7 +1056,7 @@ public class FFMpegVideo extends Player {
 		// give the renderer the final say on the command
 		boolean override = false;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(cmdList, dlna, this, params);
+			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
 
 		if (!override) {

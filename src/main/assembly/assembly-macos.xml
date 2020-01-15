@@ -1,7 +1,7 @@
 <assembly
-	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
 	
 	<!--
 		For Mac OS X the actual assembly of the App Bundle and DMG disk image 
@@ -20,7 +20,7 @@
 		<!-- Include the unzipped binaries -->
 		<fileSet>
 			<directory>${project.binaries}/osx</directory>
-			<outputDirectory>${project.name}.app/Contents/Resources/Java/osx</outputDirectory>
+			<outputDirectory>${project.name}.app/Contents/Resources/osx</outputDirectory>
 			<useDefaultExcludes>true</useDefaultExcludes>
 			<fileMode>0755</fileMode>
 			<includes>
@@ -34,7 +34,7 @@
 		<!-- Include unzipped libmediainfo.dylib -->
 		<fileSet>
 			<directory>${project.binaries}</directory>
-			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
+			<outputDirectory>${project.name}.app/Contents/Resources</outputDirectory>
 			<fileMode>0644</fileMode>
 			<includes>
 				<include>libmediainfo.dylib</include>
@@ -45,7 +45,7 @@
 		<!-- Include documentation -->
 		<fileSet>
 			<directory>${project.basedir}</directory>
-			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
+			<outputDirectory>${project.name}.app/Contents/Resources</outputDirectory>
 			<fileMode>0644</fileMode>
 			<includes>
 				<include>README.md</include>
@@ -54,20 +54,10 @@
 			</includes>
 		</fileSet>
 
-		<!-- Include JavaApplicationStub.setenv -->
-		<fileSet>
-			<directory>${project.external-resources}/osx</directory>
-			<outputDirectory>${project.name}.app/Contents/MacOS</outputDirectory>
-			<fileMode>0755</fileMode>
-			<includes>
-				<include>JavaApplicationStub.setenv</include>
-			</includes>
-		</fileSet>
-
 		<!-- Include fontconfig files -->
 		<fileSet>
 			<directory>${project.external-resources}/osx/fonts</directory>
-			<outputDirectory>${project.name}.app/Contents/Resources/Java/fonts</outputDirectory>
+			<outputDirectory>${project.name}.app/Contents/Resources/fonts</outputDirectory>
 			<fileMode>0644</fileMode>
 			<includes>
 				<include>*</include>
@@ -77,7 +67,7 @@
 		<!-- Include configuration files -->
 		<fileSet>
 			<directory>${project.external-resources}</directory>
-			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
+			<outputDirectory>${project.name}.app/Contents/Resources</outputDirectory>
 			<fileMode>0644</fileMode>
 			<includes>
 				<include>UMS.conf</include>
@@ -94,5 +84,14 @@
 			</includes>
 		</fileSet>
 
+		<!-- Include jar-with-dependencies -->
+		<fileSet>
+			<directory>${project.basedir}/target</directory>
+			<outputDirectory>${project.name}.app/Contents/Java</outputDirectory>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>${project.build.finalName}-jar-with-dependencies.jar</include>
+			</includes>
+		</fileSet>
 	</fileSets>
 </assembly>

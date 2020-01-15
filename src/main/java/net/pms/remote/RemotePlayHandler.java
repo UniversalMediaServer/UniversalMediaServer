@@ -115,7 +115,7 @@ public class RemotePlayHandler implements HttpHandler {
 		root.getDefaultRenderer().setRootFolder(root);
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r.mimeType(), r.getMedia());
+		String mime = root.getDefaultRenderer().getMimeType(r);
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
 		@SuppressWarnings("unused")
@@ -188,7 +188,7 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 			OutputParams p = new OutputParams(configuration);
 			p.sid = r.getMediaSubtitle();
-			Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
+			Player.setAudioAndSubs(r, p);
 			if (p.sid != null && p.sid.getType().isText()) {
 				try {
 					File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);

@@ -42,9 +42,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  *
  * @author Nadahar
  */
-
 public final class TableMusicBrainzReleases extends Tables {
-
 	/**
 	 * tableLock is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -153,7 +151,6 @@ public final class TableMusicBrainzReleases extends Tables {
 				where.append(AND);
 			}
 			where.append("YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
-			added = true;
 		}
 
 		return where.toString();
@@ -163,14 +160,14 @@ public final class TableMusicBrainzReleases extends Tables {
 	 * Stores the MBID with information from this {@link Tag} in the database
 	 *
 	 * @param mBID the MBID to store
-	 * @param tag the {@link Tag} who's information should be associated with
+	 * @param tagInfo the {@link Tag} who's information should be associated with
 	 *        the given MBID
 	 */
 	public static void writeMBID(final String mBID, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true);
+			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
@@ -256,7 +253,7 @@ public final class TableMusicBrainzReleases extends Tables {
 	 * Looks up MBID in the table based on the given {@link Tag}. Never returns
 	 * <code>null</code>
 	 *
-	 * @param tag the {@link Tag} for whose values should be used in the search
+	 * @param tagInfo the {@link Tag} for whose values should be used in the search
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
@@ -265,7 +262,7 @@ public final class TableMusicBrainzReleases extends Tables {
 		MusicBrainzReleasesResult result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false);
+			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\"", query);

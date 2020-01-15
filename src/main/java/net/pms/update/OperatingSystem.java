@@ -18,8 +18,4 @@ public class OperatingSystem {
 	public String toString() {
 		return getPlatformName();
 	}
-
-	public boolean isWindows() {
-		return getPlatformName().equals("windows");
-	}
 }
