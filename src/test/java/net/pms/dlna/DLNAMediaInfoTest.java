@@ -71,6 +71,7 @@ public class DLNAMediaInfoTest {
 			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			dlna.resolveFormat();
 			dlna.syncResolve();
+			dlna.resolveOnce();
 			logger.trace("mediainfo: %s\n", dlna.getMedia().toString());
 			PMS.getGlobalRepo().add(dlna);
 			test_content[i] = dlna.getIntId();
@@ -87,7 +88,6 @@ public class DLNAMediaInfoTest {
 		assertThat(dlna.getFormat().getType()).isEqualTo(4);
 
 		dlna = PMS.getGlobalRepo().get(test_content[1]);
-		System.out.format("mediainfo: %s\n", dlna.getMedia().toString());
 
 		assertThat(dlna.getMedia().getSize()).isEqualTo(9439150L);
 		assertThat(dlna.getFormat().getType()).isEqualTo(4);
@@ -101,18 +101,19 @@ public class DLNAMediaInfoTest {
 	}
 
 	@Test
-	public void testFFmpegOutputParse() throws Exception {
+	public void testMediaInfoOutputParse() throws Exception {
 		for (int id : test_content) {
 			DLNAResource dlna = PMS.getGlobalRepo().get(id);
-
+			System.out.format("mediainfo: %s\n", dlna.getMedia().toString());
 			assertThat(dlna.getMedia().getVideoTrackCount()).isEqualTo(1);
 			assertThat(dlna.getMedia().getCodecV()).isEqualTo("h264");
 			assertThat(dlna.getMedia().getBitrate()).isCloseTo(5016576, withPercentage(5));
-//			assertThat( Float.parseFloat(dlna.getMedia().getFrameRate()) ).isEqualTo(29.97f);
+			assertThat(dlna.getMedia().getFrameRate()).isEqualTo("29.970");
 			assertThat(dlna.getMedia().getDuration()).isCloseTo(15.42, withPercentage(1));
 			assertThat(dlna.getMedia().getResolution()).isEqualToIgnoringWhitespace("1920x1080");
 //			assertThat( dlna.getMedia().getFrameNumbers() ).isCloseTo(462,withPercentage(5));
 			assertThat(dlna.getMedia().getExifOrientation().getValue()).isEqualTo(1);
+			System.out.format("MediaInfo parsing OK \n");
 		}
 
 		//System.out.format( "name: %s\n", dlna.getName() );
