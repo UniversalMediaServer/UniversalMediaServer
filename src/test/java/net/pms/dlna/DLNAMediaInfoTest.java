@@ -71,7 +71,6 @@ public class DLNAMediaInfoTest {
 			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			dlna.resolveFormat();
 			dlna.syncResolve();
-			dlna.resolveOnce();
 			logger.trace("mediainfo: %s\n", dlna.getMedia().toString());
 			PMS.getGlobalRepo().add(dlna);
 			test_content[i] = dlna.getIntId();
