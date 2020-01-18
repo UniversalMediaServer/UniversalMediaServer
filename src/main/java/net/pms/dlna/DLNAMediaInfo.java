@@ -2183,11 +2183,11 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setCodecV(String codecV) {
-		this.codecV = codecV != null ? codecV.toLowerCase(Locale.ROOT) : null ;
+		this.codecV = codecV != null ? codecV.toLowerCase(Locale.ROOT) : null;
 	}
 
 	/**
-	 * @return the frameRate
+	 * @return the frame rate
 	 * @since 1.50.0
 	 */
 	public String getFrameRate() {
@@ -2195,7 +2195,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @param frameRate the frameRate to set
+	 * @param frameRate the frame rate to set
 	 * @since 1.50.0
 	 */
 	public void setFrameRate(String frameRate) {
