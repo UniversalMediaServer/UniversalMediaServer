@@ -61,7 +61,6 @@ public class LibMediaInfoParser {
 				MI.Option("Legacy", "1");
 			}
 
-			MI.Option("ParseSpeed", "0");
 //			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		} else {
 			VERSION = null;

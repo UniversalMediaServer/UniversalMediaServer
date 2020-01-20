@@ -108,8 +108,7 @@ public class DLNAMediaInfoTest {
 			assertThat(dlna.getMedia().getCodecV()).isEqualTo("h264");
 			assertThat(dlna.getMedia().getBitrate()).isCloseTo(5016576, withPercentage(5));
 			
-			// MediaInfo 19.09 has a bug where it doesn't return framerates for everything so don't do this yet
-//			assertThat(dlna.getMedia().getFrameRate()).isEqualTo("29.970");
+			assertThat(dlna.getMedia().getFrameRate()).isEqualTo("29.970");
 			assertThat(dlna.getMedia().getDuration()).isCloseTo(15.42, withPercentage(1));
 			assertThat(dlna.getMedia().getResolution()).isEqualToIgnoringWhitespace("1920x1080");
 //			assertThat( dlna.getMedia().getFrameNumbers() ).isCloseTo(462,withPercentage(5));
