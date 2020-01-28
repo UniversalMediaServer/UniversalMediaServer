@@ -463,18 +463,12 @@ public class FormatConfiguration {
 
 			if (subsFormat != null) {
 				if (isExternalSubs) {
-					if (externalSubs == null) {
-						LOGGER.trace("External subtitles format undefined in Supported lines, video will be transcoded");
-						return false;
-					} else if (!subsFormat.matches(externalSubs)) { 
+					if (externalSubs != null && !subsFormat.matches(externalSubs)) { 
 						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
 				} else {
-					if (embeddedSubs == null) {
-						LOGGER.trace("Internal subtitles format undefined in Supported lines, video will be transcoded");
-						return false;
-					} else if (!subsFormat.matches(embeddedSubs)) {
+					if (embeddedSubs != null && !subsFormat.matches(embeddedSubs)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
