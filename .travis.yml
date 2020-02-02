@@ -2,10 +2,6 @@ dist: trusty
 
 language: java
 
-cache:
-  directories:
-  - $HOME/.m2
-
 addons:
   apt:
     packages: mediainfo
