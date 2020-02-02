@@ -634,13 +634,4 @@ public class FileUtilTest {
 		assertEquals("AppendMissingSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar"));
 		assertEquals("DontAppendSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar/"));
 	}
-
-	@Test
-	public void testFindInPath() {
-		Path executable = Paths.get("java");
-		assertNotNull(FileUtil.findExecutableInOSPath(executable));
-		assertNotNull(FileUtil.findInOSPath(executable, true, FileFlag.FILE, FileFlag.EXECUTE));
-		assertNotNull(FileUtil.findInOSPath(executable, true, FileFlag.READ));
-		assertNotNull(FileUtil.findInOSPath(executable, true));
-	}
 }
