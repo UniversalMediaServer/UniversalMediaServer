@@ -462,6 +462,7 @@ public class PMS {
 		fileWatcher = new FileWatcher();
 
 		globalRepo = new GlobalIdRepo();
+		LOGGER.trace("Initialized globalRepo");
 
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
@@ -892,6 +893,13 @@ public class PMS {
 		return instance;
 	}
 
+	@Nonnull
+	public static PMS getNewInstance() {
+		instance=null;
+		createInstance();
+		return instance;
+	}
+
 	private synchronized static void createInstance() {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
@@ -1291,7 +1299,7 @@ public class PMS {
 	/**
 	 * Restart handling
 	 */
-	private static void killOld() {
+	public static void killOld() {
 		// Note: failure here doesn't necessarily mean we need admin rights,
 		// only that we lack the required permission for these specific items.
 		try {

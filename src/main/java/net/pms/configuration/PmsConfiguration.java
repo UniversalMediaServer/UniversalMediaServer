@@ -3229,12 +3229,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			synchronized (sharedFoldersLock) {
 				if (!sharedFoldersRead || !sharedFolders.isEmpty()) {
 					configuration.setProperty(KEY_FOLDERS, "");
-					sharedFolders.clear();
+					sharedFolders = new ArrayList<>();
 					sharedFoldersRead = true;
 				}
 				if (!monitoredFoldersRead || !monitoredFolders.isEmpty()) {
 					configuration.setProperty(KEY_FOLDERS_MONITORED, "");
-					monitoredFolders.clear();
+					monitoredFolders = new ArrayList<>();
 					monitoredFoldersRead = true;
 				}
 			}
