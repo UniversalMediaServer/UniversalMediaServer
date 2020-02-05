@@ -34,7 +34,7 @@ public enum FullyPlayedAction {
 	MARK(1),
 
 	/** Hide the media if video when fully played. */
-	HIDE_VIDEO(2),
+	HIDE_MEDIA(2),
 
 	/** Move the file to a different folder when fully played. */
 	MOVE_FOLDER(3),
@@ -54,8 +54,8 @@ public enum FullyPlayedAction {
 	@Override
 	public String toString() {
 		switch (this) {
-			case HIDE_VIDEO:
-				return "Hide video";
+			case HIDE_MEDIA:
+				return "Hide media";
 			case MARK:
 				return "Mark";
 			case MOVE_FOLDER:
@@ -141,7 +141,7 @@ public enum FullyPlayedAction {
 			return FullyPlayedAction.MARK;
 		}
 		if (sArg.contains("hide")) {
-			return FullyPlayedAction.HIDE_VIDEO;
+			return FullyPlayedAction.HIDE_MEDIA;
 		}
 		if (sArg.contains("folder")) {
 			return FullyPlayedAction.MOVE_FOLDER;
