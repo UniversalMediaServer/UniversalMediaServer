@@ -329,7 +329,7 @@ public class SharedContentTab {
 						DirectoryChooser chooser = new DirectoryChooser();
 						chooser.setTitle(Messages.getString("FoldTab.78"));
 						File selectedDirectory = chooser.showDialog(stage);
-						if (selectedDirectory.isDirectory()) {
+						if (selectedDirectory != null) {
 							int firstSelectedRow = sharedFolders.getSelectedRow();
 							if (firstSelectedRow >= 0) {
 								((SharedFoldersTableModel) sharedFolders.getModel()).insertRow(
