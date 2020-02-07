@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -41,6 +40,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import javafx.stage.DirectoryChooser;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -107,6 +114,68 @@ public class SharedContentTab {
 	SharedContentTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
+
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				initAndShowGUI();
+			}
+		});
+	}
+
+	/**
+	 * Note: This currently only exists to allow us to use JavaFX file
+	 * chooser within our mostly Swing UI.
+	 */
+	private static void initFX(JFXPanel fxPanel) {
+		// This method is invoked on the JavaFX thread
+		Scene scene = createScene();
+		fxPanel.setScene(scene);
+	}
+
+	/**
+	 * Note: This currently only exists to allow us to use JavaFX file
+	 * chooser within our mostly Swing UI.
+	 */
+	static Stage stage;
+
+	/**
+	 * Note: This currently only exists to allow us to use JavaFX file
+	 * chooser within our mostly Swing UI.
+	 */
+	private static Scene createScene() {
+		Group root = new Group();
+
+		Scene scene = new Scene(root, Color.TRANSPARENT);
+		scene.setFill(Color.TRANSPARENT);
+
+		stage = new Stage();
+		stage.initStyle(StageStyle.TRANSPARENT);
+		stage.setScene(scene);
+		stage.sizeToScene();
+
+		return (scene);
+	}
+
+	/**
+	 * Note: This currently only exists to allow us to use JavaFX file
+	 * chooser within our mostly Swing UI.
+	 */
+	private static void initAndShowGUI() {
+		// This method is invoked on the EDT thread
+		JFrame frame = new JFrame();
+		final JFXPanel fxPanel = new JFXPanel();
+		frame.add(fxPanel);
+		frame.setSize(300, 200);
+		frame.setVisible(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				initFX(fxPanel);
+			}
+		});
 	}
 
 	private void updateWebContentModel() {
@@ -254,29 +323,30 @@ public class SharedContentTab {
 		addButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser;
-				try {
-					chooser = new JFileChooser();
-				} catch (Exception ee) {
-					chooser = new JFileChooser(new RestrictedFileSystemView());
-				}
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showOpenDialog((Component) e.getSource());
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					int firstSelectedRow = sharedFolders.getSelectedRow();
-					if (firstSelectedRow >= 0) {
-						((SharedFoldersTableModel) sharedFolders.getModel()).insertRow(
-							firstSelectedRow,
-							new Object[]{chooser.getSelectedFile().getAbsolutePath(), true}
-						);
-					} else {
-						((SharedFoldersTableModel) sharedFolders.getModel()).addRow(
-							new Object[]{chooser.getSelectedFile().getAbsolutePath(), true}
-						);
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						DirectoryChooser chooser = new DirectoryChooser();
+						chooser.setTitle(Messages.getString("FoldTab.78"));
+						File selectedDirectory = chooser.showDialog(stage);
+						if (selectedDirectory.isDirectory()) {
+							int firstSelectedRow = sharedFolders.getSelectedRow();
+							if (firstSelectedRow >= 0) {
+								((SharedFoldersTableModel) sharedFolders.getModel()).insertRow(
+									firstSelectedRow,
+									new Object[]{selectedDirectory.getAbsolutePath(), true}
+								);
+							} else {
+								((SharedFoldersTableModel) sharedFolders.getModel()).addRow(
+									new Object[]{selectedDirectory.getAbsolutePath(), true}
+								);
+							}
+						}
 					}
-				}
+				});
 			}
 		});
+
 		builderFolder.add(addButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		removeButton.setToolTipText(Messages.getString("FoldTab.36"));
