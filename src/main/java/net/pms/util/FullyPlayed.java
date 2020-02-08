@@ -94,7 +94,7 @@ public class FullyPlayed {
 	public static boolean isHideFullyPlayed(DLNAResource resource) {
 		return
 			resource != null &&
-			configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_VIDEO &&
+			configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA &&
 			resource.getMedia() != null &&
 			resource.getMedia().isVideo() &&
 			MediaMonitor.isFullyPlayed(resource.getSystemName());

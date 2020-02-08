@@ -116,7 +116,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(Messages.getString("PMS.40"), "TYPE = 32                                     ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
 
 		// If fully played videos are to be hidden
-		if (configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_VIDEO) {
+		if (configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA) {
 			vfVideo.addChild(unwatchedTvShowsFolder);
 			vfVideo.addChild(unwatchedMoviesFolder);
 			vfVideo.addChild(unwatchedMovies3DFolder);

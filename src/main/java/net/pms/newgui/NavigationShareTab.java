@@ -665,7 +665,7 @@ public class NavigationShareTab {
 			new FullyPlayedAction[]{
 				FullyPlayedAction.NO_ACTION,
 				FullyPlayedAction.MARK,
-				FullyPlayedAction.HIDE_VIDEO,
+				FullyPlayedAction.HIDE_MEDIA,
 				FullyPlayedAction.MOVE_FOLDER,
 				FullyPlayedAction.MOVE_TRASH
 			},
