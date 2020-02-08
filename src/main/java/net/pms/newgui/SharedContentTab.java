@@ -103,7 +103,6 @@ public class SharedContentTab {
 
 	private final PmsConfiguration configuration;
 	private LooksFrame looksFrame;
-	static boolean computerhasJavaFX = true;
 
 	SharedContentTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -251,6 +250,8 @@ public class SharedContentTab {
 
 		final JPanel tmpsharedPanel = sharedPanel;
 		try {
+			String javaFxPanelClassName = "javafx.embed.swing.JFXPanel";
+			Class.forName(javaFxPanelClassName);
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -308,12 +309,7 @@ public class SharedContentTab {
 				}
 			});
 		} catch (Exception e) {
-			computerhasJavaFX = false;
-		}
-
-		addButton.setToolTipText(Messages.getString("FoldTab.9"));
-
-		if (!computerhasJavaFX) {
+			LOGGER.debug("JavaFX file chooser couldn't run, probably we are on OpenJDK, falling back to JFileChooser");
 			addButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -341,6 +337,8 @@ public class SharedContentTab {
 				}
 			});
 		}
+
+		addButton.setToolTipText(Messages.getString("FoldTab.9"));
 
 		builderFolder.add(addButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
