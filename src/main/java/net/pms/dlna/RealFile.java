@@ -109,13 +109,6 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	
-	
-	
-	
-	
-	
-	
 	public InputStream getInputStream() {
 		try {
 			return new FileInputStream(getFile());
