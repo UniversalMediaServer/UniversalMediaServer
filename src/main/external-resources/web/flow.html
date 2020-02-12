@@ -11,9 +11,28 @@
 		<script src="/files/jquery.ums.js"></script>
 		<script src="/files/js.cookie-2.1.0.min.js"></script>
 		<script src="/files/flowplayer.min.js"></script>
+		<!-- New webUI -->
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/keycode.js"></script>
+		<script src="/files/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<!--VideoJS Support -->
+		<link href="/files/util/video-js/video-js.min.css" rel="stylesheet">
+		<script src="/files/util/video-js/video.min.js"></script>
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage">
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a  id="HomeButton" class="navbar-brand" href="javascript:history.back();" title="UMS"></a>
+			</div>
+		</div>
+	</nav>
 		<script>
 {{#prevId}}
 			function prev() {window.location.replace('/play/{{prevId}}?flash=1');}
@@ -80,10 +99,6 @@
 {{/push}}
 		</script>
 		<div id="Container">
-			<div id="Menu">
-				<a href="/browse/0" id="HomeButton"></a>
-				<a href="/doc" id="DocButton" title="Documentation"></a>
-			</div>
 
 			<div id="VideoContainer">
 				<div class="player">
@@ -98,13 +113,15 @@
 					</{{mediaType}}>
 				</div>
 				<div id="toolbar">
-					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
-					<button id="next" onclick="next()"{{nextAttr}}>>></button>
-					<button id="html5" onclick="html5()" title="Switch to html5 player">html5</button>
+					<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-backward"></i></button>
+					<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><i class="fa fa-fast-forward"></i></button>
+					<button id="html5" onclick="html5()" title="Switch to html5 player" type="button" class="btn btn-sm btn-playbar">HTML5</button>
 				</div>
 			</div>
 			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 		</div>
+	<input type="hidden" class="jQKeyboard" name="dummy">
 	</body>
+	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
 </html>
 

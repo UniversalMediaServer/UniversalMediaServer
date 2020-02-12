@@ -164,7 +164,7 @@ public enum ExifOrientation {
 	 * @return The {@link ExifOrientation} corresponding to the DCRaw flip
 	 *         value.
 	 */
-	public static ExifOrientation FromDCRawOrientation(int dcRawOrientation) {
+	public static ExifOrientation fromDCRawOrientation(int dcRawOrientation) {
 		switch (dcRawOrientation & 7) {
 			case 0:
 				return TOP_LEFT;

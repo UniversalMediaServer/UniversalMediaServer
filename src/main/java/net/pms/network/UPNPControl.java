@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
 import static net.pms.network.UPNPHelper.sleep;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -17,6 +16,7 @@ import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.UpnpService;
@@ -284,7 +284,7 @@ public class UPNPControl {
 
 	public void init() {
 		try {
-			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
 			UMSHeaders = new UpnpHeaders();
 			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 

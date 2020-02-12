@@ -1,22 +1,51 @@
 package net.pms.remote;
 
-import com.samskivert.mustache.MustacheException;
-import com.samskivert.mustache.Template;
-import com.sun.net.httpserver.*;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.HttpCookie;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-import javax.net.ssl.*;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
+
+import com.samskivert.mustache.MustacheException;
+import com.samskivert.mustache.Template;
+import com.sun.net.httpserver.BasicAuthenticator;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -25,9 +54,11 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.DbgPacker;
+import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -37,9 +68,9 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class RemoteWeb {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteWeb.class);
-	private KeyStore ks;
-	private KeyManagerFactory kmf;
-	private TrustManagerFactory tmf;
+	private KeyStore keyStore;
+	private KeyManagerFactory keyManagerFactory;
+	private TrustManagerFactory trustManagerFactory;
 	private HttpServer server;
 	private SSLContext sslContext;
 	private Map<String, RootFolder> roots;
@@ -60,6 +91,7 @@ public class RemoteWeb {
 		// Add "classpaths" for resolving web resources
 		resources = AccessController.doPrivileged(new PrivilegedAction<RemoteUtil.ResourceManager>() {
 
+			@Override
 			public RemoteUtil.ResourceManager run() {
 				return new RemoteUtil.ResourceManager(
 					"file:" + configuration.getProfileDirectory() + "/web/",
@@ -82,8 +114,11 @@ public class RemoteWeb {
 				LOGGER.error("Failed to start WEB interface on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
-					LOGGER.info("To enable HTTPS please generate a self-signed keystore file called \"UMS.jks\" using the java 'keytool' commandline utility.");
-				}
+					LOGGER.info(
+						"To enable HTTPS please generate a self-signed keystore file " +
+						"called \"DMS.jks\" with password \"dmsdms\" using the java " +
+						"'keytool' commandline utility, and place it in the profile folder"
+					);				}
 			} catch (GeneralSecurityException e) {
 				LOGGER.error("Failed to start WEB interface on HTTPS due to a security error: {}", e.getMessage());
 				LOGGER.trace("", e);
@@ -117,22 +152,26 @@ public class RemoteWeb {
 	private HttpServer httpsServer(InetSocketAddress address) throws IOException, GeneralSecurityException {
 		// Initialize the keystore
 		char[] password = "umsums".toCharArray();
-		ks = KeyStore.getInstance("JKS");
-		try (FileInputStream fis = new FileInputStream("UMS.jks")) {
-			ks.load(fis, password);
+		keyStore = KeyStore.getInstance("JKS");
+		try (
+			FileInputStream fis = new FileInputStream(
+				FileUtil.appendPathSeparator(configuration.getProfileDirectory()) + "DMS.jks"
+			)
+		) {
+			keyStore.load(fis, password);
 		}
 
 		// Setup the key manager factory
-		kmf = KeyManagerFactory.getInstance("SunX509");
-		kmf.init(ks, password);
+		keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		keyManagerFactory.init(keyStore, password);
 
 		// Setup the trust manager factory
-		tmf = TrustManagerFactory.getInstance("SunX509");
-		tmf.init(ks);
+		trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+		trustManagerFactory.init(keyStore);
 
 		HttpsServer server = HttpsServer.create(address, 0);
 		sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+		sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
 		server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
 			@Override
@@ -169,12 +208,11 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String user, HttpExchange t) {
+	public RootFolder getRoot(String user, HttpExchange t) throws InterruptedException {
 		return getRoot(user, false, t);
 	}
 
-	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
-		String groupTag = getTag(user);
+	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
 		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root;
 		synchronized (roots) {
@@ -204,15 +242,7 @@ public class RemoteWeb {
 				return root;
 			}
 
-			ArrayList<String> tag = new ArrayList<>();
-			tag.add(user);
-			if (!groupTag.equals(user)) {
-				tag.add(groupTag);
-			}
-
-			tag.add(t.getRemoteAddress().getHostString());
-			tag.add("web");
-			root = new RootFolder(tag);
+			root = new RootFolder();
 			try {
 				WebRender render = new WebRender(user);
 				root.setDefaultRenderer(render);
@@ -301,8 +331,13 @@ public class RemoteWeb {
 					r.checkThumbnail();
 					in = r.fetchThumbnailInputStream();
 				}
-				if (r instanceof RealFile && FullyPlayed.isFullyPlayedThumbnail(((RealFile) r).getFile())) {
-					in = FullyPlayed.addFullyPlayedOverlay(in);
+				BufferedImageFilterChain filterChain = null;
+				if (r instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) r).getFile())) {
+					filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
+				}
+				filterChain = r.addFlagFilters(filterChain);
+				if (filterChain != null) {
+					in = in.transcode(in.getDLNAImageProfile(), false, filterChain);
 				}
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Content-Type", ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
@@ -374,6 +409,72 @@ public class RemoteWeb {
 					}
 					mime = "text/html";
 
+	            } else if (path.startsWith("/files/proxy")) {
+	                String url = t.getRequestURI().getQuery();
+	                if (url != null)
+	                    url = url.substring(2);
+
+	                InputStream in = null;
+	                CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
+	                if (cookieManager == null) {
+	                    cookieManager = new CookieManager();
+	                    CookieHandler.setDefault(cookieManager);
+	                }
+
+	                if (t.getRequestMethod().equals("POST")) {
+	                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+	                    byte[] buf = new byte[4096];
+	                    int n;
+	                    while ((n = t.getRequestBody().read(buf)) > -1) {
+	                        bytes.write(buf, 0, n);
+	                    }
+	                    String str = bytes.toString("utf-8");
+	                    
+	                    URLConnection conn = new URL(url).openConnection();
+	                    ((HttpURLConnection)conn).setRequestMethod("POST");
+	                    conn.setRequestProperty( "Content-type", t.getRequestHeaders().getFirst("Content-type"));
+	                    conn.setRequestProperty( "Content-Length", String.valueOf(str.length()));
+	                    conn.setDoOutput(true);
+	                    OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+	                    writer.write(str);
+	                    writer.flush();
+	                    
+	                    in = conn.getInputStream();
+	                    bytes = new ByteArrayOutputStream();
+	                    while ((n = in.read(buf)) > -1) {
+	                        bytes.write(buf, 0, n);
+	                    }
+	                    in = new ByteArrayInputStream(bytes.toByteArray());
+	                    
+	                    if (LOGGER.isDebugEnabled()) {
+	                        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+	                        for (HttpCookie cookie : cookies) {
+	                            LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
+	                        }
+	                    }
+	                } else if (t.getRequestMethod().equals("OPTIONS")) {
+	                    in = new ByteArrayInputStream("".getBytes("utf-8"));
+	                } else {
+	                    in = HTTPResource.downloadAndSend(url, false);
+	                    
+	                    if (LOGGER.isDebugEnabled()) {
+	                        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+	                        for (HttpCookie cookie : cookies) {
+	                            LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
+	                        }
+	                    }
+	                }
+	                Headers hdr = t.getResponseHeaders();
+	                hdr.add("Content-Type", "text/plain");
+	                hdr.add("Access-Control-Allow-Origin", "*");
+	                hdr.add("Access-Control-Allow-Headers", "User-Agent");
+	                hdr.add("Access-Control-Allow-Headers", "Content-Type");
+	                t.sendResponseHeaders(200, in.available());
+
+	                OutputStream os = t.getResponseBody();
+	                LOGGER.trace("input is {} output is {}", in, os);
+	                RemoteUtil.dump(in, os);
+	                return;
 				} else if (parent.getResources().write(path.substring(7), t)) {
 					// The resource manager found and sent the file, all done.
 					return;
@@ -420,8 +521,8 @@ public class RemoteWeb {
 					return;
 				}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("serverName", configuration.getServerDisplayName());
+				HashMap<String, Object> vars = new HashMap<>();
+				vars.put("serverName", configuration.getServerDisplayName());
 
 				try {
 					Template template = parent.getResources().getTemplate("start.html");
@@ -470,11 +571,11 @@ public class RemoteWeb {
 					return;
 				}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("logs", getLogs(true));
-			if (configuration.getUseCache()) {
-				vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
-			}
+				HashMap<String, Object> vars = new HashMap<>();
+				vars.put("logs", getLogs(true));
+				if (configuration.getUseCache()) {
+					vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
+				}
 
 				String response = parent.getResources().getTemplate("doc.html").execute(vars);
 				RemoteUtil.respond(t, response, 200, "text/html");

@@ -34,6 +34,7 @@ import net.pms.database.Tables;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageInfo;
+import net.pms.util.Rational;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import static net.pms.database.Tables.sqlLikeEscape;
@@ -44,7 +45,9 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.newgui.NavigationShareTab;
+import java.nio.file.Path;
+import java.util.List;
+import net.pms.newgui.SharedContentTab;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -61,21 +64,30 @@ public class DLNAMediaDatabase implements Runnable {
 	private String dbName;
 	public static final String NONAME = "###";
 	private Thread scanner;
-	private JdbcConnectionPool cp;
+	private final JdbcConnectionPool cp;
 	private int dbCount;
 
 	/**
 	 * The database version should be incremented when we change anything to
-	 * do with the database since the last merged version.
+	 * do with the database since the last released version.
+	 *
+	 * Version notes:
+	 * - 18: Introduced ALBUMARTIST field
+	 * - 19: Introduced EXTERNALFILE and CHARSET fields
+	 *       Released in versions 8.0.0-a1 and a2
+	 * - 20: No db changes, bumped version because a parsing bug was fixed
+	 *       Released in version 8.0.0-b1
+	 * - 21: No db changes, bumped version because a parsing bug was fixed
+	 *       Released in version 8.0.0
+	 * - 22: No db changes, bumped version because h2database was reverted
+	 *       to 1.4.196 because 1.4.197 broke audio metadata being
+	 *       inserted/updated
 	 */
-	private final int latestVersion = 16;
+	private final int latestVersion = 22;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
 	private final int SIZE_FRAMERATE = 32;
-	private final int SIZE_ASPECTRATIO_DVDISO = 32;
-	private final int SIZE_ASPECTRATIO_CONTAINER = 5;
-	private final int SIZE_ASPECTRATIO_VIDEOTRACK = 5;
 	private final int SIZE_AVC_LEVEL = 3;
 	private final int SIZE_CONTAINER = 32;
 	private final int SIZE_IMDBID = 16;
@@ -89,6 +101,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_YEAR = 4;
 	private final int SIZE_TVSEASON = 4;
 	private final int SIZE_TVEPISODENUMBER = 8;
+	private final int SIZE_EXTERNALFILE = 1000;
 
 	// Generic constant for the maximum string size: 255 chars
 	private final int SIZE_MAX = 255;
@@ -99,14 +112,22 @@ public class DLNAMediaDatabase implements Runnable {
 	 * Will create the "UMS-tests" profile directory and put the database
 	 * in there if it doesn't exist, in order to prevent overwriting
 	 * real databases.
+	 *
+	 * @param name the database name
 	 */
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
 		File profileDirectory = new File(configuration.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + File.separator + dbName + (configuration.getLoggingDatabase() ? ";TRACE_LEVEL_FILE=4" : "");
-		LOGGER.debug("Using database URL: " + url);
-		LOGGER.info("Using database located at: " + dbDir);
+		boolean logDB = configuration.getDatabaseLogging();
+		url = Constants.START_URL + dbDir + File.separator + dbName + (logDB ? ";TRACE_LEVEL_FILE=4" : "");
+		LOGGER.debug("Using database URL: {}", url);
+		LOGGER.info("Using database located at: \"{}\"", dbDir);
+		if (logDB) {
+			LOGGER.info("Database logging is enabled");
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Database logging is disabled");
+		}
 
 		try {
 			Class.forName("org.h2.Driver");
@@ -129,9 +150,8 @@ public class DLNAMediaDatabase implements Runnable {
 	public String getDatabaseFilename() {
 		if (dbName == null || dbDir == null) {
 			return null;
-		} else {
-			return dbDir + File.separator + dbName;
 		}
+		return dbDir + File.separator + dbName;
 	}
 
 	/**
@@ -160,7 +180,6 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		ResultSet rs = null;
 		Statement stmt = null;
-		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
 			conn = getConnection();
@@ -257,7 +276,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
-				sb.append("  ID                      IDENTITY PRIMARY KEY");
+				sb.append("  ID                      INT AUTO_INCREMENT");
 				sb.append(", THUMBID                 BIGINT");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
@@ -269,9 +288,9 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", SIZE                    NUMERIC");
 				sb.append(", CODECV                  VARCHAR2(").append(SIZE_CODECV).append(')');
 				sb.append(", FRAMERATE               VARCHAR2(").append(SIZE_FRAMERATE).append(')');
-				sb.append(", ASPECT                  VARCHAR2(").append(SIZE_ASPECTRATIO_DVDISO).append(')');
-				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_ASPECTRATIO_CONTAINER).append(')');
-				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_ASPECTRATIO_VIDEOTRACK).append(')');
+				sb.append(", ASPECTRATIODVD          OTHER");
+				sb.append(", ASPECTRATIOCONTAINER    OTHER");
+				sb.append(", ASPECTRATIOVIDEOTRACK   OTHER");
 				sb.append(", REFRAMES                TINYINT");
 				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
 				sb.append(", IMAGEINFO               OTHER");
@@ -285,6 +304,9 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", VIDEOTRACKCOUNT         INT");
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
+				sb.append(", PIXELASPECTRATIO        OTHER");
+				sb.append(", SCANTYPE                OTHER");
+				sb.append(", SCANORDER               OTHER");
 				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
 				sb.append(", YEAR                    VARCHAR2(").append(SIZE_YEAR).append(')');
 				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MAX).append(')');
@@ -294,9 +316,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
 				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append("))");
-				if (trace) {
-					LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
-				}
+				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE AUDIOTRACKS (");
@@ -310,6 +330,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", BITSPERSAMPLE     INT");
 				sb.append(", ALBUM             VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ARTIST            VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", ALBUMARTIST       VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", SONGNAME          VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
 				sb.append(", YEAR              INT");
@@ -322,9 +343,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("    REFERENCES FILES(ID)");
 				sb.append("    ON DELETE CASCADE");
 				sb.append(')');
-				if (trace) {
-					LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
-				}
+				LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
@@ -333,15 +352,14 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", TYPE     INT");
-				sb.append(", constraint PKSUB primary key (FILEID, ID)");
+				sb.append(", EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL default ''");
+				sb.append(", CHARSET VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", constraint PKSUB primary key (FILEID, ID, EXTERNALFILE)");
 				sb.append(", FOREIGN KEY(FILEID)");
 				sb.append("    REFERENCES FILES(ID)");
 				sb.append("    ON DELETE CASCADE");
 				sb.append(')');
-
-				if (trace) {
-					LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
-				}
+				LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 
 				LOGGER.trace("Creating table METADATA");
@@ -378,6 +396,9 @@ public class DLNAMediaDatabase implements Runnable {
 				LOGGER.trace("Creating index IDXARTIST");
 				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
 
+				LOGGER.trace("Creating index IDXALBUMARTIST");
+				executeUpdate(conn, "CREATE INDEX IDXALBUMARTIST on AUDIOTRACKS (ALBUMARTIST asc);");
+
 				LOGGER.trace("Creating index IDXALBUM");
 				executeUpdate(conn, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
 
@@ -413,7 +434,7 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
-	private void executeUpdate(Connection conn, String sql) throws SQLException {
+	private static void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.executeUpdate(sql);
@@ -524,20 +545,20 @@ public class DLNAMediaDatabase implements Runnable {
 			) {
 				while (rs.next()) {
 					DLNAMediaInfo media = new DLNAMediaInfo();
-					long id = rs.getLong("ID");
+					int id = rs.getInt("ID");
 					media.setDuration(toDouble(rs, "DURATION"));
 					media.setBitrate(rs.getInt("BITRATE"));
-					media.setImageInfo((ImageInfo) rs.getObject("IMAGEINFO"));
 					media.setWidth(rs.getInt("WIDTH"));
 					media.setHeight(rs.getInt("HEIGHT"));
 					media.setSize(rs.getLong("SIZE"));
 					media.setCodecV(rs.getString("CODECV"));
 					media.setFrameRate(rs.getString("FRAMERATE"));
-					media.setAspectRatioDvdIso(rs.getString("ASPECT"));
-					media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
-					media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
+					media.setAspectRatioDvdIso((Rational) rs.getObject("ASPECTRATIODVD"));
+					media.setAspectRatioContainer((Rational) rs.getObject("ASPECTRATIOCONTAINER"));
+					media.setAspectRatioVideoTrack((Rational) rs.getObject("ASPECTRATIOVIDEOTRACK"));
 					media.setReferenceFrameCount(rs.getByte("REFRAMES"));
 					media.setAvcLevel(rs.getString("AVCLEVEL"));
+					media.setImageInfo((ImageInfo) rs.getObject("IMAGEINFO"));
 					media.setThumb((DLNAThumbnail) rs.getObject("THUMBNAIL"));
 					media.setContainer(rs.getString("CONTAINER"));
 					media.setMuxingMode(rs.getString("MUXINGMODE"));
@@ -549,6 +570,9 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
 					media.setImageCount(rs.getInt("IMAGECOUNT"));
 					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
+					media.setPixelAspectRatio((Rational) rs.getObject("PIXELASPECTRATIO"));
+					media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
+					media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
 					media.setIMDbID(rs.getString("IMDBID"));
 					media.setYear(rs.getString("YEAR"));
 					media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
@@ -564,42 +588,52 @@ public class DLNAMediaDatabase implements Runnable {
 						media.setIsTVEpisode(false);
 					}
 					media.setMediaparsed(true);
+					audios.setInt(1, id);
+					try (ResultSet elements = audios.executeQuery()) {
+						while (elements.next()) {
+							DLNAMediaAudio audio = new DLNAMediaAudio();
+							audio.setId(elements.getInt("ID"));
+							audio.setLang(elements.getString("LANG"));
+							audio.setAudioTrackTitleFromMetadata(elements.getString("TITLE"));
+							audio.getAudioProperties().setNumberOfChannels(elements.getInt("NRAUDIOCHANNELS"));
+							audio.setSampleFrequency(elements.getString("SAMPLEFREQ"));
+							audio.setCodecA(elements.getString("CODECA"));
+							audio.setBitsperSample(elements.getInt("BITSPERSAMPLE"));
+							audio.setAlbum(elements.getString("ALBUM"));
+							audio.setArtist(elements.getString("ARTIST"));
+							audio.setAlbumArtist(elements.getString("ALBUMARTIST"));
+							audio.setSongname(elements.getString("SONGNAME"));
+							audio.setGenre(elements.getString("GENRE"));
+							audio.setYear(elements.getInt("YEAR"));
+							audio.setTrack(elements.getInt("TRACK"));
+							audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
+							audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
+							audio.setBitRate(elements.getInt("BITRATE"));
+							media.getAudioTracksList().add(audio);
+						}
+					}
 
-					ResultSet elements;
-					audios.setLong(1, id);
-					elements = audios.executeQuery();
-					while (elements.next()) {
-						DLNAMediaAudio audio = new DLNAMediaAudio();
-						audio.setId(elements.getInt("ID"));
-						audio.setLang(elements.getString("LANG"));
-						audio.setAudioTrackTitleFromMetadata(elements.getString("TITLE"));
-						audio.getAudioProperties().setNumberOfChannels(elements.getInt("NRAUDIOCHANNELS"));
-						audio.setSampleFrequency(elements.getString("SAMPLEFREQ"));
-						audio.setCodecA(elements.getString("CODECA"));
-						audio.setBitsperSample(elements.getInt("BITSPERSAMPLE"));
-						audio.setAlbum(elements.getString("ALBUM"));
-						audio.setArtist(elements.getString("ARTIST"));
-						audio.setSongname(elements.getString("SONGNAME"));
-						audio.setGenre(elements.getString("GENRE"));
-						audio.setYear(elements.getInt("YEAR"));
-						audio.setTrack(elements.getInt("TRACK"));
-						audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
-						audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
-						audio.setBitRate(elements.getInt("BITRATE"));
-						media.getAudioTracksList().add(audio);
-					}
-					elements.close();
 					subs.setLong(1, id);
-					elements = subs.executeQuery();
-					while (elements.next()) {
-						DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-						sub.setId(elements.getInt("ID"));
-						sub.setLang(elements.getString("LANG"));
-						sub.setSubtitlesTrackTitleFromMetadata(elements.getString("TITLE"));
-						sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("TYPE")));
-						media.getSubtitleTracksList().add(sub);
+					try (ResultSet elements = subs.executeQuery()) {
+						while (elements.next()) {
+							String fileName = elements.getString("EXTERNALFILE");
+							File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
+							if (externalFile != null && !externalFile.exists()) {
+								LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFile.getPath());
+								deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFile.getPath(), false);
+								continue;
+							}
+
+							DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+							sub.setId(elements.getInt("ID"));
+							sub.setLang(elements.getString("LANG"));
+							sub.setSubtitlesTrackTitleFromMetadata(elements.getString("TITLE"));
+							sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("TYPE")));
+							sub.setExternalFileOnly(externalFile);
+							sub.setSubCharacterSet(elements.getString("CHARSET"));
+							media.getSubtitleTracksList().add(sub);
+						}
 					}
-					elements.close();
 
 					list.add(media);
 				}
@@ -613,7 +647,7 @@ public class DLNAMediaDatabase implements Runnable {
 		return list;
 	}
 
-	private Double toDouble(ResultSet rs, String column) throws SQLException {
+	private static Double toDouble(ResultSet rs, String column) throws SQLException {
 		Object obj = rs.getObject(column);
 		if (obj instanceof Double) {
 			return (Double) obj;
@@ -626,35 +660,43 @@ public class DLNAMediaDatabase implements Runnable {
 			return;
 		}
 
-		/* XXX This is flawed, multiple subtitle tracks with the same language will
-		 * overwrite each other.
-		 */
 		try (
-			PreparedStatement updateStatment = connection.prepareStatement(
+			PreparedStatement updateStatement = connection.prepareStatement(
 				"SELECT " +
-					"FILEID, ID, LANG, TITLE, TYPE " +
+					"FILEID, ID, LANG, TITLE, TYPE, EXTERNALFILE, CHARSET " +
 				"FROM SUBTRACKS " +
 				"WHERE " +
-					"FILEID = ? AND ID = ?",
+					"FILEID = ? AND ID = ? AND EXTERNALFILE = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			);
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO SUBTRACKS (" +
-					"FILEID, ID, LANG, TITLE, TYPE " +
+					"FILEID, ID, LANG, TITLE, TYPE, EXTERNALFILE, CHARSET " +
 				") VALUES (" +
-					"?, ?, ?, ?, ?" +
+					"?, ?, ?, ?, ?, ?, ?" +
 				")"
 			);
 		) {
 			for (DLNAMediaSubtitle subtitleTrack : media.getSubtitleTracksList()) {
-				updateStatment.setLong(1, fileId);
-				updateStatment.setInt(2, subtitleTrack.getId());
-				try (ResultSet rs = updateStatment.executeQuery()) {
+				updateStatement.setLong(1, fileId);
+				updateStatement.setInt(2, subtitleTrack.getId());
+				if (subtitleTrack.getExternalFile() != null) {
+					updateStatement.setString(3, subtitleTrack.getExternalFile().getPath());
+				} else {
+					updateStatement.setString(3, "");
+				}
+				try (ResultSet rs = updateStatement.executeQuery()) {
 					if (rs.next()) {
 						rs.updateString("LANG", left(subtitleTrack.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
 						rs.updateInt("TYPE", subtitleTrack.getType().getStableIndex());
+						if (subtitleTrack.getExternalFile() != null) {
+							rs.updateString("EXTERNALFILE", left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
+						} else {
+							rs.updateString("EXTERNALFILE", "");
+						}
+						rs.updateString("CHARSET", left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
@@ -663,6 +705,12 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setString(3, left(subtitleTrack.getLang(), SIZE_LANG));
 						insertStatement.setString(4, left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
 						insertStatement.setInt(5, subtitleTrack.getType().getStableIndex());
+						if (subtitleTrack.getExternalFile() != null) {
+							insertStatement.setString(6, left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
+						} else {
+							insertStatement.setString(6, "");
+						}
+						insertStatement.setString(7, left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
 						insertStatement.executeUpdate();
 					}
 				}
@@ -675,14 +723,11 @@ public class DLNAMediaDatabase implements Runnable {
 			return;
 		}
 
-		/* XXX This is flawed, multiple audio tracks with the same language will
-		 * overwrite each other.
-		 */
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
 					"FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
-					"BITSPERSAMPLE, ALBUM, ARTIST, SONGNAME, GENRE, YEAR, TRACK, " +
+					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, " +
 					"DELAY, MUXINGMODE, BITRATE " +
 				"FROM AUDIOTRACKS " +
 				"WHERE " +
@@ -693,9 +738,9 @@ public class DLNAMediaDatabase implements Runnable {
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO AUDIOTRACKS (" +
 					"FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
-					"ALBUM, ARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE" +
+					"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE" +
 				") VALUES (" +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
 				")"
 			);
 		) {
@@ -712,6 +757,15 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateInt("BITSPERSAMPLE", audioTrack.getBitsperSample());
 						rs.updateString("ALBUM", left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
 						rs.updateString("ARTIST", left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
+
+						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
+						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
+						if (albumartist.isEmpty()) {
+							rs.updateNull("ALBUMARTIST");
+						} else {
+							rs.updateString("ALBUMARTIST", albumartist);
+						}
+
 						rs.updateString("SONGNAME", left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
 						rs.updateString("GENRE", left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
 						rs.updateInt("YEAR", audioTrack.getYear());
@@ -732,17 +786,42 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setInt(8, audioTrack.getBitsperSample());
 						insertStatement.setString(9, left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
 						insertStatement.setString(10, left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
-						insertStatement.setString(11, left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
-						insertStatement.setString(12, left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
-						insertStatement.setInt(13, audioTrack.getYear());
-						insertStatement.setInt(14, audioTrack.getTrack());
-						insertStatement.setInt(15, audioTrack.getAudioProperties().getAudioDelay());
-						insertStatement.setString(16, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
-						insertStatement.setInt(17, audioTrack.getBitRate());
+
+						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
+						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
+						if (albumartist.isEmpty()) {
+							insertStatement.setNull(11, Types.VARCHAR);
+						} else {
+							insertStatement.setString(11, albumartist);
+						}
+
+						insertStatement.setString(12, left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
+						insertStatement.setString(13, left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
+						insertStatement.setInt(14, audioTrack.getYear());
+						insertStatement.setInt(15, audioTrack.getTrack());
+						insertStatement.setInt(16, audioTrack.getAudioProperties().getAudioDelay());
+						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
+						insertStatement.setInt(18, audioTrack.getBitRate());
 						insertStatement.executeUpdate();
 					}
 				}
 			}
+		}
+	}
+
+	protected void updateSerialized(ResultSet rs, Object x, String columnLabel) throws SQLException {
+		if (x != null) {
+			rs.updateObject(columnLabel, x);
+		} else {
+			rs.updateNull(columnLabel);
+		}
+	}
+
+	protected void insertSerialized(PreparedStatement ps, Object x, int parameterIndex) throws SQLException {
+		if (x != null) {
+			ps.setObject(parameterIndex, x);
+		} else {
+			ps.setNull(parameterIndex, Types.OTHER);
 		}
 	}
 
@@ -768,10 +847,10 @@ public class DLNAMediaDatabase implements Runnable {
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
 					"ID, FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, " +
-					"ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
+					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, " +
-					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
+					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
+					"IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ?",
@@ -804,11 +883,12 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateLong("SIZE", media.getSize());
 							rs.updateString("CODECV", left(media.getCodecV(), SIZE_CODECV));
 							rs.updateString("FRAMERATE", left(media.getFrameRate(), SIZE_FRAMERATE));
-							rs.updateString("ASPECT", left(media.getAspectRatioDvdIso(), SIZE_ASPECTRATIO_DVDISO));
-							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
-							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
+							updateSerialized(rs, media.getAspectRatioDvdIso(), "ASPECTRATIODVD");
+							updateSerialized(rs, media.getAspectRatioContainer(), "ASPECTRATIOCONTAINER");
+							updateSerialized(rs, media.getAspectRatioVideoTrack(), "ASPECTRATIOVIDEOTRACK");
 							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
 							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+							updateSerialized(rs, media.getImageInfo(), "IMAGEINFO");
 							if (media.getImageInfo() != null) {
 								rs.updateObject("IMAGEINFO", media.getImageInfo());
 							} else {
@@ -824,6 +904,9 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateInt("VIDEOTRACKCOUNT", media.getVideoTrackCount());
 							rs.updateInt("IMAGECOUNT", media.getImageCount());
 							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
+							updateSerialized(rs, media.getPixelAspectRatio(), "PIXELASPECTRATIO");
+							updateSerialized(rs, media.getScanType(), "SCANTYPE");
+							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
 							rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
 							rs.updateString("YEAR", left(media.getYear(), SIZE_YEAR));
 							rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MAX));
@@ -843,11 +926,12 @@ public class DLNAMediaDatabase implements Runnable {
 				try (
 					PreparedStatement ps = connection.prepareStatement(
 						"INSERT INTO FILES (FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
-						"FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
+						"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 						"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, IMDBID, YEAR, MOVIEORSHOWNAME, " +
+						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, YEAR, MOVIEORSHOWNAME, " +
 						"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION) VALUES " +
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+						Statement.RETURN_GENERATED_KEYS
 					)
 				) {
 					int databaseColumnIterator = 0;
@@ -876,9 +960,9 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setLong(++databaseColumnIterator, media.getSize());
 						ps.setString(++databaseColumnIterator, left(media.getCodecV(), SIZE_CODECV));
 						ps.setString(++databaseColumnIterator, left(media.getFrameRate(), SIZE_FRAMERATE));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), SIZE_ASPECTRATIO_DVDISO));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
+						insertSerialized(ps, media.getAspectRatioDvdIso(), ++databaseColumnIterator);
+						insertSerialized(ps, media.getAspectRatioContainer(), ++databaseColumnIterator);
+						insertSerialized(ps, media.getAspectRatioVideoTrack(), ++databaseColumnIterator);
 						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
 						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
 						if (media.getImageInfo() != null) {
@@ -896,6 +980,9 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(++databaseColumnIterator, media.getVideoTrackCount());
 						ps.setInt(++databaseColumnIterator, media.getImageCount());
 						ps.setInt(++databaseColumnIterator, media.getVideoBitDepth());
+						insertSerialized(ps, media.getPixelAspectRatio(), ++databaseColumnIterator);
+						insertSerialized(ps, media.getScanType(), ++databaseColumnIterator);
+						insertSerialized(ps, media.getScanOrder(), ++databaseColumnIterator);
 						ps.setString(++databaseColumnIterator, left(media.getIMDbID(), SIZE_IMDBID));
 						ps.setString(++databaseColumnIterator, left(media.getYear(), SIZE_YEAR));
 						ps.setString(++databaseColumnIterator, left(media.getMovieOrShowName(), SIZE_MAX));
@@ -929,6 +1016,9 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
+						ps.setNull(++databaseColumnIterator, Types.OTHER);
+						ps.setNull(++databaseColumnIterator, Types.OTHER);
+						ps.setNull(++databaseColumnIterator, Types.OTHER);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
@@ -964,7 +1054,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 			throw se;
 		} finally {
-			if (media.getThumb() != null) {
+			if (media != null && media.getThumb() != null) {
 				TableThumbnails.setThumbnail(media.getThumb(), name);
 			}
 		}
@@ -1020,7 +1110,8 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
 						rs.updateRow();
 					} else {
-						LOGGER.error("Couldn't find \"{}\" in the database when trying to store data from OpenSubtitles", name);
+						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store data from OpenSubtitles", name);
+						return;
 					}
 				}
 			}
@@ -1179,6 +1270,38 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
+	/**
+	 * Deletes a row or rows in the given {@code tableName} for the given {@code condition}. If {@code useLike} is
+	 * {@code true}, the {@code condition} must be properly escaped.
+	 *
+	 * @see Tables#sqlLikeEscape(String)
+	 *
+	 * @param tableName the table name in which a row or rows will be deleted
+	 * @param column the column where the {@code condition} will be queried
+	 * @param condition the condition for which rows will be deleted
+	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
+	 *            operator, {@code false} if {@code =} should be used.
+	 * @throws SQLException if an SQL error occurs during the operation.
+	 */
+	public synchronized void deleteRowsInTable(String tableName, String column, String condition, boolean useLike) throws SQLException {
+		if (StringUtils.isEmpty(condition)) {
+			return;
+		}
+
+		LOGGER.trace("Deleting rows from \"{}\" table for given column \"{}\" and condition \"{}\"", tableName, column, condition);
+		try (Connection connection = getConnection()) {
+			try (Statement statement = connection.createStatement()) {
+				int rows;
+				if (useLike) {
+					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " LIKE " + Tables.sqlQuote(condition));
+				} else {
+					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " = " + Tables.sqlQuote(condition));
+				}
+				LOGGER.trace("Deleted {} rows from SUBTRACKS", rows);
+			}
+		}
+	}
+
 	public synchronized void updateThumbnailId(String fullPathToFile, int thumbId) {
 		try (
 			Connection conn = getConnection();
@@ -1203,7 +1326,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			connection = getConnection();
-			ps = connection.prepareStatement(sql);
+			ps = connection.prepareStatement(sql.toLowerCase().startsWith("select") ? sql : ("SELECT FILENAME FROM FILES WHERE " + sql));
 			rs = ps.executeQuery();
 			while (rs.next()) {
 				String str = rs.getString(1);
@@ -1237,7 +1360,8 @@ public class DLNAMediaDatabase implements Runnable {
 			/**
 			 * Cleanup of FILES table
 			 *
-			 * Removes entries that are not on the hard drive anymore.
+			 * Removes entries that are not on the hard drive anymore, and
+			 * ones that are no longer shared.
 			 */
 			ps = conn.prepareStatement("SELECT COUNT(*) FROM FILES");
 			rs = ps.executeQuery();
@@ -1256,13 +1380,32 @@ public class DLNAMediaDatabase implements Runnable {
 			if (dbCount > 0) {
 				ps = conn.prepareStatement("SELECT FILENAME, MODIFIED, ID FROM FILES", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 				rs = ps.executeQuery();
+
+				List<Path> sharedFolders = configuration.getSharedFolders();
+				boolean isFileStillShared = false;
+
 				while (rs.next()) {
 					String filename = rs.getString("FILENAME");
 					long modified = rs.getTimestamp("MODIFIED").getTime();
 					File file = new File(filename);
 					if (!file.exists() || file.lastModified() != modified) {
+						LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
 						rs.deleteRow();
+					} else {
+						// the file exists on the hard drive, but now check if we are still sharing it
+						for (Path folder : sharedFolders) {
+							if (filename.contains(folder.toString())) {
+								isFileStillShared = true;
+								break;
+							}
+						}
+
+						if (!isFileStillShared) {
+							LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
+							rs.deleteRow();
+						}
 					}
+
 					i++;
 					int newpercent = i * 100 / dbCount;
 					if (newpercent > oldpercent) {
@@ -1270,6 +1413,8 @@ public class DLNAMediaDatabase implements Runnable {
 						oldpercent = newpercent;
 					}
 				}
+
+				PMS.get().getFrame().setStatusLine(null);
 			}
 
 			/**
@@ -1337,7 +1482,7 @@ public class DLNAMediaDatabase implements Runnable {
 		return list;
 	}
 
-	private void close(ResultSet rs) {
+	private static void close(ResultSet rs) {
 		try {
 			if (rs != null) {
 				rs.close();
@@ -1347,7 +1492,7 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
-	private void close(Statement ps) {
+	private static void close(Statement ps) {
 		try {
 			if (ps != null) {
 				ps.close();
@@ -1357,7 +1502,7 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
-	private void close(Connection conn) {
+	private static void close(Connection conn) {
 		try {
 			if (conn != null) {
 				conn.close();
@@ -1376,9 +1521,9 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.info("Cannot start library scanner: A scan is already in progress");
 		} else {
 			scanner = new Thread(this, "Library Scanner");
-			scanner.setPriority(scanner.MIN_PRIORITY);
+			scanner.setPriority(Thread.MIN_PRIORITY);
 			scanner.start();
-			NavigationShareTab.setScanLibraryBusy();
+			SharedContentTab.setScanLibraryBusy();
 		}
 	}
 

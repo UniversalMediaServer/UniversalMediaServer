@@ -13,13 +13,14 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 
 ## Current Project Developers
 
+* [js-kyle][31]
 * [SubJunk][3]
 * [valib][5]
 
 ## Current Forum Moderators
 
-* [DeFlanko][8]
-* [Optimus_prime][7]
+* [atamariya][8]
+* [mik_s][7]
 * [squadjot][30]
 
 ## Links
@@ -52,7 +53,9 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 
 ##### Thanks for documentation and contributions to the community:
 
+* DeFlanko
 * meskibob
+* Optimus_prime
 * otmanix
 
 ##### Thanks for significant/frequent language translations:
@@ -80,8 +83,8 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [4]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=62
   [5]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=683
   [6]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=171
-  [7]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=61
-  [8]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=134
+  [7]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=10450
+  [8]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=1194
   [9]: http://www.universalmediaserver.com/forum
   [10]: https://github.com/UniversalMediaServer/UniversalMediaServer
   [11]: http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
@@ -104,3 +107,4 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [28]: https://mediaarea.net/en/MediaInfo
   [29]: https://crowdin.com/
   [30]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=55
+  [31]: https://github.com/js-kyle

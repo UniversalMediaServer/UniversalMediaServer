@@ -28,10 +28,13 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +46,29 @@ import org.slf4j.LoggerFactory;
 public class BasicSystemUtils implements SystemUtils {
 	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
-	protected String vlcp;
-	protected String vlcv;
-	protected boolean avis;
+	/** The singleton platform dependent {@link SystemUtils} instance */
+	public static SystemUtils INSTANCE = BasicSystemUtils.createInstance();
+
+	protected Path vlcPath;
+	protected Version vlcVersion;
+	protected boolean aviSynth;
+
+	protected static BasicSystemUtils createInstance() {
+		if (Platform.isWindows()) {
+			return new WinUtils();
+		}
+		if (Platform.isMac()) {
+			return new MacSystemUtils();
+		}
+		if (Platform.isSolaris()) {
+			return new SolarisUtils();
+		}
+		return new BasicSystemUtils();
+	}
+
+	/** Only to be instantiated by {@link BasicSystemUtils#createInstance()}. */
+	protected BasicSystemUtils() {
+	}
 
 	@Override
 	public File getAvsPluginsDir() {
@@ -78,35 +101,18 @@ public class BasicSystemUtils implements SystemUtils {
 	}
 
 	@Override
-	@Deprecated
-	public String getVlcp() {
-		return getVlcPath();
+	public Path getVlcPath() {
+		return vlcPath;
 	}
 
 	@Override
-	@Deprecated
-	public String getVlcv() {
-		return getVlcVersion();
+	public Version getVlcVersion() {
+		return vlcVersion;
 	}
 
 	@Override
-	public String getVlcPath() {
-		return vlcp;
-	}
-
-	@Override
-	public String getVlcVersion() {
-		return vlcv;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see net.pms.io.SystemUtils#isAvis()
-	 */
-	@Override
-	public boolean isAvis() {
-		return avis;
+	public boolean isAviSynthAvailable() {
+		return aviSynth;
 	}
 
 	@Override
@@ -229,16 +235,49 @@ public class BasicSystemUtils implements SystemUtils {
 	}
 
 	/**
+	 * @return whether the computer is running in dark mode
+	 */
+	private boolean isDarkMode() {
+		if (!Platform.isMac()) {
+			return false;
+		}
+
+		try {
+			// check for exit status only. Once there are more modes than "dark" and "default", we might need to analyze string contents..
+			final Process proc = Runtime.getRuntime().exec(new String[]{"defaults", "read", "-g", "AppleInterfaceStyle"});
+			proc.waitFor(100, TimeUnit.MILLISECONDS);
+			return proc.exitValue() == 0;
+		} catch (IOException | InterruptedException | IllegalThreadStateException ex) {
+			// IllegalThreadStateException thrown by proc.exitValue(), if process didn't terminate
+			LOGGER.warn("Could not determine whether 'dark mode' is being used. Falling back to default (light) mode.");
+			LOGGER.debug("" + ex);
+			return false;
+		}
+	}
+
+	/**
 	 * Return the proper tray icon for the operating system.
 	 *
 	 * @return The tray icon.
 	 */
 	private Image resolveTrayIcon() {
-		String icon = "icon-16.png";
+		String icon = "icon-24.png";
 
 		if (Platform.isMac()) {
-			icon = "icon-22.png";
+			if (isDarkMode()) {
+				icon = "icon-darkmode.png";
+			} else {
+				icon = "icon-22.png";
+			}
+		} else if (Platform.isWindows()) {
+			icon = "icon-16.png";
 		}
+
 		return Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/resources/images/" + icon));
+	}
+
+	@Override
+	public Double getWindowsVersion() {
+		return null;
 	}
 }

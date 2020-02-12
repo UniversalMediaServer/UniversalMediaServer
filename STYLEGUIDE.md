@@ -1,5 +1,9 @@
 # Style Guide
 
+## Code style
+
+Please refer to the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html#s4.1.2-blocks-k-r-style)
+
 ## Git merging
 
 There are a lot of different ways to merge branches, from pulling to stashing/popping to rebasing and more.

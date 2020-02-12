@@ -18,12 +18,9 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,18 +29,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.FFmpegExecutableInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.external.ExternalFactory;
-import net.pms.external.URLResolver.URLResult;
 import net.pms.io.OutputParams;
 import net.pms.io.OutputTextLogger;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.util.FilePermissions;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -53,48 +49,23 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
+	public static final PlayerId ID = StandardPlayerId.FFMPEG_WEB_VIDEO;
+
+	/** The {@link Configuration} key for the FFmpeg Audio executable type. */
+	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
+	public static final String NAME = "FFmpeg Web Video";
+
+	// Not to be instantiated by anything but PlayerFactory
+	FFmpegWebVideo() {
+	}
 
 	/**
 	 * Must be used to protect all access to {@link #excludes}, {@link #autoOptions} and {@link #replacements}
 	 */
 	protected static final ReentrantReadWriteLock filtersLock = new ReentrantReadWriteLock();
 
-	/**
-	 * Must be used to protect all access to {@link #protocols}
-	 */
-	protected static final ReentrantReadWriteLock protocolsLock = new ReentrantReadWriteLock();
-
-	/**
-	 * All access must be protected with {@link #protocolsLock}
-	 */
-	protected static final List<String> protocols = new ArrayList<String>();
-
 	static {
 		readWebFilters(_configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
-
-		Path executable = Paths.get(_configuration.getFfmpegPath());
-		try {
-			FilePermissions permissions = new FilePermissions(executable);
-			if (permissions.isExecutable()) {
-				protocolsLock.writeLock().lock();
-				try {
-					FFmpegOptions.getSupportedProtocols(protocols, executable.toString());
-					if (protocols.contains("mmsh")) {
-						// Workaround an FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
-						// Also see launchTranscode()
-						protocols.add("mms");
-					}
-					LOGGER.debug("FFmpeg supported protocols: {}", protocols);
-				} finally {
-					protocolsLock.writeLock().unlock();
-				}
-			} else {
-				LOGGER.warn("Can't check FFmpeg supported protocols, insufficient permission run FFmpeg ({})", executable.toAbsolutePath().toString());
-			}
-		} catch (FileNotFoundException e) {
-			LOGGER.warn("Can't check FFmpeg supported protocols, FFmpeg binary \"{}\" not found: {}", executable.toAbsolutePath().toString(), e.getMessage());
-			LOGGER.trace("", e);
-		}
 	}
 
 	/**
@@ -159,16 +130,19 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
-	public static final String ID = "FFmpegWebVideo";
-
 	@Override
 	public JComponent config() {
 		return null;
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_FFMPEG_WEB_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -182,19 +156,19 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
-		// Use device-specific pms conf
+		// Use device-specific DMS conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getFileName();
-		setAudioAndSubs(filename, media, params);
+		setAudioAndSubs(dlna, params);
 
 		// Workaround an FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		// Also see static init
@@ -236,7 +210,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options
-		String attached = (String) dlna.getAttachment(ID);
+		String attached = (String) dlna.getAttachment(ID.toString());
 		if (attached != null) {
 			customOptions.addAll(parseOptions(attached));
 		}
@@ -248,29 +222,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
-		if (!dlna.isURLResolved()) {
-			URLResult r1 = ExternalFactory.resolveURL(filename);
-			if (r1 != null) {
-				if (r1.precoder != null) {
-					filename = "-";
-					if (Platform.isWindows()) {
-						cmdList.add("cmd.exe");
-						cmdList.add("/C");
-					}
-					cmdList.addAll(r1.precoder);
-					cmdList.add("|");
-				} else {
-					if (StringUtils.isNotEmpty(r1.url)) {
-						filename = r1.url;
-					}
-				}
-				if (r1.args != null && r1.args.size() > 0) {
-					customOptions.addAll(r1.args);
-				}
-			}
-		}
 
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe
@@ -381,15 +334,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 
-		// Hook to allow plugins to customize this command line
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
-
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		parseMediaInfo(filename, dlna, pw); // Better late than never
@@ -417,7 +361,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public String name() {
-		return "FFmpeg Web Video";
+		return NAME;
 	}
 
 	// TODO remove this when it's removed from Player
@@ -427,20 +371,24 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (PlayerUtil.isWebVideo(resource)) {
 			String url = resource.getFileName();
-			protocolsLock.readLock().lock();
-			try {
-				if (!protocols.contains(url.split(":")[0])) {
+
+			ExecutableInfo executableInfo = programInfo.getExecutableInfo(currentExecutableType);
+			if (executableInfo instanceof FFmpegExecutableInfo) {
+				List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
+				if (protocols == null || !protocols.contains(url.split(":")[0])) {
 					return false;
 				}
-			} finally {
-				protocolsLock.readLock().unlock();
+			} else {
+				LOGGER.warn(
+					"Couldn't check {} protocol compatibility for \"{}\", reporting as not compatible",
+					getClass().getSimpleName(),
+					url.split(":")[0]
+				);
+				return false;
 			}
 			filtersLock.readLock().lock();
 			try {

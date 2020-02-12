@@ -35,7 +35,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.util.tree.CheckTreeManager;
-import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

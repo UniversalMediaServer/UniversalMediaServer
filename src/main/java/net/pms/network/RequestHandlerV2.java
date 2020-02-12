@@ -36,6 +36,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -98,12 +99,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			USER_AGENT,
 	};
 
-	@SuppressWarnings({ "deprecation", "static-access" })
 	@Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
-
 		String userAgent = nettyRequest.headers().get(USER_AGENT);
 		boolean isSelf = isLocalClingRequest(ia, userAgent);
 
@@ -117,7 +116,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		}
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
-		RequestV2 requestV2 = new RequestV2(nettyRequest.method().name(), nettyRequest.uri().substring(1));
+		RequestV2 requestV2 = new RequestV2(nettyRequest.method(), nettyRequest.uri().substring(1));
 		LOGGER.trace("Request: " + nettyRequest.protocolVersion().text() + " : " + requestV2.getMethod() + " : " + requestV2.getArgument());
 
 		if (nettyRequest.protocolVersion().minorVersion() == 0) {
@@ -196,7 +195,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		String formattedContent = null;
 		if (isNotBlank(content)) {
 			try {
-				formattedContent = StringUtil.prettifyXML(content, 4);
+				formattedContent = StringUtil.prettifyXML(content, StandardCharsets.UTF_8, 2);
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
@@ -260,7 +259,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest nettyRequest, RequestV2 requestV2, InetAddress ia) {
+	private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest nettyRequest, RequestV2 request, InetAddress ia) throws HttpException {
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaderValues.CLOSE.contentEqualsIgnoreCase(nettyRequest.headers().get(HttpHeaderNames.CONNECTION)) ||
 			nettyRequest.protocolVersion().equals(HttpVersion.HTTP_1_0) &&
@@ -268,9 +267,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 		// Build the response object.
 		HttpResponse response;
-		if (requestV2.getLowRange() != 0 || requestV2.getHighRange() != 0) {
+		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-				requestV2.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+				request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
@@ -279,12 +278,12 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
 				response = new DefaultHttpResponse(
-					requestV2.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 					HttpResponseStatus.INTERNAL_SERVER_ERROR
 				);
 			} else {
 				response = new DefaultHttpResponse(
-					requestV2.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
+					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
 					HttpResponseStatus.OK
 				);
 			}
@@ -295,7 +294,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		ctx.channel().attr(startStop).set(startStopListenerDelegate);
 
 		try {
-			requestV2.answer(ctx, response, nettyRequest, close, startStopListenerDelegate);
+			request.answer(ctx, response, nettyRequest, close, startStopListenerDelegate);
 		} catch (IOException e1) {
 			LOGGER.debug("HTTP request V2 IO error: " + e1.getMessage());
 			LOGGER.trace("", e1);
@@ -326,6 +325,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				LOGGER.trace("", cause);
 			}
 		}
+
 		if (ctx.channel().isActive()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -472,3 +472,4 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		return renderer;
 	}
 }
+
