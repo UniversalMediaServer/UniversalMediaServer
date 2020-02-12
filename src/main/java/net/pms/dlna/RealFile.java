@@ -82,9 +82,10 @@ public class RealFile extends MapFile {
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
 					// problematic media not parsed by MediaInfo try to parse it in a different way by ffmpeg, AudioFileIO or ImagesUtil
+					// this is a quick fix for the MediaInfo insufficient parsing method
 					getMedia().setMediaparsed(false);
 					InputFile inputfile = new InputFile();
-					inputfile.setFile(getFile());
+					inputfile.setFile(file);
 					getMedia().setContainer(null);
 					getMedia().parse(inputfile, getFormat(), getType(), false, false, null);
 					if (getMedia().getContainer() == null) {
