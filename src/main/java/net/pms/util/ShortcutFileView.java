@@ -1,3 +1,5 @@
+package net.pms.util;
+
 import java.io.File;
 import javax.swing.filechooser.FileView;
 
