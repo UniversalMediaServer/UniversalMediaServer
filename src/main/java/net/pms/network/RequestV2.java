@@ -101,9 +101,9 @@ public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
 	private final static String CRLF = "\r\n";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
-	private static final Object GET = "GET";
-	private static final Object HEAD = "HEAD";
-	private static final Object POST = "POST";
+	private static final String GET = "GET";
+	private static final String HEAD = "HEAD";
+	private static final String POST = "POST";
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
@@ -127,6 +127,7 @@ public class RequestV2 extends HTTPResource {
 	private String transferMode;
 	private String contentFeatures;
 	private final Range.Time range = new Range.Time();
+	private boolean http10;
 
 	/**
 	 * When sending an input stream, the highRange indicates which byte to stop at.
@@ -210,6 +211,14 @@ public class RequestV2 extends HTTPResource {
 	 */
 	public void setHighRange(long highRange) {
 		this.highRange = highRange;
+	}
+
+	public boolean isHttp10() {
+		return http10;
+	}
+
+	public void setHttp10(boolean http10) {
+		this.http10 = http10;
 	}
 
 	/**
@@ -1342,22 +1351,11 @@ public class RequestV2 extends HTTPResource {
 		return result;
 	}
 
-	public void setHttp10(boolean b) {
-		
-		// TODO Auto-generated method stub
-		
-	}
-
 	public HttpMethod getMethod() {
 		return method;
 	}
 
 	public String getArgument() {
 		return argument;
-	}
-
-	public boolean isHttp10() {
-		// TODO Auto-generated method stub
-		return false;
 	}
 }
