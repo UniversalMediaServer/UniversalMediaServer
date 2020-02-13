@@ -24,6 +24,9 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import static io.netty.handler.codec.http.HttpMethod.GET;
+import static io.netty.handler.codec.http.HttpMethod.HEAD;
+import static io.netty.handler.codec.http.HttpMethod.POST;
 import io.netty.handler.stream.ChunkedStream;
 import static net.pms.util.StringUtil.convertStringToTime;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -101,9 +104,6 @@ public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
 	private final static String CRLF = "\r\n";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
-	private static final String GET = "GET";
-	private static final String HEAD = "HEAD";
-	private static final String POST = "POST";
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
@@ -1021,11 +1021,10 @@ public class RequestV2 extends HTTPResource {
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaderNames.CONTENT_LENGTH))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+					"Transfer response sent to {}:\n\nHEADER:\n  {} {}\n{}",
 					rendererName,
 					output.protocolVersion(),
 					output.status(),
-//					output.isChunked() ? "chunked" : "non-chunked",
 					header
 				);
 			} else {
