@@ -249,6 +249,8 @@ public class RequestV2 extends HTTPResource {
 		this.content = content;
 	}
 
+	boolean chunked;
+	
 	/**
 	 * Construct a proper HTTP response to a received request. After the response has been
 	 * created, it is sent and the resulting {@link ChannelFuture} object is returned.
@@ -589,7 +591,7 @@ public class RequestV2 extends HTTPResource {
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
-						boolean chunked = mediaRenderer.isChunkedTransfer();
+						chunked = mediaRenderer.isChunkedTransfer();
 
 						// Determine the total size. Note: when transcoding the length is
 						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
@@ -1021,10 +1023,11 @@ public class RequestV2 extends HTTPResource {
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaderNames.CONTENT_LENGTH))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
 					rendererName,
 					output.protocolVersion(),
 					output.status(),
+					chunked ? "chunked" : "non-chunked",
 					header
 				);
 			} else {
