@@ -643,7 +643,7 @@ public class RequestV2 extends HTTPResource {
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(serverSpecHandler(output));
-		} else if (POST.equals(method) && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("mrr/control"))) {
+		} else if (POST.equals(method) && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("control/x_ms_mediareceiverregistrar"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(msMediaReceiverRegistrarHandler());
 		} else if (POST.equals(method) && uri.endsWith("upnp/control/connection_manager")) {
@@ -851,15 +851,16 @@ public class RequestV2 extends HTTPResource {
 			result = result.replace("[port]", "" + PMS.get().getServer().getPort());
 		}
 
-		if (mediaRenderer.isXbox360()) {
+		if (mediaRenderer.isMRRSimulated()) {
 			LOGGER.debug("DLNA changes for Xbox 360");
 			result = result.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
 			result = result.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
 			result = result.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 				"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
 				"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
-				"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
-				"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
+				"<SCPDURL>/UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml</SCPDURL>" + CRLF +
+				"<controlURL>/upnp/control/x_ms_mediareceiverregistrar</controlURL>" + CRLF +
+				"<eventSubURL>/upnp/event/x_ms_mediareceiverregistrar</eventSubURL>" + CRLF +
 				"</service>" + CRLF);
 		} else {
 			result = result.replace("Universal Media Server", configuration.getServerDisplayName());
@@ -929,6 +930,15 @@ public class RequestV2 extends HTTPResource {
 			response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 			response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
 			response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
+			response.append(HTTPXMLHelper.EVENT_FOOTER);
+		} else if (uri.contains("x_ms_mediareceiverregistrar")) {
+			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
+			// though this is only a 'potemkin' implementation of an MRR,
+			// keep the MMR-related update ids in-sync with the system update id
+			response.append(HTTPXMLHelper.eventProp("AuthorizationGrantedUpdateID", "" + DLNAResource.getSystemUpdateId()));
+			response.append(HTTPXMLHelper.eventProp("AuthorizationDeniedUpdateID", "" + DLNAResource.getSystemUpdateId()));
+			response.append(HTTPXMLHelper.eventProp("ValidationSucceededUpdateID", "" + DLNAResource.getSystemUpdateId()));
+			response.append(HTTPXMLHelper.eventProp("ValidationRevokedUpdateID", "" + DLNAResource.getSystemUpdateId()));
 			response.append(HTTPXMLHelper.EVENT_FOOTER);
 		}
 		return response.toString();

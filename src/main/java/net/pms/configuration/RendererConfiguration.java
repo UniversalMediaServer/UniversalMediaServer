@@ -180,6 +180,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
+	protected static final String SIMULATE_MRR = "SimulateMRR";
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
@@ -852,6 +853,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public int getRank() {
 		return rank;
+	}
+
+	/**
+	 * @return whether this renderer will be allowed to participate in MS-DRMND protocol via
+	 * interaction with a 'simulation' of the associated service, X_AV_MS_MediaReceiverRegistrar or
+	 * 'MRR' for short. Some renderers require authorization to access content to be granted via
+	 * interaction with MRR.  UMS will only simulate the part of API which will convince
+	 * a renderer of its authorization.
+	 * 
+	 * Legacy behavior for the Xbox 360 is preserved, since the default value is 'true'
+	 */
+	public boolean isMRRSimulated() {
+		return getBoolean(SIMULATE_MRR, true);
 	}
 
 	/**
