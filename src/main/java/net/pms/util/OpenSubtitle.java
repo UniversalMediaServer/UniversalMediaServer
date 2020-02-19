@@ -20,9 +20,13 @@
 
 package net.pms.util;
 
-import static net.pms.util.XMLRPCUtil.*;
+import static net.pms.util.XMLRPCUtil.createReader;
+import static net.pms.util.XMLRPCUtil.createWriter;
+import static net.pms.util.XMLRPCUtil.readMethodResponse;
+import static net.pms.util.XMLRPCUtil.writeMethod;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -74,11 +78,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -88,8 +87,22 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import org.apache.commons.text.StringEscapeUtils;
+import net.pms.util.XMLRPCUtil.Array;
+import net.pms.util.XMLRPCUtil.Member;
+import net.pms.util.XMLRPCUtil.MemberInt;
+import net.pms.util.XMLRPCUtil.MemberString;
+import net.pms.util.XMLRPCUtil.Params;
+import net.pms.util.XMLRPCUtil.Struct;
+import net.pms.util.XMLRPCUtil.Value;
+import net.pms.util.XMLRPCUtil.ValueArray;
+import net.pms.util.XMLRPCUtil.ValueString;
+import net.pms.util.XMLRPCUtil.ValueStruct;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
@@ -120,6 +133,8 @@ public class OpenSubtitle {
 		new LinkedBlockingQueue<Runnable>(), // The queue holding the tasks waiting to be processed
 		new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
+
+	private static Gson gson = new Gson();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
@@ -1824,123 +1839,27 @@ public class OpenSubtitle {
 		if (url == null) {
 			return null;
 		}
-		String lang = getLanguageCodes(r);
 
-		String hashStr = "";
-		String imdbStr = "";
-		String qStr = "";
-		if (!StringUtils.isEmpty(hash)) {
-			hashStr =
-				"<member>" +
-					"<name>moviehash</name>" +
-					"<value>" +
-						"<string>" + hash + "</string>" +
-					"</value>" +
-				"</member>\n" +
-				"<member>" +
-					"<name>moviebytesize</name>" +
-					"<value>" +
-						"<double>" + size + "</double>" +
-					"</value>" +
-				"</member>\n";
-		} else if (!StringUtils.isEmpty(imdb)) {
-			imdbStr =
-				"<member>" +
-					"<name>imdbid</name>" +
-					"<value>" +
-						"<string>" + imdb + "</string>" +
-					"</value>" +
-				"</member>\n";
-		} else if (!StringUtils.isEmpty(query)) {
-			qStr =
-				"<member>" +
-					"<name>query</name>" +
-					"<value>" +
-						"<string>" + query + "</string>" +
-					"</value>" +
-				"</member>\n";
-		} else {
+		UriFileRetriever uriRetriever = new UriFileRetriever();
+		byte[] rawWebResponse = uriRetriever.get("https://www.universalmediaserver.com/api/media/" + hash + "/" + size);
+
+		String stringResponse = new String(rawWebResponse, "UTF-8");
+		LOGGER.info(stringResponse);
+		HashMap<String, String> data = new HashMap<>();
+		data = gson.fromJson(stringResponse, data.getClass());
+
+		if (data.get("message") == "Metadata not found on OpenSubtitles") {
 			return null;
 		}
 
-		String req = null;
-		TOKEN_LOCK.readLock().lock();
-		try {
-			req =
-				"<methodCall>\n" +
-					"<methodName>SearchSubtitles</methodName>\n" +
-					"<params>\n" +
-						"<param>\n" +
-							"<value>" +
-								"<string>" + token + "</string>" +
-							"</value>\n" +
-						"</param>\n" +
-						"<param>\n" +
-							"<value>\n" +
-								"<array>\n" +
-									"<data>\n" +
-										"<value>" +
-											"<struct>" +
-												"<member>" +
-													"<name>sublanguageid</name>" +
-													"<value>" +
-														"<string>" + lang + "</string>" +
-													"</value>" +
-												"</member>" +
-												hashStr +
-												imdbStr +
-												qStr + "\n" +
-											"</struct>" +
-										"</value>" +
-									"</data>\n" +
-								"</array>\n" +
-							"</value>\n" +
-						"</param>" +
-					"</params>\n" +
-				"</methodCall>\n";
-		} finally {
-			TOKEN_LOCK.readLock().unlock();
-		}
-		Pattern re = Pattern.compile(
-			".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" +
-			"MovieName</name>.*?<string>([^<]+)</string>.*?" +
-			"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
-			"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?" +
-			"MovieYear</name>.*?<string>([^<]+)</string>.*?",
-			Pattern.DOTALL
-		);
-		String page = postPage(url.openConnection(), req);
-		Matcher m = re.matcher(page);
-		if (m.find()) {
-			LOGGER.debug("match {},{},{},{},{}", m.group(1), m.group(2), m.group(3), m.group(4), m.group(5));
-			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
-			String name = m.group(2);
-			Matcher m1 = re1.matcher(name);
-			String episodeName = "";
-			if (m1.find()) {
-				episodeName = m1.group(2).trim();
-				name = m1.group(1).trim();
-			}
-
-			/**
-			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
-			 * something like "Episode #1.4", so discard that.
-			 */
-			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
-			if (episodeName.startsWith("Episode #")) {
-				episodeName = "";
-			}
-
-			return new String[]{
-				ImdbUtil.ensureTT(m.group(1).trim()),
-				episodeName,
-				StringEscapeUtils.unescapeHtml4(name),
-				m.group(3).trim(), // Season number
-				m.group(4).trim(), // Episode number
-				m.group(5).trim()  // Year
-			};
-		}
-		return null;
+		return new String[]{
+			data.get("imdbID"),
+			data.get("episodeTitle"),
+			data.get("title"),
+			data.get("seasonNumber"),
+			data.get("episodeNumber"),
+			data.get("year")
+		};
 	}
 
 	/**
@@ -4828,7 +4747,7 @@ public class OpenSubtitle {
 						titleFromOpenSubtitlesSimplified = FileUtil.getSimplifiedShowName(titleFromOpenSubtitles);
 						String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
 						String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
-						if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
+						if (tvEpisodeNumberFromOpenSubtitles != null && tvEpisodeNumberFromOpenSubtitles.length() == 1) {
 							tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
 						}
 
