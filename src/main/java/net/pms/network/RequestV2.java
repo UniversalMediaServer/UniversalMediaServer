@@ -852,9 +852,11 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		if (mediaRenderer.isMRRSimulated()) {
-			LOGGER.debug("DLNA changes for Xbox 360");
-			result = result.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
-			result = result.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
+			LOGGER.debug("Including X_AV_MS_MediaReceiverRegistrar service in UMS spec");
+			if (mediaRenderer.isXbox360()) {
+				result = result.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
+				result = result.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
+			}
 			result = result.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 				"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
 				"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
