@@ -636,12 +636,13 @@ public class Request extends HTTPResource {
 					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
 				}
 
+				String friendlyName = configuration.getServerDisplayName();
 				if (mediaRenderer.isMRRSimulated()) {
 					LOGGER.debug("Including X_AV_MS_MediaReceiverRegistrar service in UMS spec");
 					if (xbox360) {
-					    s = s.replace("Universal Media Server", configuration.getServerDisplayName() + " : Windows Media Connect");
+						friendlyName += " : Windows Media Connect";
 					    s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-					}
+      				}
 					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
 						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
@@ -649,9 +650,8 @@ public class Request extends HTTPResource {
 						"<controlURL>/upnp/control/x_ms_mediareceiverregistrar</controlURL>" + CRLF +
 						"<eventSubURL>/upnp/event/x_ms_mediareceiverregistrar</eventSubURL>" + CRLF +
 						"</service>" + CRLF);
-				} else {
-					s = s.replace("Universal Media Server", configuration.getServerDisplayName());
 				}
+				s = s.replace("Universal Media Server", friendlyName);
 
 				inputStream = new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
 			}
