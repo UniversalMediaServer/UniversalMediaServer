@@ -76,12 +76,25 @@ public class RealFile extends MapFile {
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
 			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
-				getConf().getFiles().remove(file);
-				valid = false;
 				if (getMedia().isEncrypted()) {
+					valid = false;
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
-					LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
+					// problematic media not parsed by MediaInfo try to parse it in a different way by ffmpeg, AudioFileIO or ImagesUtil
+					// this is a quick fix for the MediaInfo insufficient parsing method
+					getMedia().setMediaparsed(false);
+					InputFile inputfile = new InputFile();
+					inputfile.setFile(file);
+					getMedia().setContainer(null);
+					getMedia().parse(inputfile, getFormat(), getType(), false, false, null);
+					if (getMedia().getContainer() == null) {
+						valid = false;
+						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
+					}
+				}
+
+				if (!valid) {
+					getConf().getFiles().remove(file);
 				}
 			}
 
