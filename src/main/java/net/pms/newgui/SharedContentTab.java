@@ -57,7 +57,7 @@ import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
-import net.pms.util.ShortcutFileView;
+import net.pms.util.ShortcutFileSystemView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -260,10 +260,11 @@ public class SharedContentTab {
 				try {
 					chooser = new JFileChooser();
 					if (Platform.isWindows()) {
-						chooser.setFileView(new ShortcutFileView());
+						chooser.setFileSystemView(new ShortcutFileSystemView());
 					}
 				} catch (Exception ee) {
 					chooser = new JFileChooser(new RestrictedFileSystemView());
+					LOGGER.debug("Using RestrictedFileSystemView because {}", ee.getMessage());
 				}
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
