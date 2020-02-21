@@ -1,3 +1,15 @@
+9.2.1 - 2020-02-??
+
+	General:
+		Fixed subtitles being transcoded unnecessarily
+		Fixed compiling on new OpenJDK versions
+		Improved support for audio files
+		Improved parsing of uncommon files
+		Fixed attempting to add empty files
+		Added some regression testing for our use of FFmpeg and MediaInfo
+	Dependencies:
+		Updated JRE to 1.8.241
+
 9.2.0 - 2020-01-13
 
 	General:
