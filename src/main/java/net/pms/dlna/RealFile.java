@@ -77,7 +77,6 @@ public class RealFile extends MapFile {
 			//    known types    + bad parse = bad/encrypted file
 			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
 				if (getMedia().isEncrypted()) {
-					getConf().getFiles().remove(file);
 					valid = false;
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
@@ -89,11 +88,13 @@ public class RealFile extends MapFile {
 					getMedia().setContainer(null);
 					getMedia().parse(inputfile, getFormat(), getType(), false, false, null);
 					if (getMedia().getContainer() == null) {
-						getConf().getFiles().remove(file);
 						valid = false;
 						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
 					}
-					
+				}
+
+				if (!valid) {
+					getConf().getFiles().remove(file);
 				}
 			}
 
