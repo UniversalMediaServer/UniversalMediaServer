@@ -852,19 +852,9 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		String friendlyName = configuration.getServerDisplayName();
-		if (mediaRenderer.isMRRSimulated()) {
-			LOGGER.debug("Including X_AV_MS_MediaReceiverRegistrar service in UMS spec");
-			if (mediaRenderer.isXbox360()) {
-				friendlyName += " : Windows Media Connect";
-				result = result.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-			}
-			result = result.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
-				"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
-				"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
-				"<SCPDURL>/UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml</SCPDURL>" + CRLF +
-				"<controlURL>/upnp/control/x_ms_mediareceiverregistrar</controlURL>" + CRLF +
-				"<eventSubURL>/upnp/event/x_ms_mediareceiverregistrar</eventSubURL>" + CRLF +
-				"</service>" + CRLF);
+		if (mediaRenderer.isXbox360()) {
+			friendlyName += " : Windows Media Connect";
+			result = result.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
 		} else {
 			if (mediaRenderer.isSamsung()) {
 				// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
@@ -873,6 +863,7 @@ public class RequestV2 extends HTTPResource {
 						+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
 			}
 		}
+
 		result = result.replace("Universal Media Server", friendlyName);
 		return result;
 	}

@@ -856,19 +856,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * @return whether this renderer will be allowed to participate in MS-DRMND protocol via
-	 * interaction with a 'simulation' of the associated service, X_AV_MS_MediaReceiverRegistrar or
-	 * 'MRR' for short. Some renderers require authorization to access content to be granted via
-	 * interaction with MRR.  UMS will only simulate the part of API which will convince
-	 * a renderer of its authorization.
-	 * 
-	 * Legacy behavior for the Xbox 360 is preserved, since the default value is 'true'
-	 */
-	public boolean isMRRSimulated() {
-		return getBoolean(SIMULATE_MRR, true);
-	}
-
-	/**
 	 * @see #isXbox360()
 	 * @deprecated
 	 */

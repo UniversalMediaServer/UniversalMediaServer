@@ -637,20 +637,11 @@ public class Request extends HTTPResource {
 				}
 
 				String friendlyName = configuration.getServerDisplayName();
-				if (mediaRenderer.isMRRSimulated()) {
-					LOGGER.debug("Including X_AV_MS_MediaReceiverRegistrar service in UMS spec");
-					if (xbox360) {
-						friendlyName += " : Windows Media Connect";
-					    s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-      				}
-					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
-						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
-						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
-						"<SCPDURL>/UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml</SCPDURL>" + CRLF +
-						"<controlURL>/upnp/control/x_ms_mediareceiverregistrar</controlURL>" + CRLF +
-						"<eventSubURL>/upnp/event/x_ms_mediareceiverregistrar</eventSubURL>" + CRLF +
-						"</service>" + CRLF);
-				}
+				if (xbox360) {
+					friendlyName += " : Windows Media Connect";
+					   s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
+      			}
+
 				s = s.replace("Universal Media Server", friendlyName);
 
 				inputStream = new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
