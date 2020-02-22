@@ -278,7 +278,7 @@ public class SharedContentTab {
 			}
 		});
 		builderFolder.add(addButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
-
+		
 		removeButton.setToolTipText(Messages.getString("FoldTab.36"));
 		removeButton.addActionListener(new ActionListener() {
 			@Override
