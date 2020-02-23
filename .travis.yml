@@ -1,3 +1,5 @@
+dist: trusty
+
 language: java
 
 cache:
@@ -12,9 +14,6 @@ matrix:
   include:
     - os: linux
       jdk: oraclejdk8
-      dist: trusty
-    - os: linux
-      jdk: openjdk8
     - os: osx
       osx_image: xcode9.3
 
