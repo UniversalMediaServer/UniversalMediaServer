@@ -1,3 +1,17 @@
+9.3.0 - 2020-02-23
+
+	General:
+		Added support for devices that require MRR authorization, like Denon AVR devices (thanks, sc3141)
+		Added support for symlinks in the folder selector
+		Fixed subtitles being transcoded unnecessarily
+		Fixed compiling on new OpenJDK versions
+		Improved support for audio files
+		Improved parsing of uncommon files
+		Fixed attempting to add empty files
+		Added some regression testing for our use of FFmpeg and MediaInfo
+	Dependencies:
+		Updated JRE to 1.8.241
+
 9.2.0 - 2020-01-13
 
 	General:
