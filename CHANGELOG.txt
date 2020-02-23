@@ -1,6 +1,8 @@
-9.2.1 - 2020-02-??
+9.3.0 - 2020-02-??
 
 	General:
+		Added support for devices that require MRR authorization, like Denon AVR devices (thanks, sc3141)
+		Added support for symlinks in the folder selector
 		Fixed subtitles being transcoded unnecessarily
 		Fixed compiling on new OpenJDK versions
 		Improved support for audio files
