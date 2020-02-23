@@ -1,4 +1,4 @@
-9.3.0 - 2020-02-??
+9.3.0 - 2020-02-23
 
 	General:
 		Added support for devices that require MRR authorization, like Denon AVR devices (thanks, sc3141)
