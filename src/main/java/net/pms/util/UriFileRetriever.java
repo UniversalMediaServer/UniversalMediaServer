@@ -23,13 +23,17 @@ package net.pms.util;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
@@ -42,31 +46,64 @@ import org.apache.http.nio.client.methods.HttpAsyncMethods;
  * @author valib
  */
 public class UriFileRetriever {
-
 	/**
 	 * Download file from the external server and return the
 	 * content of it in the ByteArray.
 	 *
 	 * @param uri The URI of the external server file.
-	 * 
+	 *
 	 * @return the content of the downloaded file.
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	public byte[] get(String uri) throws IOException {
 		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-        try {
-            httpclient.start();
-            HttpGet request = new HttpGet(uri);
-            Future<HttpResponse> future = httpclient.execute(request, null);
-            HttpResponse response = future.get();
-            int statusCode = response.getStatusLine().getStatusCode();
+		try {
+			httpclient.start();
+			HttpGet request = new HttpGet(uri);
+			Future<HttpResponse> future = httpclient.execute(request, null);
+			HttpResponse response = future.get();
+			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HttpStatus.SC_OK) {
 				throw new IOException("HTTP response not OK");
 			}
 
 			return IOUtils.toByteArray(response.getEntity().getContent());
-		} catch (InterruptedException|ExecutionException e) {
+		} catch (InterruptedException | ExecutionException e) {
+			throw new IOException("Unable to download by HTTP" + e.getMessage());
+		} finally {
+			httpclient.close();
+		}
+	}
+
+	/**
+	 * Sends a POST request to an external server.
+	 *
+	 * @param uri The URI of the external server file.
+	 * @param params the data to send
+	 *
+	 * @return the response from the server
+	 *
+	 * @throws IOException
+	 */
+	public byte[] post(String uri, List<NameValuePair> params) throws IOException {
+		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
+		try {
+			httpclient.start();
+			HttpPost request = new HttpPost(uri);
+
+			request.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+
+			Future<HttpResponse> future = httpclient.execute(request, null);
+			HttpResponse response = future.get();
+			int statusCode = response.getStatusLine().getStatusCode();
+
+			if (statusCode != HttpStatus.SC_OK) {
+				throw new IOException("HTTP response not OK");
+			}
+
+			return IOUtils.toByteArray(response.getEntity().getContent());
+		} catch (InterruptedException | ExecutionException e) {
 			throw new IOException("Unable to download by HTTP" + e.getMessage());
 		} finally {
 			httpclient.close();

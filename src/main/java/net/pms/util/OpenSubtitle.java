@@ -101,6 +101,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -1811,9 +1813,9 @@ public class OpenSubtitle {
 
 		if (res == null || res.length == 0) { // final try, use the name
 			if (StringUtils.isNotEmpty(formattedName)) {
-				res = getInfoFromQuery(formattedName, renderer);
+				res = getInfoFromFilename(formattedName);
 			} else {
-				res = getInfoFromQuery(file.getName(), renderer);
+				res = getInfoFromFilename(file.getName());
 			}
 		}
 
@@ -1834,13 +1836,47 @@ public class OpenSubtitle {
 	 * @throws IOException
 	 */
 	private static String[] getInfoFromOSDbHash(String hash, long size) throws IOException {
-		URL url = login();
-		if (url == null) {
+		UriFileRetriever uriRetriever = new UriFileRetriever();
+		byte[] rawWebResponse = uriRetriever.get("https://www.universalmediaserver.com/api/media/" + hash + "/" + size);
+
+		String stringResponse = new String(rawWebResponse, "UTF-8");
+		LOGGER.info(stringResponse);
+		HashMap<String, String> data = new HashMap<>();
+		data = gson.fromJson(stringResponse, data.getClass());
+
+		if (data.get("message") == "Metadata not found on OpenSubtitles") {
 			return null;
 		}
 
+		return new String[]{
+			data.get("imdbID"),
+			data.get("episodeTitle"),
+			data.get("title"),
+			data.get("seasonNumber"),
+			data.get("episodeNumber"),
+			data.get("year")
+		};
+	}
+
+	/**
+	 * Attempt to return information from OpenSubtitles about the file based on
+	 * the filename or sanitized (prettified) filename.
+	 *
+	 * @param filename filename (possibly prettified)
+	 *
+	 * @return a string array including the IMDb ID, episode title, season number,
+	 *         episode number relative to the season, and the show name, or null
+	 *         if we couldn't find it on IMDb.
+	 *
+	 * @throws IOException
+	 */
+	private static String[] getInfoFromFilename(String filename) throws IOException {
 		UriFileRetriever uriRetriever = new UriFileRetriever();
-		byte[] rawWebResponse = uriRetriever.get("https://www.universalmediaserver.com/api/media/" + hash + "/" + size);
+
+		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		params.add(new BasicNameValuePair("title", filename));
+
+		byte[] rawWebResponse = uriRetriever.post("https://www.universalmediaserver.com/api/media/title/", params);
 
 		String stringResponse = new String(rawWebResponse, "UTF-8");
 		LOGGER.info(stringResponse);
@@ -1918,116 +1954,6 @@ public class OpenSubtitle {
 													"</value>" +
 												"</member>" +
 												imdbStr + "\n" +
-											"</struct>" +
-										"</value>" +
-									"</data>\n" +
-								"</array>\n" +
-							"</value>\n" +
-						"</param>" +
-					"</params>\n" +
-				"</methodCall>\n";
-		} finally {
-			TOKEN_LOCK.readLock().unlock();
-		}
-		Pattern re = Pattern.compile(
-			".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" +
-			"MovieName</name>.*?<string>([^<]+)</string>.*?" +
-			"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
-			"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?" +
-			"MovieYear</name>.*?<string>([^<]+)</string>.*?",
-			Pattern.DOTALL
-		);
-		String page = postPage(url.openConnection(), req);
-		Matcher m = re.matcher(page);
-		if (m.find()) {
-			LOGGER.debug("match {},{},{},{},{}", m.group(1), m.group(2), m.group(3), m.group(4), m.group(5));
-			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
-			String name = m.group(2);
-			Matcher m1 = re1.matcher(name);
-			String episodeName = "";
-			if (m1.find()) {
-				episodeName = m1.group(2).trim();
-				name = m1.group(1).trim();
-			}
-
-			/**
-			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
-			 * something like "Episode #1.4", so discard that.
-			 */
-			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
-			if (episodeName.startsWith("Episode #")) {
-				episodeName = "";
-			}
-
-			return new String[]{
-				ImdbUtil.ensureTT(m.group(1).trim()),
-				episodeName,
-				StringEscapeUtils.unescapeHtml4(name),
-				m.group(3).trim(), // Season number
-				m.group(4).trim(), // Episode number
-				m.group(5).trim()  // Year
-			};
-		}
-		return null;
-	}
-
-	/**
-	 * Attempt to return information from OpenSubtitles about the file based on
-	 * the filename or sanitized (prettified) filename.
-	 *
-	 * @param query filename or prettified filename
-	 *
-	 * @return a string array including the IMDb ID, episode title, season number,
-	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDb.
-	 *
-	 * @throws IOException
-	 */
-	private static String[] getInfoFromQuery(String query, RendererConfiguration r) throws IOException {
-		URL url = login();
-		if (url == null) {
-			return null;
-		}
-		String lang = getLanguageCodes(r);
-
-		String qStr = "";
-		if (!StringUtils.isEmpty(query)) {
-			qStr =
-				"<member>" +
-					"<name>query</name>" +
-					"<value>" +
-						"<string>" + query + "</string>" +
-					"</value>" +
-				"</member>\n";
-		} else {
-			return null;
-		}
-
-		String req = null;
-		TOKEN_LOCK.readLock().lock();
-		try {
-			req =
-				"<methodCall>\n" +
-					"<methodName>SearchSubtitles</methodName>\n" +
-					"<params>\n" +
-						"<param>\n" +
-							"<value>" +
-								"<string>" + token + "</string>" +
-							"</value>\n" +
-						"</param>\n" +
-						"<param>\n" +
-							"<value>\n" +
-								"<array>\n" +
-									"<data>\n" +
-										"<value>" +
-											"<struct>" +
-												"<member>" +
-													"<name>sublanguageid</name>" +
-													"<value>" +
-														"<string>" + lang + "</string>" +
-													"</value>" +
-												"</member>" +
-												qStr + "\n" +
 											"</struct>" +
 										"</value>" +
 									"</data>\n" +
