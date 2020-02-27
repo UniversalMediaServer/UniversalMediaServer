@@ -844,6 +844,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * whether it has subtitles that match this user's language settings, so here we
 		 * perform those checks.
 		 */
+		boolean hasSubsToTranscode = false;
 		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
 			if (hasSubtitles(false)) {
 				DLNAMediaAudio audio = media_audio != null ? media_audio : resolveAudioStream(renderer);
@@ -855,12 +856,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media)) {
 							LOGGER.trace("This video has external subtitles that can be streamed");
 						} else {
+							hasSubsToTranscode = true;
 							LOGGER.trace("This video has external subtitles that must be transcoded");
 						}
 					} else {
 						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) {
 							LOGGER.trace("This video has embedded subtitles that are supported");
 						} else {
+							hasSubsToTranscode = true;
 							LOGGER.trace("This video has embedded subtitles that must be transcoded");
 						}
 					}
