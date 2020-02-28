@@ -1804,7 +1804,7 @@ public class OpenSubtitle {
 	public static String[] getInfo(File file, String formattedName, RendererConfiguration renderer) throws IOException {
 		Path path = file.toPath();
 		String[] res = getInfoFromOSDbHash(getHash(path), file.length());
-		if (res == null || res.length == 0) { // no good on hash! try imdb
+		if (res == null) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdbId(path, false);
 			if (isNotBlank(imdb)) {
 				res = getInfoFromIMDbID(imdb, renderer);
@@ -1844,7 +1844,7 @@ public class OpenSubtitle {
 		HashMap<String, String> data = new HashMap<>();
 		data = gson.fromJson(stringResponse, data.getClass());
 
-		if (data.get("message") == "Metadata not found on OpenSubtitles") {
+		if (data.get("message").equals("Metadata not found on OpenSubtitles")) {
 			return null;
 		}
 
@@ -1883,7 +1883,7 @@ public class OpenSubtitle {
 		HashMap<String, String> data = new HashMap<>();
 		data = gson.fromJson(stringResponse, data.getClass());
 
-		if (data.get("message") == "Metadata not found on OpenSubtitles") {
+		if (data.get("message").equals("Metadata not found on OpenSubtitles")) {
 			return null;
 		}
 
