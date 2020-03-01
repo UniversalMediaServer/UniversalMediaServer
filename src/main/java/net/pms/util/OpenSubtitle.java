@@ -1986,15 +1986,6 @@ public class OpenSubtitle {
 				name = m1.group(1).trim();
 			}
 
-			/**
-			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
-			 * something like "Episode #1.4", so discard that.
-			 */
-			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
-			if (episodeName.startsWith("Episode #")) {
-				episodeName = "";
-			}
-
 			return new String[]{
 				ImdbUtil.ensureTT(m.group(1).trim()),
 				episodeName,
