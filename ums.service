@@ -1,0 +1,16 @@
+# UMS systemd service file
+#
+# start with:				systemctl start ums
+# enable at startup with:	systemctl enable ums
+
+[Unit]
+Description=Universal Media Server
+After=syslog.target network.target rpcbind.service
+
+[Service]
+User=pi							# the user you want run UMS with
+ExecStart=/opt/ums/UMS.sh		# where you installed UMS
+
+[Install]
+WantedBy=multi-user.target
+
