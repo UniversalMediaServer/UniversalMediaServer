@@ -128,6 +128,17 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(unwatchedMlfVideo05);
 		// If fully played videos are NOT to be hidden
 		} else {
+			tvShowsFolder = new MediaLibraryFolder(
+				Messages.getString("VirtualFolder.4"),
+				new String[]{
+					"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE                                                    ORDER BY MOVIEORSHOWNAME ASC",
+					"SELECT DISTINCT TVSEASON        FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}'                       ORDER BY TVSEASON ASC",
+					"SELECT          *               FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER"
+				},
+				new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.EPISODES}
+			);
+			tvShowsFolder.addChild(unwatchedTvShowsFolder);
+
 			VirtualFolder videosUnwatchedFolder = new VirtualFolder(Messages.getString("VirtualFolder.9"), null);
 			videosUnwatchedFolder.addChild(unwatchedTvShowsFolder);
 			videosUnwatchedFolder.addChild(unwatchedMoviesFolder);
@@ -150,8 +161,8 @@ public class MediaLibrary extends VirtualFolder {
 			videosWatchedFolder.addChild(watchedMlfVideo04);
 			videosWatchedFolder.addChild(watchedMlfVideo05);
 
-			vfVideo.addChild(videosUnwatchedFolder);
-			vfVideo.addChild(videosWatchedFolder);
+			// vfVideo.addChild(videosUnwatchedFolder);
+			// vfVideo.addChild(videosWatchedFolder);
 			vfVideo.addChild(tvShowsFolder);
 			vfVideo.addChild(moviesFolder);
 			vfVideo.addChild(movies3DFolder);
