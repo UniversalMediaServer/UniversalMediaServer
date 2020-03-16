@@ -20,13 +20,13 @@ install:
 	mkdir -p $(DESTDIR)$(PROGRAMDIR)
 	tar -xf target/ums-$(VERSION)-distribution.tar.gz --directory=$(PROGRAMDIR) --strip-components 1
 	mkdir -p  $(DESTDIR)$(BINDIR)
-	ln -s $(DESTDIR)$(PROGRAMDIR)/UMS.sh $(DESTDIR)$(BINDIR)/ums
+	ln -sf $(DESTDIR)$(PROGRAMDIR)/UMS.sh $(DESTDIR)$(BINDIR)/ums
 	mkdir -p $(DESTDIR)$(SYSTEMDDIR)
 	cp ums.service $(DESTDIR)$(SYSTEMDDIR)
 	sed -i -e "s/User=pi/User=$(USERNAME)/g" $(DESTDIR)$(SYSTEMDDIR)/ums.service
 	# TODO support for /etc configuration file?!?
-	mkdir -p $(DESTDIR)$(SYSTEMDDIR)/home/$(USERNAME)/.config/UMS
-	test -f $(DESTDIR)$(SYSTEMDDIR)/home/$(USERNAME)/.config/UMS || cp src/main/external-resources/UMS.conf $(DESTDIR)$(SYSTEMDDIR)/home/$(USERNAME)/.config/UMS
+	mkdir -p $(DESTDIR)/home/$(USERNAME)/.config/UMS
+	test -f $(DESTDIR)/home/$(USERNAME)/.config/UMS || cp src/main/external-resources/UMS.conf $(DESTDIR)/home/$(USERNAME)/.config/UMS
 	#systemctl enable ums
 	#systemctl start ums
 
