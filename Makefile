@@ -8,7 +8,7 @@ SYSTEMDDIR=$(PREFIX)/lib/systemd/system
 # may be /usr/lib/systemd/system or /etc/systemd/system
 
 build:
-	#mvn external:install
+	mvn external:install
 	mvn package
 
 clean:
