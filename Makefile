@@ -6,6 +6,7 @@ PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 SYSTEMDDIR=$(PREFIX)/lib/systemd/system
 # may be /usr/lib/systemd/system or /etc/systemd/system
+USERNAME=pi
 
 build:
 	mvn external:install
@@ -22,6 +23,10 @@ install:
 	ln -s $(DESTDIR)$(PROGRAMDIR)/UMS.sh $(DESTDIR)$(BINDIR)/ums
 	mkdir -p $(DESTDIR)$(SYSTEMDDIR)
 	cp ums.service $(DESTDIR)$(SYSTEMDDIR)
+	sed -i -e "s/User=pi/User=$(USERNAME)/g" $(DESTDIR)$(SYSTEMDDIR)/ums.service
+	# TODO support for /etc configuration file?!?
+	mkdir -p $(DESTDIR)$(SYSTEMDDIR)/home/$(USERNAME)/.config/UMS
+	test -f $(DESTDIR)$(SYSTEMDDIR)/home/$(USERNAME)/.config/UMS || cp src/main/external-resources/UMS.conf $(DESTDIR)$(SYSTEMDDIR)/home/$(USERNAME)/.config/UMS
 	#systemctl enable ums
 	#systemctl start ums
 
@@ -31,4 +36,5 @@ uninstall:
 	rm -f $(DESTDIR)$(SYSTEMDDIR)/ums.service
 	rm -f $(DESTDIR)$(BINDIR)/ums
 	rm -rf $(DESTDIR)$(PROGRAMDIR)
+	# we do not remove cfg file
 
