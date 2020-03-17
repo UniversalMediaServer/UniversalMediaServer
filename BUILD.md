@@ -197,15 +197,11 @@ These last two commands can easily be automated using a script e.g.:
 
 # Cross-compilation
 
-By default, `mvn package` builds an installer or distibution file for the
-platform it is being compiled on e.g. `UMS-setup-full.exe` on Windows and a tarball on Linux.
-
-As an optional step, releases for other platforms can be built.
+This section explains how it is possible to compile for one system while on another.
 
 ## Building the Windows binaries
 
-The Windows installers (`UMS-setup-full.exe`, `UMS-setup-full-x64.exe` and `UMS-setup-without-jre.exe`) and Windows executable
-(`UMS.exe`) can be built on non-Windows platforms.
+The Windows installers (`UMS-version.exe`) and Windows executable (`UMS.exe`) can be built on non-Windows platforms.
 
 First of all, you'll need to have the `makensis` binary installed. On Debian/Ubuntu,
 this can be done with:
@@ -234,34 +230,21 @@ For the sake of brevity, the following examples assume it has already been set.
 
 The Windows installer can now be built with one of the following commands:
 
-### On Linux
+### On Linux and macOS
 
     mvn package -P system-makensis,windows
 
-### On macOS
-
-    mvn package -P system-makensis,windows,-osx-java7,-osx-java8
-
 ## Building the Linux tarball
 
-### On Windows
+### On Windows and macOS
 
-    mvn package -P linux,-windows
+    mvn package -P linux
 
-### On macOS
+## Building the macOS disk image
 
-    mvn package -P linux,-osx-java7,-osx-java8
+### On Windows and Linux
 
-## Building the macOS installer tarball
-
-The macOS installer tarball can be built on any platform by specifying
-the "osx" profile explicity:
-
-    mvn package -P osx-java7
-
-or
-
-    mvn package -P osx-java8
+    mvn package -P macos
 
 ## Building the macOS wizard installer
 
