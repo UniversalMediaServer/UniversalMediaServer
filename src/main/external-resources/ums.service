@@ -1,7 +1,9 @@
-# UMS systemd service file
+# UMS Linux/systemd service file
 #
-# start with:				systemctl start ums
-# enable at startup with:	systemctl enable ums
+# If you want to run UMS at startup:
+# (1) check/modify User and ExecStart lines below
+# (2) copy this file in /usr/local/lib/systemd/system
+# (3) enable at startup with:	systemctl enable ums
 
 [Unit]
 Description=Universal Media Server
