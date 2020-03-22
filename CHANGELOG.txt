@@ -1,4 +1,4 @@
-9.3.1 - 2020-03-??
+9.3.1 - 2020-03-22
 
 	General:
 		Updated build documentation in BUILD.md (thanks, luca-vercelli!)
