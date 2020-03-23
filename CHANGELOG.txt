@@ -1,3 +1,15 @@
+9.3.1 - 2020-03-22
+
+	General:
+		Updated build documentation in BUILD.md (thanks, luca-vercelli!)
+	Renderers:
+		Fixed too much transcoding on Samsung 9 series TVs
+		Fixed WAV support on PS3
+	Translation updates via Crowdin:
+		Arabic (36%)
+		Serbian (87%)
+		Slovenian (60%)
+
 9.3.0 - 2020-02-23
 
 	General:
