@@ -61,7 +61,6 @@
 			<directoryMode>0755</directoryMode>
 			<includes>
 				<include>linux/jre-x64/**</include>
-				<include>linux/jre-x86/**</include>
 			</includes>
 		</fileSet>
 

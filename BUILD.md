@@ -81,7 +81,7 @@ Be sure to remember the install location.
 
 ### Linux
 
-    sudo apt-get install openjdk-7-jdk
+    sudo apt-get install openjdk-8-jdk
 
 ### macOS
 
@@ -193,7 +193,9 @@ These last two commands can easily be automated using a script e.g.:
     # build-ums.sh
     cd UniversalMediaServer
     git pull
-    mvn package
+    mvn package linux-*
+
+where `*` is one of: amd64, arm64, armel, armhf, or i686
 
 # Cross-compilation
 
@@ -234,11 +236,13 @@ The Windows installer can now be built with one of the following commands:
 
     mvn package -P system-makensis,windows
 
-## Building the Linux tarball
+## Building a Linux tarball
 
 ### On Windows and macOS
 
-    mvn package -P linux
+    mvn package -P linux-*
+
+where `*` is one of: amd64, arm64, armel, armhf, or i686
 
 ## Building the macOS disk image
 
