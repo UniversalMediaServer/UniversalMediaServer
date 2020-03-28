@@ -51,55 +51,20 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	 */
 	protected LinuxProgramPaths() {
 		// FFmpeg
-		Path ffmpeg = null;
-		if (Platform.is64Bit()) {
-			if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-				ffmpeg = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("ffmpeg64");
-			}
-			if (ffmpeg == null || !Files.exists(ffmpeg)) {
-				ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg64");
-			}
-			try {
-				if (!new FilePermissions(ffmpeg).isExecutable()) {
-					LOGGER.trace("Insufficient permission to executable \"{}\"", ffmpeg);
-					LOGGER.trace("Looking for non-64 version");
-					ffmpeg = null;
-				}
-			} catch (FileNotFoundException e) {
-				LOGGER.trace("Executable \"{}\" not found: {}", ffmpeg, e.getMessage());
-				LOGGER.trace("Looking for non-64 version");
-				ffmpeg = null;
-			}
-		}
-		if (ffmpeg == null) {
+		Path ffmpeg = FileUtil.findExecutableInOSPath(Paths.get("ffmpeg"));
+		ffmpegInfo = new FFmpegProgramInfo("FFmpeg", ProgramExecutableType.INSTALLED);
+		if (ffmpeg != null) {
+			ffmpegInfo.setPath(ProgramExecutableType.INSTALLED, ffmpeg);
+		} else {
 			ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg");
 			try {
 				if (!new FilePermissions(ffmpeg).isExecutable()) {
+					ffmpegInfo.setPath(ProgramExecutableType.BUNDLED, ffmpeg);
 					LOGGER.trace("Insufficient permission to executable \"{}\"", ffmpeg);
-					if (Platform.is64Bit()) {
-						ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg64");
-					}
 				}
 			} catch (FileNotFoundException e) {
 				LOGGER.trace("Executable \"{}\" not found: {}", ffmpeg, e.getMessage());
-				if (Platform.is64Bit()) {
-					ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg64");
-				}
 			}
-		}
-
-		ffmpegInfo = new FFmpegProgramInfo("FFmpeg", ProgramExecutableType.BUNDLED);
-		ffmpegInfo.setPath(ProgramExecutableType.BUNDLED, ffmpeg);
-
-		ffmpeg = null;
-		if (Platform.is64Bit()) {
-			ffmpeg = FileUtil.findExecutableInOSPath(Paths.get("ffmpeg64"));
-		}
-		if (ffmpeg == null) {
-			ffmpeg = FileUtil.findExecutableInOSPath(Paths.get("ffmpeg"));
-		}
-		if (ffmpeg != null) {
-			ffmpegInfo.setPath(ProgramExecutableType.INSTALLED, ffmpeg);
 		}
 
 		// MPlayer

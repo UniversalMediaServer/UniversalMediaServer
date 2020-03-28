@@ -180,7 +180,6 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	public boolean isUpdateAvailable() {
-		// TODO (tcox): Make updates work on Linux and Mac
 		return Version.isPmsUpdatable(currentVersion, serverProperties.getLatestVersion());
 	}
 
