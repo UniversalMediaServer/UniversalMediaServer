@@ -27,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
-import com.sun.jna.Platform;
-
 
 /**
  * This class keeps track of paths to external programs on Linux.
