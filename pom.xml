@@ -1826,10 +1826,6 @@
 				</plugins>
 			</build>
 		</profile>
-
-		<!--
-			Linux arm64 profile: takes care of building the final package for Linux
-		-->
 		<profile>
 			<id>linux-arm64</id>
 			<!--
@@ -1938,10 +1934,6 @@
 				</plugins>
 			</build>
 		</profile>
-
-		<!--
-			Linux armel profile: takes care of building the final package for Linux
-		-->
 		<profile>
 			<id>linux-armel</id>
 			<!--
@@ -2050,10 +2042,6 @@
 				</plugins>
 			</build>
 		</profile>
-
-		<!--
-			Linux arm64 profile: takes care of building the final package for Linux
-		-->
 		<profile>
 			<id>linux-armhf</id>
 			<!--
@@ -2162,10 +2150,6 @@
 				</plugins>
 			</build>
 		</profile>
-
-		<!--
-			Linux i686 profile: takes care of building the final package for Linux
-		-->
 		<profile>
 			<id>linux-i686</id>
 			<!--
@@ -2636,10 +2620,6 @@
 				</plugins>
 			</build>
 		</profile>
-
-		<!--
-			Linux amd64 profile: takes care of building the final package for Linux
-		-->
 		<profile>
 			<id>linux-amd64</id>
 			<!--

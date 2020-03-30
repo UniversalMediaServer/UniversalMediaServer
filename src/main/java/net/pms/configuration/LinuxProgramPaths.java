@@ -48,7 +48,7 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	 * Not to be instantiated, call {@link PlatformProgramPaths#get()} instead.
 	 */
 	protected LinuxProgramPaths() {
-		// FFmpeg
+		// We use the system FFmpeg if it exists, otherwise use ours
 		Path ffmpeg = FileUtil.findExecutableInOSPath(Paths.get("ffmpeg"));
 		ffmpegInfo = new FFmpegProgramInfo("FFmpeg", ProgramExecutableType.INSTALLED);
 		if (ffmpeg != null) {
