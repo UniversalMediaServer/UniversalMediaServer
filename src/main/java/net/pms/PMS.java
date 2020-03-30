@@ -386,9 +386,7 @@ public class PMS {
 	 *
 	 * @return <code>true</code> if the server has been initialized correctly.
 	 *         <code>false</code> if initialization was aborted.
-	 * @throws ConfigurationException 
-	 * @throws InterruptedException 
-	 * @throws IOException
+	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
 		// Gather and log system information from a separate thread
