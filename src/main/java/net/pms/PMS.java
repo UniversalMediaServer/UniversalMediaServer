@@ -156,6 +156,10 @@ public class PMS {
 			renderer = RendererConfiguration.getDefaultConf();
 		}
 
+		if (renderer == null) {
+			return null;
+		}
+
 		return renderer.getRootFolder();
 	}
 
@@ -382,9 +386,11 @@ public class PMS {
 	 *
 	 * @return <code>true</code> if the server has been initialized correctly.
 	 *         <code>false</code> if initialization was aborted.
-	 * @throws Exception
+	 * @throws ConfigurationException 
+	 * @throws InterruptedException 
+	 * @throws IOException
 	 */
-	private boolean init() throws Exception {
+	private boolean init() throws IOException, ConfigurationException, InterruptedException {
 		// Gather and log system information from a separate thread
 		LogSystemInformationMode logSystemInfo = configuration.getLogSystemInformation();
 		if (
@@ -422,7 +428,11 @@ public class PMS {
 		displayBanner();
 
 		// Initialize database
-		Tables.checkTables();
+		try {
+			Tables.checkTables();
+		} catch (SQLException e1) {
+			LOGGER.error("Database was not initialized.");
+		}
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
