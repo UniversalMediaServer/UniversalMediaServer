@@ -390,7 +390,7 @@ public class PMS {
 	 * @throws InterruptedException 
 	 * @throws IOException
 	 */
-	private boolean init() throws IOException, ConfigurationException, InterruptedException {
+	private boolean init() throws Exception {
 		// Gather and log system information from a separate thread
 		LogSystemInformationMode logSystemInfo = configuration.getLogSystemInformation();
 		if (
