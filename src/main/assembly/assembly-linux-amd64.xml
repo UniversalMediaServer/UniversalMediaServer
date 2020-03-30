@@ -23,17 +23,9 @@
 			<lineEnding>keep</lineEnding>
 		</file>
 
-		<!-- Include the 32-bit FFmpeg binary -->
+		<!-- Include the FFmpeg binary -->
 		<file>
-			<source>${project.binaries}/linux/ffmpeg</source>
-			<outputDirectory>./linux</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
-
-		<!-- Include the 64-bit FFmpeg binary -->
-		<file>
-			<source>${project.binaries}/linux/ffmpeg64</source>
+			<source>${project.binaries}/linux/amd64/ffmpeg/ffmpeg</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
@@ -69,7 +61,6 @@
 			<directoryMode>0755</directoryMode>
 			<includes>
 				<include>linux/jre-x64/**</include>
-				<include>linux/jre-x86/**</include>
 			</includes>
 		</fileSet>
 
