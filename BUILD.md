@@ -61,9 +61,9 @@ download the latest sources and build UMS:
 
 The result will be built in the "target" directory:
 
-* Windows: `UMS-setup-full.exe`, `UMS-setup-full-x64.exe` and `UMS-setup-without-jre.exe`
-* Linux: `ums-linux-generic-x.xx.x.tar.gz`
-* macOS: `ums-setup-macosx-x.xx.x.tar.gz`
+* Windows: `UMS-x.xx.x-setup.exe`
+* Linux: `ums-x.xx.x-distribution.tar.gz`
+* macOS: `ums-x.xx.x-distribution/Universal Media Server.app`
 
 # Full instructions
 
@@ -71,23 +71,7 @@ First all required software has to be installed:
 
 ## 1. Download and install the Java 8 JDK
 
-Note: the JRE is not enough, and versions higher than Java 8 are not recommended.
-
-### Windows
-
-See http://www.oracle.com/technetwork/java/javase/downloads/index.html
-
-Be sure to remember the install location.
-
-### Linux
-
-    sudo apt-get install openjdk-7-jdk
-
-### macOS
-
-See https://developer.apple.com/downloads/index.action?name=for%20Xcode%20-
-
-Look for the Java Developer Package.
+Download and install from https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
 
 ## 2. Download and install Git
 
@@ -193,7 +177,9 @@ These last two commands can easily be automated using a script e.g.:
     # build-ums.sh
     cd UniversalMediaServer
     git pull
-    mvn package
+    mvn package linux-*
+
+where `*` is one of: amd64, arm64, armel, armhf, or i686
 
 # Cross-compilation
 
@@ -234,11 +220,13 @@ The Windows installer can now be built with one of the following commands:
 
     mvn package -P system-makensis,windows
 
-## Building the Linux tarball
+## Building a Linux tarball
 
 ### On Windows and macOS
 
-    mvn package -P linux
+    mvn package -P linux-*
+
+where `*` is one of: amd64, arm64, armel, armhf, or i686
 
 ## Building the macOS disk image
 
