@@ -212,12 +212,16 @@ public class DLNAMediaDatabase implements Runnable {
 					conn = getConnection();
 				} catch (InterruptedException | SQLException se2) {
 					if (!net.pms.PMS.isHeadless()) {
-						JOptionPane.showMessageDialog(
-							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							String.format(Messages.getString("DLNAMediaDatabase.ConnectionError"), dbDir),
-							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE
-						);
+						try {
+							JOptionPane.showMessageDialog(
+								SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+								String.format(Messages.getString("DLNAMediaDatabase.ConnectionError"), dbDir),
+								Messages.getString("Dialog.Error"),
+								JOptionPane.ERROR_MESSAGE
+							);
+						} catch (NullPointerException e) {
+							LOGGER.debug("Failed to show database connection error message, probably because GUI is not initialized yet. Error was {}", e);
+						}
 					}
 					LOGGER.debug("", se2);
 					RootFolder rootFolder = PMS.get().getRootFolder(null);
