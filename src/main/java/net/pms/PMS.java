@@ -156,6 +156,10 @@ public class PMS {
 			renderer = RendererConfiguration.getDefaultConf();
 		}
 
+		if (renderer == null) {
+			return null;
+		}
+
 		return renderer.getRootFolder();
 	}
 
@@ -422,7 +426,11 @@ public class PMS {
 		displayBanner();
 
 		// Initialize database
-		Tables.checkTables();
+		try {
+			Tables.checkTables();
+		} catch (SQLException e1) {
+			LOGGER.error("Database was not initialized.");
+		}
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
