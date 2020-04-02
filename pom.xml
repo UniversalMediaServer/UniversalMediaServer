@@ -82,7 +82,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>96</binary-revision>
+		<binary-revision>97</binary-revision>
 
 		<maven-javadoc-plugin-version>3.0.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.4</git-commit-id-plugin-version>
@@ -2151,7 +2151,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>linux-i686</id>
+			<id>linux-x86</id>
 			<!--
 				this setting does the right thing on Linux
 				and is needed for the Hudson profile to work
@@ -2195,7 +2195,7 @@
 								</goals>
 								<configuration>
 									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-i686.xml</descriptor>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-x86.xml</descriptor>
 									</descriptors>
 									<archive>
 										<manifest>
@@ -2229,8 +2229,8 @@
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/i686" />
-										<mkdir dir="${project.binaries}/linux/i686/ffmpeg" />
+										<mkdir dir="${project.binaries}/linux/x86" />
+										<mkdir dir="${project.binaries}/linux/x86/ffmpeg" />
 										<mkdir dir="${project.binaries}/linux/jre-x86" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/bin" />
 										<mkdir dir="${project.binaries}/linux/jre-x86/lib" />
@@ -2314,7 +2314,7 @@
 										<mkdir dir="${project.binaries}/linux/jre-x86/plugin/desktop" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/i686/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/i686/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR_license.txt" usetimestamp="true" />
@@ -2621,7 +2621,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>linux-amd64</id>
+			<id>linux-x86_64</id>
 			<!--
 				this setting does the right thing on Linux
 				and is needed for the Hudson profile to work
@@ -2665,7 +2665,7 @@
 								</goals>
 								<configuration>
 									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-amd64.xml</descriptor>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-linux-x86_64.xml</descriptor>
 									</descriptors>
 									<archive>
 										<manifest>
@@ -2699,8 +2699,8 @@
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/amd64" />
-										<mkdir dir="${project.binaries}/linux/amd64/ffmpeg" />
+										<mkdir dir="${project.binaries}/linux/x86_64" />
+										<mkdir dir="${project.binaries}/linux/x86_64/ffmpeg" />
 										<mkdir dir="${project.binaries}/linux/jre-x64" />
 										<mkdir dir="${project.binaries}/linux/jre-x64/bin" />
 										<mkdir dir="${project.binaries}/linux/jre-x64/lib" />
@@ -2783,7 +2783,7 @@
 										<mkdir dir="${project.binaries}/linux/jre-x64/plugin/desktop" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/amd64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/amd64/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/tsMuxeR_license.txt" usetimestamp="true" />

@@ -179,7 +179,7 @@ These last two commands can easily be automated using a script e.g.:
     git pull
     mvn package linux-*
 
-where `*` is one of: amd64, arm64, armel, armhf, or i686
+where `*` is one of: x86, x86_64, arm64, armel, or armhf
 
 # Cross-compilation
 
@@ -226,7 +226,7 @@ The Windows installer can now be built with one of the following commands:
 
     mvn package -P linux-*
 
-where `*` is one of: amd64, arm64, armel, armhf, or i686
+where `*` is one of: x86, x86_64, arm64, armel, or armhf
 
 ## Building the macOS disk image
 

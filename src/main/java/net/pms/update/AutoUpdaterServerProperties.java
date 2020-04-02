@@ -46,6 +46,6 @@ public class AutoUpdaterServerProperties {
 	}
 
 	private String getPlatformSpecificKey(String key) {
-		return key + "." + operatingSystem.getPlatformName();
+		return key + "." + operatingSystem.toString();
 	}
 }

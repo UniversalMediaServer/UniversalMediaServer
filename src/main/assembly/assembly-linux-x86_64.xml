@@ -25,7 +25,7 @@
 
 		<!-- Include the FFmpeg binary -->
 		<file>
-			<source>${project.binaries}/linux/amd64/ffmpeg/ffmpeg</source>
+			<source>${project.binaries}/linux/x86_64/ffmpeg/ffmpeg</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
