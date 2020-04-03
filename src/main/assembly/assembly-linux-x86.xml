@@ -55,12 +55,12 @@
 	</files>
 	<fileSets>
 		<fileSet>
-			<directory>${project.binaries}</directory>
+			<directory>${project.binaries}/linux/x86</directory>
 			<outputDirectory>.</outputDirectory>
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 			<includes>
-				<include>linux/jre-x86/**</include>
+				<include>/jre/**</include>
 			</includes>
 		</fileSet>
 
