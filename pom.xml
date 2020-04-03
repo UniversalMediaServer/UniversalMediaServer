@@ -73,7 +73,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
-		<sevenzip-version>9.20-2.00beta</sevenzip-version>
+		<sevenzip-version>16.02-2.01</sevenzip-version>
 
 		<twelvemonkeys-imageio-version>3.4.2</twelvemonkeys-imageio-version>
 
@@ -563,11 +563,6 @@
 		    <artifactId>codehaus-parent</artifactId>
 		    <version>4</version>
 		    <type>pom</type>
-		</dependency>
-		<dependency>
-		    <groupId>net.lingala.zip4j</groupId>
-		    <artifactId>zip4j</artifactId>
-		    <version>1.3.2</version>
 		</dependency>
 
 		<!-- start of JAXB dependencies -->
