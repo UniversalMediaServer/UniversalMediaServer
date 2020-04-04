@@ -11,6 +11,12 @@
 	Renderers:
 		Added support for Denon AVR-4311CI (thanks, sc3141!)
 		Added support for Denon AVR-X4200W (thanks, sc3141!)
+	Translation updates via Crowdin:
+		Danish (99%)
+		Greek (92%)
+		Hebrew (19%)
+		Portuguese (99%)
+		Swedish (99%)
 	Dependencies:
 		Fixed incorrect MediaInfo version on Windows, now it is 18.12
 		Updated FFmpeg to 3362330 (20200328) on all operating systems
