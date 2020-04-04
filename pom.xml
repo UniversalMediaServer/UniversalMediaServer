@@ -75,7 +75,7 @@
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>9.20-2.00beta</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.4.2</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.5</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
