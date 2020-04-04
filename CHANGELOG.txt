@@ -1,4 +1,4 @@
-9.4.0 - 2020-04-??
+9.4.0 - 2020-04-05
 
 	General:
 		Started releasing 5 Linux builds: x86, x86_64, ARM, ARMhf and ARM64
