@@ -99,6 +99,8 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("Denon AVR-4311CI", "manufacturer=DENON, modelName=AVR-4311");
 
+		testUPNPDetails("Denon AVR-X4200W", "manufacturer=Denon, modelName=*AVR-X4200W");
+
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");

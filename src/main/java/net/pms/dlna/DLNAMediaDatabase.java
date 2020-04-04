@@ -196,7 +196,8 @@ public class DLNAMediaDatabase implements Runnable {
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
 							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE);
+							JOptionPane.ERROR_MESSAGE
+						);
 					}
 					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 					PMS.get().getRootFolder(null).stopScan();
@@ -204,14 +205,31 @@ public class DLNAMediaDatabase implements Runnable {
 					return;
 				}
 			} else {
-				LOGGER.error("Database connection error: " + se.getMessage());
-				LOGGER.trace("", se);
-				RootFolder rootFolder = PMS.get().getRootFolder(null);
-				if (rootFolder != null) {
-					rootFolder.stopScan();
+				LOGGER.debug("Database connection error, retrying in 10 seconds");
+
+				try {
+					Thread.sleep(10000);
+					conn = getConnection();
+				} catch (InterruptedException | SQLException se2) {
+					if (!net.pms.PMS.isHeadless()) {
+						try {
+							JOptionPane.showMessageDialog(
+								SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+								String.format(Messages.getString("DLNAMediaDatabase.ConnectionError"), dbDir),
+								Messages.getString("Dialog.Error"),
+								JOptionPane.ERROR_MESSAGE
+							);
+						} catch (NullPointerException e) {
+							LOGGER.debug("Failed to show database connection error message, probably because GUI is not initialized yet. Error was {}", e);
+						}
+					}
+					LOGGER.debug("", se2);
+					RootFolder rootFolder = PMS.get().getRootFolder(null);
+					if (rootFolder != null) {
+						rootFolder.stopScan();
+					}
+					return;
 				}
-				configuration.setUseCache(false);
-				return;
 			}
 		} finally {
 			close(conn);

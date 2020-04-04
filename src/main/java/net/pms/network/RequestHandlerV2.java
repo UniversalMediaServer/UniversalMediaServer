@@ -345,13 +345,23 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				":" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getPort() + ")";
 		}
 
-		LOGGER.trace(
-			"Received a {}request from {}:\n\n{}{}",
-			requestType,
-			rendererName,
-			header,
-			StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
-		);
+		if (isNotBlank(requestType)) {
+			LOGGER.trace(
+				"Received a {}request from {}:\n\n{}{}",
+				requestType,
+				rendererName,
+				header,
+				StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+				);
+		} else { // Trace not supported request type
+			LOGGER.trace(
+				"Received a {}request from {}:\n\n{}.\nRenderer UUID={}",
+				soapAction,
+				rendererName,
+				header,
+				renderer.uuid
+				);
+		}
 	}
 
 	/**
