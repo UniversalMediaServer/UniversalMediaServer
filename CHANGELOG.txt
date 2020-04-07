@@ -2,6 +2,20 @@
 
 	General:
 		
+	Translation updates via Crowdin:
+		Bulgarian (93%)
+		Czech (100%)
+		Danish (99%)
+		Finnish (99%)
+		French (99%)
+		Hebrew (21%)
+		Italian (100%)
+		Polish (99%)
+		Portuguese (99%)
+		Portuguese (Brazilian) (99%)
+		Spanish (100%)
+		Swedish (100%)
+		Ukrainian (23%)
 
 9.4.0 - 2020-04-05
 
