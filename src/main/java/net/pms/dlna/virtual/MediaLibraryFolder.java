@@ -3,8 +3,10 @@ package net.pms.dlna.virtual;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.database.TableFilesStatus;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
 
@@ -12,6 +14,9 @@ import net.pms.util.UMSUtils;
  * A MediaLibraryFolder can be populated by either virtual folders (e.g. TEXTS
  * and SEASONS) or virtual/real files (e.g. FILES and ISOS). All of these are
  * connected to SQL queries.
+ *
+ * When the expectedOutput is appended with "_WITH_FILTERS", Watched and Unwatched
+ * variants will be added at the top.
  */
 public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES = 0;
@@ -22,6 +27,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES_NOSORT = 5;
 	public static final int TEXTS_NOSORT = 6;
 	public static final int EPISODES = 7;
+	public static final int TEXTS_WITH_FILTERS = 8;
+	public static final int FILES_WITH_FILTERS = 9;
+	public static final int TEXTS_NOSORT_WITH_FILTERS = 10;
+	public static final int ISOS_WITH_FILTERS = 11;
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
@@ -99,9 +108,23 @@ public class MediaLibraryFolder extends VirtualFolder {
 			if (sql != null) {
 				sql = transformSQL(sql);
 
-				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == EPISODES || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
+				if (
+					expectedOutput == EPISODES ||
+					expectedOutput == FILES ||
+					expectedOutput == FILES_NOSORT ||
+					expectedOutput == FILES_WITH_FILTERS ||
+					expectedOutput == ISOS ||
+					expectedOutput == ISOS_WITH_FILTERS ||
+					expectedOutput == PLAYLISTS
+				) {
 					return !UMSUtils.isListsEqual(populatedFilesListFromDb, database.getStrings(sql));
-				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
+				} else if (
+					expectedOutput == TEXTS ||
+					expectedOutput == TEXTS_NOSORT ||
+					expectedOutput == TEXTS_NOSORT_WITH_FILTERS ||
+					expectedOutput == TEXTS_WITH_FILTERS ||
+					expectedOutput == SEASONS
+				) {
 					return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, database.getStrings(sql));
 				}
 			}
@@ -110,6 +133,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 		return true;
 	}
 
+	final static String UNWATCHED_CONDITION = TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND ";
+	final static String WATCHED_CONDITION = TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS TRUE AND ";
+	final static String SQL_JOIN_SECTION = "LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME ";
+
 	/**
 	 * Removes all children and re-adds them
 	 */
@@ -117,19 +144,77 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public void doRefreshChildren() {
 		ArrayList<File> filesListFromDb = null;
 		ArrayList<String> virtualFoldersListFromDb = null;
+
+		List<String> unwatchedSqls = new ArrayList<>();
+		List<String> watchedSqls = new ArrayList<>();
 		int expectedOutput = 0;
 		if (sqls.length > 0) {
-			String sql = sqls[0];
+			String firstSql = sqls[0];
 
 			expectedOutput = expectedOutputs[0];
-			if (sql != null) {
-				sql = transformSQL(sql);
-				if (expectedOutput == FILES || expectedOutput == FILES_NOSORT || expectedOutput == EPISODES || expectedOutput == PLAYLISTS || expectedOutput == ISOS) {
-					filesListFromDb = database.getFiles(sql);
-					populatedFilesListFromDb = database.getStrings(sql);
-				} else if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
-					virtualFoldersListFromDb = database.getStrings(sql);
-					populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
+			if (firstSql != null) {
+				firstSql = transformSQL(firstSql);
+				switch (expectedOutput) {
+					case FILES:
+					case FILES_NOSORT:
+					case EPISODES:
+					case PLAYLISTS:
+					case ISOS:
+						filesListFromDb = database.getFiles(firstSql);
+						populatedFilesListFromDb = database.getStrings(firstSql);
+						break;
+					case TEXTS:
+					case TEXTS_NOSORT:
+					case SEASONS:
+						virtualFoldersListFromDb = database.getStrings(firstSql);
+						populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
+						break;
+					case FILES_WITH_FILTERS:
+					case ISOS_WITH_FILTERS:
+					case TEXTS_NOSORT_WITH_FILTERS:
+					case TEXTS_WITH_FILTERS:
+						if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS) {
+							virtualFoldersListFromDb = database.getStrings(firstSql);
+							populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
+						} else if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
+							filesListFromDb = database.getFiles(firstSql);
+							populatedFilesListFromDb = database.getStrings(firstSql);
+						}
+
+						// Make "Fully Played" (Unwatched and Watched) variations of the queries
+						for (String sql : sqls) {
+							if (!sql.toLowerCase().startsWith("select")) {
+								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS) {
+									sql = "SELECT FILES.FILENAME FROM FILES WHERE " + sql;
+								}
+								if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
+									sql = "SELECT FILES.FILENAME, FILES.MODIFIED FROM FILES WHERE " + sql;
+								}
+							};
+							String fromFilesString = "FROM FILES ";
+							String whereString = "WHERE ";
+							int indexAfterFrom = sql.indexOf(fromFilesString) + fromFilesString.length();
+
+							// If the query does not already join the FILES_STATUS table, do that now
+							StringBuilder sqlWithJoin = new StringBuilder(sql);
+							if (!sql.contains("LEFT JOIN " + TableFilesStatus.TABLE_NAME)) {
+								sqlWithJoin.insert(indexAfterFrom, SQL_JOIN_SECTION);
+							}
+
+							int indexAfterWhere = sqlWithJoin.indexOf(whereString) + whereString.length();
+
+							StringBuilder unwatchedSql = new StringBuilder(sqlWithJoin);
+							unwatchedSql.insert(indexAfterWhere, UNWATCHED_CONDITION);
+							unwatchedSqls.add(unwatchedSql.toString());
+
+							StringBuilder watchedSql = new StringBuilder(sqlWithJoin);;
+							watchedSql.insert(indexAfterWhere, WATCHED_CONDITION);
+							watchedSqls.add(watchedSql.toString());
+						}
+
+						break;
+					default:
+						break;
 				}
 			}
 		}
@@ -151,7 +236,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 
 		if (virtualFoldersListFromDb != null) {
-			UMSUtils.sort(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
+			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS) {
+				UMSUtils.sort(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
+			}
 
 			for (DLNAResource child : getChildren()) {
 				oldVirtualFolders.add(child);
@@ -168,19 +255,67 @@ public class MediaLibraryFolder extends VirtualFolder {
 		for (DLNAResource virtualFolderResource : oldVirtualFolders) {
 			getChildren().remove(virtualFolderResource);
 		}
+
+		// Add filters at the top
+		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS) {
+			// Convert the expectedOutputs to unfiltered versions
+			int[] filteredExpectedOutputs = expectedOutputs.clone();
+			switch (filteredExpectedOutputs[0]) {
+				case FILES_WITH_FILTERS:
+					filteredExpectedOutputs[0] = FILES;
+					break;
+				case ISOS_WITH_FILTERS:
+					filteredExpectedOutputs[0] = ISOS;
+					break;
+				case TEXTS_WITH_FILTERS:
+					filteredExpectedOutputs[0] = TEXTS;
+					break;
+				case TEXTS_NOSORT_WITH_FILTERS:
+					filteredExpectedOutputs[0] = TEXTS_NOSORT;
+					break;
+				default:
+					break;
+			}
+
+			if (!unwatchedSqls.isEmpty()) {
+				addChild(new MediaLibraryFolder(
+					Messages.getString("VirtualFolder.9"),
+					unwatchedSqls.toArray(new String[0]),
+					filteredExpectedOutputs
+				));
+			}
+			if (!watchedSqls.isEmpty()) {
+				addChild(new MediaLibraryFolder(
+					Messages.getString("VirtualFolder.Watched"),
+					watchedSqls.toArray(new String[0]),
+					filteredExpectedOutputs
+				));
+			}
+		}
+
 		for (File file : newFiles) {
-			if (expectedOutput == FILES || expectedOutput == FILES_NOSORT) {
-				addChild(new RealFile(file));
-			} else if (expectedOutput == EPISODES) {
-				addChild(new RealFile(file, true));
-			} else if (expectedOutput == PLAYLISTS) {
-				addChild(new PlaylistFolder(file));
-			} else if (expectedOutput == ISOS) {
-				addChild(new DVDISOFile(file));
+			switch (expectedOutput) {
+				case FILES:
+				case FILES_NOSORT:
+				case FILES_WITH_FILTERS:
+					addChild(new RealFile(file));
+					break;
+				case EPISODES:
+					addChild(new RealFile(file, true));
+					break;
+				case PLAYLISTS:
+					addChild(new PlaylistFolder(file));
+					break;
+				case ISOS:
+				case ISOS_WITH_FILTERS:
+					addChild(new DVDISOFile(file));
+					break;
+				default:
+					break;
 			}
 		}
 		for (String virtualFolderName : newVirtualFolders) {
-			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
+			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == SEASONS) {
 				String nameToDisplay = null;
 
 				// Don't prepend "Season" text to years 
