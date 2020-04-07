@@ -1,3 +1,32 @@
+9.4.1 - 2020-??
+
+	General:
+		
+
+9.4.0 - 2020-04-05
+
+	General:
+		Started releasing 5 Linux builds: x86, x86_64, ARM, ARMhf and ARM64
+		Linux builds all default to using the system FFmpeg if it exists
+		Improved transcoding speed
+		Fixed broken cache loading in some situations
+		Fixed transcoding bugs
+		Fixed subtitles bugs
+		Improved logging
+	Renderers:
+		Added support for Denon AVR-4311CI (thanks, sc3141!)
+		Added support for Denon AVR-X4200W (thanks, sc3141!)
+	Translation updates via Crowdin:
+		Danish (99%)
+		Greek (92%)
+		Hebrew (19%)
+		Portuguese (99%)
+		Swedish (99%)
+	Dependencies:
+		Fixed incorrect MediaInfo version on Windows, now it is 18.12
+		Updated FFmpeg to 3362330 (20200328) on all operating systems
+		Updated Twelvemonkeys ImageIO to 3.5
+
 9.3.1 - 2020-03-22
 
 	General:
