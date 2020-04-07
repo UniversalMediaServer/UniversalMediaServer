@@ -1,7 +1,5 @@
-9.4.1 - 2020-??
+9.4.1 - 2020-04-??
 
-	General:
-		
 	Translation updates via Crowdin:
 		Bulgarian (93%)
 		Czech (100%)
@@ -16,6 +14,11 @@
 		Spanish (100%)
 		Swedish (100%)
 		Ukrainian (23%)
+	Dependencies:
+		Updated FFmpeg on macOS to fix a startup bug
+		Updated JUnit5 to 5.6.1
+		Updated Maven Javadoc plugin to 3.2.0
+		Updated Maven Assembly plugin to 3.2.0
 
 9.4.0 - 2020-04-05
 
