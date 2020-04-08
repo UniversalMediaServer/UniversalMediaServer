@@ -35,6 +35,10 @@ matrix:
         - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
     - os: osx
       osx_image: xcode9.3
+    - os: osx
+      osx_image: xcode9.4
+    - os: osx
+      osx_image: xcode10.3
 
 install: mvn external:install
 
