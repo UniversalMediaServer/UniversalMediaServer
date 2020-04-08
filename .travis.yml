@@ -13,7 +13,13 @@ matrix:
         - sudo apt-get update
         - sudo apt show mediainfo
         - sudo apt-cache show mediainfo
-        - sudo apt-get show mediainfo
+        - sudo apt-get -y install mediainfo=18.12
+    - os: linux
+      dist: xenial
+      jdk: openjdk8
+      before_install:
+        - sudo apt show mediainfo
+        - sudo apt-cache show mediainfo
         - sudo apt-get -y install mediainfo=18.12
     - os: osx
       osx_image: xcode9.3
