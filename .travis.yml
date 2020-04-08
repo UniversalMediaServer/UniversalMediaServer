@@ -44,4 +44,4 @@ matrix:
 
 install: mvn external:install
 
-script: mvn verify -B -V -P testing
+script: mvn verify -B -V -P testing -e -X
