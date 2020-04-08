@@ -8,7 +8,7 @@ cache:
 
 addons:
   apt:
-    packages: mediainfo
+    packages: mediainfo=18.12
 
 matrix:
   include:
