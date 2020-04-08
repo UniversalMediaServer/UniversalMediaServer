@@ -1,19 +1,16 @@
-dist: trusty
-
 language: java
 
 cache:
   directories:
   - $HOME/.m2
 
-addons:
-  apt:
-    packages: mediainfo=18.12
-
 matrix:
   include:
     - os: linux
+      dist: trusty
       jdk: oraclejdk8
+      before_install:
+        - sudo apt-get -y install mediainfo=18.12
     - os: osx
       osx_image: xcode9.3
 
