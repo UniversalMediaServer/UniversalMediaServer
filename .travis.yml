@@ -19,6 +19,7 @@ matrix:
       jdk: openjdk8
       before_install:
         - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
+        - sudo apt-get -y install libmms0 libzen0v5
         - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
     - os: linux
       dist: bionic
