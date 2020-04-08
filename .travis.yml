@@ -10,10 +10,11 @@ matrix:
       dist: trusty
       jdk: oraclejdk8
       before_install:
-        - sudo apt-get update
-        - sudo apt show mediainfo
-        - sudo apt-cache show mediainfo
-        - sudo apt-get -y install mediainfo=18.12
+        - sudo apt-get -y install libmms0 libzen0v5
+        - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
+        - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
+        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
+        - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
     - os: linux
       dist: xenial
       jdk: openjdk8
@@ -27,10 +28,11 @@ matrix:
       dist: bionic
       jdk: openjdk8
       before_install:
-        - sudo apt-get update
-        - sudo apt show mediainfo
-        - sudo apt-cache show mediainfo
-        - sudo apt-get -y install mediainfo=18.12
+        - sudo apt-get -y install libmms0 libzen0v5
+        - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
+        - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
+        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
+        - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
     - os: osx
       osx_image: xcode9.3
 
