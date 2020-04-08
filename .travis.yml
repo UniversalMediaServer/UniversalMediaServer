@@ -10,7 +10,7 @@ matrix:
       dist: trusty
       jdk: oraclejdk8
       before_install:
-        - apt policy mediainfo
+        - apt show mediainfo
         - sudo apt-get -y install mediainfo=18.12
     - os: osx
       osx_image: xcode9.3
