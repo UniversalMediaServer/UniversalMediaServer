@@ -709,7 +709,7 @@
 
 							There is an incompatible JNA native library installed on this system.
 						-->
-						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
+						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier -Xmx1024m -XX:MaxPermSize=256m</argLine> <!-- only one argLine element is processed -->
 					</configuration>
 					<version>${surefire-version}</version>
 				</plugin>
