@@ -18,10 +18,8 @@ matrix:
       dist: xenial
       jdk: openjdk8
       before_install:
-        - sudo apt-get update
-        - sudo apt show mediainfo
-        - sudo apt-cache show mediainfo
-        - sudo apt-get -y install mediainfo=18.12
+        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
+        - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
     - os: linux
       dist: bionic
       jdk: openjdk8
