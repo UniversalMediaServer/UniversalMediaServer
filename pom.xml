@@ -98,7 +98,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<logback-version>1.2.3</logback-version>
-		<surefire-version>2.22.2</surefire-version>
+		<surefire-version>3.0.0-M4</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -711,9 +711,10 @@
 
 							3) Xmx and MaxPermSize from https://stackoverflow.com/questions/23260057/the-forked-vm-terminated-without-saying-properly-goodbye-vm-crash-or-system-exi
 						-->
-						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier -Xmx1024m -XX:MaxPermSize=256m</argLine> <!-- only one argLine element is processed -->
+						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier -Xmx1280m -XX:MaxPermSize=256m</argLine> <!-- only one argLine element is processed -->
 						<forkCount>1</forkCount>
 						<reuseForks>true</reuseForks>
+          	<useSystemClassLoader>false</useSystemClassLoader>
 					</configuration>
 					<version>${surefire-version}</version>
 				</plugin>
