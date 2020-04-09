@@ -27,6 +27,7 @@ import static net.pms.util.XMLRPCUtil.writeMethod;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -61,6 +62,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -99,7 +101,6 @@ import net.pms.util.XMLRPCUtil.ValueString;
 import net.pms.util.XMLRPCUtil.ValueStruct;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -208,23 +209,76 @@ public class OpenSubtitle {
 		return hash;
 	}
 
-	private static String postPage(URLConnection connection, String query) throws IOException {
+	private static String getJson(URL url) throws IOException {
+		HttpURLConnection connection = null;
+		try {
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setAllowUserInteraction(false);
+			connection.setDoOutput(true);
+			connection.setDoInput(true);
+			connection.setUseCaches(false);
+			connection.setDefaultUseCaches(false);
+			connection.setRequestProperty("Content-Type", "text/json");
+			connection.setRequestProperty("Content-length", "0");
+			connection.setConnectTimeout(15000);
+			connection.setRequestMethod("GET");
+			connection.connect();
+
+			int status = connection.getResponseCode();
+
+			switch (status) {
+				case 200:
+				case 201:
+					try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+						StringBuilder sb = new StringBuilder();
+						String line;
+						while ((line = br.readLine()) != null) {
+							sb.append(line).append("\n");
+						}
+						br.close();
+						return sb.toString().trim();
+					}
+				default:
+					LOGGER.debug("API status was " + status + " for " + url.toString());
+			}
+		} catch (MalformedURLException ex) {
+			LOGGER.debug("" + ex);
+		} catch (IOException ex) {
+			LOGGER.debug("" + ex);
+		} finally {
+			if (connection != null) {
+				try {
+					connection.disconnect();
+				} catch (Exception ex) {
+					LOGGER.debug("" + ex);
+				}
+			}
+		}
+		return null;
+	}
+
+	private static String postPage(URLConnection connection, List<NameValuePair> params) throws IOException {
 		connection.setDoOutput(true);
 		connection.setDoInput(true);
 		connection.setUseCaches(false);
 		connection.setDefaultUseCaches(false);
-		connection.setRequestProperty("Content-Type", "text/xml");
-		connection.setRequestProperty("Content-Length", "" + query.length());
+		connection.setRequestProperty("Content-Type", "text/json");
+		connection.setRequestProperty("Content-Length", "0");
+
+		for (NameValuePair param : params) {
+			connection.setRequestProperty(param.getName(), param.getValue());
+		}
+
 		connection.setConnectTimeout(5000);
 		((HttpURLConnection) connection).setRequestMethod("POST");
-		//LOGGER.debug("opensub query "+query);
+		// LOGGER.debug("opensub query " + query);
 		// open up the output stream of the connection
-		if (!StringUtils.isEmpty(query)) {
+//		if (!StringUtils.isEmpty(query)) {
 			try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-				output.writeBytes(query);
+//				output.writeBytes(query);
 				output.flush();
 			}
-		}
+//		}
 
 		StringBuilder page;
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
@@ -235,8 +289,8 @@ public class OpenSubtitle {
 			}
 		}
 
-		//LOGGER.debug("opensubs result page "+page.toString());
-		return page.toString();
+		LOGGER.debug("API result page " + page.toString());
+		return page.toString().trim();
 	}
 
 	/**
@@ -1831,20 +1885,29 @@ public class OpenSubtitle {
 	 *
 	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDb.
+	 *         if we couldn't find it.
 	 *
 	 * @throws IOException
 	 */
 	private static String[] getInfoFromOSDbHash(String hash, long size) throws IOException {
-		UriFileRetriever uriRetriever = new UriFileRetriever();
-		byte[] rawWebResponse = uriRetriever.get("https://www.universalmediaserver.com/api/media/" + hash + "/" + size);
+		URL domain = new URL("https://www.universalmediaserver.com");
+		URL url = new URL(domain, "/api/media/" + hash + "/" + size);
 
-		String stringResponse = new String(rawWebResponse, "UTF-8");
-		LOGGER.info(stringResponse);
+		String page = getJson(url);
+		String notFoundMessage = "Metadata not found on OpenSubtitles";
+		if (page == null || Objects.equals(notFoundMessage, page)) {
+			return null;
+		}
+
 		HashMap<String, String> data = new HashMap<>();
-		data = gson.fromJson(stringResponse, data.getClass());
 
-		if (data.get("message").equals("Metadata not found on OpenSubtitles")) {
+		try {
+			data = gson.fromJson(page, data.getClass());
+		} catch (JsonSyntaxException e) {
+			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", page, e);
+		}
+
+		if (data.isEmpty()) {
 			return null;
 		}
 
@@ -1871,17 +1934,17 @@ public class OpenSubtitle {
 	 * @throws IOException
 	 */
 	private static String[] getInfoFromFilename(String filename) throws IOException {
-		UriFileRetriever uriRetriever = new UriFileRetriever();
+		URL domain = new URL("https://www.universalmediaserver.com");
+		URL url = new URL(domain, "/api/media/title/");
 
-		List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+		List<NameValuePair> params = new ArrayList<>(2);
 		params.add(new BasicNameValuePair("title", filename));
 
-		byte[] rawWebResponse = uriRetriever.post("https://www.universalmediaserver.com/api/media/title/", params);
+		String page = postPage(url.openConnection(), params);
 
-		String stringResponse = new String(rawWebResponse, "UTF-8");
-		LOGGER.info(stringResponse);
+		LOGGER.info(page);
 		HashMap<String, String> data = new HashMap<>();
-		data = gson.fromJson(stringResponse, data.getClass());
+		data = gson.fromJson(page, data.getClass());
 
 		if (data.get("message").equals("Metadata not found on OpenSubtitles")) {
 			return null;
@@ -1973,28 +2036,28 @@ public class OpenSubtitle {
 			"MovieYear</name>.*?<string>([^<]+)</string>.*?",
 			Pattern.DOTALL
 		);
-		String page = postPage(url.openConnection(), req);
-		Matcher m = re.matcher(page);
-		if (m.find()) {
-			LOGGER.debug("match {},{},{},{},{}", m.group(1), m.group(2), m.group(3), m.group(4), m.group(5));
-			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
-			String name = m.group(2);
-			Matcher m1 = re1.matcher(name);
-			String episodeName = "";
-			if (m1.find()) {
-				episodeName = m1.group(2).trim();
-				name = m1.group(1).trim();
-			}
-
-			return new String[]{
-				ImdbUtil.ensureTT(m.group(1).trim()),
-				episodeName,
-				StringEscapeUtils.unescapeHtml4(name),
-				m.group(3).trim(), // Season number
-				m.group(4).trim(), // Episode number
-				m.group(5).trim()  // Year
-			};
-		}
+//		String page = postPage(url.openConnection(), req);
+//		Matcher m = re.matcher(page);
+//		if (m.find()) {
+//			LOGGER.debug("match {},{},{},{},{}", m.group(1), m.group(2), m.group(3), m.group(4), m.group(5));
+//			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
+//			String name = m.group(2);
+//			Matcher m1 = re1.matcher(name);
+//			String episodeName = "";
+//			if (m1.find()) {
+//				episodeName = m1.group(2).trim();
+//				name = m1.group(1).trim();
+//			}
+//
+//			return new String[]{
+//				ImdbUtil.ensureTT(m.group(1).trim()),
+//				episodeName,
+//				StringEscapeUtils.unescapeHtml4(name),
+//				m.group(3).trim(), // Season number
+//				m.group(4).trim(), // Episode number
+//				m.group(5).trim()  // Year
+//			};
+//		}
 		return null;
 	}
 
