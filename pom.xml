@@ -466,7 +466,8 @@
 
       <exclusions>
         <!--
-					The exclusions can be removed when https://github.com/vitalidze/chromecast-java-api-v2/issues/124 is resolved.
+					The exclusions can be removed when
+					https://github.com/vitalidze/chromecast-java-api-v2/issues/124 is resolved.
 					Fix from https://github.com/openhab/openhab-addons/pull/7258/files
 				-->
         <exclusion>
