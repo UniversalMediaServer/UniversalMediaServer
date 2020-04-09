@@ -698,24 +698,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<configuration>
 
-						<!--
-							1) Force language because JUnit tests depend on English language strings
-
-							2) Use our JNA dependency rather than the system's - fixes
-							the following error on Linux (Ubuntu 12.04 with system
-							jna-3.2.7.jar via libjna-java):
-
-							There is an incompatible JNA native library installed on this system.
-
-							3) Xmx and MaxPermSize from https://stackoverflow.com/questions/23260057/the-forked-vm-terminated-without-saying-properly-goodbye-vm-crash-or-system-exi
-						-->
-						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier -Xmx1280m -XX:MaxPermSize=256m</argLine> <!-- only one argLine element is processed -->
-						<forkCount>1</forkCount>
-						<reuseForks>true</reuseForks>
-          	<useSystemClassLoader>false</useSystemClassLoader>
-					</configuration>
 					<version>${surefire-version}</version>
 				</plugin>
 
