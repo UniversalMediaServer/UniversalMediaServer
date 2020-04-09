@@ -462,7 +462,26 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>0.11.0</version>
+			<version>0.11.2</version>
+
+      <exclusions>
+        <!--
+					The exclusions can be removed when https://github.com/vitalidze/chromecast-java-api-v2/issues/124 is resolved.
+					Fix from https://github.com/openhab/openhab-addons/pull/7258/files
+				-->
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+      </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
