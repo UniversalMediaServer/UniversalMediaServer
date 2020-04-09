@@ -270,7 +270,7 @@ public final class TableCoverArtArchive extends Tables {
 					"ID IDENTITY PRIMARY KEY, " +
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
-					"COVER BLOB, " +
+					"COVER BLOB" +
 				")");
 			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
 		}

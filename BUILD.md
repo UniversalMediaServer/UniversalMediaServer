@@ -61,9 +61,9 @@ download the latest sources and build UMS:
 
 The result will be built in the "target" directory:
 
-* Windows: `UMS-setup-full.exe`, `UMS-setup-full-x64.exe` and `UMS-setup-without-jre.exe`
-* Linux: `ums-linux-generic-x.xx.x.tar.gz`
-* macOS: `ums-setup-macosx-x.xx.x.tar.gz`
+* Windows: `UMS-x.xx.x-setup.exe`
+* Linux: `ums-x.xx.x-distribution.tar.gz`
+* macOS: `ums-x.xx.x-distribution/Universal Media Server.app`
 
 # Full instructions
 
@@ -71,23 +71,7 @@ First all required software has to be installed:
 
 ## 1. Download and install the Java 8 JDK
 
-Note: the JRE is not enough, and versions higher than Java 8 are not recommended.
-
-### Windows
-
-See http://www.oracle.com/technetwork/java/javase/downloads/index.html
-
-Be sure to remember the install location.
-
-### Linux
-
-    sudo apt-get install openjdk-7-jdk
-
-### macOS
-
-See https://developer.apple.com/downloads/index.action?name=for%20Xcode%20-
-
-Look for the Java Developer Package.
+Download and install from https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
 
 ## 2. Download and install Git
 
@@ -193,19 +177,17 @@ These last two commands can easily be automated using a script e.g.:
     # build-ums.sh
     cd UniversalMediaServer
     git pull
-    mvn package
+    mvn package linux-*
+
+where `*` is one of: x86, x86_64, arm64, armel, or armhf
 
 # Cross-compilation
 
-By default, `mvn package` builds an installer or distibution file for the
-platform it is being compiled on e.g. `UMS-setup-full.exe` on Windows and a tarball on Linux.
-
-As an optional step, releases for other platforms can be built.
+This section explains how it is possible to compile for one system while on another.
 
 ## Building the Windows binaries
 
-The Windows installers (`UMS-setup-full.exe`, `UMS-setup-full-x64.exe` and `UMS-setup-without-jre.exe`) and Windows executable
-(`UMS.exe`) can be built on non-Windows platforms.
+The Windows installers (`UMS-version.exe`) and Windows executable (`UMS.exe`) can be built on non-Windows platforms.
 
 First of all, you'll need to have the `makensis` binary installed. On Debian/Ubuntu,
 this can be done with:
@@ -234,34 +216,23 @@ For the sake of brevity, the following examples assume it has already been set.
 
 The Windows installer can now be built with one of the following commands:
 
-### On Linux
+### On Linux and macOS
 
     mvn package -P system-makensis,windows
 
-### On macOS
+## Building a Linux tarball
 
-    mvn package -P system-makensis,windows,-osx-java7,-osx-java8
+### On Windows and macOS
 
-## Building the Linux tarball
+    mvn package -P linux-*
 
-### On Windows
+where `*` is one of: x86, x86_64, arm64, armel, or armhf
 
-    mvn package -P linux,-windows
+## Building the macOS disk image
 
-### On macOS
+### On Windows and Linux
 
-    mvn package -P linux,-osx-java7,-osx-java8
-
-## Building the macOS installer tarball
-
-The macOS installer tarball can be built on any platform by specifying
-the "osx" profile explicity:
-
-    mvn package -P osx-java7
-
-or
-
-    mvn package -P osx-java8
+    mvn package -P macos
 
 ## Building the macOS wizard installer
 

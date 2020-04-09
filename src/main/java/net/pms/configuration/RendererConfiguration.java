@@ -180,6 +180,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
+	protected static final String SIMULATE_MRR = "SimulateMRR";
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String STREAM_SUBS_FOR_TRANSCODED_VIDEO = "StreamSubsForTranscodedVideo";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
@@ -1301,6 +1302,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
+
+					if (matchedMimeType != null) {
+						if (pmsConfiguration.isAudioResample()) {
+							if (isTranscodeAudioTo441()) {
+								matchedMimeType += ";rate=44100;channels=2";
+							} else {
+								matchedMimeType += ";rate=48000;channels=2";
+							}
+						} else if (media != null && media.getFirstAudioTrack() != null) {
+							AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+							if (audio.getSampleFrequency() > 0) {
+								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+							}
+							if (audio.getNumberOfChannels() > 0) {
+								matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1322,30 +1341,28 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
+
+					if (pmsConfiguration.isAudioResample()) {
+						if (isTranscodeAudioTo441()) {
+							matchedMimeType += ";rate=44100;channels=2";
+						} else {
+							matchedMimeType += ";rate=48000;channels=2";
+						}
+					} else if (media != null) {
+						AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+						if (audio.getSampleFrequency() > 0) {
+							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+						}
+						if (audio.getNumberOfChannels() > 0) {
+							matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
+						}
+					}
 				}
 			}
 		}
 
 		if (matchedMimeType == null) {
 			matchedMimeType = mimeType;
-		}
-
-		if (media != null && media.isAudio()) {
-			if (pmsConfiguration.isAudioResample()) {
-				if (isTranscodeAudioTo441()) {
-					matchedMimeType += ";rate=44100;channels=2";
-				} else {
-					matchedMimeType += ";rate=48000;channels=2";
-				}
-			} else if (media.getFirstAudioTrack() != null) {
-				AudioProperties firstAudioTrackProperties = media.getFirstAudioTrack().getAudioProperties();
-				if (firstAudioTrackProperties.getSampleFrequency() > 0) {
-					matchedMimeType += ";rate=" + Integer.toString(firstAudioTrackProperties.getSampleFrequency());
-				}
-				if (firstAudioTrackProperties.getNumberOfChannels() > 0) {
-					matchedMimeType += ";channels=" + Integer.toString(firstAudioTrackProperties.getNumberOfChannels());
-				}
-			}
 		}
 
 		// Apply renderer specific mime type aliases
