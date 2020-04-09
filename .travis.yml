@@ -30,10 +30,10 @@ matrix:
       jdk: openjdk8
       before_install:
         - sudo apt-get -y install libmms0
-        - wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0v5_0.4.37-1_amd64.xUbuntu_16.04.deb
-        - sudo dpkg -i libzen0v5_0.4.37-1_amd64.xUbuntu_16.04.deb
-        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
-        - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_16.04.deb
+        - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+        - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
+        - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
     - os: osx
       osx_image: xcode9.3
     - os: osx
@@ -41,4 +41,4 @@ matrix:
 
 install: mvn external:install
 
-script: mvn verify -B -V -P testing -e -X
+script: mvn verify -B -V -P testing
