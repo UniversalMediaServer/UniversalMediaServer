@@ -2,7 +2,6 @@ package net.pms.dlna;
 
 import ch.qos.logback.classic.Level;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Percentage.withPercentage;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -19,8 +18,9 @@ public class DLNAMediaInfoTest {
 	private static final Class<?> CLASS = DLNAMediaInfoTest.class;
 
 	private static final String[] test_files = {
-			"pexels-video-4809.mp4", "pexels-video-4809.mkv"
-		};
+		"pexels-video-4809.mp4",
+		"pexels-video-4809.mkv",
+	};
 	private static final int[] test_content = new int[test_files.length];
 
 	@BeforeClass
@@ -41,13 +41,13 @@ public class DLNAMediaInfoTest {
 		// force unbuffered if in trace mode
 		LoggingConfig.setBuffered(false);
 
-		Logger logger = LoggerFactory.getLogger(CLASS);
+		Logger LOGGER = LoggerFactory.getLogger(CLASS);
 
 		Services.create();
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
-			logger.warn("Failed to write credentials configuration", ex);
+			LOGGER.warn("Failed to write credentials configuration", ex);
 		}
 
 		if (PMS.getConfiguration().isRunSingleInstance()) {
@@ -71,7 +71,7 @@ public class DLNAMediaInfoTest {
 			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			dlna.resolveFormat();
 			dlna.syncResolve();
-			logger.trace("mediainfo: %s\n", dlna.getMedia().toString());
+			LOGGER.trace("mediainfo: %s\n", dlna.getMedia().toString());
 			PMS.getGlobalRepo().add(dlna);
 			test_content[i] = dlna.getIntId();
 		}
@@ -79,24 +79,31 @@ public class DLNAMediaInfoTest {
 
 	@Test
 	public void testContainerProperties() throws Exception {
-		DLNAResource dlna = PMS.getGlobalRepo().get(test_content[0]);
+		DLNAResource mp4Video = PMS.getGlobalRepo().get(test_content[0]);
+		DLNAMediaInfo mp4VideoMediaInfo = mp4Video.getMedia();
+		assertThat(mp4VideoMediaInfo.toString()).isEqualTo(
+			"Container: MP4, Size: 9441436, Video Bitrate: 4899870, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.415, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.709, Reference Frame Count: 4, AVC Level: 4, AVC Profile: high, Mime Type: video/mp4"
+		);
 
-		assertThat(dlna.getMedia().getSize()).isEqualTo(9441436L);
-		//assertThat( dlna.getMedia().getContainer() ).isEqualTo("mp4");
-		//assertThat( dlna.getMedia().getMimeType() ).isEqualTo("video/mp4");
-		assertThat(dlna.getFormat().getType()).isEqualTo(4);
+		// assertThat(mp4Video.getMedia().getAudioTrackCount()).isEqualTo(1);
+		// assertThat(mp4Video.getMedia().getImageCount()).isEqualTo(0);
+		// assertThat(mp4Video.getMedia().getSubTrackCount()).isEqualTo(0);
 
-		dlna = PMS.getGlobalRepo().get(test_content[1]);
+		// assertThat(mp4Video.getMedia().getSize()).isEqualTo(9441436L);
+		// assertThat(mp4Video.getFormat().getType()).isEqualTo(4);
 
-		assertThat(dlna.getMedia().getSize()).isEqualTo(9439150L);
-		assertThat(dlna.getFormat().getType()).isEqualTo(4);
+		DLNAResource mkvVideo = PMS.getGlobalRepo().get(test_content[1]);
+		DLNAMediaInfo mkvVideoMediaInfo = mkvVideo.getMedia();
+		assertThat(mkvVideoMediaInfo.toString()).isEqualTo(
+			"Container: MKV, Size: 9439150, Video Bitrate: 4898683, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.415, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.709, Reference Frame Count: 4, AVC Level: 4, AVC Profile: high, Mime Type: video/x-matroska"
+		);
 
-		/* These are disabled because of inconsistent behaviour between systems:
-		Sometimes "matroska" and "video/x-matroska"
-		and sometimes (including travis) "mkv" and "video/mkv".   
-		 */
-		//assertThat( dlna.getMedia().getContainer() ).isEqualTo("matroska");
-		//assertThat( dlna.getMedia().getMimeType() ).isEqualTo("video/x-matroska");
+		// assertThat(mkvVideo.getMedia().getAudioTrackCount()).isEqualTo(1);
+		// assertThat(mkvVideo.getMedia().getImageCount()).isEqualTo(0);
+		// assertThat(mkvVideo.getMedia().getSubTrackCount()).isEqualTo(0);
+
+		// assertThat(mkvVideo.getMedia().getSize()).isEqualTo(9439150L);
+		// assertThat(mkvVideo.getFormat().getType()).isEqualTo(4);
 	}
 
 	@Test
@@ -104,39 +111,29 @@ public class DLNAMediaInfoTest {
 		for (int id : test_content) {
 			DLNAResource dlna = PMS.getGlobalRepo().get(id);
 			System.out.format("mediainfo: %s\n", dlna.getMedia().toString());
-			assertThat(dlna.getMedia().getVideoTrackCount()).isEqualTo(1);
-			assertThat(dlna.getMedia().getCodecV()).isEqualTo("h264");
-			assertThat(dlna.getMedia().getBitrate()).isCloseTo(5016576, withPercentage(5));
-			
-			assertThat(dlna.getMedia().getFrameRate()).isEqualTo("29.970");
-			assertThat(dlna.getMedia().getDuration()).isCloseTo(15.42, withPercentage(1));
-			assertThat(dlna.getMedia().getResolution()).isEqualToIgnoringWhitespace("1920x1080");
-//			assertThat( dlna.getMedia().getFrameNumbers() ).isCloseTo(462,withPercentage(5));
 			assertThat(dlna.getMedia().getExifOrientation().getValue()).isEqualTo(1);
 			System.out.format("MediaInfo parsing OK \n");
 		}
 
-		//System.out.format( "name: %s\n", dlna.getName() );
-		//System.out.format( "display name: %s\n", dlna.getDisplayName() );
-		//System.out.format( "aspect ratio: %s\n", dlna.getMedia().getAspectRatioMencoderMpegopts(false) );
-		//System.out.format( "aspect ratio: %s\n", dlna.getMedia().getAspectRatioMencoderMpegopts(true) );
-		//System.out.format( "aspect ratio: %d/%d\n", dlna.getMedia().getAspectRatioVideoTrack().getNumerator(), dlna.getMedia().getAspectRatioVideoTrack().getDenominator() );
-		//System.out.format( "frame rate mode: %s\n", dlna.getMedia().getFrameRateMode() );
-		/*
-		for(RendererConfiguration mediaRenderer : RendererConfiguration.getEnabledRenderersConfigurations()) {
-			if( mediaRenderer.getConfName() != null && mediaRenderer.getConfName().equals("VLC for desktop") ) {
-				dlna.resolvePlayer(mediaRenderer);
-			}
-		}
-		Player player = PlayerFactory.getPlayer(dlna);
+		// System.out.format( "name: %s\n", dlna.getName() );
+		// System.out.format( "display name: %s\n", dlna.getDisplayName() );
+		// System.out.format( "aspect ratio: %s\n", dlna.getMedia().getAspectRatioMencoderMpegopts(false) );
+		// System.out.format( "aspect ratio: %s\n", dlna.getMedia().getAspectRatioMencoderMpegopts(true) );
+		// System.out.format( "aspect ratio: %d/%d\n", dlna.getMedia().getAspectRatioVideoTrack().getNumerator(), dlna.getMedia().getAspectRatioVideoTrack().getDenominator() );
+		// System.out.format( "frame rate mode: %s\n", dlna.getMedia().getFrameRateMode() );
+		// for(RendererConfiguration mediaRenderer : RendererConfiguration.getEnabledRenderersConfigurations()) {
+		// 	if( mediaRenderer.getConfName() != null && mediaRenderer.getConfName().equals("VLC for desktop") ) {
+		// 		dlna.resolvePlayer(mediaRenderer);
+		// 	}
+		// }
+		// Player player = PlayerFactory.getPlayer(dlna);
 
-		for (Player p:PlayerFactory.getAllPlayers()){
-			System.out.println(p.id().getName());
-			System.out.println(p.isActive());
-			System.out.println(p.isAvailable());
-			System.out.println(p.isEnabled());
-			System.out.println(p.getClass().getName());
-		}
-		 */
+		// for (Player p:PlayerFactory.getAllPlayers()){
+		// 	System.out.println(p.id().getName());
+		// 	System.out.println(p.isActive());
+		// 	System.out.println(p.isAvailable());
+		// 	System.out.println(p.isEnabled());
+		// 	System.out.println(p.getClass().getName());
+		// }
 	}
 }
