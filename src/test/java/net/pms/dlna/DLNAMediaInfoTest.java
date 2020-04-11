@@ -73,22 +73,16 @@ public class DLNAMediaInfoTest {
 		parent.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		PMS.getGlobalRepo().add(parent);
 
-		try {
-			for (int i = 0; i < test_files.length; ++i) {
-				DLNAResource dlna;
-				File file = FileUtils.toFile(CLASS.getResource(test_files[i]));
-				dlna = new RealFile(file);
-				dlna.setMedia(new DLNAMediaInfo());
-				dlna.setParent(parent);
-				dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
-				dlna.resolveFormat();
-				dlna.syncResolve();
-				PMS.getGlobalRepo().add(dlna);
-				test_content[i] = dlna.getIntId();
-			}
-		} catch (Exception e) {
-			System.out.format("Exception: " + e + "\n");
-			// Exceptions are not logged in the test output unless we catch them. Seems like the reverse of how it should be *shrugs*
+		for (int i = 0; i < test_files.length; ++i) {
+			DLNAResource dlna;
+			dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
+			dlna.setMedia(new DLNAMediaInfo());
+			dlna.setParent(parent);
+			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
+			dlna.resolveFormat();
+			dlna.syncResolve();
+			PMS.getGlobalRepo().add(dlna);
+			test_content[i] = dlna.getIntId();
 		}
 	}
 
