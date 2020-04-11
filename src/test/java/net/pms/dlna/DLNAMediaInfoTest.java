@@ -29,6 +29,7 @@ public class DLNAMediaInfoTest {
 		"video-mp4-aac.mov",
 		"video-wmv-wma.wmv",
 		"video-vp8.webm",
+		"video-sor-aac.flv",
 	};
 	private static final int[] test_content = new int[test_files.length];
 
@@ -151,6 +152,12 @@ public class DLNAMediaInfoTest {
 		DLNAMediaInfo webmVideoMediaInfo = webmVideo.getMedia();
 		assertThat(webmVideoMediaInfo.toString()).isEqualTo(
 			"Container: WEBM, Size: 3028588, Video Bitrate: 2012351, Video Tracks: 1, Video Codec: vp8, Duration: 0:00:12.040, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Mime Type: video/webm"
+		);
+
+		DLNAResource flvVideo = PMS.getGlobalRepo().get(test_content[10]);
+		DLNAMediaInfo flvVideoMediaInfo = flvVideo.getMedia();
+		assertThat(flvVideoMediaInfo.toString()).isEqualTo(
+			"Container: FLV, Size: 2097492, Video Bitrate: 1529899, Video Tracks: 1, Video Codec: sor, Duration: 0:00:10.968, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 375000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-flv"
 		);
 	}
 
