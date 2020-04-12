@@ -103,7 +103,7 @@ public class DLNAMediaInfoTest {
 		DLNAResource mkvHevc10bitVideo = PMS.getGlobalRepo().get(test_content[2]);
 		DLNAMediaInfo mkvHevc10bitVideoMediaInfo = mkvHevc10bitVideo.getMedia();
 		assertThat(mkvHevc10bitVideoMediaInfo.toString()).isEqualTo(
-			"Container: MP4, Size: 706007, Overall Bitrate: 404647, Video Tracks: 1, Video Codec: h265, Duration: 0:00:13.958, Video Resolution: 1920 x 800, Display Aspect Ratio: 2.39:1, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: hevc:fps=24@GPAC0.5.1-DEV-rev4807, Mime Type: video/mp4"
+			"Container: MP4, Size: 706007, Overall Bitrate: 404646, Video Tracks: 1, Video Codec: h265, Duration: 0:00:13.958, Video Resolution: 1920 x 800, Display Aspect Ratio: 2.39:1, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: hevc:fps=24@GPAC0.5.1-DEV-rev4807, Mime Type: video/mp4"
 		);
 
 		DLNAResource oggVideo = PMS.getGlobalRepo().get(test_content[3]);
