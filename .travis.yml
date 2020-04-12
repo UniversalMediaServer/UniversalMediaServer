@@ -51,6 +51,7 @@ matrix:
       before_install:
         - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
         - source $GRAVIS/install-jdk
+        - source $GRAVIS/install-maven
 
 install: mvn external:install
 
