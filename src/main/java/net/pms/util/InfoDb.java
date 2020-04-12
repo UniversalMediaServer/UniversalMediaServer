@@ -16,6 +16,26 @@ public class InfoDb implements DbHandler {
 		public String season;
 		public String episode;
 		public String title;
+
+		public String actors;
+		public String awards;
+		public String boxoffice;
+		public String country;
+		public String directors;
+		public String genres;
+		public String goofs;
+		public String metascore;
+		public String production;
+		public String poster;
+		public String rated;
+		public String rating;
+		public String ratings;
+		public String released;
+		public String runtime;
+		public String tagline;
+		public String trivia;
+		public String type;
+		public String votes;
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InfoDb.class);
@@ -100,13 +120,32 @@ public class InfoDb implements DbHandler {
 
 	public Object create(String[] args, int off) {
 		InfoDbData data = new InfoDbData();
-		data.imdb = FileDb.safeGetArg(args, off);
-		data.ep_name = FileDb.safeGetArg(args, off + 1);
-		data.title = FileDb.safeGetArg(args, off + 2);
-		data.season = FileDb.safeGetArg(args, off + 3);
-		data.episode = FileDb.safeGetArg(args, off + 4);
-		data.year = FileDb.safeGetArg(args, off + 5);
+		data.imdb = FileDb.safeGetArg(args, off++);
+		data.ep_name = FileDb.safeGetArg(args, off++);
+		data.title = FileDb.safeGetArg(args, off++);
+		data.season = FileDb.safeGetArg(args, off++);
+		data.episode = FileDb.safeGetArg(args, off++);
+		data.year = FileDb.safeGetArg(args, off++);
 
+		data.actors     = FileDb.safeGetArg(args, off++);
+		data.awards     = FileDb.safeGetArg(args, off++);
+		data.boxoffice  = FileDb.safeGetArg(args, off++);
+		data.country    = FileDb.safeGetArg(args, off++);
+		data.directors  = FileDb.safeGetArg(args, off++);
+		data.genres     = FileDb.safeGetArg(args, off++);
+		data.goofs      = FileDb.safeGetArg(args, off++);
+		data.metascore  = FileDb.safeGetArg(args, off++);
+		data.production = FileDb.safeGetArg(args, off++);
+		data.poster     = FileDb.safeGetArg(args, off++);
+		data.rated      = FileDb.safeGetArg(args, off++);
+		data.rating     = FileDb.safeGetArg(args, off++);
+		data.ratings    = FileDb.safeGetArg(args, off++);
+		data.released   = FileDb.safeGetArg(args, off++);
+		data.runtime    = FileDb.safeGetArg(args, off++);
+		data.tagline    = FileDb.safeGetArg(args, off++);
+		data.trivia     = FileDb.safeGetArg(args, off++);
+		data.type       = FileDb.safeGetArg(args, off++);
+		data.votes      = FileDb.safeGetArg(args, off++);
 		return data;
 	}
 
@@ -119,7 +158,27 @@ public class InfoDb implements DbHandler {
 			data.title,
 			data.season,
 			data.episode,
-			data.year
+			data.year,
+
+			data.actors,
+			data.awards,
+			data.boxoffice,
+			data.country,
+			data.directors,
+			data.genres,
+			data.goofs,
+			data.metascore,
+			data.production,
+			data.poster,
+			data.rated,
+			data.rating,
+			data.ratings,
+			data.released,
+			data.runtime,
+			data.tagline,
+			data.trivia,
+			data.type,
+			data.votes,
 		};
 	}
 

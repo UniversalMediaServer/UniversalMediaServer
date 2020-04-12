@@ -1911,13 +1911,34 @@ public class OpenSubtitle {
 			return null;
 		}
 
+		// TODO: Make the first 6 entries here be in alphabetical order with the rest
 		return new String[]{
 			data.get("imdbID"),
 			data.get("episodeTitle"),
 			data.get("title"),
 			data.get("seasonNumber"),
 			data.get("episodeNumber"),
-			data.get("year")
+			data.get("year"),
+
+			data.get("actors"),
+			data.get("awards"),
+			data.get("boxoffice"),
+			data.get("country"),
+			data.get("directors"),
+			data.get("genres"),
+			data.get("goofs"),
+			data.get("metascore"),
+			data.get("production"),
+			data.get("poster"),
+			data.get("rated"),
+			data.get("rating"),
+			data.get("ratings"),
+			data.get("released"),
+			data.get("runtime"),
+			data.get("tagline"),
+			data.get("trivia"),
+			data.get("type"),
+			data.get("votes"),
 		};
 	}
 
@@ -1956,7 +1977,27 @@ public class OpenSubtitle {
 			data.get("title"),
 			data.get("seasonNumber"),
 			data.get("episodeNumber"),
-			data.get("year")
+			data.get("year"),
+
+			data.get("actors"),
+			data.get("awards"),
+			data.get("boxoffice"),
+			data.get("country"),
+			data.get("directors"),
+			data.get("genres"),
+			data.get("goofs"),
+			data.get("metascore"),
+			data.get("production"),
+			data.get("poster"),
+			data.get("rated"),
+			data.get("rating"),
+			data.get("ratings"),
+			data.get("released"),
+			data.get("runtime"),
+			data.get("tagline"),
+			data.get("trivia"),
+			data.get("type"),
+			data.get("votes"),
 		};
 	}
 
@@ -1995,7 +2036,27 @@ public class OpenSubtitle {
 			data.get("title"),
 			data.get("seasonNumber"),
 			data.get("episodeNumber"),
-			data.get("year")
+			data.get("year"),
+
+			data.get("actors"),
+			data.get("awards"),
+			data.get("boxoffice"),
+			data.get("country"),
+			data.get("directors"),
+			data.get("genres"),
+			data.get("goofs"),
+			data.get("metascore"),
+			data.get("production"),
+			data.get("poster"),
+			data.get("rated"),
+			data.get("rating"),
+			data.get("ratings"),
+			data.get("released"),
+			data.get("runtime"),
+			data.get("tagline"),
+			data.get("trivia"),
+			data.get("type"),
+			data.get("votes"),
 		};
 	}
 

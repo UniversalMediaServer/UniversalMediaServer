@@ -183,7 +183,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private volatile DLNAThumbnail thumb = null;
 
 	/**
-	 * Metadata gathered from either the filename or OpenSubtitles.
+	 * Metadata gathered from either the filename or our API.
 	 */
 	private String imdbID;
 	private String year;
@@ -194,6 +194,25 @@ public class DLNAMediaInfo implements Cloneable {
 	private String tvEpisodeName;
 	private String extraInformation;
 	private boolean isTVEpisode;
+
+	private String actors;
+	private String awards;
+	private String boxOffice;
+	private String country;
+	private String directors;
+	private String genres;
+	private String goofs;
+	private String metascore;
+	private String production;
+	private String poster;
+	private String rated;
+	private String rating;
+	private String ratings;
+	private String released;
+	private String runtime;
+	private String tagline;
+	private String trivia;
+	private String votes;
 
 	private volatile ImageInfo imageInfo = null;
 
@@ -2349,6 +2368,150 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setExtraInformation(String value) {
 		this.extraInformation = value;
 	}
+	public String getActors() {
+		return actors;
+	}
+
+	public void setActors(String value) {
+		this.actors = value;
+	}
+
+	public String getAwards() {
+		return awards;
+	}
+
+	public void setAwards(String value) {
+		this.awards = value;
+	}
+
+	public String getBoxOffice() {
+		return boxOffice;
+	}
+
+	public void setBoxOffice(String value) {
+		this.boxOffice = value;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String value) {
+		this.country = value;
+	}
+
+	public String getDirectors() {
+		return directors;
+	}
+
+	public void setDirectors(String value) {
+		this.directors = value;
+	}
+
+	public String getGenres() {
+		return genres;
+	}
+
+	public void setGenres(String value) {
+		this.genres = value;
+	}
+
+	public String getGoofs() {
+		return goofs;
+	}
+
+	public void setGoofs(String value) {
+		this.goofs = value;
+	}
+
+	public String getMetascore() {
+		return metascore;
+	}
+
+	public void setMetascore(String value) {
+		this.metascore = value;
+	}
+
+	public String getProduction() {
+		return production;
+	}
+
+	public void setProduction(String value) {
+		this.production = value;
+	}
+
+	public String getPoster() {
+		return poster;
+	}
+
+	public void setPoster(String value) {
+		this.poster = value;
+	}
+
+	public String getRated() {
+		return rated;
+	}
+
+	public void setRated(String value) {
+		this.rated = value;
+	}
+
+	public String getRating() {
+		return rating;
+	}
+
+	public void setRating(String value) {
+		this.rating = value;
+	}
+
+	public String getRatings() {
+		return ratings;
+	}
+
+	public void setRatings(String value) {
+		this.ratings = value;
+	}
+
+	public String getReleased() {
+		return released;
+	}
+
+	public void setReleased(String value) {
+		this.released = value;
+	}
+
+	public String getRuntime() {
+		return runtime;
+	}
+
+	public void setRuntime(String value) {
+		this.runtime = value;
+	}
+
+	public String getTagline() {
+		return tagline;
+	}
+
+	public void setTagline(String value) {
+		this.tagline = value;
+	}
+
+	public String getTrivia() {
+		return trivia;
+	}
+
+	public void setTrivia(String value) {
+		this.trivia = value;
+	}
+
+	public String getVotes() {
+		return votes;
+	}
+
+	public void setVotes(String value) {
+		this.votes = value;
+	}
+
 
 	/**
 	 * @return The pixel aspect ratio.
