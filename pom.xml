@@ -682,13 +682,11 @@
 				</includes>
 				<targetPath>net/pms/util</targetPath>
 			</testResource>
-			<!--*mp4 and *srt files to test transcoding-->
+			<!--*media files to test transcoding and identification-->
 			<testResource>
 				<directory>src/test/resources/net/pms/dlna</directory>
 				<includes>
-					<include>*.mp4</include>
-					<include>*.mkv</include>
-					<include>*.srt</include>
+					<include>*.*</include>
 				</includes>
 				<targetPath>net/pms/dlna</targetPath>
 			</testResource>
