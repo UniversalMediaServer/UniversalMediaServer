@@ -9,7 +9,7 @@ env:
     # Convenience variables for shortening commands
     - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
     - GRAVIS="$HOME/gravis"
-    - JDK="adopt@1.8.212-04"
+    - JDK="adopt@1.8.0-242"
 
 # The strategy with these matrixes are to test both old and new versions of operating systems
 # and Java, to ensure we don't break old things and that newer things continue to work
