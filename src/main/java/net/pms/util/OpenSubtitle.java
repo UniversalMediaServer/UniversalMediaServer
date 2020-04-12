@@ -1861,7 +1861,7 @@ public class OpenSubtitle {
 		if (res == null) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdbId(path, false);
 			if (isNotBlank(imdb)) {
-				res = getInfoFromIMDbID(imdb, renderer);
+				res = getInfoFromIMDbID(imdb);
 			}
 		}
 
@@ -1972,93 +1972,31 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfoFromIMDbID(String imdb, RendererConfiguration r) throws IOException {
-		URL url = login();
-		if (url == null) {
-			return null;
-		}
-		String lang = getLanguageCodes(r);
+	private static String[] getInfoFromIMDbID(String imdbid) throws IOException {
+		URL domain = new URL("https://www.universalmediaserver.com");
+		URL url = new URL(domain, "/api/media/imdbid/");
 
-		String imdbStr = "";
-		if (!StringUtils.isEmpty(imdb)) {
-			imdbStr =
-				"<member>" +
-					"<name>imdbid</name>" +
-					"<value>" +
-						"<string>" + imdb + "</string>" +
-					"</value>" +
-				"</member>\n";
-		} else {
+		List<NameValuePair> params = new ArrayList<>(2);
+		params.add(new BasicNameValuePair("imdbid", imdbid));
+
+		String page = postPage(url.openConnection(), params);
+
+		LOGGER.info(page);
+		HashMap<String, String> data = new HashMap<>();
+		data = gson.fromJson(page, data.getClass());
+
+		if (data.get("message").equals("Metadata not found on OpenSubtitles")) {
 			return null;
 		}
 
-		String req = null;
-		TOKEN_LOCK.readLock().lock();
-		try {
-			req =
-				"<methodCall>\n" +
-					"<methodName>SearchSubtitles</methodName>\n" +
-					"<params>\n" +
-						"<param>\n" +
-							"<value>" +
-								"<string>" + token + "</string>" +
-							"</value>\n" +
-						"</param>\n" +
-						"<param>\n" +
-							"<value>\n" +
-								"<array>\n" +
-									"<data>\n" +
-										"<value>" +
-											"<struct>" +
-												"<member>" +
-													"<name>sublanguageid</name>" +
-													"<value>" +
-														"<string>" + lang + "</string>" +
-													"</value>" +
-												"</member>" +
-												imdbStr + "\n" +
-											"</struct>" +
-										"</value>" +
-									"</data>\n" +
-								"</array>\n" +
-							"</value>\n" +
-						"</param>" +
-					"</params>\n" +
-				"</methodCall>\n";
-		} finally {
-			TOKEN_LOCK.readLock().unlock();
-		}
-		Pattern re = Pattern.compile(
-			".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" +
-			"MovieName</name>.*?<string>([^<]+)</string>.*?" +
-			"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
-			"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?" +
-			"MovieYear</name>.*?<string>([^<]+)</string>.*?",
-			Pattern.DOTALL
-		);
-//		String page = postPage(url.openConnection(), req);
-//		Matcher m = re.matcher(page);
-//		if (m.find()) {
-//			LOGGER.debug("match {},{},{},{},{}", m.group(1), m.group(2), m.group(3), m.group(4), m.group(5));
-//			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
-//			String name = m.group(2);
-//			Matcher m1 = re1.matcher(name);
-//			String episodeName = "";
-//			if (m1.find()) {
-//				episodeName = m1.group(2).trim();
-//				name = m1.group(1).trim();
-//			}
-//
-//			return new String[]{
-//				ImdbUtil.ensureTT(m.group(1).trim()),
-//				episodeName,
-//				StringEscapeUtils.unescapeHtml4(name),
-//				m.group(3).trim(), // Season number
-//				m.group(4).trim(), // Episode number
-//				m.group(5).trim()  // Year
-//			};
-//		}
-		return null;
+		return new String[]{
+			data.get("imdbID"),
+			data.get("episodeTitle"),
+			data.get("title"),
+			data.get("seasonNumber"),
+			data.get("episodeNumber"),
+			data.get("year")
+		};
 	}
 
 	/**
