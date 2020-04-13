@@ -1842,38 +1842,50 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Feeds the correct parameters for getInfo below.
+	 * Initiates a series of API lookups, from most to least desirable, until
+	 * one succeeds.
 	 *
 	 * @param file the {@link File} to lookup.
 	 * @param formattedName the name to use in the name search
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
-	 *
-	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String)
 	 */
-	public static String[] getInfo(File file, String formattedName) throws IOException {
-		return getInfo(file, formattedName, null);
-	}
-
-	public static String[] getInfo(File file, String formattedName, RendererConfiguration renderer) throws IOException {
+	public static HashMap<String, String> getInfo(File file, String formattedName) throws IOException {
 		Path path = file.toPath();
-		String[] res = getInfoFromOSDbHash(getHash(path), file.length());
-		if (res == null) { // no good on hash! try imdb
+		String apiResult = getInfoFromOSDbHash(getHash(path), file.length());
+		if (apiResult == null) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdbId(path, false);
 			if (isNotBlank(imdb)) {
-				res = getInfoFromIMDbID(imdb);
+				apiResult = getInfoFromIMDbID(imdb);
 			}
 		}
 
-		if (res == null || res.length == 0) { // final try, use the name
-			if (StringUtils.isNotEmpty(formattedName)) {
-				res = getInfoFromFilename(formattedName);
-			} else {
-				res = getInfoFromFilename(file.getName());
+		if (apiResult == null) { // final try, use the name
+			if (StringUtils.isEmpty(formattedName)) {
+				formattedName = file.getName();
 			}
+
+			apiResult = getInfoFromFilename(formattedName);
 		}
 
-		return res;
+		String notFoundMessage = "Metadata not found on OpenSubtitles";
+		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
+			return null;
+		}
+
+		HashMap<String, String> data = new HashMap<>();
+
+		try {
+			data = gson.fromJson(apiResult, data.getClass());
+		} catch (JsonSyntaxException e) {
+			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
+		}
+
+		if (data.isEmpty()) {
+			return null;
+		}
+
+		return data;
 	}
 
 	/**
@@ -1889,57 +1901,11 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfoFromOSDbHash(String hash, long size) throws IOException {
+	private static String getInfoFromOSDbHash(String hash, long size) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		URL url = new URL(domain, "/api/media/" + hash + "/" + size);
 
-		String page = getJson(url);
-		String notFoundMessage = "Metadata not found on OpenSubtitles";
-		if (page == null || Objects.equals(notFoundMessage, page)) {
-			return null;
-		}
-
-		HashMap<String, String> data = new HashMap<>();
-
-		try {
-			data = gson.fromJson(page, data.getClass());
-		} catch (JsonSyntaxException e) {
-			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", page, e);
-		}
-
-		if (data.isEmpty()) {
-			return null;
-		}
-
-		// TODO: Make the first 6 entries here be in alphabetical order with the rest
-		return new String[]{
-			data.get("imdbID"),
-			data.get("episodeTitle"),
-			data.get("title"),
-			data.get("seasonNumber"),
-			data.get("episodeNumber"),
-			data.get("year"),
-
-			data.get("actors"),
-			data.get("awards"),
-			data.get("boxoffice"),
-			data.get("country"),
-			data.get("directors"),
-			data.get("genres"),
-			data.get("goofs"),
-			data.get("metascore"),
-			data.get("production"),
-			data.get("poster"),
-			data.get("rated"),
-			data.get("rating"),
-			data.get("ratings"),
-			data.get("released"),
-			data.get("runtime"),
-			data.get("tagline"),
-			data.get("trivia"),
-			data.get("type"),
-			data.get("votes"),
-		};
+		return getJson(url);
 	}
 
 	/**
@@ -1954,51 +1920,14 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfoFromFilename(String filename) throws IOException {
+	private static String getInfoFromFilename(String filename) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		URL url = new URL(domain, "/api/media/title/");
 
 		List<NameValuePair> params = new ArrayList<>(2);
 		params.add(new BasicNameValuePair("title", filename));
 
-		String page = postPage(url.openConnection(), params);
-
-		LOGGER.info(page);
-		HashMap<String, String> data = new HashMap<>();
-		data = gson.fromJson(page, data.getClass());
-
-		if (data.get("message").equals("Metadata not found on OpenSubtitles")) {
-			return null;
-		}
-
-		return new String[]{
-			data.get("imdbID"),
-			data.get("episodeTitle"),
-			data.get("title"),
-			data.get("seasonNumber"),
-			data.get("episodeNumber"),
-			data.get("year"),
-
-			data.get("actors"),
-			data.get("awards"),
-			data.get("boxoffice"),
-			data.get("country"),
-			data.get("directors"),
-			data.get("genres"),
-			data.get("goofs"),
-			data.get("metascore"),
-			data.get("production"),
-			data.get("poster"),
-			data.get("rated"),
-			data.get("rating"),
-			data.get("ratings"),
-			data.get("released"),
-			data.get("runtime"),
-			data.get("tagline"),
-			data.get("trivia"),
-			data.get("type"),
-			data.get("votes"),
-		};
+		return postPage(url.openConnection(), params);
 	}
 
 	/**
@@ -2013,51 +1942,14 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String[] getInfoFromIMDbID(String imdbid) throws IOException {
+	private static String getInfoFromIMDbID(String imdbid) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		URL url = new URL(domain, "/api/media/imdbid/");
 
 		List<NameValuePair> params = new ArrayList<>(2);
 		params.add(new BasicNameValuePair("imdbid", imdbid));
 
-		String page = postPage(url.openConnection(), params);
-
-		LOGGER.info(page);
-		HashMap<String, String> data = new HashMap<>();
-		data = gson.fromJson(page, data.getClass());
-
-		if (data.get("message").equals("Metadata not found on OpenSubtitles")) {
-			return null;
-		}
-
-		return new String[]{
-			data.get("imdbID"),
-			data.get("episodeTitle"),
-			data.get("title"),
-			data.get("seasonNumber"),
-			data.get("episodeNumber"),
-			data.get("year"),
-
-			data.get("actors"),
-			data.get("awards"),
-			data.get("boxoffice"),
-			data.get("country"),
-			data.get("directors"),
-			data.get("genres"),
-			data.get("goofs"),
-			data.get("metascore"),
-			data.get("production"),
-			data.get("poster"),
-			data.get("rated"),
-			data.get("rating"),
-			data.get("ratings"),
-			data.get("released"),
-			data.get("runtime"),
-			data.get("tagline"),
-			data.get("trivia"),
-			data.get("type"),
-			data.get("votes"),
-		};
+		return postPage(url.openConnection(), params);
 	}
 
 	/**
@@ -4912,7 +4804,7 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Enhances existing metadata attached to this media by querying OpenSubtitles.
+	 * Enhances existing metadata attached to this media by querying our API.
 	 *
 	 * @param file
 	 * @param media 
@@ -4923,11 +4815,11 @@ public class OpenSubtitle {
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
-					String[] metadataFromOpenSubtitles;
+					HashMap<String, String> metadataFromAPI;
 					try {
-						metadataFromOpenSubtitles = getInfo(file, file.getName());
+						metadataFromAPI = getInfo(file, file.getName());
 
-						if (metadataFromOpenSubtitles == null) {
+						if (metadataFromAPI == null) {
 							LOGGER.trace("Failed lookup for " + file.getName());
 							return;
 						}
@@ -4939,14 +4831,14 @@ public class OpenSubtitle {
 
 						String titleFromDatabase;
 						String titleFromDatabaseSimplified;
-						String titleFromOpenSubtitlesSimplified;
+						String titleFromAPISimplified;
 
-						String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
-						titleFromOpenSubtitlesSimplified = FileUtil.getSimplifiedShowName(titleFromOpenSubtitles);
-						String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
-						String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
-						if (tvEpisodeNumberFromOpenSubtitles != null && tvEpisodeNumberFromOpenSubtitles.length() == 1) {
-							tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
+						String titleFromAPI = metadataFromAPI.get("title");
+						titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
+						String tvSeasonFromAPI = metadataFromAPI.get("seasonNumber");
+						String tvEpisodeNumberFromAPI = metadataFromAPI.get("episodeNumber");
+						if (tvEpisodeNumberFromAPI != null && tvEpisodeNumberFromAPI.length() == 1) {
+							tvEpisodeNumberFromAPI = "0" + tvEpisodeNumberFromAPI;
 						}
 
 						/**
@@ -4955,14 +4847,14 @@ public class OpenSubtitle {
 						 * This is because sometimes OpenSubtitles reports incorrect data.
 						 */
 						if (overTheTopLogging) {
-							LOGGER.trace("Found " + file.getName() + " : " + titleFromOpenSubtitles);
+							LOGGER.trace("Found " + file.getName() + " : " + titleFromAPI);
 						}
 
 						// Proceed if the years match, or if there is no year then try the movie/show name.
 						if (
 							(
 								StringUtils.isNotBlank(yearFromFilename) &&
-								yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
+								yearFromFilename.equals(metadataFromAPI.get("year")) &&
 								StringUtils.isNotEmpty(titleFromFilename)
 							) || (
 								StringUtils.isBlank(yearFromFilename) &&
@@ -4979,21 +4871,21 @@ public class OpenSubtitle {
 							if (
 								(
 									StringUtils.isNotBlank(tvSeasonFromFilename) &&
-									StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
-									tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
+									StringUtils.isNotBlank(tvSeasonFromAPI) &&
+									tvSeasonFromFilename.equals(tvSeasonFromAPI) &&
 									StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
-									StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
-									tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)
+									StringUtils.isNotBlank(tvEpisodeNumberFromAPI) &&
+									tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromAPI)
 								) || (
 									StringUtils.isBlank(tvSeasonFromFilename) &&
 									StringUtils.isBlank(tvEpisodeNumberFromFilename)
 								)
 							) {
-								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromAPI);
 								titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
 								if (overTheTopLogging) {
 									LOGGER.trace("titleFromDatabase: " + titleFromDatabase);
-									LOGGER.trace("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+									LOGGER.trace("titleFromAPI: " + titleFromAPI);
 								}
 
 								/**
@@ -5003,28 +4895,28 @@ public class OpenSubtitle {
 								 */
 								if (
 									!"".equals(titleFromDatabase) &&
-									!titleFromOpenSubtitles.equals(titleFromDatabase) &&
-									titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)
+									!titleFromAPI.equals(titleFromDatabase) &&
+									titleFromAPISimplified.equals(titleFromDatabaseSimplified)
 								) {
 									// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
-									PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
+									PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromAPI);
 								}
 
-								media.setIMDbID(metadataFromOpenSubtitles[0]);
-								media.setMovieOrShowName(titleFromOpenSubtitles);
-								media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
-								media.setYear(metadataFromOpenSubtitles[5]);
+								media.setIMDbID(metadataFromAPI.get("imdbID"));
+								media.setMovieOrShowName(titleFromAPI);
+								media.setSimplifiedMovieOrShowName(titleFromAPISimplified);
+								media.setYear(metadataFromAPI.get("year"));
 
 								// If the filename has indicated this is a TV episode
 								if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
-									media.setTVSeason(tvSeasonFromOpenSubtitles);
-									media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
-									if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
-										media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+									media.setTVSeason(tvSeasonFromAPI);
+									media.setTVEpisodeNumber(tvEpisodeNumberFromAPI);
+									if (StringUtils.isNotBlank(metadataFromAPI.get("episodeTitle"))) {
+										media.setTVEpisodeName(metadataFromAPI.get("episodeTitle"));
 									}
 
 									if (overTheTopLogging) {
-										LOGGER.trace("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
+										LOGGER.trace("Setting is TV episode true for " + metadataFromAPI.toString());
 									}
 
 									media.setIsTVEpisode(true);

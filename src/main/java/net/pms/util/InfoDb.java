@@ -1,6 +1,7 @@
 package net.pms.util;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,20 +11,16 @@ import org.slf4j.LoggerFactory;
 
 public class InfoDb implements DbHandler {
 	public static class InfoDbData {
-		public String imdb;
-		public String ep_name;
-		public String year;
-		public String season;
-		public String episode;
-		public String title;
-
 		public String actors;
 		public String awards;
 		public String boxoffice;
 		public String country;
 		public String directors;
+		public String ep_name;
+		public String episode;
 		public String genres;
 		public String goofs;
+		public String imdb;
 		public String metascore;
 		public String production;
 		public String poster;
@@ -32,10 +29,13 @@ public class InfoDb implements DbHandler {
 		public String ratings;
 		public String released;
 		public String runtime;
+		public String season;
 		public String tagline;
+		public String title;
 		public String trivia;
 		public String type;
 		public String votes;
+		public String year;
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InfoDb.class);
@@ -58,10 +58,10 @@ public class InfoDb implements DbHandler {
 
 	private void askAndInsert(File f, String formattedName) {
 		try {
-			String[] tmp = OpenSubtitle.getInfo(f, formattedName);
+			HashMap<String, String> apiResult = OpenSubtitle.getInfo(f, formattedName);
 			Object obj = FileDb.nullObj();
-			if (tmp != null) {
-				obj = create(tmp, 0);
+			if (apiResult != null) {
+				obj = create(apiResult, 0);
 			}
 			synchronized (db) {
 				db.add(f.getAbsolutePath(), obj);
@@ -113,73 +113,69 @@ public class InfoDb implements DbHandler {
 		}
 	}
 
+	/**
+	 * We don't use this, meaning this isn't a good implementation of a
+	 * FileDb; there is refactoring needed. This file acting more like a memory
+	 * cache and is probably not needed at all since we already have that
+	 * caching ability in the DLNAResources themselves.
+	 *
+	 * @param info
+	 * @return 
+	 */
 	@Override
-	public Object create(String[] args) {
-		return create(args, 1);
+	public Object create(String[] info) {
+		return null;
 	}
 
-	public Object create(String[] args, int off) {
-		InfoDbData data = new InfoDbData();
-		data.imdb = FileDb.safeGetArg(args, off++);
-		data.ep_name = FileDb.safeGetArg(args, off++);
-		data.title = FileDb.safeGetArg(args, off++);
-		data.season = FileDb.safeGetArg(args, off++);
-		data.episode = FileDb.safeGetArg(args, off++);
-		data.year = FileDb.safeGetArg(args, off++);
+	public Object create(HashMap<String, String> info) {
+		return create(info, 1);
+	}
 
-		data.actors     = FileDb.safeGetArg(args, off++);
-		data.awards     = FileDb.safeGetArg(args, off++);
-		data.boxoffice  = FileDb.safeGetArg(args, off++);
-		data.country    = FileDb.safeGetArg(args, off++);
-		data.directors  = FileDb.safeGetArg(args, off++);
-		data.genres     = FileDb.safeGetArg(args, off++);
-		data.goofs      = FileDb.safeGetArg(args, off++);
-		data.metascore  = FileDb.safeGetArg(args, off++);
-		data.production = FileDb.safeGetArg(args, off++);
-		data.poster     = FileDb.safeGetArg(args, off++);
-		data.rated      = FileDb.safeGetArg(args, off++);
-		data.rating     = FileDb.safeGetArg(args, off++);
-		data.ratings    = FileDb.safeGetArg(args, off++);
-		data.released   = FileDb.safeGetArg(args, off++);
-		data.runtime    = FileDb.safeGetArg(args, off++);
-		data.tagline    = FileDb.safeGetArg(args, off++);
-		data.trivia     = FileDb.safeGetArg(args, off++);
-		data.type       = FileDb.safeGetArg(args, off++);
-		data.votes      = FileDb.safeGetArg(args, off++);
+	public Object create(HashMap<String, String> info, int off) {
+		InfoDbData data = new InfoDbData();
+
+		data.actors     = info.get("actors");
+		data.awards     = info.get("awards");
+		data.boxoffice  = info.get("boxoffice");
+		data.country    = info.get("country");
+		data.directors  = info.get("directors");
+		data.ep_name    = info.get("episodeTitle");
+		data.episode    = info.get("episodeNumber");
+		data.genres     = info.get("genres");
+		data.goofs      = info.get("goofs");
+		data.imdb       = info.get("imdbID");
+		data.metascore  = info.get("metascore");
+		data.production = info.get("production");
+		data.poster     = info.get("poster");
+		data.rated      = info.get("rated");
+		data.rating     = info.get("rating");
+		data.ratings    = info.get("ratings");
+		data.released   = info.get("released");
+		data.runtime    = info.get("runtime");
+		data.season     = info.get("seasonNumber");
+		data.tagline    = info.get("tagline");
+		data.title      = info.get("title");
+		data.trivia     = info.get("trivia");
+		data.type       = info.get("type");
+		data.votes      = info.get("votes");
+		data.year       = info.get("year");
+
 		return data;
 	}
 
+	/**
+	 * We don't use this, meaning this isn't a good implementation of a
+	 * FileDb; there is refactoring needed. This file acting more like a memory
+	 * cache and is probably not needed at all since we already have that
+	 * caching ability in the DLNAResources themselves.
+	 * 
+	 *
+	 * @param obj
+	 * @return 
+	 */
 	@Override
 	public String[] format(Object obj) {
-		InfoDbData data = (InfoDbData) obj;
-		return new String[]{
-			data.imdb,
-			data.ep_name,
-			data.title,
-			data.season,
-			data.episode,
-			data.year,
-
-			data.actors,
-			data.awards,
-			data.boxoffice,
-			data.country,
-			data.directors,
-			data.genres,
-			data.goofs,
-			data.metascore,
-			data.production,
-			data.poster,
-			data.rated,
-			data.rating,
-			data.ratings,
-			data.released,
-			data.runtime,
-			data.tagline,
-			data.trivia,
-			data.type,
-			data.votes,
-		};
+		return null;
 	}
 
 	@Override
@@ -230,11 +226,11 @@ public class InfoDb implements DbHandler {
 						File f = new File(key);
 						String name = f.getName();
 						try {
-							String[] tmp = OpenSubtitle.getInfo(f, name);
+							HashMap<String, String> apiResult = OpenSubtitle.getInfo(f, name);
 							// if we still get nothing from opensubs
 							// we don't fiddle with the db
-							if (tmp != null) {
-								kv.setValue(create(tmp, 0));
+							if (apiResult != null) {
+								kv.setValue(create(apiResult, 0));
 								sync = true;
 							}
 						} catch (Exception e) {
