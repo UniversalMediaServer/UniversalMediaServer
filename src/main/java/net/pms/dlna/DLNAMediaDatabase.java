@@ -263,13 +263,67 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		/**
-		 * In here we could update tables with our changes, but our database
-		 * gets bloated often which causes the update to fail, so do the
-		 * dumb way for now until we have better ways to keep the database
-		 * smaller.
+		 * If the database is created and is not the latest version, 
+		 * see if we can upgrade it efficiently instead of recreating it.
+		 *
+		 * This has caused out of memory issues in the past so make sure
+		 * we don't do anything here unless we do it
+		 * in a way that doesn't need to load everything in memory at
+		 * once; if the database is bigger than the memory Java can use
+		 * then that will fail, and that is often the case.
 		 */
-		if (currentVersion != -1 && latestVersion != currentVersion) {
-			force = true;
+		if (!force && currentVersion != -1 && latestVersion != currentVersion) {
+			try {
+				conn = getConnection();
+				for (int version = currentVersion; version < latestVersion; version++) {
+					LOGGER.trace("Upgrading table {} from version {} to {}", "FILES", version, version + 1);
+					switch (version) {
+						case 22:
+							// In version 23, we added extra metadata fields that are returned from our API
+							try (Statement statement = conn.createStatement()) {
+								StringBuilder sb = new StringBuilder();
+								sb.append("ALTER TABLE FILES ADD actors     VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD awards     VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD boxoffice  VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD country    VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD directors  VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD genres     VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD goofs      VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD metascore  VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD production VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD poster     VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD rated      VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD rating     VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD ratings    VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD released   VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD runtime    VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD tagline    VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD trivia     VARCHAR2(").append(SIZE_MAX).append(')');
+								sb.append("ALTER TABLE FILES ADD votes      VARCHAR2(").append(SIZE_MAX).append(')');
+								statement.execute(sb.toString());
+							}
+							version++;
+							break;
+						default:
+							// Do the dumb way
+							force = true;
+					}
+				}
+
+				// If we did the upgrade instead of the dumb way, bump the database version.
+				if (!force) {
+					try (Statement statement = conn.createStatement()) {
+						statement.execute("DROP TABLE METADATA");
+						statement.execute("CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
+						statement.execute("INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+					}
+				}
+			} catch (SQLException se) {
+				LOGGER.error("Error updating tables: " + se.getMessage());
+				LOGGER.trace("", se);
+			} finally {
+				close(conn);
+			}
 		}
 
 		if (force || dbCount == -1) {
@@ -334,7 +388,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
-				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append("))");
+				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(")");
 
 				sb.append(", actors                  VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", awards                  VARCHAR2(").append(SIZE_MAX).append(')');
@@ -353,9 +407,9 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", runtime                 VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", tagline                 VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", trivia                  VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", type                    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", votes                   VARCHAR2(").append(SIZE_MAX).append(')');
 
+				sb.append(")");
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
