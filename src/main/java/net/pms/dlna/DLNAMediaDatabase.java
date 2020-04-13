@@ -281,26 +281,24 @@ public class DLNAMediaDatabase implements Runnable {
 						case 22:
 							// In version 23, we added extra metadata fields that are returned from our API
 							try (Statement statement = conn.createStatement()) {
-								StringBuilder sb = new StringBuilder();
-								sb.append("ALTER TABLE FILES ADD actors     VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD awards     VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD boxoffice  VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD country    VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD directors  VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD genres     VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD goofs      VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD metascore  VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD production VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD poster     VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD rated      VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD rating     VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD ratings    VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD released   VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD runtime    VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD tagline    VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD trivia     VARCHAR2(").append(SIZE_MAX).append(')');
-								sb.append("ALTER TABLE FILES ADD votes      VARCHAR2(").append(SIZE_MAX).append(')');
-								statement.execute(sb.toString());
+								statement.execute("ALTER TABLE FILES ADD actors     VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD awards     VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD boxoffice  VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD country    VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD directors  VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD genres     VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD goofs      VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD metascore  VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD production VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD poster     VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD rated      VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD rating     VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD ratings    VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD released   VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD runtime    VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD tagline    VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD trivia     VARCHAR2(" + SIZE_MAX + ')');
+								statement.execute("ALTER TABLE FILES ADD votes      VARCHAR2(" + SIZE_MAX + ')');
 							}
 							version++;
 							break;
