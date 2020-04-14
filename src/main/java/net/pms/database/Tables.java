@@ -71,6 +71,9 @@ public class Tables {
 					TableCoverArtArchive.checkTable(connection);
 					TableFilesStatus.checkTable(connection);
 					TableThumbnails.checkTable(connection);
+
+					// Video metadata tables
+					TableVideoMetadataGenres.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -94,8 +97,8 @@ public class Tables {
 
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-                 "WHERE TABLE_SCHEMA = ? "+
-                 "AND  TABLE_NAME = ?"
+			"WHERE TABLE_SCHEMA = ? " +
+			"AND  TABLE_NAME = ?"
 		)) {
 			statement.setString(1, tableSchema);
 			statement.setString(2, tableName);

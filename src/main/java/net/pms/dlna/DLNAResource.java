@@ -2590,7 +2590,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					"sec:dcmInfo",
 					encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d",title,bookmark))
 				);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			LOGGER.error("Cannot set bookmark tag for " + title, e);
 		}
 	}

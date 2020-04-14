@@ -20,16 +20,15 @@
 package net.pms.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.Messages;
-import net.pms.PMS;
 
 public final class TableVideoMetadataGenres extends Tables {
 	/**
@@ -55,112 +54,42 @@ public final class TableVideoMetadataGenres extends Tables {
 	}
 
 	/**
-	 * Sets whether the file has been fully played.
+	 * Sets a new genre entry for a file.
 	 *
 	 * @param fullPathToFile
-	 * @param isFullyPlayed
+	 * @param genre
 	 */
-	public static void setFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed) {
-		boolean trace = LOGGER.isTraceEnabled();
-		String query;
-
+	public static void set(final String fullPathToFile, final String genre) {
+		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
-			}
+			PreparedStatement insertStatement = connection.prepareStatement(
+				"INSERT INTO " + TABLE_NAME + " (" +
+					"FILENAME, GENRE " +
+				") VALUES (" +
+					"?, ?" +
+				")",
+				Statement.RETURN_GENERATED_KEYS
+			);
+			insertStatement.clearParameters();
+			insertStatement.setString(1, left(fullPathToFile, 255));
+			insertStatement.setString(2, left(genre, 255));
 
-			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
-							if (trace) {
-								LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
-							}
-						} else {
-							if (trace) {
-								LOGGER.trace(
-									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
-									fullPathToFile,
-									isFullyPlayed
-								);
-							}
-							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-							result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
-							result.updateRow();
-						}
-					} else {
-						if (trace) {
-							LOGGER.trace(
-								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
-								fullPathToFile,
-								isFullyPlayed
-							);
-						}
-						result.moveToInsertRow();
-						result.updateString("FILENAME", fullPathToFile);
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
-						result.insertRow();
-					}
-				} finally {
-					connection.commit();
+			insertStatement.executeUpdate();
+			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+				if (rs.next()) {
+					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\" and \"{}\"", fullPathToFile, genre);
 				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
-				isFullyPlayed,
+				"Database error while writing \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
+				genre,
 				fullPathToFile,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
-		}
-	}
-
-	/**
-	 * Sets whether each file within the folder is fully played.
-	 *
-	 * @param fullPathToFolder the full path to the folder.
-	 * @param isFullyPlayed whether to mark the folder content as fully played
-	 *            or not fully played.
-	 */
-	public static void setDirectoryFullyPlayed(final String fullPathToFolder, final boolean isFullyPlayed) {
-		boolean trace = LOGGER.isTraceEnabled();
-		String pathWithWildcard = sqlLikeEscape(fullPathToFolder) + "%";
-		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
-		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
-
-		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
-			if (trace) {
-				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
-			}
-
-			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet result = statement.executeQuery(query)) {
-					while (result.next()) {
-						setFullyPlayed(result.getString("FILENAME"), isFullyPlayed);
-					}
-				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
-			}
-		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
-				isFullyPlayed,
-				pathWithWildcard,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
 		} finally {
-			PMS.get().getFrame().setStatusLine(null);
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -190,105 +119,6 @@ public final class TableVideoMetadataGenres extends Tables {
 			LOGGER.error(
 				"Database error while removing entries from " + TABLE_NAME + " for \"{}\": {}",
 				filename,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-		}
-	}
-
-	public static Boolean isFullyPlayed(final String fullPathToFile) {
-		boolean trace = LOGGER.isTraceEnabled();
-		Boolean result = null;
-
-		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-
-			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						result = resultSet.getBoolean("ISFULLYPLAYED");
-					}
-				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
-			}
-		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up file status in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return result;
-	}
-
-	public static int getBookmark(final String fullPathToFile) {
-		boolean trace = LOGGER.isTraceEnabled();
-		int result = 0;
-		
-		try (Connection connection = database.getConnection()) {
-			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						result = resultSet.getInt("BOOKMARK");
-					}
-				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
-			}
-		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up file bookmark in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return result;
-	}
-
-	public static void setBookmark(final String fullPathToFile, final int bookmark) {
-		boolean trace = LOGGER.isTraceEnabled();
-		String query;
-
-		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
-			}
-
-			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateInt("BOOKMARK", bookmark);
-						result.updateRow();
-					} else {
-						result.moveToInsertRow();
-						result.updateString("FILENAME", fullPathToFile);
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateBoolean("ISFULLYPLAYED", false);
-						result.updateInt("BOOKMARK", bookmark);
-						result.insertRow();
-					}
-				} finally {
-					connection.commit();
-				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
-			}
-		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing bookmark \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
-				bookmark,
-				fullPathToFile,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -341,13 +171,14 @@ public final class TableVideoMetadataGenres extends Tables {
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
-					"id            IDENTITY PRIMARY KEY, " +
-					"genre         VARCHAR2(1024)        NOT NULL " +
+					"ID       IDENTITY PRIMARY KEY, " +
+					"FILENAME VARCHAR2(1024)        NOT NULL, " +
+					"GENRE    VARCHAR2(1024)        NOT NULL, " +
+					"constraint PK_FILENAME_GENRE primary key (FILENAME, GENRE)" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-			statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
+			statement.execute("CREATE INDEX FILENAME_GENRE_IDX ON " + TABLE_NAME + "(FILENAME, GENRE)");
 		}
 	}
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.TableFilesStatus;
+import net.pms.database.TableVideoMetadataGenres;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
 
@@ -136,6 +137,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	final static String UNWATCHED_CONDITION = TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND ";
 	final static String WATCHED_CONDITION = TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS TRUE AND ";
 	final static String SQL_JOIN_SECTION = "LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME ";
+	final static String SQL_JOIN_GENRE_SECTION = "LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON FILES.FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME ";
+	final static String GENRES_SELECT = "SELECT DISTINCT GENRE FROM FILES ";
 
 	/**
 	 * Removes all children and re-adds them
@@ -147,6 +150,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 		List<String> unwatchedSqls = new ArrayList<>();
 		List<String> watchedSqls = new ArrayList<>();
+		List<String> genresSqls = new ArrayList<>();
 		int expectedOutput = 0;
 		if (sqls.length > 0) {
 			String firstSql = sqls[0];
@@ -193,6 +197,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 							};
 							String fromFilesString = "FROM FILES ";
 							String whereString = "WHERE ";
+							int indexBeforeFrom = sql.indexOf(fromFilesString);
 							int indexAfterFrom = sql.indexOf(fromFilesString) + fromFilesString.length();
 
 							// If the query does not already join the FILES_STATUS table, do that now
@@ -207,9 +212,17 @@ public class MediaLibraryFolder extends VirtualFolder {
 							unwatchedSql.insert(indexAfterWhere, UNWATCHED_CONDITION);
 							unwatchedSqls.add(unwatchedSql.toString());
 
-							StringBuilder watchedSql = new StringBuilder(sqlWithJoin);;
+							StringBuilder watchedSql = new StringBuilder(sqlWithJoin);
 							watchedSql.insert(indexAfterWhere, WATCHED_CONDITION);
 							watchedSqls.add(watchedSql.toString());
+
+							StringBuilder genresSql = new StringBuilder(sql);
+							// If the query does not already join the genres table, do that now
+							if (!sql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
+								genresSql.insert(indexAfterFrom, SQL_JOIN_GENRE_SECTION);
+							}
+							genresSql.replace(0, indexBeforeFrom, GENRES_SELECT);
+							genresSqls.add(genresSql.toString());
 						}
 
 						break;
@@ -288,6 +301,13 @@ public class MediaLibraryFolder extends VirtualFolder {
 				addChild(new MediaLibraryFolder(
 					Messages.getString("VirtualFolder.Watched"),
 					watchedSqls.toArray(new String[0]),
+					filteredExpectedOutputs
+				));
+			}
+			if (!genresSqls.isEmpty()) {
+				addChild(new MediaLibraryFolder(
+					Messages.getString("VirtualFolder.Genres"),
+					genresSqls.toArray(new String[0]),
 					filteredExpectedOutputs
 				));
 			}

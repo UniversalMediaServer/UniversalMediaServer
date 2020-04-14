@@ -82,6 +82,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableVideoMetadataGenres;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
@@ -4907,6 +4908,26 @@ public class OpenSubtitle {
 								media.setSimplifiedMovieOrShowName(titleFromAPISimplified);
 								media.setYear(metadataFromAPI.get("year"));
 
+								// Set the API-specific data
+								media.setActors(metadataFromAPI.get("actors"));
+								media.setAwards(metadataFromAPI.get("awards"));
+								media.setBoxOffice(metadataFromAPI.get("boxoffice"));
+								media.setCountry(metadataFromAPI.get("country"));
+								media.setDirectors(metadataFromAPI.get("directors"));
+								media.setGenres(metadataFromAPI.get("genres"));
+								media.setGoofs(metadataFromAPI.get("goofs"));
+								media.setMetascore(metadataFromAPI.get("metascore"));
+								media.setProduction(metadataFromAPI.get("production"));
+								media.setPoster(metadataFromAPI.get("poster"));
+								media.setRated(metadataFromAPI.get("rated"));
+								media.setRating(metadataFromAPI.get("rating"));
+								media.setRatings(metadataFromAPI.get("ratings"));
+								media.setReleased(metadataFromAPI.get("released"));
+								media.setRuntime(metadataFromAPI.get("runtime"));
+								media.setTagline(metadataFromAPI.get("tagline"));
+								media.setTrivia(metadataFromAPI.get("trivia"));
+								media.setVotes(metadataFromAPI.get("votes"));
+
 								// If the filename has indicated this is a TV episode
 								if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
 									media.setTVSeason(tvSeasonFromAPI);
@@ -4925,6 +4946,7 @@ public class OpenSubtitle {
 								if (PMS.get().getConfiguration().getUseCache()) {
 									try {
 										PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+										TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres());
 									} catch (SQLException e) {
 										LOGGER.error(
 											"Could not update the database with information from OpenSubtitles for \"{}\": {}",

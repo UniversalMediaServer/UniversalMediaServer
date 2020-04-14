@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.List;
+import net.pms.database.TableVideoMetadataGenres;
 import net.pms.newgui.SharedContentTab;
 
 /**
@@ -1432,6 +1433,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 		deleteRowsInFilesTable(filename, useLike);
 		TableFilesStatus.remove(filename, useLike);
+		TableVideoMetadataGenres.remove(filename, useLike);
 	}
 
 	/**
