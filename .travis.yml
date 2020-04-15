@@ -46,9 +46,15 @@ matrix:
     #     - sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
     - os: osx
       osx_image: xcode9.3
+      before_install:
+        - brew update --quiet
+        - brew upgrade maven
       script: mvn -P testing-macos
     - os: osx
       osx_image: xcode11.3
+      before_install:
+        - brew update --quiet
+        - brew upgrade maven
       script: mvn -P testing-macos
     - os: windows
       language: minimal
