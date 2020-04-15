@@ -44,14 +44,21 @@ matrix:
     #     - sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
     - os: osx
       osx_image: xcode9.3
+      addons:
+        apt:
+          packages: mediainfo
     - os: osx
       osx_image: xcode11.3
+      addons:
+        apt:
+          packages: mediainfo
     - os: windows
       language: minimal
       before_install:
         - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
         - source $GRAVIS/install-jdk
         - source $GRAVIS/install-maven
+        - choco install mediainfo --version 18.12
 
 install: mvn external:install
 
