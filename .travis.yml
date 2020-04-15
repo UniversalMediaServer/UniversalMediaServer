@@ -46,10 +46,10 @@ matrix:
     #     - sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
     - os: osx
       osx_image: xcode9.3
-      script: mvn verify -B -V -P testing
+      script: mvn -P testing-macos
     - os: osx
       osx_image: xcode11.3
-      script: mvn verify -B -V -P testing
+      script: mvn -P testing-macos
     - os: windows
       language: minimal
       before_install:

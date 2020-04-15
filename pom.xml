@@ -3479,11 +3479,10 @@
 		</profile>
 
 		<!--
-			Testing Windows profile: takes care of building the testing package for Microsoft Windows
+			Testing profiles below
 		-->
 		<profile>
 			<id>testing-windows</id>
-
 			<build>
 				<plugins>
 					<plugin>
@@ -3501,6 +3500,33 @@
 									<target unless="offline">
 										<mkdir dir="${project.binaries}" />
 										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/MediaInfo64.dll" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>testing-macos</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>process-resources-windows</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<mkdir dir="${project.binaries}" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
