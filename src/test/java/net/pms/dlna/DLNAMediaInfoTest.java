@@ -2,7 +2,6 @@ package net.pms.dlna;
 
 import ch.qos.logback.classic.Level;
 import static org.assertj.core.api.Assertions.assertThat;
-import java.io.File;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -21,14 +20,14 @@ public class DLNAMediaInfoTest {
 	private static final String[] test_files = {
 		"video-h264-aac.mp4",
 		"video-mpeg4-aac.mkv",
-		"video-h265.mp4",
+		"video-h265-aac.mkv",
 		"video-ogg.ogv",
 		"video-h264-aac.m4v",
 		"video-mp4-aac.3g2",
 		"video-mp4-adpcm.avi",
 		"video-mp4-aac.mov",
 		"video-wmv-wma.wmv",
-		"video-vp8.webm",
+		"video-vp8-vorbis.webm",
 		"video-sor-aac.flv",
 	};
 	private static final int[] test_content = new int[test_files.length];
@@ -100,11 +99,10 @@ public class DLNAMediaInfoTest {
 			"Container: MKV, Size: 2097841, Overall Bitrate: 1575843, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:10.650, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate Mode: VFR (VFR), Frame Rate Mode Raw: VFR, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 0, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
 		);
 
-		DLNAResource mkvHevc10bitVideo = PMS.getGlobalRepo().get(test_content[2]);
-		DLNAMediaInfo mkvHevc10bitVideoMediaInfo = mkvHevc10bitVideo.getMedia();
-		assertThat(mkvHevc10bitVideoMediaInfo.toString()).isEqualTo(
-			"Container: MP4, Size: 706007, Overall Bitrate: 404646, Video Tracks: 1, Video Codec: h265, Duration: 0:00:13.958, Video Resolution: 1920 x 800, Display Aspect Ratio: 2.39:1, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: hevc:fps=24@GPAC0.5.1-DEV-rev4807, Mime Type: video/mp4"
-//			"Container: MP4, Size: 706007, Overall Bitrate: 404647, Video Tracks: 1, Video Codec: h265, Duration: 0:00:13.958, Video Resolution: 1920 x 800, Display Aspect Ratio: 2.39:1, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: hevc:fps=24@GPAC0.5.1-DEV-rev4807, Mime Type: video/mp4"
+		DLNAResource mkvHevcVideo = PMS.getGlobalRepo().get(test_content[2]);
+		DLNAMediaInfo mkvHevcVideoMediaInfo = mkvHevcVideo.getMedia();
+		assertThat(mkvHevcVideoMediaInfo.toString()).isEqualTo(
+			"Container: MKV, Size: 5291494, Overall Bitrate: 2619552, Video Tracks: 1, Video Codec: h265, Duration: 0:00:16.160, Video Resolution: 1920 x 960, Display Aspect Ratio: 2.00:1, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.709, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: Stereo, Audio Codec: AAC-LC, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
 		);
 
 		DLNAResource oggVideo = PMS.getGlobalRepo().get(test_content[3]);
@@ -146,7 +144,7 @@ public class DLNAMediaInfoTest {
 		DLNAResource webmVideo = PMS.getGlobalRepo().get(test_content[9]);
 		DLNAMediaInfo webmVideoMediaInfo = webmVideo.getMedia();
 		assertThat(webmVideoMediaInfo.toString()).isEqualTo(
-			"Container: WEBM, Size: 3028588, Overall Bitrate: 2012351, Video Tracks: 1, Video Codec: vp8, Duration: 0:00:12.040, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Mime Type: video/webm"
+			"Container: WEBM, Size: 2165175, Overall Bitrate: 533294, Video Tracks: 1, Video Codec: vp8, Duration: 0:00:32.480, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Codec: Vorbis, Bitrate: 64000, Channel: 1, Sample Frequency: 44100 Hz], Mime Type: video/webm"
 		);
 
 		DLNAResource flvVideo = PMS.getGlobalRepo().get(test_content[10]);
