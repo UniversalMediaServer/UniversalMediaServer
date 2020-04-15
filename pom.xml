@@ -3092,6 +3092,22 @@
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
+							<execution>
+								<id>process-resources-windows</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the download folders exist -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/win32" />
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+
 							<!-- Assemble a jar with dependencies -->
 							<execution>
 								<id>make-jar-with-dependencies-testing</id>
