@@ -21,7 +21,7 @@ public class DLNAMediaInfoTest {
 		"video-h264-aac.mp4",
 		"video-mpeg4-aac.mkv",
 		"video-h265-aac.mkv",
-		"video-ogg.ogv",
+		"video-theora-vorbis.ogg",
 		"video-h264-aac.m4v",
 		"video-mp4-aac.3g2",
 		"video-mp4-adpcm.avi",
@@ -29,6 +29,11 @@ public class DLNAMediaInfoTest {
 		"video-wmv-wma.wmv",
 		"video-vp8-vorbis.webm",
 		"video-sor-aac.flv",
+		"video-h264-aac.avi",
+
+		"audio-lpcm.wav",
+		"audio-vorbis.oga",
+		"audio-mp3.mp3",
 	};
 	private static final int[] test_content = new int[test_files.length];
 
@@ -108,7 +113,7 @@ public class DLNAMediaInfoTest {
 		DLNAResource oggVideo = PMS.getGlobalRepo().get(test_content[3]);
 		DLNAMediaInfo oggVideoMediaInfo = oggVideo.getMedia();
 		assertThat(oggVideoMediaInfo.toString()).isEqualTo(
-			"Container: OGG, Size: 4372706, Overall Bitrate: 672672, Video Tracks: 1, Video Codec: theora, Duration: 0:00:52.004, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Frame Rate: 24.000, File Title from Metadata: Sintel Trailer, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 128000, Channels: 2, Sample Frequency: 44100 Hz, Artist: Durian Open Movie Team], Mime Type: video/ogg"
+			"Container: OGG, Size: 1734919, Overall Bitrate: 454643, Video Tracks: 1, Video Codec: theora, Duration: 0:00:30.528, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.000, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/ogg"
 		);
 
 		DLNAResource m4vVideo = PMS.getGlobalRepo().get(test_content[4]);
@@ -144,13 +149,39 @@ public class DLNAMediaInfoTest {
 		DLNAResource webmVideo = PMS.getGlobalRepo().get(test_content[9]);
 		DLNAMediaInfo webmVideoMediaInfo = webmVideo.getMedia();
 		assertThat(webmVideoMediaInfo.toString()).isEqualTo(
-			"Container: WEBM, Size: 2165175, Overall Bitrate: 533294, Video Tracks: 1, Video Codec: vp8, Duration: 0:00:32.480, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Codec: Vorbis, Bitrate: 64000, Channel: 1, Sample Frequency: 44100 Hz], Mime Type: video/webm"
+			"Container: WEBM, Size: 901185, Overall Bitrate: 236044, Video Tracks: 1, Video Codec: vp8, Duration: 0:00:30.543, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/webm"
 		);
 
 		DLNAResource flvVideo = PMS.getGlobalRepo().get(test_content[10]);
 		DLNAMediaInfo flvVideoMediaInfo = flvVideo.getMedia();
 		assertThat(flvVideoMediaInfo.toString()).isEqualTo(
 			"Container: FLV, Size: 2097492, Overall Bitrate: 1529899, Video Tracks: 1, Video Codec: sor, Duration: 0:00:10.968, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 375000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-flv"
+		);
+
+		DLNAResource aviH264Video = PMS.getGlobalRepo().get(test_content[11]);
+		DLNAMediaInfo aviH264VideoMediaInfo = aviH264Video.getMedia();
+		assertThat(aviH264VideoMediaInfo.toString()).isEqualTo(
+			"Container: AVI, Size: 742478, Overall Bitrate: 194029, Video Tracks: 1, Video Codec: h264, Duration: 0:00:30.613, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 30.000, Frame Rate Mode: VFR (VFR), Frame Rate Mode Raw: VFR, Reference Frame Count: 4, AVC Level: 2.1, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 139632, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi"
+		);
+
+		// Audio files
+
+		DLNAResource wavAudio = PMS.getGlobalRepo().get(test_content[12]);
+		DLNAMediaInfo wavAudioMediaInfo = wavAudio.getMedia();
+		assertThat(wavAudioMediaInfo.toString()).isEqualTo(
+			"Container: WAV, Size: 1073218, Overall Bitrate: 256069, Bitrate: 256069, Duration: 0:00:33.529, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
+		);
+
+		DLNAResource vorbisAudio = PMS.getGlobalRepo().get(test_content[13]);
+		DLNAMediaInfo vorbisAudioMediaInfo = vorbisAudio.getMedia();
+		assertThat(vorbisAudioMediaInfo.toString()).isEqualTo(
+			"Container: OGA, Size: 1089524, Overall Bitrate: 117233, Bitrate: 117233, Duration: 0:01:14.349, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 120000, Channels: 2, Sample Frequency: 32000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/ogg"
+		);
+
+		DLNAResource mp3Audio = PMS.getGlobalRepo().get(test_content[14]);
+		DLNAMediaInfo mp3AudioMediaInfo = mp3Audio.getMedia();
+		assertThat(mp3AudioMediaInfo.toString()).isEqualTo(
+			"Container: MP3, Size: 764176, Overall Bitrate: 224000, Bitrate: 224000, Duration: 0:00:27.252, Audio Tracks: 1 [Audio Codec: MP3, Bitrate: 224000, Channels: 2, Sample Frequency: 32000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/mpeg"
 		);
 	}
 
