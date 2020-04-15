@@ -24,6 +24,7 @@ matrix:
         - sudo dpkg -i libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
         - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
         - sudo dpkg -i libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
+      script: mvn verify -B -V -P testing
     - os: linux
       dist: bionic
       jdk: openjdk8
@@ -33,6 +34,7 @@ matrix:
         - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
         - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
         - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
+      script: mvn verify -B -V -P testing
     # This section can potentially be enabled when we upgrade MediaInfo to 20.03
     # - os: linux
     #   dist: bionic
@@ -44,22 +46,16 @@ matrix:
     #     - sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
     - os: osx
       osx_image: xcode9.3
-      addons:
-        apt:
-          packages: mediainfo
+      script: mvn verify -B -V -P testing
     - os: osx
       osx_image: xcode11.3
-      addons:
-        apt:
-          packages: mediainfo
+      script: mvn verify -B -V -P testing
     - os: windows
       language: minimal
       before_install:
         - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
         - source $GRAVIS/install-jdk
         - source $GRAVIS/install-maven
-        - choco install mediainfo --version 18.12
+      script: mvn -P testing-windows
 
 install: mvn external:install
-
-script: mvn verify -B -V -P testing
