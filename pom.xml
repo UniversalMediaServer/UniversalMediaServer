@@ -3156,35 +3156,6 @@
 									</target>
 								</configuration>
 							</execution>
-							<execution>
-								<id>process-resources-test</id>
-								<phase>process-resources</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target unless="offline">
-										<!-- Make sure the download folders exist -->
-										<mkdir dir="${project.binaries}" />
-
-										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
-									</target>
-								</configuration>
-							</execution>
-							<execution>
-								<id>prepare-package-test</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
-									</target>
-								</configuration>
-							</execution>
 						</executions>
 					</plugin>
 				</plugins>
