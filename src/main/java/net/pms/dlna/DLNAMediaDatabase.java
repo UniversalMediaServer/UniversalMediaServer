@@ -27,6 +27,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
 import net.pms.database.TableThumbnails;
@@ -44,6 +45,7 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.CharMatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.List;
@@ -677,6 +679,8 @@ public class DLNAMediaDatabase implements Runnable {
 		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {
 			return;
 		}
+		
+		String columns = "FILEID, ID, LANG, TITLE, TYPE, EXTERNALFILE, CHARSET ";
 
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(
@@ -689,11 +693,8 @@ public class DLNAMediaDatabase implements Runnable {
 				ResultSet.CONCUR_UPDATABLE
 			);
 			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO SUBTRACKS (" +
-					"FILEID, ID, LANG, TITLE, TYPE, EXTERNALFILE, CHARSET " +
-				") VALUES (" +
-					"?, ?, ?, ?, ?, ?, ?" +
-				")"
+				"INSERT INTO SUBTRACKS (" + columns +	")" +
+				createDefaultValueForInsertStatement(columns)
 			);
 		) {
 			for (DLNAMediaSubtitle subtitleTrack : media.getSubtitleTracksList()) {
@@ -741,6 +742,8 @@ public class DLNAMediaDatabase implements Runnable {
 			return;
 		}
 
+		String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
+			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE";
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
@@ -753,13 +756,10 @@ public class DLNAMediaDatabase implements Runnable {
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			);
+
 			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO AUDIOTRACKS (" +
-					"FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
-					"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE" +
-				") VALUES (" +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
-				")"
+				"INSERT INTO AUDIOTRACKS (" + columns + ")" +
+				createDefaultValueForInsertStatement(columns)
 			);
 		) {
 			for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
@@ -941,14 +941,16 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 			if (fileId < 0) {
 				// No fileId means it didn't exist
+				String columns = "FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
+					"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
+					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
+					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, YEAR, MOVIEORSHOWNAME, " +
+					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION";
+				
 				try (
 					PreparedStatement ps = connection.prepareStatement(
-						"INSERT INTO FILES (FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
-						"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
-						"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, YEAR, MOVIEORSHOWNAME, " +
-						"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION) VALUES " +
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+						"INSERT INTO FILES (" + columns + ")" +
+						createDefaultValueForInsertStatement(columns),
 						Statement.RETURN_GENERATED_KEYS
 					)
 				) {
@@ -1559,5 +1561,30 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	/**
+	 * Returns the VALUES {@link String} for the SQL request.
+	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p> 
+	 * The number of the "?" is calculated from the columns and not need to be hardcoded which 
+	 * often causes mistakes when columns are deleted or added.<p>
+	 * Possible implementation:
+	 * <blockquote><pre>
+	 * String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS";
+	 * PreparedStatement insertStatement = connection.prepareStatement(
+	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" + 
+	 *    createDefaultValueForInsertStatement(columns)
+	 * );
+	 * </pre></blockquote><p
+	 * 
+	 * @param columns the SQL parameters string
+	 * @return The " VALUES (?,?,?, ...)" string
+	 * 
+	 */
+	private String createDefaultValueForInsertStatement(String columns) {
+		int count = CharMatcher.is(',').countIn(columns);
+		StringBuilder sb = new StringBuilder();
+		sb.append(" VALUES (").append(StringUtils.repeat("?,", count)).append("?)");
+		return sb.toString();
 	}
 }
