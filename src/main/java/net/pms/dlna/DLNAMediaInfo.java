@@ -1482,6 +1482,12 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.FLV:
 					mimeType = HTTPResource.FLV_TYPEMIME;
 					break;
+				case FormatConfiguration.M4V:
+					mimeType = HTTPResource.M4V_TYPEMIME;
+					break;
+				case FormatConfiguration.MP4:
+					mimeType = HTTPResource.MP4_TYPEMIME;
+					break;
 				case FormatConfiguration.WMV:
 					mimeType = HTTPResource.WMV_TYPEMIME;
 					break;
@@ -1784,8 +1790,8 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append("Container: ").append(getContainer().toUpperCase(Locale.ROOT)).append(", ");
 		}
 		result.append("Size: ").append(getSize());
+		result.append(", Overall Bitrate: ").append(getBitrate());
 		if (isVideo()) {
-			result.append(", Video Bitrate: ").append(getBitrate());
 			result.append(", Video Tracks: ").append(getVideoTrackCount());
 			result.append(", Video Codec: ").append(getCodecV());
 			result.append(", Duration: ").append(getDurationString());
