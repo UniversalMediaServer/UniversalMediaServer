@@ -83,9 +83,8 @@ public class DLNAMediaDatabase implements Runnable {
 	 * - 22: No db changes, bumped version because h2database was reverted
 	 *       to 1.4.196 because 1.4.197 broke audio metadata being
 	 *       inserted/updated
-	 * - 23: Added new fields from our API
 	 */
-	private final int latestVersion = 23;
+	private final int latestVersion = 22;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -264,65 +263,13 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		/**
-		 * If the database is created and is not the latest version, 
-		 * see if we can upgrade it efficiently instead of recreating it.
-		 *
-		 * This has caused out of memory issues in the past so make sure
-		 * we don't do anything here unless we do it
-		 * in a way that doesn't need to load everything in memory at
-		 * once; if the database is bigger than the memory Java can use
-		 * then that will fail, and that is often the case.
+		 * In here we could update tables with our changes, but our database
+		 * gets bloated often which causes the update to fail, so do the
+		 * dumb way for now until we have better ways to keep the database
+		 * smaller.
 		 */
-		if (!force && currentVersion != -1 && latestVersion != currentVersion) {
-			try {
-				conn = getConnection();
-				for (int version = currentVersion; version < latestVersion; version++) {
-					LOGGER.trace("Upgrading table {} from version {} to {}", "FILES", version, version + 1);
-					switch (version) {
-						case 22:
-							// In version 23, we added extra metadata fields that are returned from our API
-							try (Statement statement = conn.createStatement()) {
-								statement.execute("ALTER TABLE FILES ADD actors     VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD awards     VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD boxoffice  VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD country    VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD directors  VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD genres     VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD goofs      VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD metascore  VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD production VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD poster     VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD rated      VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD rating     VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD ratings    VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD released   VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD runtime    VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD tagline    VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD trivia     VARCHAR2(" + SIZE_MAX + ')');
-								statement.execute("ALTER TABLE FILES ADD votes      VARCHAR2(" + SIZE_MAX + ')');
-							}
-							version++;
-							break;
-						default:
-							// Do the dumb way
-							force = true;
-					}
-				}
-
-				// If we did the upgrade instead of the dumb way, bump the database version.
-				if (!force) {
-					try (Statement statement = conn.createStatement()) {
-						statement.execute("DROP TABLE METADATA");
-						statement.execute("CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
-						statement.execute("INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
-					}
-				}
-			} catch (SQLException se) {
-				LOGGER.error("Error updating tables: " + se.getMessage());
-				LOGGER.trace("", se);
-			} finally {
-				close(conn);
-			}
+		if (currentVersion != -1 && latestVersion != currentVersion) {
+			force = true;
 		}
 
 		if (force || dbCount == -1) {
@@ -388,26 +335,6 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
 				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(")");
-
-				sb.append(", actors                  VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", awards                  VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", boxoffice               VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", country                 VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", directors               VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", genres                  VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", goofs                   VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", metascore               VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", production              VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", poster                  VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", rated                   VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", rating                  VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ratings                 VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", released                VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", runtime                 VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", tagline                 VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", trivia                  VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", votes                   VARCHAR2(").append(SIZE_MAX).append(')');
-
 				sb.append(")");
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
@@ -626,7 +553,8 @@ public class DLNAMediaDatabase implements Runnable {
 			Connection conn = getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
 				"SELECT * FROM FILES LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON FILES.THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
-				"WHERE FILENAME = ? AND FILES.MODIFIED = ?"
+				"WHERE FILENAME = ? AND FILES.MODIFIED = ? " + 
+				"LIMIT 1"
 			);
 		) {
 			stmt.setString(1, name);
@@ -634,7 +562,8 @@ public class DLNAMediaDatabase implements Runnable {
 			try (
 				ResultSet rs = stmt.executeQuery();
 				PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
-				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?")
+				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
+				PreparedStatement genres = conn.prepareStatement("SELECT * FROM VIDEO_METADATA_GENRES WHERE FILENAME = ?");
 			) {
 				while (rs.next()) {
 					DLNAMediaInfo media = new DLNAMediaInfo();
@@ -672,24 +601,24 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
 					media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
 
-					media.setActors(rs.getString("actors"));
-					media.setAwards(rs.getString("awards"));
-					media.setBoxOffice(rs.getString("boxoffice"));
-					media.setCountry(rs.getString("country"));
-					media.setDirectors(rs.getString("directors"));
-					media.setGenres(rs.getString("genres"));
-					media.setGoofs(rs.getString("goofs"));
-					media.setMetascore(rs.getString("metascore"));
-					media.setProduction(rs.getString("production"));
-					media.setPoster(rs.getString("poster"));
-					media.setRated(rs.getString("rated"));
-					media.setRating(rs.getString("rating"));
-					media.setRatings(rs.getString("ratings"));
-					media.setReleased(rs.getString("released"));
-					media.setRuntime(rs.getString("runtime"));
-					media.setTagline(rs.getString("tagline"));
-					media.setTrivia(rs.getString("trivia"));
-					media.setVotes(rs.getString("votes"));
+					// not implemented yet
+					// media.setActors(rs.getString("actors"));
+					// media.setAwards(rs.getString("awards"));
+					// media.setBoxOffice(rs.getString("boxoffice"));
+					// media.setCountry(rs.getString("country"));
+					// media.setDirectors(rs.getString("directors"));
+					// media.setGoofs(rs.getString("goofs"));
+					// media.setMetascore(rs.getString("metascore"));
+					// media.setProduction(rs.getString("production"));
+					// media.setPoster(rs.getString("poster"));
+					// media.setRated(rs.getString("rated"));
+					// media.setRating(rs.getString("rating"));
+					// media.setRatings(rs.getString("ratings"));
+					// media.setReleased(rs.getString("released"));
+					// media.setRuntime(rs.getString("runtime"));
+					// media.setTagline(rs.getString("tagline"));
+					// media.setTrivia(rs.getString("trivia"));
+					// media.setVotes(rs.getString("votes"));
 
 					if (rs.getBoolean("ISTVEPISODE")) {
 						media.setTVSeason(rs.getString("TVSEASON"));
@@ -744,6 +673,13 @@ public class DLNAMediaDatabase implements Runnable {
 							sub.setExternalFileOnly(externalFile);
 							sub.setSubCharacterSet(elements.getString("CHARSET"));
 							media.getSubtitleTracksList().add(sub);
+						}
+					}
+
+					genres.setString(1, name);
+					try (ResultSet elements = genres.executeQuery()) {
+						while (elements.next()) {
+							media.setGenre(elements.getString("GENRE"));
 						}
 					}
 
@@ -965,8 +901,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
-					"IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, " +
-					"actors, awards, boxoffice, country, directors, genres, goofs, metascore, production, poster, rated, rating, ratings, released, runtime, tagline, trivia, votes " +
+					"IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ?",
@@ -1032,25 +967,6 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
 							rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
 							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
-
-							rs.updateString("actors", left(media.getActors(), SIZE_MAX));
-							rs.updateString("awards", left(media.getAwards(), SIZE_MAX));
-							rs.updateString("boxoffice", left(media.getBoxOffice(), SIZE_MAX));
-							rs.updateString("country", left(media.getCountry(), SIZE_MAX));
-							rs.updateString("directors", left(media.getDirectors(), SIZE_MAX));
-							rs.updateString("genres", left(media.getGenres(), SIZE_MAX));
-							rs.updateString("goofs", left(media.getGoofs(), SIZE_MAX));
-							rs.updateString("metascore", left(media.getMetascore(), SIZE_MAX));
-							rs.updateString("production", left(media.getProduction(), SIZE_MAX));
-							rs.updateString("poster", left(media.getPoster(), SIZE_MAX));
-							rs.updateString("rated", left(media.getRated(), SIZE_MAX));
-							rs.updateString("rating", left(media.getRating(), SIZE_MAX));
-							rs.updateString("ratings", left(media.getRatings(), SIZE_MAX));
-							rs.updateString("released", left(media.getReleased(), SIZE_MAX));
-							rs.updateString("runtime", left(media.getRuntime(), SIZE_MAX));
-							rs.updateString("tagline", left(media.getTagline(), SIZE_MAX));
-							rs.updateString("trivia", left(media.getTrivia(), SIZE_MAX));
-							rs.updateString("votes", left(media.getVotes(), SIZE_MAX));
 						}
 						rs.updateRow();
 					}
@@ -1060,14 +976,15 @@ public class DLNAMediaDatabase implements Runnable {
 				// No fileId means it didn't exist
 				try (
 					PreparedStatement ps = connection.prepareStatement(
-						"INSERT INTO FILES (FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
-						"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
-						"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-						"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, YEAR, MOVIEORSHOWNAME, " +
-						"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, " +
-						"actors, awards, boxoffice, country, directors, genres, goofs, metascore, production, poster, rated, rating, ratings, released, runtime, tagline, trivia, votes) VALUES " +
-						"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
-						", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+						"INSERT INTO FILES (" +
+							"FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
+							"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
+							"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
+							"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, YEAR, MOVIEORSHOWNAME, " +
+							"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
+						") VALUES (" +
+							"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
+						")",
 						Statement.RETURN_GENERATED_KEYS
 					)
 				) {
@@ -1129,25 +1046,6 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeName(), SIZE_MAX));
 						ps.setBoolean(++databaseColumnIterator, media.isTVEpisode());
 						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), SIZE_MAX));
-
-						ps.setString(++databaseColumnIterator, left(media.getActors(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getAwards(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getBoxOffice(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getCountry(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getDirectors(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getGenres(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getGoofs(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getMetascore(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getProduction(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getPoster(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getRated(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getRating(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getRatings(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getReleased(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getRuntime(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getTagline(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getTrivia(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getVotes(), SIZE_MAX));
 					} else {
 						ps.setString(++databaseColumnIterator, null);
 						ps.setInt(++databaseColumnIterator, 0);
@@ -1183,25 +1081,6 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setBoolean(++databaseColumnIterator, false);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 					}
 					ps.executeUpdate();
@@ -1263,8 +1142,7 @@ public class DLNAMediaDatabase implements Runnable {
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, " +
-					"actors, awards, boxoffice, country, directors, genres, goofs, metascore, production, poster, rated, rating, ratings, released, runtime, tagline, trivia, votes " +
+					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ? AND MODIFIED = ?",
@@ -1284,25 +1162,6 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
 						rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
 						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
-
-						rs.updateString("actors", left(media.getActors(), SIZE_MAX));
-						rs.updateString("awards", left(media.getAwards(), SIZE_MAX));
-						rs.updateString("boxoffice", left(media.getBoxOffice(), SIZE_MAX));
-						rs.updateString("country", left(media.getCountry(), SIZE_MAX));
-						rs.updateString("directors", left(media.getDirectors(), SIZE_MAX));
-						rs.updateString("genres", left(media.getGenres(), SIZE_MAX));
-						rs.updateString("goofs", left(media.getGoofs(), SIZE_MAX));
-						rs.updateString("metascore", left(media.getMetascore(), SIZE_MAX));
-						rs.updateString("production", left(media.getProduction(), SIZE_MAX));
-						rs.updateString("poster", left(media.getPoster(), SIZE_MAX));
-						rs.updateString("rated", left(media.getRated(), SIZE_MAX));
-						rs.updateString("rating", left(media.getRating(), SIZE_MAX));
-						rs.updateString("ratings", left(media.getRatings(), SIZE_MAX));
-						rs.updateString("released", left(media.getReleased(), SIZE_MAX));
-						rs.updateString("runtime", left(media.getRuntime(), SIZE_MAX));
-						rs.updateString("tagline", left(media.getTagline(), SIZE_MAX));
-						rs.updateString("trivia", left(media.getTrivia(), SIZE_MAX));
-						rs.updateString("votes", left(media.getVotes(), SIZE_MAX));
 						rs.updateRow();
 					} else {
 						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store data from OpenSubtitles", name);
