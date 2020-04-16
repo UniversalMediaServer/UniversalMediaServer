@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1851,7 +1852,7 @@ public class OpenSubtitle {
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap<String, String> getInfo(File file, String formattedName) throws IOException {
+	public static HashMap getInfo(File file, String formattedName) throws IOException {
 		Path path = file.toPath();
 		String apiResult = getInfoFromOSDbHash(getHash(path), file.length());
 		if (apiResult == null) { // no good on hash! try imdb
@@ -1874,7 +1875,7 @@ public class OpenSubtitle {
 			return null;
 		}
 
-		HashMap<String, String> data = new HashMap<>();
+		HashMap data = new HashMap();
 
 		try {
 			data = gson.fromJson(apiResult, data.getClass());
@@ -4816,7 +4817,7 @@ public class OpenSubtitle {
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
-					HashMap<String, String> metadataFromAPI;
+					HashMap metadataFromAPI;
 					try {
 						metadataFromAPI = getInfo(file, file.getName());
 
@@ -4834,10 +4835,10 @@ public class OpenSubtitle {
 						String titleFromDatabaseSimplified;
 						String titleFromAPISimplified;
 
-						String titleFromAPI = metadataFromAPI.get("title");
+						String titleFromAPI = (String) metadataFromAPI.get("title");
 						titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
-						String tvSeasonFromAPI = metadataFromAPI.get("seasonNumber");
-						String tvEpisodeNumberFromAPI = metadataFromAPI.get("episodeNumber");
+						String tvSeasonFromAPI = (String) metadataFromAPI.get("seasonNumber");
+						String tvEpisodeNumberFromAPI = (String) metadataFromAPI.get("episodeNumber");
 						if (tvEpisodeNumberFromAPI != null && tvEpisodeNumberFromAPI.length() == 1) {
 							tvEpisodeNumberFromAPI = "0" + tvEpisodeNumberFromAPI;
 						}
@@ -4903,37 +4904,37 @@ public class OpenSubtitle {
 									PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromAPI);
 								}
 
-								media.setIMDbID(metadataFromAPI.get("imdbID"));
+								media.setIMDbID((String) metadataFromAPI.get("imdbID"));
 								media.setMovieOrShowName(titleFromAPI);
 								media.setSimplifiedMovieOrShowName(titleFromAPISimplified);
-								media.setYear(metadataFromAPI.get("year"));
+								media.setYear((String) metadataFromAPI.get("year"));
 
 								// Set the API-specific data
-								media.setActors(metadataFromAPI.get("actors"));
-								media.setAwards(metadataFromAPI.get("awards"));
-								media.setBoxOffice(metadataFromAPI.get("boxoffice"));
-								media.setCountry(metadataFromAPI.get("country"));
-								media.setDirectors(metadataFromAPI.get("directors"));
-								media.setGenres(metadataFromAPI.get("genres"));
-								media.setGoofs(metadataFromAPI.get("goofs"));
-								media.setMetascore(metadataFromAPI.get("metascore"));
-								media.setProduction(metadataFromAPI.get("production"));
-								media.setPoster(metadataFromAPI.get("poster"));
-								media.setRated(metadataFromAPI.get("rated"));
-								media.setRating(metadataFromAPI.get("rating"));
-								media.setRatings(metadataFromAPI.get("ratings"));
-								media.setReleased(metadataFromAPI.get("released"));
-								media.setRuntime(metadataFromAPI.get("runtime"));
-								media.setTagline(metadataFromAPI.get("tagline"));
-								media.setTrivia(metadataFromAPI.get("trivia"));
-								media.setVotes(metadataFromAPI.get("votes"));
+//								media.setActors(metadataFromAPI.get("actors"));
+//								media.setAwards(metadataFromAPI.get("awards"));
+//								media.setBoxOffice(metadataFromAPI.get("boxoffice"));
+//								media.setCountry(metadataFromAPI.get("country"));
+//								media.setDirectors(metadataFromAPI.get("directors"));
+								media.setGenres(new HashSet((ArrayList) metadataFromAPI.get("genres")));
+//								media.setGoofs(metadataFromAPI.get("goofs"));
+//								media.setMetascore(metadataFromAPI.get("metascore"));
+//								media.setProduction(metadataFromAPI.get("production"));
+//								media.setPoster(metadataFromAPI.get("poster"));
+//								media.setRated(metadataFromAPI.get("rated"));
+//								media.setRating(metadataFromAPI.get("rating"));
+//								media.setRatings(metadataFromAPI.get("ratings"));
+//								media.setReleased(metadataFromAPI.get("released"));
+//								media.setRuntime(metadataFromAPI.get("runtime"));
+//								media.setTagline(metadataFromAPI.get("tagline"));
+//								media.setTrivia(metadataFromAPI.get("trivia"));
+//								media.setVotes(metadataFromAPI.get("votes"));
 
 								// If the filename has indicated this is a TV episode
 								if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
 									media.setTVSeason(tvSeasonFromAPI);
 									media.setTVEpisodeNumber(tvEpisodeNumberFromAPI);
-									if (StringUtils.isNotBlank(metadataFromAPI.get("episodeTitle"))) {
-										media.setTVEpisodeName(metadataFromAPI.get("episodeTitle"));
+									if (StringUtils.isNotBlank((String) metadataFromAPI.get("episodeTitle"))) {
+										media.setTVEpisodeName((String) metadataFromAPI.get("episodeTitle"));
 									}
 
 									if (overTheTopLogging) {
@@ -4946,6 +4947,7 @@ public class OpenSubtitle {
 								if (PMS.get().getConfiguration().getUseCache()) {
 									try {
 										PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+										LOGGER.info("setting genres" + media.getGenres().toString());
 										TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres());
 									} catch (SQLException e) {
 										LOGGER.error(

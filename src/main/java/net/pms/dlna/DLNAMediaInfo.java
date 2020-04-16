@@ -2414,7 +2414,7 @@ public class DLNAMediaInfo implements Cloneable {
 		this.directors = value;
 	}
 
-	public HashSet<String> getGenres() {
+	public HashSet getGenres() {
 		return genres;
 	}
 
@@ -2423,12 +2423,25 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param genre the genre to add
 	 */
-	public void setGenre(String genre) {
+	public void addGenre(String genre) {
 		if (genre == null) {
 			return;
 		}
 
 		this.genres.add(genre);
+	}
+
+	/**
+	 * Adds a new genre to the genres set.
+	 *
+	 * @param genres the set of genres
+	 */
+	public void setGenres(HashSet genres) {
+		if (genres == null) {
+			return;
+		}
+
+		this.genres = genres;
 	}
 
 	public String getGoofs() {

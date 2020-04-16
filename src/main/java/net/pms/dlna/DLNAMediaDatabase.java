@@ -679,7 +679,7 @@ public class DLNAMediaDatabase implements Runnable {
 					genres.setString(1, name);
 					try (ResultSet elements = genres.executeQuery()) {
 						while (elements.next()) {
-							media.setGenre(elements.getString("GENRE"));
+							media.addGenre(elements.getString("GENRE"));
 						}
 					}
 

@@ -24,6 +24,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.apache.commons.lang3.StringUtils.left;
@@ -57,33 +59,36 @@ public final class TableVideoMetadataGenres extends Tables {
 	 * Sets a new genre entry for a file.
 	 *
 	 * @param fullPathToFile
-	 * @param genre
+	 * @param genres
 	 */
-	public static void set(final String fullPathToFile, final String genre) {
+	public static void set(final String fullPathToFile, final HashSet genres) {
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = database.getConnection()) {
-			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TABLE_NAME + " (" +
-					"FILENAME, GENRE " +
-				") VALUES (" +
-					"?, ?" +
-				")",
-				Statement.RETURN_GENERATED_KEYS
-			);
-			insertStatement.clearParameters();
-			insertStatement.setString(1, left(fullPathToFile, 255));
-			insertStatement.setString(2, left(genre, 255));
+			Iterator<String> i = genres.iterator(); 
+			while (i.hasNext()) {
+				String genre = i.next();
+				PreparedStatement insertStatement = connection.prepareStatement(
+					"INSERT INTO " + TABLE_NAME + " (" +
+						"FILENAME, GENRE " +
+					") VALUES (" +
+						"?, ?" +
+					")",
+					Statement.RETURN_GENERATED_KEYS
+				);
+				insertStatement.clearParameters();
+				insertStatement.setString(1, left(fullPathToFile, 255));
+				insertStatement.setString(2, left(genre, 255));
 
-			insertStatement.executeUpdate();
-			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-				if (rs.next()) {
-					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\" and \"{}\"", fullPathToFile, genre);
+				insertStatement.executeUpdate();
+				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+					if (rs.next()) {
+						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\" and \"{}\"", fullPathToFile, genre);
+					}
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while writing \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
-				genre,
+				"Database error while writing genres to " + TABLE_NAME + " for \"{}\": {}",
 				fullPathToFile,
 				e.getMessage()
 			);
@@ -173,12 +178,11 @@ public final class TableVideoMetadataGenres extends Tables {
 				"CREATE TABLE " + TABLE_NAME + "(" +
 					"ID       IDENTITY PRIMARY KEY, " +
 					"FILENAME VARCHAR2(1024)        NOT NULL, " +
-					"GENRE    VARCHAR2(1024)        NOT NULL, " +
-					"constraint PK_FILENAME_GENRE primary key (FILENAME, GENRE)" +
+					"GENRE    VARCHAR2(1024)        NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE INDEX FILENAME_GENRE_IDX ON " + TABLE_NAME + "(FILENAME, GENRE)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_GENRE_IDX ON " + TABLE_NAME + "(FILENAME, GENRE)");
 		}
 	}
 }

@@ -138,7 +138,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	final static String WATCHED_CONDITION = TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS TRUE AND ";
 	final static String SQL_JOIN_SECTION = "LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME ";
 	final static String SQL_JOIN_GENRE_SECTION = "LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON FILES.FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME ";
-	final static String GENRES_SELECT = "SELECT DISTINCT GENRE FROM FILES ";
+	final static String GENRES_SELECT = "SELECT DISTINCT " + TableVideoMetadataGenres.TABLE_NAME + ".GENRE FROM FILES ";
+	final static String GENRES_ORDERBY = "ORDER BY " + TableVideoMetadataGenres.TABLE_NAME + ".GENRE ASC";
 
 	/**
 	 * Removes all children and re-adds them
@@ -197,7 +198,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 							};
 							String fromFilesString = "FROM FILES ";
 							String whereString = "WHERE ";
-							int indexBeforeFrom = sql.indexOf(fromFilesString);
+							String orderByString = "ORDER BY ";
 							int indexAfterFrom = sql.indexOf(fromFilesString) + fromFilesString.length();
 
 							// If the query does not already join the FILES_STATUS table, do that now
@@ -221,7 +222,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 							if (!sql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
 								genresSql.insert(indexAfterFrom, SQL_JOIN_GENRE_SECTION);
 							}
-							genresSql.replace(0, indexBeforeFrom, GENRES_SELECT);
+							genresSql.replace(0, indexAfterFrom, GENRES_SELECT);
+							int indexBeforeOrderBy = genresSql.indexOf(orderByString);
+							genresSql.replace(indexBeforeOrderBy, genresSql.length(), GENRES_ORDERBY);
+
 							genresSqls.add(genresSql.toString());
 						}
 

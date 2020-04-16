@@ -1,7 +1,9 @@
 package net.pms.util;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,7 +20,7 @@ public class InfoDb implements DbHandler {
 		public String directors;
 		public String ep_name;
 		public String episode;
-		public String genres;
+		public HashSet genres;
 		public String goofs;
 		public String imdb;
 		public String metascore;
@@ -58,7 +60,7 @@ public class InfoDb implements DbHandler {
 
 	private void askAndInsert(File f, String formattedName) {
 		try {
-			HashMap<String, String> apiResult = OpenSubtitle.getInfo(f, formattedName);
+			HashMap<String, Object> apiResult = OpenSubtitle.getInfo(f, formattedName);
 			Object obj = FileDb.nullObj();
 			if (apiResult != null) {
 				obj = create(apiResult, 0);
@@ -127,38 +129,38 @@ public class InfoDb implements DbHandler {
 		return null;
 	}
 
-	public Object create(HashMap<String, String> info) {
+	public Object create(HashMap info) {
 		return create(info, 1);
 	}
 
-	public Object create(HashMap<String, String> info, int off) {
+	public Object create(HashMap metadataFromAPI, int off) {
 		InfoDbData data = new InfoDbData();
 
-		data.actors     = info.get("actors");
-		data.awards     = info.get("awards");
-		data.boxoffice  = info.get("boxoffice");
-		data.country    = info.get("country");
-		data.directors  = info.get("directors");
-		data.ep_name    = info.get("episodeTitle");
-		data.episode    = info.get("episodeNumber");
-		data.genres     = info.get("genres");
-		data.goofs      = info.get("goofs");
-		data.imdb       = info.get("imdbID");
-		data.metascore  = info.get("metascore");
-		data.production = info.get("production");
-		data.poster     = info.get("poster");
-		data.rated      = info.get("rated");
-		data.rating     = info.get("rating");
-		data.ratings    = info.get("ratings");
-		data.released   = info.get("released");
-		data.runtime    = info.get("runtime");
-		data.season     = info.get("seasonNumber");
-		data.tagline    = info.get("tagline");
-		data.title      = info.get("title");
-		data.trivia     = info.get("trivia");
-		data.type       = info.get("type");
-		data.votes      = info.get("votes");
-		data.year       = info.get("year");
+//		data.actors     = metadataFromAPI.get("actors");
+//		data.awards     = metadataFromAPI.get("awards");
+//		data.boxoffice  = metadataFromAPI.get("boxoffice");
+//		data.country    = metadataFromAPI.get("country");
+//		data.directors  = metadataFromAPI.get("directors");
+//		data.ep_name    = metadataFromAPI.get("episodeTitle");
+//		data.episode    = metadataFromAPI.get("episodeNumber");
+		data.genres     = new HashSet((ArrayList) metadataFromAPI.get("genres"));
+//		data.goofs      = metadataFromAPI.get("goofs");
+//		data.imdb       = metadataFromAPI.get("imdbID");
+//		data.metascore  = metadataFromAPI.get("metascore");
+//		data.production = metadataFromAPI.get("production");
+//		data.poster     = metadataFromAPI.get("poster");
+//		data.rated      = metadataFromAPI.get("rated");
+//		data.rating     = metadataFromAPI.get("rating");
+//		data.ratings    = metadataFromAPI.get("ratings");
+//		data.released   = metadataFromAPI.get("released");
+//		data.runtime    = metadataFromAPI.get("runtime");
+//		data.season     = metadataFromAPI.get("seasonNumber");
+//		data.tagline    = metadataFromAPI.get("tagline");
+//		data.title      = metadataFromAPI.get("title");
+//		data.trivia     = metadataFromAPI.get("trivia");
+//		data.type       = metadataFromAPI.get("type");
+//		data.votes      = metadataFromAPI.get("votes");
+//		data.year       = metadataFromAPI.get("year");
 
 		return data;
 	}
@@ -226,7 +228,7 @@ public class InfoDb implements DbHandler {
 						File f = new File(key);
 						String name = f.getName();
 						try {
-							HashMap<String, String> apiResult = OpenSubtitle.getInfo(f, name);
+							HashMap apiResult = OpenSubtitle.getInfo(f, name);
 							// if we still get nothing from opensubs
 							// we don't fiddle with the db
 							if (apiResult != null) {
