@@ -3,6 +3,7 @@ package net.pms.dlna.virtual;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -10,6 +11,9 @@ import net.pms.database.TableFilesStatus;
 import net.pms.database.TableVideoMetadataGenres;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A MediaLibraryFolder can be populated by either virtual folders (e.g. TEXTS
@@ -38,6 +42,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private String displayNameOverride;
 	private ArrayList<String> populatedVirtualFoldersListFromDb;
 	private ArrayList<String> populatedFilesListFromDb;
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
@@ -81,6 +86,30 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 
 		return sql;
+	}
+
+	/**
+	 * Bumps the placeholder (e.g. ${0}) in a query to allow us to add a
+	 * dynamic condition to the start.
+	 *
+	 * @param sql
+	 * @return a string where the placeholders start from 1, not 0
+	 */
+	private StringBuilder incrementPlaceholders(String sql) {
+		int i = 1;
+		int secondOccurrenceOfCurrentIterator;
+		sql = sql.replace("${0}", "${1}");
+		while (true) {
+			secondOccurrenceOfCurrentIterator = sql.indexOf("${" + i + "}", sql.indexOf("${" + i + "}") + 1);
+			if (secondOccurrenceOfCurrentIterator > -1) {
+				sql = sql.replaceFirst("\\$\\{\\" + i + "\\}", "${" + (i + 1) + "}");
+			} else {
+				break;
+			}
+			i++;
+		}
+
+		return new StringBuilder(sql);
 	}
 
 	private String transformName(String name) {
@@ -136,6 +165,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 	final static String UNWATCHED_CONDITION = TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE AND ";
 	final static String WATCHED_CONDITION = TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS TRUE AND ";
+	final static String GENRES_CONDITION = TableVideoMetadataGenres.TABLE_NAME + ".GENRE = '${0}' AND ";
 	final static String SQL_JOIN_SECTION = "LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME ";
 	final static String SQL_JOIN_GENRE_SECTION = "LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON FILES.FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME ";
 	final static String GENRES_SELECT = "SELECT DISTINCT " + TableVideoMetadataGenres.TABLE_NAME + ".GENRE FROM FILES ";
@@ -186,6 +216,24 @@ public class MediaLibraryFolder extends VirtualFolder {
 							populatedFilesListFromDb = database.getStrings(firstSql);
 						}
 
+						// Generic strings to match to help us manipulate queries on the fly
+						String fromFilesString = "FROM FILES ";
+						String orderByString = "ORDER BY ";
+
+						int indexAfterFromInFirstQuery = firstSql.indexOf(fromFilesString) + fromFilesString.length();
+						// Prepare the first query in the genres filter
+						StringBuilder firstGenresSql = new StringBuilder(firstSql);
+						// If the query does not already join the genres table, do that now
+						if (!firstSql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
+							firstGenresSql.insert(indexAfterFromInFirstQuery, SQL_JOIN_GENRE_SECTION);
+						}
+
+						firstGenresSql.replace(0, indexAfterFromInFirstQuery, GENRES_SELECT);
+						int indexBeforeOrderByInFirstQuery = firstGenresSql.indexOf(orderByString);
+						firstGenresSql.replace(indexBeforeOrderByInFirstQuery, firstGenresSql.length(), GENRES_ORDERBY);
+						LOGGER.info("firstGenresSql: " + firstGenresSql.toString());
+						genresSqls.add(firstGenresSql.toString());
+
 						// Make "Fully Played" (Unwatched and Watched) variations of the queries
 						for (String sql : sqls) {
 							if (!sql.toLowerCase().startsWith("select")) {
@@ -196,9 +244,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 									sql = "SELECT FILES.FILENAME, FILES.MODIFIED FROM FILES WHERE " + sql;
 								}
 							};
-							String fromFilesString = "FROM FILES ";
 							String whereString = "WHERE ";
-							String orderByString = "ORDER BY ";
 							int indexAfterFrom = sql.indexOf(fromFilesString) + fromFilesString.length();
 
 							// If the query does not already join the FILES_STATUS table, do that now
@@ -217,15 +263,17 @@ public class MediaLibraryFolder extends VirtualFolder {
 							watchedSql.insert(indexAfterWhere, WATCHED_CONDITION);
 							watchedSqls.add(watchedSql.toString());
 
+							// Prepare the first query in the genres filter
 							StringBuilder genresSql = new StringBuilder(sql);
 							// If the query does not already join the genres table, do that now
 							if (!sql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
 								genresSql.insert(indexAfterFrom, SQL_JOIN_GENRE_SECTION);
 							}
-							genresSql.replace(0, indexAfterFrom, GENRES_SELECT);
-							int indexBeforeOrderBy = genresSql.indexOf(orderByString);
-							genresSql.replace(indexBeforeOrderBy, genresSql.length(), GENRES_ORDERBY);
 
+							genresSql = incrementPlaceholders(genresSql.toString());
+							indexAfterWhere = genresSql.indexOf(whereString) + whereString.length();
+							genresSql.insert(indexAfterWhere, GENRES_CONDITION);
+							LOGGER.info("genresSql: " + genresSql.toString());
 							genresSqls.add(genresSql.toString());
 						}
 
@@ -293,6 +341,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 				default:
 					break;
 			}
+			
+			int[] filteredExpectedOutputsWithPrependedTexts = filteredExpectedOutputs.clone();
+			ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
 
 			if (!unwatchedSqls.isEmpty()) {
 				addChild(new MediaLibraryFolder(
@@ -312,8 +363,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 				addChild(new MediaLibraryFolder(
 					Messages.getString("VirtualFolder.Genres"),
 					genresSqls.toArray(new String[0]),
-					filteredExpectedOutputs
+					filteredExpectedOutputsWithPrependedTexts
 				));
+				LOGGER.info("filteredExpectedOutputsWithPrependedTexts: " + Arrays.toString(filteredExpectedOutputsWithPrependedTexts));
+				LOGGER.info("genresSqls: " + genresSqls.toString());
 			}
 		}
 

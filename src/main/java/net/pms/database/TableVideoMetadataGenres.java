@@ -62,6 +62,10 @@ public final class TableVideoMetadataGenres extends Tables {
 	 * @param genres
 	 */
 	public static void set(final String fullPathToFile, final HashSet genres) {
+		if (genres.isEmpty()) {
+			return;
+		}
+
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = database.getConnection()) {
 			Iterator<String> i = genres.iterator(); 

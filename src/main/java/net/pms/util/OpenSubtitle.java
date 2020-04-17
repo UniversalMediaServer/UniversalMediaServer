@@ -1853,11 +1853,13 @@ public class OpenSubtitle {
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
 	public static HashMap getInfo(File file, String formattedName) throws IOException {
+			LOGGER.info("getting info for " + " " + file + ", " + formattedName);
 		Path path = file.toPath();
 		String apiResult = getInfoFromOSDbHash(getHash(path), file.length());
 		if (apiResult == null) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdbId(path, false);
 			if (isNotBlank(imdb)) {
+				LOGGER.info("looking up imdb id " + imdb);
 				apiResult = getInfoFromIMDbID(imdb);
 			}
 		}
@@ -1867,11 +1869,13 @@ public class OpenSubtitle {
 				formattedName = file.getName();
 			}
 
+			LOGGER.info("looking up filename " + formattedName);
 			apiResult = getInfoFromFilename(formattedName);
 		}
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
 		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
+			LOGGER.info("no result for " + file.getName());
 			return null;
 		}
 
@@ -4812,7 +4816,8 @@ public class OpenSubtitle {
 	 * @param media 
 	 */
 	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
-		final boolean overTheTopLogging = false;
+		final boolean overTheTopLogging = true;
+		LOGGER.info("background lookup started");
 		if (!PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
 			Runnable r = new Runnable() {
 				@Override
@@ -4864,25 +4869,32 @@ public class OpenSubtitle {
 							)
 						) {
 							/**
-							 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
+							 * Sometimes our API returns the incorrect season or episode
 							 * number, so we validate those as well.
 							 * This check will pass if either we don't know what the season and episode
-							 * numbers are from the filename, or we do and they match with our results
-							 * from OpenSubtitles.
+							 * numbers are from the filename, or we do and they match with our API results.
 							 */
+							Boolean isTVEpisodeBasedOnFilename = false;
 							if (
-								(
-									StringUtils.isNotBlank(tvSeasonFromFilename) &&
-									StringUtils.isNotBlank(tvSeasonFromAPI) &&
-									tvSeasonFromFilename.equals(tvSeasonFromAPI) &&
-									StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
-									StringUtils.isNotBlank(tvEpisodeNumberFromAPI) &&
-									tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromAPI)
-								) || (
-									StringUtils.isBlank(tvSeasonFromFilename) &&
-									StringUtils.isBlank(tvEpisodeNumberFromFilename)
-								)
+								StringUtils.isNotBlank(tvSeasonFromFilename) &&
+								StringUtils.isNotBlank(tvEpisodeNumberFromFilename)
 							) {
+								isTVEpisodeBasedOnFilename = true;
+							}
+
+							Boolean isAPIReturnedMatchedSeasonAndEpisodeNumber = false;
+							if (
+								StringUtils.isNotBlank(tvSeasonFromFilename) &&
+								StringUtils.isNotBlank(tvSeasonFromAPI) &&
+								tvSeasonFromFilename.equals(tvSeasonFromAPI) &&
+								StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+								StringUtils.isNotBlank(tvEpisodeNumberFromAPI) &&
+								tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromAPI)
+							) {
+								isAPIReturnedMatchedSeasonAndEpisodeNumber = true;
+							}
+							// Attempt to standardize variations of the same TV series name
+							if (isAPIReturnedMatchedSeasonAndEpisodeNumber) {
 								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromAPI);
 								titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
 								if (overTheTopLogging) {
@@ -4892,7 +4904,7 @@ public class OpenSubtitle {
 
 								/**
 								 * If there is a title from the database and it is not exactly the same as the
-								 * one from OpenSubtitles, continue to see if we want to change that to make
+								 * one from our API, continue to see if we want to change that to make
 								 * them all consistent.
 								 */
 								if (
@@ -4903,7 +4915,9 @@ public class OpenSubtitle {
 									// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
 									PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromAPI);
 								}
+							}
 
+							if (isAPIReturnedMatchedSeasonAndEpisodeNumber || !isTVEpisodeBasedOnFilename) {
 								media.setIMDbID((String) metadataFromAPI.get("imdbID"));
 								media.setMovieOrShowName(titleFromAPI);
 								media.setSimplifiedMovieOrShowName(titleFromAPISimplified);
@@ -4915,7 +4929,10 @@ public class OpenSubtitle {
 //								media.setBoxOffice(metadataFromAPI.get("boxoffice"));
 //								media.setCountry(metadataFromAPI.get("country"));
 //								media.setDirectors(metadataFromAPI.get("directors"));
-								media.setGenres(new HashSet((ArrayList) metadataFromAPI.get("genres")));
+								HashSet genresFromAPI = new HashSet((ArrayList) metadataFromAPI.get("genres"));
+								if (!genresFromAPI.isEmpty()) {
+									media.setGenres(genresFromAPI);
+								}
 //								media.setGoofs(metadataFromAPI.get("goofs"));
 //								media.setMetascore(metadataFromAPI.get("metascore"));
 //								media.setProduction(metadataFromAPI.get("production"));
@@ -4929,8 +4946,7 @@ public class OpenSubtitle {
 //								media.setTrivia(metadataFromAPI.get("trivia"));
 //								media.setVotes(metadataFromAPI.get("votes"));
 
-								// If the filename has indicated this is a TV episode
-								if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
+								if (isTVEpisodeBasedOnFilename) {
 									media.setTVSeason(tvSeasonFromAPI);
 									media.setTVEpisodeNumber(tvEpisodeNumberFromAPI);
 									if (StringUtils.isNotBlank((String) metadataFromAPI.get("episodeTitle"))) {
@@ -4947,7 +4963,7 @@ public class OpenSubtitle {
 								if (PMS.get().getConfiguration().getUseCache()) {
 									try {
 										PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
-										LOGGER.info("setting genres" + media.getGenres().toString());
+										LOGGER.info("setting genres for " + file.getName() + ": " + media.getGenres().toString());
 										TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres());
 									} catch (SQLException e) {
 										LOGGER.error(
