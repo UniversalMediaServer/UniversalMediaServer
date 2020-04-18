@@ -73,7 +73,7 @@ public final class TableVideoMetadataGenres extends Tables {
 				String genre = i.next();
 				PreparedStatement insertStatement = connection.prepareStatement(
 					"INSERT INTO " + TABLE_NAME + " (" +
-						"FILENAME, GENRE " +
+						"FILENAME, GENRE" +
 					") VALUES (" +
 						"?, ?" +
 					")",
@@ -91,12 +91,17 @@ public final class TableVideoMetadataGenres extends Tables {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing genres to " + TABLE_NAME + " for \"{}\": {}",
-				fullPathToFile,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
+			if (e.getErrorCode() == 23505) {
+				// This isn't optimal but it won't cause problems so just log it
+				LOGGER.trace("Attempted to set genres when they were already there for \"{}\": {}", e);
+			} else {
+				LOGGER.error(
+					"Database error while writing genres to " + TABLE_NAME + " for \"{}\": {}",
+					fullPathToFile,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
 		}

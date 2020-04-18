@@ -878,9 +878,6 @@ public class DLNAMediaDatabase implements Runnable {
 	 * information given in {@code media}. If it doesn't exist, a new will row
 	 * be created using the same information.
 	 *
-	 * TODO: This function (and the other huge ones) are so verbose, we can probably
-	 * save a lot of code and future time by making it more automatic.
-	 *
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param type the integer constant from {@link Format} indicating the type
@@ -903,7 +900,8 @@ public class DLNAMediaDatabase implements Runnable {
 					"IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
 				"FROM FILES " +
 				"WHERE " +
-					"FILENAME = ?",
+					"FILENAME = ? " +
+				"LIMIT 1",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)) {

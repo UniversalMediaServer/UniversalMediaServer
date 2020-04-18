@@ -4868,12 +4868,10 @@ public class OpenSubtitle {
 								StringUtils.isNotEmpty(titleFromFilename)
 							)
 						) {
-							/**
-							 * Sometimes our API returns the incorrect season or episode
-							 * number, so we validate those as well.
-							 * This check will pass if either we don't know what the season and episode
-							 * numbers are from the filename, or we do and they match with our API results.
-							 */
+							if (overTheTopLogging) {
+								LOGGER.trace("For " + file.getName() + " the years match, or there is no year");
+							}
+
 							Boolean isTVEpisodeBasedOnFilename = false;
 							if (
 								StringUtils.isNotBlank(tvSeasonFromFilename) &&
@@ -4917,6 +4915,12 @@ public class OpenSubtitle {
 								}
 							}
 
+							/**
+							 * Sometimes our API returns the incorrect season or episode
+							 * number, so we validate those as well.
+							 * This check will pass if either we don't know what the season and episode
+							 * numbers are from the filename, or we do and they match with our API results.
+							 */
 							if (isAPIReturnedMatchedSeasonAndEpisodeNumber || !isTVEpisodeBasedOnFilename) {
 								media.setIMDbID((String) metadataFromAPI.get("imdbID"));
 								media.setMovieOrShowName(titleFromAPI);

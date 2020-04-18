@@ -220,6 +220,15 @@ public class MediaLibraryFolder extends VirtualFolder {
 						String fromFilesString = "FROM FILES ";
 						String orderByString = "ORDER BY ";
 
+						if (!firstSql.toLowerCase().startsWith("select")) {
+							if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS) {
+								firstSql = "SELECT FILES.FILENAME FROM FILES WHERE " + firstSql;
+							}
+							if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
+								firstSql = "SELECT FILES.FILENAME, FILES.MODIFIED FROM FILES WHERE " + firstSql;
+							}
+						};
+
 						int indexAfterFromInFirstQuery = firstSql.indexOf(fromFilesString) + fromFilesString.length();
 						// Prepare the first query in the genres filter
 						StringBuilder firstGenresSql = new StringBuilder(firstSql);
@@ -228,6 +237,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 							firstGenresSql.insert(indexAfterFromInFirstQuery, SQL_JOIN_GENRE_SECTION);
 						}
 
+						indexAfterFromInFirstQuery = firstSql.indexOf(fromFilesString) + fromFilesString.length();
 						firstGenresSql.replace(0, indexAfterFromInFirstQuery, GENRES_SELECT);
 						int indexBeforeOrderByInFirstQuery = firstGenresSql.indexOf(orderByString);
 						firstGenresSql.replace(indexBeforeOrderByInFirstQuery, firstGenresSql.length(), GENRES_ORDERBY);
@@ -343,7 +353,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 			
 			int[] filteredExpectedOutputsWithPrependedTexts = filteredExpectedOutputs.clone();
-			ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
+			filteredExpectedOutputsWithPrependedTexts = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
 
 			if (!unwatchedSqls.isEmpty()) {
 				addChild(new MediaLibraryFolder(

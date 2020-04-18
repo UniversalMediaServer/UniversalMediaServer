@@ -57,8 +57,7 @@ public class UriFileRetriever {
 	 * @throws IOException
 	 */
 	public byte[] get(String uri) throws IOException {
-		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-		try {
+		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
 			httpclient.start();
 			HttpGet request = new HttpGet(uri);
 			Future<HttpResponse> future = httpclient.execute(request, null);
@@ -71,8 +70,6 @@ public class UriFileRetriever {
 			return IOUtils.toByteArray(response.getEntity().getContent());
 		} catch (InterruptedException | ExecutionException e) {
 			throw new IOException("Unable to download by HTTP" + e.getMessage());
-		} finally {
-			httpclient.close();
 		}
 	}
 
@@ -87,8 +84,7 @@ public class UriFileRetriever {
 	 * @throws IOException
 	 */
 	public byte[] post(String uri, List<NameValuePair> params) throws IOException {
-		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-		try {
+		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
 			httpclient.start();
 			HttpPost request = new HttpPost(uri);
 
@@ -105,8 +101,6 @@ public class UriFileRetriever {
 			return IOUtils.toByteArray(response.getEntity().getContent());
 		} catch (InterruptedException | ExecutionException e) {
 			throw new IOException("Unable to download by HTTP" + e.getMessage());
-		} finally {
-			httpclient.close();
 		}
 	}
 
@@ -121,8 +115,7 @@ public class UriFileRetriever {
 	 * @throws Exception
 	 */
 	public void getFile(URI uri, File file, UriRetrieverCallback callback) throws Exception {
-		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-		try  {
+		try  (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
 			httpclient.start();
 			ZeroCopyConsumerWithCallback<File> consumer = new ZeroCopyConsumerWithCallback<File>(file, uri.toString(), callback) {
 
@@ -141,8 +134,6 @@ public class UriFileRetriever {
 
 			Future<File> future = httpclient.execute(HttpAsyncMethods.createGet(uri), consumer, null, null);
 			file = future.get();
-		} finally {
-			httpclient.close();
 		}
 	}
 }
