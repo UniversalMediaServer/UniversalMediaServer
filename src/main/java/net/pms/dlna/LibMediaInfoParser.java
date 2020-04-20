@@ -696,6 +696,8 @@ public class LibMediaInfoParser {
 				format = FormatConfiguration.VC1;
 		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
 			format = FormatConfiguration.AU;
+		} else if (value.equals("av01")) {
+			format = FormatConfiguration.AV1;
 		} else if (value.equals("layer 3")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.MPA)) {
 				format = FormatConfiguration.MP3;
