@@ -1,7 +1,27 @@
-9.4.2 - 2020-
+9.4.2 - 2020-04-21
 
 	General:
-		
+		Improved detection of M4V and MP4 files
+		Improved automated regression tests for media format detection
+		Improved detection of incomplete binaries
+		Fixed Linux failing to use bundled FFmpeg (thanks, snicket2100!)
+		Fixed support for custom server names with special characters (thanks, snicket2100!)
+	Renderers:
+		Improved support for H.264 videos on VLC for iOS
+	Translation updates via Crowdin:
+		Bulgarian (96%)
+		Finnish (100%)
+		French (100%)
+		Hungarian (84%)
+		Romanian (100%)
+		Slovak (100%)
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.3
+		Fixed broken FFmpeg binary on Linux x86
+		Updated Google Gson to 2.8.6
+		Updated Google Guava to 29.0
+		Updated h2database to 1.4.200
+		Updated Java Runtime Environment to 1.8.251
 
 9.4.1 - 2020-04-08
 
