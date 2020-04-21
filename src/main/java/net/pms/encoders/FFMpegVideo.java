@@ -1096,7 +1096,11 @@ public class FFMpegVideo extends Player {
 					}
 				}
 
-				if (!customFFmpegOptions.contains("-ar ") && params.aid != null && params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate()) {
+				if (
+					!customFFmpegOptions.contains("-ar ") && 
+					params.aid != null &&
+					params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate()
+				) {
 					cmdList.add("-ar");
 					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
 				}
