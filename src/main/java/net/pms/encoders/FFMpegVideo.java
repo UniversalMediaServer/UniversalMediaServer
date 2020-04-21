@@ -1108,10 +1108,10 @@ public class FFMpegVideo extends Player {
 				// Use high quality resampler
 				// The parameters of http://forum.minimserver.com/showthread.php?tid=4181&pid=27185 are used.
 				if (
+					!customFFmpegOptions.contains("--resampler") &&
 					params.aid != null && 
 					params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate() &&
-					configuration.isFFmpegSoX() &&
-					!customFFmpegOptions.contains("--resampler")
+					configuration.isFFmpegSoX()
 				) {
 					cmdList.add("-resampler");
 					cmdList.add("soxr");
