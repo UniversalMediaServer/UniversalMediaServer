@@ -185,14 +185,14 @@ public class DLNAMediaInfoTest {
 		);
 	}
 
-	@Test
-	public void testMediaInfoOutputParse() throws Exception {
-		for (int id : test_content) {
-			DLNAResource dlna = PMS.getGlobalRepo().get(id);
-			System.out.format("mediainfo: %s\n", dlna.getMedia().toString());
-			assertThat(dlna.getMedia().getExifOrientation().getValue()).isEqualTo(1);
-			System.out.format("MediaInfo parsing OK \n");
-		}
+//	@Test
+//	public void testMediaInfoOutputParse() throws Exception {
+//		for (int id : test_content) {
+//			DLNAResource dlna = PMS.getGlobalRepo().get(id);
+//			System.out.format("mediainfo: %s\n", dlna.getMedia().toString());
+//			assertThat(dlna.getMedia().getExifOrientation().getValue()).isEqualTo(1);
+//			System.out.format("MediaInfo parsing OK \n");
+//		}
 
 		// System.out.format( "name: %s\n", dlna.getName() );
 		// System.out.format( "display name: %s\n", dlna.getDisplayName() );
@@ -214,5 +214,5 @@ public class DLNAMediaInfoTest {
 		// 	System.out.println(p.isEnabled());
 		// 	System.out.println(p.getClass().getName());
 		// }
-	}
+//	}
 }
