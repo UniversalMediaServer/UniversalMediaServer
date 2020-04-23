@@ -34,7 +34,8 @@ public class DLNAMediaInfoTest {
 		"audio-vorbis.oga",
 		"audio-mp3.mp3",
 		"video-av1-aac.mp4",
-		"video-av1.mp4"
+		"video-av1.mp4",
+		"video-h264-6ch-ac4.mp4"
 	};
 	private static final int[] test_content = new int[test_files.length];
 
@@ -193,6 +194,12 @@ public class DLNAMediaInfoTest {
 		DLNAMediaInfo av1Video2MediaInfo = av1Video2.getMedia();
 		assertThat(av1Video2MediaInfo.toString()).isEqualTo(
 			"Container: MP4, Size: 690235, Overall Bitrate: 952377, Video Tracks: 1, Video Codec: av1, Duration: 0:00:05.798, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: ivf@GPAC0.7.2-DEV-rev654-gb6f7409ce-github_master, Mime Type: video/mp4"
+		);
+
+		DLNAResource mp4VideoAc4 = PMS.getGlobalRepo().get(test_content[17]);
+		DLNAMediaInfo mp4VideoAc4MediaInfo = mp4VideoAc4.getMedia();
+		assertThat(mp4VideoAc4MediaInfo.toString()).isEqualTo(
+			"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Video Tracks: 1, Video Codec: h264, Duration: 0:01:11.905, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 2, AVC Level: 4, AVC Profile: main, Audio Tracks: 1 [Audio Codec: ac4, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
 		);
 	}
 

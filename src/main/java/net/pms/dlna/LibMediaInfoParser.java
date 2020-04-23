@@ -734,6 +734,8 @@ public class LibMediaInfoParser {
 			value.equals("2000")
 		) {
 			format = FormatConfiguration.AC3;
+		} else if (value.equals("ac-4")) {
+			format = FormatConfiguration.AC4;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
 		} else if (value.startsWith("qdesign")) {
