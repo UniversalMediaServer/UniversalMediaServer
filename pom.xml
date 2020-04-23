@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>9.4.2-SNAPSHOT</version>
+	<version>9.4.3-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>9.4.2</project.version.short>
+		<project.version.short>9.4.3</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -82,7 +82,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>101</binary-revision>
+		<binary-revision>102</binary-revision>
 
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.4</git-commit-id-plugin-version>
@@ -1389,7 +1389,6 @@
 										<get src="${project.binaries-base}/win32/jre-x64/bin/dtplugin/npdeployJava1.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x64/bin/dtplugin/npdeployJava1.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x64/bin/plugin2/msvcr100.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x64/bin/plugin2/msvcr100.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x64/bin/plugin2/npjp2.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x64/bin/plugin2/npjp2.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre-x64/bin/server/classes.jsa?p=${binary-revision}" dest="${project.binaries}/win32/jre-x64/bin/server/classes.jsa" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x64/bin/server/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x64/bin/server/jvm.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x64/bin/server/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre-x64/bin/server/Xusage.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x64/lib/accessibility.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre-x64/lib/accessibility.properties" usetimestamp="true" />
@@ -1562,6 +1561,7 @@
 										<get src="${project.binaries-base}/win32/jre-x86/bin/java.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/java.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/java.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/java.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/java_crw_demo.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/java_crw_demo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/JavaAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/JavaAccessBridge.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/JavaAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/JavaAccessBridge-32.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/javacpl.cpl?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/javacpl.cpl" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/javacpl.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/javacpl.exe" usetimestamp="true" />
@@ -1571,6 +1571,7 @@
 										<get src="${project.binaries-base}/win32/jre-x86/bin/javaw.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/javaw.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/javaws.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/javaws.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/jawt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/jawt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/JAWTAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/JAWTAccessBridge.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/JAWTAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/JAWTAccessBridge-32.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/jdwp.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/jdwp.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/jfr.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/jfr.dll" usetimestamp="true" />
@@ -1621,10 +1622,10 @@
 										<get src="${project.binaries-base}/win32/jre-x86/bin/vcruntime140.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/vcruntime140.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/verify.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/w2k_lsa_auth.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/bin/WindowsAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/WindowsAccessBridge.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/WindowsAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/WindowsAccessBridge-32.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/wsdetect.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/wsdetect.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/zip.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre-x86/bin/client/classes.jsa?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/client/classes.jsa" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/client/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/client/jvm.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/client/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/client/Xusage.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/bin/dtplugin/deployJava1.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/bin/dtplugin/deployJava1.dll" usetimestamp="true" />
@@ -1683,6 +1684,7 @@
 										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/splash@2x.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/lib/deploy/splash@2x.gif" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/splash_11@2x-lic.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/lib/deploy/splash_11@2x-lic.gif" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/lib/deploy/splash_11-lic.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/lib/deploy/splash_11-lic.gif" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/access-bridge.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/lib/ext/access-bridge.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/access-bridge-32.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/lib/ext/access-bridge-32.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/lib/ext/cldrdata.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre-x86/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre-x86/lib/ext/dnsns.jar" usetimestamp="true" />
