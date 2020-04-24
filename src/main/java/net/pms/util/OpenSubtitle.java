@@ -83,6 +83,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableTVSeries;
 import net.pms.database.TableVideoMetadataGenres;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
@@ -1852,15 +1853,21 @@ public class OpenSubtitle {
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap getInfo(File file, String formattedName) throws IOException {
-			LOGGER.info("getting info for " + " " + file + ", " + formattedName);
-		Path path = file.toPath();
-		String apiResult = getInfoFromOSDbHash(getHash(path), file.length());
+	public static HashMap getInfo(File file, String formattedName, String imdbID) throws IOException {
+		LOGGER.info("getting info for " + " " + file + ", " + formattedName);
+		Path path = null;
+		String apiResult = null;
+		if (file != null) {
+			path = file.toPath();
+			apiResult = getInfoFromOSDbHash(getHash(path), file.length());
+		}
 		if (apiResult == null) { // no good on hash! try imdb
-			String imdb = ImdbUtil.extractImdbId(path, false);
-			if (isNotBlank(imdb)) {
-				LOGGER.info("looking up imdb id " + imdb);
-				apiResult = getInfoFromIMDbID(imdb);
+			if (imdbID == null) {
+				imdbID = ImdbUtil.extractImdbId(path, false);
+			}
+			if (isNotBlank(imdbID)) {
+				LOGGER.info("looking up IMDb ID " + imdbID);
+				apiResult = getInfoFromIMDbID(imdbID);
 			}
 		}
 
@@ -4823,8 +4830,9 @@ public class OpenSubtitle {
 				@Override
 				public void run() {
 					HashMap metadataFromAPI;
+					HashMap seriesMetadataFromAPI;
 					try {
-						metadataFromAPI = getInfo(file, file.getName());
+						metadataFromAPI = getInfo(file, file.getName(), null);
 
 						if (metadataFromAPI == null) {
 							LOGGER.trace("Failed lookup for " + file.getName());
@@ -4838,14 +4846,30 @@ public class OpenSubtitle {
 
 						String titleFromDatabase;
 						String titleFromDatabaseSimplified;
-						String titleFromAPISimplified;
 
 						String titleFromAPI = (String) metadataFromAPI.get("title");
-						titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
+						String titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
 						String tvSeasonFromAPI = (String) metadataFromAPI.get("seasonNumber");
 						String tvEpisodeNumberFromAPI = (String) metadataFromAPI.get("episodeNumber");
+						String tvEpisodeTitleFromAPI = null;
 						if (tvEpisodeNumberFromAPI != null && tvEpisodeNumberFromAPI.length() == 1) {
 							tvEpisodeNumberFromAPI = "0" + tvEpisodeNumberFromAPI;
+						}
+
+						/**
+						 * Get the TV series title from our database, or from our API if it's not
+						 * in our dataabse yet, and persist it to our database.
+						 */
+						String seriesIMDbIDFromAPI = (String) metadataFromAPI.get("seriesIMDbID");
+						if (StringUtils.isNotBlank(seriesIMDbIDFromAPI)) {
+							titleFromAPI = TableTVSeries.getTitle(seriesIMDbIDFromAPI);
+							if (titleFromAPI == null) {
+								seriesMetadataFromAPI = getInfo(null, null, seriesIMDbIDFromAPI);
+								TableTVSeries.set(seriesMetadataFromAPI);
+								titleFromAPI = (String) seriesMetadataFromAPI.get("title");
+							}
+							titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
+						  tvEpisodeTitleFromAPI = (String) metadataFromAPI.get("title");
 						}
 
 						/**
@@ -4953,8 +4977,8 @@ public class OpenSubtitle {
 								if (isTVEpisodeBasedOnFilename) {
 									media.setTVSeason(tvSeasonFromAPI);
 									media.setTVEpisodeNumber(tvEpisodeNumberFromAPI);
-									if (StringUtils.isNotBlank((String) metadataFromAPI.get("episodeTitle"))) {
-										media.setTVEpisodeName((String) metadataFromAPI.get("episodeTitle"));
+									if (StringUtils.isNotBlank(tvEpisodeTitleFromAPI)) {
+										media.setTVEpisodeName(tvEpisodeTitleFromAPI);
 									}
 
 									if (overTheTopLogging) {
