@@ -4867,17 +4867,24 @@ public class OpenSubtitle {
 							titleFromAPI = TableTVSeries.getTitle(seriesIMDbIDFromAPI);
 							if (titleFromAPI == null) {
 								seriesMetadataFromAPI = getInfo(null, null, seriesIMDbIDFromAPI);
-								TableTVSeries.set(seriesMetadataFromAPI);
-								titleFromAPI = (String) seriesMetadataFromAPI.get("title");
+								if (seriesMetadataFromAPI == null) {
+									if (overTheTopLogging) {
+										LOGGER.trace("Did not find matching series for the episode in our API" + file.getName() + " : " + titleFromAPI);
+									}
+								} else {
+									TableTVSeries.set(seriesMetadataFromAPI);
+									titleFromAPI = (String) seriesMetadataFromAPI.get("title");
+								}
 							}
 							titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
 							tvEpisodeTitleFromAPI = (String) metadataFromAPI.get("title");
 						}
 
 						/**
-						 * We have data from OpenSubtitles, but before storing it in our database we
-						 * validate it against the data extracted from the filename.
-						 * This is because sometimes OpenSubtitles reports incorrect data.
+						 * We have data from our API, but before storing it in our database we
+						 * validate it against the data extracted from the filename because it
+						 * might be incorrect, and it is better to have correct basic information
+						 * than incorrect rich data.
 						 */
 						if (overTheTopLogging) {
 							LOGGER.trace("Found " + file.getName() + " : " + titleFromAPI);
