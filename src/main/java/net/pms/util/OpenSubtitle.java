@@ -82,6 +82,7 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.TableTVSeries;
 import net.pms.database.TableVideoMetadataGenres;
@@ -113,6 +114,7 @@ import org.xml.sax.SAXException;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
 	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
@@ -4858,7 +4860,7 @@ public class OpenSubtitle {
 
 						/**
 						 * Get the TV series title from our database, or from our API if it's not
-						 * in our dataabse yet, and persist it to our database.
+						 * in our database yet, and persist it to our database.
 						 */
 						String seriesIMDbIDFromAPI = (String) metadataFromAPI.get("seriesIMDbID");
 						if (StringUtils.isNotBlank(seriesIMDbIDFromAPI)) {
@@ -4988,7 +4990,7 @@ public class OpenSubtitle {
 									media.setIsTVEpisode(true);
 								}
 
-								if (PMS.get().getConfiguration().getUseCache()) {
+								if (configuration.getUseCache()) {
 									try {
 										PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 										LOGGER.info("setting genres for " + file.getName() + ": " + media.getGenres().toString());
