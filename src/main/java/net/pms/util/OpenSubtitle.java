@@ -4940,6 +4940,7 @@ public class OpenSubtitle {
 								 */
 								if (
 									!"".equals(titleFromDatabase) &&
+									titleFromAPI != null &&
 									!titleFromAPI.equals(titleFromDatabase) &&
 									titleFromAPISimplified.equals(titleFromDatabaseSimplified)
 								) {
@@ -4956,7 +4957,11 @@ public class OpenSubtitle {
 							 */
 							if (isAPIReturnedMatchedSeasonAndEpisodeNumber || !isTVEpisodeBasedOnFilename) {
 								media.setIMDbID((String) metadataFromAPI.get("imdbID"));
-								media.setMovieOrShowName(titleFromAPI);
+								if (titleFromAPI == null) {
+									media.setMovieOrShowName(titleFromFilename);
+								} else {
+									media.setMovieOrShowName(titleFromAPI);
+								}
 								media.setSimplifiedMovieOrShowName(titleFromAPISimplified);
 								media.setYear((String) metadataFromAPI.get("year"));
 
