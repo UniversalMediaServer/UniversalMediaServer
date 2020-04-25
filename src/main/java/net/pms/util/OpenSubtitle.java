@@ -1850,6 +1850,7 @@ public class OpenSubtitle {
 	 *
 	 * @param file the {@link File} to lookup.
 	 * @param formattedName the name to use in the name search
+	 * @param imdbID
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
@@ -1872,7 +1873,7 @@ public class OpenSubtitle {
 		}
 
 		if (apiResult == null) { // final try, use the name
-			if (StringUtils.isEmpty(formattedName)) {
+			if (StringUtils.isEmpty(formattedName) && file != null) {
 				formattedName = file.getName();
 			}
 
@@ -1882,7 +1883,7 @@ public class OpenSubtitle {
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
 		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
-			LOGGER.info("no result for " + file.getName());
+			LOGGER.info("no result for " + formattedName + ", " + imdbID);
 			return null;
 		}
 
@@ -4824,7 +4825,6 @@ public class OpenSubtitle {
 	 */
 	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
 		final boolean overTheTopLogging = true;
-		LOGGER.info("background lookup started");
 		if (!PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
 			Runnable r = new Runnable() {
 				@Override
@@ -4869,7 +4869,7 @@ public class OpenSubtitle {
 								titleFromAPI = (String) seriesMetadataFromAPI.get("title");
 							}
 							titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
-						  tvEpisodeTitleFromAPI = (String) metadataFromAPI.get("title");
+							tvEpisodeTitleFromAPI = (String) metadataFromAPI.get("title");
 						}
 
 						/**

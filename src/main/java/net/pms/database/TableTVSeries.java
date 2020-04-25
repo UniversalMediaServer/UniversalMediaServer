@@ -20,16 +20,12 @@
 package net.pms.database;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +64,7 @@ public final class TableTVSeries extends Tables {
 		String imdbID = (String) tvSeries.get("imdbID");
 
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + imdbID + " LIMIT 1";
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching in " + TABLE_NAME + " with \"{}\" before set", query);
 			}
@@ -122,7 +118,7 @@ public final class TableTVSeries extends Tables {
 		String result = null;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT TITLE FROM " + TABLE_NAME + " WHERE IMDBID = " + imdbID + " LIMIT 1";
+			String query = "SELECT TITLE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);

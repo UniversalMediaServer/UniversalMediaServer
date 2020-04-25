@@ -72,6 +72,8 @@ public class Tables {
 					TableFilesStatus.checkTable(connection);
 					TableThumbnails.checkTable(connection);
 
+					TableTVSeries.checkTable(connection);
+
 					// Video metadata tables
 					TableVideoMetadataGenres.checkTable(connection);
 				}
