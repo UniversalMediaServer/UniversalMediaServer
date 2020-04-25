@@ -694,8 +694,10 @@ public class LibMediaInfoParser {
 				value.equals("wmva")
 			) {
 				format = FormatConfiguration.VC1;
-		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
+		} else if (value.equals("au") || value.equals("ulaw/au audio file")) {
 			format = FormatConfiguration.AU;
+		} else if (value.equals("av01") || value.contains("av1")) {
+			format = FormatConfiguration.AV1;
 		} else if (value.equals("layer 3")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.MPA)) {
 				format = FormatConfiguration.MP3;

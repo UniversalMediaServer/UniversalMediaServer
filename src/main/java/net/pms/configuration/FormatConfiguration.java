@@ -63,6 +63,7 @@ public class FormatConfiguration {
 	public static final String ATMOS = "atmos";
 	public static final String ATRAC = "atrac";
 	public static final String AU = "au";
+	public static final String AV1 = "av1";
 	public static final String AVI = "avi";
 	public static final String BMP = "bmp";
 	public static final String CAF = "caf";
@@ -99,6 +100,7 @@ public class FormatConfiguration {
 	public static final String JPEG2000 = "jpeg2000";
 	public static final String LPCM = "lpcm";
 	public static final String M4A = "m4a";
+	public static final String M4V = "m4v";
 	public static final String MKV = "mkv";
 	public static final String MI_VBD = "vbd";
 	public static final String MI_GMC = "gmc";

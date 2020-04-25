@@ -279,14 +279,13 @@ public class RealFile extends MapFile {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-
 		File file = getFile();
 		File cachedThumbnail = null;
 		MediaType mediaType = getMedia() != null ? getMedia().getMediaType() : MediaType.UNKNOWN;
 
 		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
 			String alternativeFolder = configuration.getAlternateThumbFolder();
-			ArrayList<File> folders = new ArrayList<File>(2);
+			ArrayList<File> folders = new ArrayList<>(2);
 			if (file.getParentFile() != null) {
 				folders.add(null);
 			}

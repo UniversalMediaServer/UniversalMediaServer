@@ -55,9 +55,10 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 			ffmpegInfo.setPath(ProgramExecutableType.INSTALLED, ffmpeg);
 		} else {
 			ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg");
+			ffmpegInfo.setPath(ProgramExecutableType.BUNDLED, ffmpeg);
+			ffmpegInfo.setDefault(ProgramExecutableType.BUNDLED);
 			try {
 				if (!new FilePermissions(ffmpeg).isExecutable()) {
-					ffmpegInfo.setPath(ProgramExecutableType.BUNDLED, ffmpeg);
 					LOGGER.trace("Insufficient permission to executable \"{}\"", ffmpeg);
 				}
 			} catch (FileNotFoundException e) {
