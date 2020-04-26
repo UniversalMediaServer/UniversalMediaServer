@@ -88,30 +88,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 		return sql;
 	}
 
-	/**
-	 * Bumps the placeholder (e.g. ${0}) in a query to allow us to add a
-	 * dynamic condition to the start.
-	 *
-	 * @param sql
-	 * @return a string where the placeholders start from 1, not 0
-	 */
-	private StringBuilder incrementPlaceholders(String sql) {
-		int i = 1;
-		int secondOccurrenceOfCurrentIterator;
-		sql = sql.replace("${0}", "${1}");
-		while (true) {
-			secondOccurrenceOfCurrentIterator = sql.indexOf("${" + i + "}", sql.indexOf("${" + i + "}") + 1);
-			if (secondOccurrenceOfCurrentIterator > -1) {
-				sql = sql.replaceFirst("\\$\\{\\" + i + "\\}", "${" + (i + 1) + "}");
-			} else {
-				break;
-			}
-			i++;
-		}
-
-		return new StringBuilder(sql);
-	}
-
 	private String transformName(String name) {
 		if (name.equals(DLNAMediaDatabase.NONAME)) {
 			name = "";
@@ -245,6 +221,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 						genresSqls.add(firstGenresSql.toString());
 
 						// Make "Fully Played" (Unwatched and Watched) variations of the queries
+						int i = 0;
 						for (String sql : sqls) {
 							if (!sql.toLowerCase().startsWith("select")) {
 								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS) {
@@ -280,11 +257,11 @@ public class MediaLibraryFolder extends VirtualFolder {
 								genresSql.insert(indexAfterFrom, SQL_JOIN_GENRE_SECTION);
 							}
 
-							genresSql = incrementPlaceholders(genresSql.toString());
 							indexAfterWhere = genresSql.indexOf(whereString) + whereString.length();
-							genresSql.insert(indexAfterWhere, GENRES_CONDITION);
-							LOGGER.info("genresSql: " + genresSql.toString());
+							String genresCondition = GENRES_CONDITION.replace("${0}", "${" + i + "}");
+							genresSql.insert(indexAfterWhere, genresCondition);
 							genresSqls.add(genresSql.toString());
+							i++;
 						}
 
 						break;

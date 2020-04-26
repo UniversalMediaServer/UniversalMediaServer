@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -262,28 +263,22 @@ public class OpenSubtitle {
 		return null;
 	}
 
-	private static String postPage(URLConnection connection, List<NameValuePair> params) throws IOException {
+	private static String postPage(URLConnection urlConnection, List<NameValuePair> params) throws IOException {
+		HttpURLConnection connection = (HttpURLConnection) urlConnection;
 		connection.setDoOutput(true);
 		connection.setDoInput(true);
 		connection.setUseCaches(false);
 		connection.setDefaultUseCaches(false);
+		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Type", "text/json");
 		connection.setRequestProperty("Content-Length", "0");
-
-		for (NameValuePair param : params) {
-			connection.setRequestProperty(param.getName(), param.getValue());
-		}
-
 		connection.setConnectTimeout(5000);
-		((HttpURLConnection) connection).setRequestMethod("POST");
-		// LOGGER.debug("opensub query " + query);
-		// open up the output stream of the connection
-//		if (!StringUtils.isEmpty(query)) {
-			try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-//				output.writeBytes(query);
-				output.flush();
+
+		try (OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream())) {
+			for (NameValuePair param : params) {
+				writer.write(param.getName() + "=" + param.getValue());
 			}
-//		}
+		}
 
 		StringBuilder page;
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
@@ -292,10 +287,14 @@ public class OpenSubtitle {
 			while ((str = in.readLine()) != null) {
 				page.append(str.trim()).append("\n");
 			}
+
+			LOGGER.debug("API result page " + params.toString() + ": " + page.toString());
+			return page.toString().trim();
+		} catch (Exception e) {
+			LOGGER.info("API lookup error for " + params.toString() + ": " + e);
 		}
 
-		LOGGER.debug("API result page " + page.toString());
-		return page.toString().trim();
+		return null;
 	}
 
 	/**
@@ -1885,7 +1884,7 @@ public class OpenSubtitle {
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
 		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
-			LOGGER.info("no result for " + formattedName + ", " + imdbID);
+			LOGGER.info("no result for " + formattedName + ", " + imdbID + ", received: " + apiResult);
 			return null;
 		}
 
@@ -5020,7 +5019,7 @@ public class OpenSubtitle {
 						}
 					} catch (IOException ex) {
 						// This will happen regularly so just log it in trace mode
-						LOGGER.trace("Error in OpenSubtitles parsing:", ex);
+						LOGGER.trace("Error in API parsing:", ex);
 					}
 				}
 			};
