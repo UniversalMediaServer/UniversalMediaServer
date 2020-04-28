@@ -543,7 +543,7 @@
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus</artifactId>
-			<version>5.1</version>
+			<version>6.2</version>
 			<type>pom</type>
 		</dependency>
 		<dependency>
