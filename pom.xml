@@ -537,7 +537,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>3.13.3</version>
+			<version>4.7.0</version>
 		</dependency>
 		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
 		<dependency>
