@@ -3594,7 +3594,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="/Applications/Universal Media Server/ums.jar" overwrite="true" />
+													tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3611,8 +3611,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-								<workingDirectory>/Applications</workingDirectory>
-									<executable>Universal Media Server.app/Contents/MacOS/UMS</executable>
+									<executable>/Applications/Universal Media Server.app/Contents/MacOS/UMS</executable>
 								</configuration>
 							</execution>
 						</executions>
