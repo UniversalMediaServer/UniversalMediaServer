@@ -220,14 +220,10 @@ public class OpenSubtitle {
 		try {
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setAllowUserInteraction(false);
-			connection.setDoOutput(true);
-			connection.setDoInput(true);
 			connection.setUseCaches(false);
 			connection.setDefaultUseCaches(false);
-			connection.setRequestProperty("Content-Type", "text/json");
+			connection.setRequestProperty("Content-Type", "application/json");
 			connection.setRequestProperty("Content-length", "0");
-			connection.setConnectTimeout(15000);
-			connection.setRequestMethod("GET");
 			connection.connect();
 
 			int status = connection.getResponseCode();
@@ -243,9 +239,20 @@ public class OpenSubtitle {
 						}
 						br.close();
 						return sb.toString().trim();
+					} catch (Exception e) {
+						LOGGER.info("API lookup error for {}, {}", connection.getURL(), e.getMessage());
 					}
+					break;
 				default:
-					LOGGER.debug("API status was " + status + " for " + url.toString());
+					StringBuilder errorMessage;
+					BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
+					errorMessage = new StringBuilder();
+					String str;
+					while ((str = in.readLine()) != null) {
+						errorMessage.append(str.trim()).append("\n");
+					}
+
+					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
 			}
 		} catch (MalformedURLException ex) {
 			LOGGER.debug("" + ex);
@@ -264,34 +271,56 @@ public class OpenSubtitle {
 	}
 
 	private static String postPage(URLConnection urlConnection, List<NameValuePair> params) throws IOException {
+		StringBuilder body = new StringBuilder();
+		body.append("{");
+		boolean hasIteratedOnce = false;
+		for (NameValuePair param : params) {
+			if (hasIteratedOnce == true) {
+				body.append(",");
+			}
+			body.append("\"").append(param.getName()).append("\":\"").append(param.getValue()).append("\"");
+			hasIteratedOnce = true;
+		}
+		body.append("}");
+
 		HttpURLConnection connection = (HttpURLConnection) urlConnection;
 		connection.setDoOutput(true);
-		connection.setDoInput(true);
 		connection.setUseCaches(false);
 		connection.setDefaultUseCaches(false);
-		connection.setRequestMethod("POST");
-		connection.setRequestProperty("Content-Type", "text/json");
-		connection.setRequestProperty("Content-Length", "0");
-		connection.setConnectTimeout(5000);
+		connection.setRequestProperty("Content-Type", "application/json");
 
-		try (OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream())) {
-			for (NameValuePair param : params) {
-				writer.write(param.getName() + "=" + param.getValue());
-			}
+		try (OutputStream output = connection.getOutputStream()) {
+			output.write(body.toString().getBytes("UTF-8"));
 		}
 
-		StringBuilder page;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-			page = new StringBuilder();
-			String str;
-			while ((str = in.readLine()) != null) {
-				page.append(str.trim()).append("\n");
-			}
+		int status = connection.getResponseCode();
+		switch (status) {
+			case 200:
+			case 201:
+				StringBuilder page;
+				try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+					page = new StringBuilder();
+					String str;
+					while ((str = in.readLine()) != null) {
+						page.append(str.trim()).append("\n");
+					}
 
-			LOGGER.debug("API result page " + params.toString() + ": " + page.toString());
-			return page.toString().trim();
-		} catch (Exception e) {
-			LOGGER.info("API lookup error for " + params.toString() + ": " + e);
+					LOGGER.debug("API result page {}, {}", body, page);
+					return page.toString().trim();
+				} catch (Exception e) {
+					LOGGER.info("API lookup error for {}, {}", body, e.getMessage());
+				}
+				break;
+			default:
+				StringBuilder errorMessage;
+				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
+				errorMessage = new StringBuilder();
+				String str;
+				while ((str = in.readLine()) != null) {
+					errorMessage.append(str.trim()).append("\n");
+				}
+
+				LOGGER.debug("API status was {} for {} {}, {}", status, body, errorMessage, connection.getURL());
 		}
 
 		return null;
@@ -1851,11 +1880,10 @@ public class OpenSubtitle {
 	 *
 	 * @param file the {@link File} to lookup.
 	 * @param formattedName the name to use in the name search
-	 * @param imdbID
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap getInfo(File file, String formattedName, String imdbID) throws IOException {
+	public static HashMap getInfo(File file, String formattedName) throws IOException {
 		LOGGER.info("getting info for " + " " + file + ", " + formattedName);
 		Path path = null;
 		String apiResult = null;
@@ -1864,9 +1892,7 @@ public class OpenSubtitle {
 			apiResult = getInfoFromOSDbHash(getHash(path), file.length());
 		}
 		if (apiResult == null) { // no good on hash! try imdb
-			if (imdbID == null) {
-				imdbID = ImdbUtil.extractImdbId(path, false);
-			}
+			String imdbID = ImdbUtil.extractImdbId(path, false);
 			if (isNotBlank(imdbID)) {
 				LOGGER.info("looking up IMDb ID " + imdbID);
 				apiResult = getInfoFromIMDbID(imdbID);
@@ -1879,12 +1905,12 @@ public class OpenSubtitle {
 			}
 
 			LOGGER.info("looking up filename " + formattedName);
-			apiResult = getInfoFromFilename(formattedName);
+			apiResult = getInfoFromFilename(formattedName, false);
 		}
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
 		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
-			LOGGER.info("no result for " + formattedName + ", " + imdbID + ", received: " + apiResult);
+			LOGGER.info("no result for " + formattedName + ", received: " + apiResult);
 			return null;
 		}
 
@@ -1897,6 +1923,44 @@ public class OpenSubtitle {
 		}
 
 		if (data.isEmpty()) {
+			return null;
+		}
+
+		return data;
+	}
+
+	/**
+	 * Initiates a series of API lookups, from most to least desirable, until
+	 * one succeeds.
+	 *
+	 * @param formattedName the name to use in the name search
+	 * @param imdbID
+	 * @return The parameter {@link String}.
+	 * @throws IOException If an I/O error occurs during the operation.
+	 */
+	public static HashMap getTVSeriesInfo(String formattedName, String imdbID) throws IOException {
+		LOGGER.info("getting info for {}, {}", formattedName, imdbID);
+		String apiResult = null;
+
+		if (isNotBlank(imdbID)) {
+			LOGGER.info("looking up IMDb ID {}, {}", imdbID, formattedName);
+			apiResult = getInfoFromIMDbID(imdbID);
+		}
+
+		if (apiResult == null && formattedName != null) {
+			LOGGER.info("looking up title {}", formattedName);
+			apiResult = getInfoFromFilename(formattedName, true);
+		}
+
+		HashMap data = new HashMap();
+
+		try {
+			data = gson.fromJson(apiResult, data.getClass());
+		} catch (JsonSyntaxException e) {
+			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
+		}
+
+		if (data != null && data.isEmpty()) {
 			return null;
 		}
 
@@ -1935,9 +1999,10 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String getInfoFromFilename(String filename) throws IOException {
+	private static String getInfoFromFilename(String filename, boolean isSeries) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
-		URL url = new URL(domain, "/api/media/title/");
+		String endpoint = isSeries == true ? "seriestitle" : "title";
+		URL url = new URL(domain, "/api/media/" + endpoint + "/");
 
 		List<NameValuePair> params = new ArrayList<>(2);
 		params.add(new BasicNameValuePair("title", filename));
@@ -4833,7 +4898,7 @@ public class OpenSubtitle {
 					HashMap metadataFromAPI;
 					HashMap seriesMetadataFromAPI;
 					try {
-						metadataFromAPI = getInfo(file, file.getName(), null);
+						metadataFromAPI = getInfo(file, file.getName());
 
 						if (metadataFromAPI == null) {
 							LOGGER.trace("Failed lookup for " + file.getName());
@@ -4863,20 +4928,25 @@ public class OpenSubtitle {
 						 */
 						String seriesIMDbIDFromAPI = (String) metadataFromAPI.get("seriesIMDbID");
 						if (StringUtils.isNotBlank(seriesIMDbIDFromAPI)) {
+							LOGGER.info("got seriesIMDbID " + seriesIMDbIDFromAPI);
 							titleFromAPI = TableTVSeries.getTitle(seriesIMDbIDFromAPI);
 							if (titleFromAPI == null) {
-								seriesMetadataFromAPI = getInfo(null, null, seriesIMDbIDFromAPI);
+								LOGGER.info("1 " + titleFromAPI);
+								seriesMetadataFromAPI = getTVSeriesInfo(null, seriesIMDbIDFromAPI);
+								LOGGER.info("2 " + seriesMetadataFromAPI);
 								if (seriesMetadataFromAPI == null) {
 									if (overTheTopLogging) {
-										LOGGER.trace("Did not find matching series for the episode in our API" + file.getName() + " : " + titleFromAPI);
+										LOGGER.trace("Did not find matching series for the episode in our API " + file.getName() + " : " + titleFromAPI);
 									}
 								} else {
 									TableTVSeries.set(seriesMetadataFromAPI);
 									titleFromAPI = (String) seriesMetadataFromAPI.get("title");
+									LOGGER.info("3 " + titleFromAPI);
 								}
 							}
 							titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
 							tvEpisodeTitleFromAPI = (String) metadataFromAPI.get("title");
+							LOGGER.info("3 " + tvEpisodeTitleFromAPI);
 						}
 
 						/**

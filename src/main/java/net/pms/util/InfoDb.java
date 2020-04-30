@@ -60,7 +60,7 @@ public class InfoDb implements DbHandler {
 
 	private void askAndInsert(File f, String formattedName) {
 		try {
-			HashMap<String, Object> apiResult = OpenSubtitle.getInfo(f, formattedName, null);
+			HashMap<String, Object> apiResult = OpenSubtitle.getInfo(f, formattedName);
 			Object obj = FileDb.nullObj();
 			if (apiResult != null) {
 				obj = create(apiResult, 0);
@@ -228,7 +228,7 @@ public class InfoDb implements DbHandler {
 						File f = new File(key);
 						String name = f.getName();
 						try {
-							HashMap apiResult = OpenSubtitle.getInfo(f, name, null);
+							HashMap apiResult = OpenSubtitle.getInfo(f, name);
 							// if we still get nothing from opensubs
 							// we don't fiddle with the db
 							if (apiResult != null) {

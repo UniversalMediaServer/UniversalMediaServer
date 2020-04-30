@@ -79,7 +79,7 @@ public final class TableTVSeries extends Tables {
 						}
 					} else {
 						if (trace) {
-							LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting");
+							LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting", imdbID);
 						}
 						result.moveToInsertRow();
 						result.updateString("AWARDS", (String) tvSeries.get("awards"));
@@ -90,10 +90,10 @@ public final class TableTVSeries extends Tables {
 						result.updateString("PLOT", (String) tvSeries.get("plot"));
 						result.updateString("POSTER", (String) tvSeries.get("poster"));
 						result.updateString("RATED", (String) tvSeries.get("rated"));
-						result.updateString("RATING", (String) tvSeries.get("rating"));
+						result.updateDouble("RATING", (Double) tvSeries.get("rating"));
 						result.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
 						result.updateString("TITLE", (String) tvSeries.get("title"));
-						result.updateString("TOTALSEASONS", (String) tvSeries.get("totalSeasons"));
+						result.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
 						result.updateString("VOTES", (String) tvSeries.get("votes"));
 						result.updateString("YEAR", (String) tvSeries.get("year"));
 						result.insertRow();
@@ -223,10 +223,10 @@ public final class TableTVSeries extends Tables {
 					"PLOT    VARCHAR2(1024), " +
 					"POSTER    VARCHAR2(1024), " +
 					"RATED    VARCHAR2(1024), " +
-					"RATING    VARCHAR2(1024), " +
+					"RATING    DOUBLE, " +
 					"STARTYEAR    VARCHAR2(1024), " +
 					"TITLE    VARCHAR2(1024), " +
-					"TOTALSEASONS    VARCHAR2(1024), " +
+					"TOTALSEASONS    DOUBLE, " +
 					"VOTES    VARCHAR2(1024), " +
 					"YEAR    VARCHAR2(1024) " +
 				")"

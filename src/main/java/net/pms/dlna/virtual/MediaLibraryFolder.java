@@ -391,6 +391,29 @@ public class MediaLibraryFolder extends VirtualFolder {
 				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 				System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
+				
+				/**
+				 * Handle entries that have no value in the joined table
+				 * Converts e.g. FILES LEFT JOIN VIDEO_METADATA_GENRES ON FILES.FILENAME = VIDEO_METADATA_GENRES.FILENAME WHERE VIDEO_METADATA_GENRES.GENRE = ''
+				 * To e.g. FILES LEFT JOIN VIDEO_METADATA_GENRES ON FILES.FILENAME = VIDEO_METADATA_GENRES.FILENAME WHERE VIDEO_METADATA_GENRES.FILENAME IS NULL
+				 */
+				LOGGER.info("sqls2: " + Arrays.toString(sqls2));
+				LOGGER.info("sqls3: " + virtualFolderName);
+				if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
+					DLNAResource resource = this;
+
+					if (resource.getName() != null) {
+						LOGGER.info("getName(): " + resource.getName());
+					}
+					
+					if (resource.getName() != null && resource.getName().equals(Messages.getString("VirtualFolder.Genres")) && "###".equals(virtualFolderName)) {
+						for (int i = 0; i < sqls2.length; i++) {
+							sqls2[i] = sqls2[i].replace("WHERE VIDEO_METADATA_GENRES.GENRE = '${" + i + "}'", "WHERE VIDEO_METADATA_GENRES.FILENAME IS NULL");
+						}
+						nameToDisplay = "Unknown";
+						LOGGER.info("2 sqls2: " + Arrays.toString(sqls2));
+					}
+				}
 				addChild(new MediaLibraryFolder(virtualFolderName, sqls2, expectedOutputs2, nameToDisplay));
 			}
 		}
