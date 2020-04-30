@@ -1145,7 +1145,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
@@ -1880,7 +1880,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -1988,7 +1988,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -2096,7 +2096,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -2204,7 +2204,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -2674,7 +2674,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -3143,7 +3143,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-test</id>
@@ -3201,7 +3201,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-osx-java-8</id>
@@ -3400,7 +3400,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-linux</id>
@@ -3470,7 +3470,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
@@ -3506,7 +3506,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>3.0.0</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
