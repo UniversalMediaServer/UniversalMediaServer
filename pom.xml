@@ -106,7 +106,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>5.5.0</jna-version>
+		<jna-version>5.3.1</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -575,6 +575,38 @@
 			<artifactId>zip4j</artifactId>
 			<version>1.3.2</version>
 		</dependency>
+		
+		<!-- start of JAXB dependencies -->
+		<!--
+			Those dependencies could be removed as soon as we drop support for Java 8,
+			and add "-add-modules java.xml.bind" as a app command line argument
+		-->
+		<dependency>
+			<groupId>javax.xml.soap</groupId>
+			<artifactId>javax.xml.soap-api</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.messaging.saaj</groupId>
+			<artifactId>saaj-impl</artifactId>
+			<version>1.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+			<version>2.3.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<!-- end of JAXB dependencies -->
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
