@@ -90,6 +90,7 @@ public class DLNAMediaInfoTest {
 			PMS.getGlobalRepo().add(dlna);
 			test_content[i] = dlna.getIntId();
 			System.out.format( "ID: %s\n", test_content[i] );
+			System.out.format( "From global repo: %s\n", PMS.getGlobalRepo().get(test_content[i]) );
 		}
 	}
 
