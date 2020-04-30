@@ -3511,7 +3511,6 @@
 								</goals>
 								<configuration>
 									<target>
-										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 													tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
 									</target>
@@ -3531,7 +3530,6 @@
 								</goals>
 								<configuration>
 									<executable>C:\Program Files (x86)\Universal Media Server\UMS.exe</executable>
-									<!--<workingDirectory>C:\Program Files (x86)\Universal Media Server</workingDirectory>-->
 								</configuration>
 							</execution>
 						</executions>
