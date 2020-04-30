@@ -3452,7 +3452,7 @@
 		</profile>
 
 		<!--
-			Quick run profile: Builds, replaces and runs ums.jar in the default installation directory on 64-bit Windows.
+			Quick run profiles: Builds, replaces and runs ums.jar in the default installation directory on 64-bit Windows.
 			For extra quickness, run with the skipTests flag, like mvn -P quickrun-windows package -DskipTests
 		-->
 		<profile>
@@ -3534,6 +3534,190 @@
 							</execution>
 						</executions>
 					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>quickrun-macos</id>
+			<build>
+				<plugins>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when UMS starts:
+
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
+
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+							</archive>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to move the ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>prepare-package-windows</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+													tofile="/Applications/Universal Media Server/ums.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>process-resources-osx-java-8</id>
+								<phase>test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR-new" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-osx-java-8</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package app</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<property environment="env" />
+									<target>
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.3.UMS.jar"/>
+										<bundleapp outputdirectory="/Applications/"
+															 name="${project.name}"
+															 displayname="${project.name}"
+															 executableName="UMS"
+															 identifier="net.pms.PMS"
+															 shortversion="${project.version.short}"
+															 version="${project.version}"
+															 icon="${project.basedir}/src/main/resources/images/logo.icns"
+															 applicationCategory="public.app-category.entertainment"
+															 workingdirectory="$APP_ROOT/Contents/Resources"
+															 mainclassname="net.pms.PMS">
+											<runtime dir="${env.JAVA_HOME}" />
+											<classpath file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"/>
+											<option value="-Xmx1280M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=UMS"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.6.0</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+								<workingDirectory>/Applications</workingDirectory>
+									<executable>Universal Media Server.app/Contents/MacOS/UMS</executable>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
 				</plugins>
 			</build>
 		</profile>
