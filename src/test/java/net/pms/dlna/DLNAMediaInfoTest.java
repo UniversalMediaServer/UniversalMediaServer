@@ -80,7 +80,6 @@ public class DLNAMediaInfoTest {
 
 		for (int i = 0; i < test_files.length; ++i) {
 			DLNAResource dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
-			System.out.format( "dlna: %s\n", dlna.toString() );
 			dlna.setMedia(new DLNAMediaInfo());
 			dlna.setParent(parent);
 			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -88,10 +87,6 @@ public class DLNAMediaInfoTest {
 			dlna.syncResolve();
 			PMS.getGlobalRepo().add(dlna);
 			test_content[i] = dlna.getIntId();
-			// DLNAResource resource = PMS.getGlobalRepo().get(test_content[i]);
-			// System.out.format( "ID: %s\n", test_content[i] );
-			// System.out.format( "resource: %s\n", resource );
-			// System.out.format( "media: %s\n", resource.getMedia() );
 		}
 	}
 
