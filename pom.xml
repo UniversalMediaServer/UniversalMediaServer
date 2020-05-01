@@ -240,7 +240,7 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>1.9.0</version>
+			<version>1.12.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
