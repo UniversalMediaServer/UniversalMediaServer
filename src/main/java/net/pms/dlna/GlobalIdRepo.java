@@ -43,6 +43,7 @@ public class GlobalIdRepo {
 	public void add(DLNAResource dlnaResource) {
 		lock.writeLock().lock();
 		try {
+			String id = dlnaResource.getId();
 			if (dlnaResource.getId() == null || get(dlnaResource.getId()) != dlnaResource) {
 				ids.add(new ID(dlnaResource, curGlobalId++));
 			}
