@@ -84,6 +84,8 @@
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>102</binary-revision>
 
+		<exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
+		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.2.4</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.2.0</maven-assembly-plugin-version>
@@ -106,7 +108,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>5.3.1</jna-version>
+		<jna-version>5.5.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -114,7 +116,7 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.6.1</junit5.version>
+		<junit5.version>5.6.2</junit5.version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -408,7 +410,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>2.5.0</version>
+			<version>3.15.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -449,7 +451,7 @@
 		<dependency>
 			<groupId>com.samskivert</groupId>
 			<artifactId>jmustache</artifactId>
-			<version>1.12</version>
+			<version>1.15</version>
 		</dependency>
 		<dependency>
 			<groupId>su.litvak.chromecast</groupId>
@@ -537,7 +539,13 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>3.13.3</version>
+			<version>4.7.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
 		<dependency>
@@ -569,7 +577,6 @@
 			<artifactId>zip4j</artifactId>
 			<version>1.3.2</version>
 		</dependency>
-
 		<!-- start of JAXB dependencies -->
 		<!--
 			Those dependencies could be removed as soon as we drop support for Java 8,
@@ -583,7 +590,7 @@
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
-			<version>1.5.0</version>
+			<version>1.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
@@ -739,9 +746,7 @@
 										<artifactId>
 											maven-antrun-plugin
 										</artifactId>
-										<versionRange>
-											[1.7,)
-										</versionRange>
+										<version>${maven-antrun-plugin-version}</version>
 										<goals>
 											<goal>run</goal>
 										</goals>
@@ -869,7 +874,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
+				<version>3.8.1</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -946,7 +951,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.7</version>
+				<version>3.9.0</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
@@ -964,7 +969,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.9</version>
+				<version>3.0.0</version>
 				<reportSets>
 					<reportSet>
 						<reports>
@@ -1037,7 +1042,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>3.1.12.2</version>
+				<version>4.0.0</version>
 			</plugin>
 
 			<!-- Checkstyle report -->
@@ -1145,7 +1150,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
@@ -1880,7 +1885,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -1988,7 +1993,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -2096,7 +2101,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -2204,7 +2209,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -2674,7 +2679,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-linux</id>
@@ -3143,7 +3148,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-test</id>
@@ -3201,7 +3206,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-osx-java-8</id>
@@ -3400,7 +3405,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-jar-with-dependencies-linux</id>
@@ -3433,7 +3438,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.6.0</version>
+						<version>${exec-maven-plugin-version}</version>
 						<executions>
 							<execution>
 								<phase>test</phase>
@@ -3443,6 +3448,175 @@
 								<configuration>
 									<classpathScope>test</classpathScope>
 									<mainClass>net.pms.PMS</mainClass>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Quick run profiles: Builds, replaces and runs ums.jar in the default installation directory.
+			For extra quickness, run with the skipTests flag, like mvn -P quickrun-windows package -DskipTests
+		-->
+		<profile>
+			<id>quickrun-windows</id>
+			<build>
+				<plugins>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when UMS starts:
+
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
+
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+							</archive>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to move the ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>prepare-package-windows</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+													tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>${exec-maven-plugin-version}</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>C:\Program Files (x86)\Universal Media Server\UMS.exe</executable>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>quickrun-macos</id>
+			<build>
+				<plugins>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when UMS starts:
+
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
+
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+							</archive>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to move the ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>prepare-package-windows</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+													tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>${exec-maven-plugin-version}</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>/Applications/Universal Media Server.app/Contents/MacOS/UMS</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -3470,7 +3644,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
@@ -3506,7 +3680,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.8</version>
+						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>process-resources-windows</id>
