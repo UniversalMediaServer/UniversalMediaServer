@@ -196,7 +196,7 @@ public class GlobalIdRepo {
 					try {
 						// Once an underlying DLNAResource is ready for garbage
 						// collection, its weak reference will pop out here
-						WeakDLNARef ref = (WeakDLNARef)idCleanupQueue.remove();
+						WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
 						if (ref.id > 0) {
 							// Delete the associated id from our repo list
 							LOGGER.debug("deleting invalid id {}", ref.id);
