@@ -106,7 +106,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>5.3.1</jna-version>
+		<jna-version>5.5.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -408,7 +408,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>2.5.0</version>
+			<version>3.15.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -449,7 +449,7 @@
 		<dependency>
 			<groupId>com.samskivert</groupId>
 			<artifactId>jmustache</artifactId>
-			<version>1.12</version>
+			<version>1.15</version>
 		</dependency>
 		<dependency>
 			<groupId>su.litvak.chromecast</groupId>
@@ -537,7 +537,13 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>3.13.3</version>
+			<version>4.7.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
 		<dependency>
@@ -569,7 +575,6 @@
 			<artifactId>zip4j</artifactId>
 			<version>1.3.2</version>
 		</dependency>
-
 		<!-- start of JAXB dependencies -->
 		<!--
 			Those dependencies could be removed as soon as we drop support for Java 8,
