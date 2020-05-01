@@ -88,10 +88,10 @@ public class DLNAMediaInfoTest {
 			dlna.syncResolve();
 			PMS.getGlobalRepo().add(dlna);
 			test_content[i] = dlna.getIntId();
-			DLNAResource resource = PMS.getGlobalRepo().get(test_content[i]);
-			System.out.format( "ID: %s\n", test_content[i] );
-			System.out.format( "resource: %s\n", resource );
-			System.out.format( "Got media: %s\n", resource.getMedia() );
+			// DLNAResource resource = PMS.getGlobalRepo().get(test_content[i]);
+			// System.out.format( "ID: %s\n", test_content[i] );
+			// System.out.format( "resource: %s\n", resource );
+			// System.out.format( "media: %s\n", resource.getMedia() );
 		}
 	}
 
