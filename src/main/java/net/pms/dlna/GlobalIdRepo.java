@@ -179,6 +179,7 @@ public class GlobalIdRepo {
 			super(dlnaResource, idCleanupQueue);
 			this.id = id;
 		}
+
 		void cancel() {
 			// We've been replaced, i.e. another weakDLNARef is now holding our
 			// id, and it will trigger id cleanup at garbage collection time
