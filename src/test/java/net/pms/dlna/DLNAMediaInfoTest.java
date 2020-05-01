@@ -79,8 +79,7 @@ public class DLNAMediaInfoTest {
 		PMS.getGlobalRepo().add(parent);
 
 		for (int i = 0; i < test_files.length; ++i) {
-			DLNAResource dlna;
-			dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
+			DLNAResource dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
 			dlna.setMedia(new DLNAMediaInfo());
 			dlna.setParent(parent);
 			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
