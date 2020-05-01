@@ -575,7 +575,6 @@
 			<artifactId>zip4j</artifactId>
 			<version>1.3.2</version>
 		</dependency>
-		
 		<!-- start of JAXB dependencies -->
 		<!--
 			Those dependencies could be removed as soon as we drop support for Java 8,
