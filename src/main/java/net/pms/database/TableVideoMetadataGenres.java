@@ -60,6 +60,7 @@ public final class TableVideoMetadataGenres extends Tables {
 	 *
 	 * @param fullPathToFile
 	 * @param genres
+	 * @param tvSeriesID
 	 */
 	public static void set(final String fullPathToFile, final HashSet genres, final int tvSeriesID) {
 		if (genres.isEmpty()) {
@@ -187,8 +188,8 @@ public final class TableVideoMetadataGenres extends Tables {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
 					"ID       IDENTITY PRIMARY KEY, " +
-					"TVSERIESID   IDENTITY, " +
-					"FILENAME VARCHAR2(1024)        NOT NULL, " +
+					"TVSERIESID   INT, " +
+					"FILENAME VARCHAR2(1024), " +
 					"GENRE    VARCHAR2(1024)        NOT NULL" +
 				")"
 			);

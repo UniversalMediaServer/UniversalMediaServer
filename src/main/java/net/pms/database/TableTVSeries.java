@@ -20,11 +20,12 @@
 package net.pms.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
@@ -54,11 +55,12 @@ public final class TableTVSeries extends Tables {
 	}
 
 	/**
-	 * Sets a new entry.
+	 * Sets a new entry and returns the row ID.
 	 *
 	 * @param tvSeries
+	 * @return the new row ID
 	 */
-	public static void set(final HashMap tvSeries) {
+	public static Integer set(final HashMap tvSeries) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
@@ -71,7 +73,7 @@ public final class TableTVSeries extends Tables {
 			}
 
 			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			try (PreparedStatement statement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, Statement.RETURN_GENERATED_KEYS)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
@@ -98,6 +100,11 @@ public final class TableTVSeries extends Tables {
 						result.updateString("VOTES", (String) tvSeries.get("votes"));
 						result.updateString("YEAR", (String) tvSeries.get("year"));
 						result.insertRow();
+						try (ResultSet rs = statement.getGeneratedKeys()) {
+							if (rs.next()) {
+								return rs.getInt("ID");
+							}
+						}
 					}
 				} finally {
 					connection.commit();
@@ -112,11 +119,12 @@ public final class TableTVSeries extends Tables {
 			);
 			LOGGER.trace("", e);
 		}
+
+		return null;
 	}
 
 	public static HashMap getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
-		HashMap result = null;
 
 		try (Connection connection = database.getConnection()) {
 			String query = "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
@@ -129,7 +137,7 @@ public final class TableTVSeries extends Tables {
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						result = (HashMap) resultSet;
+						return convertSingleResultSetToList(resultSet);
 					}
 				}
 			} finally {
@@ -140,7 +148,7 @@ public final class TableTVSeries extends Tables {
 			LOGGER.trace("", e);
 		}
 
-		return result;
+		return null;
 	}
 
 	/**
@@ -150,8 +158,7 @@ public final class TableTVSeries extends Tables {
 	 */
 	public static void remove(final String imdbID) {
 		try (Connection connection = database.getConnection()) {
-			String query =
-				"DELETE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID);
+			String query = "DELETE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID);
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				int rows = statement.executeUpdate(query);
