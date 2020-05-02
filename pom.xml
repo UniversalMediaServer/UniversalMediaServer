@@ -746,7 +746,9 @@
 										<artifactId>
 											maven-antrun-plugin
 										</artifactId>
-										<version>${maven-antrun-plugin-version}</version>
+										<versionRange>
+											[1.7,)
+										</versionRange>
 										<goals>
 											<goal>run</goal>
 										</goals>
