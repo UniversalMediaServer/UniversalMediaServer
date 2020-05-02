@@ -61,27 +61,28 @@ public final class TableVideoMetadataGenres extends Tables {
 	 * @param fullPathToFile
 	 * @param genres
 	 */
-	public static void set(final String fullPathToFile, final HashSet genres) {
+	public static void set(final String fullPathToFile, final HashSet genres, final int tvSeriesID) {
 		if (genres.isEmpty()) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = database.getConnection()) {
-			Iterator<String> i = genres.iterator(); 
+			Iterator<String> i = genres.iterator();
 			while (i.hasNext()) {
 				String genre = i.next();
 				PreparedStatement insertStatement = connection.prepareStatement(
 					"INSERT INTO " + TABLE_NAME + " (" +
-						"FILENAME, GENRE" +
+						"TVSERIESID, FILENAME, GENRE" +
 					") VALUES (" +
-						"?, ?" +
+						"?, ?, ?" +
 					")",
 					Statement.RETURN_GENERATED_KEYS
 				);
 				insertStatement.clearParameters();
-				insertStatement.setString(1, left(fullPathToFile, 255));
-				insertStatement.setString(2, left(genre, 255));
+				insertStatement.setInt(1, tvSeriesID);
+				insertStatement.setString(2, left(fullPathToFile, 255));
+				insertStatement.setString(3, left(genre, 255));
 
 				insertStatement.executeUpdate();
 				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
@@ -186,6 +187,7 @@ public final class TableVideoMetadataGenres extends Tables {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
 					"ID       IDENTITY PRIMARY KEY, " +
+					"TVSERIESID   IDENTITY, " +
 					"FILENAME VARCHAR2(1024)        NOT NULL, " +
 					"GENRE    VARCHAR2(1024)        NOT NULL" +
 				")"

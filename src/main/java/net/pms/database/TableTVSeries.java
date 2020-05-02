@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
@@ -113,12 +114,12 @@ public final class TableTVSeries extends Tables {
 		}
 	}
 
-	public static String getTitle(final String imdbID) {
+	public static HashMap getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
-		String result = null;
+		HashMap result = null;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT TITLE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
+			String query = "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
@@ -128,14 +129,14 @@ public final class TableTVSeries extends Tables {
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						result = resultSet.getString("TITLE");
+						result = (HashMap) resultSet;
 					}
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up file status in " + TABLE_NAME + " for \"{}\": {}", imdbID, e.getMessage());
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", imdbID, e.getMessage());
 			LOGGER.trace("", e);
 		}
 

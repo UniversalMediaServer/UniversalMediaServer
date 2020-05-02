@@ -4896,7 +4896,7 @@ public class OpenSubtitle {
 				@Override
 				public void run() {
 					HashMap metadataFromAPI;
-					HashMap seriesMetadataFromAPI;
+					HashMap seriesMetadata;
 					try {
 						metadataFromAPI = getInfo(file, file.getName());
 
@@ -4909,6 +4909,7 @@ public class OpenSubtitle {
 						String yearFromFilename            = media.getYear();
 						String tvSeasonFromFilename        = media.getTVSeason();
 						String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
+						int tvSeriesId = -1;
 
 						String titleFromDatabase;
 						String titleFromDatabaseSimplified;
@@ -4929,21 +4930,22 @@ public class OpenSubtitle {
 						String seriesIMDbIDFromAPI = (String) metadataFromAPI.get("seriesIMDbID");
 						if (StringUtils.isNotBlank(seriesIMDbIDFromAPI)) {
 							LOGGER.info("got seriesIMDbID " + seriesIMDbIDFromAPI);
-							titleFromAPI = TableTVSeries.getTitle(seriesIMDbIDFromAPI);
-							if (titleFromAPI == null) {
+							seriesMetadata = TableTVSeries.getByIMDbID(seriesIMDbIDFromAPI);
+							if (seriesMetadata == null) {
 								LOGGER.info("1 " + titleFromAPI);
-								seriesMetadataFromAPI = getTVSeriesInfo(null, seriesIMDbIDFromAPI);
-								LOGGER.info("2 " + seriesMetadataFromAPI);
-								if (seriesMetadataFromAPI == null) {
+								seriesMetadata = getTVSeriesInfo(null, seriesIMDbIDFromAPI);
+								LOGGER.info("2 " + seriesMetadata);
+								if (seriesMetadata == null) {
 									if (overTheTopLogging) {
 										LOGGER.trace("Did not find matching series for the episode in our API " + file.getName() + " : " + titleFromAPI);
 									}
 								} else {
-									TableTVSeries.set(seriesMetadataFromAPI);
-									titleFromAPI = (String) seriesMetadataFromAPI.get("title");
+									TableTVSeries.set(seriesMetadata);
+									titleFromAPI = (String) seriesMetadata.get("title");
 									LOGGER.info("3 " + titleFromAPI);
 								}
 							}
+							tvSeriesId = (int) seriesMetadata.get("id");
 							titleFromAPISimplified = FileUtil.getSimplifiedShowName(titleFromAPI);
 							tvEpisodeTitleFromAPI = (String) metadataFromAPI.get("title");
 							LOGGER.info("3 " + tvEpisodeTitleFromAPI);
@@ -5075,7 +5077,11 @@ public class OpenSubtitle {
 									try {
 										PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 										LOGGER.info("setting genres for " + file.getName() + ": " + media.getGenres().toString());
-										TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres());
+										if (tvSeriesId > -1) {
+											TableVideoMetadataGenres.set(null, media.getGenres(), tvSeriesId);
+										} else {
+											TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres(), -1);
+										}
 									} catch (SQLException e) {
 										LOGGER.error(
 											"Could not update the database with information from OpenSubtitles for \"{}\": {}",
