@@ -243,7 +243,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 				requestType,
 				rendererName,
 				header,
-				StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+				isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
 				);
 		} else { // Trace not supported request type
 			LOGGER.trace(
