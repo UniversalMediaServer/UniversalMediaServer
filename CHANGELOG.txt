@@ -1,3 +1,86 @@
+9.4.2 - 2020-04-21
+
+	General:
+		Improved detection of M4V and MP4 files
+		Improved automated regression tests for media format detection
+		Improved detection of incomplete binaries
+		Fixed Linux failing to use bundled FFmpeg (thanks, snicket2100!)
+		Fixed support for custom server names with special characters (thanks, snicket2100!)
+	Renderers:
+		Improved support for H.264 videos on VLC for iOS
+	Translation updates via Crowdin:
+		Bulgarian (96%)
+		Finnish (100%)
+		French (100%)
+		Hungarian (84%)
+		Romanian (100%)
+		Slovak (100%)
+	Dependencies:
+		Updated Chromecast api-v2 to 0.11.3
+		Fixed broken FFmpeg binary on Linux x86
+		Updated Google Gson to 2.8.6
+		Updated Google Guava to 29.0
+		Updated h2database to 1.4.200
+		Updated Java Runtime Environment to 1.8.251
+
+9.4.1 - 2020-04-08
+
+	Translation updates via Crowdin:
+		Bulgarian (93%)
+		Czech (100%)
+		Danish (99%)
+		Finnish (99%)
+		French (99%)
+		Hebrew (21%)
+		Italian (100%)
+		Polish (99%)
+		Portuguese (99%)
+		Portuguese (Brazilian) (99%)
+		Spanish (100%)
+		Swedish (100%)
+		Ukrainian (23%)
+	Dependencies:
+		Updated FFmpeg on macOS to fix a startup bug
+		Updated JUnit5 to 5.6.1
+		Updated Maven Javadoc plugin to 3.2.0
+		Updated Maven Assembly plugin to 3.2.0
+
+9.4.0 - 2020-04-05
+
+	General:
+		Started releasing 5 Linux builds: x86, x86_64, ARM, ARMhf and ARM64
+		Linux builds all default to using the system FFmpeg if it exists
+		Improved transcoding speed
+		Fixed broken cache loading in some situations
+		Fixed transcoding bugs
+		Fixed subtitles bugs
+		Improved logging
+	Renderers:
+		Added support for Denon AVR-4311CI (thanks, sc3141!)
+		Added support for Denon AVR-X4200W (thanks, sc3141!)
+	Translation updates via Crowdin:
+		Danish (99%)
+		Greek (92%)
+		Hebrew (19%)
+		Portuguese (99%)
+		Swedish (99%)
+	Dependencies:
+		Fixed incorrect MediaInfo version on Windows, now it is 18.12
+		Updated FFmpeg to 3362330 (20200328) on all operating systems
+		Updated Twelvemonkeys ImageIO to 3.5
+
+9.3.1 - 2020-03-22
+
+	General:
+		Updated build documentation in BUILD.md (thanks, luca-vercelli!)
+	Renderers:
+		Fixed too much transcoding on Samsung 9 series TVs
+		Fixed WAV support on PS3
+	Translation updates via Crowdin:
+		Arabic (36%)
+		Serbian (87%)
+		Slovenian (60%)
+
 9.3.0 - 2020-02-23
 
 	General:

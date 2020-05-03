@@ -878,7 +878,7 @@ public class RequestV2 extends HTTPResource {
 			}
 		}
 
-		result = result.replace("Universal Media Server", friendlyName);
+		result = result.replace("Universal Media Server", StringEscapeUtils.escapeXml10(friendlyName));
 		return result;
 	}
 

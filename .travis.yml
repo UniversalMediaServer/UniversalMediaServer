@@ -1,22 +1,53 @@
-dist: trusty
-
-language: java
-
-cache:
-  directories:
-  - $HOME/.m2
-
-addons:
-  apt:
-    packages: mediainfo
-
-matrix:
+# The strategy with these matrixes are to test both old and new versions of operating systems
+# and Java, to ensure we don't break old things and that newer things continue to work
+jobs:
   include:
     - os: linux
+      language: java
+      dist: trusty
       jdk: oraclejdk8
+      before_install:
+        - sudo apt-get -y install libmms0
+        - wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
+        - sudo dpkg -i libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
+        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
+        - sudo dpkg -i libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
+      script: mvn verify -B -V -P testing
+    - os: linux
+      language: java
+      dist: bionic
+      jdk: openjdk8
+      before_install:
+        - sudo apt-get -y install libmms0
+        - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+        - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
+        - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
+      script: mvn verify -B -V -P testing
+    # This section can potentially be enabled when we upgrade MediaInfo to 20.03
+    # - os: linux
+    #   dist: bionic
+    #   before_install:
+    #     - sudo apt-get -y install libmms0
+    #     - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+    #     - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+    #     - wget https://mediaarea.net/download/binary/libmediainfo0/20.03/libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
+    #     - sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
     - os: osx
       osx_image: xcode9.3
+      language: java
+      script: mvn -P testing-macos
+    - os: osx
+      osx_image: xcode11.3
+      language: java
+      script: mvn -P testing-macos
+    - os: windows
+      language: shell
+      before_install:
+        - export JDK="adopt@1.8.0-242"
+        - travis_retry git clone --depth 1 https://github.com/DanySK/Gravis-CI.git $HOME/gravis
+        - source $HOME/gravis/install-jdk
+        - source $HOME/gravis/install-maven
+      script: mvn -P testing-windows
 
 install: mvn external:install
-
-script: mvn verify -B -V -P testing

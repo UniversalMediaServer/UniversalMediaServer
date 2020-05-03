@@ -642,7 +642,7 @@ public class Request extends HTTPResource {
 					   s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
       			}
 
-				s = s.replace("Universal Media Server", friendlyName);
+				s = s.replace("Universal Media Server", StringEscapeUtils.escapeXml10(friendlyName));
 
 				inputStream = new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
 			}

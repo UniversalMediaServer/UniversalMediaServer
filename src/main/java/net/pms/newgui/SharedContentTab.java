@@ -673,19 +673,19 @@ public class SharedContentTab {
 				rowVector.setElementAt(aValue, column);
 			}
 			fireTableCellUpdated(row, column);
-			configuration.setSharedFolders(folderTableModel.getDataVector());
+			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
 		}
 
 		@Override
 		public void insertRow(int row, Vector rowData) {
 			super.insertRow(row, rowData);
-			configuration.setSharedFolders(folderTableModel.getDataVector());
+			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
 		}
 
 		@Override
 		public void removeRow(int row) {
 			super.removeRow(row);
-			configuration.setSharedFolders(folderTableModel.getDataVector());
+			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
 		}
 	}
 

@@ -4,17 +4,8 @@
 - [Short instructions](#short-instructions)
 - [Full instructions](#full-instructions)
 	- [1. Download and install the Java JDK](#1-download-and-install-the-java-8-jdk)
-		- [Windows](#windows)
-		- [Linux](#linux)
-		- [macOS](#macos)
 	- [2. Download and install Git](#2-download-and-install-git)
-		- [Windows](#windows-1)
-		- [Linux](#linux-1)
-		- [macOS](#macos-1)
 	- [3. Download and extract Maven](#3-download-and-extract-maven)
-		- [Windows](#windows-2)
-		- [Linux](#linux-2)
-		- [macOS](#macos-2)
 	- [4. Set environment variables](#4-set-environment-variables)
 		- [Windows](#windows-3)
 		- [Linux](#linux-3)
@@ -34,6 +25,7 @@
 		- [On Windows](#on-windows)
 		- [On macOS](#on-macos-1)
 	- [Building the macOS wizard installer](#building-the-macos-wizard-installer)
+- [Quick builds](#quick-builds)
 
 # Build instructions
 
@@ -61,9 +53,9 @@ download the latest sources and build UMS:
 
 The result will be built in the "target" directory:
 
-* Windows: `UMS-setup-full.exe`, `UMS-setup-full-x64.exe` and `UMS-setup-without-jre.exe`
-* Linux: `ums-linux-generic-x.xx.x.tar.gz`
-* macOS: `ums-setup-macosx-x.xx.x.tar.gz`
+* Windows: `UMS-x.xx.x-setup.exe`
+* Linux: `ums-x.xx.x-distribution.tar.gz`
+* macOS: `ums-x.xx.x-distribution/Universal Media Server.app`
 
 # Full instructions
 
@@ -71,64 +63,15 @@ First all required software has to be installed:
 
 ## 1. Download and install the Java 8 JDK
 
-Note: the JRE is not enough, and versions higher than Java 8 are not recommended.
-
-### Windows
-
-See http://www.oracle.com/technetwork/java/javase/downloads/index.html
-
-Be sure to remember the install location.
-
-### Linux
-
-    sudo apt-get install openjdk-7-jdk
-
-### macOS
-
-See https://developer.apple.com/downloads/index.action?name=for%20Xcode%20-
-
-Look for the Java Developer Package.
+See https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
 
 ## 2. Download and install Git
 
-### Windows
-
-See http://code.google.com/p/msysgit/downloads/list
-
-For the "Adjusting your PATH environment" section,
-select "Run Git from the Windows Command Prompt".
-
-For the "Configuring the line ending conversions" section,
-select "Checkout Windows-style, commit Unix-style line endings".
-
-### Linux
-
-    sudo apt-get install git-core git-gui git-doc
-
-### macOS
-
-See http://git-scm.com/
-
-If you are using brew (http://mxcl.github.com/homebrew/) you just have
-to do:
-
-    brew install git
+See https://git-scm.com/
 
 ## 3. Download and extract Maven
 
-### Windows
-
-See http://maven.apache.org/download.html
-
-### Linux
-
-    sudo apt-get install maven3
-
-### macOS
-
-Nothing to do, automatically installed with Java for XCode in step 1.
-
-Be sure to remember the extract location.
+See http://maven.apache.org/
 
 ## 4. Set environment variables
 
@@ -193,19 +136,17 @@ These last two commands can easily be automated using a script e.g.:
     # build-ums.sh
     cd UniversalMediaServer
     git pull
-    mvn package
+    mvn package linux-*
+
+where `*` is one of: x86, x86_64, arm64, armel, or armhf
 
 # Cross-compilation
 
-By default, `mvn package` builds an installer or distibution file for the
-platform it is being compiled on e.g. `UMS-setup-full.exe` on Windows and a tarball on Linux.
-
-As an optional step, releases for other platforms can be built.
+This section explains how it is possible to compile for one system while on another.
 
 ## Building the Windows binaries
 
-The Windows installers (`UMS-setup-full.exe`, `UMS-setup-full-x64.exe` and `UMS-setup-without-jre.exe`) and Windows executable
-(`UMS.exe`) can be built on non-Windows platforms.
+The Windows installers (`UMS-version.exe`) and Windows executable (`UMS.exe`) can be built on non-Windows platforms.
 
 First of all, you'll need to have the `makensis` binary installed. On Debian/Ubuntu,
 this can be done with:
@@ -234,34 +175,23 @@ For the sake of brevity, the following examples assume it has already been set.
 
 The Windows installer can now be built with one of the following commands:
 
-### On Linux
+### On Linux and macOS
 
     mvn package -P system-makensis,windows
 
-### On macOS
+## Building a Linux tarball
 
-    mvn package -P system-makensis,windows,-osx-java7,-osx-java8
+### On Windows and macOS
 
-## Building the Linux tarball
+    mvn package -P linux-*
 
-### On Windows
+where `*` is one of: x86, x86_64, arm64, armel, or armhf
 
-    mvn package -P linux,-windows
+## Building the macOS disk image
 
-### On macOS
+### On Windows and Linux
 
-    mvn package -P linux,-osx-java7,-osx-java8
-
-## Building the macOS installer tarball
-
-The macOS installer tarball can be built on any platform by specifying
-the "osx" profile explicity:
-
-    mvn package -P osx-java7
-
-or
-
-    mvn package -P osx-java8
+    mvn package -P macos
 
 ## Building the macOS wizard installer
 
@@ -281,3 +211,14 @@ sed -i '' "s#UMS_LOGO_FILE#$UMS_LOGO_FILE#g" src/main/assembly/osx-installer.pkg
 ```
 /usr/local/bin/packagesbuild src/main/assembly/osx-installer.pkgproj
 ```
+
+# Quick builds
+
+We have quick build scripts that are recommended during development for fast
+iteration. The scripts will compile the Java code, put it in the default install
+directory, and run the program, which will close any existing instance of UMS.
+
+For now it is just for 64-bit Windows but more operating systems should be easy
+to add.
+
+    mvn -P quickrun-windows package -DskipTests

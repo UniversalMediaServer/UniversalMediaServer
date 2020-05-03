@@ -1463,6 +1463,12 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.FLV:
 					mimeType = HTTPResource.FLV_TYPEMIME;
 					break;
+				case FormatConfiguration.M4V:
+					mimeType = HTTPResource.M4V_TYPEMIME;
+					break;
+				case FormatConfiguration.MP4:
+					mimeType = HTTPResource.MP4_TYPEMIME;
+					break;
 				case FormatConfiguration.WMV:
 					mimeType = HTTPResource.WMV_TYPEMIME;
 					break;
@@ -1765,8 +1771,8 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append("Container: ").append(getContainer().toUpperCase(Locale.ROOT)).append(", ");
 		}
 		result.append("Size: ").append(getSize());
+		result.append(", Overall Bitrate: ").append(getBitrate());
 		if (isVideo()) {
-			result.append(", Video Bitrate: ").append(getBitrate());
 			result.append(", Video Tracks: ").append(getVideoTrackCount());
 			result.append(", Video Codec: ").append(getCodecV());
 			result.append(", Duration: ").append(getDurationString());
@@ -1814,8 +1820,14 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(getMatrixCoefficients())) {
 				result.append(", Matrix Coefficients: ").append(getMatrixCoefficients());
 			}
+			if (getReferenceFrameCount() > -1) {
+				result.append(", Reference Frame Count: ").append(getReferenceFrameCount());
+			}
 			if (isNotBlank(avcLevel)) {
 				result.append(", AVC Level: ").append(getAvcLevel());
+			}
+			if (isNotBlank(h264Profile)) {
+				result.append(", AVC Profile: ").append(getH264Profile());
 			}
 //			if (isNotBlank(getHevcLevel())) {
 //				result.append(", HEVC Level: ");
@@ -1837,7 +1849,6 @@ public class DLNAMediaInfo implements Cloneable {
 			if (subtitleTracks != null && !subtitleTracks.isEmpty()) {
 				appendSubtitleTracks(result);
 			}
-
 		} else if (getAudioTrackCount() > 0) {
 			result.append(", Bitrate: ").append(getBitrate());
 			result.append(", Duration: ").append(getDurationString());
