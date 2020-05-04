@@ -539,7 +539,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>4.7.0</version>
+			<version>4.7.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
