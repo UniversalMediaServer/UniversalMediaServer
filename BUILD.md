@@ -218,7 +218,8 @@ We have quick build scripts that are recommended during development for fast
 iteration. The scripts will compile the Java code, put it in the default install
 directory, and run the program, which will close any existing instance of UMS.
 
-For now it is just for 64-bit Windows but more operating systems should be easy
-to add.
+It should work for 64-bit Windows and macOS. Can be extended for others easily if desired.
 
-    mvn -P quickrun-windows package -DskipTests
+    mvn verify -P quickrun-* -DskipTests
+
+Where `*` is `macos` or `windows`

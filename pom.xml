@@ -88,7 +88,7 @@
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.0.0</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.2.0</maven-assembly-plugin-version>
+		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
 
 		<!--
@@ -3538,7 +3538,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.6</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
 							<descriptors>
 								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
@@ -3574,7 +3574,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.6</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
 							<descriptors>
 								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
