@@ -3538,7 +3538,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>3.3.0</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
 							<descriptors>
 								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
@@ -3574,7 +3574,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>3.3.0</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
 							<descriptors>
 								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
