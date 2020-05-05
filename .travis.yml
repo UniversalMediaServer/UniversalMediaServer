@@ -36,11 +36,11 @@ jobs:
     - os: osx
       osx_image: xcode9.3
       language: java
-      script: mvn -P testing-macos
+      script: mvn verify -P testing-macos
     - os: osx
       osx_image: xcode11.3
       language: java
-      script: mvn -P testing-macos
+      script: mvn verify -P testing-macos
     - os: windows
       language: shell
       before_install:
@@ -48,6 +48,6 @@ jobs:
         - travis_retry git clone --depth 1 https://github.com/DanySK/Gravis-CI.git $HOME/gravis
         - source $HOME/gravis/install-jdk
         - source $HOME/gravis/install-maven
-      script: mvn -P testing-windows
+      script: mvn verify -P testing-windows
 
 install: mvn external:install
