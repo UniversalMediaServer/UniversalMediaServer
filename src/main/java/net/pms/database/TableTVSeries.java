@@ -24,12 +24,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.pms.PMS;
+import net.pms.util.FileUtil;
 
 public final class TableTVSeries extends Tables {
 	/**
@@ -57,17 +65,26 @@ public final class TableTVSeries extends Tables {
 	/**
 	 * Sets a new entry and returns the row ID.
 	 *
-	 * @param tvSeries
+	 * @param tvSeries data about this series from the API
+	 * @param seriesName the name of the series, for when we don't have API data yet
 	 * @return the new row ID
 	 */
-	public static Integer set(final HashMap tvSeries) {
+	public static Integer set(final HashMap tvSeries, final String seriesName) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
+		String condition;
+		String simplifiedTitle;
 
-		String imdbID = (String) tvSeries.get("imdbID");
+		if (seriesName != null) {
+			simplifiedTitle = FileUtil.getSimplifiedShowName(seriesName);
+			condition = "SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle);
+		} else {
+			simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
+			condition = "IMDBID = " + sqlQuote((String) tvSeries.get("imdbID"));
+		}
 
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE " + condition + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching in " + TABLE_NAME + " with \"{}\" before set", query);
 			}
@@ -82,23 +99,30 @@ public final class TableTVSeries extends Tables {
 						}
 					} else {
 						if (trace) {
-							LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting", imdbID);
+							LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting", simplifiedTitle);
 						}
 						result.moveToInsertRow();
-						result.updateString("AWARDS", (String) tvSeries.get("awards"));
-						result.updateString("COUNTRY", (String) tvSeries.get("country"));
-						result.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
-						result.updateString("IMDBID", imdbID);
-						result.updateString("METASCORE", (String) tvSeries.get("metascore"));
-						result.updateString("PLOT", (String) tvSeries.get("plot"));
-						result.updateString("POSTER", (String) tvSeries.get("poster"));
-						result.updateString("RATED", (String) tvSeries.get("rated"));
-						result.updateDouble("RATING", (Double) tvSeries.get("rating"));
-						result.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
-						result.updateString("TITLE", (String) tvSeries.get("title"));
-						result.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
-						result.updateString("VOTES", (String) tvSeries.get("votes"));
-						result.updateString("YEAR", (String) tvSeries.get("year"));
+
+						if (seriesName != null) {
+							result.updateString("SIMPLIFIEDTITLE", simplifiedTitle);
+							result.updateString("TITLE", seriesName);
+						} else {
+							result.updateString("AWARDS", (String) tvSeries.get("awards"));
+							result.updateString("COUNTRY", (String) tvSeries.get("country"));
+							result.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
+							result.updateString("IMDBID", (String) tvSeries.get("imdbID"));
+							result.updateString("METASCORE", (String) tvSeries.get("metascore"));
+							result.updateString("PLOT", (String) tvSeries.get("plot"));
+							result.updateString("POSTER", (String) tvSeries.get("poster"));
+							result.updateString("RATED", (String) tvSeries.get("rated"));
+							result.updateDouble("RATING", (Double) tvSeries.get("rating"));
+							result.updateString("SIMPLIFIEDTITLE", simplifiedTitle);
+							result.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
+							result.updateString("TITLE", (String) tvSeries.get("title"));
+							result.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
+							result.updateString("VOTES", (String) tvSeries.get("votes"));
+							result.updateString("YEAR", (String) tvSeries.get("year"));
+						}
 						result.insertRow();
 						try (ResultSet rs = statement.getGeneratedKeys()) {
 							if (rs.next()) {
@@ -123,7 +147,7 @@ public final class TableTVSeries extends Tables {
 		return null;
 	}
 
-	public static HashMap getByIMDbID(final String imdbID) {
+	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
@@ -149,6 +173,117 @@ public final class TableTVSeries extends Tables {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns a row based on title.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public static HashMap<String, Object> getByTitle(final String title) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT * FROM " + TABLE_NAME + " WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						return convertSingleResultSetToList(resultSet);
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns a similar TV series name from the database.
+	 *
+	 * @param title
+	 * @return
+	 */
+	public static String getSimilarTVSeriesName(String title) {
+		if (title == null) {
+			return title;
+		}
+
+		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+		simplifiedTitle = StringEscapeUtils.escapeSql(simplifiedTitle);
+
+		ArrayList<String> titleList = PMS.get().getDatabase().getStrings("SELECT TITLE FROM " + TableTVSeries.TABLE_NAME + " WHERE SIMPLIFIEDTITLE='" + simplifiedTitle + "' LIMIT 1");
+		if (titleList.size() > 0) {
+			return titleList.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Updates an existing row with information from our API.
+	 *
+	 * @param tvSeries
+	 */
+	public static void insertAPIMetadata(final HashMap tvSeries) {
+		if (tvSeries == null) {
+			LOGGER.warn("Couldn't write API data for \"{}\" to the database because there is no media information");
+			return;
+		}
+		String titleSimplified = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
+
+		try (Connection connection = database.getConnection()) {
+			connection.setAutoCommit(false);
+			try (PreparedStatement ps = connection.prepareStatement(
+				"SELECT " +
+					"* " +
+				"FROM " + TableTVSeries.TABLE_NAME + " " +
+				"WHERE " +
+					"TITLESIMPLIFIED = ?",
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_UPDATABLE
+			)) {
+				ps.setString(1, titleSimplified);
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						rs.updateString("AWARDS", (String) tvSeries.get("awards"));
+						rs.updateString("COUNTRY", (String) tvSeries.get("country"));
+						rs.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
+						rs.updateString("IMDBID", (String) tvSeries.get("imdbid"));
+						rs.updateString("METASCORE", (String) tvSeries.get("metascore"));
+						rs.updateString("PLOT", (String) tvSeries.get("plot"));
+						rs.updateString("POSTER", (String) tvSeries.get("poster"));
+						rs.updateString("RATED", (String) tvSeries.get("rated"));
+						rs.updateDouble("RATING", (Double) tvSeries.get("rating"));
+						rs.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
+						rs.updateString("TITLE", (String) tvSeries.get("title"));
+						rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
+						rs.updateString("VOTES", (String) tvSeries.get("votes"));
+						rs.updateString("YEAR", (String) tvSeries.get("year"));
+						rs.updateRow();
+					} else {
+						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
+						return;
+					}
+				}
+			}
+			connection.commit();
+		} catch (Exception e) {
+			LOGGER.debug("Error when attempting to insert API data to TV series entry: \"{}\"", e.getMessage());
+		}
 	}
 
 	/**
@@ -233,7 +368,8 @@ public final class TableTVSeries extends Tables {
 					"RATED    VARCHAR2(1024), " +
 					"RATING    DOUBLE, " +
 					"STARTYEAR    VARCHAR2(1024), " +
-					"TITLE    VARCHAR2(1024), " +
+					"TITLE    VARCHAR2(1024) NOT NULL, " +
+					"SIMPLIFIEDTITLE    VARCHAR2(1024) NOT NULL, " +
 					"TOTALSEASONS    DOUBLE, " +
 					"VOTES    VARCHAR2(1024), " +
 					"YEAR    VARCHAR2(1024) " +
@@ -245,7 +381,8 @@ public final class TableTVSeries extends Tables {
 			// genres: { type: Array },
 			// rating: { type: Number },
 			// ratings: { type: Array, required: true },
-			statement.execute("CREATE UNIQUE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
+			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
+			statement.execute("CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)");
 		}
 	}
 }

@@ -37,6 +37,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.database.TableTVSeries;
 import net.pms.database.TableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -5126,7 +5127,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 * already have in our database. This is to avoid minor grammatical differences
 			 * like "Word and Word" vs. "Word & Word" from creating two virtual folders.
 			 */
-			titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+			titleFromDatabase = TableTVSeries.getSimilarTVSeriesName(titleFromFilename);
 			titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
 			if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
 				media.setMovieOrShowName(titleFromDatabase);
@@ -5153,6 +5154,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			if (configuration.getUseCache()) {
 				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+
+				// Creates a minimal TV series row with just the title, that might be enhanced later by the API
+				if (media.isTVEpisode()) {
+					TableTVSeries.set(null, media.getMovieOrShowName());
+				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -5162,10 +5168,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 			LOGGER.trace("", e);
 		} finally {
-			/**
-			 * Attempt to enhance the metadata by using OpenSubtitles if the
-			 * setting is enabled.
-			 */
+			// Attempt to enhance the metadata via our API.
 			if (configuration.isUseInfoFromIMDb()) {
 				OpenSubtitle.backgroundLookupAndAdd(file, media);
 			}

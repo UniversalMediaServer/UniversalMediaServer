@@ -3900,7 +3900,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isUseInfoFromIMDb() {
-		return getBoolean(KEY_USE_IMDB_INFO, false) && isPrettifyFilenames();
+		return getBoolean(KEY_USE_IMDB_INFO, true);
 	}
 
 	public void setUseInfoFromIMDb(boolean value) {

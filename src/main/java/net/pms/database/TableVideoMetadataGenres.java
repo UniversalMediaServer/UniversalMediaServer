@@ -62,7 +62,7 @@ public final class TableVideoMetadataGenres extends Tables {
 	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final HashSet genres, final int tvSeriesID) {
+	public static void set(final String fullPathToFile, final HashSet genres, final Integer tvSeriesID) {
 		if (genres.isEmpty()) {
 			return;
 		}

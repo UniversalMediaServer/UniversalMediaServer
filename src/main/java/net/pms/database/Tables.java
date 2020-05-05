@@ -338,7 +338,7 @@ public class Tables {
 		int columns = md.getColumnCount();
 		HashMap<String, Object> row = new HashMap<>(columns);
 
-		while (rs.next()) {
+		if (rs.next()) {
 			for (int i = 1; i <= columns; ++i) {
 				row.put(md.getColumnName(i), rs.getObject(i));
 			}

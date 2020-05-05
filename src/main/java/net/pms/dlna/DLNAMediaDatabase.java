@@ -390,6 +390,9 @@ public class DLNAMediaDatabase implements Runnable {
 				LOGGER.trace("Creating index IDX_FILE");
 				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
 
+				LOGGER.trace("Creating index IDX_FILENAME_MODIFIED_IMDBID");
+				executeUpdate(conn, "CREATE INDEX IDX_FILENAME_MODIFIED_IMDBID ON FILES(FILENAME, MODIFIED, IMDBID)");
+
 				LOGGER.trace("Creating index TYPE");
 				executeUpdate(conn, "CREATE INDEX TYPE on FILES (TYPE)");
 
@@ -499,26 +502,25 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Checks whether data from OpenSubtitles has been written to the database
-	 * for this media.
+	 * Checks whether data from our API has been written to the database
+	 * for this video.
 	 *
-	 * @param name the full path of the media.
+	 * @param name the full path of the video.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @return {@code true} if OpenSubtitles metadata exists for this media,
-	 *         {@code false} otherwise.
+	 * @return whether API metadata exists for this video.
 	 */
-	public synchronized boolean isOpenSubtitlesMetadataExists(String name, long modified) {
+	public synchronized boolean isAPIMetadataExists(String name, long modified) {
 		boolean found = false;
 		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement stmt = null;
 		try {
 			conn = getConnection();
-			stmt = conn.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ? AND IMDBID IS NOT NULL");
+			stmt = conn.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ? AND IMDBID IS NOT NULL LIMIT 1");
 			stmt.setString(1, name);
 			stmt.setTimestamp(2, new Timestamp(modified));
 			rs = stmt.executeQuery();
-			while (rs.next()) {
+			if (rs.next()) {
 				found = true;
 			}
 		} catch (SQLException se) {
@@ -1166,26 +1168,6 @@ public class DLNAMediaDatabase implements Runnable {
 				}
 			}
 			connection.commit();
-		}
-	}
-
-	/**
-	 * Updates the name of a TV series for existing entries in the database.
-	 *
-	 * @param oldName the existing movie or show name.
-	 * @param newName the new movie or show name.
-	 */
-	public void updateMovieOrShowName(String oldName, String newName) {
-		try {
-			updateRowsInFilesTable(oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
-		} catch (SQLException e) {
-			LOGGER.error(
-				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",
-				oldName,
-				newName,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
 		}
 	}
 
