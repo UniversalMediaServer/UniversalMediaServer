@@ -410,7 +410,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>3.15.0</version>
+			<version>3.16.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
