@@ -227,6 +227,19 @@ public class FileWatcher {
 			start(dir);
 		}
 
+		// Ignore common system directories that should never be watched
+		if (
+			Platform.isMac() &&
+			(
+				dir.toString().contains("/Music/Audio Music Apps") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/resources/cpl/cloudsync.noindex/storage/filecache/") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/private") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/external")
+			)
+		) {
+			return;
+		}
+
 		WatchKey key;
 
 		try {
