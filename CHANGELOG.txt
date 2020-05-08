@@ -1,3 +1,36 @@
+9.4.3 - 2020-05-??
+
+	General:
+		Added support for streaming and transcoding from AV1
+		Added quickrun commands to aid rapid development
+		Memory use improvements on macOS
+		Fixed support for transcoding videos with no audio
+	Renderers:
+		Improved support for LG OLED TVs
+	Dependencies:
+		Updated assertj to 3.16.0
+		Updated doxia-module-docbook-simple to 1.9.1
+		Updated git-commit-id-plugin to 4.0.0
+		Updated h2database to 1.4.199
+		Updated icu4j to 67.1
+		Updated jaxb-impl to 2.3.3
+		Updated JMustache to 1.15
+		Updated JNA to 5.5.0
+		Updated junit5 to 5.6.2
+		Updated maven-antrun-plugin to 3.0.0
+		Updated maven-assembly-plugin to 3.3.0
+		Updated maven-checkstyle-plugin to 3.1.0
+		Updated maven-compiler-plugin to 3.8.1
+		Updated maven-pmd-plugin to 3.13.0
+		Updated maven-project-info-reports-plugin to 3.0.0
+		Updated maven-site-plugin to 3.9.0
+		Updated metadata-extractor to 2.13.0
+		Updated Oshi to 5.0.1
+		Updated plexus-utils to 3.3.0
+		Updated rome to 1.12.2
+		Updated saaj-impl to 1.5.2
+		Updated spotbugs-maven-plugin to 4.0.0
+
 9.4.2 - 2020-04-21
 
 	General:
