@@ -87,8 +87,8 @@
 		<exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.2.4</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.2.0</maven-assembly-plugin-version>
+		<git-commit-id-plugin-version>4.0.0</git-commit-id-plugin-version>
+		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
 
 		<!--
@@ -240,7 +240,7 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>1.9.0</version>
+			<version>1.12.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -410,7 +410,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>3.15.0</version>
+			<version>3.16.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -469,7 +469,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>64.2</version>
+			<version>67.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -539,7 +539,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>4.7.0</version>
+			<version>5.0.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -557,7 +557,7 @@
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-utils</artifactId>
-			<version>3.1.0</version>
+			<version>3.3.0</version>
 		</dependency>
 		<!-- FIX ERROR: Exception in thread "main" java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument -->
 		<dependency>
@@ -605,7 +605,7 @@
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>2.3.1</version>
+			<version>2.3.3</version>
 		</dependency>
 		<!-- end of JAXB dependencies -->
 	</dependencies>
@@ -860,7 +860,7 @@
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.8</version>
+						<version>1.9.1</version>
 					</dependency>
 				</dependencies>
 			</plugin>
@@ -953,7 +953,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.17</version>
+				<version>3.1.0</version>
 				<configuration>
 					<configLocation>CheckStyle.xml</configLocation>
 				</configuration>
@@ -969,7 +969,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.7</version>
+				<version>3.13.0</version>
 				<configuration>
 					<linkXref>false</linkXref>
 					<sourceEncoding>utf-8</sourceEncoding>
@@ -3538,7 +3538,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.6</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
 							<descriptors>
 								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
@@ -3574,7 +3574,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.6</version>
+						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
 							<descriptors>
 								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
