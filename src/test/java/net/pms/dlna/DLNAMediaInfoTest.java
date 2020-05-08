@@ -80,12 +80,11 @@ public class DLNAMediaInfoTest {
 
 		for (int i = 0; i < test_files.length; ++i) {
 			DLNAResource dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
-			dlna.setMedia(new DLNAMediaInfo());
 			dlna.setParent(parent);
-			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			dlna.resolveFormat();
 			dlna.syncResolve();
 			if (dlna.getMedia() == null) {
+				System.out.format("getMedia was null \n");
 				try {
 					Thread.sleep(2000);
 				} catch (Exception ex) {
