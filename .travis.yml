@@ -23,5 +23,9 @@ jobs:
       osx_image: xcode11.3
       language: java
       script: mvn verify -P testing-macos
+    - os: osx
+      osx_image: xcode11.4
+      language: java
+      script: mvn verify -P testing-macos
 
 install: mvn external:install
