@@ -11,6 +11,9 @@
 		Improved support for Panasonic VT60 TVs
 		Improved support for Sony AG-series TVs
 		Improved support for Sony X-series TVs
+	Translation updates via Crowdin:
+		Serbian (87%)
+		Turkish (100%)
 	Dependencies:
 		Updated assertj to 3.16.0
 		Updated doxia-module-docbook-simple to 1.9.1
