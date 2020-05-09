@@ -1,7 +1,7 @@
-9.4.3 - 2020-05-??
+9.4.3 - 2020-05-09
 
 	General:
-		Added support for streaming and transcoding from AV1
+		Added support for streaming and transcoding from AV1 video codec
 		Added quickrun commands to aid rapid development
 		Memory use improvements on macOS
 		Transcoding compatibility fixes
