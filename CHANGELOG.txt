@@ -1,15 +1,23 @@
-9.4.3 - 2020-05-??
+9.4.3 - 2020-05-09
 
 	General:
-		Added support for streaming and transcoding from AV1
+		Added support for streaming and transcoding from AV1 video codec
 		Added quickrun commands to aid rapid development
 		Memory use improvements on macOS
+		Transcoding compatibility fixes
 		Fixed support for transcoding videos with no audio
 	Renderers:
 		Improved support for LG OLED TVs
+		Improved support for Panasonic VT60 TVs
+		Improved support for Sony AG-series TVs
+		Improved support for Sony X-series TVs
+	Translation updates via Crowdin:
+		Serbian (87%)
+		Turkish (100%)
 	Dependencies:
 		Updated assertj to 3.16.0
 		Updated doxia-module-docbook-simple to 1.9.1
+		Updated FFmpeg on macOS to 20200504 (5767a2e) to support more media formats
 		Updated git-commit-id-plugin to 4.0.0
 		Updated h2database to 1.4.199
 		Updated icu4j to 67.1

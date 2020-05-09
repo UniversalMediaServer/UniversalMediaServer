@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>9.4.3-SNAPSHOT</version>
+	<version>9.4.3</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -82,7 +82,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>102</binary-revision>
+		<binary-revision>103</binary-revision>
 
 		<exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
