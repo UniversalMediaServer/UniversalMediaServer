@@ -49,7 +49,7 @@ jobs:
     - os: windows
       language: shell
       before_install:
-        - export JDK="adopt@1.8.0-252"
+        - export JDK="adopt@1.8.0-242"
         - travis_retry git clone --depth 1 https://github.com/DanySK/Gravis-CI.git $HOME/gravis
         - source $HOME/gravis/install-jdk
         - source $HOME/gravis/install-maven
