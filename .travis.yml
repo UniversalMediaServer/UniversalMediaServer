@@ -59,4 +59,4 @@ jobs:
         - source $HOME/gravis/install-maven
       script: mvn verify -P testing-windows
 
-install: mvn external:install
+install: travis_wait mvn external:install
