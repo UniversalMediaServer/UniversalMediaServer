@@ -24,18 +24,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.util.FileUtil;
 
@@ -69,16 +64,18 @@ public final class TableTVSeries extends Tables {
 	 * @param seriesName the name of the series, for when we don't have API data yet
 	 * @return the new row ID
 	 */
-	public static Integer set(final HashMap tvSeries, final String seriesName) {
+	public static int set(final HashMap tvSeries, final String seriesName) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 		String condition;
 		String simplifiedTitle;
 
 		if (seriesName != null) {
+			LOGGER.info("6 " + seriesName);
 			simplifiedTitle = FileUtil.getSimplifiedShowName(seriesName);
 			condition = "SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle);
 		} else {
+			LOGGER.info("7 " + (String) tvSeries.get("title"));
 			simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 			condition = "IMDBID = " + sqlQuote((String) tvSeries.get("imdbID"));
 		}
@@ -92,11 +89,12 @@ public final class TableTVSeries extends Tables {
 			TABLE_LOCK.writeLock().lock();
 			try (PreparedStatement statement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, Statement.RETURN_GENERATED_KEYS)) {
 				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
+				try (ResultSet result = statement.executeQuery()) {
 					if (result.next()) {
 						if (trace) {
 							LOGGER.trace("Found entry in " + TABLE_NAME);
 						}
+						return result.getInt("ID");
 					} else {
 						if (trace) {
 							LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting", simplifiedTitle);
@@ -106,6 +104,7 @@ public final class TableTVSeries extends Tables {
 						if (seriesName != null) {
 							result.updateString("SIMPLIFIEDTITLE", simplifiedTitle);
 							result.updateString("TITLE", seriesName);
+								LOGGER.info("8 ");
 						} else {
 							result.updateString("AWARDS", (String) tvSeries.get("awards"));
 							result.updateString("COUNTRY", (String) tvSeries.get("country"));
@@ -122,10 +121,15 @@ public final class TableTVSeries extends Tables {
 							result.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
 							result.updateString("VOTES", (String) tvSeries.get("votes"));
 							result.updateString("YEAR", (String) tvSeries.get("year"));
+								LOGGER.info("9 ");
 						}
 						result.insertRow();
+								LOGGER.info("10 ");
 						try (ResultSet rs = statement.getGeneratedKeys()) {
+								LOGGER.info("11 ");
 							if (rs.next()) {
+																LOGGER.info("13 " + rs.getInt(1));
+LOGGER.info("12 " + rs.getInt("ID"));
 								return rs.getInt("ID");
 							}
 						}
@@ -144,7 +148,7 @@ public final class TableTVSeries extends Tables {
 			LOGGER.trace("", e);
 		}
 
-		return null;
+		return -1;
 	}
 
 	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
@@ -197,6 +201,7 @@ public final class TableTVSeries extends Tables {
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
+						LOGGER.info("55 found " + title);
 						return convertSingleResultSetToList(resultSet);
 					}
 				}
@@ -257,6 +262,7 @@ public final class TableTVSeries extends Tables {
 				ResultSet.CONCUR_UPDATABLE
 			)) {
 				ps.setString(1, titleSimplified);
+				TABLE_LOCK.writeLock().lock();
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
 						rs.updateString("AWARDS", (String) tvSeries.get("awards"));
@@ -278,6 +284,8 @@ public final class TableTVSeries extends Tables {
 						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
 						return;
 					}
+				} finally {
+					TABLE_LOCK.writeLock().unlock();
 				}
 			}
 			connection.commit();
@@ -363,7 +371,7 @@ public final class TableTVSeries extends Tables {
 					"ENDYEAR    VARCHAR2(1024), " +
 					"IMDBID    VARCHAR2(1024), " +
 					"METASCORE    VARCHAR2(1024), " +
-					"PLOT    VARCHAR2(1024), " +
+					"PLOT    VARCHAR2(20000), " +
 					"POSTER    VARCHAR2(1024), " +
 					"RATED    VARCHAR2(1024), " +
 					"RATING    DOUBLE, " +
@@ -382,6 +390,7 @@ public final class TableTVSeries extends Tables {
 			// rating: { type: Number },
 			// ratings: { type: Array, required: true },
 			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
+			statement.execute("CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)");
 			statement.execute("CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)");
 		}
 	}

@@ -8,6 +8,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.TableFilesStatus;
+import net.pms.database.TableTVSeries;
 import net.pms.database.TableVideoMetadataGenres;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
@@ -36,6 +37,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES_WITH_FILTERS = 9;
 	public static final int TEXTS_NOSORT_WITH_FILTERS = 10;
 	public static final int ISOS_WITH_FILTERS = 11;
+	public static final int TVSERIES_WITH_FILTERS = 12;
 	private String sqls[];
 	private int expectedOutputs[];
 	private DLNAMediaDatabase database;
@@ -129,7 +131,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 					expectedOutput == TEXTS_NOSORT ||
 					expectedOutput == TEXTS_NOSORT_WITH_FILTERS ||
 					expectedOutput == TEXTS_WITH_FILTERS ||
-					expectedOutput == SEASONS
+					expectedOutput == SEASONS ||
+					expectedOutput == TVSERIES_WITH_FILTERS
 				) {
 					return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, database.getStrings(sql));
 				}
@@ -184,7 +187,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 					case ISOS_WITH_FILTERS:
 					case TEXTS_NOSORT_WITH_FILTERS:
 					case TEXTS_WITH_FILTERS:
-						if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS) {
+					case TVSERIES_WITH_FILTERS:
+						if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 							virtualFoldersListFromDb = database.getStrings(firstSql);
 							populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 						} else if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
@@ -197,7 +201,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 						String orderByString = "ORDER BY ";
 
 						if (!firstSql.toLowerCase().startsWith("select")) {
-							if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS) {
+							if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 								firstSql = "SELECT FILES.FILENAME FROM FILES WHERE " + firstSql;
 							}
 							if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
@@ -205,26 +209,40 @@ public class MediaLibraryFolder extends VirtualFolder {
 							}
 						};
 
-						int indexAfterFromInFirstQuery = firstSql.indexOf(fromFilesString) + fromFilesString.length();
-						// Prepare the first query in the genres filter
-						StringBuilder firstGenresSql = new StringBuilder(firstSql);
-						// If the query does not already join the genres table, do that now
-						if (!firstSql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
-							firstGenresSql.insert(indexAfterFromInFirstQuery, SQL_JOIN_GENRE_SECTION);
-						}
+						if (configuration.isUseInfoFromIMDb()) {
+							StringBuilder firstGenresSql;
+							/*
+							 * With TV series we manually add the SQL statements, otherwise we
+							 * attempt to modify the incoming statements to make filtering versions.
+							 */
+							if (expectedOutput == TVSERIES_WITH_FILTERS) {
+								genresSqls.add("SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " WHERE TVSERIESID > -1 ORDER BY GENRE ASC");
+								genresSqls.add("SELECT TITLE                    FROM " + TableTVSeries.TABLE_NAME + " LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID WHERE GENRE = '${0}' ORDER BY TITLE ASC");
+								genresSqls.add("SELECT DISTINCT TVSEASON        FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}'                       ORDER BY TVSEASON ASC");
+								genresSqls.add("SELECT          *               FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER");
+							} else {
+								int indexAfterFromInFirstQuery = firstSql.indexOf(fromFilesString) + fromFilesString.length();
+								// Prepare the first query in the genres filter
+								firstGenresSql = new StringBuilder(firstSql);
+								// If the query does not already join the genres table, do that now
+								if (!firstSql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
+									firstGenresSql.insert(indexAfterFromInFirstQuery, SQL_JOIN_GENRE_SECTION);
+								}
 
-						indexAfterFromInFirstQuery = firstSql.indexOf(fromFilesString) + fromFilesString.length();
-						firstGenresSql.replace(0, indexAfterFromInFirstQuery, GENRES_SELECT);
-						int indexBeforeOrderByInFirstQuery = firstGenresSql.indexOf(orderByString);
-						firstGenresSql.replace(indexBeforeOrderByInFirstQuery, firstGenresSql.length(), GENRES_ORDERBY);
-						LOGGER.info("firstGenresSql: " + firstGenresSql.toString());
-						genresSqls.add(firstGenresSql.toString());
+								indexAfterFromInFirstQuery = firstSql.indexOf(fromFilesString) + fromFilesString.length();
+								firstGenresSql.replace(0, indexAfterFromInFirstQuery, GENRES_SELECT);
+								int indexBeforeOrderByInFirstQuery = firstGenresSql.indexOf(orderByString);
+								firstGenresSql.replace(indexBeforeOrderByInFirstQuery, firstGenresSql.length(), GENRES_ORDERBY);
+								LOGGER.info("firstGenresSql: " + firstGenresSql.toString());
+								genresSqls.add(firstGenresSql.toString());
+							}
+						}
 
 						// Make "Fully Played" (Unwatched and Watched) variations of the queries
 						int i = 0;
 						for (String sql : sqls) {
 							if (!sql.toLowerCase().startsWith("select")) {
-								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS) {
+								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 									sql = "SELECT FILES.FILENAME FROM FILES WHERE " + sql;
 								}
 								if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
@@ -250,17 +268,19 @@ public class MediaLibraryFolder extends VirtualFolder {
 							watchedSql.insert(indexAfterWhere, WATCHED_CONDITION);
 							watchedSqls.add(watchedSql.toString());
 
-							// Prepare the first query in the genres filter
-							StringBuilder genresSql = new StringBuilder(sql);
-							// If the query does not already join the genres table, do that now
-							if (!sql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
-								genresSql.insert(indexAfterFrom, SQL_JOIN_GENRE_SECTION);
-							}
+							if (configuration.isUseInfoFromIMDb() && expectedOutput != TVSERIES_WITH_FILTERS) {
+								// Prepare the first query in the genres filter
+								StringBuilder genresSql = new StringBuilder(sql);
+								// If the query does not already join the genres table, do that now
+								if (!sql.contains("LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME)) {
+									genresSql.insert(indexAfterFrom, SQL_JOIN_GENRE_SECTION);
+								}
 
-							indexAfterWhere = genresSql.indexOf(whereString) + whereString.length();
-							String genresCondition = GENRES_CONDITION.replace("${0}", "${" + i + "}");
-							genresSql.insert(indexAfterWhere, genresCondition);
-							genresSqls.add(genresSql.toString());
+								indexAfterWhere = genresSql.indexOf(whereString) + whereString.length();
+								String genresCondition = GENRES_CONDITION.replace("${0}", "${" + i + "}");
+								genresSql.insert(indexAfterWhere, genresCondition);
+								genresSqls.add(genresSql.toString());
+							}
 							i++;
 						}
 
@@ -309,7 +329,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 
 		// Add filters at the top
-		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS) {
+		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 			// Convert the expectedOutputs to unfiltered versions
 			int[] filteredExpectedOutputs = expectedOutputs.clone();
 			switch (filteredExpectedOutputs[0]) {
@@ -320,6 +340,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 					filteredExpectedOutputs[0] = ISOS;
 					break;
 				case TEXTS_WITH_FILTERS:
+				case TVSERIES_WITH_FILTERS:
 					filteredExpectedOutputs[0] = TEXTS;
 					break;
 				case TEXTS_NOSORT_WITH_FILTERS:
@@ -379,7 +400,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 		for (String virtualFolderName : newVirtualFolders) {
-			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == SEASONS) {
+			if (isTextOutputExpected(expectedOutput)) {
 				String nameToDisplay = null;
 
 				// Don't prepend "Season" text to years 
@@ -421,6 +442,15 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (isDiscovered()) {
 			setUpdateId(this.getIntId());
 		}
+	}
+	
+	public boolean isTextOutputExpected(int expectedOutput) {
+		return expectedOutput == TEXTS ||
+			expectedOutput == TEXTS_NOSORT ||
+			expectedOutput == TEXTS_NOSORT_WITH_FILTERS ||
+			expectedOutput == TEXTS_WITH_FILTERS ||
+			expectedOutput == SEASONS ||
+			expectedOutput == TVSERIES_WITH_FILTERS;
 	}
 
 	@Override

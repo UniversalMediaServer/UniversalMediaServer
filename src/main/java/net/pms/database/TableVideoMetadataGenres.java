@@ -88,7 +88,7 @@ public final class TableVideoMetadataGenres extends Tables {
 				insertStatement.executeUpdate();
 				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
 					if (rs.next()) {
-						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\" and \"{}\"", fullPathToFile, genre);
+						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
 					}
 				}
 			}
@@ -194,7 +194,7 @@ public final class TableVideoMetadataGenres extends Tables {
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_GENRE_IDX ON " + TABLE_NAME + "(FILENAME, GENRE)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_GENRE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, GENRE, TVSERIESID)");
 		}
 	}
 }

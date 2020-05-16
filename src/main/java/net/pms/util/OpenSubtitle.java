@@ -106,6 +106,7 @@ import net.pms.util.XMLRPCUtil.ValueString;
 import net.pms.util.XMLRPCUtil.ValueStruct;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -1880,10 +1881,11 @@ public class OpenSubtitle {
 	 *
 	 * @param file the {@link File} to lookup.
 	 * @param formattedName the name to use in the name search
+	 * @param year optional year to include with title lookups
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap getInfo(File file, String formattedName) throws IOException {
+	public static HashMap getInfo(File file, String formattedName, String year) throws IOException {
 		LOGGER.info("getting info for " + " " + file + ", " + formattedName);
 		Path path = null;
 		String apiResult = null;
@@ -1905,7 +1907,7 @@ public class OpenSubtitle {
 			}
 
 			LOGGER.info("looking up filename " + formattedName);
-			apiResult = getInfoFromFilename(formattedName, false);
+			apiResult = getInfoFromFilename(formattedName, false, year);
 		}
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
@@ -1938,7 +1940,7 @@ public class OpenSubtitle {
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap<String, Object> getTVSeriesInfo(String formattedName, String imdbID) throws IOException {
+	public static HashMap<String, Object> getTVSeriesInfo(String formattedName, String imdbID, String year) throws IOException {
 		LOGGER.info("getting info for {}, {}", formattedName, imdbID);
 		String apiResult = null;
 
@@ -1949,7 +1951,7 @@ public class OpenSubtitle {
 
 		if (apiResult == null && formattedName != null) {
 			LOGGER.info("looking up title {}", formattedName);
-			apiResult = getInfoFromFilename(formattedName, true);
+			apiResult = getInfoFromFilename(formattedName, true, year);
 		}
 
 		HashMap<String, Object> data = new HashMap();
@@ -1999,13 +2001,16 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String getInfoFromFilename(String filename, boolean isSeries) throws IOException {
+	private static String getInfoFromFilename(String filename, boolean isSeries, String year) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		String endpoint = isSeries == true ? "seriestitle" : "title";
 		URL url = new URL(domain, "/api/media/" + endpoint + "/");
 
 		List<NameValuePair> params = new ArrayList<>(2);
 		params.add(new BasicNameValuePair("title", filename));
+		if (!isEmpty(year)) {
+			params.add(new BasicNameValuePair("year", year));
+		}
 
 		return postPage(url.openConnection(), params);
 	}
@@ -4897,17 +4902,27 @@ public class OpenSubtitle {
 				public void run() {
 					HashMap metadataFromAPI;
 					try {
-						metadataFromAPI = getInfo(file, file.getName());
+						String yearFromFilename            = media.getYear();
+						String titleFromFilename           = media.getMovieOrShowName();
+						String titleSimplifiedFromFilename = FileUtil.getSimplifiedShowName(titleFromFilename);
+						String tvSeasonFromFilename        = media.getTVSeason();
+						String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
+						Boolean isTVEpisodeBasedOnFilename = media.isTVEpisode();
+
+						if (isTVEpisodeBasedOnFilename) {
+							metadataFromAPI = getInfo(file, null, yearFromFilename);
+						} else {
+							metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename);
+						}
 
 						if (metadataFromAPI == null) {
 							LOGGER.trace("Failed lookup for " + file.getName());
 							return;
 						}
 
-						String yearFromFilename            = media.getYear();
-						String tvSeasonFromFilename        = media.getTVSeason();
-						String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
-						Boolean isTVEpisodeBasedOnFilename = media.isTVEpisode();
+						if (overTheTopLogging) {
+							LOGGER.trace("Found an API match for " + file.getName());
+						}
 
 						int tvSeriesDatabaseId = -1;
 
@@ -4944,7 +4959,7 @@ public class OpenSubtitle {
 									!tvSeasonFromFilename.equals(tvSeasonFromAPI) ||
 									isBlank(tvEpisodeNumberFromFilename) ||
 									isBlank(tvEpisodeNumberFromAPI) ||
-									!tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromAPI) ||
+									!tvEpisodeNumberFromFilename.startsWith(tvEpisodeNumberFromAPI) ||
 									isBlank(seriesIMDbIDFromAPI)
 								)
 							) ||
@@ -4959,6 +4974,10 @@ public class OpenSubtitle {
 						) {
 							LOGGER.info("API data was different to our parsed data, not storing it.");
 							return;
+						}
+
+						if (overTheTopLogging) {
+							LOGGER.trace("API data matches filename data for " + file.getName());
 						}
 
 						// Now that we are happy with the API data, let's make some clearer variables
@@ -4977,17 +4996,18 @@ public class OpenSubtitle {
 						if (isTVEpisode) {
 							LOGGER.info("got seriesIMDbID " + seriesIMDbIDFromAPI);
 							HashMap<String, Object> seriesMetadataFromDatabase = TableTVSeries.getByIMDbID(seriesIMDbIDFromAPI);
-							if (seriesMetadataFromDatabase != null && seriesMetadataFromDatabase.get("ID") != null) {
-								LOGGER.info("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("ID"));
+							if (seriesMetadataFromDatabase != null && seriesMetadataFromDatabase.get("IMDBID") != null) {
+								LOGGER.info("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("title"));
 								tvSeriesDatabaseId = (int) seriesMetadataFromDatabase.get("ID");
 								title = (String) seriesMetadataFromDatabase.get("TITLE");
+								titleSimplified = FileUtil.getSimplifiedShowName(title);
 							} else {
 								/*
 								 * This either means there is no entry in the TV Series table for this series, or 
 								 * there is but it only contains filename info - not API yet.
 								 */
-								LOGGER.info("TV series with API data not found in database for the episode title " + title);
-								HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(null, seriesIMDbIDFromAPI);
+								LOGGER.info("TV series with API data not found in database for the series " + titleFromFilename);
+								HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(null, seriesIMDbIDFromAPI, yearFromFilename);
 								LOGGER.info("2 " + seriesMetadataFromAPI);
 								if (seriesMetadataFromAPI == null) {
 									if (overTheTopLogging) {
@@ -4997,6 +5017,9 @@ public class OpenSubtitle {
 									return;
 								}
 
+								title = (String) seriesMetadataFromAPI.get("title");
+								titleSimplified = FileUtil.getSimplifiedShowName(title);
+
 								/*
 								 * Now we have an API result for the TV series, we need to see whether
 								 * to insert it or update existing data, so we attempt to find an entry
@@ -5004,20 +5027,40 @@ public class OpenSubtitle {
 								 */
 								// Attempt to standardize variations of the same TV series name
 								seriesMetadataFromDatabase = TableTVSeries.getByTitle(title);
-								if (seriesMetadataFromDatabase == null) {
+								if (seriesMetadataFromDatabase == null || seriesMetadataFromDatabase.isEmpty()) {
 									// No title match, so let's make a new entry
+									LOGGER.info("3 " + seriesMetadataFromAPI);
 									tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
-									LOGGER.info("3 " + title);
+									LOGGER.info("4 " + seriesMetadataFromAPI);
 								} else {
 									// There is an existing entry, so let's fill it in with API data
+									LOGGER.info("45 seriesMetadataFromDatabase " + seriesMetadataFromDatabase);
 									tvSeriesDatabaseId = (int) seriesMetadataFromDatabase.get("ID");
 									TableTVSeries.insertAPIMetadata(seriesMetadataFromAPI);
 								}
 
-								title = (String) seriesMetadataFromAPI.get("title");
-							}
+								if (tvSeriesDatabaseId == -1) {
+									LOGGER.info("tvSeriesDatabaseId was null, something went wrong");
+									return;
+								}
 
-							titleSimplified = FileUtil.getSimplifiedShowName(title);
+								// Replace any close-but-not-exact titles in the FILES table
+								if (
+									titleFromFilename != null &&
+									titleSimplifiedFromFilename != null &&
+									!title.equals(titleFromFilename) &&
+									titleSimplified.equals(titleSimplifiedFromFilename)
+								) {
+									LOGGER.info("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
+									PMS.get().getDatabase().updateMovieOrShowName(titleFromFilename, title);
+								} else {
+									LOGGER.info("The titles were too different to standardize, or were exactly the same: " + titleFromFilename + " to " + title);
+								}
+							}
+						} else {
+							if (overTheTopLogging) {
+								LOGGER.trace("File is not a TV episode: " + file.getName());
+							}
 						}
 
 						media.setIMDbID((String) metadataFromAPI.get("imdbID"));
@@ -5067,10 +5110,10 @@ public class OpenSubtitle {
 							try {
 								PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 								LOGGER.info("setting genres for " + file.getName() + ": " + media.getGenres().toString());
-								if (tvSeriesDatabaseId > -1) {
+								if (tvSeriesDatabaseId != -1) {
 									TableVideoMetadataGenres.set(null, media.getGenres(), tvSeriesDatabaseId);
 								} else {
-									TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres(), null);
+									TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres(), -1);
 								}
 							} catch (SQLException e) {
 								LOGGER.error(

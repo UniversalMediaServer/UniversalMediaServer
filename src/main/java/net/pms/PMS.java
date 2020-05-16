@@ -537,7 +537,6 @@ public class PMS {
 
 		// init dbs
 		keysDb = new UmsKeysDb();
-		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
 
@@ -1614,18 +1613,8 @@ public class PMS {
 		return get().globalRepo;
 	}
 
-	private InfoDb infoDb;
 	private CodeDb codes;
 	private CodeEnter masterCode;
-
-	@Deprecated
-	public void infoDbAdd(File f, String formattedName) {
-		infoDb.backgroundAdd(f, formattedName);
-	}
-
-	public InfoDb infoDb() {
-		return infoDb;
-	}
 
 	public CodeDb codeDb() {
 		return codes;

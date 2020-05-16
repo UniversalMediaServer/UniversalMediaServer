@@ -48,6 +48,7 @@ import com.google.common.base.CharMatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.List;
+import net.pms.database.TableTVSeries;
 import net.pms.database.TableVideoMetadataGenres;
 import net.pms.newgui.SharedContentTab;
 
@@ -84,8 +85,9 @@ public class DLNAMediaDatabase implements Runnable {
 	 * - 22: No db changes, bumped version because h2database was reverted
 	 *       to 1.4.196 because 1.4.197 broke audio metadata being
 	 *       inserted/updated
+	 * - 23: Added TVSERIESID column
 	 */
-	private final int latestVersion = 22;
+	private final int latestVersion = 23;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -298,6 +300,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("CREATE TABLE FILES (");
 				sb.append("  ID                      INT AUTO_INCREMENT");
 				sb.append(", THUMBID                 BIGINT");
+				sb.append(", TVSERIESID              BIGINT");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
 				sb.append(", TYPE                    INT");
@@ -566,7 +569,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ResultSet rs = stmt.executeQuery();
 				PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
 				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
-				PreparedStatement genres = conn.prepareStatement("SELECT * FROM VIDEO_METADATA_GENRES WHERE FILENAME = ?");
+				PreparedStatement genres = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataGenres.TABLE_NAME + " WHERE FILENAME = ?");
 			) {
 				while (rs.next()) {
 					DLNAMediaInfo media = new DLNAMediaInfo();
@@ -1109,6 +1112,26 @@ public class DLNAMediaDatabase implements Runnable {
 			if (media != null && media.getThumb() != null) {
 				TableThumbnails.setThumbnail(media.getThumb(), name);
 			}
+		}
+	}
+
+	/**
+	 * Updates the name of a TV series for existing entries in the database.
+	 *
+	 * @param oldName the existing movie or show name.
+	 * @param newName the new movie or show name.
+	 */
+	public void updateMovieOrShowName(String oldName, String newName) {
+		try {
+			updateRowsInFilesTable(oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",
+				oldName,
+				newName,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
 		}
 	}
 
