@@ -51,3 +51,4 @@ jobs:
       script: mvn verify -P testing-windows
 
 install: mvn external:install
+
