@@ -10,7 +10,19 @@ cache:
   - $HOME/.m2
 
 jobs:
+  fast_finish: true
   include:
+    # This tests JDK 1.8.0_112-b16
+    - os: osx
+      osx_image: xcode9.3
+      language: java
+      script: mvn verify -P testing-macos
+    # This tests JDK 14.0.1
+    - os: osx
+      osx_image: xcode11.4
+      language: java
+      script: mvn verify -P testing-macos
+  allow_failures:
     - os: linux
       language: java
       dist: trusty
@@ -25,7 +37,7 @@ jobs:
     - os: linux
       language: java
       dist: bionic
-      jdk: openjdk8
+      jdk: openjdk14
       before_install:
         - sudo apt-get -y install libmms0
         - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
@@ -35,21 +47,16 @@ jobs:
       script: mvn verify -B -V -P testing
     # This section can potentially be enabled when we upgrade MediaInfo to 20.03
     # - os: linux
+    #   language: java
     #   dist: bionic
+    #   jdk: oraclejdk8
     #   before_install:
     #     - sudo apt-get -y install libmms0
     #     - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
     #     - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
     #     - wget https://mediaarea.net/download/binary/libmediainfo0/20.03/libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
     #     - sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
-    - os: osx
-      osx_image: xcode9.3
-      language: java
-      script: mvn verify -P testing-macos
-    - os: osx
-      osx_image: xcode11.4
-      language: java
-      script: mvn verify -P testing-macos
+    #   script: mvn verify -B -V -P testing
     - os: windows
       language: shell
       before_install:
