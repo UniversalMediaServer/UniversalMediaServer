@@ -22,7 +22,7 @@ jobs:
       osx_image: xcode11.4
       language: java
       script: mvn verify -P testing-macos
-  allow_failures:
+    # allow_failures:
     - os: linux
       language: java
       dist: trusty
