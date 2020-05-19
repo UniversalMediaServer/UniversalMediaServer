@@ -1,3 +1,12 @@
+language: java
+
+env:
+  global:
+    # Convenience variables for shortening commands
+    - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
+    - GRAVIS="$HOME/gravis"
+    - JDK="adopt@1.8.0-242"
+
 # The strategy with these matrixes are to test both old and new versions of operating systems
 # and Java, to ensure we don't break old things and that newer things continue to work
 jobs:
@@ -44,10 +53,9 @@ jobs:
     - os: windows
       language: shell
       before_install:
-        - export JDK="adopt@1.8.0-242"
-        - travis_retry git clone --depth 1 https://github.com/DanySK/Gravis-CI.git $HOME/gravis
-        - source $HOME/gravis/install-jdk
-        - source $HOME/gravis/install-maven
+        - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
+        - source $GRAVIS/install-jdk
+        - source $GRAVIS/install-maven
       script: mvn -P testing-windows
 
 install: mvn external:install
