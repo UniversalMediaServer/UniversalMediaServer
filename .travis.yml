@@ -1,10 +1,6 @@
 # The strategy with these matrixes are to test both old and new versions of operating systems
 # and Java, to ensure we don't break old things and that newer things continue to work
 
-branches:
-  only:
-    - master
-
 jobs:
   include:
     - os: linux
