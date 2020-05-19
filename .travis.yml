@@ -56,3 +56,4 @@ matrix:
       script: mvn -P testing-windows
 
 install: mvn external:install
+
