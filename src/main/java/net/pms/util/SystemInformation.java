@@ -31,6 +31,7 @@ import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.CentralProcessor.ProcessorIdentifier;
 import oshi.software.os.OperatingSystem;
 
 
@@ -63,12 +64,14 @@ public class SystemInformation extends Thread {
 		long jvmMemory = Runtime.getRuntime().maxMemory();
 		OperatingSystem os = null;
 		CentralProcessor processor = null;
+		ProcessorIdentifier processorIdentifier = null;
 		GlobalMemory memory = null;
 		try {
 			SystemInfo systemInfo = new SystemInfo();
 			HardwareAbstractionLayer hardware = systemInfo.getHardware();
 			os = systemInfo.getOperatingSystem();
 			processor = hardware.getProcessor();
+			processorIdentifier = processor.getProcessorIdentifier();
 			memory = hardware.getMemory();
 		} catch (Error e) {
 			LOGGER.debug("Could not retrieve system information: {}", e.getMessage());
@@ -90,8 +93,8 @@ public class SystemInformation extends Thread {
 		}
 		result.add(sb.toString());
 		sb.setLength(0);
-		if (processor != null) {
-			sb.append("CPU: ").append(processor.getName()).append(" with ")
+		if (processor != null && processorIdentifier != null) {
+			sb.append("CPU: ").append(processorIdentifier.getName()).append(" with ")
 				.append(processor.getPhysicalProcessorCount());
 			if (processor.getPhysicalProcessorCount() > 1) {
 				sb.append(" cores");
