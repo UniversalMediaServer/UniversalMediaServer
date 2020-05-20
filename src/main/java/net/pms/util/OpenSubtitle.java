@@ -4973,6 +4973,11 @@ public class OpenSubtitle {
 							)
 						) {
 							LOGGER.info("API data was different to our parsed data, not storing it.");
+
+							if (overTheTopLogging) {
+								LOGGER.trace("Filename data: " + media);
+								LOGGER.trace("API data: " + metadataFromAPI);
+							}
 							return;
 						}
 
@@ -5027,7 +5032,7 @@ public class OpenSubtitle {
 								 */
 								// Attempt to standardize variations of the same TV series name
 								seriesMetadataFromDatabase = TableTVSeries.getByTitle(title);
-								if (seriesMetadataFromDatabase == null || seriesMetadataFromDatabase.isEmpty()) {
+								if (seriesMetadataFromDatabase == null) {
 									// No title match, so let's make a new entry
 									LOGGER.info("3 " + seriesMetadataFromAPI);
 									tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
@@ -5040,7 +5045,7 @@ public class OpenSubtitle {
 								}
 
 								if (tvSeriesDatabaseId == -1) {
-									LOGGER.info("tvSeriesDatabaseId was null, something went wrong");
+									LOGGER.info("tvSeriesDatabaseId was not set, something went wrong");
 									return;
 								}
 

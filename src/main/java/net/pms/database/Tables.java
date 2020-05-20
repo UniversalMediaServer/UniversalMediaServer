@@ -337,13 +337,9 @@ public class Tables {
 		ResultSetMetaData md = rs.getMetaData();
 		int columns = md.getColumnCount();
 		HashMap<String, Object> row = new HashMap<>(columns);
-
-		if (rs.next()) {
-			for (int i = 1; i <= columns; ++i) {
-				row.put(md.getColumnName(i), rs.getObject(i));
-			}
+		for (int i = 1; i <= columns; ++i) {
+			row.put(md.getColumnName(i), rs.getObject(i));
 		}
-
 		return row;
 	}
 }
