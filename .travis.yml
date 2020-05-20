@@ -25,16 +25,17 @@ matrix:
         - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
         - sudo dpkg -i libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
       script: mvn verify -B -V -P testing
-    - os: linux
-      dist: bionic
-      jdk: openjdk8
-      before_install:
-        - sudo apt-get -y install libmms0
-        - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
-        - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
-        - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
-        - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
-      script: mvn verify -B -V -P testing
+    # This section can potentially be enabled when https://github.com/UniversalMediaServer/UniversalMediaServer/pull/1989 merges
+    # - os: linux
+    #   dist: bionic
+    #   jdk: openjdk8
+    #   before_install:
+    #     - sudo apt-get -y install libmms0
+    #     - wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+    #     - sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+    #     - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
+    #     - sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
+    #   script: mvn verify -B -V -P testing
     # This section can potentially be enabled when we upgrade MediaInfo to 20.03
     # - os: linux
     #   dist: bionic
