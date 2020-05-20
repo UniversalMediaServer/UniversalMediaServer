@@ -186,12 +186,12 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.7</version>
+			<version>3.10</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.8</version><!-- Versions above 1.8 require Java 8 -->
+			<version>1.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
