@@ -3759,7 +3759,7 @@ public class OpenSubtitle {
 					tmpScore -= 30d * Math.max(0.5 - (double) diff / mediaLastTS, 0);
 				}
 			}
-			this.score = tmpScore;
+			this.score = Math.abs(tmpScore);
 		}
 
 		/**
