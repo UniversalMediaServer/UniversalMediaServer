@@ -4,17 +4,8 @@
 - [Short instructions](#short-instructions)
 - [Full instructions](#full-instructions)
 	- [1. Download and install the Java JDK](#1-download-and-install-the-java-8-jdk)
-		- [Windows](#windows)
-		- [Linux](#linux)
-		- [macOS](#macos)
 	- [2. Download and install Git](#2-download-and-install-git)
-		- [Windows](#windows-1)
-		- [Linux](#linux-1)
-		- [macOS](#macos-1)
 	- [3. Download and extract Maven](#3-download-and-extract-maven)
-		- [Windows](#windows-2)
-		- [Linux](#linux-2)
-		- [macOS](#macos-2)
 	- [4. Set environment variables](#4-set-environment-variables)
 		- [Windows](#windows-3)
 		- [Linux](#linux-3)
@@ -34,6 +25,7 @@
 		- [On Windows](#on-windows)
 		- [On macOS](#on-macos-1)
 	- [Building the macOS wizard installer](#building-the-macos-wizard-installer)
+- [Quick builds](#quick-builds)
 
 # Build instructions
 
@@ -71,48 +63,15 @@ First all required software has to be installed:
 
 ## 1. Download and install the Java 8 JDK
 
-Download and install from https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
+See https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
 
 ## 2. Download and install Git
 
-### Windows
-
-See http://code.google.com/p/msysgit/downloads/list
-
-For the "Adjusting your PATH environment" section,
-select "Run Git from the Windows Command Prompt".
-
-For the "Configuring the line ending conversions" section,
-select "Checkout Windows-style, commit Unix-style line endings".
-
-### Linux
-
-    sudo apt-get install git-core git-gui git-doc
-
-### macOS
-
-See http://git-scm.com/
-
-If you are using brew (http://mxcl.github.com/homebrew/) you just have
-to do:
-
-    brew install git
+See https://git-scm.com/
 
 ## 3. Download and extract Maven
 
-### Windows
-
-See http://maven.apache.org/download.html
-
-### Linux
-
-    sudo apt-get install maven3
-
-### macOS
-
-Nothing to do, automatically installed with Java for XCode in step 1.
-
-Be sure to remember the extract location.
+See http://maven.apache.org/
 
 ## 4. Set environment variables
 
@@ -252,3 +211,15 @@ sed -i '' "s#UMS_LOGO_FILE#$UMS_LOGO_FILE#g" src/main/assembly/osx-installer.pkg
 ```
 /usr/local/bin/packagesbuild src/main/assembly/osx-installer.pkgproj
 ```
+
+# Quick builds
+
+We have quick build scripts that are recommended during development for fast
+iteration. The scripts will compile the Java code, put it in the default install
+directory, and run the program, which will close any existing instance of UMS.
+
+It should work for 64-bit Windows and macOS. Can be extended for others easily if desired.
+
+    mvn verify -P quickrun-* -DskipTests
+
+Where `*` is `macos` or `windows`

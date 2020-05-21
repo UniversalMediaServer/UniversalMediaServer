@@ -1325,10 +1325,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		if (matchedMimeType == null) {
-			// No match found, try without media parser v2
+			// No match found in the renderer config, try our defaults
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToWMV()) {
 					matchedMimeType = HTTPResource.WMV_TYPEMIME;
+				} else if (isTranscodeToMPEGTS()) {
+					// Default video transcoding mime type
+					matchedMimeType = HTTPResource.MPEGTS_TYPEMIME;
 				} else {
 					// Default video transcoding mime type
 					matchedMimeType = HTTPResource.MPEG_TYPEMIME;
