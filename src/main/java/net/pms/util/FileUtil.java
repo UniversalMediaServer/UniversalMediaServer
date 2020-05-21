@@ -989,7 +989,7 @@ public class FileUtil {
 		if (tvSeason != null) {
 			// Remove leading 0 from the season if it exists
 			tvSeason = stripStart(tvSeason, "0");
-			pattern = Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
+			pattern = Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2}|\\d{4}-\\d{2}) - (.*)");
 			int showNameIndex = indexOf(pattern, formattedName);
 			if (isEmpty(movieOrShowName)) {
 				if (showNameIndex != -1) {
