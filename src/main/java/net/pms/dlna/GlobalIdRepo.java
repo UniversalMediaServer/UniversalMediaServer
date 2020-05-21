@@ -43,7 +43,6 @@ public class GlobalIdRepo {
 	public void add(DLNAResource dlnaResource) {
 		lock.writeLock().lock();
 		try {
-			String id = dlnaResource.getId();
 			if (dlnaResource.getId() == null || get(dlnaResource.getId()) != dlnaResource) {
 				ids.add(new ID(dlnaResource, curGlobalId++));
 			}
@@ -180,6 +179,7 @@ public class GlobalIdRepo {
 			super(dlnaResource, idCleanupQueue);
 			this.id = id;
 		}
+
 		void cancel() {
 			// We've been replaced, i.e. another weakDLNARef is now holding our
 			// id, and it will trigger id cleanup at garbage collection time
@@ -196,7 +196,7 @@ public class GlobalIdRepo {
 					try {
 						// Once an underlying DLNAResource is ready for garbage
 						// collection, its weak reference will pop out here
-						WeakDLNARef ref = (WeakDLNARef)idCleanupQueue.remove();
+						WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
 						if (ref.id > 0) {
 							// Delete the associated id from our repo list
 							LOGGER.debug("deleting invalid id {}", ref.id);
