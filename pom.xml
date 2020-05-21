@@ -547,31 +547,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- FIX ERROR:  java.lang.NoSuchMethodError: org.codehaus.plexus.util.xml.pull.MXParser -->
-		<dependency>
-			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus</artifactId>
-			<version>6.2</version>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-utils</artifactId>
-			<version>3.3.0</version>
-		</dependency>
-		<!-- FIX ERROR: Exception in thread "main" java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava-parent</artifactId>
-			<version>29.0-jre</version>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus</groupId>
-			<artifactId>codehaus-parent</artifactId>
-			<version>4</version>
-			<type>pom</type>
-		</dependency>
 		<!-- start of JAXB dependencies -->
 		<!--
 			Those dependencies could be removed as soon as we drop support for Java 8,
