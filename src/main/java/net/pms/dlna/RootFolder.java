@@ -28,6 +28,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -60,6 +61,7 @@ import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.ProcessUtil;
+import net.pms.util.Rational;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -666,7 +668,7 @@ public class RootFolder extends DLNAResource {
 				// This command will show the XML files for recently opened iPhoto databases
 				Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
 				inputStream = process.getInputStream();
-				List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
+				List<String> lines = IOUtils.readLines(inputStream, Charset.defaultCharset());
 				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 
 				if (lines.size() >= 2) {
