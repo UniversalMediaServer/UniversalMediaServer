@@ -334,7 +334,8 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
-				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append("))");
+				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(")");
+				sb.append(")");
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -387,6 +388,9 @@ public class DLNAMediaDatabase implements Runnable {
 
 				LOGGER.trace("Creating index IDX_FILE");
 				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
+
+				LOGGER.trace("Creating index IDX_FILENAME_MODIFIED_IMDBID");
+				executeUpdate(conn, "CREATE INDEX IDX_FILENAME_MODIFIED_IMDBID ON FILES(FILENAME, MODIFIED, IMDBID)");
 
 				LOGGER.trace("Creating index TYPE");
 				executeUpdate(conn, "CREATE INDEX TYPE on FILES (TYPE)");
@@ -512,11 +516,11 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement stmt = null;
 		try {
 			conn = getConnection();
-			stmt = conn.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ? AND IMDBID IS NOT NULL");
+			stmt = conn.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ? AND IMDBID IS NOT NULL LIMIT 1");
 			stmt.setString(1, name);
 			stmt.setTimestamp(2, new Timestamp(modified));
 			rs = stmt.executeQuery();
-			while (rs.next()) {
+			if (rs.next()) {
 				found = true;
 			}
 		} catch (SQLException se) {
@@ -536,23 +540,24 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Gets rows of {@link DLNAMediaDatabase} from the database and returns them
-	 * as a {@link List} of {@link DLNAMediaInfo} instances.
+	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
+	 * as a {@link DLNAMediaInfo} instance.
 	 *
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @return The {@link List} of {@link DLNAMediaInfo} instances matching
+	 * @return The {@link DLNAMediaInfo} instance matching
 	 *         {@code name} and {@code modified}.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public synchronized ArrayList<DLNAMediaInfo> getData(String name, long modified) throws IOException, SQLException {
-		ArrayList<DLNAMediaInfo> list = new ArrayList<>();
+	public synchronized DLNAMediaInfo getData(String name, long modified) throws IOException, SQLException {
+		DLNAMediaInfo media = null;
 		try (
 			Connection conn = getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
 				"SELECT * FROM FILES LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON FILES.THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
-				"WHERE FILENAME = ? AND FILES.MODIFIED = ?"
+				"WHERE FILENAME = ? AND FILES.MODIFIED = ? " + 
+				"LIMIT 1"
 			);
 		) {
 			stmt.setString(1, name);
@@ -562,8 +567,8 @@ public class DLNAMediaDatabase implements Runnable {
 				PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
 				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?")
 			) {
-				while (rs.next()) {
-					DLNAMediaInfo media = new DLNAMediaInfo();
+				if (rs.next()) {
+					media = new DLNAMediaInfo();
 					int id = rs.getInt("ID");
 					media.setDuration(toDouble(rs, "DURATION"));
 					media.setBitrate(rs.getInt("BITRATE"));
@@ -653,8 +658,6 @@ public class DLNAMediaDatabase implements Runnable {
 							media.getSubtitleTracksList().add(sub);
 						}
 					}
-
-					list.add(media);
 				}
 			}
 		} catch (SQLException se) {
@@ -663,7 +666,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 			throw se;
 		}
-		return list;
+		return media;
 	}
 
 	private static Double toDouble(ResultSet rs, String column) throws SQLException {
@@ -870,7 +873,8 @@ public class DLNAMediaDatabase implements Runnable {
 					"IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
 				"FROM FILES " +
 				"WHERE " +
-					"FILENAME = ?",
+					"FILENAME = ? " +
+				"LIMIT 1",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)) {
