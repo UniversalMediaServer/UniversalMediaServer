@@ -97,7 +97,7 @@ public interface IOKit extends Library {
 	/**
 	 * The instance of this interface.
 	 */
-	IOKit INSTANCE = (IOKit) Native.loadLibrary("IOKit", IOKit.class, OPTIONS);
+	IOKit INSTANCE = (IOKit) Native.load("IOKit", IOKit.class, OPTIONS);
 
 	/*
      * Power Assertions from {@code IOKit/pwr_mgt/IOPMLib.h}

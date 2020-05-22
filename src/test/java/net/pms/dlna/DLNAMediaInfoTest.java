@@ -9,7 +9,6 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.logging.LoggingConfig;
 import net.pms.service.Services;
 import org.apache.commons.io.FileUtils;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

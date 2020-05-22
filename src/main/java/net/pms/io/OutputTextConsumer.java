@@ -67,7 +67,12 @@ public class OutputTextConsumer extends OutputConsumer {
 		} catch (IllegalStateException ise) {
 			LOGGER.debug("Error reading from closed input stream: {}", ise.getMessage());
 		} finally {
-			LineIterator.closeQuietly(it); // clean up all associated resources
+			try {
+				it.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

@@ -18,7 +18,7 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
@@ -99,8 +99,8 @@ public class ImdbUtil {
 						if (isBlank(entryName)) {
 							continue;
 						}
-						double score = StringUtils.getJaroWinklerDistance(nfoFileName, entryName);
-						if (score >= 0.85) {
+						double score = new JaroWinklerDistance().apply(nfoFileName, entryName);
+						if (score <= 0.85) { // threshold to add candidate to map. XXX it should be adjusted
 							candidates.put(entry, Double.valueOf(score));
 						}
 					}

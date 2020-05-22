@@ -183,7 +183,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 			}
 		}
 
-		super.resolve();
+		super.syncResolve();
 	}
 
 	@Override
