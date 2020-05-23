@@ -590,8 +590,7 @@ public class LibMediaInfoParser {
 			value.equals("isml") ||
 			(value.startsWith("m4a") && !value.startsWith("m4ae")) ||
 			value.startsWith("m4v") ||
-			value.equals("mpeg-4 visual") ||
-			value.equals("mpeg-4")
+			value.equals("mpeg-4 visual")
 		) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
