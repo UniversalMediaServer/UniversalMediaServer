@@ -543,18 +543,18 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Gets rows of {@link DLNAMediaDatabase} from the database and returns them
-	 * as a {@link List} of {@link DLNAMediaInfo} instances.
+	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
+	 * as a {@link DLNAMediaInfo} instance.
 	 *
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @return The {@link List} of {@link DLNAMediaInfo} instances matching
+	 * @return The {@link DLNAMediaInfo} instance matching
 	 *         {@code name} and {@code modified}.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public synchronized ArrayList<DLNAMediaInfo> getData(String name, long modified) throws IOException, SQLException {
-		ArrayList<DLNAMediaInfo> list = new ArrayList<>();
+	public synchronized DLNAMediaInfo getData(String name, long modified) throws IOException, SQLException {
+		DLNAMediaInfo media = null;
 		try (
 			Connection conn = getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
@@ -571,8 +571,8 @@ public class DLNAMediaDatabase implements Runnable {
 				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
 				PreparedStatement genres = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataGenres.TABLE_NAME + " WHERE FILENAME = ?");
 			) {
-				while (rs.next()) {
-					DLNAMediaInfo media = new DLNAMediaInfo();
+				if (rs.next()) {
+					media = new DLNAMediaInfo();
 					int id = rs.getInt("ID");
 					media.setDuration(toDouble(rs, "DURATION"));
 					media.setBitrate(rs.getInt("BITRATE"));
@@ -688,8 +688,6 @@ public class DLNAMediaDatabase implements Runnable {
 							media.addGenre(elements.getString("GENRE"));
 						}
 					}
-
-					list.add(media);
 				}
 			}
 		} catch (SQLException se) {
@@ -698,7 +696,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 			throw se;
 		}
-		return list;
+		return media;
 	}
 
 	private static Double toDouble(ResultSet rs, String column) throws SQLException {

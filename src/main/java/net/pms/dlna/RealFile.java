@@ -192,13 +192,13 @@ public class RealFile extends MapFile {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
-					ArrayList<DLNAMediaInfo> medias;
+					DLNAMediaInfo media;
 					try {
-						medias = database.getData(fileName, file.lastModified());
+						media = database.getData(fileName, file.lastModified());
 
 						setExternalSubtitlesParsed();
-						if (medias.size() == 1) {
-							setMedia(medias.get(0));
+						if (media != null) {
+							setMedia(media);
 							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
 								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
 								getMedia().getSubtitleTracksList().clear();
@@ -207,12 +207,6 @@ public class RealFile extends MapFile {
 
 							getMedia().postParse(getType(), input);
 							found = true;
-						} else if (medias.size() > 1) {
-							LOGGER.warn(
-								"Found {} cached records for {} - this should be impossible, please file a bug report",
-								medias.size(),
-								getName()
-							);
 						}
 					} catch (InvalidClassException e) {
 						LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
@@ -373,7 +367,7 @@ public class RealFile extends MapFile {
 			if (baseNamePrettified == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNamePrettified == null) {
-						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile(), null, isEpisodeWithinSeasonFolder());
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile(), getMedia(), isEpisodeWithinSeasonFolder());
 					}
 				}
 			}

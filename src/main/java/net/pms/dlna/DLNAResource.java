@@ -940,12 +940,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2 && renderer != null) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
+				String aspectRatio = media.getAspectRatioContainer().toAspectRatio();
 				if (
 					renderer.isKeepAspectRatio() &&
-					!"16:9".equals(media.getAspectRatioContainer())
+					!"16:9".equals(aspectRatio)
 				) {
 					isIncompatible = true;
-					LOGGER.debug(prependTranscodingReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), media.getAspectRatioContainer());
+					LOGGER.debug(prependTranscodingReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), aspectRatio);
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the resolution is incompatible with the renderer.", getName());
