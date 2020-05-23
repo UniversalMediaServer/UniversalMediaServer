@@ -565,7 +565,6 @@ public class LibMediaInfoParser {
 		value = value.toLowerCase(Locale.ROOT);
 		String format = null;
 
-			System.out.format("mediainfo: %s\n", value);
 		if (isBlank(value)) {
 			return;
 		} else if (value.startsWith("3g2")) {
@@ -901,8 +900,6 @@ public class LibMediaInfoParser {
 
 		if (format != null) {
 			if (streamType == StreamType.General) {
-				
-			System.out.format("mediainfo2: %s\n", format);
 				media.setContainer(format);
 			} else if (streamType == StreamType.Video) {
 				media.setCodecV(format);
