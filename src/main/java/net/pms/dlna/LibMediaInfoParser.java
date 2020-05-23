@@ -565,6 +565,7 @@ public class LibMediaInfoParser {
 		value = value.toLowerCase(Locale.ROOT);
 		String format = null;
 
+			System.out.format("mediainfo: %s\n", value);
 		if (isBlank(value)) {
 			return;
 		} else if (value.startsWith("3g2")) {
@@ -590,7 +591,8 @@ public class LibMediaInfoParser {
 			value.equals("isml") ||
 			(value.startsWith("m4a") && !value.startsWith("m4ae")) ||
 			value.startsWith("m4v") ||
-			value.equals("mpeg-4 visual")
+			value.equals("mpeg-4 visual") ||
+			value.equals("mpeg-4")
 		) {
 			format = FormatConfiguration.MP4;
 		} else if (value.contains("mpeg-ps")) {
@@ -637,7 +639,7 @@ public class LibMediaInfoParser {
 			value.equals("u263")
 		) {
 			format = FormatConfiguration.H263;
-		} else if (value.startsWith("avc") || value.startsWith("h264")) {
+		} else if (streamType == StreamType.Video && (value.startsWith("avc") || value.startsWith("h264"))) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
 			format = FormatConfiguration.H265;
@@ -899,6 +901,8 @@ public class LibMediaInfoParser {
 
 		if (format != null) {
 			if (streamType == StreamType.General) {
+				
+			System.out.format("mediainfo2: %s\n", format);
 				media.setContainer(format);
 			} else if (streamType == StreamType.Video) {
 				media.setCodecV(format);
