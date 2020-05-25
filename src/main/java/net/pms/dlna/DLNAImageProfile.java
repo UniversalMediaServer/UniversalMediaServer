@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import org.fourthline.cling.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.drew.imaging.png.PngColorType;
 import net.pms.dlna.protocolinfo.DLNAOrgProfileName;
 import net.pms.dlna.protocolinfo.KnownDLNAOrgProfileName;
 import net.pms.dlna.protocolinfo.MimeType;
@@ -932,11 +933,13 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			return;
 		}
 
+		int Greyscale = PngColorType.GREYSCALE.getNumericValue();
+		
 		PNGInfo pngInfo = (PNGInfo) imageInfo;
 		if (pngInfo.getColorType() != null) {
-			switch (pngInfo.getColorType()) {
-				case Greyscale:
-				case GreyscaleWithAlpha:
+			switch (pngInfo.getColorType().getNumericValue()) {
+				case 0:
+				case 4:
 					if (pngInfo.getBitDepth() == 8 || pngInfo.getBitDepth() == 16) {
 						complianceResult.colorsCorrect = true;
 					} else {
@@ -950,9 +953,9 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 						}
 					}
 					break;
-				case IndexedColor:
-				case TrueColor:
-				case TrueColorWithAlpha:
+				case 3:
+				case 2:
+				case 6:
 					if (pngInfo.getBitDepth() == 8) {
 						complianceResult.colorsCorrect = true;
 					} else {
