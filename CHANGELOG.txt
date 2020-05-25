@@ -1,3 +1,21 @@
+9.5.0 - 2020-05-24
+
+	General:
+		Significant improvements to scanning and browsing speed and resource use
+		Fixed episode titles in the Media Library
+		Fixed aspect ratio validation
+		Added more automatic regression tests for file format detection
+	Renderers:
+		Added support for Vimu Player on Amazon Fire TV Stick (thanks, nouse and Nadahar!)
+	Translation updates via Crowdin:
+		Dutch (92%)
+		Turkish (100%)
+	Dependency updates:
+		7zipj from 9.20-2.00 to 16.02-2.01
+		assertj-core from 3.16.0 to 3.16.1
+		junrar from 1.0.1 to 4.0.0
+		oshi-core from 5.0.1 to 5.1.0
+
 9.4.3 - 2020-05-09
 
 	General:
