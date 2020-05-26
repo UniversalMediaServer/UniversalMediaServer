@@ -190,24 +190,24 @@ public class PNGInfo extends ImageInfo {
 					Integer i = ((PngDirectory) directory).getInteger(PngDirectory.TAG_COLOR_TYPE);
 					if (i != null) {
 						((PNGParseInfo) parsedInfo).colorType = PngColorType.fromNumericValue(i);
-						switch (((PNGParseInfo) parsedInfo).colorType) {
-							case Greyscale: // Grayscale without alpha
+						switch (((PNGParseInfo) parsedInfo).colorType.getNumericValue()) {
+							case 0: // Grayscale without alpha
 								parsedInfo.numComponents = 1;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
 								break;
-							case TrueColor: // RGB without alpha
+							case 2: // RGB without alpha
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
 								break;
-							case IndexedColor: // Palette index
+							case 3: // Palette index
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
 								break;
-							case GreyscaleWithAlpha: // Grayscale with alpha
+							case 4: // Grayscale with alpha
 								parsedInfo.numComponents = 2;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
 								break;
-							case TrueColorWithAlpha: // RGB with alpha
+							case 6: // RGB with alpha
 								parsedInfo.numComponents = 4;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
 								break;
@@ -222,8 +222,8 @@ public class PNGInfo extends ImageInfo {
 					throw new ParseException("PNG parsing failed with ancillary chunk tRNS appearing before critical chunk IHDR");
 				}
 				if (
-					((PNGParseInfo) parsedInfo).colorType == PngColorType.GreyscaleWithAlpha ||
-					((PNGParseInfo) parsedInfo).colorType ==  PngColorType.TrueColorWithAlpha
+					((PNGParseInfo) parsedInfo).colorType == PngColorType.GREYSCALE_WITH_ALPHA ||
+					((PNGParseInfo) parsedInfo).colorType ==  PngColorType.TRUE_COLOR_WITH_ALPHA
 				) {
 					throw new ParseException(String.format(
 						"PNG parsing failed with illegal combination of %s color type and tRNS transparancy chunk",

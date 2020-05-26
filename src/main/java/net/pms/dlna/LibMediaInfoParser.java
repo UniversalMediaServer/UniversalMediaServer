@@ -637,7 +637,7 @@ public class LibMediaInfoParser {
 			value.equals("u263")
 		) {
 			format = FormatConfiguration.H263;
-		} else if (value.startsWith("avc") || value.startsWith("h264")) {
+		} else if (streamType == StreamType.Video && (value.startsWith("avc") || value.startsWith("h264"))) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
 			format = FormatConfiguration.H265;
