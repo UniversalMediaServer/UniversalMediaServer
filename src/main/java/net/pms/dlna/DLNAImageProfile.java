@@ -935,8 +935,8 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 		PNGInfo pngInfo = (PNGInfo) imageInfo;
 		if (pngInfo.getColorType() != null) {
 			switch (pngInfo.getColorType().getNumericValue()) {
-				case 0:
-				case 4:
+				case 0: // Greyscale
+				case 4: // GreyscaleWithAlpha
 					if (pngInfo.getBitDepth() == 8 || pngInfo.getBitDepth() == 16) {
 						complianceResult.colorsCorrect = true;
 					} else {
@@ -950,9 +950,9 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 						}
 					}
 					break;
-				case 3:
-				case 2:
-				case 6:
+				case 2: // TrueColor
+				case 3: // IndexedColor
+				case 6: // TrueColorWithAlpha
 					if (pngInfo.getBitDepth() == 8) {
 						complianceResult.colorsCorrect = true;
 					} else {
