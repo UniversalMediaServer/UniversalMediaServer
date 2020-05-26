@@ -36,6 +36,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+import org.h2.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sun.jna.Memory;
@@ -840,14 +841,9 @@ public class ProcessManager {
 				return;
 			}
 
-			try {
-				process.getInputStream().close();
-				process.getErrorStream().close();
-				process.getOutputStream().close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			IOUtils.closeSilently(process.getInputStream());
+			IOUtils.closeSilently(process.getErrorStream());
+			IOUtils.closeSilently(process.getOutputStream());
 
 			process.destroy();
 		}
