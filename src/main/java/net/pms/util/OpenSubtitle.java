@@ -97,8 +97,8 @@ public class OpenSubtitle {
 	private static final String UA = "Universal Media Server v1";
 	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
 
-	/** The maximum Jaro–Winkler title distance for IMDB guesses to be invalid */
-	private static final double MAX_IMDB_GUESS_JW_DISTANCE = 0.35;
+	/** The minimum Jaro–Winkler title distance for IMDB guesses to be valid */
+	private static final double MIN_IMDB_GUESS_JW_DISTANCE = 0.65;
 
 	/** The {@link Path} where downloaded OpenSubtitles subtitles are stored */
 	public static final Path SUBTITLES_FOLDER = Paths.get(PMS.getConfiguration().getDataFile(SUB_DIR));
@@ -1273,19 +1273,19 @@ public class OpenSubtitle {
 	) {
 		// The score calculation isn't extensively tested and might need to be tweaked
 		for (GuessItem guess : guesses) { //TODO: (Nad) Guess Scoring
-			double score = 1.0;
+			double score = 0.0;
 			if (isBlank(prettifier.getName()) || isBlank(guess.getTitle())) {
 				continue;
 			}
-			score -= new JaroWinklerDistance().apply(
+			score += new JaroWinklerDistance().apply(
 				prettifier.getName().toLowerCase(locale),
 				guess.getTitle().toLowerCase(locale)
 			);
-			if (score > MAX_IMDB_GUESS_JW_DISTANCE) { //TODO: (Nad) Parameterize threshold...?
+			if (score < MIN_IMDB_GUESS_JW_DISTANCE) { //TODO: (Nad) Parameterize threshold...?
 				LOGGER.trace(
-					"OpenSubtitles: Excluding IMDB guess because the similarity ({}) is over the threshold ({}): {}",
+					"OpenSubtitles: Excluding IMDB guess because the similarity ({}) is under the threshold ({}): {}",
 					score,
-					MAX_IMDB_GUESS_JW_DISTANCE,
+					MIN_IMDB_GUESS_JW_DISTANCE,
 					guess
 				);
 				continue;
@@ -1293,23 +1293,23 @@ public class OpenSubtitle {
 			if (prettifier.getYear() > 0) {
 				int guessYear = StringUtil.getYear(guess.getYear());
 				if (prettifier.getYear() == guessYear) {
-					score -= 0.4;
+					score += 0.4;
 				}
 			}
 			if (classification != null && classification == guess.getVideoClassification()) {
-				score -= 0.5;
+				score += 0.5;
 				if (classification == VideoClassification.SERIES && guess instanceof CheckMovieHashItem) {
 					CheckMovieHashItem item = (CheckMovieHashItem) guess;
 					if (
 						item.getSeriesSeason() == prettifier.getSeason() &&
 						item.getSeriesEpisode() == prettifier.getEpisode()
 					) {
-						score -= 0.3;
+						score += 0.3;
 					}
 				}
 			}
 			if (guess instanceof BestGuess) {
-				score -= 0.2;
+				score += 0.2;
 			}
 			candidates.add(new GuessCandidate(score, guess));
 		}
@@ -3687,15 +3687,15 @@ public class OpenSubtitle {
 			this.subFromTrusted = subFromTrusted;
 			this.subDownloadLink = subDownloadLink;
 			this.openSubtitlesScore = openSubtitlesScore;
-			double tmpScore = 1.0;
+			double tmpScore = 0.0;
 			if (isNotBlank(matchedBy)) {
 				switch (matchedBy.toLowerCase(Locale.ROOT)) {
 					case "moviehash":
-						tmpScore -= 200d;
+						tmpScore += 200d;
 					case "imdbid":
-						tmpScore -= 100d;
+						tmpScore += 100d;
 					case "tag":
-						tmpScore -= 10d;
+						tmpScore += 10d;
 				}
 			}
 			if (prettifier != null) {
@@ -3703,32 +3703,32 @@ public class OpenSubtitle {
 				if (isNotBlank(prettifier.getFileNameWithoutExtension())) {
 					String subFileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(subFileName);
 					if (isNotBlank(subFileNameWithoutExtension)) {
-						// 0.4 and above gives a score of 40, 1.0 give a score of 0.
-						tmpScore -= 40d * 2.5 * Math.max(
+						// 0.6 and below gives a score of 0, 1.0 give a score of 40.
+						tmpScore += 40d * 2.5 * Math.max(
 							new JaroWinklerDistance().apply(
 								prettifier.getFileNameWithoutExtension().toLowerCase(locale),
 								subFileNameWithoutExtension.toLowerCase(Locale.ENGLISH)
-							) + 0.6,
-							1
+							) - 0.6,
+							0
 						);
 					}
 				}
 				if (isNotBlank(prettifier.getName()) && (isNotBlank(movieName) || isNotBlank(movieNameEng))) {
 					double nameScore = isBlank(movieName) ?
-						1.0 :
+						0.0 :
 						new JaroWinklerDistance().apply(
 							prettifier.getName().toLowerCase(locale),
 							movieName.toLowerCase(locale)
 						);
 					nameScore = Math.max(nameScore, isBlank(movieNameEng) ?
-						1.0 :
+						0.0 :
 						new JaroWinklerDistance().apply(
 							prettifier.getName().toLowerCase(Locale.ENGLISH),
 							movieNameEng.toLowerCase(Locale.ENGLISH)
 						)
 					);
-					// 0.5 and above gives a score of 30, 1 give a score of 0
-					tmpScore -= 30d * 2 * Math.max(nameScore + 0.5, 1);
+					// 0.5 and below gives a score of 0, 1 give a score of 30
+					tmpScore += 30d * 2 * Math.max(nameScore - 0.5, 0);
 				}
 				if (
 					seriesEpisode > 0 &&
@@ -3741,13 +3741,13 @@ public class OpenSubtitle {
 						seriesSeason == prettifier.getSeason()
 					)
 				) {
-					tmpScore -= 30d;
+					tmpScore += 30d;
 				}
 				if (movieYear > 0 && movieYear == prettifier.getYear()) {
-					tmpScore -= 20d;
+					tmpScore += 20d;
 				}
 				if (movieKind != null && movieKind == prettifier.getClassification()) {
-					tmpScore -= 20d;
+					tmpScore += 20d;
 				}
 			}
 			if (subLastTS > 0 && media != null && media.getDurationInSeconds() > 0) {
@@ -3756,10 +3756,10 @@ public class OpenSubtitle {
 				long mediaLastTS = mediaDuration - Math.min(Math.max((long) (mediaDuration * 0.02), 2000), 120000);
 				if (mediaLastTS > 0) {
 					long diff = Math.abs(subLastTS - mediaLastTS);
-					tmpScore -= 30d * Math.max(0.5 - (double) diff / mediaLastTS, 0);
+					tmpScore += 30d * Math.max(0.5 - (double) diff / mediaLastTS, 0);
 				}
 			}
-			this.score = Math.abs(tmpScore);
+			this.score = tmpScore;
 		}
 
 		/**
