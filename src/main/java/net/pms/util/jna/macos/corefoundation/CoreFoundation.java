@@ -96,7 +96,7 @@ public interface CoreFoundation extends Library {
 	/**
 	 * The static {@link CoreFoundation} instance.
 	 */
-	CoreFoundation INSTANCE = Native.loadLibrary("CoreFoundation", CoreFoundation.class, options);
+	CoreFoundation INSTANCE = Native.load("CoreFoundation", CoreFoundation.class, options);
 
 	/**
 	 * The default {@code CFAllocator} as a static {@link CFAllocatorRef}.

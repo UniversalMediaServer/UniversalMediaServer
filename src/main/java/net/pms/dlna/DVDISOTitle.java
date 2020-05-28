@@ -43,6 +43,7 @@ import net.pms.util.Iso639;
 import net.pms.util.MPlayerDvdAudioStreamChannels;
 import net.pms.util.MPlayerDvdAudioStreamTypes;
 import net.pms.util.ProcessUtil;
+import net.pms.util.Rational;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -266,7 +267,7 @@ public class DVDISOTitle extends DLNAResource {
 			getMedia().setDuration(d);
 		}
 		getMedia().setFrameRate(fps);
-		getMedia().setAspectRatioDvdIso(aspect);
+		getMedia().setAspectRatioDvdIso(Rational.valueOf(aspect));
 		getMedia().setDvdtrack(title);
 		getMedia().setContainer(FormatConfiguration.ISO);
 		getMedia().setCodecV(codecV != null ? codecV : FormatConfiguration.MPEG2);

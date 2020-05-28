@@ -115,7 +115,9 @@ import net.pms.util.XMLRPCUtil.ValueStruct;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
@@ -1391,7 +1393,7 @@ public class OpenSubtitle {
 			if (isBlank(prettifier.getName()) || isBlank(guess.getTitle())) {
 				continue;
 			}
-			score += new JaroWinklerDistance().apply(
+			score += new JaroWinklerSimilarity().apply(
 				prettifier.getName().toLowerCase(locale),
 				guess.getTitle().toLowerCase(locale)
 			);
@@ -3808,7 +3810,7 @@ public class OpenSubtitle {
 					if (isNotBlank(subFileNameWithoutExtension)) {
 						// 0.6 and below gives a score of 0, 1.0 give a score of 40.
 						tmpScore += 40d * 2.5 * Math.max(
-							new JaroWinklerDistance().apply(
+							new JaroWinklerSimilarity().apply(
 								prettifier.getFileNameWithoutExtension().toLowerCase(locale),
 								subFileNameWithoutExtension.toLowerCase(Locale.ENGLISH)
 							) - 0.6,
@@ -3819,13 +3821,13 @@ public class OpenSubtitle {
 				if (isNotBlank(prettifier.getName()) && (isNotBlank(movieName) || isNotBlank(movieNameEng))) {
 					double nameScore = isBlank(movieName) ?
 						0.0 :
-						new JaroWinklerDistance().apply(
+						new JaroWinklerSimilarity().apply(
 							prettifier.getName().toLowerCase(locale),
 							movieName.toLowerCase(locale)
 						);
 					nameScore = Math.max(nameScore, isBlank(movieNameEng) ?
 						0.0 :
-						new JaroWinklerDistance().apply(
+						new JaroWinklerSimilarity().apply(
 							prettifier.getName().toLowerCase(Locale.ENGLISH),
 							movieNameEng.toLowerCase(Locale.ENGLISH)
 						)

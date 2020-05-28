@@ -57,7 +57,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	private static final int BUFSIZE = 500000;
 
 	public interface Kernel32 extends StdCallLibrary {
-		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32",
+		Kernel32 INSTANCE = (Kernel32) Native.load("kernel32",
 			Kernel32.class
 		);
 
