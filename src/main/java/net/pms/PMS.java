@@ -53,6 +53,7 @@ import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.TableTVSeries;
 import net.pms.database.Tables;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAMediaDatabase;
@@ -430,6 +431,7 @@ public class PMS {
 			Tables.checkTables();
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
+			LOGGER.trace("Error was: {}", e1);
 		}
 
 		// Log registered ImageIO plugins
@@ -536,7 +538,6 @@ public class PMS {
 
 		// init dbs
 		keysDb = new UmsKeysDb();
-		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
 
@@ -1143,30 +1144,6 @@ public class PMS {
 	}
 
 	/**
-	 * Returns a similar TV series name from the database.
-	 *
-	 * @param title
-	 * @return
-	 */
-	public String getSimilarTVSeriesName(String title) {
-		if (title == null) {
-			return title;
-		}
-
-		title = FileUtil.getSimplifiedShowName(title);
-		title = StringEscapeUtils.escapeSql(title);
-
-		if (getConfiguration().getUseCache()) {
-			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "' LIMIT 1");
-			if (titleList.size() > 0) {
-				return titleList.get(0);
-			}
-		}
-
-		return "";
-	}
-
-	/**
 	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
 	 * that contains all configured settings for DMS. The object provides getters for all
 	 * configurable DMS settings.
@@ -1637,18 +1614,8 @@ public class PMS {
 		return get().globalRepo;
 	}
 
-	private InfoDb infoDb;
 	private CodeDb codes;
 	private CodeEnter masterCode;
-
-	@Deprecated
-	public void infoDbAdd(File f, String formattedName) {
-		infoDb.backgroundAdd(f, formattedName);
-	}
-
-	public InfoDb infoDb() {
-		return infoDb;
-	}
 
 	public CodeDb codeDb() {
 		return codes;

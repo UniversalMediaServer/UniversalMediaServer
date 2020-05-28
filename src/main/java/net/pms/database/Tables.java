@@ -22,8 +22,12 @@ package net.pms.database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaDatabase;
 import org.slf4j.Logger;
@@ -71,6 +75,21 @@ public class Tables {
 					TableCoverArtArchive.checkTable(connection);
 					TableFilesStatus.checkTable(connection);
 					TableThumbnails.checkTable(connection);
+
+					TableTVSeries.checkTable(connection);
+					TableFailedLookups.checkTable(connection);
+
+					// Video metadata tables
+					TableVideoMetadataActors.checkTable(connection);
+					TableVideoMetadataAwards.checkTable(connection);
+					TableVideoMetadataCountries.checkTable(connection);
+					TableVideoMetadataDirectors.checkTable(connection);
+					TableVideoMetadataGenres.checkTable(connection);
+					TableVideoMetadataPosters.checkTable(connection);
+					TableVideoMetadataProduction.checkTable(connection);
+					TableVideoMetadataRated.checkTable(connection);
+					TableVideoMetadataRatings.checkTable(connection);
+					TableVideoMetadataReleased.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -94,8 +113,8 @@ public class Tables {
 
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-                 "WHERE TABLE_SCHEMA = ? "+
-                 "AND  TABLE_NAME = ?"
+			"WHERE TABLE_SCHEMA = ? " +
+			"AND  TABLE_NAME = ?"
 		)) {
 			statement.setString(1, tableSchema);
 			statement.setString(2, tableName);
@@ -294,5 +313,43 @@ public class Tables {
 			replace(EscapeCharacter, EscapeCharacter + EscapeCharacter).
 			replace("%", EscapeCharacter + "%").
 			replace("_", EscapeCharacter + "_");
+	}
+
+	/**
+	 * @see https://stackoverflow.com/a/10213258/2049714
+	 * @param rs
+	 * @return
+	 * @throws SQLException 
+	 */
+	public static List<HashMap<String, Object>> convertResultSetToList(ResultSet rs) throws SQLException {
+		ResultSetMetaData md = rs.getMetaData();
+		int columns = md.getColumnCount();
+		List<HashMap<String, Object>> list = new ArrayList<>();
+
+		while (rs.next()) {
+			HashMap<String, Object> row = new HashMap<>(columns);
+			for (int i = 1; i <= columns; ++i) {
+				row.put(md.getColumnName(i), rs.getObject(i));
+			}
+			list.add(row);
+		}
+
+		return list;
+	}
+
+	/**
+	 * @see https://stackoverflow.com/a/10213258/2049714
+	 * @param rs
+	 * @return
+	 * @throws SQLException 
+	 */
+	public static HashMap<String, Object> convertSingleResultSetToList(ResultSet rs) throws SQLException {
+		ResultSetMetaData md = rs.getMetaData();
+		int columns = md.getColumnCount();
+		HashMap<String, Object> row = new HashMap<>(columns);
+		for (int i = 1; i <= columns; ++i) {
+			row.put(md.getColumnName(i), rs.getObject(i));
+		}
+		return row;
 	}
 }
