@@ -19,6 +19,7 @@
  */
 package net.pms.database;
 
+import com.google.gson.internal.LinkedTreeMap;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,7 +33,7 @@ import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TableVideoMetadataGenres extends Tables {
+public final class TableVideoMetadataRatings extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -41,8 +42,9 @@ public final class TableVideoMetadataGenres extends Tables {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableVideoMetadataGenres.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
+	private static final Logger LOGGER = LoggerFactory.getLogger(TableVideoMetadataRatings.class);
+
+	public static final String TABLE_NAME = "VIDEO_METADATA_RATINGS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -52,29 +54,29 @@ public final class TableVideoMetadataGenres extends Tables {
 	private static final int TABLE_VERSION = 1;
 
 	// No instantiation
-	private TableVideoMetadataGenres() {
+	private TableVideoMetadataRatings() {
 	}
 
 	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param genres
+	 * @param ratings
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final HashSet genres, final long tvSeriesID) {
-		if (genres == null || genres.isEmpty()) {
+	public static void set(final String fullPathToFile, final HashSet ratings, final long tvSeriesID) {
+		if (ratings == null || ratings.isEmpty()) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = database.getConnection()) {
-			Iterator<String> i = genres.iterator();
+			Iterator<LinkedTreeMap> i = ratings.iterator();
 			while (i.hasNext()) {
-				String genre = i.next();
+				LinkedTreeMap rating = i.next();
 				PreparedStatement insertStatement = connection.prepareStatement(
 					"INSERT INTO " + TABLE_NAME + " (" +
-						"TVSERIESID, FILENAME, GENRE" +
+						"TVSERIESID, FILENAME, RATING" +
 					") VALUES (" +
 						"?, ?, ?" +
 					")",
@@ -83,19 +85,19 @@ public final class TableVideoMetadataGenres extends Tables {
 				insertStatement.clearParameters();
 				insertStatement.setLong(1, tvSeriesID);
 				insertStatement.setString(2, left(fullPathToFile, 255));
-				insertStatement.setString(3, left(genre, 255));
+				insertStatement.setObject(3, rating);
 
 				insertStatement.executeUpdate();
 				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
 					if (rs.next()) {
-						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
+						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, rating);
 					}
 				}
 			}
 		} catch (SQLException e) {
 			if (e.getErrorCode() != 23505) {
 				LOGGER.error(
-					"Database error while writing genres to " + TABLE_NAME + " for \"{}\": {}",
+					"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
 					fullPathToFile,
 					e.getMessage()
 				);
@@ -187,11 +189,11 @@ public final class TableVideoMetadataGenres extends Tables {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"GENRE        VARCHAR2(1024)   NOT NULL" +
+					"RATING       VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_GENRE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, GENRE, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_RATINGS_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATING, TVSERIESID)");
 		}
 	}
 }

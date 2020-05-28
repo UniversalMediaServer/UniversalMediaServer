@@ -24,15 +24,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TableVideoMetadataGenres extends Tables {
+public final class TableFailedLookups extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -41,8 +41,8 @@ public final class TableVideoMetadataGenres extends Tables {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableVideoMetadataGenres.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
+	private static final Logger LOGGER = LoggerFactory.getLogger(TableFailedLookups.class);
+	public static final String TABLE_NAME = "FAILED_LOOKUPS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -52,50 +52,84 @@ public final class TableVideoMetadataGenres extends Tables {
 	private static final int TABLE_VERSION = 1;
 
 	// No instantiation
-	private TableVideoMetadataGenres() {
+	private TableFailedLookups() {
+	}
+
+	/**
+	 * @param fullPathToFile
+	 * @return whether a lookup for this file has failed recently
+	 */
+	public static boolean hasLookupFailedRecently(final String fullPathToFile) {
+		boolean removeAfter = false;
+		TABLE_LOCK.readLock().lock();
+		try (Connection connection = database.getConnection()) {
+			PreparedStatement selectStatement = connection.prepareStatement("SELECT LASTATTEMPT FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1");
+
+			try (ResultSet rs = selectStatement.executeQuery()) {
+				if (rs.next()) {
+					LOGGER.trace("We have failed a lookup for {} so let's see if it was recent", fullPathToFile);
+
+					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+					OffsetDateTime lastAttempt = rs.getObject("LASTATTEMPT", OffsetDateTime.class);
+					if (lastAttempt.plusWeeks(1).isAfter(now)) {
+						// The last attempt happened in the last week
+						return true;
+					} else {
+						// The last attempt happened over a week ago, let's remove it so it can be tried again
+						removeAfter = true;
+						return false;
+					}
+				} else {
+					LOGGER.trace("We have no failed lookups stored for {}", fullPathToFile);
+					return false;
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
+				fullPathToFile,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		} finally {
+			TABLE_LOCK.readLock().unlock();
+			if (removeAfter) {
+				remove(fullPathToFile, false);
+			}
+		}
+
+		return false;
 	}
 
 	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param genres
-	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final HashSet genres, final long tvSeriesID) {
-		if (genres == null || genres.isEmpty()) {
-			return;
-		}
-
+	public static void set(final String fullPathToFile) {
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = database.getConnection()) {
-			Iterator<String> i = genres.iterator();
-			while (i.hasNext()) {
-				String genre = i.next();
-				PreparedStatement insertStatement = connection.prepareStatement(
-					"INSERT INTO " + TABLE_NAME + " (" +
-						"TVSERIESID, FILENAME, GENRE" +
-					") VALUES (" +
-						"?, ?, ?" +
-					")",
-					Statement.RETURN_GENERATED_KEYS
-				);
-				insertStatement.clearParameters();
-				insertStatement.setLong(1, tvSeriesID);
-				insertStatement.setString(2, left(fullPathToFile, 255));
-				insertStatement.setString(3, left(genre, 255));
+			PreparedStatement insertStatement = connection.prepareStatement(
+				"INSERT INTO " + TABLE_NAME + " (" +
+					"FILENAME" +
+				") VALUES (" +
+					"?" +
+				")",
+				Statement.RETURN_GENERATED_KEYS
+			);
+			insertStatement.clearParameters();
+			insertStatement.setString(1, left(fullPathToFile, 255));
 
-				insertStatement.executeUpdate();
-				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-					if (rs.next()) {
-						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
-					}
+			insertStatement.executeUpdate();
+			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+				if (rs.next()) {
+					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\"", fullPathToFile);
 				}
 			}
 		} catch (SQLException e) {
 			if (e.getErrorCode() != 23505) {
 				LOGGER.error(
-					"Database error while writing genres to " + TABLE_NAME + " for \"{}\": {}",
+					"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
 					fullPathToFile,
 					e.getMessage()
 				);
@@ -184,14 +218,13 @@ public final class TableVideoMetadataGenres extends Tables {
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID           IDENTITY         PRIMARY KEY, " +
-					"TVSERIESID   INT              DEFAULT -1, " +
-					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"GENRE        VARCHAR2(1024)   NOT NULL" +
+					"ID           IDENTITY                   PRIMARY KEY, " +
+					"FILENAME     VARCHAR2(1024)             NOT NULL, " +
+					"LASTATTEMPT  TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_GENRE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, GENRE, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
 		}
 	}
 }

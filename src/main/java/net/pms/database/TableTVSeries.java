@@ -64,18 +64,16 @@ public final class TableTVSeries extends Tables {
 	 * @param seriesName the name of the series, for when we don't have API data yet
 	 * @return the new row ID
 	 */
-	public static int set(final HashMap tvSeries, final String seriesName) {
+	public static long set(final HashMap tvSeries, final String seriesName) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 		String condition;
 		String simplifiedTitle;
 
 		if (seriesName != null) {
-			LOGGER.info("6 " + seriesName);
 			simplifiedTitle = FileUtil.getSimplifiedShowName(seriesName);
 			condition = "SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle);
 		} else {
-			LOGGER.info("7 " + (String) tvSeries.get("title"));
 			simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 			condition = "IMDBID = " + sqlQuote((String) tvSeries.get("imdbID"));
 		}
@@ -94,7 +92,7 @@ public final class TableTVSeries extends Tables {
 						if (trace) {
 							LOGGER.trace("Found entry in " + TABLE_NAME);
 						}
-						return result.getInt("ID");
+						return result.getLong("ID");
 					} else {
 						if (trace) {
 							LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting", simplifiedTitle);
@@ -105,41 +103,33 @@ public final class TableTVSeries extends Tables {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
 						} else {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
-								"AWARDS, COUNTRY, ENDYEAR, IMDBID, METASCORE, PLOT, POSTER, RATED, RATING, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, YEAR" +
+								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, YEAR" +
 							") VALUES (" +
-								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
+								"?, ?, ?, ?, ?, ?, ?, ?, ?" +
 							")";
 						}
 						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
 							if (seriesName != null) {
 								insertStatement.setString(1, simplifiedTitle);
 								insertStatement.setString(2, seriesName);
-								LOGGER.info("8 ");
 							} else {
-								insertStatement.setString(1, (String) tvSeries.get("awards"));
-								insertStatement.setString(2, (String) tvSeries.get("country"));
-								insertStatement.setString(3, (String) tvSeries.get("endYear"));
-								insertStatement.setString(4, (String) tvSeries.get("imdbID"));
-								insertStatement.setString(5, (String) tvSeries.get("metascore"));
-								insertStatement.setString(6, (String) tvSeries.get("plot"));
-								insertStatement.setString(7, (String) tvSeries.get("poster"));
-								insertStatement.setString(8, (String) tvSeries.get("rated"));
-								insertStatement.setDouble(9, (Double) tvSeries.get("rating"));
-								insertStatement.setString(10, simplifiedTitle);
-								insertStatement.setString(11, (String) tvSeries.get("startYear"));
-								insertStatement.setString(12, (String) tvSeries.get("title"));
-								insertStatement.setDouble(13, (Double) tvSeries.get("totalSeasons"));
-								insertStatement.setString(14, (String) tvSeries.get("votes"));
-								insertStatement.setString(15, (String) tvSeries.get("year"));
-								LOGGER.info("9 ");
+								insertStatement.setString(1, (String) tvSeries.get("endYear"));
+								insertStatement.setString(2, (String) tvSeries.get("imdbID"));
+								insertStatement.setString(3, (String) tvSeries.get("plot"));
+								insertStatement.setString(4, simplifiedTitle);
+								insertStatement.setString(5, (String) tvSeries.get("startYear"));
+								insertStatement.setString(6, (String) tvSeries.get("title"));
+								insertStatement.setDouble(7, (Double) tvSeries.get("totalSeasons"));
+								insertStatement.setString(8, (String) tvSeries.get("votes"));
+								insertStatement.setString(9, (String) tvSeries.get("year"));
 							}
 							insertStatement.executeUpdate();
 
 							try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
 								if (generatedKeys.next()) {
-									return generatedKeys.getInt(1);
+									return generatedKeys.getLong(1);
 								} else {
-									LOGGER.trace("Generated key not returned in " + TABLE_NAME);
+									LOGGER.debug("Generated key not returned in " + TABLE_NAME);
 								}
 							}
 						}
@@ -211,7 +201,6 @@ public final class TableTVSeries extends Tables {
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						LOGGER.info("55 found " + title);
 						return convertSingleResultSetToList(resultSet);
 					}
 				}
@@ -376,15 +365,9 @@ public final class TableTVSeries extends Tables {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
 					"ID       IDENTITY PRIMARY KEY, " +
-					"AWARDS   VARCHAR2(1024), " +
-					"COUNTRY    VARCHAR2(1024), " +
 					"ENDYEAR    VARCHAR2(1024), " +
 					"IMDBID    VARCHAR2(1024), " +
-					"METASCORE    VARCHAR2(1024), " +
 					"PLOT    VARCHAR2(20000), " +
-					"POSTER    VARCHAR2(1024), " +
-					"RATED    VARCHAR2(1024), " +
-					"RATING    DOUBLE, " +
 					"STARTYEAR    VARCHAR2(1024), " +
 					"TITLE    VARCHAR2(1024) NOT NULL, " +
 					"SIMPLIFIEDTITLE    VARCHAR2(1024) NOT NULL, " +

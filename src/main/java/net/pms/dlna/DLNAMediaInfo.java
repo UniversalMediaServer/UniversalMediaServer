@@ -18,6 +18,7 @@
  */
 package net.pms.dlna;
 
+import com.google.gson.internal.LinkedTreeMap;
 import java.io.*;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
@@ -195,19 +196,19 @@ public class DLNAMediaInfo implements Cloneable {
 	private String extraInformation;
 	private boolean isTVEpisode;
 
-	private String actors;
+	private HashSet<String> actors = new HashSet<>();
 	private String awards;
 	private String boxOffice;
 	private String country;
-	private String directors;
-	private HashSet<String> genres = new HashSet<String>();  
+	private HashSet<String> directors = new HashSet<>();
+	private HashSet<String> genres = new HashSet<>();
 	private String goofs;
 	private String metascore;
 	private String production;
 	private String poster;
 	private String rated;
 	private String rating;
-	private String ratings;
+	private HashSet<String> ratings = new HashSet<>();
 	private String released;
 	private String runtime;
 	private String tagline;
@@ -2371,7 +2372,7 @@ public class DLNAMediaInfo implements Cloneable {
 		return extraInformation;
 	}
 
-	/**
+	/*
 	 * Any extra information like movie edition or whether it is a
 	 * sample video.
 	 *
@@ -2380,11 +2381,20 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setExtraInformation(String value) {
 		this.extraInformation = value;
 	}
-	public String getActors() {
+
+	public void addActor(String value) {
+		if (value == null) {
+			return;
+		}
+
+		this.actors.add(value);
+	}
+
+	public HashSet getActors() {
 		return actors;
 	}
 
-	public void setActors(String value) {
+	public void setActors(HashSet value) {
 		this.actors = value;
 	}
 
@@ -2412,29 +2422,32 @@ public class DLNAMediaInfo implements Cloneable {
 		this.country = value;
 	}
 
-	public String getDirectors() {
+	public void addDirector(String value) {
+		if (value == null) {
+			return;
+		}
+
+		this.directors.add(value);
+	}
+
+	public HashSet getDirectors() {
 		return directors;
 	}
 
-	public void setDirectors(String value) {
+	public void setDirectors(HashSet value) {
 		this.directors = value;
+	}
+
+	public void addGenre(String value) {
+		if (value == null) {
+			return;
+		}
+
+		this.genres.add(value);
 	}
 
 	public HashSet getGenres() {
 		return genres;
-	}
-
-	/**
-	 * Adds a new genre to the genres set.
-	 *
-	 * @param genre the genre to add
-	 */
-	public void addGenre(String genre) {
-		if (genre == null) {
-			return;
-		}
-
-		this.genres.add(genre);
 	}
 
 	/**
@@ -2498,11 +2511,11 @@ public class DLNAMediaInfo implements Cloneable {
 		this.rating = value;
 	}
 
-	public String getRatings() {
+	public HashSet getRatings() {
 		return ratings;
 	}
 
-	public void setRatings(String value) {
+	public void setRatings(HashSet value) {
 		this.ratings = value;
 	}
 

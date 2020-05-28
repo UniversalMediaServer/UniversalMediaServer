@@ -77,9 +77,19 @@ public class Tables {
 					TableThumbnails.checkTable(connection);
 
 					TableTVSeries.checkTable(connection);
+					TableFailedLookups.checkTable(connection);
 
 					// Video metadata tables
+					TableVideoMetadataActors.checkTable(connection);
+					TableVideoMetadataAwards.checkTable(connection);
+					TableVideoMetadataCountries.checkTable(connection);
+					TableVideoMetadataDirectors.checkTable(connection);
 					TableVideoMetadataGenres.checkTable(connection);
+					TableVideoMetadataPosters.checkTable(connection);
+					TableVideoMetadataProduction.checkTable(connection);
+					TableVideoMetadataRated.checkTable(connection);
+					TableVideoMetadataRatings.checkTable(connection);
+					TableVideoMetadataReleased.checkTable(connection);
 				}
 				tablesChecked = true;
 			}

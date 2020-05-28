@@ -5137,7 +5137,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			media.setTVSeason(tvSeasonFromFilename);
 			media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
 			if (isNotBlank(tvEpisodeNameFromFilename)) {
-				LOGGER.info("Setting episode name from filename: " + tvEpisodeNameFromFilename);
 				media.setTVEpisodeName(tvEpisodeNameFromFilename);
 			}
 

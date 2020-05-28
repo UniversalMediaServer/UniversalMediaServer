@@ -2,7 +2,6 @@ package net.pms.dlna.virtual;
 
 import net.pms.Messages;
 import net.pms.database.TableFilesStatus;
-import net.pms.database.TableTVSeries;
 import net.pms.util.FullyPlayedAction;
 
 /**
@@ -67,7 +66,7 @@ public class MediaLibrary extends VirtualFolder {
 		tvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
 			new String[]{
-				"SELECT TITLE                    FROM " + TableTVSeries.TABLE_NAME + "                                                        ORDER BY TITLE ASC",
+				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE                                                    ORDER BY MOVIEORSHOWNAME ASC",
 				"SELECT DISTINCT TVSEASON        FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}'                       ORDER BY TVSEASON ASC",
 				"SELECT          *               FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER"
 			},

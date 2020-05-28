@@ -431,6 +431,7 @@ public class PMS {
 			Tables.checkTables();
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
+			LOGGER.trace("Error was: {}", e1);
 		}
 
 		// Log registered ImageIO plugins

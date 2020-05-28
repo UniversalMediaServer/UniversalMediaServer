@@ -48,8 +48,16 @@ import com.google.common.base.CharMatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.List;
-import net.pms.database.TableTVSeries;
+import net.pms.database.TableVideoMetadataActors;
+import net.pms.database.TableVideoMetadataAwards;
+import net.pms.database.TableVideoMetadataCountries;
+import net.pms.database.TableVideoMetadataDirectors;
 import net.pms.database.TableVideoMetadataGenres;
+import net.pms.database.TableVideoMetadataPosters;
+import net.pms.database.TableVideoMetadataProduction;
+import net.pms.database.TableVideoMetadataRated;
+import net.pms.database.TableVideoMetadataRatings;
+import net.pms.database.TableVideoMetadataReleased;
 import net.pms.newgui.SharedContentTab;
 
 /**
@@ -85,9 +93,8 @@ public class DLNAMediaDatabase implements Runnable {
 	 * - 22: No db changes, bumped version because h2database was reverted
 	 *       to 1.4.196 because 1.4.197 broke audio metadata being
 	 *       inserted/updated
-	 * - 23: Added TVSERIESID column
 	 */
-	private final int latestVersion = 23;
+	private final int latestVersion = 22;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -300,7 +307,6 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("CREATE TABLE FILES (");
 				sb.append("  ID                      INT AUTO_INCREMENT");
 				sb.append(", THUMBID                 BIGINT");
-				sb.append(", TVSERIESID              BIGINT");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
 				sb.append(", TYPE                    INT");
@@ -338,7 +344,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
-				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(")");
+				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(")");
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
@@ -569,7 +575,11 @@ public class DLNAMediaDatabase implements Runnable {
 				ResultSet rs = stmt.executeQuery();
 				PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
 				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
+				PreparedStatement actors = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataActors.TABLE_NAME + " WHERE FILENAME = ?");
+				PreparedStatement awards = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataAwards.TABLE_NAME + " WHERE FILENAME = ?");
+				PreparedStatement directors = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataDirectors.TABLE_NAME + " WHERE FILENAME = ?");
 				PreparedStatement genres = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataGenres.TABLE_NAME + " WHERE FILENAME = ?");
+				PreparedStatement ratings = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataRatings.TABLE_NAME + " WHERE FILENAME = ?");
 			) {
 				if (rs.next()) {
 					media = new DLNAMediaInfo();
@@ -606,25 +616,6 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
 					media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
 					media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
-
-					// not implemented yet
-					// media.setActors(rs.getString("actors"));
-					// media.setAwards(rs.getString("awards"));
-					// media.setBoxOffice(rs.getString("boxoffice"));
-					// media.setCountry(rs.getString("country"));
-					// media.setDirectors(rs.getString("directors"));
-					// media.setGoofs(rs.getString("goofs"));
-					// media.setMetascore(rs.getString("metascore"));
-					// media.setProduction(rs.getString("production"));
-					// media.setPoster(rs.getString("poster"));
-					// media.setRated(rs.getString("rated"));
-					// media.setRating(rs.getString("rating"));
-					// media.setRatings(rs.getString("ratings"));
-					// media.setReleased(rs.getString("released"));
-					// media.setRuntime(rs.getString("runtime"));
-					// media.setTagline(rs.getString("tagline"));
-					// media.setTrivia(rs.getString("trivia"));
-					// media.setVotes(rs.getString("votes"));
 
 					if (rs.getBoolean("ISTVEPISODE")) {
 						media.setTVSeason(rs.getString("TVSEASON"));
@@ -682,10 +673,38 @@ public class DLNAMediaDatabase implements Runnable {
 						}
 					}
 
+					awards.setString(1, name);
+					try (ResultSet elements = awards.executeQuery()) {
+						while (elements.next()) {
+							media.setAwards(elements.getString("AWARD"));
+						}
+					}
+
+					actors.setString(1, name);
+					try (ResultSet elements = actors.executeQuery()) {
+						while (elements.next()) {
+							media.addActor(elements.getString("ACTOR"));
+						}
+					}
+
+					directors.setString(1, name);
+					try (ResultSet elements = directors.executeQuery()) {
+						while (elements.next()) {
+							media.addDirector(elements.getString("DIRECTOR"));
+						}
+					}
+
 					genres.setString(1, name);
 					try (ResultSet elements = genres.executeQuery()) {
 						while (elements.next()) {
 							media.addGenre(elements.getString("GENRE"));
+						}
+					}
+
+					ratings.setString(1, name);
+					try (ResultSet elements = ratings.executeQuery()) {
+						while (elements.next()) {
+//							media.addRating(elements.getString("RATING"));
 						}
 					}
 				}
@@ -1135,7 +1154,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * Updates an existing row with information either extracted from the filename
-	 * or from OpenSubtitles.
+	 * or from our API.
 	 *
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
@@ -1144,16 +1163,11 @@ public class DLNAMediaDatabase implements Runnable {
 	 */
 	public synchronized void insertVideoMetadata(String name, long modified, DLNAMediaInfo media) throws SQLException {
 		if (StringUtils.isBlank(name)) {
-			LOGGER.warn(
-				"Couldn't write OpenSubtitles data for \"{}\" to the database because the media cannot be identified",
-				name
-			);
+			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", name);
 			return;
 		}
 		if (media == null) {
-			LOGGER.warn("Couldn't write OpenSubtitles data for \"{}\" to the database because there is no media information",
-				name
-			);
+			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because there is no media information", name);
 			return;
 		}
 
@@ -1183,7 +1197,7 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
 						rs.updateRow();
 					} else {
-						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store data from OpenSubtitles", name);
+						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", name);
 						return;
 					}
 				}
@@ -1274,7 +1288,7 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Removes row(s) in the both FILES and FILES_STATUS tables representing matching media. If {@code useLike} is
+	 * Removes row(s) in our other tables representing matching media. If {@code useLike} is
 	 * {@code true}, {@code filename} must be properly escaped.
 	 *
 	 * @see Tables#sqlLikeEscape(String)
@@ -1291,7 +1305,16 @@ public class DLNAMediaDatabase implements Runnable {
 
 		deleteRowsInFilesTable(filename, useLike);
 		TableFilesStatus.remove(filename, useLike);
+		TableVideoMetadataActors.remove(filename, useLike);
+		TableVideoMetadataAwards.remove(filename, useLike);
+		TableVideoMetadataCountries.remove(filename, useLike);
+		TableVideoMetadataDirectors.remove(filename, useLike);
 		TableVideoMetadataGenres.remove(filename, useLike);
+		TableVideoMetadataPosters.remove(filename, useLike);
+		TableVideoMetadataProduction.remove(filename, useLike);
+		TableVideoMetadataRated.remove(filename, useLike);
+		TableVideoMetadataRatings.remove(filename, useLike);
+		TableVideoMetadataReleased.remove(filename, useLike);
 	}
 
 	/**
