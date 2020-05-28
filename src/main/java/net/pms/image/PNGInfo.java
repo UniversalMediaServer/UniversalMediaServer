@@ -280,7 +280,7 @@ public class PNGInfo extends ImageInfo {
 
 	@Override
 	protected void buildToString(StringBuilder sb) {
-		if (colorType < 0) {
+		if (colorType >= 0) {
 			sb.append(", Color Type = ").append(colorType);
 		}
 		if (interlaceMethod != null) {
