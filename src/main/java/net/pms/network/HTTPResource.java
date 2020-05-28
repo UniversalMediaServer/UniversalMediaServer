@@ -19,7 +19,6 @@
 package net.pms.network;
 
 import static net.pms.util.StringUtil.convertURLToFileName;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,14 +31,11 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
@@ -101,6 +97,7 @@ public class HTTPResource {
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
+	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";

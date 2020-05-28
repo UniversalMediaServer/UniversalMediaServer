@@ -1,3 +1,62 @@
+9.5.0 - 2020-05-24
+
+	General:
+		Significant improvements to scanning and browsing speed and resource use
+		Fixed episode titles in the Media Library
+		Fixed aspect ratio validation
+		Added more automatic regression tests for file format detection
+	Renderers:
+		Added support for Vimu Player on Amazon Fire TV Stick (thanks, nouse and Nadahar!)
+	Translation updates via Crowdin:
+		Dutch (92%)
+		Turkish (100%)
+	Dependency updates:
+		7zipj from 9.20-2.00 to 16.02-2.01
+		assertj-core from 3.16.0 to 3.16.1
+		junrar from 1.0.1 to 4.0.0
+		oshi-core from 5.0.1 to 5.1.0
+
+9.4.3 - 2020-05-09
+
+	General:
+		Added support for streaming and transcoding from AV1 video codec
+		Added quickrun commands to aid rapid development
+		Memory use improvements on macOS
+		Transcoding compatibility fixes
+		Fixed support for transcoding videos with no audio
+	Renderers:
+		Improved support for LG OLED TVs
+		Improved support for Panasonic VT60 TVs
+		Improved support for Sony AG-series TVs
+		Improved support for Sony X-series TVs
+	Translation updates via Crowdin:
+		Serbian (87%)
+		Turkish (100%)
+	Dependencies:
+		Updated assertj to 3.16.0
+		Updated doxia-module-docbook-simple to 1.9.1
+		Updated FFmpeg on macOS to 20200504 (5767a2e) to support more media formats
+		Updated git-commit-id-plugin to 4.0.0
+		Updated h2database to 1.4.199
+		Updated icu4j to 67.1
+		Updated jaxb-impl to 2.3.3
+		Updated JMustache to 1.15
+		Updated JNA to 5.5.0
+		Updated junit5 to 5.6.2
+		Updated maven-antrun-plugin to 3.0.0
+		Updated maven-assembly-plugin to 3.3.0
+		Updated maven-checkstyle-plugin to 3.1.0
+		Updated maven-compiler-plugin to 3.8.1
+		Updated maven-pmd-plugin to 3.13.0
+		Updated maven-project-info-reports-plugin to 3.0.0
+		Updated maven-site-plugin to 3.9.0
+		Updated metadata-extractor to 2.13.0
+		Updated Oshi to 5.0.1
+		Updated plexus-utils to 3.3.0
+		Updated rome to 1.12.2
+		Updated saaj-impl to 1.5.2
+		Updated spotbugs-maven-plugin to 4.0.0
+
 9.4.2 - 2020-04-21
 
 	General:
