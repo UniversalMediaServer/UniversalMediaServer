@@ -78,24 +78,24 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 
 	// Used to filter out known headers when the renderer is not recognized
 	private final static CharSequence[] KNOWN_HEADERS = {
-			ACCEPT,
-			ACCEPT_LANGUAGE,
-			ACCEPT_ENCODING,
-			CALLBACK,
-			CONNECTION,
-			CONTENT_LENGTH,
-			CONTENT_TYPE,
-			DATE,
-			DLNA_GETCONTENTFEATURES,
-			DLNA_TIMESEEKRANGE,
-			DLNA_TRANSFERMODE,
-			HOST,
-			NT,
-			RANGE,
-			SID,
-			SOAPACTION,
-			TIMEOUT,
-			USER_AGENT,
+		ACCEPT,
+		ACCEPT_LANGUAGE,
+		ACCEPT_ENCODING,
+		CALLBACK,
+		CONNECTION,
+		CONTENT_LENGTH,
+		CONTENT_TYPE,
+		DATE,
+		DLNA_GETCONTENTFEATURES,
+		DLNA_TIMESEEKRANGE,
+		DLNA_TRANSFERMODE,
+		HOST,
+		NT,
+		RANGE,
+		SID,
+		SOAPACTION,
+		TIMEOUT,
+		USER_AGENT,
 	};
 
 	@Override
@@ -481,4 +481,3 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		return renderer;
 	}
 }
-
