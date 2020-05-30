@@ -92,7 +92,9 @@ public class WebStream extends DLNAResource {
 				FileUtil.isUrl(thumbURL) ? downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL)
 			);
 		} else {
-			return super.getThumbnailInputStream();
+			try (DLNAThumbnailInputStream dtis = super.getThumbnailInputStream()) {
+				return dtis;
+			}
 		}
 	}
 
