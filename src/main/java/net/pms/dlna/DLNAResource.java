@@ -3472,7 +3472,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// A URL
 			try {
 				return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true));
-			} catch (Exception e) {}
+			} catch (Exception e) {} //if this last attempt fails than consume the exception
+									//to allow to return the generic icon
 		}
 
 		// Or none of the above
