@@ -3458,23 +3458,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Thumb could be:
 		if (thumb != null && isCodeValid(this)) {
+			InputStream is;
 			// A local file
-			if (new File(thumb).exists()) {
-				try (FileInputStream fis = new FileInputStream(thumb)) {
-					return DLNAThumbnailInputStream.toThumbnailInputStream(fis);
-				}
+			if (new File(thumb).exists() && ((is = new FileInputStream(thumb)) != null)) {
+				return DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			}
 
 			// A jar resource
-			InputStream is;
 			if ((is = getResourceInputStream(thumb)) != null) {
 				return DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			}
 
 			// A URL
-			try {
-				return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true));
-			} catch (Exception e) {}
+			return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true));
 		}
 
 		// Or none of the above
