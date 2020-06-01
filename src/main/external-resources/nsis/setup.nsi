@@ -185,6 +185,9 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+
 	${If} ${RunningX64}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x64"
 		File /r /x "ffmpeg.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
@@ -296,6 +299,10 @@ Section "Program Files"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV671.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV3900.conf"
 
+	; Remove old folders
+	RMDir /R /REBOOTOK "$INSTDIR\jre"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
+	
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
 
