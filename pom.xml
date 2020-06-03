@@ -1354,8 +1354,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/management/management.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/management/management.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/security/java.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/security/java.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/security/java.security?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/conf/security/policy/limited?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/security/policy/limited" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/conf/security/policy/unlimited?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/security/policy/unlimited" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/security/policy/README.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/security/policy/README.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/security/policy/limited/default_local.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/security/policy/limited/default_local.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/security/policy/limited/default_US_export.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/security/policy/limited/default_US_export.policy" usetimestamp="true" />
@@ -1714,8 +1712,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/management/management.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/management/management.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/security/java.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/security/java.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/security/java.security?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/conf/security/policy/limited?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/security/policy/limited" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/conf/security/policy/unlimited?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/security/policy/unlimited" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/security/policy/README.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/security/policy/README.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/security/policy/limited/default_local.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/security/policy/limited/default_local.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/security/policy/limited/default_US_export.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/security/policy/limited/default_US_export.policy" usetimestamp="true" />
@@ -2532,8 +2528,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/sdp/sdp.conf.template?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/sdp/sdp.conf.template" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/security/java.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/security/java.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/security/java.security?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/conf/security/policy/limited?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/security/policy/limited" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/conf/security/policy/unlimited?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/security/policy/unlimited" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/security/policy/README.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/security/policy/README.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/security/policy/limited/default_local.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/security/policy/limited/default_local.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/security/policy/limited/default_US_export.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/security/policy/limited/default_US_export.policy" usetimestamp="true" />
@@ -3003,8 +2997,6 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/sdp/sdp.conf.template?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/sdp/sdp.conf.template" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/security/java.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/security/java.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/security/java.security?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/security/policy/limited?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/security/policy/limited" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/security/policy/unlimited?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/security/policy/unlimited" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/security/policy/README.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/security/policy/README.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/security/policy/limited/default_local.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/security/policy/limited/default_local.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/conf/security/policy/limited/default_US_export.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/conf/security/policy/limited/default_US_export.policy" usetimestamp="true" />
