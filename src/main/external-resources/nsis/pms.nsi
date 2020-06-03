@@ -56,9 +56,9 @@ Section ""
 	${GetParameters} $1
 
 	${If} ${RunningX64}
-		StrCpy $R0 "jre-x64\bin\${JAVAEXE}"
+		StrCpy $R0 "jre14-x64\bin\${JAVAEXE}"
 	${Else}
-		StrCpy $R0 "jre-x86\bin\${JAVAEXE}"
+		StrCpy $R0 "jre14-x86\bin\${JAVAEXE}"
 	${EndIf}
 
 	StrCpy $0 '"$R0" -classpath update.jar;ums.jar $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
