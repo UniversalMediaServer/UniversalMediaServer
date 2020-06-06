@@ -183,7 +183,7 @@ public class RemoteUtil {
 				mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
 				mime.equals(HTTPResource.BMP_TYPEMIME) ||
 				mime.equals(HTTPResource.PNG_TYPEMIME) ||
-				mime.equals(HTTPResource.PNG_TYPEMIME) ||
+				mime.equals(HTTPResource.JPEG_TYPEMIME) ||
 				mime.equals(HTTPResource.GIF_TYPEMIME)
 			)
 		) {
