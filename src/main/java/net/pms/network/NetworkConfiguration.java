@@ -84,11 +84,12 @@ public class NetworkConfiguration {
 		}
 
 		/**
-		 * Returns the display name of the interface association.
+		 * Returns the display name of the interface association 
+		 * with IP address if exists.
 		 *
 		 * @return The name.
 		 */
-		public String getDisplayName() {
+		public String getDisplayNameWithAddress() {
 			String displayName = iface.getDisplayName();
 
 			if (displayName != null) {
@@ -103,7 +104,24 @@ public class NetworkConfiguration {
 
 			return displayName;
 		}
-		
+
+		/**
+		 * Returns the display name of the interface association.
+		 *
+		 * @return The name.
+		 */
+		public String getDisplayName() {
+			String displayName = iface.getDisplayName();
+
+			if (displayName != null) {
+				displayName = displayName.trim();
+			} else {
+				displayName = iface.getName();
+			}
+
+			return displayName;
+		}
+
 		@Override
 		public String toString() {
 			return "InterfaceAssociation(addr=" + addr + ", iface=" + iface + ", parent=" + parentName + ')';
@@ -287,7 +305,7 @@ public class NetworkConfiguration {
 						LOGGER.trace("found {} -> {}", networkInterface.getName(), address.getHostAddress());
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
-						mainAddress.put(networkInterface.getName(), ia);
+						mainAddress.put(networkInterface.getDisplayName(), ia);
 						foundAddress = true;
 					}
 				} else {
@@ -303,16 +321,18 @@ public class NetworkConfiguration {
 		}
 	}
 
+
 	/**
-	 * Returns the list of discovered interface names.
+	 * Returns the list of user friendly name names of interfaces with their IP
+	 * address.
 	 *
-	 * @return The interface names.
+	 * @return The list of names.
 	 */
-	public List<String> getKeys() {
+	public List<String> getDisplayNamesWithAddress() {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-			result.add(i.getShortName());
+				result.add(i.getDisplayNameWithAddress());
 		}
 
 		return result;

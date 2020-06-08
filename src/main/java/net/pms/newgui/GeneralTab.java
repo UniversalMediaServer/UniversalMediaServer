@@ -380,7 +380,7 @@ public class GeneralTab {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+						configuration.setNetworkInterface(networkInterfaces.getSelectedKey());
 					}
 				}
 			});
@@ -612,8 +612,8 @@ public class GeneralTab {
 	}
 
 	private KeyedComboBoxModel<String, String> createNetworkInterfacesModel() {
-		List<String> keys = NetworkConfiguration.getInstance().getKeys();
-		List<String> names = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> keys = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> names = NetworkConfiguration.getInstance().getDisplayNamesWithAddress();
 		keys.add(0, "");
 		names.add(0, "");
 		return new KeyedComboBoxModel<>(
