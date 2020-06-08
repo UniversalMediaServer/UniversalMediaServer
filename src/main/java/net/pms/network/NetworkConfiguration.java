@@ -332,7 +332,7 @@ public class NetworkConfiguration {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-				result.add(i.getDisplayNameWithAddress());
+			result.add(i.getDisplayNameWithAddress());
 		}
 
 		return result;
