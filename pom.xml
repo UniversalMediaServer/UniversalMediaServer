@@ -240,7 +240,7 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>1.13.0</version>
+			<version>1.13.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -539,7 +539,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.1.1</version>
+			<version>5.1.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -3378,7 +3378,7 @@
 		</profile>
 
 		<!--
-			Mac OSX Java 8 profile: takes care of building the final package for Mac OSX using Java 8.
+			macOS profile: takes care of building the final package for macOS.
 			Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
 		-->
 		<profile>
@@ -3401,7 +3401,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,1.8.0-999]</version>
+											<version>[1.8.0-51,14.999.999]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
