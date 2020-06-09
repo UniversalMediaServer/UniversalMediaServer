@@ -47,9 +47,8 @@ public class AutoUpdaterServerProperties {
 
 	private String getPlatformSpecificKey(String key) {
 		String os = operatingSystem.toString();
-		 //we use only the one UMS Windows version so the exact OS Windows version is not relevant
-		if (os.startsWith("windows")){
-			os = "windows";
+		if (!os.startsWith("linux")) {
+			os = operatingSystem.getPlatformName();
 		}
 
 		return key + "." + os;
