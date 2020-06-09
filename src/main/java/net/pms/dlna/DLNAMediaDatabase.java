@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.CharMatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataAwards;
@@ -58,7 +59,10 @@ import net.pms.database.TableVideoMetadataProduction;
 import net.pms.database.TableVideoMetadataRated;
 import net.pms.database.TableVideoMetadataRatings;
 import net.pms.database.TableVideoMetadataReleased;
+import static net.pms.database.Tables.convertResultSetToList;
+import static net.pms.database.Tables.sqlQuote;
 import net.pms.newgui.SharedContentTab;
+import net.pms.util.FileUtil;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -77,6 +81,8 @@ public class DLNAMediaDatabase implements Runnable {
 	private Thread scanner;
 	private final JdbcConnectionPool cp;
 	private int dbCount;
+
+	public static final String TABLE_NAME = "FILES";
 
 	/**
 	 * The database version should be incremented when we change anything to
@@ -1643,5 +1649,43 @@ public class DLNAMediaDatabase implements Runnable {
 		StringBuilder sb = new StringBuilder();
 		sb.append(" VALUES (").append(StringUtils.repeat("?,", count)).append("?)");
 		return sb.toString();
+	}
+
+	public static List<HashMap<String, Object>> getBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = PMS.get().getDatabase().getConnection()) {
+			String query = "SELECT * " +
+				"FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + TableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataActors.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataAwards.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataCountries.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataDirectors.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataProduction.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataPosters.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRated.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRatings.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataReleased.TABLE_NAME + ".FILENAME " +
+				"WHERE FILES.MOVIEORSHOWNAMESIMPLE = " + sqlQuote(simplifiedTitle);
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						LOGGER.info("0 " + resultSet.toString());
+						return convertResultSetToList(resultSet);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", simplifiedTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
 	}
 }

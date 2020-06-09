@@ -4690,7 +4690,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Default port for the WEB interface.
+	 * Default port for the web interface.
 	 */
 	public int getWebPort() {
 		return getInt(KEY_WEB_PORT, 9001);

@@ -111,7 +111,7 @@ public class RemoteWeb {
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
-				LOGGER.error("Failed to start WEB interface on HTTPS: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info(
@@ -120,7 +120,7 @@ public class RemoteWeb {
 						"'keytool' commandline utility, and place it in the profile folder"
 					);				}
 			} catch (GeneralSecurityException e) {
-				LOGGER.error("Failed to start WEB interface on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface on HTTPS due to a security error: {}", e.getMessage());
 				LOGGER.trace("", e);
 			}
 		} else {
@@ -408,73 +408,73 @@ public class RemoteWeb {
 						}
 					}
 					mime = "text/html";
+				} else if (path.startsWith("/files/proxy")) {
+					String url = t.getRequestURI().getQuery();
+					if (url != null) {
+						url = url.substring(2);
+					}
 
-	            } else if (path.startsWith("/files/proxy")) {
-	                String url = t.getRequestURI().getQuery();
-	                if (url != null)
-	                    url = url.substring(2);
+					InputStream in = null;
+					CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
+					if (cookieManager == null) {
+						cookieManager = new CookieManager();
+						CookieHandler.setDefault(cookieManager);
+					}
 
-	                InputStream in = null;
-	                CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
-	                if (cookieManager == null) {
-	                    cookieManager = new CookieManager();
-	                    CookieHandler.setDefault(cookieManager);
-	                }
+					if (t.getRequestMethod().equals("POST")) {
+						ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+						byte[] buf = new byte[4096];
+						int n;
+						while ((n = t.getRequestBody().read(buf)) > -1) {
+							bytes.write(buf, 0, n);
+						}
+						String str = bytes.toString("utf-8");
 
-	                if (t.getRequestMethod().equals("POST")) {
-	                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-	                    byte[] buf = new byte[4096];
-	                    int n;
-	                    while ((n = t.getRequestBody().read(buf)) > -1) {
-	                        bytes.write(buf, 0, n);
-	                    }
-	                    String str = bytes.toString("utf-8");
-	                    
-	                    URLConnection conn = new URL(url).openConnection();
-	                    ((HttpURLConnection)conn).setRequestMethod("POST");
-	                    conn.setRequestProperty( "Content-type", t.getRequestHeaders().getFirst("Content-type"));
-	                    conn.setRequestProperty( "Content-Length", String.valueOf(str.length()));
-	                    conn.setDoOutput(true);
-	                    OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-	                    writer.write(str);
-	                    writer.flush();
-	                    
-	                    in = conn.getInputStream();
-	                    bytes = new ByteArrayOutputStream();
-	                    while ((n = in.read(buf)) > -1) {
-	                        bytes.write(buf, 0, n);
-	                    }
-	                    in = new ByteArrayInputStream(bytes.toByteArray());
-	                    
-	                    if (LOGGER.isDebugEnabled()) {
-	                        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
-	                        for (HttpCookie cookie : cookies) {
-	                            LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
-	                        }
-	                    }
-	                } else if (t.getRequestMethod().equals("OPTIONS")) {
-	                    in = new ByteArrayInputStream("".getBytes("utf-8"));
-	                } else {
-	                    in = HTTPResource.downloadAndSend(url, false);
-	                    
-	                    if (LOGGER.isDebugEnabled()) {
-	                        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
-	                        for (HttpCookie cookie : cookies) {
-	                            LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
-	                        }
-	                    }
-	                }
-	                Headers hdr = t.getResponseHeaders();
-	                hdr.add("Content-Type", "text/plain");
-	                hdr.add("Access-Control-Allow-Origin", "*");
-	                hdr.add("Access-Control-Allow-Headers", "User-Agent");
-	                hdr.add("Access-Control-Allow-Headers", "Content-Type");
-	                t.sendResponseHeaders(200, in.available());
+						URLConnection conn = new URL(url).openConnection();
+						((HttpURLConnection) conn).setRequestMethod("POST");
+						conn.setRequestProperty("Content-type", t.getRequestHeaders().getFirst("Content-type"));
+						conn.setRequestProperty("Content-Length", String.valueOf(str.length()));
+						conn.setDoOutput(true);
+						OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+						writer.write(str);
+						writer.flush();
 
-	                OutputStream os = t.getResponseBody();
-	                LOGGER.trace("input is {} output is {}", in, os);
-	                RemoteUtil.dump(in, os);
-	                return;
+						in = conn.getInputStream();
+						bytes = new ByteArrayOutputStream();
+						while ((n = in.read(buf)) > -1) {
+							bytes.write(buf, 0, n);
+						}
+						in = new ByteArrayInputStream(bytes.toByteArray());
+
+						if (LOGGER.isDebugEnabled()) {
+							List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+							for (HttpCookie cookie : cookies) {
+								LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
+							}
+						}
+					} else if (t.getRequestMethod().equals("OPTIONS")) {
+						in = new ByteArrayInputStream("".getBytes("utf-8"));
+					} else {
+						in = HTTPResource.downloadAndSend(url, false);
+
+						if (LOGGER.isDebugEnabled()) {
+							List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+							for (HttpCookie cookie : cookies) {
+								LOGGER.debug("Domain: {}, Cookie: {}", cookie.getDomain(), cookie);
+							}
+						}
+					}
+					Headers hdr = t.getResponseHeaders();
+					hdr.add("Content-Type", "text/plain");
+					hdr.add("Access-Control-Allow-Origin", "*");
+					hdr.add("Access-Control-Allow-Headers", "User-Agent");
+					hdr.add("Access-Control-Allow-Headers", "Content-Type");
+					t.sendResponseHeaders(200, in.available());
+
+					OutputStream os = t.getResponseBody();
+					LOGGER.trace("input is {} output is {}", in, os);
+					RemoteUtil.dump(in, os);
+					return;
 				} else if (parent.getResources().write(path.substring(7), t)) {
 					// The resource manager found and sent the file, all done.
 					return;
@@ -646,9 +646,10 @@ public class RemoteWeb {
 			} catch (IOException e) {
 				throw e;
 			} catch (Exception e) {
-				// Nothing should get here, this is just to avoid crashing the thread
-				LOGGER.error("Unexpected error in RemotePollHandler.handle(): {}", e.getMessage());
-				LOGGER.trace("", e);
+				// This can happen if a browser is left open and our cookie changed, or something like that
+				// I'm just leaving this note here as a clue for the next person who encounters this
+				LOGGER.error("Unexpected error on web interface. Please try closing any tabs or windows that contain UMS and try again");
+				LOGGER.debug("", e);
 			}
 		}
 	}

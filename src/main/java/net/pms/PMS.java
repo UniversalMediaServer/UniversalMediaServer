@@ -654,7 +654,7 @@ public class PMS {
 		}
 
 		if (web != null && web.getServer() != null) {
-			LOGGER.info("WEB interface is available at: " + web.getUrl());
+			LOGGER.info("Web interface is available at: " + web.getUrl());
 		}
 
 		// initialize the cache

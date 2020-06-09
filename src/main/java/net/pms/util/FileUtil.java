@@ -616,11 +616,7 @@ public class FileUtil {
 	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
 
 	public static String getFileNamePrettified(String f) {
-		return getFileNamePrettified(f, null, null, false);
-	}
-
-	public static String getFileNamePrettified(String f, File file) {
-		return getFileNamePrettified(f, file, null, false);
+		return getFileNamePrettified(f, null, false, false);
 	}
 
 	/**
@@ -631,14 +627,15 @@ public class FileUtil {
 	 * standardized filename.
 	 *
 	 * @param f The filename
-	 * @param file The file to possibly be used by the InfoDb
 	 * @param media
 	 * @param isEpisodeWithinSeasonFolder whether this is an episode within
 	 *                                    a season folder in the Media Library
+	 * @param isEpisodeWithinTVSeriesFolder whether this is an episode within
+	 *                                      a TV series folder in the Media Library
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, File file, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder) {
+	public static String getFileNamePrettified(String f, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
 		String formattedName = null;
 
 		String title;
@@ -693,6 +690,14 @@ public class FileUtil {
 			 */
 			if (isEpisodeWithinSeasonFolder) {
 				formattedName = tvEpisodeNumber + " - ";
+
+				if (isBlank(tvEpisodeName)) {
+					formattedName += "Episode " + tvEpisodeNumber;
+				} else {
+					formattedName += tvEpisodeName;
+				}
+			} else if (isEpisodeWithinTVSeriesFolder) {
+				formattedName = tvSeason + tvEpisodeNumber + " - ";
 
 				if (isBlank(tvEpisodeName)) {
 					formattedName += "Episode " + tvEpisodeNumber;
@@ -1905,8 +1910,16 @@ public class FileUtil {
 	}
 
 	public static String renameForSorting(String filename) {
+		return renameForSorting(filename, false);
+	}
+
+	public static String renameForSorting(String filename, boolean isEpisodeWithinTVSeriesFolder) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			filename = basicPrettify(filename);
+			if (isEpisodeWithinTVSeriesFolder) {
+				filename = getFileNamePrettified(filename, null, false, isEpisodeWithinTVSeriesFolder);
+			} else {
+				filename = basicPrettify(filename);
+			}
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {

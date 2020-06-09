@@ -8,19 +8,22 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +42,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		LOGGER.debug("Make browse page " + id);
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
+		DLNAResource rootResource = id.equals("0") ? null : root.getDLNAResource(id, null);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
@@ -77,50 +81,72 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		boolean hasFile = false;
 
+		HashMap<String, Object> mustacheVars = new HashMap<>();
+
+		ArrayList<String> breadcrumbs = new ArrayList<>();
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
-		StringBuilder sb = new StringBuilder();
-		
-		String backUri = "javascript:history.back()";
+		StringBuilder backLinkHTML = new StringBuilder();
+		Boolean isShowBreadcrumbs = false;
+
 		if (
 			!resources.isEmpty() &&
 			resources.get(0).getParent() != null &&
-			resources.get(0).getParent().getParent() != null &&
-			resources.get(0).getParent().getParent().isFolder()
+			resources.get(0).getParent().isFolder()
 		) {
-			String newId = resources.get(0).getParent().getParent().getResourceId();
-			String idForWeb = URLEncoder.encode(newId, "UTF-8");
-			backUri = "/browse/" + idForWeb;
-		}
+			DLNAResource thisResourceFromResources = resources.get(0).getParent();
+			String thisName = thisResourceFromResources.getDisplayName();
 
-		sb.setLength(0);
-		sb.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
-		sb.append("<span>").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
-		sb.append("</a>");
-		folders.add(sb.toString());
+			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
+			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
+				thisResourceFromResources = thisResourceFromResources.getParent();
+				String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
+				String ancestorID = thisResourceFromResources.getResourceId();
+				String ancestorIDForWeb = URLEncoder.encode(ancestorID, "UTF-8");
+				String ancestorUri = "/browse/" + ancestorIDForWeb;
+				breadcrumbs.add(0, "<li><a href=\"" + ancestorUri + "\">" + ancestorName + "</a></li>");
+				isShowBreadcrumbs = true;
+			}
+
+			if (resources.get(0).getParent().getParent() != null) {
+				DLNAResource parentFromResources = resources.get(0).getParent().getParent();
+				String parentID = parentFromResources.getResourceId();
+				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
+				String backUri = "/browse/" + parentIDForWeb;
+				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
+				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
+				backLinkHTML.append("</a>");
+				folders.add(backLinkHTML.toString());
+			} else {
+				folders.add("");
+			}
+		}
+		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
+		mustacheVars.put("breadcrumbs", breadcrumbs);
 
 		// Generate innerHtml snippets for folders and media items
 		for (DLNAResource resource : resources) {
 			String newId = resource.getResourceId();
 			String idForWeb = URLEncoder.encode(newId, "UTF-8");
 			String thumb = "/thumb/" + idForWeb;
-			String name = StringEscapeUtils.escapeHtml(resource.resumeName());
+			String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 
 			if (resource instanceof VirtualVideoAction) {
 				// Let's take the VVA real early
-				sb.setLength(0);
+				StringBuilder thumbHTML = new StringBuilder();
 				HashMap<String, String> item = new HashMap<>();
-				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
+				thumbHTML.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
 						.append("', true);return false;\" title=\"").append(name).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
-				item.put("thumb", sb.toString());
-				sb.setLength(0);
-				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
+				item.put("thumb", thumbHTML.toString());
+
+				StringBuilder captionHTML = new StringBuilder();
+				captionHTML.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
 						.append("', true);return false;\" title=\"").append(name).append("\">")
 						.append("<span class=\"caption\">").append(name).append("</span>")
 						.append("</a>");
-				item.put("caption", sb.toString());
+				item.put("caption", captionHTML.toString());
 				item.put("bump", "<span class=\"floatRight\"></span>");
 				media.add(item);
 				hasFile = true;
@@ -128,7 +154,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			}
 
 			if (resource.isFolder()) {
-				sb.setLength(0);
+				StringBuilder folderHTML = new StringBuilder();
 				// The resource is a folder
 				String p = "/browse/" + idForWeb;
 				boolean code = (resource instanceof CodeEnter);
@@ -141,88 +167,127 @@ public class RemoteBrowseHandler implements HttpHandler {
 					// NOTE!!!
 					// Yes doing getClass.getname is REALLY BAD, but this
 					// is to make legacy plugins utilize this function as well
-					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
+					folderHTML.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
 					   .append(txt).append("');\" title=\"").append(name).append("\">");
 				} else {
-					sb.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
+					folderHTML.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
 					  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
 				}
-				sb.append("<span>").append(name).append("</span>");
-				sb.append("</a>");
-				folders.add(sb.toString());
+				folderHTML.append("<span>").append(name).append("</span>");
+				folderHTML.append("</a>");
+				folders.add(folderHTML.toString());
 			} else {
 				// The resource is a media file
-				sb.setLength(0);
+				StringBuilder bumpHTML = new StringBuilder();
 				HashMap<String, String> item = new HashMap<>();
 				if (upnpAllowed) {
 					if (upnpControl) {
-						sb.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
+						bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 							.append(name.replace("'", "\\'")).append("')\" title=\"")
 							.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
 					} else {
-						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
+						bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
 						   .append(RemoteUtil.getMsgString("Web.2", t))
 						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 					}
 					if (resource.getParent() instanceof Playlist) {
-						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
+						bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 							.append(idForWeb).append("', true);return false;\" title=\"")
 						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
 					} else {
-						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
+						bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
 							.append(idForWeb).append("', false);return false;\" title=\"")
 						    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
 					}
 				} else {
 					// ensure that we got a string
-					sb.append("");
+					bumpHTML.append("");
 				}
-
-				item.put("bump", sb.toString());
-				sb.setLength(0);
+				item.put("bump", bumpHTML.toString());
 
 				if (WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
-					sb.append("<a href=\"/play/").append(idForWeb)
+					if (resource.getMedia() != null) {
+						DLNAMediaInfo mediaResource = resource.getMedia();
+						if (mediaResource.getTVSeason() != null) {
+							LOGGER.info("13 " + mediaResource.getTVSeason());
+						}
+					}
+
+					StringBuilder thumbHTML = new StringBuilder();
+					thumbHTML.append("<a href=\"/play/").append(idForWeb)
 						.append("\" title=\"").append(name).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
-					item.put("thumb", sb.toString());
-					sb.setLength(0);
-					sb.append("<a href=\"/play/").append(idForWeb)
+					item.put("thumb", thumbHTML.toString());
+
+					StringBuilder captionHTML = new StringBuilder();
+					captionHTML.append("<a href=\"/play/").append(idForWeb)
 						.append("\" title=\"").append(name).append("\">")
 						.append("<span class=\"caption\">").append(name).append("</span>")
 						.append("</a>");
-					item.put("caption", sb.toString());
+					item.put("caption", captionHTML.toString());
 				} else if (upnpControl && upnpAllowed) {
 					// Include it as a web-disabled item so it can be thrown via upnp
-					sb.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
+					StringBuilder thumbHTML = new StringBuilder();
+					thumbHTML.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
 						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
 						.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
 						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
-					item.put("thumb", sb.toString());
-					sb.setLength(0);
-					sb.append("<span class=\"webdisabled caption\">").append(name).append("</span>");
-					item.put("caption", sb.toString());
+					item.put("thumb", thumbHTML.toString());
+
+					StringBuilder captionHTML = new StringBuilder();
+					captionHTML.append("<span class=\"webdisabled caption\">").append(name).append("</span>");
+					item.put("caption", captionHTML.toString());
 				}
 				media.add(item);
 				hasFile = true;
 			}
 		}
 
-		HashMap<String, Object> vars = new HashMap<>();
-		vars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
-			StringEscapeUtils.escapeHtml(root.getDLNAResource(id, null).getDisplayName()));
-		vars.put("hasFile", hasFile);
-		vars.put("folders", folders);
-		vars.put("media", media);
-		vars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-		if (configuration.useWebControl()) {
-			vars.put("push", true);
+		mustacheVars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
+			StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
+		mustacheVars.put("hasFile", hasFile);
+		mustacheVars.put("folders", folders);
+		mustacheVars.put("media", media);
+		mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
+		mustacheVars.put("javascriptVarsScript", "");
+
+		boolean isTVSeries = false;
+		boolean isTVSeriesWithAPIData = false;
+		if (rootResource != null && rootResource instanceof MediaLibraryFolder) {
+			MediaLibraryFolder folder = (MediaLibraryFolder) rootResource;
+			if (folder.isTVSeries()) {
+				isTVSeries = true;
+			}
 		}
 
-		return parent.getResources().getTemplate("browse.html").execute(vars);
+		mustacheVars.put("javascriptVarsScript", "");
+
+		if (
+			rootResource != null &&
+			rootResource.getDisplayName() != null &&
+			isTVSeries &&
+			configuration.getUseCache()
+		) {
+			String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, isTVSeries);
+			if (apiMetadataAsJavaScriptVars != null) {
+				if (isTVSeries) {
+					isTVSeriesWithAPIData = true;
+				}
+
+				mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
+			}
+		}
+
+		mustacheVars.put("isTVSeriesWithAPIData", isTVSeriesWithAPIData);
+		
+		if (configuration.useWebControl()) {
+			mustacheVars.put("push", true);
+		}
+
+		return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
 	}
 
 	@Override

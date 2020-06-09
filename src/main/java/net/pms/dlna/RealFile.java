@@ -53,6 +53,13 @@ public class RealFile extends MapFile {
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
 	}
 
+	public RealFile(File file, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
+		getConf().getFiles().add(file);
+		setLastModified(file.lastModified());
+		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
+		setIsEpisodeWithinTVSeriesFolder(isEpisodeWithinTVSeriesFolder);
+	}
+
 	@Override
 	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
@@ -367,7 +374,7 @@ public class RealFile extends MapFile {
 			if (baseNamePrettified == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNamePrettified == null) {
-						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile(), getMedia(), isEpisodeWithinSeasonFolder());
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMedia(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder());
 					}
 				}
 			}

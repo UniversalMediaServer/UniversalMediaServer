@@ -73,19 +73,20 @@ public final class TableVideoMetadataRatings extends Tables {
 		try (Connection connection = database.getConnection()) {
 			Iterator<LinkedTreeMap> i = ratings.iterator();
 			while (i.hasNext()) {
-				LinkedTreeMap rating = i.next();
+				LinkedTreeMap<String, String> rating = i.next();
 				PreparedStatement insertStatement = connection.prepareStatement(
 					"INSERT INTO " + TABLE_NAME + " (" +
-						"TVSERIESID, FILENAME, RATING" +
+						"TVSERIESID, FILENAME, RATINGSOURCE, RATINGVALUE" +
 					") VALUES (" +
-						"?, ?, ?" +
+						"?, ?, ?, ?" +
 					")",
 					Statement.RETURN_GENERATED_KEYS
 				);
 				insertStatement.clearParameters();
 				insertStatement.setLong(1, tvSeriesID);
 				insertStatement.setString(2, left(fullPathToFile, 255));
-				insertStatement.setObject(3, rating);
+				insertStatement.setString(3, rating.get("Source"));
+				insertStatement.setString(4, rating.get("Value"));
 
 				insertStatement.executeUpdate();
 				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
@@ -189,11 +190,12 @@ public final class TableVideoMetadataRatings extends Tables {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"RATING       VARCHAR2(1024)   NOT NULL" +
+					"RATINGSOURCE VARCHAR2(1024)   NOT NULL, " +
+					"RATINGVALUE  VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_RATINGS_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATING, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_RATINGSOURCE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATINGSOURCE, TVSERIESID)");
 		}
 	}
 }

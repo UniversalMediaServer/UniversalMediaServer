@@ -264,6 +264,7 @@ public class OpenSubtitle {
 					}
 
 					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
+					return "{ statusCode: \"" + status + "\" }";
 			}
 		} catch (MalformedURLException ex) {
 			LOGGER.debug("" + ex);
@@ -332,6 +333,7 @@ public class OpenSubtitle {
 				}
 
 				LOGGER.debug("API status was {} for {} {}, {}", status, body, errorMessage, connection.getURL());
+				return "{ statusCode: \"" + status + "\" }";
 		}
 
 		return null;
@@ -4936,8 +4938,13 @@ public class OpenSubtitle {
 						metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename);
 					}
 
-					if (metadataFromAPI == null) {
+					if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
 						LOGGER.trace("Failed lookup for " + file.getName());
+						if (metadataFromAPI != null && metadataFromAPI.containsKey("statusCode") && metadataFromAPI.get("statusCode") == "500") {
+							// If we received a 500 error, we return but do not store it as failed.
+							LOGGER.debug("Got a 500 error while looking for " + file.getName());
+							return;
+						}
 						TableFailedLookups.set(file.getAbsolutePath());
 						return;
 					}
@@ -4946,7 +4953,7 @@ public class OpenSubtitle {
 						LOGGER.trace("Found an API match for " + file.getName());
 					}
 
-					long tvSeriesDatabaseId = -1;
+					long tvSeriesDatabaseId;
 
 					String typeFromAPI = (String) metadataFromAPI.get("type");
 					String yearFromAPI = (String) metadataFromAPI.get("year");
@@ -4966,9 +4973,6 @@ public class OpenSubtitle {
 					 * - for TV episodes, the season and episode number must exist and match, and
 					 *   must have a series IMDb ID.
 					 * - for movies, if we got a year from the filename, the API must agree
-					 *
-					 * @TODO when this evaluates to true, mark it in the local database so it doesn't
-					 * get retried each time.
 					 */
 					if (
 						(isTVEpisodeBasedOnFilename && !isTVEpisodeFromAPI) ||
@@ -5035,7 +5039,11 @@ public class OpenSubtitle {
 							 * there is but it only contains filename info - not API yet.
 							 */
 							HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(null, seriesIMDbIDFromAPI, yearFromFilename);
-							if (seriesMetadataFromAPI == null) {
+							if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
+								if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
+									LOGGER.debug("Got a 500 error while looking for TV series " + seriesIMDbIDFromAPI);
+									return;
+								}
 								if (overTheTopLogging) {
 									LOGGER.trace("Did not find matching series for the episode in our API " + file.getName() + " : " + title);
 								}
@@ -5109,36 +5117,34 @@ public class OpenSubtitle {
 						}
 					}
 
-					media.setIMDbID((String) metadataFromAPI.get("imdbID"));
 					media.setMovieOrShowName(title);
 					media.setSimplifiedMovieOrShowName(titleSimplified);
 					media.setYear(year);
 
 					// Set the API-specific data
-					HashSet actorsFromAPI = new HashSet((ArrayList) metadataFromAPI.get("actors"));
-					if (!actorsFromAPI.isEmpty()) {
-						media.setActors(actorsFromAPI);
+					if (metadataFromAPI.get("actors") != null) {
+						media.setActors(new HashSet((ArrayList) metadataFromAPI.get("actors")));
 					}
 					media.setAwards((String) metadataFromAPI.get("awards"));
 					media.setBoxOffice((String) metadataFromAPI.get("boxoffice"));
 					media.setCountry((String) metadataFromAPI.get("country"));
-					HashSet directorsFromAPI = new HashSet((ArrayList) metadataFromAPI.get("directors"));
-					if (!directorsFromAPI.isEmpty()) {
-						media.setDirectors(directorsFromAPI);
+					if (metadataFromAPI.get("directors") != null) {
+						media.setDirectors(new HashSet((ArrayList) metadataFromAPI.get("directors")));
 					}
-					HashSet genresFromAPI = new HashSet((ArrayList) metadataFromAPI.get("genres"));
-					if (!genresFromAPI.isEmpty()) {
-						media.setGenres(genresFromAPI);
+					if (metadataFromAPI.get("genres") != null) {
+						media.setGenres(new HashSet((ArrayList) metadataFromAPI.get("genres")));
 					}
 					media.setGoofs((String) metadataFromAPI.get("goofs"));
+					media.setIMDbID((String) metadataFromAPI.get("imdbID"));
 					media.setMetascore((String) metadataFromAPI.get("metascore"));
 					media.setProduction((String) metadataFromAPI.get("production"));
 					media.setPoster((String) metadataFromAPI.get("poster"));
 					media.setRated((String) metadataFromAPI.get("rated"));
-					media.setRating(Double.toString((Double) metadataFromAPI.get("rating")));
-					HashSet ratingsFromAPI = new HashSet((ArrayList) metadataFromAPI.get("ratings"));
-					if (!ratingsFromAPI.isEmpty()) {
-						media.setRatings(ratingsFromAPI);
+					if (metadataFromAPI.get("rating") != null) {
+						media.setRating(Double.toString((Double) metadataFromAPI.get("rating")));
+					}
+					if (metadataFromAPI.get("ratings") != null) {
+						media.setRatings(new HashSet((ArrayList) metadataFromAPI.get("ratings")));
 					}
 					media.setReleased((String) metadataFromAPI.get("released"));
 					media.setRuntime((String) metadataFromAPI.get("runtime"));
@@ -5164,7 +5170,7 @@ public class OpenSubtitle {
 					}
 
 					if (configuration.getUseCache()) {
-						LOGGER.trace("setting metadata for " + file.getName() + ": " + media.getGenres().toString());
+						LOGGER.trace("setting metadata for " + file.getName());
 						PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 
 						TableVideoMetadataActors.set(file.getAbsolutePath(), media.getActors(), -1);

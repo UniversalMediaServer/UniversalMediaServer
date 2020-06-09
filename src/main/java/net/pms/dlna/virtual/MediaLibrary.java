@@ -40,11 +40,10 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
 			new String[]{
-				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + "                                                                ORDER BY FILES.MOVIEORSHOWNAME ASC",
-				"SELECT DISTINCT FILES.TVSEASON        FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + " AND FILES.MOVIEORSHOWNAME = '${0}'                             ORDER BY FILES.TVSEASON ASC",
-				sqlJoinStart +                                                                                                                                                        "FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + " AND FILES.MOVIEORSHOWNAME = '${1}' AND FILES.TVSEASON = '${0}' ORDER BY FILES.TVEPISODENUMBER"
+				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + "                                    ORDER BY FILES.MOVIEORSHOWNAME ASC",
+				sqlJoinStart +                                                                                                                                                        "FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + " AND FILES.MOVIEORSHOWNAME = '${0}' ORDER BY FILES.TVSEASON, FILES.TVEPISODENUMBER"
 			},
-			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.EPISODES}
+			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
 		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
@@ -66,11 +65,10 @@ public class MediaLibrary extends VirtualFolder {
 		tvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
 			new String[]{
-				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE                                                    ORDER BY MOVIEORSHOWNAME ASC",
-				"SELECT DISTINCT TVSEASON        FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}'                       ORDER BY TVSEASON ASC",
-				"SELECT          *               FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${1}' AND TVSEASON = '${0}' ORDER BY TVEPISODENUMBER"
+				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE                              ORDER BY MOVIEORSHOWNAME ASC",
+				"SELECT          *               FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
 			},
-			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.SEASONS, MediaLibraryFolder.EPISODES}
+			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
 		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.5"),

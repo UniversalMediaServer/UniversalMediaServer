@@ -5,8 +5,10 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -70,8 +72,8 @@ public class RemotePlayHandler implements HttpHandler {
 	}
 
 	private String mkPage(String id, HttpExchange t) throws IOException, InterruptedException {
-		HashMap<String, Object> vars = new HashMap<>();
-		vars.put("serverName", configuration.getServerDisplayName());
+		HashMap<String, Object> mustacheVars = new HashMap<>();
+		mustacheVars.put("serverName", configuration.getServerDisplayName());
 
 		LOGGER.debug("Make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
@@ -102,6 +104,44 @@ public class RemotePlayHandler implements HttpHandler {
 			return returnPage();
 		}
 
+		String id1 = URLEncoder.encode(id, "UTF-8");
+		mustacheVars.put("poster", "/thumb/" + id1);
+		ArrayList<String> folders = new ArrayList<>();
+		ArrayList<String> breadcrumbs = new ArrayList<>();
+		StringBuilder backLinkHTML = new StringBuilder();
+		Boolean isShowBreadcrumbs = false;
+
+		if (
+			r.getParent() != null &&
+			r.getParent().isFolder()
+		) {
+			DLNAResource thisResourceFromResources = r;
+			String thisName = thisResourceFromResources.getDisplayName();
+
+			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
+			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
+				thisResourceFromResources = thisResourceFromResources.getParent();
+				String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
+				String ancestorID = thisResourceFromResources.getResourceId();
+				String ancestorIDForWeb = URLEncoder.encode(ancestorID, "UTF-8");
+				String ancestorUri = "/browse/" + ancestorIDForWeb;
+				breadcrumbs.add(0, "<li><a href=\"" + ancestorUri + "\">" + ancestorName + "</a></li>");
+				isShowBreadcrumbs = true;
+			}
+
+			DLNAResource parentFromResources = r.getParent();
+			String parentID = parentFromResources.getResourceId();
+			String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
+			String backUri = "/browse/" + parentIDForWeb;
+			backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
+			backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
+			backLinkHTML.append("</a>");
+			folders.add(backLinkHTML.toString());
+		}
+		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
+		mustacheVars.put("breadcrumbs", breadcrumbs);
+		mustacheVars.put("folders", folders);
+
 		Format format =  r.getFormat();
 		boolean isImage = format.isImage();
 		boolean isVideo = format.isVideo();
@@ -113,7 +153,6 @@ public class RemotePlayHandler implements HttpHandler {
 
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
-		String id1 = URLEncoder.encode(id, "UTF-8");
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
 		String mime = root.getDefaultRenderer().getMimeType(r);
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
@@ -121,7 +160,16 @@ public class RemotePlayHandler implements HttpHandler {
 		@SuppressWarnings("unused")
 		String coverImage = "";
 
-		if (isVideo) {
+		mustacheVars.put("isVideoWithAPIData", false);
+		mustacheVars.put("javascriptVarsScript", "");
+		if (isVideo && configuration.getUseCache()) {
+			String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(r, t, false);
+			if (apiMetadataAsJavaScriptVars != null) {
+				LOGGER.info("apiMetadataAsJavaScriptVars: " + apiMetadataAsJavaScriptVars);
+				mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
+				mustacheVars.put("isVideoWithAPIData", true);
+			}
+
 			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
 					mime = r.getMedia().getMimeType();
@@ -134,33 +182,33 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 			}
 		}
-		vars.put("isVideo", isVideo);
-		vars.put("name", name);
-		vars.put("id1", id1);
-		vars.put("autoContinue", configuration.getWebAutoCont(format));
+		mustacheVars.put("isVideo", isVideo);
+		mustacheVars.put("name", name);
+		mustacheVars.put("id1", id1);
+		mustacheVars.put("autoContinue", configuration.getWebAutoCont(format));
 		if (configuration.isDynamicPls()) {
 			if (r.getParent() instanceof Playlist) {
-				vars.put("plsOp", "del");
-				vars.put("plsSign", "-");
-				vars.put("plsAttr", RemoteUtil.getMsgString("Web.4", t));
+				mustacheVars.put("plsOp", "del");
+				mustacheVars.put("plsSign", "-");
+				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.4", t));
 			} else {
-				vars.put("plsOp", "add");
-				vars.put("plsSign", "+");
-				vars.put("plsAttr", RemoteUtil.getMsgString("Web.5", t));
+				mustacheVars.put("plsOp", "add");
+				mustacheVars.put("plsSign", "+");
+				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.5", t));
 			}
 		}
-		addNextByType(r, vars);
+		addNextByType(r, mustacheVars);
 		if (isImage) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
 			int delay = configuration.getWebImgSlideDelay() * 1000;
 			if (delay > 0 && configuration.getWebAutoCont(format)) {
-				vars.put("delay", delay);
+				mustacheVars.put("delay", delay);
 			}
 		} else {
-			vars.put("mediaType", mediaType);
-			vars.put("auto", auto);
-			vars.put("mime", mime);
+			mustacheVars.put("mediaType", mediaType);
+			mustacheVars.put("auto", auto);
+			mustacheVars.put("mime", mime);
 			if (flowplayer) {
 				if (
 					RemoteUtil.directmime(mime) &&
@@ -168,15 +216,15 @@ public class RemotePlayHandler implements HttpHandler {
 					!r.isResume() &&
 					!forceFlash
 				) {
-					vars.put("src", true);
+					mustacheVars.put("src", true);
 				}
 			} else {
-				vars.put("width", renderer.getVideoWidth());
-				vars.put("height", renderer.getVideoHeight());
+				mustacheVars.put("width", renderer.getVideoWidth());
+				mustacheVars.put("height", renderer.getVideoHeight());
 			}
 		}
 		if (configuration.useWebControl()) {
-			vars.put("push", true);
+			mustacheVars.put("push", true);
 		}
 
 		if (isVideo && configuration.getWebSubs()) {
@@ -194,7 +242,7 @@ public class RemotePlayHandler implements HttpHandler {
 					File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
 					LOGGER.debug("subFile " + subFile);
 					if (subFile != null) {
-						vars.put("sub", parent.getResources().add(subFile));
+						mustacheVars.put("sub", parent.getResources().add(subFile));
 					}
 				} catch (Exception e) {
 					LOGGER.debug("error when doing sub file " + e);
@@ -204,7 +252,7 @@ public class RemotePlayHandler implements HttpHandler {
 			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 		}
 
-		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(vars);
+		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(mustacheVars);
 	}
 
 	@Override

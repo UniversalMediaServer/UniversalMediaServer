@@ -26,6 +26,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -215,6 +217,47 @@ public final class TableTVSeries extends Tables {
 		return null;
 	}
 
+	public static List<HashMap<String, Object>> getBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT * " +
+				"FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + TableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataActors.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataAwards.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataCountries.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataDirectors.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataProduction.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataPosters.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataRatings.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataReleased.TABLE_NAME + ".TVSERIESID " +
+				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle);
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						LOGGER.info("0 " + resultSet.toString());
+						return convertResultSetToList(resultSet);
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", simplifiedTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
 	/**
 	 * Returns a similar TV series name from the database.
 	 *
@@ -264,15 +307,9 @@ public final class TableTVSeries extends Tables {
 				TABLE_LOCK.writeLock().lock();
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("AWARDS", (String) tvSeries.get("awards"));
-						rs.updateString("COUNTRY", (String) tvSeries.get("country"));
 						rs.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
-						rs.updateString("IMDBID", (String) tvSeries.get("imdbid"));
-						rs.updateString("METASCORE", (String) tvSeries.get("metascore"));
+						rs.updateString("IMDBID", (String) tvSeries.get("imdbID"));
 						rs.updateString("PLOT", (String) tvSeries.get("plot"));
-						rs.updateString("POSTER", (String) tvSeries.get("poster"));
-						rs.updateString("RATED", (String) tvSeries.get("rated"));
-						rs.updateDouble("RATING", (Double) tvSeries.get("rating"));
 						rs.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
 						rs.updateString("TITLE", (String) tvSeries.get("title"));
 						rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
@@ -376,12 +413,6 @@ public final class TableTVSeries extends Tables {
 					"YEAR    VARCHAR2(1024) " +
 				")"
 			);
-			// we also recieve the following from the API series request:
-			// actors: { type: Array },
-			// directors: { type: Array },
-			// genres: { type: Array },
-			// rating: { type: Number },
-			// ratings: { type: Array, required: true },
 			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
 			statement.execute("CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)");
 			statement.execute("CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)");

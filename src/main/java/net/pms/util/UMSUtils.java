@@ -97,13 +97,26 @@ public class UMSUtils {
 	public static final int SORT_NO_SORT =   6;
 
 	/**
-	 * Sorts a list of files using a custom method.
+	 * Sorts a list of files using a custom method when the files are not episodes
+	 * within TV series folders of the Media Library.
 	 *
 	 * @param files
 	 * @param method
 	 * @see #sort(java.util.ArrayList, int)
 	 */
 	public static void sort(List<File> files, int method) {
+		sort(files, method, false);
+	}
+
+	/**
+	 * Sorts a list of files using a custom method.
+	 *
+	 * @param files
+	 * @param method
+	 * @param isEpisodeWithinTVSeriesFolder
+	 * @see #sort(java.util.ArrayList, int)
+	 */
+	public static void sort(List<File> files, int method, final boolean isEpisodeWithinTVSeriesFolder) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
 				break;
@@ -111,8 +124,8 @@ public class UMSUtils {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
 
 						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
 					}
@@ -122,8 +135,8 @@ public class UMSUtils {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
 
 						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 					}
@@ -153,8 +166,8 @@ public class UMSUtils {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
 
 						return collator.compare(filename1ToSort, filename2ToSort);
 					}

@@ -17,15 +17,20 @@ import net.pms.PMS;
 import net.pms.configuration.IpFilter;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.database.TableTVSeries;
+import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.Languages;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -295,6 +300,7 @@ public class RemoteUtil {
 		return filename.endsWith(".html") ? "text/html" :
 			filename.endsWith(".css") ? "text/css" :
 			filename.endsWith(".js") ? "text/javascript" :
+			filename.endsWith(".ttf") ? "font/truetype" :
 			URLConnection.guessContentTypeFromName(filename);
 	}
 
@@ -485,5 +491,136 @@ public class RemoteUtil {
 				}
 			}
 		};
+	}
+
+	/**
+	 * Gets metadata from our database, which may be there from our API, for
+	 * this resource, which could be a TV series, TV episode, or movie.
+	 *
+	 * @param resource
+	 * @param t
+	 * @param isTVSeries whether this is a TV series, or an episode/movie
+	 * @return a JavaScript string to be used by a web browser
+	 */
+	public static String getAPIMetadataAsJavaScriptVars(DLNAResource resource, HttpExchange t, boolean isTVSeries) {
+		List<HashMap<String, Object>> resourceMetadataFromDatabase;
+
+		if (isTVSeries) {
+			String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
+			resourceMetadataFromDatabase = TableTVSeries.getBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
+		} else {
+			String simplifiedTitle = resource.getMedia() != null ? resource.getMedia().getSimplifiedMovieOrShowName() : resource.getDisplayName();
+			resourceMetadataFromDatabase = DLNAMediaDatabase.getBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
+		}
+
+		if (resourceMetadataFromDatabase == null) {
+			return null;
+		}
+
+		LOGGER.info("1 " + resourceMetadataFromDatabase.toString());
+
+		HashSet<String> actors = new HashSet();
+		String startYear = "";
+		String awards = "";
+		String country = "";
+		String directors = "";
+		HashSet<String> genres = new HashSet();
+		String imdbID = "";
+		List<HashMap<String, String>> ratings = new ArrayList<>();
+		String plot = "";
+		String poster = "";
+		Double totalSeasons = null;
+		Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
+		while (i.hasNext()) {
+			HashMap<String, Object> row = i.next();
+
+			if (row.get("AWARD") != null) {
+				awards = (String) row.get("AWARD");
+			}
+			if (row.get("COUNTRY") != null) {
+				country = (String) row.get("COUNTRY");
+			}
+			if (row.get("DIRECTOR") != null) {
+				directors = (String) row.get("DIRECTOR");
+			}
+			if (row.get("IMDBID") != null) {
+				imdbID = (String) row.get("IMDBID");
+			}
+			if (row.get("PLOT") != null) {
+				plot = (String) row.get("PLOT");
+			}
+			if (row.get("POSTER") != null) {
+				poster = (String) row.get("POSTER");
+			}
+			if (row.get("RATINGVALUE") != null && row.get("RATINGSOURCE") != null) {
+				HashMap<String, String> ratingToInsert = new HashMap();
+				ratingToInsert.put("source", (String) row.get("RATINGSOURCE"));
+				ratingToInsert.put("value", (String) row.get("RATINGVALUE"));
+				if (!ratings.contains(ratingToInsert)) {
+					ratings.add(ratingToInsert);
+				}
+			}
+			if (row.get("STARTYEAR") != null) {
+				startYear = (String) row.get("STARTYEAR");
+			}
+			if (row.get("TOTALSEASONS") != null) {
+				totalSeasons = (Double) row.get("TOTALSEASONS");
+			}
+
+			// These are for records that can have multiple results
+			if (row.get("ACTOR") != null) {
+				actors.add((String) row.get("ACTOR"));
+			}
+			// These are for records that can have multiple results
+			if (row.get("GENRE") != null) {
+				genres.add((String) row.get("GENRE"));
+			}
+		}
+
+		String javascriptVarsScript = "";
+		javascriptVarsScript += "var awards = \"" + StringEscapeUtils.escapeEcmaScript(awards) + "\";";
+		javascriptVarsScript += "var awardsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Awards", t) + "\";";
+		javascriptVarsScript += "var country = \"" + StringEscapeUtils.escapeEcmaScript(country) + "\";";
+		javascriptVarsScript += "var countryTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Country", t) + "\";";
+		javascriptVarsScript += "var directors = \"" + StringEscapeUtils.escapeEcmaScript(directors) + "\";";
+		javascriptVarsScript += "var directorsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Directors", t) + "\";";
+		javascriptVarsScript += "var imdbID = \"" + StringEscapeUtils.escapeEcmaScript(imdbID) + "\";";
+		javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
+		javascriptVarsScript += "var plotTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Plot", t) + "\";";
+		javascriptVarsScript += "var poster = \"" + StringEscapeUtils.escapeEcmaScript(poster) + "\";";
+		javascriptVarsScript += "var startYear = \"" + StringEscapeUtils.escapeEcmaScript(startYear) + "\";";
+		javascriptVarsScript += "var yearStartedTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.YearStarted", t) + "\";";
+		javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
+		javascriptVarsScript += "var totalSeasonsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.TotalSeasons", t) + "\";";
+
+		javascriptVarsScript += "var actorsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Actors", t) + "\";";
+		String actorsArrayJavaScript = "var actors = [";
+		for (String actor : actors) {
+			actorsArrayJavaScript += "\"" + StringEscapeUtils.escapeEcmaScript(actor) + "\",";
+		}
+		actorsArrayJavaScript += "];";
+		javascriptVarsScript += actorsArrayJavaScript;
+
+		javascriptVarsScript += "var genresTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Genres", t) + "\";";
+		String genresArrayJavaScript = "var genres = [";
+		for (String genre : genres) {
+			genresArrayJavaScript += "\"" + StringEscapeUtils.escapeEcmaScript(genre) + "\",";
+		}
+		genresArrayJavaScript += "];";
+		javascriptVarsScript += genresArrayJavaScript;
+
+		String ratingsArrayJavaScript = "var ratings = [";
+		javascriptVarsScript += "var ratingsTranslation= \"" + RemoteUtil.getMsgString("VirtualFolder.Ratings", t) + "\";";
+		if (!ratings.isEmpty()) {
+			Iterator<HashMap<String, String>> ratingsIterator = ratings.iterator();
+			while (ratingsIterator.hasNext()) {
+				HashMap<String, String> rating = ratingsIterator.next();
+				ratingsArrayJavaScript += "{ \"source\": \"" + StringEscapeUtils.escapeEcmaScript(rating.get("source")) + "\", \"value\": \"" + StringEscapeUtils.escapeEcmaScript(rating.get("value")) + "\"},";
+			}
+		}
+		ratingsArrayJavaScript += "];";
+		javascriptVarsScript += ratingsArrayJavaScript;
+		
+		return javascriptVarsScript;
 	}
 }

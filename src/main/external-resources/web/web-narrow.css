@@ -1,11 +1,11 @@
 ul#Folders {
-	background-color: #222;
 	display: block;
 	padding: 20px;
 	z-index: 1;
 }
 
-ul#Media {
+ul#Media,
+#TVSeriesContainer {
 	margin: 0 -20px 0 0;
 	padding: 20px 0 20px 20px;
 }
@@ -27,3 +27,10 @@ ul#Media {
 	position: static;
 }
 
+#navbar {
+	background: rgba(28, 28, 28, 0.8);
+}
+
+.mediaInfo {
+	margin: 0 20px;
+}
