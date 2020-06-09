@@ -46,6 +46,11 @@ public class AutoUpdaterServerProperties {
 	}
 
 	private String getPlatformSpecificKey(String key) {
-		return key + "." + operatingSystem.toString();
+		String os = operatingSystem.toString();
+		if (!os.startsWith("linux")) {
+			os = operatingSystem.getPlatformName();
+		}
+
+		return key + "." + os;
 	}
 }
