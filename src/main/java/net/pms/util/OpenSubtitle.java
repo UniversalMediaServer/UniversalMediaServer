@@ -4895,7 +4895,8 @@ public class OpenSubtitle {
 					Boolean isTVEpisodeBasedOnFilename = media.isTVEpisode();
 
 					if (isTVEpisodeBasedOnFilename) {
-						metadataFromAPI = getInfo(file, null, yearFromFilename, tvSeasonFromFilename, tvEpisodeNumberFromFilename);
+						String unpaddedEpisodeNumber = tvEpisodeNumberFromFilename.startsWith("0") ? tvEpisodeNumberFromFilename.substring(1) : tvEpisodeNumberFromFilename;
+						metadataFromAPI = getInfo(file, null, yearFromFilename, tvSeasonFromFilename, unpaddedEpisodeNumber);
 					} else {
 						metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename, null, null);
 					}
