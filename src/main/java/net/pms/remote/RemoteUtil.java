@@ -510,17 +510,15 @@ public class RemoteUtil {
 
 		if (isTVSeries) {
 			String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-			resourceMetadataFromDatabase = TableTVSeries.getBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
+			resourceMetadataFromDatabase = TableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
 		} else {
 			String simplifiedTitle = resource.getMedia() != null ? resource.getMedia().getSimplifiedMovieOrShowName() : resource.getDisplayName();
-			resourceMetadataFromDatabase = DLNAMediaDatabase.getBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
+			resourceMetadataFromDatabase = DLNAMediaDatabase.getAPIResultsBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
 		}
 
 		if (resourceMetadataFromDatabase == null) {
 			return null;
 		}
-
-		LOGGER.info("1 " + resourceMetadataFromDatabase.toString());
 
 		HashSet<String> actors = new HashSet();
 		String startYear = "";

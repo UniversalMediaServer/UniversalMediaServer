@@ -254,35 +254,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 		mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 		mustacheVars.put("javascriptVarsScript", "");
 
-		boolean isTVSeries = false;
-		boolean isTVSeriesWithAPIData = false;
 		if (rootResource != null && rootResource instanceof MediaLibraryFolder) {
 			MediaLibraryFolder folder = (MediaLibraryFolder) rootResource;
-			if (folder.isTVSeries()) {
-				isTVSeries = true;
-			}
-		}
-
-		mustacheVars.put("javascriptVarsScript", "");
-
-		if (
-			rootResource != null &&
-			rootResource.getDisplayName() != null &&
-			isTVSeries &&
-			configuration.getUseCache()
-		) {
-			String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, isTVSeries);
-			if (apiMetadataAsJavaScriptVars != null) {
-				if (isTVSeries) {
-					isTVSeriesWithAPIData = true;
+			if (
+				folder.isTVSeries() &&
+				configuration.getUseCache()
+			) {
+				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, true);
+				if (apiMetadataAsJavaScriptVars != null) {
+					LOGGER.info("apiMetadataAsJavaScriptVars " + apiMetadataAsJavaScriptVars);
+					mustacheVars.put("isTVSeriesWithAPIData", true);
+					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 				}
-
-				mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 			}
 		}
 
-		mustacheVars.put("isTVSeriesWithAPIData", isTVSeriesWithAPIData);
-		
 		if (configuration.useWebControl()) {
 			mustacheVars.put("push", true);
 		}

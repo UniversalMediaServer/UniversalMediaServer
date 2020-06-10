@@ -217,7 +217,11 @@ public final class TableTVSeries extends Tables {
 		return null;
 	}
 
-	public static List<HashMap<String, Object>> getBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
+	/**
+	 * @param simplifiedTitle
+	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
+	 */
+	public static List<HashMap<String, Object>> getAPIResultsBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
@@ -233,7 +237,7 @@ public final class TableTVSeries extends Tables {
 				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME + ".TVSERIESID " +
 				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataRatings.TABLE_NAME + ".TVSERIESID " +
 				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataReleased.TABLE_NAME + ".TVSERIESID " +
-				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle);
+				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " and IMDBID != ''";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);

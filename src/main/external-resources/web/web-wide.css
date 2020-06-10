@@ -44,6 +44,10 @@ div#FoldersContainer div {
 	margin-left: 350px;
 }
 
+.mediaInfoText .no-api {
+	margin-left: 0;
+}
+
 .videoPage .mediaInfoText {
 	width: calc(50% - 50px);
 	margin-left: 50px;

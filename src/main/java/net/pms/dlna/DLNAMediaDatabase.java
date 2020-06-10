@@ -1651,7 +1651,11 @@ public class DLNAMediaDatabase implements Runnable {
 		return sb.toString();
 	}
 
-	public static List<HashMap<String, Object>> getBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
+	/**
+	 * @param simplifiedTitle
+	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
+	 */
+	public static List<HashMap<String, Object>> getAPIResultsBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = PMS.get().getDatabase().getConnection()) {
@@ -1667,7 +1671,7 @@ public class DLNAMediaDatabase implements Runnable {
 				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRated.TABLE_NAME + ".FILENAME " +
 				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRatings.TABLE_NAME + ".FILENAME " +
 				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataReleased.TABLE_NAME + ".FILENAME " +
-				"WHERE FILES.MOVIEORSHOWNAMESIMPLE = " + sqlQuote(simplifiedTitle);
+				"WHERE FILES.MOVIEORSHOWNAMESIMPLE = " + sqlQuote(simplifiedTitle) + " and IMDBID != ''";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
