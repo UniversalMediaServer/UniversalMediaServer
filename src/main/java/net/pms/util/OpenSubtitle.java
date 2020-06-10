@@ -1850,7 +1850,7 @@ public class OpenSubtitle {
 			path = file.toPath();
 			apiResult = getInfoFromOSDbHash(getHash(path), file.length(), year, season, episodeNumber);
 		}
-		if (apiResult == null) { // no good on hash! try imdb
+		if (apiResult == null || apiResult.contains("statusCode")) { // no good on hash! try imdb
 			String imdbID = ImdbUtil.extractImdbId(path, false);
 			if (isNotBlank(imdbID)) {
 				LOGGER.trace("looking up IMDb ID " + imdbID);
@@ -1858,7 +1858,7 @@ public class OpenSubtitle {
 			}
 		}
 
-		if (apiResult == null) { // final try, use the name
+		if (apiResult == null || apiResult.contains("statusCode")) { // final try, use the name
 			if (StringUtils.isEmpty(formattedName) && file != null) {
 				formattedName = file.getName();
 			}
@@ -1908,13 +1908,12 @@ public class OpenSubtitle {
 			apiResult = getInfoFromIMDbID(imdbID);
 		}
 
-		if (apiResult == null && formattedName != null) {
+		if (formattedName != null && (apiResult == null || apiResult.contains("statusCode"))) {
 			LOGGER.trace("looking up title {}", formattedName);
 			apiResult = getInfoFromFilename(formattedName, true, year);
 		}
 
 		HashMap<String, Object> data = new HashMap();
-
 		try {
 			data = gson.fromJson(apiResult, data.getClass());
 		} catch (JsonSyntaxException e) {
