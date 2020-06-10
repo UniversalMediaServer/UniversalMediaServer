@@ -1894,10 +1894,12 @@ public class OpenSubtitle {
 	 * @param file the {@link File} to lookup.
 	 * @param formattedName the name to use in the name search
 	 * @param year optional year to include with title lookups
+	 * @param season
+	 * @param episodeNumber
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap getInfo(File file, String formattedName, String year) throws IOException {
+	public static HashMap getInfo(File file, String formattedName, String year, String season, String episodeNumber) throws IOException {
 		LOGGER.trace("getting API info for " + file + ", " + formattedName);
 		Path path = null;
 		String apiResult = null;
@@ -1919,7 +1921,7 @@ public class OpenSubtitle {
 			}
 
 			LOGGER.trace("looking up filename " + formattedName);
-			apiResult = getInfoFromFilename(formattedName, false, year);
+			apiResult = getInfoFromFilename(formattedName, false, year, season, episodeNumber);
 		}
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
@@ -1947,6 +1949,7 @@ public class OpenSubtitle {
 	 * Initiates a series of API lookups, from most to least desirable, until
 	 * one succeeds.
 	 *
+	 * @param year
 	 * @todo use year
 	 * @param formattedName the name to use in the name search
 	 * @param imdbID
@@ -1964,7 +1967,7 @@ public class OpenSubtitle {
 
 		if (apiResult == null && formattedName != null) {
 			LOGGER.trace("looking up title {}", formattedName);
-			apiResult = getInfoFromFilename(formattedName, true, year);
+			apiResult = getInfoFromFilename(formattedName, true, year, null, null);
 		}
 
 		HashMap<String, Object> data = new HashMap();
@@ -2014,7 +2017,7 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String getInfoFromFilename(String filename, boolean isSeries, String year) throws IOException {
+	private static String getInfoFromFilename(String filename, boolean isSeries, String year, String season, String episodeNumber) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		String endpoint = isSeries == true ? "seriestitle" : "title";
 		URL url = new URL(domain, "/api/media/" + endpoint + "/");
@@ -2023,6 +2026,12 @@ public class OpenSubtitle {
 		params.add(new BasicNameValuePair("title", filename));
 		if (!isEmpty(year)) {
 			params.add(new BasicNameValuePair("year", year));
+		}
+		if (!isEmpty(season)) {
+			params.add(new BasicNameValuePair("season", season));
+		}
+		if (!isEmpty(episodeNumber)) {
+			params.add(new BasicNameValuePair("episodeNumber", episodeNumber));
 		}
 
 		return postPage(url.openConnection(), params);
@@ -4933,9 +4942,9 @@ public class OpenSubtitle {
 					Boolean isTVEpisodeBasedOnFilename = media.isTVEpisode();
 
 					if (isTVEpisodeBasedOnFilename) {
-						metadataFromAPI = getInfo(file, null, yearFromFilename);
+						metadataFromAPI = getInfo(file, null, yearFromFilename, tvSeasonFromFilename, tvEpisodeNumberFromFilename);
 					} else {
-						metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename);
+						metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename, null, null);
 					}
 
 					if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
