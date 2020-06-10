@@ -173,16 +173,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			} else {
 				try {
 					String systemClassName = UIManager.getSystemLookAndFeelClassName();
-					// Workaround for Gnome
-					try {
-						String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-						Class.forName(gtkLAF);
 
-						if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
-							systemClassName = gtkLAF;
+					if (!Platform.isMac()) {
+						// Workaround for Gnome
+						try {
+							String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+							Class.forName(gtkLAF);
+
+							if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
+								systemClassName = gtkLAF;
+							}
+						} catch (ClassNotFoundException ce) {
+							LOGGER.error("Error loading GTK look and feel: ", ce);
 						}
-					} catch (ClassNotFoundException ce) {
-						LOGGER.error("Error loading GTK look and feel: ", ce);
 					}
 
 					LOGGER.trace("Choosing Java look and feel: " + systemClassName);
