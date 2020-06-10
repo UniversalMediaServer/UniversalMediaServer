@@ -29,17 +29,17 @@ SubtitleHttpHeader = CaptionInfo.sec
 H264Level41Limited = false
 MaxVideoWidth = 3840
 MaxVideoHeight = 2160
-MaxVideoBitrateMbps = 30
+MaxVideoBitrateMbps = 60
 MediaInfo = true
 
 # Supported video formats:
-Supported = f:3g2|3gp   v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|he-aac|mp3|wav|wma
-Supported = f:avi       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|he-aac|mp3|wav|wma
-Supported = f:mkv       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|he-aac|mp3|wav|wma
-Supported = f:mp4       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|he-aac|mp3|wav|wma
-Supported = f:mpegps    v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|he-aac|mp3|wav|wma
-Supported = f:mpegts    v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|he-aac|mp3|wav|wma
-Supported = f:wmv       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|he-aac|mp3|wav|wma
+Supported = f:3g2|3gp   v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|eac3|he-aac|mp3|truehd|wav|wma vbd:8|10
+Supported = f:avi       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|eac3|he-aac|mp3|truehd|wav|wma vbd:8|10
+Supported = f:mkv       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|eac3|he-aac|mp3|truehd|wav|wma vbd:8|10
+Supported = f:mp4       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|eac3|he-aac|mp3|truehd|wav|wma vbd:8|10
+Supported = f:mpegps    v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|eac3|he-aac|mp3|truehd|wav|wma vbd:8|10
+Supported = f:mpegts    v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|eac3|he-aac|mp3|truehd|wav|wma vbd:8|10   m:video/vnd.dlna.mpeg-tts
+Supported = f:wmv       v:divx|h264|h265|mpeg1|mpeg2|mp4|vp9   a:aac-lc|ac3|eac3|he-aac|mp3|truehd|wav|wma vbd:8|10
 
 # Supported audio formats:
 Supported = f:adts       n:2   a:aac-lc   m:audio/vnd.dlna.adts
