@@ -385,7 +385,6 @@ public class StatusTab {
 		}
 	}
 
-
 	public void addRenderer(final RendererConfiguration renderer) {
 		final RendererItem r = new RendererItem(renderer);
 		r.addTo(renderers);
