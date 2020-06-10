@@ -282,63 +282,6 @@ public class OpenSubtitle {
 		return null;
 	}
 
-	private static String postPage(URLConnection urlConnection, List<NameValuePair> params) throws IOException {
-		StringBuilder body = new StringBuilder();
-		body.append("{");
-		boolean hasIteratedOnce = false;
-		for (NameValuePair param : params) {
-			if (hasIteratedOnce == true) {
-				body.append(",");
-			}
-			body.append("\"").append(param.getName()).append("\":\"").append(param.getValue()).append("\"");
-			hasIteratedOnce = true;
-		}
-		body.append("}");
-
-		HttpURLConnection connection = (HttpURLConnection) urlConnection;
-		connection.setDoOutput(true);
-		connection.setUseCaches(false);
-		connection.setDefaultUseCaches(false);
-		connection.setRequestProperty("Content-Type", "application/json");
-
-		try (OutputStream output = connection.getOutputStream()) {
-			output.write(body.toString().getBytes("UTF-8"));
-		}
-
-		int status = connection.getResponseCode();
-		switch (status) {
-			case 200:
-			case 201:
-				StringBuilder page;
-				try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-					page = new StringBuilder();
-					String str;
-					while ((str = in.readLine()) != null) {
-						page.append(str.trim()).append("\n");
-					}
-
-					LOGGER.debug("API result page {}, {}", body, page);
-					return page.toString().trim();
-				} catch (Exception e) {
-					LOGGER.info("API lookup error for {}, {}", body, e.getMessage());
-				}
-				break;
-			default:
-				StringBuilder errorMessage;
-				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
-				errorMessage = new StringBuilder();
-				String str;
-				while ((str = in.readLine()) != null) {
-					errorMessage.append(str.trim()).append("\n");
-				}
-
-				LOGGER.debug("API status was {} for {} {}, {}", status, body, errorMessage, connection.getURL());
-				return "{ statusCode: \"" + status + "\" }";
-		}
-
-		return null;
-	}
-
 	/**
 	 * Completes the exchange of the specified {@link HttpURLConnection} and
 	 * returns the response as an {@link InputStream}. This also handles the
@@ -2011,7 +1954,7 @@ public class OpenSubtitle {
 			getParameters.add("episodeNumber=" + episodeNumber);
 		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
-		URL url = new URL(domain, "/api/media/" + hash + "/" + size + "?" + getParametersJoined);
+		URL url = new URL(domain, "/api/media/osdbhash/" + hash + "/" + size + "?" + getParametersJoined);
 
 		return getJson(url);
 	}
@@ -2031,15 +1974,18 @@ public class OpenSubtitle {
 	private static String getInfoFromFilename(String filename, boolean isSeries, String year) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		String endpoint = isSeries == true ? "seriestitle" : "title";
-		URL url = new URL(domain, "/api/media/" + endpoint + "/");
 
-		List<NameValuePair> params = new ArrayList<>(2);
-		params.add(new BasicNameValuePair("title", filename));
-		if (!isEmpty(year)) {
-			params.add(new BasicNameValuePair("year", year));
+		List getParameters = new ArrayList();
+		if (isNotBlank(filename)) {
+			getParameters.add("title=" + filename);
 		}
+		if (isNotBlank(year)) {
+			getParameters.add("year=" + year);
+		}
+		String getParametersJoined = StringUtils.join(getParameters, "&");
+		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
 
-		return postPage(url.openConnection(), params);
+		return getJson(url);
 	}
 
 	/**
@@ -2056,12 +2002,15 @@ public class OpenSubtitle {
 	 */
 	private static String getInfoFromIMDbID(String imdbid) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
-		URL url = new URL(domain, "/api/media/imdbid/");
 
-		List<NameValuePair> params = new ArrayList<>(2);
-		params.add(new BasicNameValuePair("imdbid", imdbid));
+		List getParameters = new ArrayList();
+		if (isNotBlank(imdbid)) {
+			getParameters.add("imdbid=" + imdbid);
+		}
+		String getParametersJoined = StringUtils.join(getParameters, "&");
+		URL url = new URL(domain, "/api/media/imdbid/?" + getParametersJoined);
 
-		return postPage(url.openConnection(), params);
+		return getJson(url);
 	}
 
 	/**
