@@ -385,6 +385,7 @@ public class StatusTab {
 		}
 	}
 
+
 	public void addRenderer(final RendererConfiguration renderer) {
 		final RendererItem r = new RendererItem(renderer);
 		r.addTo(renderers);
@@ -411,6 +412,7 @@ public class StatusTab {
 							r.frame.setLocationRelativeTo(top);
 							r.frame.setVisible(true);
 						} else {
+							r.frame.setExtendedState(JFrame.NORMAL);
 							r.frame.setVisible(true);
 							r.frame.toFront();
 						}
