@@ -1,10 +1,14 @@
 package net.pms.util;
 
+import com.sun.jna.Platform;
+import com.sun.nio.file.ExtendedWatchEventModifier;
+import com.sun.nio.file.SensitivityWatchEventModifier;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
 import static java.nio.file.FileVisitOption.*;
 import static java.nio.file.StandardWatchEventKinds.*;
+import java.nio.file.WatchEvent.Kind;
 import java.nio.file.attribute.*;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -21,6 +25,8 @@ import org.slf4j.LoggerFactory;
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
  * file-change notifications as opposed to directly polling or examining files.
+ * 
+ * @see https://docs.oracle.com/javase/tutorial/essential/io/examples/WatchDir.java
  */
 public class FileWatcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcher.class);
@@ -186,8 +192,7 @@ public class FileWatcher {
 		}
 
 		public boolean remove(Watch w) {
-			for (WatchKey k : keySet()) {
-				ArrayList<Watch> a = get(k);
+			for (ArrayList<Watch> a : values()) {
 				if (a.contains(w)) {
 					return a.remove(w);
 				}
@@ -199,12 +204,50 @@ public class FileWatcher {
 	private static WatchMap keys = new WatchMap();
 	private static WatchService watchService = null;
 
+	/**
+	 * Adds a watch event to one directory only.
+	 *
+	 * @param w   the watch instance
+	 * @param dir the directory to watch
+	 */
 	public static void add(Watch w, Path dir) {
+		add(w, dir, false);
+	}
+
+	/**
+	 * Adds a watch event that can be recursive using the FILE_TREE modifier.
+	 * The modifier is only supported on Windows at the time of writing this.
+	 *
+	 * @param w               the watch instance
+	 * @param dir             the directory to watch
+	 * @param nativeRecursive whether to try making the watcher recursive
+	 */
+	public static void add(Watch w, Path dir, boolean nativeRecursive) {
 		if (watchService == null) {
 			start(dir);
 		}
+
+		// Ignore common system directories that should never be watched
+		if (
+			Platform.isMac() &&
+			(
+				dir.toString().contains("/Music/Audio Music Apps") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/resources/cpl/cloudsync.noindex/storage/filecache/") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/private") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/external")
+			)
+		) {
+			return;
+		}
+
+		WatchKey key;
+
 		try {
-			WatchKey key = dir.register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
+			if (nativeRecursive) {
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH, ExtendedWatchEventModifier.FILE_TREE);
+			} else {
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH);
+			}
 			keys.put(key, w);
 			LOGGER.debug("Added file watch at {}: {}", dir, w.fspec);
 		} catch (Exception e) {
@@ -213,20 +256,29 @@ public class FileWatcher {
 		}
 	}
 
+	/**
+	 * Adds a recursive watcher to a directory.
+	 *
+	 * @param w   the watch instance
+	 * @param dir the directory to watch
+	 */
 	public static void addRecursive(final Watch w, Path dir) {
-		try {
-			Files.walkFileTree(dir, EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-					add(w, dir);
-					return FileVisitResult.CONTINUE;
-				}
-			});
-		} catch (Exception e) {
-			LOGGER.debug("Recursion error: " + e);
-			e.printStackTrace();
+		if (Platform.isWindows()) {
+			add(w, dir, true);
+		} else {
+			try {
+				Files.walkFileTree(dir, EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+						add(w, dir);
+						return FileVisitResult.CONTINUE;
+					}
+				});
+			} catch (Exception e) {
+				LOGGER.debug("Recursion error: " + e);
+				e.printStackTrace();
+			}
 		}
-
 	}
 
 	private static void start(Path dir) {
@@ -258,7 +310,13 @@ public class FileWatcher {
 								// Determine the actual file
 								Path dir = (Path) key.watchable();
 								final Path filename = dir.resolve(event.context());
-								final boolean isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/);
+								final boolean isDir;
+								if (!Files.exists(filename)) {
+									isDir = FileUtil.isDirectory(filename.toString());
+								} else {
+									isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/); 
+								}
+
 								// See if we're watching for this specific file
 								for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
 									final Watch w = iterator.next();

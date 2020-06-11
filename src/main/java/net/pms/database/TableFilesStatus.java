@@ -44,7 +44,7 @@ import net.pms.PMS;
  * @author SubJunk & Nadahar
  * @since 7.0.0
  */
-public final class TableFilesStatus extends Tables{
+public final class TableFilesStatus extends Tables {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -59,9 +59,9 @@ public final class TableFilesStatus extends Tables{
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
-	 * {@link #upgradeTable()}
+	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 4;
+	private static final int TABLE_VERSION = 9;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -78,7 +78,7 @@ public final class TableFilesStatus extends Tables{
 		String query;
 
 		try (Connection connection = database.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
@@ -214,7 +214,7 @@ public final class TableFilesStatus extends Tables{
 		Boolean result = null;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile);
+			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
@@ -238,6 +238,76 @@ public final class TableFilesStatus extends Tables{
 		return result;
 	}
 
+	public static int getBookmark(final String fullPathToFile) {
+		boolean trace = LOGGER.isTraceEnabled();
+		int result = 0;
+		
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+			
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						result = resultSet.getInt("BOOKMARK");
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error while looking up file bookmark in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static void setBookmark(final String fullPathToFile, final int bookmark) {
+		boolean trace = LOGGER.isTraceEnabled();
+		String query;
+
+		try (Connection connection = database.getConnection()) {
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+			if (trace) {
+				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
+			}
+
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				connection.setAutoCommit(false);
+				try (ResultSet result = statement.executeQuery(query)) {
+					if (result.next()) {
+						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+						result.updateInt("BOOKMARK", bookmark);
+						result.updateRow();
+					} else {
+						result.moveToInsertRow();
+						result.updateString("FILENAME", fullPathToFile);
+						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+						result.updateBoolean("ISFULLYPLAYED", false);
+						result.updateInt("BOOKMARK", bookmark);
+						result.insertRow();
+					}
+				} finally {
+					connection.commit();
+				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while writing bookmark \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
+				bookmark,
+				fullPathToFile,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
+
 	/**
 	 * Checks and creates or upgrades the table as needed.
 	 *
@@ -254,9 +324,9 @@ public final class TableFilesStatus extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
 							database.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
@@ -316,6 +386,8 @@ public final class TableFilesStatus extends Tables{
 									LOGGER.info("Updating fully played entry for " + filename);
 								}
 							}
+							stmt.close();
+							rs.close();
 
 							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
@@ -334,6 +406,46 @@ public final class TableFilesStatus extends Tables{
 							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 						}
 						version = 4;
+						break;
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+						// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
+						PreparedStatement stmt = connection.prepareStatement(
+							"SELECT constraint_name " +
+							"FROM information_schema.constraints " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+						);
+						ResultSet rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							try (Statement statement = connection.createStatement()) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("constraint_name"));
+							}
+						}
+
+						stmt = connection.prepareStatement(
+							"SELECT constraint_name " +
+							"FROM information_schema.constraints " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+						);
+						rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
+						}
+
+						stmt.close();
+						rs.close();
+
+						version = 8;
+						break;
+					case 8:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD BOOKMARK INTEGER DEFAULT 0");
+						}
+						version = 9;
 						break;
 					default:
 						throw new IllegalStateException(
@@ -359,7 +471,8 @@ public final class TableFilesStatus extends Tables{
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN  DEFAULT false" +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+					"BOOKMARK      INTEGER DEFAULT 0" +
 				")"
 			);
 

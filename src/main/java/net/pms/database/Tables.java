@@ -70,6 +70,7 @@ public class Tables {
 					TableMusicBrainzReleases.checkTable(connection);
 					TableCoverArtArchive.checkTable(connection);
 					TableFilesStatus.checkTable(connection);
+					TableThumbnails.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -209,13 +210,13 @@ public class Tables {
 	 * @throws SQLException
 	 */
 	protected final static void dropTable(final Connection connection, final String tableName) throws SQLException {
-		LOGGER.debug("Dropping database table \"{}\"", tableName);
+		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
 		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE " + tableName);
+			statement.execute("DROP TABLE IF EXISTS " + tableName);
 		}
 	}
 
-	private final static void createTablesTable(final Connection connection) throws SQLException {
+	protected final static void createTablesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"TABLES\"");
 		try (Statement statement = connection.createStatement()) {
 			statement.execute("CREATE TABLE TABLES(NAME VARCHAR(50) PRIMARY KEY, VERSION INT NOT NULL)");

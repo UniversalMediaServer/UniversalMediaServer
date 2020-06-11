@@ -260,7 +260,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			} catch (InterruptedException e) { }
 		} catch (IOException e) {
 			LOGGER.error("Error initializing process: ", e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.debug("", e);
 			stopProcess();
 		} finally {
 			try {
@@ -269,7 +269,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			} catch (IOException ioe) {
 				LOGGER.debug("Error closing buffered output file: {}", ioe.getMessage());
-				LOGGER.trace("", ioe);
+				LOGGER.debug("", ioe);
 			}
 
 			if (!destroyed && !params.noexitcheck) {
@@ -281,7 +281,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				} catch (IllegalThreadStateException itse) {
 					LOGGER.error("Error reading process exit value: {}", itse.getMessage());
-					LOGGER.trace("", itse);
+					LOGGER.debug("", itse);
 				}
 			}
 			if (attachedProcesses != null) {

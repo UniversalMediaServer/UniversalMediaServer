@@ -50,6 +50,8 @@ public class DLNAImage extends Image {
 
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAImage.class);
+
+	/** The {@link DLNAImageProfile} for this {@link DLNAImage}*/
 	protected final DLNAImageProfile profile;
 
 	/**
@@ -140,14 +142,15 @@ public class DLNAImage extends Image {
 	/**
 	 * Creates a new {@link DLNAImage} instance.
 	 *
-	 * @param inputByteArray the source image in either GIF, JPEG or PNG format
-	 *            adhering to the DLNA restrictions for color space and
-	 *            compression.
+	 * @param bytes the source image in either GIF, JPEG or PNG format adhering
+	 *            to the DLNA restrictions for color space and compression.
 	 * @param format the {@link ImageFormat} the source image is in.
 	 * @param bufferedImage the {@link BufferedImage} to get non-
 	 *            {@link Metadata} metadata from.
 	 * @param metadata the {@link Metadata} instance describing the source
 	 *            image.
+	 * @param profile the {@link DLNAImageProfile} this {@link DLNAImage}
+	 *            adheres to.
 	 * @param copy whether this instance should be copied or shared.
 	 * @throws DLNAProfileException if the profile compliance check fails.
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
@@ -251,7 +254,8 @@ public class DLNAImage extends Image {
 			inputImage,
 			outputProfile,
 			false,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -289,7 +293,8 @@ public class DLNAImage extends Image {
 			inputStream,
 			outputProfile,
 			false,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -324,7 +329,8 @@ public class DLNAImage extends Image {
 			inputByteArray,
 			outputProfile,
 			false,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -367,7 +373,8 @@ public class DLNAImage extends Image {
 			outputFormat,
 			true,
 			false,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -414,7 +421,8 @@ public class DLNAImage extends Image {
 			outputFormat,
 			true,
 			false,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -453,7 +461,8 @@ public class DLNAImage extends Image {
 			outputFormat,
 			true,
 			false,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -483,7 +492,8 @@ public class DLNAImage extends Image {
 			this,
 			outputProfile,
 			dlnaThumbnail,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -506,6 +516,15 @@ public class DLNAImage extends Image {
 		}
 	}
 
+	/**
+	 * Attempts to find a matching {@link DLNAImageProfile} based on this
+	 * {@link DLNAImage}'s {@link ImageInfo} instance.
+	 *
+	 * @param dlnaThumbnail if {@code true} restricts the profile search to
+	 *            valid thumbnail profiles.
+	 * @return The matching {@link DLNAImageProfile} or {@code null} if no match
+	 *         was found.
+	 */
 	protected DLNAImageProfile findMatchingProfile(boolean dlnaThumbnail) {
 		if (
 			imageInfo == null || imageInfo.getFormat() == null ||
@@ -558,6 +577,11 @@ public class DLNAImage extends Image {
 		return null;
 	}
 
+	/**
+	 * Verifies that this {@link DLNAImage} is DLNA compliant.
+	 *
+	 * @throws DLNAProfileException If non-compliance is found.
+	 */
 	protected void checkCompliance() throws DLNAProfileException {
 		DLNAComplianceResult result = profile.checkCompliance(imageInfo);
 		if (result.isAllCorrect()) {

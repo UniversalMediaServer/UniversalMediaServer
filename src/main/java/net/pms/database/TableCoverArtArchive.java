@@ -39,7 +39,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @author Nadahar
  */
 
-public final class TableCoverArtArchive extends Tables{
+public final class TableCoverArtArchive extends Tables {
 
 	/**
 	 * tableLock is used to synchronize database access on table level.
@@ -96,7 +96,7 @@ public final class TableCoverArtArchive extends Tables{
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID);
+			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
 			}
@@ -158,7 +158,7 @@ public final class TableCoverArtArchive extends Tables{
 		CoverArtArchiveResult result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID);
+			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching for cover with \"{}\"", query);
@@ -205,9 +205,9 @@ public final class TableCoverArtArchive extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
 							database.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
@@ -270,7 +270,7 @@ public final class TableCoverArtArchive extends Tables{
 					"ID IDENTITY PRIMARY KEY, " +
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
-					"COVER BLOB, " +
+					"COVER BLOB" +
 				")");
 			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
 		}

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<!-- Subtitle translator
+Text which must not be translated should be included with class="skiptranslate"
+@author: Anand Tamariya -->
+
+<title>Subtitle translator</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	
+<!-- jQuery library -->
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular-sanitize.min.js"></script>
+<script type="text/javascript"
+	src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script type="text/javascript"
+	src="http://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/src/FileSaver.js"></script>
+<script type="text/javascript"
+	src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.6/pako.min.js"></script>	
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+
+<style>
+.checked {
+    color: orange;
+}
+</style>
+</head>
+<body ng-app="SubtitleApp" ng-controller="subController"
+	class="container">
+
+	<div class="skiptranslate">
+		<h1>Subtitle translator</h1>
+		<div id="google_translate_element"></div>
+	</div>
+	<div id="input" class="skiptranslate">
+		<form class="form-inline">
+			<div class="form-group">
+				<label for="SRT file">SRT file:</label>
+				<input type="file" id="files" name="files[]" multiple
+					onchange="angular.element(this).scope().uploadFile(this.files)" />
+			</div>
+			<div class="form-group">
+				<label for="GZIP file">GZIP file:</label>
+				<input type="file" id="files" name="files[]" multiple
+					onchange="angular.element(this).scope().uploadFileGzip(this.files)" />
+			</div>
+		</form>
+		<br/>
+		<div class="container">
+			<label for="Opensubtitle">Opensubtitles.org</label>
+			<form class="form-inline">
+				<br />
+				<div class="form-group">
+					<label for="username">Username:</label> 
+					<input type="text"
+						class="form-control" ng-model="username">
+				</div>
+				<div class="form-group">
+					<label for="password">Password:</label> 
+					<input type="password"
+						class="form-control" ng-model="password">
+				</div>
+				<button type="button" class="btn btn-default"
+					ng-click="opensubLogin()">Login</button>
+			</form>
+			<br />
+			<form class="form-inline">
+				<div class="form-group">
+					<label for="Proxy">Proxy:</label> 
+					<input type="text"
+						class="form-control" ng-model="proxy">
+				</div>
+			</form>
+			<form class="form-inline">
+				<br />
+				<div class="form-group">
+					<label for="imdb id">IMDB ID:</label> 
+					<input type="text"
+						class="form-control" ng-model="imdbId">
+				</div>
+				<div class="form-group">
+					<label for="language">Language (e.g. eng):</label> 
+					<input type="text"
+						class="form-control" ng-model="language">
+				</div>
+				<button type="button" class="btn btn-default"
+					ng-click="loadImdbId()">Search</button>
+				<br />
+			</form>
+		</div>
+	</div>
+	<br/>
+	
+	<div id="opensub" class="skiptranslate table-responsive" ng-show="subs.length > 0" style="max-height:190px;">
+		<table class="table table-bordered table-striped">
+			<thead>
+				<tr class="headerRow">
+					<th>No.</th>
+					<th>Language</th>
+					<th>FPS</th>
+					<th>Rating (Votes)</th>
+					<th>Downloaded</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="line in subs | orderBy: 'LanguageName' track by $index">
+					<td><a ng-click="loadSub($index)">{{$index + 1}}</a></td>
+					<td>{{line.LanguageName}}</td>
+					<td>{{line.MovieFPS}}</td>
+					<td>
+						<span class="fa fa-star" ng-click="vote(line.IDSubtitle, $index + 1, line)"
+							ng-class="{'checked' : $index < line.SubRating/2}" 
+							ng-repeat="star in getStars(5) track by $index"></span><br/>
+						{{line.SubRating}} ({{line.SubSumVotes}})
+					</td>
+					<td>{{line.SubDownloadsCnt}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<br/>
+
+	<div id="content" ng-show="lines.length > 0" class="table-responsive">
+		<div class="skiptranslate">
+			<form class="form-inline ">
+				<div class="form-group">
+					<label for="pwd">Add offset (hh:mm:ss,SSS):</label> <input
+						type="text" class="form-control" ng-model="offset">
+				</div>
+				<button type="button" class="btn btn-default" ng-click="addOffset()">Submit</button>
+			</form>
+			<div class="form-group">
+				<button type="button" class="btn btn-default" ng-click="save()">Save</button>
+			</div>
+		</div>
+		<table class="table table-bordered table-striped">
+			<thead>
+				<tr class="headerRow">
+					<th width="5%" class="skiptranslate">No.</th>
+					<th width="10%" class="skiptranslate">From</th>
+					<th width="10%" class="skiptranslate">To</th>
+					<th width="35%" class="skiptranslate">Orignal Text</th>
+					<th width="40%" class="skiptranslate">Translated Text</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="line in lines track by $index">
+					<td class="skiptranslate">{{line.no}}</td>
+					<td class="skiptranslate"><div id="divSubtitleStart1">{{line.from}}</div></td>
+					<td class="skiptranslate"><div id="divSubtitleEnd1">{{line.to}}</div></td>
+					<td class="skiptranslate">
+						<div id="divSubtitleText1" ng-bind-html="getText(line.text)"></div>
+					</td>
+					<td class="noBorder"><textarea ng-model="lines[$index].trText"
+							ng-blur="editSubtitle($index, false)"
+							ng-show="lines[$index].edit"></textarea>
+						<div class="divTranslatedText" ng-show="!lines[$index].edit" 
+							ng-mouseover="lines[$index].editable = true"
+							ng-mouseleave="lines[$index].editable = false">
+							<span id="divTranslatedText{{$index}}" ng-bind-html="getText(line.trText)"></span> 
+							<img ng-show="lines[$index].editable" ng-click="editSubtitle($index, true)"
+								src="img/edit-icon-14.png" title="Edit Subtitle" tooltip="Edit Subtitle" />
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<script type="text/javascript">
+		function googleTranslateElementInit() {
+			new google.translate.TranslateElement({
+				pageLanguage : 'en'
+			}, 'google_translate_element');
+		}
+		
+		function getTransLang() {
+			transLang = "";
+			if ($('.goog-te-combo').val() != '') {
+				transLang = $('.goog-te-combo').val();
+			}
+			if ($('.subtitleTable .divTranslatedText span').length > 1
+					&& $('.subtitleTable .divTranslatedText span').get(
+							1).lang != '') {
+				transLang = $('.subtitleTable .divTranslatedText span')
+						.get(1).lang;
+			}
+			return transLang;
+		}
+
+		function download(name, content) {
+
+			//alert("hello world");
+			//this alert line was to test the function call
+			//the alert actually appears when the <script> tag
+			// has no src field labeled. Just an observation.
+
+			var blob = new Blob([ content ], {
+				type : "text/plain;charset=utf-8"
+			});
+			saveAs(blob, name);
+		}
+		
+		function deflate(charData) {
+			// Get some base64 encoded binary data from the server. Imagine we got this:
+			//var b64Data     = 'H4sIAAAAAAAAAwXB2w0AEBAEwFbWl2Y0IW4jQmziPNo3k6TuGK0Tj/ESVRs6yzkuHRnGIqPB92qzhg8yp62UMAAAAA==';
+
+			// Decode base64 (convert ascii to binary)
+			//var strData     = atob(b64Data);
+
+			// Convert binary string to character-number array
+			//var charData    = strData.split('').map(function(x){return x.charCodeAt(0);});
+
+			// Turn number array into byte-array
+			var binData     = new Uint8Array(charData);
+
+			// Pako magic
+			var data        = pako.inflate(binData);
+
+			// Convert gunzipped byteArray back to ascii string:
+			var strData     = new TextDecoder("utf-8").decode(data);
+
+			// Output to console
+			console.log(strData);
+			return strData;
+		}
+		
+		function escape(input) {
+	        if(input) {
+	            return window.encodeURIComponent(input); 
+	        }
+	        return "";
+	    }
+		
+		var lineNumberPattern = "(\\d+)\\s+";
+		var timeStampPattern = "([\\d:,]+)";
+		var contentPattern = "([\\s\\S]*?)(\r\n|\n){2,}";
+
+		var str = "2\r\n00:00:02,373 --> 00:00:03,999\r\nOhh wooaah\r\nsecond line\r\n\r\n";
+		var p = lineNumberPattern + timeStampPattern + " --> " + timeStampPattern + "\\s+" + contentPattern;
+		var pattern = new RegExp(p);
+		var r = pattern.exec(str);
+
+		var transLang = '';
+		var opensubUrl = "https://rest.opensubtitles.org/search/imdbid-";
+
+		var app = angular.module('SubtitleApp', ['ngSanitize']);
+		app.controller('subController', function($scope, $http, $sce) {
+			$scope.imdbId = "5616044";
+			$scope.lines = [];
+			$scope.subs = [];
+			$scope.proxy = "http://localhost:9001/files/proxy?u=";
+			
+			function updateLines(r) {
+				if (!r)
+					return;
+				var i = $scope.lines.length;
+				$scope.lines[i] = {};
+				$scope.lines[i].no = i + 1;
+				$scope.lines[i].from = r[2];
+				$scope.lines[i].to = r[3];
+				$scope.lines[i].text = r[4];
+				$scope.lines[i].trText = r[4];
+			}
+			//console.log(r);
+			//updateLines(r);
+			
+			function parseContent(str) {
+				$scope.lines = [];
+				// Sometimes files might miss ending newlines
+				str = str + "\n\n";
+				var done = false;
+				while (!done) {
+					var r = pattern.exec(str);
+					if (r) {
+						//console.log(r[0], str.length, r[0].length);
+						updateLines(r);
+						str = str.substring(r[0].length);
+						//console.log(str);
+					} else {
+						done = true;
+					}
+				}
+				$scope.$apply();
+			};
+			
+			$scope.opensubLogin = function() {
+				// Proxy is required since Opensubtitles doesn't support JSONP
+				// https://forum.opensubtitles.org/viewtopic.php?f=8&t=16453
+				var url =  $sce.trustAsResourceUrl($scope.proxy + "https://www.opensubtitles.org/en/login");
+			    var payload = "a=login&user=" + $scope.username + '&password=' + $scope.password;
+
+			    var req = {
+			    	 	method: 'POST',
+			    	 	url: url,
+			    	 	headers: {
+			    	 		'Content-Type': "application/x-www-form-urlencoded"
+			    	 	},
+			    	 	data: payload,
+			    	 	transformRequest: angular.identity
+			    	 };
+				$http(req).then(function(response, status, headers, config) {
+					console.log(response.data);
+				});
+			}
+			
+			$scope.loadImdbId = function() {
+				$scope.subs = [];
+				$scope.lines = [];
+				// Proxy is required since Opensubtitles doesn't support JSONP
+				// https://forum.opensubtitles.org/viewtopic.php?f=8&t=16453
+				var url =  $sce.trustAsResourceUrl($scope.proxy + opensubUrl + $scope.imdbId);
+				if ($scope.language) {
+					url += "/sublanguageid-" + $scope.language;
+				}
+				$http.get(url, {
+					headers : {
+						"User-Agent" : "TemporaryUserAgent",
+					}
+				}).then(function(response, status, headers, config) {
+					console.log(response.data);
+					$scope.subs = response.data;
+					if ($scope.subs.length == 0)
+						alert("No results found");
+				});
+			}
+
+			$scope.getStars = function(num) {
+			    return new Array(num);   
+			}
+
+			$scope.vote = function(id, num, line) {
+				var url = $scope.proxy + escape("https://www.opensubtitles.org/libs/vote.php?action=vote&t=vsub&v=" 
+						+ parseInt(num)*2 + "&s=" + id);
+				$http.get(url, {
+				}).then(function(response, status, headers, config) {
+					console.log(response.data);
+					var xmlDoc = $.parseXML( response.data ),
+					  $xml = $( xmlDoc ),
+					  $average = $xml.find( "average" ),
+					  $votes = $xml.find( "votes" );
+					line.SubRating = $average.text();
+					line.SubSumVotes = $votes.text();
+				});  
+			}
+
+			$scope.loadSub = function(i) {
+				$http.get($scope.subs[i].SubDownloadLink, {
+					responseType : 'arraybuffer'
+				}).then(function(response, status, headers, config) {
+					console.log(response.data);
+					parseContent(deflate(response.data));
+				});
+			}
+
+			$scope.editSubtitle = function(i, edit) {
+				$scope.lines[i].edit = edit;
+				if (edit) {
+					if (getTransLang() != '')
+						$scope.lines[i].trText = $('#divTranslatedText' + i).text()
+							.trim();
+					else
+						$scope.lines[i].trText = $('#divTranslatedText' + i).html()
+							.trim();
+				} else {
+					//$('#divTranslatedText' + i).html($scope.getText($scope.lines[i].trText));
+				}
+			}
+
+			$scope.addOffset = function() {
+				if ($scope.lines.length == 0) {
+					return;
+				}
+				
+				$scope.lines.forEach(function(e, i) {
+					var offset = $scope.offset;
+					offset = offset.replace(",", ".");
+					offset_d = moment.duration(offset);
+					
+					offset = e.from;
+					offset = offset.replace(",", ".");
+					from_d = moment.duration(offset).add(offset_d);
+					
+					offset = e.to;
+					offset = offset.replace(",", ".");
+					to_d = moment.duration(offset).add(offset_d);
+					
+					e.from = moment.utc(from_d.as('milliseconds')).format('HH:mm:ss,SSS');
+					e.to   = moment.utc(to_d.as('milliseconds')).format('HH:mm:ss,SSS');
+					//console.log("From: " + e.from);
+				});
+			}
+
+			$scope.save = function() {
+				if ($scope.lines.length == 0) {
+					alert("Empty file");
+					return;
+				}
+				
+				var subtitleContent = '';
+				$scope.lines.forEach(function(e, i) {
+					var divTranslatedText = $('#divTranslatedText' + i).text()
+							.trim();
+					subtitleContent += $scope.lines[i].no + '\n';
+					subtitleContent += $scope.lines[i].from + ' --> '
+							+ $scope.lines[i].to + '\n';
+					subtitleContent += divTranslatedText + '\n\n';
+				});
+				//alert(subtitleContent);
+				// Append language code
+				try {
+					$scope.name = $scope.imdbId || $scope.name;
+					if (getTransLang() != '') {
+						var uploadedFileName = $scope.name;
+						if (uploadedFileName.lastIndexOf('.') > 0)
+							uploadedFileName = uploadedFileName.substr(0,
+								uploadedFileName.lastIndexOf('.'));
+						$scope.name = uploadedFileName + '.' + transLang;
+					}
+				} catch (exc) {
+				}
+
+				download($scope.name + '.srt', subtitleContent);
+			}
+
+			var reader = new FileReader();
+			reader.onload = function(f) {
+				parseContent(reader.result);
+			};
+
+			var gzReader = new FileReader();
+			gzReader.onload = function(f) {
+				var str = deflate(gzReader.result);
+				if (!str)
+					return;
+
+				parseContent(str);
+			};
+
+			$scope.uploadFile = function(files) {
+				// files is a FileList of File objects. List some properties.
+				var output = [];
+
+				for (var i = 0, f; f = files[i]; i++) {
+					$scope.name = f.name;
+					reader.readAsText(f);
+				}
+			}
+
+			$scope.uploadFileGzip = function(files) {
+				// files is a FileList of File objects. List some properties.
+				var output = [];
+
+				for (var i = 0, f; f = files[i]; i++) {
+					$scope.name = f.name;
+					gzReader.readAsArrayBuffer(f);
+				}
+			}
+
+			$scope.getText = function(s) {
+				if (s)
+					return s.replace("\n", "<br/>");
+				else
+					return s;
+			}
+
+		});
+	</script>
+
+</body>
+</html>

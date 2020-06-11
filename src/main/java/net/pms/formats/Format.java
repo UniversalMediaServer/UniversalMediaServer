@@ -21,6 +21,7 @@ package net.pms.formats;
 import java.util.Locale;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
@@ -56,7 +57,8 @@ public abstract class Format implements Cloneable {
 		AUDIO_AS_VIDEO,
 		ASS,
 		BMP,
-		DSD,
+		DFF,
+		DSF,
 		DTS,
 		DVRMS,
 		EAC3,
@@ -197,7 +199,7 @@ public abstract class Format implements Cloneable {
 	 *
 	 * @since 1.50.1
 	 */
-	public boolean isCompatible(DLNAMediaInfo media, RendererConfiguration renderer) {
+	public boolean isCompatible(DLNAResource dlna, RendererConfiguration renderer) {
 		RendererConfiguration referenceRenderer;
 
 		if (renderer != null) {
@@ -209,7 +211,7 @@ public abstract class Format implements Cloneable {
 		}
 
 		// Let the renderer configuration decide on native compatibility
-		return referenceRenderer.isCompatible(media, this);
+		return referenceRenderer.isCompatible(dlna, this);
 	}
 
 	public abstract boolean transcodable();

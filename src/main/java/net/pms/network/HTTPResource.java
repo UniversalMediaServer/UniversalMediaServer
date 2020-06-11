@@ -18,19 +18,27 @@
  */
 package net.pms.network;
 
-import java.io.*;
+import static net.pms.util.StringUtil.convertURLToFileName;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
-import static net.pms.util.StringUtil.convertURLToFileName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
@@ -51,13 +59,14 @@ public class HTTPResource {
 	public static final String AUDIO_APE_TYPEMIME = "audio/x-ape";
 	public static final String AUDIO_ATRAC_TYPEMIME = "audio/x-sony-oma";
 	public static final String AUDIO_AU_TYPEMIME = "audio/basic";
-	public static final String AUDIO_DSD_TYPEMIME = "audio/x-dsf";
+	public static final String AUDIO_DSF_TYPEMIME = "audio/x-dsf";
+	public static final String AUDIO_DFF_TYPEMIME = "audio/x-dff";
 	public static final String AUDIO_DTS_TYPEMIME = "audio/vnd.dts";
 	public static final String AUDIO_DTSHD_TYPEMIME = "audio/vnd.dts.hd";
 	public static final String AUDIO_EAC3_TYPEMIME = "audio/eac3";
 	public static final String AUDIO_FLAC_TYPEMIME = "audio/x-flac";
 	public static final String AUDIO_LPCM_TYPEMIME = "audio/L16";
-	public static final String AUDIO_M4A_TYPEMIME = "audio/x-m4a";
+	public static final String AUDIO_M4A_TYPEMIME = "audio/mp4";
 	public static final String AUDIO_MKA_TYPEMIME = "audio/x-matroska";
 	public static final String AUDIO_MLP_TYPEMIME = "audio/vnd.dolby.mlp";
 	public static final String AUDIO_MP3_TYPEMIME = "audio/mpeg";
@@ -72,7 +81,7 @@ public class HTTPResource {
 	public static final String AUDIO_TRUEHD_TYPEMIME = "audio/vnd.dolby.mlp";
 	public static final String AUDIO_TTA_TYPEMIME = "audio/x-tta";
 	public static final String AUDIO_VORBIS_TYPEMIME = "audio/ogg";
-	public static final String AUDIO_WAV_TYPEMIME = "audio/x-wav";
+	public static final String AUDIO_WAV_TYPEMIME = "audio/wav";
 	public static final String AUDIO_WEBM_TYPEMIME = "audio/webm";
 	public static final String AUDIO_WMA_TYPEMIME = "audio/x-ms-wma";
 	public static final String AUDIO_WV_TYPEMIME = "audio/x-wavpack";
@@ -80,12 +89,15 @@ public class HTTPResource {
 	public static final String AVI_TYPEMIME = "video/avi";
 	public static final String BMP_TYPEMIME = "image/bmp";
 	public static final String DIVX_TYPEMIME = "video/x-divx";
+	public static final String FLV_TYPEMIME = "video/x-flv";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
+	public static final String M4V_TYPEMIME = "video/x-m4v";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
+	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
@@ -144,7 +156,7 @@ public class HTTPResource {
 	 * @throws IOException
 	 * @see #downloadAndSendBinary(String)
 	 */
-	protected static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
+	public static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
 		URL url = new URL(u);
 		File f = null;
 
@@ -204,6 +216,18 @@ public class HTTPResource {
 
 		// GameTrailers blocks user-agents that identify themselves as "Java"
 		conn.setRequestProperty("User-agent", PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
+
+		CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
+		if (
+			cookieManager != null &&
+			cookieManager.getCookieStore() != null &&
+			cookieManager.getCookieStore().getCookies() != null &&
+			cookieManager.getCookieStore().getCookies().size() > 0
+		) {
+			// While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
+			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
+		}
+
 		FileOutputStream fOUT;
 		try (InputStream in = conn.getInputStream()) {
 			fOUT = null;
@@ -235,8 +259,8 @@ public class HTTPResource {
 	 * @param renderer media renderer to customize the MIME type for.
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(String mimetype, RendererConfiguration renderer, DLNAMediaInfo media) {
-		return renderer.getMimeType(mimetype, media);
+	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+		return renderer.getMimeType(resource);
 	}
 
 	public int getDLNALocalesCount() {

@@ -77,6 +77,11 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	public String artist;
 
 	/**
+	 * Global artist of an album.
+	 */
+	private String albumartist;
+
+	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
@@ -133,13 +138,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			}
 		}
 		return sr;
-	}
-
-	/**
-	 * @return True if the audio codec is 3GA.
-	 */
-	public boolean is3GA() {
-		return FormatConfiguration.THREEGA.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -220,10 +218,24 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is Dolby E.
+	 */
+	public boolean isDolbyE() {
+		return FormatConfiguration.DOLBYE.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is DSD Audio.
 	 */
-	public boolean isDSDAudio() {
-		return FormatConfiguration.DSD.equalsIgnoreCase(getCodecA());
+	public boolean isDFF() {
+		return FormatConfiguration.DFF.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is DSF.
+	 */
+	public boolean isDSF() {
+		return FormatConfiguration.DSF.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -273,13 +285,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isHEAAC() {
 		return FormatConfiguration.HE_AAC.equalsIgnoreCase(getCodecA());
-	}
-
-	/**
-	 * @return True if the audio codec is Matroska Audio.
-	 */
-	public boolean isMKA() {
-		return FormatConfiguration.MKA.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -476,9 +481,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return The standardized name.
 	 */
 	public String getAudioCodec() {
-		if (is3GA()) {
-			return "3GA";
-		} else if (isAACLC()) {
+		if (isAACLC()) {
 			return "AAC-LC";
 		} else if (isAC3()) {
 			return "AC3";
@@ -498,8 +501,12 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "ATRAC";
 		} else if (isCook()) {
 			return "Cook";
-		} else if (isDSDAudio()) {
-			return "DSD Audio";
+		} else if (isDFF()) {
+			return "DFF";
+		} else if (isDSF()) {
+			return "DSF";
+		} else if (isDolbyE()) {
+			return "Dolby E";
 		} else if (isDTS()) {
 			return "DTS";
 		} else if (isDTSHD()) {
@@ -514,8 +521,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "G.729";
 		} else if (isHEAAC()) {
 			return "HE-AAC";
-		} else if (isMKA()) {
-			return "Matroska Audio";
 		} else if (isMLP()) {
 			return "MLP";
 		} else if (isMonkeysAudio()) {
@@ -606,6 +611,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		}
 		if (isNotBlank(getAlbum())) {
 			result.append(", Album: ").append(getAlbum());
+		}
+		if (isNotBlank(getAlbumArtist())) {
+			result.append(", Album Artist: ").append(getAlbumArtist());
 		}
 		if (isNotBlank(getSongname())) {
 			result.append(", Track Name: ").append(getSongname());
@@ -770,6 +778,25 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public String getArtist() {
 		return artist;
+	}
+
+	/**
+	 * Sets the name of the main artist of the album of the audio track. 
+	 * This field is often used for the compilation type albums or "featuring..." songs.
+	 *
+	 * @param artist The album artist name to set.
+	 */
+	public void setAlbumArtist(String artist) {
+		this.albumartist = artist;
+	}
+
+	/**
+	 * Returns the name of the main artist of the album of the audio track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getAlbumArtist() {
+		return albumartist;
 	}
 
 	/**

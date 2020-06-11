@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemoteUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteUtil.class);
 
@@ -176,8 +177,11 @@ public class RemoteUtil {
 				mime.equals(HTTPResource.MP4_TYPEMIME) ||
 				mime.equals(HTTPResource.WEBM_TYPEMIME) ||
 				mime.equals(HTTPResource.OGG_TYPEMIME) ||
-				mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
 				mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
+				mime.equals(HTTPResource.BMP_TYPEMIME) ||
 				mime.equals(HTTPResource.PNG_TYPEMIME) ||
 				mime.equals(HTTPResource.JPEG_TYPEMIME) ||
 				mime.equals(HTTPResource.GIF_TYPEMIME)
@@ -464,6 +468,8 @@ public class RemoteUtil {
 					t = compile(getInputStream(filename));
 					templates.put(filename, t);
 					PMS.getFileWatcher().add(new FileWatcher.Watch(url.getFile(), recompiler));
+				} else {
+					LOGGER.warn("Couldn't find web template \"{}\"", filename);
 				}
 			}
 			return t;
