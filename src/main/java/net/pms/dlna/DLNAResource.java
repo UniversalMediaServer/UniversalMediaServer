@@ -844,6 +844,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * whether it has subtitles that match this user's language settings, so here we
 		 * perform those checks.
 		 */
+		boolean isIncompatible = false;
 		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
 			if (hasSubtitles(false)) {
 				DLNAMediaAudio audio = media_audio != null ? media_audio : resolveAudioStream(renderer);
@@ -856,12 +857,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							LOGGER.trace("This video has external subtitles that can be streamed");
 						} else {
 							LOGGER.trace("This video has external subtitles that must be transcoded");
+							isIncompatible = true;
 						}
 					} else {
 						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) {
 							LOGGER.trace("This video has embedded subtitles that are supported");
 						} else {
 							LOGGER.trace("This video has embedded subtitles that must be transcoded");
+							isIncompatible = true;
 						}
 					}
 				}
@@ -895,7 +898,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
 		if (resolvedPlayer != null) {
-			boolean isIncompatible = false;
 			String prependTranscodingReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
 				LOGGER.debug(prependTranscodingReason + "transcoding is forced by configuration", getName());
@@ -979,9 +981,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			// Transcode if:
-			// 1) transcoding is forced by configuration, or
-			// 2) transcoding is not prevented by configuration
+			/*
+			 * Transcode if:
+			 * 1) transcoding is forced by configuration, or
+			 * 2) transcoding is not prevented by configuration and is needed due to subtitles or some other renderer incompatbility
+			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
 					LOGGER.debug("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
