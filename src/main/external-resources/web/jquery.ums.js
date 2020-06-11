@@ -452,7 +452,12 @@ function populateMetadataDisplayFromGlobalVars() {
 		$('.plot').html('<strong>' + plotTranslation + ':</strong> ' + plot);
 	}
 	if (poster) {
-		$('#poster').attr({ src: poster });
+		var img = new Image();
+		img.onload = function() { setBackgroundColorFromPoster(); }
+		img.crossOrigin = '';
+		img.id = 'poster';
+		img.src = poster;
+		$('.posterContainer').html(img);
 	}
 	if (ratings && ratings[0]) {
 		$('.ratings').html('<strong>' + ratingsTranslation + ':</strong><ul>');
@@ -476,8 +481,6 @@ $(document).ready(function () {
 	fontSize = Cookies.get('font') || 'small';
 	chooseFontSize(fontSize);
 	setPadColor();
-
-	$(window).bind('load', setBackgroundColorFromPoster);
 
 	if ($('#Media').length) {
 		$(window).bind('load resize', changeMargins);
