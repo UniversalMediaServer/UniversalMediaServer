@@ -355,7 +355,7 @@ public class FormatConfiguration {
 		public boolean match(DLNAResource dlna) {
 			DLNAMediaInfo media = dlna.getMedia();
 			if (dlna.getMediaSubtitle() != null) {
-				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA(), 0, 0, 0, 0, 0, iMaxBitrate, null, dlna.getMediaSubtitle().getType().getExtension(), false);
+				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA(), 0, 0, 0, 0, 0, iMaxBitrate, null, dlna.getMediaSubtitle().getType().getExtension(), dlna.getMediaSubtitle().isExternal());
 			} else {
 				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA());
 			}
@@ -372,12 +372,12 @@ public class FormatConfiguration {
 		 * <blockquote><pre>
 		 * 	Supported = f:mp4 n:2 se:SUBRIP
 		 *
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", true)  = true
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, null,     true)  = false 
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, null, "SUBRIP", true)  = false 
-		 * match("wav", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", true)  = false
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "SUBRIP", false) = false
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null, "sub",    true)  = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = true
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, null,     true)  = false 
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false 
+		 * match("wav", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", false) = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "sub",    true)  = false
 		 * </pre></blockquote>
 		 *
 		 * @param format
@@ -409,7 +409,6 @@ public class FormatConfiguration {
 			String subsFormat,
 			boolean isExternalSubs
 		) {
-
 			// Satisfy a minimum threshold
 			if (format == null && videoCodec == null && audioCodec == null && subsFormat == null) {
 				// We have no matchable info. This can happen with unparsed
@@ -571,19 +570,19 @@ public class FormatConfiguration {
 	}
 
 	public boolean isFormatSupported(String container) {
-		return match(container, null, null) != null;
+		return getMatchedMIMEtype(container, null, null) != null;
 	}
 
 	public boolean isDTSSupported() {
-		return match(MPEGPS, null, DTS) != null || match(MPEGTS, null, DTS) != null;
+		return getMatchedMIMEtype(MPEGPS, null, DTS) != null || getMatchedMIMEtype(MPEGTS, null, DTS) != null;
 	}
 
 	public boolean isLPCMSupported() {
-		return match(MPEGPS, null, LPCM) != null || match(MPEGTS, null, LPCM) != null;
+		return getMatchedMIMEtype(MPEGPS, null, LPCM) != null || getMatchedMIMEtype(MPEGTS, null, LPCM) != null;
 	}
 
 	public boolean isMpeg2Supported() {
-		return match(MPEGPS, MPEG2, null) != null || match(MPEGTS, MPEG2, null) != null;
+		return getMatchedMIMEtype(MPEGPS, MPEG2, null) != null || getMatchedMIMEtype(MPEGTS, MPEG2, null) != null;
 	}
 
 	/**
@@ -595,7 +594,7 @@ public class FormatConfiguration {
 	 * @param dlna The DLNAResource
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String match(DLNAResource dlna) {
+	public String getMatchedMIMEtype(DLNAResource dlna) {
 		DLNAMediaInfo media = dlna.getMedia();
 		if (media == null) {
 			return null;
@@ -616,7 +615,7 @@ public class FormatConfiguration {
 		}
 		if (media.getFirstAudioTrack() == null) {
 			// no sound
-			return match(
+			return getMatchedMIMEtype(
 				media.getContainer(),
 				media.getCodecV(),
 				null,
@@ -644,7 +643,7 @@ public class FormatConfiguration {
 			* track needs to be checked.
 			*/
 			DLNAMediaAudio audio = media.getFirstAudioTrack();
-			return match(
+			return getMatchedMIMEtype(
 				media.getContainer(),
 				media.getCodecV(),
 				audio.getCodecA(),
@@ -663,7 +662,7 @@ public class FormatConfiguration {
 		String finalMimeType = null;
 
 		for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-			String mimeType = match(
+			String mimeType = getMatchedMIMEtype(
 				media.getContainer(),
 				media.getCodecV(),
 				audio.getCodecA(),
@@ -678,16 +677,16 @@ public class FormatConfiguration {
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false
 			);
 			finalMimeType = mimeType;
-			if (mimeType == null) { // if at least one audio track is not compatible, the file must be transcoded.
-				return null;
+			if (mimeType != null) { // if at least one audio track is compatible, the file can be streamed.
+				return finalMimeType;
 			}
 		}
 
 		return finalMimeType;
 	}
 
-	public String match(String container, String videoCodec, String audioCodec) {
-		return match(
+	public String getMatchedMIMEtype(String container, String videoCodec, String audioCodec) {
+		return getMatchedMIMEtype(
 			container,
 			videoCodec,
 			audioCodec,
@@ -714,8 +713,8 @@ public class FormatConfiguration {
 	 * send to renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String match(DLNAMediaInfo media, OutputParams params) {
-		return match(
+	public String getMatchedMIMEtype(DLNAMediaInfo media, OutputParams params) {
+		return getMatchedMIMEtype(
 			media.getContainer(),
 			media.getCodecV(),
 			params.aid != null ? params.aid.getCodecA() : null,
@@ -731,7 +730,7 @@ public class FormatConfiguration {
 		);
 	}
 
-	public String match(
+	public String getMatchedMIMEtype(
 		String container,
 		String videoCodec,
 		String audioCodec,
