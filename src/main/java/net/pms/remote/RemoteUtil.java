@@ -512,8 +512,7 @@ public class RemoteUtil {
 			String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
 			resourceMetadataFromDatabase = TableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
 		} else {
-			String simplifiedTitle = resource.getMedia() != null ? resource.getMedia().getSimplifiedMovieOrShowName() : resource.getDisplayName();
-			resourceMetadataFromDatabase = DLNAMediaDatabase.getAPIResultsBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
+			resourceMetadataFromDatabase = DLNAMediaDatabase.getAPIResultsByFilenameIncludingExternalTables(resource.getFileName());
 		}
 
 		if (resourceMetadataFromDatabase == null) {

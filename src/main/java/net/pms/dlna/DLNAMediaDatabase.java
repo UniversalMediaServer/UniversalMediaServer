@@ -1652,10 +1652,10 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * @param simplifiedTitle
+	 * @param filename
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static List<HashMap<String, Object>> getAPIResultsBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
+	public static List<HashMap<String, Object>> getAPIResultsByFilenameIncludingExternalTables(final String filename) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = PMS.get().getDatabase().getConnection()) {
@@ -1671,7 +1671,7 @@ public class DLNAMediaDatabase implements Runnable {
 				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRated.TABLE_NAME + ".FILENAME " +
 				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRatings.TABLE_NAME + ".FILENAME " +
 				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataReleased.TABLE_NAME + ".FILENAME " +
-				"WHERE FILES.MOVIEORSHOWNAMESIMPLE = " + sqlQuote(simplifiedTitle) + " and IMDBID != ''";
+				"WHERE FILES.FILENAME = " + sqlQuote(filename) + " and IMDBID != ''";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
@@ -1686,7 +1686,7 @@ public class DLNAMediaDatabase implements Runnable {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", simplifiedTitle, e.getMessage());
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", filename, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
