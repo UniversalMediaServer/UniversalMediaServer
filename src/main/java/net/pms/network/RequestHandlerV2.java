@@ -103,7 +103,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 		String userAgent = nettyRequest.headers().get(USER_AGENT);
-		boolean isSelf = isLocalClingRequest(ia, userAgent);
+		boolean isSelf = isSelfRequest(ia, userAgent);
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
@@ -419,10 +419,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		return false;
 	}
 
-	private boolean isLocalClingRequest(InetAddress ia, String userAgent) {
+	private boolean isSelfRequest(InetAddress ia, String userAgent) {
 		return userAgent != null &&
 			userAgent.contains("UMS/") &&
-			userAgent.contains("Cling/") &&
 			ia.getHostAddress().equals(PMS.get().getServer().getHost());
 	}
 
