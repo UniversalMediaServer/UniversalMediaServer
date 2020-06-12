@@ -20,8 +20,6 @@ package net.pms.dlna;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -51,7 +49,6 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.Rational;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import static net.pms.util.StringUtil.*;
@@ -2487,7 +2484,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setAspectRatioVideoTrack(String aspectRatio) {
 		this.aspectRatioVideoTrack = getFormattedAspectRatio(aspectRatio);
 	}
-
+	
 	/**
 	 * This takes an exact aspect ratio, and returns the closest common aspect
 	 * ratio to that, so that e.g. 720x416 and 720x420 are the same.
@@ -2499,9 +2496,11 @@ public class DLNAMediaInfo implements Cloneable {
 		if (isBlank(aspect)) {
 			return null;
 		}
+
 		if (aspect.contains(":")) {
 			return aspect;
 		}
+
 		double exactAspectRatio = Double.parseDouble(aspect);
 		if (exactAspectRatio >= 11.9 && exactAspectRatio <= 12.1) {
 			return "12.00:1";
@@ -2555,6 +2554,12 @@ public class DLNAMediaInfo implements Cloneable {
 			return "19:16";
 		} else if (exactAspectRatio > 0.99 && exactAspectRatio < 1.1) {
 			return "1:1";
+		} else if (exactAspectRatio > 0.7 && exactAspectRatio < 0.9) {
+			return "4:5";
+		} else if (exactAspectRatio > 0.6 && exactAspectRatio < 0.7) {
+			return "2:3";
+		} else if (exactAspectRatio > 0.5 && exactAspectRatio < 0.6) {
+			return "9:16";
 		} else {
 			return aspect;
 		}
