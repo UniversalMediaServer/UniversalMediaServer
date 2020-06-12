@@ -1,4 +1,4 @@
-9.6.0 - 2020-06-??
+9.6.0 - 2020-06-12
 
 	General:
 		Improved compatibility of files containing both supported and unsupported streams
