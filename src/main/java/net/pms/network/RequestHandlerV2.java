@@ -103,7 +103,7 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 		String userAgent = nettyRequest.headers().get(USER_AGENT);
-		boolean isSelf = isLocalClingRequest(ia, userAgent);
+		boolean isSelf = isSelfRequest(ia, userAgent);
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
@@ -285,10 +285,10 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 			String soapAction = nettyRequest.headers().get("SOAPACTION");
 
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
-				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
+				LOGGER.debug("Not implemented feature in the UMS requested in SOAPACTION: " + soapAction);
 				response = new DefaultHttpResponse(
 					request.isHttp10() ? HttpVersion.HTTP_1_0 : HttpVersion.HTTP_1_1,
-					HttpResponseStatus.INTERNAL_SERVER_ERROR
+					HttpResponseStatus.NOT_IMPLEMENTED
 				);
 			} else {
 				response = new DefaultHttpResponse(
@@ -419,9 +419,9 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 		return false;
 	}
 
-	private boolean isLocalClingRequest(InetAddress ia, String userAgent) {
-		// FIXME: this would also block an external cling-based client running on the same host
-		return userAgent != null && userAgent.contains("Cling/") &&
+	private boolean isSelfRequest(InetAddress ia, String userAgent) {
+		return userAgent != null &&
+			userAgent.contains("UMS/") &&
 			ia.getHostAddress().equals(PMS.get().getServer().getHost());
 	}
 

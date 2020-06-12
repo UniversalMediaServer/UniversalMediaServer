@@ -846,6 +846,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * whether it has subtitles that match this user's language settings, so here we
 		 * perform those checks.
 		 */
+		boolean isIncompatible = false;
 		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
 			if (hasSubtitles(false)) {
 				DLNAMediaAudio audio = media_audio != null ? media_audio : resolveAudioStream(renderer);
@@ -854,16 +855,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 				if (media_subtitle != null) {
 					if (media_subtitle.isExternal()) {
-						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media)) {
+						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media, this)) {
 							LOGGER.trace("This video has external subtitles that can be streamed");
 						} else {
 							LOGGER.trace("This video has external subtitles that must be transcoded");
+							isIncompatible = true;
 						}
 					} else {
 						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) {
 							LOGGER.trace("This video has embedded subtitles that are supported");
 						} else {
 							LOGGER.trace("This video has embedded subtitles that must be transcoded");
+							isIncompatible = true;
 						}
 					}
 				}
@@ -897,7 +900,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
 		if (resolvedPlayer != null) {
-			boolean isIncompatible = false;
 			String prependTranscodingReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
 				LOGGER.debug(prependTranscodingReason + "transcoding is forced by configuration", getName());
@@ -981,9 +983,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			// Transcode if:
-			// 1) transcoding is forced by configuration, or
-			// 2) transcoding is not prevented by configuration
+			/*
+			 * Transcode if:
+			 * 1) transcoding is forced by configuration, or
+			 * 2) transcoding is not prevented by configuration and is needed due to subtitles or some other renderer incompatbility
+			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
 					LOGGER.debug("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
@@ -1013,11 +1017,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		if (parserV2 && (format == null || !format.isImage())) {
 			// See which MIME type the renderer prefers in case it supports the media
-			String preferred = renderer.getFormatConfiguration().match(this);
+			String preferred = renderer.getFormatConfiguration().getMatchedMIMEtype(this);
 			if (preferred != null) {
-				/**
-				 * Use the renderer's preferred MIME type for this file.
-				 */
+				// Use the renderer's preferred MIME type for this file
 				if (!FormatConfiguration.MIMETYPE_AUTO.equals(preferred)) {
 					media.setMimeType(preferred);
 				}
@@ -1632,7 +1634,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					media_subtitle.isExternal() &&
 					renderer != null &&
 					(player == null || renderer.streamSubsForTranscodedVideo()) &&
-					renderer.isExternalSubtitlesFormatSupported(media_subtitle, media);
+					renderer.isExternalSubtitlesFormatSupported(media_subtitle, media, this);
 
 				if (media_audio != null) {
 					String audioLanguage = media_audio.getLang();
@@ -2216,7 +2218,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					(player == null || mediaRenderer.streamSubsForTranscodedVideo()) &&
 					media_subtitle != null &&
 					media_subtitle.isExternal() &&
-					mediaRenderer.isExternalSubtitlesFormatSupported(media_subtitle, media)
+					mediaRenderer.isExternalSubtitlesFormatSupported(media_subtitle, media, this)
 				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("External subtitles \"{}\" can be streamed to {}", media_subtitle.getName(), mediaRenderer);
