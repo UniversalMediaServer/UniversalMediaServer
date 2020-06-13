@@ -1,3 +1,8 @@
+9.6.1 - 2020-06-14
+
+	General:
+		Fixed Linux startup error
+
 9.6.0 - 2020-06-12
 
 	General:
