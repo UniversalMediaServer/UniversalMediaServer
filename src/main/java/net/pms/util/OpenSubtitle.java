@@ -129,6 +129,7 @@ public class OpenSubtitle {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
+	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
 	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
 
 	/** The minimum Jaro–Winkler title distance for IMDB guesses to be valid */
@@ -235,6 +236,7 @@ public class OpenSubtitle {
 			connection.setDefaultUseCaches(false);
 			connection.setRequestProperty("Content-Type", "application/json");
 			connection.setRequestProperty("Content-length", "0");
+			connection.setRequestProperty("User-Agent", VERBOSE_UA);
 			connection.connect();
 
 			int status = connection.getResponseCode();
