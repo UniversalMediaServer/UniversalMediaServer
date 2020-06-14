@@ -5027,9 +5027,15 @@ public class OpenSubtitle {
 							seriesMetadataFromDatabase = TableTVSeries.getByTitle(title);
 							if (seriesMetadataFromDatabase == null) {
 								// No title match, so let's make a new entry
+								if (overTheTopLogging) {
+									LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromDatabase.get("TITLE"));
+								}
 								tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
 							} else {
 								// There is an existing entry, so let's fill it in with API data
+								if (overTheTopLogging) {
+									LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
+								}
 								tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
 								TableTVSeries.insertAPIMetadata(seriesMetadataFromAPI);
 							}

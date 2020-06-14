@@ -267,7 +267,7 @@ public class DVDISOTitle extends DLNAResource {
 			getMedia().setDuration(d);
 		}
 		getMedia().setFrameRate(fps);
-		getMedia().setAspectRatioDvdIso(Rational.valueOf(aspect));
+		getMedia().setAspectRatioDvdIso(aspect);
 		getMedia().setDvdtrack(title);
 		getMedia().setContainer(FormatConfiguration.ISO);
 		getMedia().setCodecV(codecV != null ? codecV : FormatConfiguration.MPEG2);

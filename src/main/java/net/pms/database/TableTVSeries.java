@@ -26,7 +26,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -246,10 +245,7 @@ public final class TableTVSeries extends Tables {
 			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						LOGGER.info("0 " + resultSet.toString());
-						return convertResultSetToList(resultSet);
-					}
+					return convertResultSetToList(resultSet);
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
@@ -297,6 +293,7 @@ public final class TableTVSeries extends Tables {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 
 		try (Connection connection = database.getConnection()) {
+			TABLE_LOCK.writeLock().lock();
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
@@ -308,7 +305,7 @@ public final class TableTVSeries extends Tables {
 				ResultSet.CONCUR_UPDATABLE
 			)) {
 				ps.setString(1, simplifiedTitle);
-				TABLE_LOCK.writeLock().lock();
+				LOGGER.trace("Inserting API metadata for " + simplifiedTitle + ": " + tvSeries.toString());
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
 						rs.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
