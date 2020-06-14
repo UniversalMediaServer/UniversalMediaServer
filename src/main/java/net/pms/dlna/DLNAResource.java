@@ -943,7 +943,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2 && renderer != null) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
-				String aspectRatio = media.getAspectRatioContainer().toAspectRatio();
+				String aspectRatio = media.getAspectRatioContainer();
 				if (
 					renderer.isKeepAspectRatio() &&
 					!"16:9".equals(aspectRatio)

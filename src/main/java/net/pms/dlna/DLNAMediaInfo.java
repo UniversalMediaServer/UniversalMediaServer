@@ -21,8 +21,6 @@ package net.pms.dlna;
 import com.google.gson.internal.LinkedTreeMap;
 import java.io.*;
 import java.nio.file.Files;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -52,7 +50,6 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.Rational;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import static net.pms.util.StringUtil.*;
@@ -167,7 +164,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String frameRate;
 
 	private String frameRateMode;
-	private Rational pixelAspectRatio;
+	private String pixelAspectRatio;
 	private ScanType scanType;
 	private ScanOrder scanOrder;
 
@@ -176,9 +173,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	private String frameRateModeRaw;
 	private String frameRateOriginal;
-	private Rational aspectRatioDvdIso;
-	private Rational aspectRatioContainer;
-	private Rational aspectRatioVideoTrack;
+	private String aspectRatioDvdIso;
+	private String aspectRatioContainer;
+	private String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 
 	private volatile DLNAThumbnail thumb = null;
@@ -1804,18 +1801,10 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(", Duration: ").append(getDurationString());
 			result.append(", Video Resolution: ").append(getWidth()).append(" x ").append(getHeight());
 			if (aspectRatioContainer != null) {
-				result.append(", Display Aspect Ratio: ").append(aspectRatioContainer.toAspectRatio());
+				result.append(", Display Aspect Ratio: ").append(getAspectRatioContainer());
 			}
-			if (pixelAspectRatio != null && !Rational.ONE.equals(pixelAspectRatio)) {
-				result.append(", Pixel Aspect Ratio: ");
-				if (pixelAspectRatio.isInteger()) {
-					result.append(pixelAspectRatio.toDebugString());
-				} else {
-					result.append(pixelAspectRatio.toDecimalString(
-						new DecimalFormat("#0.##", DecimalFormatSymbols.getInstance(Locale.ROOT))
-					));
-					result.append(" (").append(pixelAspectRatio.toString()).append(")");
-				}
+			if (!"1.000".equals(getPixelAspectRatio())) {
+				result.append(", Pixel Aspect Ratio: ").append(getPixelAspectRatio());
 			}
 			if (scanType != null) {
 				result.append(", Scan Type: ").append(getScanType());
@@ -1993,7 +1982,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String a = null;
 
 		if (aspectRatioDvdIso != null) {
-			double aspectRatio = aspectRatioDvdIso.doubleValue();
+			double aspectRatio = Double.parseDouble(aspectRatioDvdIso);;
 
 			if (aspectRatio > 1.7 && aspectRatio < 1.8) {
 				a = ratios ? "16/9" : "1.777777777777777";
@@ -2563,19 +2552,8 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * @return The pixel aspect ratio.
 	 */
-	public Rational getPixelAspectRatio() {
+	public String getPixelAspectRatio() {
 		return pixelAspectRatio;
-	}
-
-	/**
-	 * Sets the pixel aspect ratio by parsing the specified {@link String}.
-	 *
-	 * @param pixelAspectRatio the pixel aspect ratio to set.
-	 * @throws NumberFormatException If {@code pixelAspectRatio} cannot be
-	 *             parsed.
-	 */
-	public void setPixelAspectRatio(String pixelAspectRatio) {
-		setPixelAspectRatio(Rational.valueOf(pixelAspectRatio));
 	}
 
 	/**
@@ -2583,12 +2561,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param pixelAspectRatio the pixel aspect ratio to set.
 	 */
-	public void setPixelAspectRatio(Rational pixelAspectRatio) {
-		if (Rational.isNotBlank(pixelAspectRatio)) {
-			this.pixelAspectRatio = pixelAspectRatio;
-		} else {
-			this.pixelAspectRatio = null;
-		}
+	public void setPixelAspectRatio(String pixelAspectRatio) {
+		this.pixelAspectRatio = pixelAspectRatio;
 	}
 
 	/**
@@ -2650,7 +2624,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public String getAspect() {
-		return getAspectRatioDvdIso().toAspectRatio();
+		return getAspectRatioDvdIso();
 	}
 
 	/**
@@ -2659,29 +2633,15 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the aspect
 	 * @since 1.50.0
 	 */
-	public Rational getAspectRatioDvdIso() {
+	public String getAspectRatioDvdIso() {
 		return aspectRatioDvdIso;
 	}
-
 	/**
-	 * @deprecated use setAspectRatioDvdIso() for the original
-	 * functionality of this method, or use setAspectRatioContainer() for a
-	 * better default method to set aspect ratios.
-	 */
-	public void setAspectRatioDvdIso(String aspectRatio) {
-		setAspectRatioDvdIso(Rational.valueOf(aspectRatio));
-	}
-
-	/**
-	 * @param aspect the aspect to set
+	 * @param aspectRatio the aspect to set
 	 * @since 1.50.0
 	 */
-	public void setAspectRatioDvdIso(Rational aspectRatio) {
-		if (Rational.isNotBlank(aspectRatio)) {
-			aspectRatioDvdIso = aspectRatio;
-		} else {
-			aspectRatioDvdIso = null;
-		}
+	public void setAspectRatioDvdIso(String aspectRatio) {
+		this.aspectRatioDvdIso = aspectRatio;
 	}
 
 	/**
@@ -2691,18 +2651,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @return the aspect ratio reported by the file/container
 	 */
-	public Rational getAspectRatioContainer() {
+	public String getAspectRatioContainer() {
 		return aspectRatioContainer;
-	}
-
-	/**
-	 * Set the aspect ratio reported by the file/container.
-	 *
-	 * @see #getAspectRatioContainer()
-	 * @param aspect the aspect ratio to set
-	 */
-	public void setAspectRatioContainer(String aspectRatio) {
-		setAspectRatioContainer(Rational.valueOf(aspectRatio));
 	}
 
 	/**
@@ -2710,12 +2660,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param aspectRatio the aspect ratio to set.
 	 */
-	public void setAspectRatioContainer(Rational aspectRatio) {
-		if (Rational.isNotBlank(aspectRatio)) {
-			aspectRatioContainer = aspectRatio;
-		} else {
-			aspectRatioContainer = null;
-		}
+	public void setAspectRatioContainer(String aspectRatio) {
+		this.aspectRatioContainer = getFormattedAspectRatio(aspectRatio);
 	}
 
 	/**
@@ -2726,29 +2672,94 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @return the aspect ratio of the video track
 	 */
-	public Rational getAspectRatioVideoTrack() {
+	public String getAspectRatioVideoTrack() {
 		return aspectRatioVideoTrack;
 	}
 
 	/**
-	 * @param aspect the aspect ratio to set
+	 * @param aspectRatio the aspect ratio to set
 	 */
 	public void setAspectRatioVideoTrack(String aspectRatio) {
-		setAspectRatioVideoTrack(Rational.valueOf(aspectRatio));
+		this.aspectRatioVideoTrack = getFormattedAspectRatio(aspectRatio);
 	}
-
+	
 	/**
-	 * Make sure the aspect ratio is formatted, e.g. 16:9 not 1.78
+	 * This takes an exact aspect ratio, and returns the closest common aspect
+	 * ratio to that, so that e.g. 720x416 and 720x420 are the same.
 	 *
-	 * @param aspect the possibly-unformatted aspect ratio
-	 *
-	 * @return the formatted aspect ratio or null
+	 * @param aspect
+	 * @return an approximate aspect ratio
 	 */
-	public void setAspectRatioVideoTrack(Rational aspectRatio) {
-		if (Rational.isNotBlank(aspectRatio)) {
-			aspectRatioVideoTrack = aspectRatio;
+	public String getFormattedAspectRatio(String aspect) {
+		if (isBlank(aspect)) {
+			return null;
+		}
+
+		if (aspect.contains(":")) {
+			return aspect;
+		}
+
+		double exactAspectRatio = Double.parseDouble(aspect);
+		if (exactAspectRatio >= 11.9 && exactAspectRatio <= 12.1) {
+			return "12.00:1";
+		} else if (exactAspectRatio >= 3.9 && exactAspectRatio <= 4.1) {
+			return "4.00:1";
+		} else if (exactAspectRatio >= 2.75 && exactAspectRatio <= 2.77) {
+			return "2.76:1";
+		} else if (exactAspectRatio >= 2.65 && exactAspectRatio <= 2.67) {
+			return "24:9";
+		} else if (exactAspectRatio >= 2.58 && exactAspectRatio <= 2.6) {
+			return "2.59:1";
+		} else if (exactAspectRatio >= 2.54  && exactAspectRatio <= 2.56) {
+			return "2.55:1";
+		} else if (exactAspectRatio >= 2.38 && exactAspectRatio <= 2.41) {
+			return "2.39:1";
+		} else if (exactAspectRatio > 2.36 && exactAspectRatio < 2.38) {
+			return "2.37:1";
+		} else if (exactAspectRatio >= 2.34 && exactAspectRatio <= 2.36) {
+			return "2.35:1";
+		} else if (exactAspectRatio >= 2.33 && exactAspectRatio < 2.34) {
+			return "21:9";
+		} else if (exactAspectRatio > 2.1  && exactAspectRatio < 2.3) {
+			return "11:5";
+		} else if (exactAspectRatio > 1.9 && exactAspectRatio < 2.1) {
+			return "2.00:1";
+		} else if (exactAspectRatio > 1.87  && exactAspectRatio <= 1.9) {
+			return "1.896:1";
+		} else if (exactAspectRatio >= 1.83 && exactAspectRatio <= 1.87) {
+			return "1.85:1";
+		} else if (exactAspectRatio >= 1.7 && exactAspectRatio <= 1.8) {
+			return "16:9";
+		} else if (exactAspectRatio >= 1.65 && exactAspectRatio <= 1.67) {
+			return "15:9";
+		} else if (exactAspectRatio >= 1.59 && exactAspectRatio <= 1.61) {
+			return "16:10";
+		} else if (exactAspectRatio >= 1.54 && exactAspectRatio <= 1.56) {
+			return "14:9";
+		} else if (exactAspectRatio >= 1.49 && exactAspectRatio <= 1.51) {
+			return "3:2";
+		} else if (exactAspectRatio > 1.42 && exactAspectRatio < 1.44) {
+			return "1.43:1";
+		} else if (exactAspectRatio > 1.372 && exactAspectRatio < 1.4) {
+			return "11:8";
+		} else if (exactAspectRatio > 1.35 && exactAspectRatio <= 1.372) {
+			return "1.37:1";
+		} else if (exactAspectRatio >= 1.3 && exactAspectRatio <= 1.35) {
+			return "4:3";
+		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+			return "5:4";
+		} else if (exactAspectRatio >= 1.18 && exactAspectRatio <= 1.195) {
+			return "19:16";
+		} else if (exactAspectRatio > 0.99 && exactAspectRatio < 1.1) {
+			return "1:1";
+		} else if (exactAspectRatio > 0.7 && exactAspectRatio < 0.9) {
+			return "4:5";
+		} else if (exactAspectRatio > 0.6 && exactAspectRatio < 0.7) {
+			return "2:3";
+		} else if (exactAspectRatio > 0.5 && exactAspectRatio < 0.6) {
+			return "9:16";
 		} else {
-			aspectRatioVideoTrack = null;
+			return aspect;
 		}
 	}
 

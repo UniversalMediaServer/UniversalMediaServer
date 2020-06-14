@@ -34,7 +34,6 @@ import net.pms.database.Tables;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageInfo;
-import net.pms.util.Rational;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import static net.pms.database.Tables.sqlLikeEscape;
@@ -99,8 +98,9 @@ public class DLNAMediaDatabase implements Runnable {
 	 * - 22: No db changes, bumped version because h2database was reverted
 	 *       to 1.4.196 because 1.4.197 broke audio metadata being
 	 *       inserted/updated
+	 * - 23: Store aspect ratios as strings again
 	 */
-	private final int latestVersion = 22;
+	private final int latestVersion = 23;
 
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
@@ -323,9 +323,9 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", SIZE                    NUMERIC");
 				sb.append(", CODECV                  VARCHAR2(").append(SIZE_CODECV).append(')');
 				sb.append(", FRAMERATE               VARCHAR2(").append(SIZE_FRAMERATE).append(')');
-				sb.append(", ASPECTRATIODVD          OTHER");
-				sb.append(", ASPECTRATIOCONTAINER    OTHER");
-				sb.append(", ASPECTRATIOVIDEOTRACK   OTHER");
+				sb.append(", ASPECTRATIODVD          VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", REFRAMES                TINYINT");
 				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
 				sb.append(", IMAGEINFO               OTHER");
@@ -339,7 +339,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", VIDEOTRACKCOUNT         INT");
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
-				sb.append(", PIXELASPECTRATIO        OTHER");
+				sb.append(", PIXELASPECTRATIO        VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", SCANTYPE                OTHER");
 				sb.append(", SCANORDER               OTHER");
 				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
@@ -597,9 +597,9 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setSize(rs.getLong("SIZE"));
 					media.setCodecV(rs.getString("CODECV"));
 					media.setFrameRate(rs.getString("FRAMERATE"));
-					media.setAspectRatioDvdIso((Rational) rs.getObject("ASPECTRATIODVD"));
-					media.setAspectRatioContainer((Rational) rs.getObject("ASPECTRATIOCONTAINER"));
-					media.setAspectRatioVideoTrack((Rational) rs.getObject("ASPECTRATIOVIDEOTRACK"));
+					media.setAspectRatioDvdIso(rs.getString("ASPECTRATIODVD"));
+					media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
+					media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
 					media.setReferenceFrameCount(rs.getByte("REFRAMES"));
 					media.setAvcLevel(rs.getString("AVCLEVEL"));
 					media.setImageInfo((ImageInfo) rs.getObject("IMAGEINFO"));
@@ -614,7 +614,7 @@ public class DLNAMediaDatabase implements Runnable {
 					media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
 					media.setImageCount(rs.getInt("IMAGECOUNT"));
 					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
-					media.setPixelAspectRatio((Rational) rs.getObject("PIXELASPECTRATIO"));
+					media.setPixelAspectRatio(rs.getString("PIXELASPECTRATIO"));
 					media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
 					media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
 					media.setIMDbID(rs.getString("IMDBID"));
@@ -959,9 +959,9 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateLong("SIZE", media.getSize());
 							rs.updateString("CODECV", left(media.getCodecV(), SIZE_CODECV));
 							rs.updateString("FRAMERATE", left(media.getFrameRate(), SIZE_FRAMERATE));
-							updateSerialized(rs, media.getAspectRatioDvdIso(), "ASPECTRATIODVD");
-							updateSerialized(rs, media.getAspectRatioContainer(), "ASPECTRATIOCONTAINER");
-							updateSerialized(rs, media.getAspectRatioVideoTrack(), "ASPECTRATIOVIDEOTRACK");
+							rs.updateString("ASPECTRATIODVD", left(media.getAspectRatioDvdIso(), SIZE_MAX));
+							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_MAX));
+							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_MAX));
 							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
 							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVC_LEVEL));
 							updateSerialized(rs, media.getImageInfo(), "IMAGEINFO");
@@ -980,7 +980,7 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateInt("VIDEOTRACKCOUNT", media.getVideoTrackCount());
 							rs.updateInt("IMAGECOUNT", media.getImageCount());
 							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
-							updateSerialized(rs, media.getPixelAspectRatio(), "PIXELASPECTRATIO");
+							rs.updateString("PIXELASPECTRATIO", left(media.getPixelAspectRatio(), SIZE_MAX));
 							updateSerialized(rs, media.getScanType(), "SCANTYPE");
 							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
 							rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
@@ -1038,9 +1038,9 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setLong(++databaseColumnIterator, media.getSize());
 						ps.setString(++databaseColumnIterator, left(media.getCodecV(), SIZE_CODECV));
 						ps.setString(++databaseColumnIterator, left(media.getFrameRate(), SIZE_FRAMERATE));
-						insertSerialized(ps, media.getAspectRatioDvdIso(), ++databaseColumnIterator);
-						insertSerialized(ps, media.getAspectRatioContainer(), ++databaseColumnIterator);
-						insertSerialized(ps, media.getAspectRatioVideoTrack(), ++databaseColumnIterator);
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_MAX));
 						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
 						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
 						if (media.getImageInfo() != null) {
@@ -1058,7 +1058,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(++databaseColumnIterator, media.getVideoTrackCount());
 						ps.setInt(++databaseColumnIterator, media.getImageCount());
 						ps.setInt(++databaseColumnIterator, media.getVideoBitDepth());
-						insertSerialized(ps, media.getPixelAspectRatio(), ++databaseColumnIterator);
+						ps.setString(++databaseColumnIterator, left(media.getPixelAspectRatio(), SIZE_MAX));
 						insertSerialized(ps, media.getScanType(), ++databaseColumnIterator);
 						insertSerialized(ps, media.getScanOrder(), ++databaseColumnIterator);
 						ps.setString(++databaseColumnIterator, left(media.getIMDbID(), SIZE_IMDBID));
@@ -1094,7 +1094,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
-						ps.setNull(++databaseColumnIterator, Types.OTHER);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.OTHER);
 						ps.setNull(++databaseColumnIterator, Types.OTHER);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
