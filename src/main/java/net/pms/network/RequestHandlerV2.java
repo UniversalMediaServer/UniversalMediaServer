@@ -420,9 +420,8 @@ public class RequestHandlerV2 extends SimpleChannelInboundHandler<FullHttpReques
 	}
 
 	private boolean isLocalClingRequest(InetAddress ia, String userAgent) {
-		return userAgent != null &&
-			userAgent.contains("UMS/") &&
-			userAgent.contains("Cling/") &&
+		// FIXME: this would also block an external cling-based client running on the same host
+		return userAgent != null && userAgent.contains("Cling/") &&
 			ia.getHostAddress().equals(PMS.get().getServer().getHost());
 	}
 
