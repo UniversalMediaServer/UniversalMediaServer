@@ -6,6 +6,8 @@
 		Improved support for web interface on iOS (thanks, Jeff Puls!)
 	Renderers:
 		Updated support for external subtitles on VLC for Desktop (thanks, JuanPZ!)
+	Translation updates via Crowdin:
+		Russian (94%)
 	Dependency updates:
 		netty from 4.1.50 to 3.10.6
 
