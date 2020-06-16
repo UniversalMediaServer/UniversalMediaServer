@@ -96,7 +96,32 @@ public class RemoteBrowseHandler implements HttpHandler {
 		) {
 			DLNAResource thisResourceFromResources = resources.get(0).getParent();
 			String thisName = thisResourceFromResources.getDisplayName();
+			// the Web Interface is displaying TV Series in the Media Library
+		    if (thisName.equals(Messages.getString("VirtualFolder.4"))) {
+				for (DLNAResource resource : resources) {
+					// find TV Series folders
+					if (resource instanceof MediaLibraryFolder) {
+						String newId = resource.getResourceId();
+						String idForWeb = URLEncoder.encode(newId, "UTF-8");
+						HashMap<String, String> item = new HashMap<>();
+						String thumb = "/thumb/" + idForWeb;
+						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
+						StringBuilder thumbHTML = new StringBuilder();
+						// TODO get the new metadata poster URL's in a performant way for each folder
+						thumbHTML.append("<a href=\"/browse/").append(idForWeb)
+						.append("\" title=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("</a>");
 
+						item.put("thumb", thumbHTML.toString());
+						// TODO work out what bump is and why it is a required Handlebars var
+						item.put("bump", "");
+						item.put("caption", resource.getDisplayName());
+						media.add(item);
+						hasFile = true;
+					}
+				}
+			}
 			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
 			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 				thisResourceFromResources = thisResourceFromResources.getParent();
@@ -246,8 +271,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			}
 		}
 
-		mustacheVars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
-			StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
+		mustacheVars.put("name", folderName);
 		mustacheVars.put("hasFile", hasFile);
 		mustacheVars.put("folders", folders);
 		mustacheVars.put("media", media);
