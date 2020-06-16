@@ -424,9 +424,21 @@ public class UPNPHelper extends UPNPControl {
 			@Override
 			public void run() {
 				boolean bindErrorReported = false;
-
 				while (true) {
 					MulticastSocket multicastSocket = null;
+					SocketAddress sa = null;
+					try {
+						sa = new InetSocketAddress(getUPNPAddress(), UPNP_PORT);
+					} catch (IOException e1) {
+						LOGGER.trace(e1.getMessage());
+					}
+
+					NetworkInterface ni = null;
+					try {
+						ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+					} catch (SocketException | UnknownHostException e2) {
+						LOGGER.trace(e2.getMessage());
+					}
 
 					try {
 						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
@@ -435,8 +447,6 @@ public class UPNPHelper extends UPNPControl {
 						if (bindErrorReported) {
 							LOGGER.warn("Finally, acquiring port {} was successful!", configuration.getUpnpPort());
 						}
-
-						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
 						try {
 							/**
@@ -448,8 +458,9 @@ public class UPNPHelper extends UPNPControl {
 								multicastSocket.setNetworkInterface(ni);
 								LOGGER.trace("Setting multicast network interface: {}", ni);
 							} else if (PMS.get().getServer().getNetworkInterface() != null) {
-								multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-								LOGGER.trace("Setting multicast network interface: {}", PMS.get().getServer().getNetworkInterface());
+								ni = PMS.get().getServer().getNetworkInterface();
+								multicastSocket.setNetworkInterface(ni);
+								LOGGER.trace("Setting multicast network interface: {}", ni);
 							}
 						} catch (SocketException e) {
 							// Not setting the network interface will work just fine on Mac OS X.
@@ -457,8 +468,7 @@ public class UPNPHelper extends UPNPControl {
 
 						multicastSocket.setTimeToLive(4);
 						multicastSocket.setReuseAddress(true);
-						InetAddress upnpAddress = getUPNPAddress();
-						multicastSocket.joinGroup(upnpAddress);
+						multicastSocket.joinGroup(sa, ni);
 
 						final int M_SEARCH = 1;
 						final int NOTIFY = 2;
@@ -530,8 +540,7 @@ public class UPNPHelper extends UPNPControl {
 						if (multicastSocket != null) {
 							// Clean up the multicast socket nicely
 							try {
-								InetAddress upnpAddress = getUPNPAddress();
-								multicastSocket.leaveGroup(upnpAddress);
+								multicastSocket.leaveGroup(sa, ni);
 							} catch (IOException e) {
 								LOGGER.trace("Final UPnP network exception: {}", e.getMessage());
 								LOGGER.trace("", e);
