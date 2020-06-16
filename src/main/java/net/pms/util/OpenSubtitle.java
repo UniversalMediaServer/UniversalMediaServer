@@ -5028,7 +5028,7 @@ public class OpenSubtitle {
 							if (seriesMetadataFromDatabase == null) {
 								// No title match, so let's make a new entry
 								if (overTheTopLogging) {
-									LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromDatabase.get("TITLE"));
+									LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
 								}
 								tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
 							} else {
