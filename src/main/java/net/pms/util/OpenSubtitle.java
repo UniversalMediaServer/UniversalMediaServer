@@ -80,6 +80,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -102,6 +103,7 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.newgui.IFrame;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
 import net.pms.util.XMLRPCUtil.MemberInt;
@@ -114,12 +116,7 @@ import net.pms.util.XMLRPCUtil.ValueString;
 import net.pms.util.XMLRPCUtil.ValueStruct;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import org.apache.commons.text.StringEscapeUtils;
-import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -170,6 +167,8 @@ public class OpenSubtitle {
 	// Do not instantiate
 	private OpenSubtitle() {
 	}
+
+	private static IFrame frame = PMS.get().getFrame();
 
 	/**
 	 * Gets the <a href=
@@ -4887,6 +4886,7 @@ public class OpenSubtitle {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
+				frame.setStatusLine(Messages.getString("StatusBar.GettingAPIInfoFor") + " " + file.getName());
 				HashMap metadataFromAPI;
 				try {
 					String yearFromFilename            = media.getYear();
@@ -5158,6 +5158,7 @@ public class OpenSubtitle {
 				} catch (IOException | SQLException ex) {
 					LOGGER.trace("Error in API parsing:", ex);
 				}
+				frame.setStatusLine("");
 			}
 		};
 		backgroundExecutor.execute(r);
