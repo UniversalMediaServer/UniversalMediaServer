@@ -20,7 +20,6 @@
 
 package net.pms.configuration;
 
-import com.sun.jna.Platform;
 import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 
