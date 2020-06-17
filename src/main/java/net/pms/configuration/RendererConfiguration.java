@@ -2457,7 +2457,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param subtitle Subtitles for checking
 	 * @param media Played media
 	 * @param dlna
-	 * @return True if the renderer specifies support for the subtitles and
+	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
 	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media, DLNAResource dlna) {
@@ -2475,7 +2475,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 
-		LOGGER.trace("Checking whether the video bit depth matches any 'se' entries in the 'Supported' lines");
+		LOGGER.trace("Checking whether the external subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " matches any 'se' entries in the 'Supported' lines");
 		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
 	}
 
@@ -2483,7 +2483,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Check if the internal subtitle type is supported by renderer.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @return True if the renderer specifies support for the subtitles
+	 * @return whether the renderer specifies support for the subtitles
 	 */
 	public boolean isEmbeddedSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
 		if (subtitle == null) {
@@ -2944,7 +2944,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 
-		LOGGER.trace("Checking whether the video bit depth matches any 'vbd' entries in the 'Supported' lines");
+		LOGGER.trace("Checking whether the video bit depth " + (videoBitDepth != null ? videoBitDepth : "null") + " matches any 'vbd' entries in the 'Supported' lines");
 		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
 	}
 
