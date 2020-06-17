@@ -1,0 +1,16 @@
+[INFORMATION] <-- beginning of optional info section, closing tag required
+[TITLE] Title of film.
+[AUTHOR] Author of film.
+[SOURCE] Arbitrary text
+[FILEPATH] Arbitrary text
+[DELAY]    (time in frames to delay all subtitles
+[COMMENT]  Arbitrary text
+[END INFORMATION]
+[SUBTITLE]   <-- beginning of subtitle section, no closing tag required.
+[COLF]&HFFFFFF,[SIZE]12,[FONT]Times New Roman
+00:01:00.10,00:02:00.20
+Oh, no.
+The eggs are hatching!
+
+00:02:00.30,00:03:00.40
+No, never mind, I was hallucinating.

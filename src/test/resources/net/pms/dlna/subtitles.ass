@@ -1,0 +1,23 @@
+[Script Info]
+Title:
+Original Script:
+Original Translation:
+Original Editing:
+Original Timing:
+Original Script Checking:
+Synch Point:
+Script Updated By:
+Update Details:
+ScriptType: v4.00
+Collisions: Normal
+PlayResY: 864
+PlayDepth: 0
+Timer: 100.0000
+
+[V4 Styles]
+(Format: "Style: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, TertiaryColour, BackColour, Bold, Italic, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding")
+Style: Default,Arial,20,65535,65535,65535,-2147483640,-1,0,1,3,0,2,30,30,30,0,0
+
+[Events]
+(Format: "Dialogue: Marked, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text")
+Dialogue: Marked=0,0:02:32.85,0:02:34.33,*Default,1,0000,0000,0000,,Oh no! The eggs are hatching!

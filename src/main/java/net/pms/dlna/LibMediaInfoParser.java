@@ -553,7 +553,6 @@ public class LibMediaInfoParser {
 	 * @param audio
 	 * @param value
 	 * @param file
-	 * @todo Rename to something like setFormat - this is not a getter.
 	 * @todo Split the values by streamType to make the logic more clear
 	 *       with less negative statements.
 	 */

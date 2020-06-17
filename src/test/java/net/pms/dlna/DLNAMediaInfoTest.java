@@ -39,6 +39,14 @@ public class DLNAMediaInfoTest {
 		"video-h264-heaac.mp4",
 		"video-h264-eac3.mkv",
 		"audio-flac24.flac",
+		"subtitles.ass",
+		"subtitles.smi",
+		"subtitles.srt",
+		"subtitles-microdvd.sub",
+		"subtitles-subviewer.sub",
+		"subtitles-subviewer-v2.sub",
+		"subtitles-vobsub.idx",
+		"subtitles-vobsub.sub",
 	};
 
 	@Test
@@ -193,6 +201,46 @@ public class DLNAMediaInfoTest {
 				case 20:
 					assertThat(mediaInfo.toString()).isEqualTo(
 						"Container: FLAC, Size: 3208022, Overall Bitrate: 1231959, Bitrate: 1231959, Duration: 0:00:20.832, Audio Tracks: 1 [Audio Codec: FLAC, Bitrate: 1231916, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: audio/x-flac"
+					);
+					break;
+				case 21:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: ASS, Size: 774, Overall Bitrate: 0, Mime Type: video/mpeg"
+					);
+					break;
+				case 22:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: UND, Size: 286, Overall Bitrate: 0, Mime Type: video/mpeg"
+					);
+					break;
+				case 23:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: SRT, Size: 1407, Overall Bitrate: 0, Mime Type: video/mpeg"
+					);
+					break;
+				case 24:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: UND, Size: 97, Overall Bitrate: 0, Mime Type: video/mpeg"
+					);
+					break;
+				case 25:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: UND, Size: 517, Overall Bitrate: 0, Mime Type: video/mpeg"
+					);
+					break;
+				case 26:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: UND, Size: 519, Overall Bitrate: 0, Mime Type: video/mpeg"
+					);
+					break;
+				case 27:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: UND, Size: 6339, Overall Bitrate: 0, Mime Type: video/mpeg"
+					);
+					break;
+				case 28:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MPEGPS, Size: 423936, Overall Bitrate: 5874, Mime Type: video/mpeg"
 					);
 					break;
 				default:
