@@ -217,12 +217,14 @@ public class UPNPHelper extends UPNPControl {
 		LOGGER.debug("Sending ALIVE...");
 		MulticastSocket multicastSocket = null;
 		SocketAddress sa = null;
-		NetworkInterface ni = null;
+		NetworkInterface ni = PMS.get().getServer().getNetworkInterface();
+		try {
+			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+		} catch (IOException e1) {
+		}
 
 		try {
 			multicastSocket = getNewMulticastSocket();
-			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-			ni = PMS.get().getServer().getNetworkInterface();
 			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
@@ -234,8 +236,6 @@ public class UPNPHelper extends UPNPControl {
 			if (multicastSocket != null) {
 				// Clean up the multicast socket nicely
 				try {
-					sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-					ni = PMS.get().getServer().getNetworkInterface();
 					multicastSocket.leaveGroup(sa, ni);
 				} catch (IOException e) {
 				}
@@ -316,12 +316,15 @@ public class UPNPHelper extends UPNPControl {
 
 		MulticastSocket multicastSocket = null;
 		SocketAddress sa = null;
-		NetworkInterface ni = null;
+		NetworkInterface ni = PMS.get().getServer().getNetworkInterface();
+		try {
+			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+		} catch (IOException e1) {
+			LOGGER.debug("Error sending BYEBYE message", e1);
+		}
 
 		try {
 			multicastSocket = getNewMulticastSocket();
-			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-			ni = PMS.get().getServer().getNetworkInterface();
 			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
@@ -333,8 +336,6 @@ public class UPNPHelper extends UPNPControl {
 			if (multicastSocket != null) {
 				// Clean up the multicast socket nicely
 				try {
-					sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-					ni = PMS.get().getServer().getNetworkInterface();
 					multicastSocket.leaveGroup(sa, ni);
 				} catch (IOException e) {
 				}
