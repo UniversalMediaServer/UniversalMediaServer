@@ -216,11 +216,14 @@ public class UPNPHelper extends UPNPControl {
 	public static void sendAlive() {
 		LOGGER.debug("Sending ALIVE...");
 		MulticastSocket multicastSocket = null;
+		SocketAddress sa = null;
+		NetworkInterface ni = null;
 
 		try {
 			multicastSocket = getNewMulticastSocket();
-			InetAddress upnpAddress = getIPv4MulticastAddress();
-			multicastSocket.joinGroup(upnpAddress);
+			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+			ni = PMS.get().getServer().getNetworkInterface();
+			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
 				sendMessage(multicastSocket, NT, ALIVE);
@@ -231,8 +234,9 @@ public class UPNPHelper extends UPNPControl {
 			if (multicastSocket != null) {
 				// Clean up the multicast socket nicely
 				try {
-					InetAddress upnpAddress = getIPv4MulticastAddress();
-					multicastSocket.leaveGroup(upnpAddress);
+					sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+					ni = PMS.get().getServer().getNetworkInterface();
+					multicastSocket.leaveGroup(sa, ni);
 				} catch (IOException e) {
 				}
 
@@ -311,11 +315,14 @@ public class UPNPHelper extends UPNPControl {
 		LOGGER.debug("Sending BYEBYE...");
 
 		MulticastSocket multicastSocket = null;
+		SocketAddress sa = null;
+		NetworkInterface ni = null;
 
 		try {
 			multicastSocket = getNewMulticastSocket();
-			InetAddress upnpAddress = getIPv4MulticastAddress();
-			multicastSocket.joinGroup(upnpAddress);
+			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+			ni = PMS.get().getServer().getNetworkInterface();
+			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
 				sendMessage(multicastSocket, NT, BYEBYE, true);
@@ -326,8 +333,9 @@ public class UPNPHelper extends UPNPControl {
 			if (multicastSocket != null) {
 				// Clean up the multicast socket nicely
 				try {
-					InetAddress upnpAddress = getIPv4MulticastAddress();
-					multicastSocket.leaveGroup(upnpAddress);
+					sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+					ni = PMS.get().getServer().getNetworkInterface();
+					multicastSocket.leaveGroup(sa, ni);
 				} catch (IOException e) {
 				}
 
