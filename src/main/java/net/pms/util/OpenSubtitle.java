@@ -29,6 +29,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,6 +87,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.TableFailedLookups;
 import net.pms.database.TableTVSeries;
+import net.pms.database.TableThumbnails;
 import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataAwards;
 import net.pms.database.TableVideoMetadataCountries;
@@ -99,10 +101,13 @@ import net.pms.database.TableVideoMetadataReleased;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.newgui.IFrame;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
@@ -154,6 +159,8 @@ public class OpenSubtitle {
 	);
 
 	private static Gson gson = new Gson();
+
+	private static final UriFileRetriever uriFileRetriever = new UriFileRetriever();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
@@ -5109,7 +5116,25 @@ public class OpenSubtitle {
 					media.setIMDbID((String) metadataFromAPI.get("imdbID"));
 					media.setMetascore((String) metadataFromAPI.get("metascore"));
 					media.setProduction((String) metadataFromAPI.get("production"));
-					media.setPoster((String) metadataFromAPI.get("poster"));
+
+					if (metadataFromAPI.get("poster") != null) {
+						media.setPoster((String) metadataFromAPI.get("poster"));
+						byte[] image = uriFileRetriever.get(media.getPoster());
+						try {
+							media.setThumb(DLNAThumbnail.toThumbnail(image, 320, 180, ScaleType.MAX, ImageFormat.JPEG, false));
+						} catch (EOFException e) {
+							LOGGER.debug(
+								"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
+								file.getName()
+							);
+						} catch (UnknownFormatException e) {
+							LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+						} catch (IOException e) {
+							LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+							LOGGER.trace("", e);
+						}
+					}
+
 					media.setRated((String) metadataFromAPI.get("rated"));
 					if (metadataFromAPI.get("rating") != null) {
 						media.setRating(Double.toString((Double) metadataFromAPI.get("rating")));
@@ -5143,6 +5168,10 @@ public class OpenSubtitle {
 					if (configuration.getUseCache()) {
 						LOGGER.trace("setting metadata for " + file.getName());
 						PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+
+						if (media.getThumb() != null) {
+							TableThumbnails.setThumbnail(media.getThumb(), file.getAbsolutePath());
+						}
 
 						TableVideoMetadataActors.set(file.getAbsolutePath(), media.getActors(), -1);
 						TableVideoMetadataAwards.set(file.getAbsolutePath(), media.getAwards(), -1);
