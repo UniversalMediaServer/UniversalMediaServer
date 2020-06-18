@@ -5186,8 +5186,9 @@ public class OpenSubtitle {
 					}
 				} catch (IOException | SQLException ex) {
 					LOGGER.trace("Error in API parsing:", ex);
+				} finally {
+					frame.setStatusLine("");
 				}
-				frame.setStatusLine("");
 			}
 		};
 		backgroundExecutor.execute(r);
