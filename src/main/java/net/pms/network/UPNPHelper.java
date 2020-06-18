@@ -609,7 +609,7 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
-	 * Gets the IPv4 multicast channel Address.
+	 * Gets the IPv4 multicast channel address.
 	 *
 	 * @return the UPnP address
 	 * @throws IOException Signals that an I/O exception has occurred.
