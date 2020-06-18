@@ -219,7 +219,7 @@ public class UPNPHelper extends UPNPControl {
 
 		try {
 			multicastSocket = getNewMulticastSocket();
-			InetAddress upnpAddress = getUPNPAddress();
+			InetAddress upnpAddress = getIPv4MulticastAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
 			for (String NT: NT_LIST) {
@@ -231,7 +231,7 @@ public class UPNPHelper extends UPNPControl {
 			if (multicastSocket != null) {
 				// Clean up the multicast socket nicely
 				try {
-					InetAddress upnpAddress = getUPNPAddress();
+					InetAddress upnpAddress = getIPv4MulticastAddress();
 					multicastSocket.leaveGroup(upnpAddress);
 				} catch (IOException e) {
 				}
@@ -314,7 +314,7 @@ public class UPNPHelper extends UPNPControl {
 
 		try {
 			multicastSocket = getNewMulticastSocket();
-			InetAddress upnpAddress = getUPNPAddress();
+			InetAddress upnpAddress = getIPv4MulticastAddress();
 			multicastSocket.joinGroup(upnpAddress);
 
 			for (String NT: NT_LIST) {
@@ -326,7 +326,7 @@ public class UPNPHelper extends UPNPControl {
 			if (multicastSocket != null) {
 				// Clean up the multicast socket nicely
 				try {
-					InetAddress upnpAddress = getUPNPAddress();
+					InetAddress upnpAddress = getIPv4MulticastAddress();
 					multicastSocket.leaveGroup(upnpAddress);
 				} catch (IOException e) {
 				}
@@ -377,7 +377,7 @@ public class UPNPHelper extends UPNPControl {
 
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
 
-		InetAddress upnpAddress = getUPNPAddress();
+		InetAddress upnpAddress = getIPv4MulticastAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
 
 		/**
@@ -428,7 +428,7 @@ public class UPNPHelper extends UPNPControl {
 					MulticastSocket multicastSocket = null;
 					SocketAddress sa = null;
 					try {
-						sa = new InetSocketAddress(getUPNPAddress(), UPNP_PORT);
+						sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
 					} catch (IOException e1) {
 						LOGGER.trace(e1.getMessage());
 					}
@@ -609,12 +609,12 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
-	 * Gets the UPnP address.
+	 * Gets the IPv4 multicast channel Address.
 	 *
 	 * @return the UPnP address
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static InetAddress getUPNPAddress() throws IOException {
+	private static InetAddress getIPv4MulticastAddress() throws IOException {
 		return InetAddress.getByName(IPV4_UPNP_HOST);
 	}
 
