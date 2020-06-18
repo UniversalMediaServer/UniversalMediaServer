@@ -74,39 +74,8 @@ public class UriFileRetriever {
 	}
 
 	/**
-	 * Sends a POST request to an external server.
-	 *
-	 * @param uri The URI of the external server file.
-	 * @param params the data to send
-	 *
-	 * @return the response from the server
-	 *
-	 * @throws IOException
-	 */
-	public byte[] post(String uri, List<NameValuePair> params) throws IOException {
-		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
-			httpclient.start();
-			HttpPost request = new HttpPost(uri);
-
-			request.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-
-			Future<HttpResponse> future = httpclient.execute(request, null);
-			HttpResponse response = future.get();
-			int statusCode = response.getStatusLine().getStatusCode();
-
-			if (statusCode != HttpStatus.SC_OK) {
-				throw new IOException("HTTP response not OK");
-			}
-
-			return IOUtils.toByteArray(response.getEntity().getContent());
-		} catch (InterruptedException | ExecutionException e) {
-			throw new IOException("Unable to download by HTTP" + e.getMessage());
-		}
-	}
-
-	/**
 	 * Download the file from the external server and store it at the defined path.
-	 * 
+	 *
 	 * @param uri The URI of the external server file.
 	 * @param file The path to store downloaded file.
 	 * @param callback The calling class which will be informed about
@@ -115,10 +84,9 @@ public class UriFileRetriever {
 	 * @throws Exception
 	 */
 	public void getFile(URI uri, File file, UriRetrieverCallback callback) throws Exception {
-		try  (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
+		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
 			httpclient.start();
 			ZeroCopyConsumerWithCallback<File> consumer = new ZeroCopyConsumerWithCallback<File>(file, uri.toString(), callback) {
-
 				@Override
 				protected File process(
 					final HttpResponse response,
