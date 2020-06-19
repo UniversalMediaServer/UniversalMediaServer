@@ -5117,11 +5117,12 @@ public class OpenSubtitle {
 					media.setMetascore((String) metadataFromAPI.get("metascore"));
 					media.setProduction((String) metadataFromAPI.get("production"));
 
+					// Set the poster as the thumbnail
 					if (metadataFromAPI.get("poster") != null) {
 						media.setPoster((String) metadataFromAPI.get("poster"));
 						byte[] image = uriFileRetriever.get(media.getPoster());
 						try {
-							media.setThumb(DLNAThumbnail.toThumbnail(image, 320, 180, ScaleType.MAX, ImageFormat.JPEG, false));
+							media.setThumb(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false));
 						} catch (EOFException e) {
 							LOGGER.debug(
 								"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
