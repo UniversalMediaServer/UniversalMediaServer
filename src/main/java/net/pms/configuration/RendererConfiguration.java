@@ -2397,7 +2397,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static int getIntAt(String s, String key, int fallback) {
-		if (isBlank(s) || isBlank(key)) { //XXX to call this method with empty parameters is nonsense
+		if (isBlank(s) || isBlank(key)) {
 			return fallback;
 		}
 
