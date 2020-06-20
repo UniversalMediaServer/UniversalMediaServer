@@ -217,10 +217,11 @@ public class UPNPHelper extends UPNPControl {
 		LOGGER.debug("Sending ALIVE...");
 		MulticastSocket multicastSocket = null;
 		SocketAddress sa = null;
-		NetworkInterface ni = PMS.get().getServer().getNetworkInterface();
+		NetworkInterface ni = null;
 		try {
 			multicastSocket = getNewMulticastSocket();
 			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+			ni = PMS.get().getServer().getNetworkInterface();
 			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
@@ -309,13 +310,13 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	public static void sendByeBye() {
 		LOGGER.debug("Sending BYEBYE...");
-
 		MulticastSocket multicastSocket = null;
 		SocketAddress sa = null;
-		NetworkInterface ni = PMS.get().getServer().getNetworkInterface();
+		NetworkInterface ni = null;
 		try {
 			multicastSocket = getNewMulticastSocket();
 			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+			ni = PMS.get().getServer().getNetworkInterface();
 			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
