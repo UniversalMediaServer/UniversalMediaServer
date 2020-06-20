@@ -2397,9 +2397,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static int getIntAt(String s, String key, int fallback) {
+		if (isBlank(s) || isBlank(key)) {
+			return fallback;
+		}
+
 		try {
-			return Integer.valueOf((s + " ").split(key)[1].split("\\D")[0]);
-		} catch (Exception e) {
+			return Integer.parseInt((s + " ").split(key)[1].split("\\D")[0]);
+		} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
 			return fallback;
 		}
 	}
