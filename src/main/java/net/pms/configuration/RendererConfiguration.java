@@ -2403,7 +2403,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		try {
 			return Integer.parseInt((s + " ").split(key)[1].split("\\D")[0]);
-		} catch (Exception e) {
+		} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
 			return fallback;
 		}
 	}
