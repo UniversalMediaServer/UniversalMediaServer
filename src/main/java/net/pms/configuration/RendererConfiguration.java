@@ -2454,11 +2454,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Check if the given subtitle type is supported by renderer for streaming for given media.
 	 *
+	 * @todo this results in extra CPU use, since we probably already have
+	 *       the result of getMatchedMIMEtype, so it would be better to
+	 *       refactor the logic of the caller to make that function only run
+	 *       once
 	 * @param subtitle Subtitles for checking
 	 * @param media Played media
 	 * @param dlna
-	 *
-	 * @return True if the renderer specifies support for the subtitles and
+	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
 	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media, DLNAResource dlna) {
@@ -2476,7 +2479,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 
-		// We still didn't get a match, so now check for "se" entries in the "Supported" lines
+		LOGGER.trace("Checking whether the external subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " matches any 'se' entries in the 'Supported' lines");
 		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
 	}
 
@@ -2484,7 +2487,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Check if the internal subtitle type is supported by renderer.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @return True if the renderer specifies support for the subtitles
+	 * @return whether the renderer specifies support for the subtitles
 	 */
 	public boolean isEmbeddedSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
 		if (subtitle == null) {
@@ -2923,19 +2926,30 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Check if the given video bit depth is supported.
 	 *
-	 * @param videoBitDepth The video bit depth
-	 *
+	 * @todo this results in extra CPU use, since we probably already have
+	 *       the result of getMatchedMIMEtype, so it would be better to
+	 *       refactor the logic of the caller to make that function only run
+	 *       once
+	 * @param dlna the resource to check
 	 * @return whether the video bit depth is supported.
 	 */
-	public boolean isVideoBitDepthSupported(int videoBitDepth) {
-		String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
-		for (String supportedBitDepth : supportedBitDepths) {
-			if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
-				return true;
+	public boolean isVideoBitDepthSupported(DLNAResource dlna) {
+		Integer videoBitDepth = null;
+		if (dlna.getMedia() != null) {
+			videoBitDepth = dlna.getMedia().getVideoBitDepth();
+		}
+
+		if (videoBitDepth != null) {
+			String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+			for (String supportedBitDepth : supportedBitDepths) {
+				if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+					return true;
+				}
 			}
 		}
 
-		return false;
+		LOGGER.trace("Checking whether the video bit depth " + (videoBitDepth != null ? videoBitDepth : "null") + " matches any 'vbd' entries in the 'Supported' lines");
+		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
 	}
 
 	public boolean isRemoveTagsFromSRTsubs() {
