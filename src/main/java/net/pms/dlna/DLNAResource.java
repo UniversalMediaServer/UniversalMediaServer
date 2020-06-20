@@ -953,7 +953,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), media.getBitrate(), maxBandwidth);
-				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
+				} else if (!renderer.isVideoBitDepthSupported(this)) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the video bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
 				} else if (renderer.isH264Level41Limited() && media.isH264()) {

@@ -129,10 +129,10 @@ public class PlaylistFolder extends DLNAResource {
 							title = null;
 							int index = 0;
 							if (var.startsWith("file")) {
-								index = Integer.valueOf(var.substring(4));
+								index = Integer.parseInt(var.substring(4));
 								fileName = value;
 							} else if (var.startsWith("title")) {
-								index = Integer.valueOf(var.substring(5));
+								index = Integer.parseInt(var.substring(5));
 								title = value;
 							}
 							if (index > 0) {

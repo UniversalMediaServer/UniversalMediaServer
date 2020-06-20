@@ -42,40 +42,36 @@ import org.apache.http.nio.client.methods.HttpAsyncMethods;
  * @author valib
  */
 public class UriFileRetriever {
-
 	/**
 	 * Download file from the external server and return the
 	 * content of it in the ByteArray.
 	 *
 	 * @param uri The URI of the external server file.
-	 * 
+	 *
 	 * @return the content of the downloaded file.
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	public byte[] get(String uri) throws IOException {
-		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-        try {
-            httpclient.start();
-            HttpGet request = new HttpGet(uri);
-            Future<HttpResponse> future = httpclient.execute(request, null);
-            HttpResponse response = future.get();
-            int statusCode = response.getStatusLine().getStatusCode();
+		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
+			httpclient.start();
+			HttpGet request = new HttpGet(uri);
+			Future<HttpResponse> future = httpclient.execute(request, null);
+			HttpResponse response = future.get();
+			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HttpStatus.SC_OK) {
 				throw new IOException("HTTP response not OK");
 			}
 
 			return IOUtils.toByteArray(response.getEntity().getContent());
-		} catch (InterruptedException|ExecutionException e) {
+		} catch (InterruptedException | ExecutionException e) {
 			throw new IOException("Unable to download by HTTP" + e.getMessage());
-		} finally {
-			httpclient.close();
 		}
 	}
 
 	/**
 	 * Download the file from the external server and store it at the defined path.
-	 * 
+	 *
 	 * @param uri The URI of the external server file.
 	 * @param file The path to store downloaded file.
 	 * @param callback The calling class which will be informed about
@@ -84,11 +80,9 @@ public class UriFileRetriever {
 	 * @throws Exception
 	 */
 	public void getFile(URI uri, File file, UriRetrieverCallback callback) throws Exception {
-		CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-		try  {
+		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
 			httpclient.start();
 			ZeroCopyConsumerWithCallback<File> consumer = new ZeroCopyConsumerWithCallback<File>(file, uri.toString(), callback) {
-
 				@Override
 				protected File process(
 					final HttpResponse response,
@@ -104,8 +98,6 @@ public class UriFileRetriever {
 
 			Future<File> future = httpclient.execute(HttpAsyncMethods.createGet(uri), consumer, null, null);
 			file = future.get();
-		} finally {
-			httpclient.close();
 		}
 	}
 }

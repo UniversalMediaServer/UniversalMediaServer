@@ -856,7 +856,7 @@ public class UPNPHelper extends UPNPControl {
 				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
 			state.mute = !"0".equals(data.get("Mute"));
 			s = data.get("Volume");
-			state.volume = s == null ? 0 : (Integer.valueOf(s) * 100 / maxVol);
+			state.volume = s == null ? 0 : (Integer.parseInt(s) * 100 / maxVol);
 			state.position = data.get("RelTime");
 			if (!ignoreUpnpDuration) {
 				state.duration = data.get("CurrentMediaDuration");
