@@ -96,7 +96,45 @@ public class RemoteBrowseHandler implements HttpHandler {
 		) {
 			DLNAResource thisResourceFromResources = resources.get(0).getParent();
 			String thisName = thisResourceFromResources.getDisplayName();
+			if (thisName.equals(Messages.getString("PMS.MediaLibrary"))) {
+				for (DLNAResource resource : resources) {
+					String newId = resource.getResourceId();
+					String idForWeb = URLEncoder.encode(newId, "UTF-8");
+					StringBuilder thumbHTML = new StringBuilder();
+					String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
+					HashMap<String, String> item = new HashMap<>();
+					String faIcon = "";
+					switch(name) {
+						case "Video":
+							faIcon = "fa-video";
+							break;
+						case "Audio":
+							faIcon = "fa-music";
+							break;
+						case "Photo":
+							faIcon = "fa-images";
+							break;
+						default:
+							faIcon = "fa-folder";
+						}
+					thumbHTML.append("<a href=\"/browse/").append(idForWeb);
+					thumbHTML.append("\" title=\"").append(name).append("\">");
+					thumbHTML.append("<i class=\"fas ").append(faIcon).append(" fa-5x\"></i>");
+					thumbHTML.append("</a>");
+					item.put("thumb", thumbHTML.toString());
 
+					StringBuilder captionHTML = new StringBuilder();
+					captionHTML.append("<a href=\"/browse/").append(idForWeb);
+					captionHTML.append("\" title=\"").append(name).append("\">");
+					captionHTML.append("<span class=\"caption\">").append(name).append("</span>");
+					captionHTML.append("</a>");
+
+					item.put("caption", captionHTML.toString());
+					item.put("bump", "<span class=\"floatRight\"></span>");
+					media.add(item);
+					hasFile = true;
+				}
+			}
 			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
 			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 				thisResourceFromResources = thisResourceFromResources.getParent();
