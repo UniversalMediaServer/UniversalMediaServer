@@ -219,12 +219,8 @@ public class UPNPHelper extends UPNPControl {
 		SocketAddress sa = null;
 		NetworkInterface ni = PMS.get().getServer().getNetworkInterface();
 		try {
-			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-		} catch (IOException e1) {
-		}
-
-		try {
 			multicastSocket = getNewMulticastSocket();
+			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
 			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
@@ -318,13 +314,8 @@ public class UPNPHelper extends UPNPControl {
 		SocketAddress sa = null;
 		NetworkInterface ni = PMS.get().getServer().getNetworkInterface();
 		try {
-			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-		} catch (IOException e1) {
-			LOGGER.debug("Error sending BYEBYE message", e1);
-		}
-
-		try {
 			multicastSocket = getNewMulticastSocket();
+			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
 			multicastSocket.joinGroup(sa, ni);
 
 			for (String NT: NT_LIST) {
