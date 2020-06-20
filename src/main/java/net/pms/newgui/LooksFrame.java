@@ -724,6 +724,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void checkForUpdates(boolean isStartup) {
 		if (autoUpdater != null) {
 			try {
+				autoUpdater.pollServer();
 				AutoUpdateDialog.showIfNecessary(this, autoUpdater, isStartup);
 			} catch (NoClassDefFoundError ncdfe) {
 				LOGGER.error("Error displaying AutoUpdateDialog", ncdfe);
