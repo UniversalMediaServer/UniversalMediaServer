@@ -427,22 +427,12 @@ public class UPNPHelper extends UPNPControl {
 				while (true) {
 					MulticastSocket multicastSocket = null;
 					SocketAddress sa = null;
-					try {
-						sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-					} catch (IOException e1) {
-						LOGGER.trace(e1.getMessage());
-					}
-
 					NetworkInterface ni = null;
-					try {
-						ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-					} catch (SocketException | UnknownHostException e2) {
-						LOGGER.trace(e2.getMessage());
-					}
-
 					try {
 						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
 						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
+						sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+						ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
 						if (bindErrorReported) {
 							LOGGER.warn("Finally, acquiring port {} was successful!", configuration.getUpnpPort());
