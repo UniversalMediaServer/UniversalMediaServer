@@ -1,12 +1,12 @@
-9.7.0 - 2020-06-??
+9.7.0 - 2020-06-21
 
 	General:
-		Improved browsing and scanning speed
-		Improved browsing and scanning stability
+		Improved browsing and scanning speed and stability
 		Optimized database storage space
 		Fixed aspect ratio comparisons
 		Fixed the "Check for updates" button not finding updates
 		Fixed support for Eclipse development
+		Fixed freezes while browsing and scanning a folder at the same time
 	Renderers:
 		Improved support for high bit-depth videos on Samsung and Sony TVs, and VLC
 		Fixed transcoding support in some cases on DirecTV, Panasonic, Samsung, Sony and Vizio TVs, and Android phones
