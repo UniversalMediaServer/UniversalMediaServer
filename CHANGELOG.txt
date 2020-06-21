@@ -1,3 +1,18 @@
+9.7.0 - 2020-06-??
+
+	General:
+		Improved browsing and scanning speed
+		Improved browsing and scanning stability
+		Optimized database storage space
+		Fixed aspect ratio comparisons
+		Fixed the "Check for updates" button not finding updates
+		Fixed support for Eclipse development
+	Renderers:
+		Improved support for high bit-depth videos on Samsung and Sony TVs, and VLC
+		Fixed transcoding support in some cases on DirecTV, Panasonic, Samsung, Sony and Vizio TVs, and Android phones
+	Dependency updates:
+		Bump surefire-version from 3.0.0-M4 to 3.0.0-M5
+
 9.6.2 - 2020-06-15
 
 	General:
