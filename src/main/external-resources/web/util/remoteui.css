@@ -590,7 +590,7 @@ ul#Folders > li > a {
 	padding-top: 3px;
 	padding-bottom: 3px;
 }
-ul#Folders>li>a:hover{
+ul#Folders > li > a:hover {
 	background-color: #ddd;
 	color:#2f2f2f !important;
 	-moz-transform:scale(1.1);
@@ -607,7 +607,7 @@ ul#Folders>li>a:hover{
 	overflow: hidden;
 }
 @media screen and (max-width: 1080px) {
-	ul#Folders>li>a:hover {
+	ul#Folders > li > a:hover {
 		-moz-transform: scale(1.02);
 		-webkit-transform: scale(1.02);
 		-o-transform: scale(1.02);

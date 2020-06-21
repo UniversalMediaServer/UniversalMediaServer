@@ -25,7 +25,7 @@ public class MediaLibrary extends VirtualFolder {
 	}
 
 	public MediaLibrary() {
-		super(Messages.getString("PMS.MediaLibrary"), null);
+		super(Messages.getString("PMS.MediaLibrary"), "/images/folder-icons/media-library.png");
 		init();
 	}
 

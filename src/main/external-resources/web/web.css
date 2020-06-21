@@ -128,7 +128,7 @@ ul li a {
 
 ul#Folders li a {
 	color: #aaa;
-	font-size: 14px;
+	font-size: 16px;
 }
 
 ul#Folders li span {
@@ -136,6 +136,19 @@ ul#Folders li span {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
+	line-height: 18px;
+}
+
+#Folders .folder-thumbnail {
+	width: 16px;
+	height: 16px;
+	margin-right: 10px;
+	background-size: contain;
+	float: left;
+}
+
+#Folders a:hover .folder-thumbnail {
+	filter: invert(1);
 }
 
 #MediaContainer {

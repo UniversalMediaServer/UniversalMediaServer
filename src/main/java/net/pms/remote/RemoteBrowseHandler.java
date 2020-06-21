@@ -211,6 +211,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					folderHTML.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
 					  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
 				}
+				folderHTML.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(thumb).append(")\"></div>");
 				folderHTML.append("<span>").append(name).append("</span>");
 				folderHTML.append("</a>");
 				folders.add(folderHTML.toString());
