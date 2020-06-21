@@ -10,6 +10,12 @@
 	Renderers:
 		Improved support for high bit-depth videos on Samsung and Sony TVs, and VLC
 		Fixed transcoding support in some cases on DirecTV, Panasonic, Samsung, Sony and Vizio TVs, and Android phones
+	Translation updates via Crowdin:
+		Chinese Traditional (100%)
+		French (100%)
+		Hungarian (100%)
+		Polish (100%)
+		Spanish (100%)
 	Dependency updates:
 		Bump surefire-version from 3.0.0-M4 to 3.0.0-M5
 
