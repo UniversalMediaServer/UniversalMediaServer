@@ -86,7 +86,7 @@ public class UPNPControl {
 			HashMap<String, T> m = get(uuid);
 			if (!m.containsKey(id)) {
 				try {
-					T newitem = TClass.newInstance();
+					T newitem = TClass.getDeclaredConstructor().newInstance();
 					newitem.uuid = uuid;
 					m.put(id, newitem);
 				} catch (Exception e) {

@@ -83,7 +83,7 @@
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 		<binary-revision>107</binary-revision>
 
-		<exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.0.0</git-commit-id-plugin-version>
@@ -99,7 +99,7 @@
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<logback-version>1.2.3</logback-version>
-		<surefire-version>3.0.0-M4</surefire-version>
+		<surefire-version>3.0.0-M5</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -539,7 +539,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.1.1</version>
+			<version>5.1.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -696,6 +696,104 @@
 						<projectName>Universal Media Server</projectName>
 					</configuration>
 				</plugin>
+
+				<!--
+					This plugin's configuration is used to store Eclipse m2e settings only.
+					It has no influence on the Maven build itself.
+				-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-antrun-plugin
+										</artifactId>
+										<versionRange>
+											[1.7,)
+										</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											pl.project13.maven
+										</groupId>
+										<artifactId>
+											git-commit-id-plugin
+										</artifactId>
+										<versionRange>
+											[${git-commit-id-plugin-version},)
+										</versionRange>
+										<goals>
+											<goal>revision</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.universalmediaserver
+										</groupId>
+										<artifactId>
+											external-maven-plugin
+										</artifactId>
+										<versionRange>
+											[0.1,)
+										</versionRange>
+										<goals>
+											<goal>clean</goal>
+											<goal>deploy</goal>
+											<goal>install</goal>
+											<goal>resolve</goal>
+											<goal>localinstall</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute></execute>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.universalmediaserver</groupId>
+										<artifactId>
+											crowdin-maven-plugin
+										</artifactId>
+										<versionRange>
+											[0.1,)
+										</versionRange>
+										<goals>
+											<goal>fetch</goal>
+											<goal>push</goal>
+											<goal>build</goal>
+											<goal>apply</goal>
+											<goal>pull</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute></execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -843,7 +941,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.0.0</version>
+				<version>3.1.0</version>
 				<reportSets>
 					<reportSet>
 						<reports>

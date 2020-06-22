@@ -78,8 +78,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Nadahar
  */
 public class Rational extends Number implements Comparable<Rational> {
-
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 
 	/**
 	 * The locale-insensitive {@link DecimalFormat} used for

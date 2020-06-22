@@ -419,7 +419,7 @@ public class RemoteUtil {
 		 */
 		public File getFile(String hash) {
 			try {
-				int h = Integer.valueOf(hash);
+				int h = Integer.parseInt(hash);
 				for (File f : files) {
 					if (f.hashCode() == h) {
 						return f;

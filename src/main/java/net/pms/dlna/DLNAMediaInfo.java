@@ -531,37 +531,6 @@ public class DLNAMediaInfo implements Cloneable {
 		extras.put(key, value);
 	}
 
-	public String getExtrasAsString() {
-		if (extras == null) {
-			return null;
-		}
-
-		StringBuilder sb = new StringBuilder();
-
-		for (Map.Entry<String, String> entry : extras.entrySet()) {
-			sb.append(entry.getKey());
-			sb.append('|');
-			sb.append(entry.getValue());
-			sb.append('|');
-		}
-
-		return sb.toString();
-	}
-
-	public void setExtrasAsString(String value) {
-		if (value != null) {
-			StringTokenizer st = new StringTokenizer(value, "|");
-
-			while (st.hasMoreTokens()) {
-				try {
-					putExtra(st.nextToken(), st.nextToken());
-				} catch (NoSuchElementException nsee) {
-					LOGGER.debug("Caught exception", nsee);
-				}
-			}
-		}
-	}
-
 	@Deprecated
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume) {
 		generateThumbnail(input, ext, type, seekPosition, resume, null);
@@ -2547,7 +2516,6 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setVotes(String value) {
 		this.votes = value;
 	}
-
 
 	/**
 	 * @return The pixel aspect ratio.
