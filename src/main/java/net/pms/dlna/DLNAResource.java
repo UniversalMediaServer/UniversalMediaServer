@@ -3413,7 +3413,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume(), renderer);
 			if (!isResume() && media.getThumb() != null && configurationSpecificToRenderer.getUseCache() && inputFile.getFile() != null) {
-				TableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath());
+				TableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
 			}
 		}
 	}

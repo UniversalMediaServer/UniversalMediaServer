@@ -394,6 +394,26 @@ public final class TableTVSeries extends Tables {
 		}
 	}
 
+	public static void updateThumbnailId(long id, int thumbId) {
+		try (Connection conn = database.getConnection()) {
+			TABLE_LOCK.writeLock().lock();
+			try (
+				PreparedStatement ps = conn.prepareStatement(
+					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE ID = ?"
+				);
+			) {
+				ps.setInt(1, thumbId);
+				ps.executeUpdate();
+				LOGGER.trace("THUMBID updated to {} for {}", thumbId, id);
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException se) {
+			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
+			LOGGER.trace("", se);
+		}
+	}
+
 	/**
 	 * Must be called from inside a table lock
 	 */
@@ -405,6 +425,7 @@ public final class TableTVSeries extends Tables {
 					"ID       IDENTITY PRIMARY KEY, " +
 					"ENDYEAR    VARCHAR2(1024), " +
 					"IMDBID    VARCHAR2(1024), " +
+					"THUMBID    BIGINT, " +
 					"PLOT    VARCHAR2(20000), " +
 					"STARTYEAR    VARCHAR2(1024), " +
 					"TITLE    VARCHAR2(1024) NOT NULL, " +

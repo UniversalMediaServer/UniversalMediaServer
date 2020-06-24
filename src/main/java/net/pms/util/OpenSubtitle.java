@@ -5068,6 +5068,25 @@ public class OpenSubtitle {
 								TableVideoMetadataGenres.set("", genresFromAPI, tvSeriesDatabaseId);
 							}
 							TableVideoMetadataProduction.set("", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
+
+							// Set the poster as the thumbnail
+							if (seriesMetadataFromAPI.get("poster") != null) {
+								byte[] image = uriFileRetriever.get((String) seriesMetadataFromAPI.get("poster"));
+								try {
+									TableThumbnails.setThumbnail(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+								} catch (EOFException e) {
+									LOGGER.debug(
+										"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
+										file.getName()
+									);
+								} catch (UnknownFormatException e) {
+									LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+								} catch (IOException e) {
+									LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+									LOGGER.trace("", e);
+								}
+							}
+
 							TableVideoMetadataPosters.set("", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
 							TableVideoMetadataRated.set("", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
 							HashSet ratingsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("ratings"));
@@ -5171,7 +5190,7 @@ public class OpenSubtitle {
 						PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 
 						if (media.getThumb() != null) {
-							TableThumbnails.setThumbnail(media.getThumb(), file.getAbsolutePath());
+							TableThumbnails.setThumbnail(media.getThumb(), file.getAbsolutePath(), -1);
 						}
 
 						TableVideoMetadataActors.set(file.getAbsolutePath(), media.getActors(), -1);

@@ -1147,7 +1147,7 @@ public class DLNAMediaDatabase implements Runnable {
 			throw se;
 		} finally {
 			if (media != null && media.getThumb() != null) {
-				TableThumbnails.setThumbnail(media.getThumb(), name);
+				TableThumbnails.setThumbnail(media.getThumb(), name, -1);
 			}
 		}
 	}
