@@ -728,7 +728,8 @@ public class PMS {
 				}
 
 				if (configuration.getDatabaseLogging()) {
-					// use an automatic H2database profiling tool to make a report
+					// use an automatic H2database profiling tool to make a report at the end of the logging file
+					// converted to the "logging_report.txt" in the database directory
 					try {
 						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
 							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
