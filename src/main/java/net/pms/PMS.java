@@ -688,8 +688,12 @@ public class PMS {
 					get().getServer().stop();
 					Thread.sleep(500);
 
+					LOGGER.trace("-------------------------------------------------------------");
+					LOGGER.trace(profiler.getTop(5));
+					LOGGER.trace("-------------------------------------------------------------");
+
 					LOGGER.debug("Shutting down all active processes");
-					LOGGER.trace(profiler.getTop(3));
+
 
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
@@ -722,13 +726,13 @@ public class PMS {
 					LOGGER.error("Unable to shut down logging gracefully");
 					System.err.println("Unable to shut down logging gracefully");
 				}
-				
-				try {
-					ConvertTraceFile.main("-traceFile", database.getDatabaseDirectory()  + File.separator + "medias.trace.db",
-						"-script", database.getDatabaseDirectory()  + File.separator + "test.sql");
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+
+				if (configuration.getDatabaseLogging()) {
+					// use an automatic H2database profiling tool to make a report
+					try {
+						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
+							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
+					} catch (SQLException e) {}
 				}
 			}
 		});
