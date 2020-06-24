@@ -86,6 +86,8 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
+import org.h2.tools.ConvertTraceFile;
+import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -425,6 +427,9 @@ public class PMS {
 		// Call this as early as possible
 		displayBanner();
 
+		Profiler profiler = new Profiler();
+		profiler.startCollecting();
+
 		// Initialize database
 		try {
 			Tables.checkTables();
@@ -684,6 +689,7 @@ public class PMS {
 					Thread.sleep(500);
 
 					LOGGER.debug("Shutting down all active processes");
+					LOGGER.trace(profiler.getTop(3));
 
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
@@ -716,7 +722,14 @@ public class PMS {
 					LOGGER.error("Unable to shut down logging gracefully");
 					System.err.println("Unable to shut down logging gracefully");
 				}
-
+				
+				try {
+					ConvertTraceFile.main("-traceFile", database.getDatabaseDirectory()  + File.separator + "medias.trace.db",
+						"-script", database.getDatabaseDirectory()  + File.separator + "test.sql");
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 
