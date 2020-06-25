@@ -77,7 +77,7 @@ public final class TableThumbnails extends Tables {
 	 * @param tvSeriesID
 	 */
 	public static void setThumbnail(final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID) {
-		if (fullPathToFile == null && tvSeriesID > -1) {
+		if (fullPathToFile == null && tvSeriesID == -1) {
 			LOGGER.trace("Either fullPathToFile or tvSeriesID are required for setThumbnail, returning early");
 			return;
 		}
@@ -86,7 +86,7 @@ public final class TableThumbnails extends Tables {
 		String md5Hash = DigestUtils.md5Hex(thumbnail.getBytes(false));
 
 		try (Connection connection = database.getConnection()) {
-			selectQuery = "SELECT * FROM " + TABLE_NAME + " WHERE MD5 = " + sqlQuote(md5Hash) + " LIMIT 1";
+			selectQuery = "SELECT ID FROM " + TABLE_NAME + " WHERE MD5 = " + sqlQuote(md5Hash) + " LIMIT 1";
 			LOGGER.trace("Searching for thumbnail in {} with \"{}\" before update", TABLE_NAME, selectQuery);
 
 			TABLE_LOCK.writeLock().lock();
@@ -95,14 +95,14 @@ public final class TableThumbnails extends Tables {
 				try (ResultSet result = selectStatement.executeQuery()) {
 					if (result.next()) {
 						if (fullPathToFile != null) {
-							LOGGER.trace("Found existing file entry with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
+							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
 							PMS.get().getDatabase().updateThumbnailId(fullPathToFile, result.getInt("ID"));
-						} {
-							LOGGER.trace("Found existing file entry with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, TableTVSeries.TABLE_NAME);
+						} else {
+							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, TableTVSeries.TABLE_NAME);
 							TableTVSeries.updateThumbnailId(tvSeriesID, result.getInt("ID"));
 						}
 					} else {
-						LOGGER.trace("File entry \"{}\" not found in {}", md5Hash, TABLE_NAME);
+						LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
 
 						String insertQuery = "INSERT INTO " + TABLE_NAME + " (THUMBNAIL, MODIFIED, MD5) VALUES (?, ?, ?)";
 						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -116,8 +116,8 @@ public final class TableThumbnails extends Tables {
 									if (fullPathToFile != null) {
 										LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
 										PMS.get().getDatabase().updateThumbnailId(fullPathToFile, generatedKeys.getInt(1));
-									} {
-										LOGGER.trace("Found existing file entry with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, TableTVSeries.TABLE_NAME);
+									} else {
+										LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, TableTVSeries.TABLE_NAME);
 										TableTVSeries.updateThumbnailId(tvSeriesID, generatedKeys.getInt(1));
 									}
 								} else {

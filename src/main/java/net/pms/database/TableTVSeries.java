@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.util.FileUtil;
 
 public final class TableTVSeries extends Tables {
@@ -203,6 +204,45 @@ public final class TableTVSeries extends Tables {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
 						return convertSingleResultSetToList(resultSet);
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param title
+	 * @return a thumbnail based on title.
+	 */
+	public static DLNAThumbnail getThumbnailByTitle(final String title) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT THUMBNAIL " +
+				"FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					LOGGER.info("executed query for " + title);
+					if (resultSet.next()) {
+						LOGGER.info("got result for " + title);
+						return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 					}
 				}
 			} finally {
@@ -403,8 +443,9 @@ public final class TableTVSeries extends Tables {
 				);
 			) {
 				ps.setInt(1, thumbId);
+				ps.setLong(2, id);
 				ps.executeUpdate();
-				LOGGER.trace("THUMBID updated to {} for {}", thumbId, id);
+				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}

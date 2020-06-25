@@ -188,7 +188,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 *
 	 * @throws NullPointerException if {@code thumbnail} is {@code null}.
 	 */
-	protected DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
+	public DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
 		super(thumbnail.getBytes(false));
 		this.imageInfo = thumbnail.getImageInfo();
 		this.profile = thumbnail.getDLNAImageProfile();

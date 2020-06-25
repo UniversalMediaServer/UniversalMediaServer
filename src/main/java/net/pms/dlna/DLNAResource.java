@@ -2612,7 +2612,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		/*
 		 * There's no technical difference between the image itself and the
 		 * thumbnail for an object.item.imageItem, they are all simply listed
-		 * as <res> entries. To DMS there is a difference since the thumbnail
+		 * as <res> entries. To UMS there is a difference since the thumbnail
 		 * is cached while the image itself is not. The idea here is therefore
 		 * to offer any size smaller than or equal to the cached thumbnail
 		 * using the cached thumbnail as the source, and offer anything bigger
@@ -2799,7 +2799,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Images add thumbnail resources together with the image resources in appendImage()
 		if (MediaType.IMAGE != mediaType) {
-
 			ImageInfo imageInfo = thumbnailImageInfo != null ? thumbnailImageInfo :
 				getMedia() != null && getMedia().getThumb() != null && getMedia().getThumb().getImageInfo() != null ?
 					getMedia().getThumb().getImageInfo() : null;

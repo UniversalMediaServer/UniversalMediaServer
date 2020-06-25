@@ -2,6 +2,7 @@ package net.pms.dlna.virtual;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +19,7 @@ import net.pms.database.TableVideoMetadataReleased;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -631,6 +633,28 @@ LOGGER.info("2firstSql: " + firstSql);
 
 	public void setIsTVSeries(boolean value) {
 		isTVSeries = value;
+	}
+
+	/**
+	 * @return a {@link InputStream} that represents the thumbnail used.
+	 * @throws IOException
+	 *
+	 * @see DLNAResource#getThumbnailInputStream()
+	 */
+	@Override
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		if (this.isTVSeries) {
+			DLNAThumbnail tvSeriesCover = TableTVSeries.getThumbnailByTitle(this.getDisplayName());
+			if (tvSeriesCover != null) {
+				return new DLNAThumbnailInputStream(tvSeriesCover);
+			}
+		}
+
+		try {
+			return super.getThumbnailInputStream();
+		} catch (IOException e) {
+			return null;
+		}
 	}
 
 	@Override
