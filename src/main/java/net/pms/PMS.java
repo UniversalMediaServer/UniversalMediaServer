@@ -427,7 +427,7 @@ public class PMS {
 		// Call this as early as possible
 		displayBanner();
 
-		Profiler profiler = new Profiler();
+		final Profiler profiler = new Profiler();
 		profiler.startCollecting();
 
 		// Initialize database
