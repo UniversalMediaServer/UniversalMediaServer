@@ -62,8 +62,8 @@ import static net.pms.database.Tables.convertResultSetToList;
 import static net.pms.database.Tables.sqlQuote;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.database.TableTVSeries;
 import net.pms.newgui.SharedContentTab;
-import net.pms.util.FileUtil;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -1547,10 +1547,14 @@ public class DLNAMediaDatabase implements Runnable {
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
 			ps = conn.prepareStatement(
-				"DELETE FROM THUMBNAILS " +
+				"DELETE FROM " + TableThumbnails.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
-					"SELECT ID FROM FILES " +
-					"WHERE FILES.THUMBID = THUMBNAILS.ID" +
+					"SELECT ID FROM " + TABLE_NAME + " " +
+					"WHERE " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID" +
+				") " +
+				"AND NOT EXISTS (" +
+					"SELECT ID FROM " + TableTVSeries.TABLE_NAME + " " +
+					"WHERE " + TableTVSeries.TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID" +
 				");"
 			);
 			ps.execute();
