@@ -9,7 +9,7 @@ env:
     # Convenience variables for shortening commands
     - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
     - GRAVIS="$HOME/gravis"
-    - JDK="adopt@14"
+    - JDK="adopt@1.14.0-1"
 
 branches:
   only:
@@ -22,7 +22,7 @@ jobs:
   include:
     - os: linux
       dist: trusty
-      jdk: openjdk8
+      jdk: oraclejdk8
       before_install:
         - sudo apt-get -y install libmms0
         - wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
