@@ -56,7 +56,7 @@ public class DbgPacker implements ActionListener {
 			zippedLogFile = PMS.getConfiguration().getDefaultLogFilePath();
 		}
 		if (!zippedLogFile.isEmpty()) {
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
 			Date date = new Date();
 			String fileName = "ums_dbg_" + dateFormat.format(date) + ".zip";
 			zippedLogFile = FileUtil.appendPathSeparator(zippedLogFile) + fileName;
