@@ -285,7 +285,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			}
 		}
 
-		mustacheVars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
+			mustacheVars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
 			StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
 		mustacheVars.put("hasFile", hasFile);
 		mustacheVars.put("folders", folders);
@@ -304,6 +304,31 @@ public class RemoteBrowseHandler implements HttpHandler {
 					LOGGER.info("apiMetadataAsJavaScriptVars " + apiMetadataAsJavaScriptVars);
 					mustacheVars.put("isTVSeriesWithAPIData", true);
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
+				}
+			}
+			if (folder.getDisplayName().equals(Messages.getString("VirtualFolder.4"))) {
+				for (DLNAResource resource : resources) {
+					// find TV Series folders
+					if (resource instanceof MediaLibraryFolder) {
+						String newId = resource.getResourceId();
+						String idForWeb = URLEncoder.encode(newId, "UTF-8");
+						HashMap<String, String> item = new HashMap<>();
+						String thumb = "/thumb/" + idForWeb;
+						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
+						StringBuilder thumbHTML = new StringBuilder();
+						thumbHTML.append("<a href=\"/browse/").append(idForWeb)
+						.append("\" title=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("</a>");
+
+						item.put("thumb", thumbHTML.toString());
+						item.put("bump", "");
+						item.put("caption", resource.getDisplayName());
+						media.add(item);
+						mustacheVars.put("media", media);
+						mustacheVars.put("hasFile", hasFile);
+						hasFile = true;
+					}
 				}
 			}
 		}
