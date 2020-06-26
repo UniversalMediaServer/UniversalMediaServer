@@ -176,6 +176,19 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
+	 * Gets the database path
+	 *
+	 * @return The database path
+	 */
+	public String getDatabasePath() {
+		if (dbDir == null) {
+			return null;
+		}
+
+		return dbDir;
+	}
+
+	/**
 	 * Gets a new connection from the connection pool if one is available. If
 	 * not waits for a free slot until timeout.<br>
 	 * <br>
