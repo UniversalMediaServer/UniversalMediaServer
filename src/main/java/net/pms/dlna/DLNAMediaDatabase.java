@@ -1718,6 +1718,7 @@ public class DLNAMediaDatabase implements Runnable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
 
+			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
@@ -1725,6 +1726,8 @@ public class DLNAMediaDatabase implements Runnable {
 						return convertResultSetToList(resultSet);
 					}
 				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", filename, e.getMessage());
