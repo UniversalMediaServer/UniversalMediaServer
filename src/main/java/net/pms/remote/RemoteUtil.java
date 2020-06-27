@@ -530,10 +530,11 @@ public class RemoteUtil {
 		String plot = "";
 		String poster = "";
 		Double totalSeasons = null;
+		Boolean hasAPIMetadata = false;
 		Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
 		while (i.hasNext()) {
 			HashMap<String, Object> row = i.next();
-
+			hasAPIMetadata = true;
 			if (row.get("AWARD") != null) {
 				awards = (String) row.get("AWARD");
 			}
@@ -575,6 +576,10 @@ public class RemoteUtil {
 			if (row.get("GENRE") != null) {
 				genres.add((String) row.get("GENRE"));
 			}
+		}
+
+		if (hasAPIMetadata == false) {
+			return null;
 		}
 
 		String javascriptVarsScript = "";
