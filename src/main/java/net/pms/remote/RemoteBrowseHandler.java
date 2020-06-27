@@ -20,6 +20,7 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
@@ -192,29 +193,32 @@ public class RemoteBrowseHandler implements HttpHandler {
 			}
 
 			if (resource.isFolder()) {
-				StringBuilder folderHTML = new StringBuilder();
-				// The resource is a folder
-				String p = "/browse/" + idForWeb;
-				boolean code = (resource instanceof CodeEnter);
-				String txt = RemoteUtil.getMsgString("Web.8", t);
-				if (code) {
-					txt = RemoteUtil.getMsgString("Web.9", t);
-				}
-				if (resource.getClass().getName().contains("SearchFolder") || code) {
-					// search folder add a prompt
-					// NOTE!!!
-					// Yes doing getClass.getname is REALLY BAD, but this
-					// is to make legacy plugins utilize this function as well
-					folderHTML.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
-					   .append(txt).append("');\" title=\"").append(name).append("\">");
-				} else {
-					folderHTML.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
-					  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
-				}
-				folderHTML.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(thumb).append(")\"></div>");
-				folderHTML.append("<span>").append(name).append("</span>");
-				folderHTML.append("</a>");
-				folders.add(folderHTML.toString());
+				Boolean isTvSeriesBrowsePage = resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"));
+				if (!isTvSeriesBrowsePage || !(isTvSeriesBrowsePage && (resource instanceof MediaLibraryFolder))) {
+					StringBuilder folderHTML = new StringBuilder();
+					// The resource is a folder
+					String p = "/browse/" + idForWeb;
+					boolean code = (resource instanceof CodeEnter);
+					String txt = RemoteUtil.getMsgString("Web.8", t);
+					if (code) {
+						txt = RemoteUtil.getMsgString("Web.9", t);
+					}
+					if (resource.getClass().getName().contains("SearchFolder") || code) {
+						// search folder add a prompt
+						// NOTE!!!
+						// Yes doing getClass.getname is REALLY BAD, but this
+						// is to make legacy plugins utilize this function as well
+						folderHTML.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
+						.append(txt).append("');\" title=\"").append(name).append("\">");
+					} else {
+						folderHTML.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
+						.append("','").append(txt).append("');\" title=\"").append(name).append("\">");
+					}
+					folderHTML.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(thumb).append(")\"></div>");
+					folderHTML.append("<span>").append(name).append("</span>");
+					folderHTML.append("</a>");
+					folders.add(folderHTML.toString());
+			    }
 			} else {
 				// The resource is a media file
 				StringBuilder bumpHTML = new StringBuilder();
