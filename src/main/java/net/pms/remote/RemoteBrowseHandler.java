@@ -20,7 +20,6 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;

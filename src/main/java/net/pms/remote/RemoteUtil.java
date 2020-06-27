@@ -503,7 +503,7 @@ public class RemoteUtil {
 	 * @param resource
 	 * @param t
 	 * @param isTVSeries whether this is a TV series, or an episode/movie
-	 * @return a JavaScript string to be used by a web browser
+	 * @return a JavaScript string to be used by a web browser, or null when there is no metadata
 	 */
 	public static String getAPIMetadataAsJavaScriptVars(DLNAResource resource, HttpExchange t, boolean isTVSeries) {
 		List<HashMap<String, Object>> resourceMetadataFromDatabase;
