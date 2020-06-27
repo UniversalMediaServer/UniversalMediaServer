@@ -78,7 +78,7 @@ FunctionEnd
 Function LockedListShow
 	StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
 		Abort
-	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it.`
+	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it and stop the service.`
 
 	${If} ${RunningX64}
 		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\LockedList64.dll`
@@ -89,6 +89,18 @@ Function LockedListShow
 
 	LockedList::Dialog /autonext /autoclosesilent
 	Pop $R0
+
+	services::IsServiceRunning 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'stop' 'Universal Media Server'
+		Pop $1
+		StrCmp $1 'Ok' success 0
+			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
+			Abort
+		success:
+	${EndIf}
 FunctionEnd
 
 Function LockedListLeave
@@ -171,7 +183,19 @@ FunctionEnd
 ;Run program through explorer.exe to de-evaluate user from admin to regular one.
 ;http://mdb-blog.blogspot.ru/2013/01/nsis-lunch-program-as-user-from-uac.html
 Function RunUMS
-	Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'start' 'Universal Media Server'
+		Pop $1
+		StrCmp $1 'Ok' success 0
+			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
+			Abort
+		success:
+	${Else}
+		Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+	${EndIf}
 FunctionEnd 
 
 Function CreateDesktopShortcut
@@ -349,12 +373,17 @@ Section "Start Menu Shortcuts"
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
-	; Only start UMS with Windows when it is a new install
-	IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-		goto end_of_startup_section
-	shortcut_file_not_found:
-		CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	end_of_startup_section:
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		; Only start UMS with Windows when it is a new install
+		IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
+			goto end_of_startup_section
+		shortcut_file_not_found:
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		end_of_startup_section:
+	${EndIf}
 
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
