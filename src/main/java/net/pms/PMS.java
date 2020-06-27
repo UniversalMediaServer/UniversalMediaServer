@@ -1045,6 +1045,32 @@ public class PMS {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
 
+			// Warn the user that this instance will conflict with the Windows service
+			if (Platform.isWindows() && configuration.isShowServiceWarning()) {
+				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+				if (isUmsServiceInstalled) {
+					int option = JOptionPane.showConfirmDialog(
+						null,
+						Messages.getString("Dialog.ServiceWarning"),
+						Messages.getString("Dialog.Warning"),
+						JOptionPane.YES_NO_CANCEL_OPTION,
+						JOptionPane.WARNING_MESSAGE);
+					if (option == JOptionPane.YES_OPTION) {
+						WindowsUtil.uninstallWin32Service();
+						LOGGER.info("Uninstalled UMS Windows service");
+
+						JOptionPane.showMessageDialog(
+							null,
+							Messages.getString("GeneralTab.3"),
+							Messages.getString("Dialog.Information"),
+							JOptionPane.INFORMATION_MESSAGE
+						);
+					} else if (option == JOptionPane.CANCEL_OPTION) {
+						configuration.setShowServiceWarning(false);
+					}
+				}
+			}
+
 			/* Rename previous log file to .prev
 			 * Log file location is unknown at this point, it's finally decided during loadFile() below
 			 * but the file is also truncated at the same time, so we'll have to try a qualified guess
