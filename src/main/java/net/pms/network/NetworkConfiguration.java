@@ -330,7 +330,7 @@ public class NetworkConfiguration {
 
 
 	/**
-	 * Returns the list of user friendly name names of interfaces with their IP
+	 * Returns the list of user friendly names of interfaces with their IP
 	 * address.
 	 *
 	 * @return The list of names.
