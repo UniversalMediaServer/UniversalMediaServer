@@ -66,7 +66,8 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 		try {
 			setState(State.POLLING_SERVER);
-			byte[] propertiesAsData = uriRetriever.get(serverUrl);
+			long unixTime = System.currentTimeMillis() / 1000L;
+			byte[] propertiesAsData = uriRetriever.get(serverUrl + "?cacheBuster=" + unixTime);
 			synchronized (stateLock) {
 				serverProperties.loadFrom(propertiesAsData);
 				setState(isUpdateAvailable() ? State.UPDATE_AVAILABLE : State.NO_UPDATE_AVAILABLE);

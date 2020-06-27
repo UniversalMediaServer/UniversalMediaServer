@@ -937,9 +937,9 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 		}
-		if (deferToTsmuxer == true && (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer().toAspectRatio())) {
+		if (deferToTsmuxer == true && (params.mediaRenderer.isKeepAspectRatio() || params.mediaRenderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer().toAspectRatio() + ".");
+			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 		}
 		if (deferToTsmuxer == true && !params.mediaRenderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 			deferToTsmuxer = false;
@@ -1304,7 +1304,7 @@ public class MEncoderVideo extends Player {
 						params.mediaRenderer.isKeepAspectRatio() ||
 						params.mediaRenderer.isKeepAspectRatioTranscoding()
 					) &&
-					!"16:9".equals(media.getAspectRatioContainer().toAspectRatio())
+					!"16:9".equals(media.getAspectRatioContainer())
 				) &&
 				!configuration.isMencoderScaler()
 			) {
@@ -1700,7 +1700,7 @@ public class MEncoderVideo extends Player {
 					cmdList.add("" + params.sid.getLang());
 				} else if (
 					!params.mediaRenderer.streamSubsForTranscodedVideo() ||
-					!params.mediaRenderer.isExternalSubtitlesFormatSupported(params.sid, media)
+					!params.mediaRenderer.isExternalSubtitlesFormatSupported(params.sid, media, dlna)
 				) {
 					// Only transcode subtitles if they aren't streamable
 					cmdList.add("-sub");
@@ -1962,7 +1962,7 @@ public class MEncoderVideo extends Player {
 						params.mediaRenderer.isKeepAspectRatio() ||
 						params.mediaRenderer.isKeepAspectRatioTranscoding()
 					) &&
-					!"16:9".equals(media.getAspectRatioContainer().toAspectRatio())
+					!"16:9".equals(media.getAspectRatioContainer())
 				)
 			) &&
 			!configuration.isMencoderScaler()
