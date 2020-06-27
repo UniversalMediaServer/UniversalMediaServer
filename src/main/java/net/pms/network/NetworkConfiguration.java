@@ -143,6 +143,9 @@ public class NetworkConfiguration {
 	 */
 	private List<InterfaceAssociation> interfaces = new ArrayList<>();
 
+	/**
+	 * @return The list of discovered network interfaces.
+	 */
 	public List<InterfaceAssociation> getInterfacesList() {
 		return interfaces;
 	}
