@@ -377,13 +377,12 @@ public class GeneralTab {
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
 			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
 			String savedNetworkInterface = configuration.getNetworkInterface();
-			if (savedNetworkInterface.length() < 7) { // for backwards-compatibility check if the short value is used
-				List<InterfaceAssociation> netInterfaces = NetworkConfiguration.getInstance().getInterfacesList();
-				for (InterfaceAssociation netInterface : netInterfaces) {
-					if (netInterface.getShortName().equals(savedNetworkInterface)) {
-						savedNetworkInterface = netInterface.getDisplayName();
-						break;
-					}
+			// for backwards-compatibility check if the short network interface name is used
+			List<InterfaceAssociation> netInterfaces = NetworkConfiguration.getInstance().getInterfacesList();
+			for (InterfaceAssociation netInterface : netInterfaces) {
+				if (netInterface.getShortName().equals(savedNetworkInterface)) {
+					savedNetworkInterface = netInterface.getDisplayName();
+					break;
 				}
 			}
 
