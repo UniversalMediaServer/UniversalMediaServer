@@ -35,6 +35,7 @@ import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
+import net.pms.network.NetworkConfiguration.InterfaceAssociation;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.SleepManager;
@@ -375,7 +376,18 @@ public class GeneralTab {
 
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
 			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
-			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+			String savedNetworkInterface = configuration.getNetworkInterface();
+			if (savedNetworkInterface.length() < 7) { // for backwards-compatibility check if the short value is used
+				List<InterfaceAssociation> netInterfaces = NetworkConfiguration.getInstance().getInterfacesList();
+				for (InterfaceAssociation netInterface : netInterfaces) {
+					if (netInterface.getShortName().equals(savedNetworkInterface)) {
+						savedNetworkInterface = netInterface.getDisplayName();
+						break;
+					}
+				}
+			}
+
+			networkInterfaces.setSelectedKey(savedNetworkInterface);
 			networkinterfacesCBX.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {

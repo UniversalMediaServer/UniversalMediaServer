@@ -143,6 +143,10 @@ public class NetworkConfiguration {
 	 */
 	private List<InterfaceAssociation> interfaces = new ArrayList<>();
 
+	public List<InterfaceAssociation> getInterfacesList() {
+		return interfaces;
+	}
+
 	/**
 	 * The map of discovered default IP addresses belonging to a network interface.
 	 */
