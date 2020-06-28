@@ -213,12 +213,12 @@ Section "Program Files"
 
 	${If} ${RunningX64}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x64"
-		Rename $INSTDIR\jre14-x64 $INSTDIR\jre14
 		File /r /x "ffmpeg.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre14-x64 jre14
 	${Else}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x86"
-		Rename $INSTDIR\jre14-x86 $INSTDIR\jre14
 		File /r /x "ffmpeg64.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre14-x86 jre14
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
