@@ -9,7 +9,7 @@ env:
     # Convenience variables for shortening commands
     - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
     - GRAVIS="$HOME/gravis"
-    - JDK="adopt@1.8.0-242"
+    - JDK="adopt@1.14.0-1"
 
 branches:
   only:
@@ -54,7 +54,7 @@ jobs:
       osx_image: xcode9.3
       script: mvn verify -P testing-macos
     - os: osx
-      osx_image: xcode11.4
+      osx_image: xcode11.6
       script: mvn verify -P testing-macos
     - os: windows
       language: minimal
