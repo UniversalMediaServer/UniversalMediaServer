@@ -118,8 +118,8 @@ public class RendererConfigurationTest {
 		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
 		testUPNPDetails("Philips PUS TV", "friendlyName=49PUS8503/12");
 
-		testHeaders("Philips PUS 6500 Series TV", "User-Agent: 50PUS6523/12");
-		testUPNPDetails("Philips 6500 Series PUS TV", "friendlyName=50PUS6523/12");
+		testHeaders("Philips 6500 Series TV", "User-Agent: 50PUS6523/12");
+		testUPNPDetails("Philips 6500 Series TV", "friendlyName=50PUS6523/12");
 
 		testHeaders(
 			"Philips TV",
