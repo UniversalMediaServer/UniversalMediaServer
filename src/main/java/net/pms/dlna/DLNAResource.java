@@ -3357,10 +3357,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public String mimeType(Player player) {
 		if (player != null) {
-			// FIXME: This cannot be right. A player like FFmpeg can output many
-			// formats depending on the media and the renderer. Also, players are
-			// singletons. Therefore it is impossible to have exactly one mime
-			// type to return.
+			// Players like FFmpegVideo can define placeholder MIME types like video/transcode to be replaced later
 			return player.mimeType();
 		} else if (media != null && media.isMediaparsed()) {
 			return media.getMimeType();
