@@ -1129,12 +1129,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * The AC-3 audio bitrate determines the quality of digital audio sound. An AV-receiver
-	 * or amplifier has to be capable of playing this quality. Default value is 640.
-	 * @return The AC-3 audio bitrate.
+	 * The bitrate for AC-3 audio transcoding.
+	 *
+	 * @return The user-specified AC-3 audio bitrate or 448
 	 */
 	public int getAudioBitrate() {
-		return getInt(KEY_AUDIO_BITRATE, 640);
+		return getInt(KEY_AUDIO_BITRATE, 448);
 	}
 
 	/**
