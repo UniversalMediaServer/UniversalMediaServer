@@ -190,8 +190,8 @@ Function RunUMS
 		services::SendServiceCommand 'start' 'Universal Media Server'
 		Pop $1
 		StrCmp $1 'Ok' success 0
-			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
-			Abort
+			; If we failed to start the service it might be disabled, so we start the GUI
+			Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
 		success:
 	${Else}
 		Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
