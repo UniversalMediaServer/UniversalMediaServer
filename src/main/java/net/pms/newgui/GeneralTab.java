@@ -35,6 +35,7 @@ import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
+import net.pms.network.NetworkConfiguration.InterfaceAssociation;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.SleepManager;
@@ -375,12 +376,24 @@ public class GeneralTab {
 
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
 			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
-			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+			String savedNetworkInterface = configuration.getNetworkInterface();
+			// for backwards-compatibility check if the short network interface name is used
+			if (StringUtils.isNotBlank(savedNetworkInterface)) {
+				List<InterfaceAssociation> netInterfaces = NetworkConfiguration.getInstance().getInterfacesList();
+				for (InterfaceAssociation netInterface : netInterfaces) {
+					if (netInterface.getShortName().equals(savedNetworkInterface)) {
+						savedNetworkInterface = netInterface.getDisplayName();
+						break;
+					}
+				}
+			}
+
+			networkInterfaces.setSelectedKey(savedNetworkInterface);
 			networkinterfacesCBX.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+						configuration.setNetworkInterface(networkInterfaces.getSelectedKey());
 					}
 				}
 			});
@@ -612,8 +625,8 @@ public class GeneralTab {
 	}
 
 	private KeyedComboBoxModel<String, String> createNetworkInterfacesModel() {
-		List<String> keys = NetworkConfiguration.getInstance().getKeys();
-		List<String> names = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> keys = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> names = NetworkConfiguration.getInstance().getDisplayNamesWithAddress();
 		keys.add(0, "");
 		names.add(0, "");
 		return new KeyedComboBoxModel<>(

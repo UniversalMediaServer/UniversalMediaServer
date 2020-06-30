@@ -240,7 +240,7 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>1.13.1</version>
+			<version>1.14.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -539,7 +539,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.1.2</version>
+			<version>5.2.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
