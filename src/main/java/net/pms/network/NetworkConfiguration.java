@@ -492,15 +492,15 @@ public class NetworkConfiguration {
 	 * 
 	 * @return the standard display name 
 	 */
-	public String replaceShortInterfaceNameByDisplayName(String savedInterface) {
-		if (StringUtils.isNotBlank(savedInterface)) {
+	public String replaceShortInterfaceNameByDisplayName(String interfaceName) {
+		if (StringUtils.isNotBlank(interfaceName)) {
 			for (InterfaceAssociation netInterface : interfaces) {
-				if (netInterface.getShortName().equals(savedInterface)) {
-					savedInterface = netInterface.getDisplayName();
+				if (netInterface.getShortName().equals(interfaceName)) {
+					interfaceName = netInterface.getDisplayName();
 					break;
 				}
 			}
 		}
-		return savedInterface;
+		return interfaceName;
 	}
 }
