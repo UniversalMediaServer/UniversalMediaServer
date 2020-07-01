@@ -1989,13 +1989,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Some renderers will not play a file if it has the wrong DLNA.ORG_PN string, while others
 	 * are fine with any string or even nothing.
 	 *
-	 * @param mediaRenderer
-	 * 			Media Renderer for which to represent this information.
+	 * @param mediaRenderer Media Renderer for which to represent this information.
 	 * @param localizationValue
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
-		// Use device-specific DMS conf, if any
+		// Use device-specific UMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		String mime = getRendererMimeType(mediaRenderer);
 
@@ -2149,6 +2148,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (dlnaOrgPnFlags != null) {
 				dlnaOrgPnFlags = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaOrgPnFlags.substring(12));
 			}
+		}
+
+		if (dlnaOrgPnFlags == null) {
+			dlnaOrgPnFlags = "*";
 		}
 
 		return dlnaOrgPnFlags;
@@ -2377,7 +2380,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 					if (media.getVideoBitDepth() > 0) {
-						addAttribute(sb, "colorDepth", media.getVideoBitDepth());
+						if (player == null) {
+							addAttribute(sb, "colorDepth", media.getVideoBitDepth());
+						} else {
+							addAttribute(sb, "colorDepth", "8");
+						}
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (media != null && media.isMediaparsed()) {
