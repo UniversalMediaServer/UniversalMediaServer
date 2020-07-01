@@ -22,6 +22,8 @@ import java.net.*;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.NetworkConfiguration.InterfaceAssociation;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -413,6 +415,8 @@ public class NetworkConfiguration {
 	 * @return The IP address.
 	 */
 	public InterfaceAssociation getAddressForNetworkInterfaceName(String name) {
+		// for backwards-compatibility check if the short network interface name is used
+		name = replaceShortInterfaceNameByDisplayName(name);
 		return mainAddress.get(name);
 	}
 
@@ -489,5 +493,22 @@ public class NetworkConfiguration {
 	 */
 	public static synchronized void forgetConfiguration() {
 		config = null;
+	}
+
+	/**
+	 * for backwards-compatibility check if the short network interface name is used
+	 * 
+	 * @return the standard display name 
+	 */
+	public String replaceShortInterfaceNameByDisplayName(String savedInterface) {
+		if (StringUtils.isNotBlank(savedInterface)) {
+			for (InterfaceAssociation netInterface : interfaces) {
+				if (netInterface.getShortName().equals(savedInterface)) {
+					savedInterface = netInterface.getDisplayName();
+					break;
+				}
+			}
+		}
+		return savedInterface;
 	}
 }
