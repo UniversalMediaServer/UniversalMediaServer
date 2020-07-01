@@ -145,13 +145,6 @@ public class NetworkConfiguration {
 	private List<InterfaceAssociation> interfaces = new ArrayList<>();
 
 	/**
-	 * @return The list of discovered network interfaces.
-	 */
-	public List<InterfaceAssociation> getInterfacesList() {
-		return interfaces;
-	}
-
-	/**
 	 * The map of discovered default IP addresses belonging to a network interface.
 	 */
 	private Map<String, InterfaceAssociation> mainAddress = new HashMap<>();
