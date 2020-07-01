@@ -22,7 +22,6 @@ import java.net.*;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.NetworkConfiguration.InterfaceAssociation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
