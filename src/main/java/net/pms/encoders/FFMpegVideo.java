@@ -215,7 +215,7 @@ public class FFMpegVideo extends Player {
 					if (params.sid.getExternalFile() != null) {
 						if (
 							!renderer.streamSubsForTranscodedVideo() ||
-							!renderer.isExternalSubtitlesFormatSupported(params.sid, media)
+							!renderer.isExternalSubtitlesFormatSupported(params.sid, media, dlna)
 						) {
 							// Only transcode subtitles if they aren't streamable
 							originalSubsFilename = params.sid.getExternalFile().getPath();

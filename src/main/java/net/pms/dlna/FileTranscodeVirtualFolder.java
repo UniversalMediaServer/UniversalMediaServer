@@ -295,12 +295,12 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				}
 			}
 
-			if (renderer != null && renderer.isSubtitlesStreamingSupported()) {
+			if (renderer != null && renderer.isSubtitlesStreamingSupportedForAllFiletypes()) {
 				// Add a no-transcode entry for each streamable external subtitles
 				for (DLNAMediaSubtitle subtitlesTrack : subtitlesTracks) {
 					if (
 						subtitlesTrack != null && subtitlesTrack.isExternal() &&
-						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource.getMedia())
+						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource.getMedia(), originalResource)
 					) {
 						DLNAResource copy = createResourceWithAudioSubtitlePlayer(originalResource, singleAudioTrack, subtitlesTrack, null);
 						entries.add(copy);

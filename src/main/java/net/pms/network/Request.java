@@ -504,7 +504,7 @@ public class Request extends HTTPResource {
 								dlna.getMediaSubtitle() != null &&
 								dlna.getMediaSubtitle().isExternal() &&
 								!configuration.isDisableSubtitles() &&
-								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())
+								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia(), dlna)
 							) {
 								// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 								String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
@@ -539,7 +539,7 @@ public class Request extends HTTPResource {
 									reasons.add("dlna.getMediaSubtitle() is null");
 								} else if (!dlna.getMediaSubtitle().isExternal()) {
 									reasons.add("the subtitles are internal/embedded");
-								} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())) {
+								} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia(), dlna)) {
 									reasons.add("the external subtitles format isn't supported by the renderer");
 								}
 								LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));

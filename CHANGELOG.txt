@@ -1,3 +1,85 @@
+9.7.0 - 2020-06-21
+
+	General:
+		Improved browsing and scanning speed and stability
+		Optimized database storage space
+		Fixed aspect ratio comparisons
+		Fixed the "Check for updates" button not finding updates
+		Fixed support for Eclipse development
+		Fixed freezes while browsing and scanning a folder at the same time
+	Renderers:
+		Improved support for high bit-depth videos on Samsung and Sony TVs, and VLC
+		Fixed transcoding support in some cases on DirecTV, Panasonic, Samsung, Sony and Vizio TVs, and Android phones
+	Translation updates via Crowdin:
+		Chinese Traditional (100%)
+		French (100%)
+		Hungarian (100%)
+		Polish (100%)
+		Spanish (100%)
+	Dependency updates:
+		Bump surefire-version from 3.0.0-M4 to 3.0.0-M5
+
+9.6.2 - 2020-06-15
+
+	General:
+		Fixed broken browsing on some renderers
+		Fixed broken transcoding on renderers with KeepAspectRatio enabled
+		Improved support for web interface on iOS (thanks, Jeff Puls!)
+	Renderers:
+		Updated support for external subtitles on VLC for Desktop (thanks, JuanPZ!)
+	Translation updates via Crowdin:
+		Russian (94%)
+	Dependency updates:
+		netty from 4.1.50 to 3.10.6
+
+9.6.1 - 2020-06-14
+
+	General:
+		Fixed Linux startup error
+
+9.6.0 - 2020-06-12
+
+	General:
+		Improved compatibility of files containing both supported and unsupported streams
+		Improved support for MP4 and OGA/OGG audio on the web interface
+		Fixed automatic updating on Windows and macOS
+		Fixed renderer control windows not refocusing on Windows when renderer image was clicked
+		Fixed support for external subtitles when using the se syntax in renderer config
+		Fixed not transcoding embedded subtitles when we should
+	Renderers:
+		Updated support for external subtitles on VLC for iOS (thanks, JuanPZ!)
+		Updated support for external subtitles on Panasonic VT60
+	Translation updates via Crowdin:
+		English (British) (5%)
+		Macedonian (0%)
+	Dependency updates:
+		commons-io from 2.6 to 2.7
+		exec-maven-plugin from 1.6.0 to 3.0.0
+		JRE from 8 to 14.0.1
+		maven-project-info-reports-plugin from 3.0.0 to 3.1.0
+		metadata-extractor from 2.13.0 to 2.14.0
+		netty from 3.10.6 to 4.1.50
+		oshi-core from 5.1.0 to 5.1.2
+		rome from 1.12.2 to 1.13.1
+
+9.5.0 - 2020-05-24
+
+	General:
+		Significant improvements to scanning and browsing speed and resource use
+		Fixed episode titles in the Media Library
+		Fixed aspect ratio validation
+		Added more automatic regression tests for file format detection
+	Renderers:
+		Added support for Vimu Player on Amazon Fire TV Stick (thanks, nouse and Nadahar!)
+	Translation updates via Crowdin:
+		Dutch (92%)
+		Turkish (100%)
+	Dependency updates:
+		7zipj from 9.20-2.00 to 16.02-2.01
+		assertj-core from 3.16.0 to 3.16.1
+		junrar from 1.0.1 to 4.0.0
+		oshi-core from 5.0.1 to 5.1.0
+
 9.4.3 - 2020-05-09
 
 	General:

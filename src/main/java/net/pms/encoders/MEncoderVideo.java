@@ -1700,7 +1700,7 @@ public class MEncoderVideo extends Player {
 					cmdList.add("" + params.sid.getLang());
 				} else if (
 					!params.mediaRenderer.streamSubsForTranscodedVideo() ||
-					!params.mediaRenderer.isExternalSubtitlesFormatSupported(params.sid, media)
+					!params.mediaRenderer.isExternalSubtitlesFormatSupported(params.sid, media, dlna)
 				) {
 					// Only transcode subtitles if they aren't streamable
 					cmdList.add("-sub");
