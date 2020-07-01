@@ -84,12 +84,11 @@ public class NetworkConfiguration {
 		}
 
 		/**
-		 * Returns the display name of the interface association 
-		 * with IP address if exists.
+		 * Returns the display name of the interface association.
 		 *
 		 * @return The name.
 		 */
-		public String getDisplayNameWithAddress() {
+		public String getDisplayName() {
 			String displayName = iface.getDisplayName();
 
 			if (displayName != null) {
@@ -104,24 +103,7 @@ public class NetworkConfiguration {
 
 			return displayName;
 		}
-
-		/**
-		 * Returns the display name of the interface association.
-		 *
-		 * @return The name.
-		 */
-		public String getDisplayName() {
-			String displayName = iface.getDisplayName();
-
-			if (displayName != null) {
-				displayName = displayName.trim();
-			} else {
-				displayName = iface.getName();
-			}
-
-			return displayName;
-		}
-
+		
 		@Override
 		public String toString() {
 			return "InterfaceAssociation(addr=" + addr + ", iface=" + iface + ", parent=" + parentName + ')';
@@ -142,13 +124,6 @@ public class NetworkConfiguration {
 	 * The list of discovered network interfaces.
 	 */
 	private List<InterfaceAssociation> interfaces = new ArrayList<>();
-
-	/**
-	 * @return The list of discovered network interfaces.
-	 */
-	public List<InterfaceAssociation> getInterfacesList() {
-		return interfaces;
-	}
 
 	/**
 	 * The map of discovered default IP addresses belonging to a network interface.
@@ -312,7 +287,7 @@ public class NetworkConfiguration {
 						LOGGER.trace("found {} -> {}", networkInterface.getName(), address.getHostAddress());
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
-						mainAddress.put(networkInterface.getDisplayName(), ia);
+						mainAddress.put(networkInterface.getName(), ia);
 						foundAddress = true;
 					}
 				} else {
@@ -328,18 +303,16 @@ public class NetworkConfiguration {
 		}
 	}
 
-
 	/**
-	 * Returns the list of user friendly names of interfaces with their IP
-	 * address.
+	 * Returns the list of discovered interface names.
 	 *
-	 * @return The list of names.
+	 * @return The interface names.
 	 */
-	public List<String> getDisplayNamesWithAddress() {
+	public List<String> getKeys() {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-			result.add(i.getDisplayNameWithAddress());
+			result.add(i.getShortName());
 		}
 
 		return result;
@@ -355,7 +328,7 @@ public class NetworkConfiguration {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-			result.add(i.getDisplayName());
+				result.add(i.getDisplayName());
 		}
 
 		return result;
