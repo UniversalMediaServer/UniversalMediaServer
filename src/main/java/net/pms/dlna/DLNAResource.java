@@ -2152,10 +2152,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (dlnaOrgPnFlags == null) {
-			dlnaOrgPnFlags = "*";
-		}
-
 		return dlnaOrgPnFlags;
 	}
 
