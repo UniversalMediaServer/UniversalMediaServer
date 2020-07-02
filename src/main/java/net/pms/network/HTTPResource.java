@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
@@ -287,22 +288,18 @@ public class HTTPResource {
 		return "MPEG_TS_SD_EU_ISO";
 	}
 
-	public final String getMPEG_TS_SD_EULocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA";
-		}
-
-		if (index == 2) {
-			return "MPEG_TS_SD_JP";
-		}
-
-		return "MPEG_TS_SD_EU";
-	}
-
-	public final String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
+	public final String getMPEG_TSOrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer) {
 		String definition = "SD";
-		if (isHD) {
+		if (media.isHDVideo()) {
 			definition = "HD";
+		}
+
+		if (media.isH264()) {
+			if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+				return "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
+			}
+			
+			return "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
 		}
 
 		if (index == 1) {

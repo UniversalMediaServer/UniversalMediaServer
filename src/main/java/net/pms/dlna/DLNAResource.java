@@ -2102,6 +2102,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						if (isFileMPEGTS) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(localizationValue);
+							// TODO: This is wrong, fix it
 							if (
 								media.isH264() &&
 								!VideoLanVideoStreaming.ID.equals(player.id()) &&
@@ -2115,18 +2116,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					} else if (media != null) {
 						if (media.isMpegTS()) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
-							if (media.isH264()) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
-								if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
-									dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
-								}
-							}
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TSOrgPN(localizationValue, media, mediaRenderer);
 						}
 					}
 				} else if (media != null && mime.equals("video/vnd.dlna.mpeg-tts")) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TSOrgPN(localizationValue, media, mediaRenderer);
 				} else if (media != null && mime.equals(JPEG_TYPEMIME)) {
 					int width = media.getWidth();
 					int height = media.getHeight();
