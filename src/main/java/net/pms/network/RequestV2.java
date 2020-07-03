@@ -990,26 +990,33 @@ public class RequestV2 extends HTTPResource {
 				}
 			}
 			if (isNotBlank(formattedResponse)) {
-				LOGGER.trace(
-					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
-					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
-					header,
-					formattedResponse
-				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
+				boolean loggedUnescaped = false;
 				if (matcher.find()) {
 					try {
 						LOGGER.trace(
-							"The unescaped <Result> sent to {} is:\n{}",
+							"Unescaped response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
 							rendererName,
+							output.getProtocolVersion(),
+							output.getStatus(),
+							header,
 							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), StandardCharsets.UTF_8, 2)
 						);
+						loggedUnescaped = true;
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 						LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
 						LOGGER.trace("", e);
 					}
+				}
+				if (!loggedUnescaped) {
+					LOGGER.trace(
+						"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+						rendererName,
+						output.getProtocolVersion(),
+						output.getStatus(),
+						header,
+						formattedResponse
+					);
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
 				LOGGER.trace(
