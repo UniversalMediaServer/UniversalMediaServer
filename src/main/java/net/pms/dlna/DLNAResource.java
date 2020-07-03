@@ -1993,13 +1993,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Some renderers will not play a file if it has the wrong DLNA.ORG_PN string, while others
 	 * are fine with any string or even nothing.
 	 *
-	 * @param mediaRenderer
-	 * 			Media Renderer for which to represent this information.
+	 * @param mediaRenderer Media Renderer for which to represent this information.
 	 * @param localizationValue
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
-		// Use device-specific DMS conf, if any
+		// Use device-specific UMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		String mime = getRendererMimeType(mediaRenderer);
 
@@ -2014,15 +2013,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			} else {
 				if (mime.equals(MPEG_TYPEMIME)) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(localizationValue);
+					/**
+					 * TODO: The first part of the ORG_PN strings represents the video codec, so
+					 * we should refactor this code to segment on that rather than MIME type.
+					 */
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_OrgPN(localizationValue);
 
+					// If player is not null, we are not streaming it
 					if (player != null) {
 						// VLC Web Video (Legacy) and tsMuxeR always output MPEG-TS
-						boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
+						boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
 
 						// Check if the renderer settings make the current engine always output MPEG-TS
 						if (
-							!isFileMPEGTS &&
+							!isOutputtingMPEGTS &&
 							mediaRenderer.isTranscodeToMPEGTS() &&
 							(
 								MEncoderVideo.ID.equals(player.id()) ||
@@ -2032,14 +2036,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								AviSynthMEncoder.ID.equals(player.id())
 							)
 						) {
-							isFileMPEGTS = true;
+							isOutputtingMPEGTS = true;
 						}
-
-						boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
 
 						// If the engine is capable of automatically muxing to MPEG-TS and the setting is enabled, it might be MPEG-TS
 						if (
-							!isFileMPEGTS &&
+							!isOutputtingMPEGTS &&
 							(
 								(
 									configurationSpecificToRenderer.isMencoderMuxWhenCompatible() &&
@@ -2096,40 +2098,39 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								!hasExternalSubtitles() &&
 								media != null &&
 								media.getDvdtrack() == 0 &&
-								isMuxableResult &&
+								media.isMuxable(mediaRenderer) &&
 								mediaRenderer.isMuxH264MpegTS()
 							) {
-								isFileMPEGTS = true;
+								isOutputtingMPEGTS = true;
 							}
 						}
 
-						if (isFileMPEGTS) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(localizationValue);
+						if (isOutputtingMPEGTS) {
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
 							if (
-								media.isH264() &&
-								!VideoLanVideoStreaming.ID.equals(player.id()) &&
-								isMuxableResult
+								mediaRenderer.isTranscodeToH264() &&
+								!VideoLanVideoStreaming.ID.equals(player.id())
 							) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
-								if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
-									dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
-								}
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
 							}
 						}
 					} else if (media != null) {
+						// In this block, we are streaming the file
 						if (media.isMpegTS()) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
-							if (media.isH264()) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
-								if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
-									dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
-								}
+							if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+							} else {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
 							}
 						}
 					}
 				} else if (media != null && mime.equals("video/vnd.dlna.mpeg-tts")) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_EULocalizedValue(localizationValue, media.isHDVideo());
+					if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+					} else {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
+					}
 				} else if (media != null && mime.equals(JPEG_TYPEMIME)) {
 					int width = media.getWidth();
 					int height = media.getHeight();
@@ -2373,7 +2374,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
 					if (firstAudioTrack != null) {
 						if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
-							addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
+							if (player == null) {
+								addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
+							} else {
+								addAttribute(sb, "nrAudioChannels", configuration.getAudioChannelCount());
+							}
 						}
 
 						if (firstAudioTrack.getSampleFrequency() != null) {
@@ -2381,7 +2386,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 					if (media.getVideoBitDepth() > 0) {
-						addAttribute(sb, "colorDepth", media.getVideoBitDepth());
+						if (player == null) {
+							addAttribute(sb, "colorDepth", media.getVideoBitDepth());
+						} else {
+							addAttribute(sb, "colorDepth", "8");
+						}
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (media != null && media.isMediaparsed()) {

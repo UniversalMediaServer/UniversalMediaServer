@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
@@ -255,8 +256,8 @@ public class HTTPResource {
 
 	/**
 	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
-	 * @param mimetype MIME type to customize.
 	 * @param renderer media renderer to customize the MIME type for.
+	 * @param resource the resource
 	 * @return The MIME type
 	 */
 	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
@@ -267,7 +268,7 @@ public class HTTPResource {
 		return 3;
 	}
 
-	public final String getMPEG_PS_PALLocalizedValue(int index) {
+	public final String getMPEG_PS_OrgPN(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -275,43 +276,100 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMPEG_TS_SD_EU_ISOLocalizedValue(int index) {
+	public final String getMPEG_TS_MPEG2_ISOOrgPN(int index, DLNAMediaInfo media) {
+		String orgPN = "MPEG_TS_";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HD";
+		} else {
+			orgPN += "SD";
+		}
+
 		if (index == 1) {
-			return "MPEG_TS_SD_NA_ISO";
+			return orgPN + "_NA_ISO";
+		} else if (index == 2) {
+			return orgPN + "_JP_ISO";
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP_ISO";
-		}
-
-		return "MPEG_TS_SD_EU_ISO";
+		return orgPN + "_EU_ISO";
 	}
 
-	public final String getMPEG_TS_SD_EULocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA";
+	public final String getMPEG_TS_MPEG2_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "MPEG_TS_";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HD";
+		} else {
+			orgPN += "SD";
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP";
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		return "MPEG_TS_SD_EU";
+		if (!isStreaming) {
+			orgPN += "_ISO";
+		}
+
+		return orgPN;
 	}
 
-	public final String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
-		String definition = "SD";
-		if (isHD) {
-			definition = "HD";
+	public final String getMPEG_TS_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_TS";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "_HD";
+		} else {
+			orgPN += "_SD";
 		}
 
-		if (index == 1) {
-			return "MPEG_TS_" + definition + "_NA";
-		}
-		if (index == 2) {
-			return "MPEG_TS_" + definition + "_JP";
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAACLC()
+				) ||
+				(
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAAC()
+				)
+			) {
+				orgPN += "_AAC";
+			} else if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAC3()
+				) ||
+				(
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAC3()
+				)
+			) {
+				orgPN += "_AC3";
+			}
 		}
 
-		return "MPEG_TS_" + definition + "_EU";
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
+		}
+
+		if (!isStreaming) {
+			orgPN += "_ISO";
+		}
+
+		return orgPN;
 	}
 }

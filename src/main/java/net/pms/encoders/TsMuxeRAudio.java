@@ -25,6 +25,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.HTTPResource;
 import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
@@ -67,6 +68,11 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 		params.timeend = media.getDurationInSeconds();
 		params.waitbeforestart = 2500;
 		return super.launchTranscode(dlna, media, params);
+	}
+
+	@Override
+	public String mimeType() {
+		return HTTPResource.AUDIO_TRANSCODE;
 	}
 
 	@Override
