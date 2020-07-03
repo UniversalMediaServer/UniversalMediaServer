@@ -1,3 +1,20 @@
+9.7.1 - 2020-07-
+
+	General:
+		Added dates to the debug log zip (thanks, midhun1998!)
+		Added profiling logging for the database
+		Windows installer stops the existing service if it is running
+		Windows installer starts the service if the checkbox is enabled at the end and the service is installed, instead of starting the GUI
+		Windows installer does not try to start the GUI on computer startup if the service is installed
+		GUI warns about using it as a GUI when it is already installed as a service
+		The service uses our bundled Java instead of the system one
+		Changed the default AC-3 transcoding bitrate to 448 for better transcoding compatibility
+	Dependency updates:
+		Bump maven-site-plugin from 3.9.0 to 3.9.1
+		Bump oshi-core from 5.1.2 to 5.2.0
+		Bump rome from 1.13.1 to 1.14.1
+		Bump spotbugs-maven-plugin from 4.0.0 to 4.0.4
+
 9.7.0 - 2020-06-21
 
 	General:
