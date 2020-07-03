@@ -2008,11 +2008,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (mediaRenderer.isPS3()) {
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
-				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.getHeight() > 700) {
+				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=WMVHIGH_PRO";
 				}
 			} else {
-				if (mime.equals(MPEG_TYPEMIME)) {
+				if (mime.equals(DIVX_TYPEMIME)) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
+				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
+					dlnaOrgPnFlags = "DLNA.ORG_PN=WMVHIGH_PRO";
+				} else if (mime.equals(MPEG_TYPEMIME)) {
 					/**
 					 * TODO: The first part of the ORG_PN strings represents the video codec, so
 					 * we should refactor this code to segment on that rather than MIME type.
