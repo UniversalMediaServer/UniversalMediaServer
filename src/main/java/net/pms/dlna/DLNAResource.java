@@ -2104,21 +2104,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (isOutputtingMPEGTS) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_ISOOrgPN(localizationValue, media);
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
 							if (
 								mediaRenderer.isTranscodeToH264() &&
 								!VideoLanVideoStreaming.ID.equals(player.id())
 							) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
-								if (mediaRenderer.isTranscodeToAAC()) {
-									dlnaOrgPnFlags = "DLNA.ORG_PN=AVC_TS_HD_AAC";
-								}
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
 							}
 						}
 					} else if (media != null) {
 						// In this block, we are streaming the file
 						if (media.isMpegTS()) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer);
+							if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+							} else {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
+							}
 						}
 					}
 				} else if (media != null && mime.equals("video/vnd.dlna.mpeg-tts")) {
@@ -2126,7 +2127,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
 					} else {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer);
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
 					}
 				} else if (media != null && mime.equals(JPEG_TYPEMIME)) {
 					int width = media.getWidth();

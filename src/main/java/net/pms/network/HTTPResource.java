@@ -293,7 +293,7 @@ public class HTTPResource {
 		return orgPN + "_EU_ISO";
 	}
 
-	public final String getMPEG_TS_MPEG2_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer) {
+	public final String getMPEG_TS_MPEG2_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HD";
@@ -301,13 +301,23 @@ public class HTTPResource {
 			orgPN += "SD";
 		}
 
-		if (index == 1) {
-			return orgPN + "_NA";
-		} else if (index == 2) {
-			return orgPN + "_JP";
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		return orgPN + "_EU";
+		if (!isStreaming) {
+			orgPN += "_ISO";
+		}
+
+		return orgPN;
 	}
 
 	public final String getMPEG_TS_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
@@ -344,12 +354,22 @@ public class HTTPResource {
 			}
 		}
 
-		if (index == 1) {
-			return orgPN + "_NA";
-		} else if (index == 2) {
-			return orgPN + "_JP";
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		return orgPN + "_EU";
+		if (!isStreaming) {
+			orgPN += "_ISO";
+		}
+
+		return orgPN;
 	}
 }
