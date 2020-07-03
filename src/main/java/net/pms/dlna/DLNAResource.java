@@ -2108,12 +2108,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (isOutputtingMPEGTS) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, false);
 							if (
 								mediaRenderer.isTranscodeToH264() &&
 								!VideoLanVideoStreaming.ID.equals(player.id())
 							) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, false);
 							}
 						}
 					} else if (media != null) {
