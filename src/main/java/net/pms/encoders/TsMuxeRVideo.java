@@ -49,6 +49,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.network.HTTPResource;
 import net.pms.newgui.GuiUtil;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.CodecUtil;
@@ -713,7 +714,7 @@ public class TsMuxeRVideo extends Player {
 
 	@Override
 	public String mimeType() {
-		return "video/mpeg";
+		return HTTPResource.VIDEO_TRANSCODE;
 	}
 
 	@Override
