@@ -2148,10 +2148,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether we should start minimized
 	 */
 	public boolean isMinimized() {
-		if (Platform.isMac()) {
-			return false;
-		}
-
 		return getBoolean(KEY_MINIMIZED, false);
 	}
 
