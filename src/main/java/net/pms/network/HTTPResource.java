@@ -276,23 +276,6 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMPEG_TS_MPEG2_ISOOrgPN(int index, DLNAMediaInfo media) {
-		String orgPN = "MPEG_TS_";
-		if (media != null && media.isHDVideo()) {
-			orgPN += "HD";
-		} else {
-			orgPN += "SD";
-		}
-
-		if (index == 1) {
-			return orgPN + "_NA_ISO";
-		} else if (index == 2) {
-			return orgPN + "_JP_ISO";
-		}
-
-		return orgPN + "_EU_ISO";
-	}
-
 	public final String getMPEG_TS_MPEG2_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
 		if (media != null && media.isHDVideo()) {
