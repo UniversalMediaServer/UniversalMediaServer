@@ -45,6 +45,7 @@ public class MediaLibrary extends VirtualFolder {
 			},
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
+
 		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);

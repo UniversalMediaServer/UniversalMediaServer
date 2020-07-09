@@ -597,6 +597,8 @@ public class RemoteUtil {
 		javascriptVarsScript += "var yearStartedTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.YearStarted", t) + "\";";
 		javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
 		javascriptVarsScript += "var totalSeasonsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.TotalSeasons", t) + "\";";
+		// TODO this should be set to an ID of the recommendations virtual folder for this resource
+		javascriptVarsScript += "var recommendationsVirtualFolderId = 2;";
 
 		javascriptVarsScript += "var actorsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Actors", t) + "\";";
 		String actorsArrayJavaScript = "var actors = [";
