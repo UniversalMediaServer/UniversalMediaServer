@@ -2373,10 +2373,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					}
 
-					if (player == null) {
-						addAttribute(sb, "bitrate", media.getRealVideoBitrate());
-					}
-
+					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
 					if (firstAudioTrack != null) {
 						if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
 							if (player == null) {
