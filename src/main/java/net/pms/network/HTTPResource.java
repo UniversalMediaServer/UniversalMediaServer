@@ -305,37 +305,6 @@ public class HTTPResource {
 
 	public final String getMPEG_TS_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_TS";
-		if (media != null && media.isHDVideo()) {
-			orgPN += "_HD";
-		} else {
-			orgPN += "_SD";
-		}
-
-		if (media != null && media.getFirstAudioTrack() != null) {
-			if (
-				(
-					isStreaming &&
-					media.getFirstAudioTrack().isAACLC()
-				) ||
-				(
-					!isStreaming &&
-					mediaRenderer.isTranscodeToAAC()
-				)
-			) {
-				orgPN += "_AAC";
-			} else if (
-				(
-					isStreaming &&
-					media.getFirstAudioTrack().isAC3()
-				) ||
-				(
-					!isStreaming &&
-					mediaRenderer.isTranscodeToAC3()
-				)
-			) {
-				orgPN += "_AC3";
-			}
-		}
 
 		switch (index) {
 			case 1:
