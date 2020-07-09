@@ -23,7 +23,9 @@ import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URI;
@@ -437,6 +439,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setTitle(title);
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		if (Platform.isMac()) {
+			addWindowListener(new WindowAdapter() {
+				public void windowClosing(WindowEvent e) {
+					setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+					setExtendedState(JFrame.ICONIFIED); 
+				}
+			});
+		}
 
 		// Display tooltips immediately and for a long time
 		ToolTipManager.sharedInstance().setInitialDelay(400);
@@ -446,6 +456,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
+
+		if (configuration.isMinimized() && Platform.isMac()) {
+			// setVisible is required to iconify the frame
+			setVisible(true);
+			setExtendedState(JFrame.ICONIFIED);
+		}
+
 		BasicSystemUtils.INSTANCE.addSystemTray(this);
 	}
 
