@@ -324,4 +324,57 @@ public class HTTPResource {
 
 		return orgPN;
 	}
+
+	public final String getMKV_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_MKV";
+
+		if (media == null || "high".equals(media.getH264Profile())) {
+			orgPN += "_HP";
+		} else {
+			orgPN += "_MP";
+		}
+
+		orgPN += "_HD";
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAACLC()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAAC()
+				)
+			) {
+				orgPN += "_AAC_MULT5";
+			} else if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAC3()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAC3()
+				)
+			) {
+				orgPN += "_AC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isDTS()
+			) {
+				orgPN += "_DTS";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isEAC3()
+			) {
+				orgPN += "_EAC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isHEAAC()
+			) {
+				orgPN += "_HEAAC_L4";
+			}
+		}
+
+		return orgPN;
+	}
 }
