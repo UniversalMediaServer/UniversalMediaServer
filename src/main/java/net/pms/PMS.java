@@ -1045,7 +1045,7 @@ public class PMS {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
 
-			// Warn the user that this instance will conflict with the Windows service
+			// Log whether the service is installed as it may help with debugging and support
 			if (Platform.isWindows()) {
 				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
