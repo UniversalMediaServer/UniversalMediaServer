@@ -1,0 +1,106 @@
+name: Universal Media Server CI
+
+on: [push]
+
+jobs:
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 14
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14
+      # Step that does that actual cache save and restore
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Install dependencies from Maven
+        run: mvn external:install
+
+      - name: Run tests (XCode 9)
+        run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
+
+      - name: Run tests (XCode 11)
+        run: DEVELOPER_DIR=/Applications/Xcode_11.app/Contents/Developer && mvn verify -P testing-macos
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 14
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14
+      # Step that does that actual cache save and restore
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Install dependencies from Maven
+        run: mvn external:install
+
+      - name: Run tests
+        run: mvn verify -P testing-windows
+
+  linux-bionic:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 14
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14
+      # Step that does that actual cache save and restore
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Install dependencies from Maven
+        run: mvn external:install
+
+      - name: Run tests (Ubuntu Bionic)
+        run: |
+          sudo apt-get -y install libmms0
+          wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+          sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/20.03/libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
+          sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
+          mvn verify -B -V -P testing
+  linux-trusty:
+    runs-on: ubuntu-16.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 14
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14
+      # Step that does that actual cache save and restore
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Install dependencies from Maven
+        run: mvn external:install
+
+      - name: Run tests (Ubuntu Trusty)
+        run: |
+          sudo apt-get -y install libmms0
+          wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
+          sudo dpkg -i libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
+          sudo dpkg -i libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
+          mvn verify -B -V -P testing
