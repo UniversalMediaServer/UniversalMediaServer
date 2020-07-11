@@ -73,7 +73,7 @@ jobs:
         run: mvn external:install
 
       - name: Run tests
-        - run: |
+        run: |
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
           sudo dpkg -i libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
