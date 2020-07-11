@@ -428,7 +428,9 @@ public class PMS {
 		displayBanner();
 
 		final Profiler profiler = new Profiler();
-		profiler.startCollecting();
+		if (configuration.getDatabaseLogging()) {
+			profiler.startCollecting();
+		}
 
 		// Initialize database
 		try {
@@ -688,9 +690,11 @@ public class PMS {
 					get().getServer().stop();
 					Thread.sleep(500);
 
-					LOGGER.trace("-------------------------------------------------------------");
-					LOGGER.trace(profiler.getTop(5));
-					LOGGER.trace("-------------------------------------------------------------");
+					if (configuration.getDatabaseLogging()) {
+						LOGGER.trace("-------------------------------------------------------------");
+						LOGGER.trace(profiler.getTop(5));
+						LOGGER.trace("-------------------------------------------------------------");
+					}
 
 					LOGGER.debug("Shutting down all active processes");
 
