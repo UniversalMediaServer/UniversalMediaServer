@@ -686,7 +686,7 @@ public class FileUtil {
 				if (tvSeason.length() == 1) {
 					tvSeasonPadded = "0" + tvSeasonPadded;
 				}
-				tvSeasonPadded = "S" + tvSeasonPadded;
+				tvSeasonPadded = "S" + tvSeasonPadded + "E";
 			}
 
 			// Make sure the episode number has a leading zero
@@ -709,7 +709,7 @@ public class FileUtil {
 					formattedName += tvEpisodeName;
 				}
 			} else if (isEpisodeWithinTVSeriesFolder) {
-				formattedName = tvSeasonPadded + "E" + tvEpisodeNumber + " - ";
+				formattedName = tvSeasonPadded + tvEpisodeNumber + " - ";
 
 				if (isBlank(tvEpisodeName)) {
 					formattedName += "Episode " + tvEpisodeNumber;

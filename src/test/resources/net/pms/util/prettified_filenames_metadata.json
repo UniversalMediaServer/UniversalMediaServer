@@ -2,7 +2,7 @@
 	{
 		"comment": "Video of a TV episode",
 		"filename": "Universal.Media.Server.S01E02.720p.mkv",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -13,7 +13,7 @@
 	{
 		"comment": "Video of a TV episode with a year in the series title",
 		"filename": "Universal.Media.Server.2019.S01E02.720p.mkv",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -25,7 +25,7 @@
 	{
 		"comment": "Video of a TV episode in double-digit seasons",
 		"filename": "Universal.Media.Server.S12E03.720p.mkv",
-		"prettified": "Universal Media Server - 1203",
+		"prettified": "Universal Media Server S12E03",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -36,7 +36,7 @@
 	{
 		"comment": "Video spanning two TV episodes",
 		"filename": "Universal.Media.Server.S01E02E03.720p.mkv",
-		"prettified": "Universal Media Server - 102-03",
+		"prettified": "Universal Media Server S01E02-03",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -47,7 +47,7 @@
 	{
 		"comment": "Video spanning two TV episodes",
 		"filename": "Universal.Media.Server.S01E02-E03.720p.mkv",
-		"prettified": "Universal Media Server - 102-03",
+		"prettified": "Universal Media Server S01E02-03",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -58,7 +58,7 @@
 	{
 		"comment": "Video spanning two TV episodes",
 		"filename": "Universal.Media.Server.S12E03-E04.720p.mkv",
-		"prettified": "Universal Media Server - 1203-04",
+		"prettified": "Universal Media Server S12E03-04",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -70,7 +70,7 @@
 		"todo": true,
 		"comment": "Video of a TV episode, noting that EXTENDED is the edition, although a group exists by the same name",
 		"filename": "Universal.Media.Server.S01E02.EXTENDED.720p.mkv",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -82,7 +82,7 @@
 	{
 		"comment": "Video of a TV episode, noting that EXTENDED is the group and not the edition",
 		"filename": "Universal.Media.Server.S01E02.720p-EXTENDED.mkv",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -93,7 +93,7 @@
 	{
 		"comment": "Video of a TV episode titled Mysterious Wordplay",
 		"filename": "Universal.Media.Server.S01E02.Mysterious.Wordplay.720p.mkv",
-		"prettified": "Universal Media Server - 102 - Mysterious Wordplay",
+		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
 		"metadata": {
 			"type": "tv-series-episode",
 			"series": "Universal Media Server",
@@ -105,7 +105,7 @@
 	{
 		"comment": "Video of an uncut TV episode",
 		"filename": "Universal.Media.Server.S01E02.UNCUT.720p.mkv",
-		"prettified": "Universal Media Server - 102 (Uncut)",
+		"prettified": "Universal Media Server S01E02 (Uncut)",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -117,7 +117,7 @@
 	{
 		"comment": "Video of an extended cut of a TV episode",
 		"filename": "Universal.Media.Server.S01E02.Extended.Cut.720p.mkv",
-		"prettified": "Universal Media Server - 102 (Extended Cut)",
+		"prettified": "Universal Media Server S01E02 (Extended Cut)",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -129,7 +129,7 @@
 	{
 		"comment": "Video of a TV episode that airs very regularly",
 		"filename": "Universal.Media.Server.2015.01.23.720p.mkv",
-		"prettified": "Universal Media Server - 2015/01/23",
+		"prettified": "Universal Media Server 2015/01/23",
 		"metadata": {
 			"type": "tv-series-episode",
 			"series": "Universal Media Server",
@@ -139,7 +139,7 @@
 	{
 		"comment": "Video of a TV episode that airs very regularly and has an episode title",
 		"filename": "Universal.Media.Server.2015.01.23.Mysterious.Wordplay.720p.mkv",
-		"prettified": "Universal Media Server - 2015/01/23 - Mysterious Wordplay",
+		"prettified": "Universal Media Server 2015/01/23 - Mysterious Wordplay",
 		"metadata": {
 			"type": "tv-series-episode",
 			"series": "Universal Media Server",
@@ -150,7 +150,7 @@
 	{
 		"comment": "Video of an anime episode",
 		"filename": "Universal Media Server - 02 [BD.1080p] [700D423E].mkv",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -161,7 +161,7 @@
 	{
 		"comment": "Video of an anime episode",
 		"filename": "[FanSubbers]_Universal_Media_Server_02_[700D423E].mp4",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -172,7 +172,7 @@
 	{
 		"comment": "Video of an anime episode",
 		"filename": "[FanSubbers]_Universal_Media_Server_-_02_[720p][700D423E].mkv",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -183,7 +183,7 @@
 	{
 		"comment": "Video of an anime episode",
 		"filename": "[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv",
-		"prettified": "Universal Media Server - 102",
+		"prettified": "Universal Media Server S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
