@@ -51,3 +51,32 @@ jobs:
 
       - name: Run tests
         run: mvn verify -P testing-windows
+
+  linux:
+    runs-on: linux-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 14
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14
+      # Step that does that actual cache save and restore
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Install dependencies from Maven
+        run: mvn external:install
+
+      - name: Run tests
+        - run:
+          - sudo apt-get -y install libmms0
+          - wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
+          - sudo dpkg -i libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
+          - wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
+          - sudo dpkg -i libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
+          - mvn verify -B -V -P testing
