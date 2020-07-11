@@ -116,7 +116,7 @@ public class RemoteWeb {
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info(
 						"To enable HTTPS please generate a self-signed keystore file " +
-						"called \"DMS.jks\" with password \"dmsdms\" using the java " +
+						"called \"UMS.jks\" with password \"umsums\" using the java " +
 						"'keytool' commandline utility, and place it in the profile folder"
 					);				}
 			} catch (GeneralSecurityException e) {
@@ -155,7 +155,7 @@ public class RemoteWeb {
 		keyStore = KeyStore.getInstance("JKS");
 		try (
 			FileInputStream fis = new FileInputStream(
-				FileUtil.appendPathSeparator(configuration.getProfileDirectory()) + "DMS.jks"
+				FileUtil.appendPathSeparator(configuration.getProfileDirectory()) + "UMS.jks"
 			)
 		) {
 			keyStore.load(fis, password);

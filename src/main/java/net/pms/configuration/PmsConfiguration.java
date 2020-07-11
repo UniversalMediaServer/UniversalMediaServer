@@ -310,7 +310,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SHOW_NEW_MEDIA_FOLDER = "show_new_media_folder";
 	protected static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
 	protected static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
-	protected static final String KEY_SHOW_SERVICE_WARNING = "show_service_warning";
 	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
 	protected static final String KEY_SHOW_TRANSCODE_FOLDER = "show_transcode_folder";
 	protected static final String KEY_SINGLE = "single_instance";
@@ -2280,22 +2279,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setShowServerSettingsFolder(boolean value) {
 		configuration.setProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, value);
-	}
-
-	/**
-	 * @return whether to display a warning if the GUI is started when the
-	 *         Windows service is installed.
-	 */
-	public boolean isShowServiceWarning() {
-		return getBoolean(KEY_SHOW_SERVICE_WARNING, true);
-	}
-
-	/**
-	 * @param value whether to display a warning if the GUI is started when the
-	 *              Windows service is installed.
-	 */
-	public void setShowServiceWarning(boolean value) {
-		configuration.setProperty(KEY_SHOW_SERVICE_WARNING, value);
 	}
 
 	/**
