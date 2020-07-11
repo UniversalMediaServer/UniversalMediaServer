@@ -50,42 +50,47 @@ jobs:
       - name: Run tests
         run: mvn verify -P testing-windows
 
-  linux-bionic:
-    runs-on: ubuntu-18.04
+  # linux-bionic:
+  #   runs-on: ubuntu-18.04
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 14
-        uses: actions/setup-java@v1
-        with:
-          java-version: 14
-      # Step that does that actual cache save and restore
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Install dependencies from Maven
-        run: mvn external:install
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Set up JDK 14
+  #       uses: actions/setup-java@v1
+  #       with:
+  #         java-version: 14
+  #     # Step that does that actual cache save and restore
+  #     - uses: actions/cache@v1
+  #       with:
+  #         path: ~/.m2/repository
+  #         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-maven-
+  #     - name: Install dependencies from Maven
+  #       run: mvn external:install
 
-      - name: Run tests (Ubuntu Bionic)
-        run: |
-          sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/20.03/libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
-          mvn verify -B -V -P testing
+  #     - name: Run tests (Ubuntu Bionic)
+  #       run: |
+  #         sudo apt-get -y install libmms0
+  #         wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+  #         sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
+  #         wget https://mediaarea.net/download/binary/libmediainfo0/20.03/libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
+  #         sudo dpkg -i libmediainfo0v5_20.03-1_amd64.xUbuntu_18.04.deb
+  #         mvn verify -B -V -P testing
+
   linux-trusty:
     runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        # test against latest update of each major Java version, as well as specific updates of LTS versions:
+        java: [ 8, 9, 10, 11, 12, 13 ]
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 14
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v1
         with:
-          java-version: 14
+          java-version: ${{ matrix.java }}
       # Step that does that actual cache save and restore
       - uses: actions/cache@v1
         with:
@@ -96,7 +101,7 @@ jobs:
       - name: Install dependencies from Maven
         run: mvn external:install
 
-      - name: Run tests (Ubuntu Trusty)
+      - name: Run tests ( Ubuntu Trusty, Java ${{ matrix.java }} )
         run: |
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
