@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -13,4 +13,4 @@ jobs:
         with:
           java-version: 14
       - name: Build with Maven
-        run: mvn external:install && mvn verify -B -V -P testing
+        run: mvn external:install && mvn verify -P testing-macos
