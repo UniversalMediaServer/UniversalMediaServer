@@ -23,8 +23,11 @@ jobs:
       - name: Install dependencies from Maven
         run: mvn external:install
 
-      - name: Run tests
-        run: mvn verify -P testing-macos
+      - name: Run tests (XCode 9)
+        run: sudo xcode-select -s /Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
+
+      - name: Run tests (XCode 11)
+        run: sudo xcode-select -s /Applications/Xcode_11.app/Contents/Developer && mvn verify -P testing-macos
 
   windows:
     runs-on: windows-latest
