@@ -13,4 +13,4 @@ jobs:
         with:
           java-version: 14
       - name: Build with Maven
-        run: mvn external:install && mvn verify -B -V -P testing pom.xml
+        run: mvn external:install && mvn verify -B -V -P testing
