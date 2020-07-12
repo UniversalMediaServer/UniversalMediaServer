@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        # test against latest update of each major Java version, as well as specific updates of LTS versions:
+        # test against two different xcode version on MacOS
         xcode: [ 9.4.1, 11 ]
 
     steps:
@@ -50,7 +50,7 @@ jobs:
 
       - name: Run tests
         run: mvn verify -P testing-windows
-
+  # TODO enable one issue https://github.com/UniversalMediaServer/UniversalMediaServer/issues/2177 resolved
   # linux-bionic:
   #   runs-on: ubuntu-18.04
 
@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-16.04
     strategy:
       matrix:
-        # test against latest update of each major Java version, as well as specific updates of LTS versions:
+        # test against multiple major Java versions
         java: [ 8, 9, 10, 11, 12, 13, 14 ]
 
     steps:
