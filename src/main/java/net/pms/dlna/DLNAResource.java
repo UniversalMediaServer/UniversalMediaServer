@@ -2375,7 +2375,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					}
 
-					addAttribute(sb, "framerate", media.getFrameRateDLNA());
+					if (media.getFrameRate() != null) {
+						addAttribute(sb, "framerate", media.getFrameRateDLNA());
+					}
 
 					if (player != null && transcodedSize != 0) {
 						int transcodedBitrate = (int) (transcodedSize / media.getDurationInSeconds());
