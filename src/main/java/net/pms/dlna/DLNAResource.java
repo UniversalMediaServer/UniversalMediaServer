@@ -2351,11 +2351,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (getFormat() != null && getFormat().isVideo() && media != null && media.isMediaparsed()) {
-					long transcoded_size = mediaRenderer.getTranscodedSize();
+					long transcodedSize = mediaRenderer.getTranscodedSize();
 					if (player == null) {
 						addAttribute(sb, "size", media.getSize());
-					} else if (transcoded_size != 0) {
-						addAttribute(sb, "size", transcoded_size);
+					} else if (transcodedSize != 0) {
+						addAttribute(sb, "size", transcodedSize);
 					}
 
 					if (media.getDuration() != null) {
@@ -2377,8 +2377,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					addAttribute(sb, "framerate", media.getFrameRateDLNA());
 
-					if (player == null && transcoded_size != 0) {
-						int transcodedBitrate = (int) (transcoded_size / media.getDurationInSeconds());
+					if (player != null && transcodedSize != 0) {
+						int transcodedBitrate = (int) (transcodedSize / media.getDurationInSeconds());
 						addAttribute(sb, "bitrate", transcodedBitrate);
 					} else {
 						addAttribute(sb, "bitrate", media.getRealVideoBitrate());
