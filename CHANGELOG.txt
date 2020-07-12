@@ -1,3 +1,19 @@
+9.7.2 - 2020-07-11
+
+	General:
+		Fixed HTTPS and authentication in the web interface (thanks, outnos!)
+		Fixed Windows service
+		Fixed auto updater getting stuck on program startup
+		Fixed high CPU usage for some users
+		Fixed fontconfig warning
+	Renderers:
+		Added support for Sony STR-DN1080 AV Receiver (thanks, GurliGebis!)
+		Fixed detection of newer versions of VLC on Apple TV (thanks, ajkessel!)
+	Translation updates via Crowdin:
+		Bulgarian (100%)
+		French (100%)
+		Hungarian (100%)
+
 9.7.1 - 2020-07-05
 
 	General:
