@@ -15,7 +15,6 @@ pms.iml
 *.sublime-*
 Thumbs.db
 extras/
-plugins/
 target/
 /web/
 win32/
@@ -32,4 +31,5 @@ docker/web
 docker/ums.jar
 docker/logback.headless.xml
 docker/linux*
+docker/jre*
 /src/main/java/net/pms/Test.java

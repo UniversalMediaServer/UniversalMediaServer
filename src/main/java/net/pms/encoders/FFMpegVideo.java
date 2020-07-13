@@ -215,7 +215,7 @@ public class FFMpegVideo extends Player {
 					if (params.sid.getExternalFile() != null) {
 						if (
 							!renderer.streamSubsForTranscodedVideo() ||
-							!renderer.isExternalSubtitlesFormatSupported(params.sid, media)
+							!renderer.isExternalSubtitlesFormatSupported(params.sid, media, dlna)
 						) {
 							// Only transcode subtitles if they aren't streamable
 							originalSubsFilename = params.sid.getExternalFile().getPath();
@@ -1096,7 +1096,11 @@ public class FFMpegVideo extends Player {
 					}
 				}
 
-				if (!customFFmpegOptions.contains("-ar ") && params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate()) {
+				if (
+					!customFFmpegOptions.contains("-ar ") && 
+					params.aid != null &&
+					params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate()
+				) {
 					cmdList.add("-ar");
 					cmdList.add("" + params.mediaRenderer.getTranscodedVideoAudioSampleRate());
 				}
@@ -1104,9 +1108,10 @@ public class FFMpegVideo extends Player {
 				// Use high quality resampler
 				// The parameters of http://forum.minimserver.com/showthread.php?tid=4181&pid=27185 are used.
 				if (
+					!customFFmpegOptions.contains("--resampler") &&
+					params.aid != null && 
 					params.aid.getSampleRate() != params.mediaRenderer.getTranscodedVideoAudioSampleRate() &&
-					configuration.isFFmpegSoX() &&
-					!customFFmpegOptions.contains("--resampler")
+					configuration.isFFmpegSoX()
 				) {
 					cmdList.add("-resampler");
 					cmdList.add("soxr");

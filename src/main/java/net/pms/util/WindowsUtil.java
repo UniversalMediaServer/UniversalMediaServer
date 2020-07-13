@@ -14,9 +14,7 @@ public class WindowsUtil {
 	private WindowsUtil() {}
 
 	/**
-	 * Checks if is the Universal Media Server service is installed.
-	 *
-	 * @return true, if a service named Universal Media Server is installed
+	 * @return whether a service named Universal Media Server is installed
 	 */
 	public static boolean isUmsServiceInstalled() {
 		String[] commands = new String[]{ "sc", "query", "\"Universal Media Server\"" };

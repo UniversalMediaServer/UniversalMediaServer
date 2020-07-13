@@ -78,7 +78,7 @@ FunctionEnd
 Function LockedListShow
 	StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
 		Abort
-	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it.`
+	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it and stop the service.`
 
 	${If} ${RunningX64}
 		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\LockedList64.dll`
@@ -89,6 +89,18 @@ Function LockedListShow
 
 	LockedList::Dialog /autonext /autoclosesilent
 	Pop $R0
+
+	services::IsServiceRunning 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'stop' 'Universal Media Server'
+		Pop $1
+		StrCmp $1 'Ok' success 0
+			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
+			Abort
+		success:
+	${EndIf}
 FunctionEnd
 
 Function LockedListLeave
@@ -171,7 +183,19 @@ FunctionEnd
 ;Run program through explorer.exe to de-evaluate user from admin to regular one.
 ;http://mdb-blog.blogspot.ru/2013/01/nsis-lunch-program-as-user-from-uac.html
 Function RunUMS
-	Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'start' 'Universal Media Server'
+		Pop $1
+		StrCmp $1 'Ok' success 0
+			; If we failed to start the service it might be disabled, so we start the GUI
+			Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+		success:
+	${Else}
+		Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+	${EndIf}
 FunctionEnd 
 
 Function CreateDesktopShortcut
@@ -185,12 +209,16 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
+	RMDir /R /REBOOTOK "$INSTDIR\jre14"
+
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x64"
-		File /r /x "ffmpeg.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x64"
+		File /r /x "ffmpeg.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre14-x64 jre14
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x86"
-		File /r /x "ffmpeg64.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x86"
+		File /r /x "ffmpeg64.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre14-x86 jre14
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -261,6 +289,7 @@ Section "Program Files"
 	Delete /REBOOTOK "$INSTDIR\renderers\OPPOBDP83.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\OPPOBDP93.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-DMRBWT740.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-SC-BTT.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-TH-P-U30Z.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\PanasonicTX-L32V10E.conf"
@@ -295,6 +324,14 @@ Section "Program Files"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV671.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV3900.conf"
 
+	; Remove old folders
+	RMDir /R /REBOOTOK "$INSTDIR\jre"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
+	
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
 
@@ -325,11 +362,7 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
-	${If} ${RunningX64}
-		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x64\bin\javaw.exe" enable=yes profile=public,private'
-	${Else}
-		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x86\bin\javaw.exe" enable=yes profile=public,private'
-	${EndIf}
+	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre14\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -339,12 +372,17 @@ Section "Start Menu Shortcuts"
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
-	; Only start UMS with Windows when it is a new install
-	IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-		goto end_of_startup_section
-	shortcut_file_not_found:
-		CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	end_of_startup_section:
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		; Only start UMS with Windows when it is a new install
+		IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
+			goto end_of_startup_section
+		shortcut_file_not_found:
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		end_of_startup_section:
+	${EndIf}
 
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
@@ -356,10 +394,14 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
-	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
-	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
 
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
@@ -414,16 +456,17 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-DMPBDT220.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-DMPBDT360.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-DMR.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-DMRBWT740.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-SCBTT.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-Viera.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraAS600E.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraAS650.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraCX680.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraCX700.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraDX.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraE6.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraET60.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraGT50.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraGX800B.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraS60.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraST60.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraTHPU30Z.conf"
@@ -477,6 +520,9 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMTG7400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar-MS750.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-WiseLink.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019-8K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sharp-Aquos.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime4.conf"
@@ -549,6 +595,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\OPPOBDP83.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\OPPOBDP93.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-DMRBWT740.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-SC-BTT.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-TH-P-U30Z.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\PanasonicTX-L32V10E.conf"

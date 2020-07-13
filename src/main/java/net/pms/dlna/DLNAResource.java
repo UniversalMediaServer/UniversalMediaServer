@@ -744,7 +744,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								!defaultRenderer.isNoDynPlsFolder()) {
 								addDynamicPls(child);
 							}
-						} else if (!child.format.isCompatible(child.media, defaultRenderer) && !child.isFolder()) {
+						} else if (!child.format.isCompatible(child, defaultRenderer) && !child.isFolder()) {
 							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
 							children.remove(child);
 						}
@@ -774,7 +774,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						newChild.first = child;
 						child.second = newChild;
 
-						if (!newChild.format.isCompatible(newChild.media, defaultRenderer)) {
+						if (!newChild.format.isCompatible(newChild, defaultRenderer)) {
 							Player playerTranscoding = PlayerFactory.getPlayer(newChild);
 							newChild.setPlayer(playerTranscoding);
 							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(), player == null ? "null" : player.name(), newChild.getName());
@@ -799,7 +799,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		} catch (Throwable t) {
-			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
+			LOGGER.debug("Error adding child: \"{}\"", child.getName(), t);
 
 			child.parent = null;
 			children.remove(child);
@@ -844,7 +844,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * whether it has subtitles that match this user's language settings, so here we
 		 * perform those checks.
 		 */
-		boolean hasSubsToTranscode = false;
+		boolean isIncompatible = false;
 		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
 			if (hasSubtitles(false)) {
 				DLNAMediaAudio audio = media_audio != null ? media_audio : resolveAudioStream(renderer);
@@ -853,18 +853,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 				if (media_subtitle != null) {
 					if (media_subtitle.isExternal()) {
-						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media)) {
+						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(media_subtitle, media, this)) {
 							LOGGER.trace("This video has external subtitles that can be streamed");
 						} else {
-							hasSubsToTranscode = true;
 							LOGGER.trace("This video has external subtitles that must be transcoded");
+							isIncompatible = true;
 						}
 					} else {
 						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(media_subtitle)) {
 							LOGGER.trace("This video has embedded subtitles that are supported");
 						} else {
-							hasSubsToTranscode = true;
 							LOGGER.trace("This video has embedded subtitles that must be transcoded");
+							isIncompatible = true;
 						}
 					}
 				}
@@ -873,49 +873,43 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
+		String rendererForceExtensions = renderer == null ? null : renderer.getTranscodedExtensions();
+		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
+		String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
+		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
+
 		if (configurationSpecificToRenderer.isDisableTranscoding()) {
-			LOGGER.trace("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
+			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
 			return null;
 		}
-
-		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
-		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
 
 		// Should transcoding be skipped for this format?
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
 
 		if (skipTranscode) {
-			LOGGER.trace("Final verdict: \"{}\" will be streamed since it is forced by configuration", getName());
+			LOGGER.debug("Final verdict: \"{}\" will be streamed since it is forced by configuration", getName());
 			return null;
 		}
+
+		// Should transcoding be forced for this format?
+		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
 
 		// Try to match a player based on media information and format.
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
 		if (resolvedPlayer != null) {
-			String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
-			String rendererForceExtensions = null;
-
-			if (renderer != null) {
-				rendererForceExtensions = renderer.getTranscodedExtensions();
-			}
-
-			// Should transcoding be forced for this format?
-			boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
-			boolean isIncompatible = false;
-
-			String prependTraceReason = "File \"{}\" will not be streamed because ";
+			String prependTranscodingReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
-				LOGGER.trace(prependTraceReason + "transcoding is forced by configuration", getName());
+				LOGGER.debug(prependTranscodingReason + "transcoding is forced by configuration", getName());
 			} else if (this instanceof DVDISOTitle) {
 				forceTranscode = true;
-				LOGGER.trace("DVD video track \"{}\" will be transcoded because streaming isn't supported", getName());
-			} else if (!format.isCompatible(media, renderer)) {
+				LOGGER.debug(prependTranscodingReason + "streaming of DVD video tracks isn't supported", getName());
+			} else if (!format.isCompatible(this, renderer)) {
 				isIncompatible = true;
 				if (renderer == null) {
-					LOGGER.trace(prependTraceReason + "the renderer is not recognised", getName());
+					LOGGER.debug(prependTranscodingReason + "the renderer is not recognised", getName());
 				} else {
-					LOGGER.trace(prependTraceReason + "it is not supported by the renderer {}", getName(), renderer.getRendererName());
+					LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(), renderer.getRendererName());
 				}
 			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
 				if (
@@ -926,7 +920,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					)
 				) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
+					LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 				} else {
 					for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
 						if (
@@ -937,12 +931,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							)
 						) {
 							isIncompatible = true;
-							LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", getName());
+							LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 							break;
 						}
 					}
 				}
 			}
+
 			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2 && renderer != null) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
@@ -951,16 +946,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					!"16:9".equals(media.getAspectRatioContainer())
 				) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), media.getAspectRatioContainer());
+					LOGGER.debug(prependTranscodingReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", getName(), media.getAspectRatioContainer());
 				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.", getName());
+					LOGGER.debug(prependTranscodingReason + "the resolution is incompatible with the renderer.", getName());
 				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), media.getBitrate(), maxBandwidth);
-				} else if (!renderer.isVideoBitDepthSupported(media.getVideoBitDepth())) {
+					LOGGER.debug(prependTranscodingReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), media.getBitrate(), maxBandwidth);
+				} else if (!renderer.isVideoBitDepthSupported(this)) {
 					isIncompatible = true;
-					LOGGER.trace(prependTraceReason + "the video bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
+					LOGGER.debug(prependTranscodingReason + "the video bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
 				} else if (renderer.isH264Level41Limited() && media.isH264()) {
 					if (media.getAvcLevel() != null) {
 						double h264Level = 4.1;
@@ -973,38 +968,35 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						if (h264Level > 4.1) {
 							isIncompatible = true;
-							LOGGER.trace(prependTraceReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
+							LOGGER.debug(prependTranscodingReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
 						}
 					} else {
 						isIncompatible = true;
-						LOGGER.trace(prependTraceReason + "the H.264 level is unknown.", getName());
+						LOGGER.debug(prependTranscodingReason + "the H.264 level is unknown.", getName());
 					}
 				} else if (media.is3d() && StringUtils.isNotBlank(renderer.getOutput3DFormat()) && (!media.get3DLayout().toString().toLowerCase(Locale.ROOT).equals(renderer.getOutput3DFormat()))) {
 					forceTranscode = true;
-					LOGGER.trace("Video \"{}\" is 3D and is forced to transcode to the format \"{}\"", getName(), renderer.getOutput3DFormat());
+					LOGGER.debug(prependTranscodingReason + "it is 3D and is forced to transcode to the format \"{}\"", getName(), renderer.getOutput3DFormat());
 				}
 			}
 
-			// Prefer transcoding over streaming if:
-			// 1) the media is unsupported by the renderer, or
-			// 2) there are subs to transcode
-			boolean preferTranscode = isIncompatible || hasSubsToTranscode;
-
-			// Transcode if:
-			// 1) transcoding is forced by configuration, or
-			// 2) transcoding is preferred and not prevented by configuration
-			if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
+			/*
+			 * Transcode if:
+			 * 1) transcoding is forced by configuration, or
+			 * 2) transcoding is not prevented by configuration and is needed due to subtitles or some other renderer incompatbility
+			 */
+			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(mimeType(resolvedPlayer), media) : media.getMimeType());
+					LOGGER.debug("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(), resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
 				} else {
-					LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), resolvedPlayer.toString());
+					LOGGER.debug("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), resolvedPlayer.toString());
 				}
 			} else {
 				resolvedPlayer = null;
-				LOGGER.trace("Final verdict: \"{}\" will be streamed", getName());
+				LOGGER.debug("Final verdict: \"{}\" will be streamed", getName());
 			}
 		} else {
-			LOGGER.trace("Final verdict: \"{}\" will be streamed because no compatible player was found", getName());
+			LOGGER.debug("Final verdict: \"{}\" will be streamed because no compatible player was found", getName());
 		}
 		return resolvedPlayer;
 	}
@@ -1022,11 +1014,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		if (parserV2 && (format == null || !format.isImage())) {
 			// See which MIME type the renderer prefers in case it supports the media
-			String preferred = renderer.getFormatConfiguration().match(media);
+			String preferred = renderer.getFormatConfiguration().getMatchedMIMEtype(this);
 			if (preferred != null) {
-				/**
-				 * Use the renderer's preferred MIME type for this file.
-				 */
+				// Use the renderer's preferred MIME type for this file
 				if (!FormatConfiguration.MIMETYPE_AUTO.equals(preferred)) {
 					media.setMimeType(preferred);
 				}
@@ -1641,7 +1631,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					media_subtitle.isExternal() &&
 					renderer != null &&
 					(player == null || renderer.streamSubsForTranscodedVideo()) &&
-					renderer.isExternalSubtitlesFormatSupported(media_subtitle, media);
+					renderer.isExternalSubtitlesFormatSupported(media_subtitle, media, this);
 
 				if (media_audio != null) {
 					String audioLanguage = media_audio.getLang();
@@ -2178,7 +2168,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// is determined for the default renderer. This renderer may rewrite the
 		// mime type based on its configuration. Looking up that mime type is
 		// not guaranteed to return a match for another renderer.
-		String mime = mediaRenderer.getMimeType(mimeType(), media);
+		String mime = mediaRenderer.getMimeType(this);
 
 		// Use our best guess if we have no valid mime type
 		if (mime == null || mime.contains("/transcode")) {
@@ -2225,7 +2215,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					(player == null || mediaRenderer.streamSubsForTranscodedVideo()) &&
 					media_subtitle != null &&
 					media_subtitle.isExternal() &&
-					mediaRenderer.isExternalSubtitlesFormatSupported(media_subtitle, media)
+					mediaRenderer.isExternalSubtitlesFormatSupported(media_subtitle, media, this)
 				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("External subtitles \"{}\" can be streamed to {}", media_subtitle.getName(), mediaRenderer);
@@ -3402,7 +3392,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param renderer The renderer profile
 	 */
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
-		// Use device-specific DMS conf, if any
+		// Use device-specific conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		if (
 			media != null &&
