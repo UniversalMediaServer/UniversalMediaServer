@@ -117,7 +117,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// Attempt 1: If the reguested url contains the no-transcode tag, force
 		// the default streaming-only conf.
-		if (request.getArgument().contains(RendererConfiguration.NOTRANSCODE)) {
+		if (request.getUri().contains(RendererConfiguration.NOTRANSCODE)) {
 			renderer = RendererConfiguration.getStreamingConf();
 			LOGGER.debug("Forcing streaming.");
 		}
