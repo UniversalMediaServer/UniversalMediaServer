@@ -37,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -47,7 +45,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.components.AnimatedIcon;
-import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
@@ -414,6 +411,7 @@ public class StatusTab {
 							r.frame.setLocationRelativeTo(top);
 							r.frame.setVisible(true);
 						} else {
+							r.frame.setExtendedState(JFrame.NORMAL);
 							r.frame.setVisible(true);
 							r.frame.toFront();
 						}

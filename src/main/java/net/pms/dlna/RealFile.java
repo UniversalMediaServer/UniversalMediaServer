@@ -76,12 +76,25 @@ public class RealFile extends MapFile {
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
 			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
-				getConf().getFiles().remove(file);
-				valid = false;
 				if (getMedia().isEncrypted()) {
+					valid = false;
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
-					LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
+					// problematic media not parsed by MediaInfo try to parse it in a different way by ffmpeg, AudioFileIO or ImagesUtil
+					// this is a quick fix for the MediaInfo insufficient parsing method
+					getMedia().setMediaparsed(false);
+					InputFile inputfile = new InputFile();
+					inputfile.setFile(file);
+					getMedia().setContainer(null);
+					getMedia().parse(inputfile, getFormat(), getType(), false, false, null);
+					if (getMedia().getContainer() == null) {
+						valid = false;
+						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
+					}
+				}
+
+				if (!valid) {
+					getConf().getFiles().remove(file);
 				}
 			}
 
@@ -179,13 +192,13 @@ public class RealFile extends MapFile {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
-					ArrayList<DLNAMediaInfo> medias;
+					DLNAMediaInfo media;
 					try {
-						medias = database.getData(fileName, file.lastModified());
+						media = database.getData(fileName, file.lastModified());
 
 						setExternalSubtitlesParsed();
-						if (medias.size() == 1) {
-							setMedia(medias.get(0));
+						if (media != null) {
+							setMedia(media);
 							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
 								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
 								getMedia().getSubtitleTracksList().clear();
@@ -194,12 +207,6 @@ public class RealFile extends MapFile {
 
 							getMedia().postParse(getType(), input);
 							found = true;
-						} else if (medias.size() > 1) {
-							LOGGER.warn(
-								"Found {} cached records for {} - this should be impossible, please file a bug report",
-								medias.size(),
-								getName()
-							);
 						}
 					} catch (InvalidClassException e) {
 						LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
@@ -266,14 +273,13 @@ public class RealFile extends MapFile {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-
 		File file = getFile();
 		File cachedThumbnail = null;
 		MediaType mediaType = getMedia() != null ? getMedia().getMediaType() : MediaType.UNKNOWN;
 
 		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
 			String alternativeFolder = configuration.getAlternateThumbFolder();
-			ArrayList<File> folders = new ArrayList<File>(2);
+			ArrayList<File> folders = new ArrayList<>(2);
 			if (file.getParentFile() != null) {
 				folders.add(null);
 			}
@@ -361,7 +367,7 @@ public class RealFile extends MapFile {
 			if (baseNamePrettified == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNamePrettified == null) {
-						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile(), null, isEpisodeWithinSeasonFolder());
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile(), getMedia(), isEpisodeWithinSeasonFolder());
 					}
 				}
 			}

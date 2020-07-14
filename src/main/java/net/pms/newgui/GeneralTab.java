@@ -375,12 +375,15 @@ public class GeneralTab {
 
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
 			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
-			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+			String savedNetworkInterface = configuration.getNetworkInterface();
+			// for backwards-compatibility check if the short network interface name is used
+			savedNetworkInterface = NetworkConfiguration.getInstance().replaceShortInterfaceNameByDisplayName(savedNetworkInterface);
+			networkInterfaces.setSelectedKey(savedNetworkInterface);
 			networkinterfacesCBX.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+						configuration.setNetworkInterface(networkInterfaces.getSelectedKey());
 					}
 				}
 			});
@@ -612,8 +615,8 @@ public class GeneralTab {
 	}
 
 	private KeyedComboBoxModel<String, String> createNetworkInterfacesModel() {
-		List<String> keys = NetworkConfiguration.getInstance().getKeys();
-		List<String> names = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> keys = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> names = NetworkConfiguration.getInstance().getDisplayNamesWithAddress();
 		keys.add(0, "");
 		names.add(0, "");
 		return new KeyedComboBoxModel<>(

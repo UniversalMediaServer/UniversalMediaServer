@@ -86,8 +86,12 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
+		RequestV2 request = null;
 		RendererConfiguration renderer = null;
+		String userAgentString = null;
+		ArrayList<String> identifiers = new ArrayList<>();
+
+		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
 		HttpHeaders headers = nettyRequest.headers();
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
@@ -107,7 +111,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			return;
 		}
 
-		RequestV2 request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
+		request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
 
 
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
@@ -139,8 +143,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		Set<String> headerNames = headers.names();
-		String userAgentString = null;
-		ArrayList<String> identifiers = new ArrayList<>();
 		Iterator<String> iterator = headerNames.iterator();
 		while (iterator.hasNext()) {
 			String name = iterator.next();
@@ -353,13 +355,23 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				":" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getPort() + ")";
 		}
 
-		LOGGER.trace(
-			"Received a {}request from {}:\n\n{}{}",
-			requestType,
-			rendererName,
-			header,
-			StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
-		);
+		if (isNotBlank(requestType)) {
+			LOGGER.trace(
+				"Received a {}request from {}:\n\n{}{}",
+				requestType,
+				rendererName,
+				header,
+				StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+				);
+		} else { // Trace not supported request type
+			LOGGER.trace(
+				"Received a {}request from {}:\n\n{}.\nRenderer UUID={}",
+				soapAction,
+				rendererName,
+				header,
+				renderer.uuid
+				);
+		}
 	}
 
 	/**
@@ -385,17 +397,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
-					nettyRequest.getProtocolVersion(),
-					HttpResponseStatus.PARTIAL_CONTENT
+				nettyRequest.getProtocolVersion(),
+				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
 			response = new DefaultHttpResponse(
-					nettyRequest.getProtocolVersion(),
-					HttpResponseStatus.OK
+				nettyRequest.getProtocolVersion(),
+				HttpResponseStatus.OK
 			);
 		}
-
-		response.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
@@ -435,7 +445,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				LOGGER.trace("", cause);
 			}
 		}
-
 		Channel ch = e.getChannel();
 		if (ch.isConnected()) {
 			sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);

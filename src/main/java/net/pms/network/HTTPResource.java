@@ -19,7 +19,6 @@
 package net.pms.network;
 
 import static net.pms.util.StringUtil.convertURLToFileName;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,14 +31,11 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
@@ -96,10 +92,12 @@ public class HTTPResource {
 	public static final String FLV_TYPEMIME = "video/x-flv";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
+	public static final String M4V_TYPEMIME = "video/x-m4v";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
+	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
@@ -261,8 +259,8 @@ public class HTTPResource {
 	 * @param renderer media renderer to customize the MIME type for.
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(String mimetype, RendererConfiguration renderer, DLNAMediaInfo media) {
-		return renderer.getMimeType(mimetype, media);
+	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+		return renderer.getMimeType(resource);
 	}
 
 	public int getDLNALocalesCount() {

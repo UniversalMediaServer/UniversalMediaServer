@@ -86,6 +86,8 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
+import org.h2.tools.ConvertTraceFile;
+import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +156,10 @@ public class PMS {
 		// something to do here for multiple directories views for each renderer
 		if (renderer == null) {
 			renderer = RendererConfiguration.getDefaultConf();
+		}
+
+		if (renderer == null) {
+			return null;
 		}
 
 		return renderer.getRootFolder();
@@ -421,8 +427,17 @@ public class PMS {
 		// Call this as early as possible
 		displayBanner();
 
+		final Profiler profiler = new Profiler();
+		if (configuration.getDatabaseLogging()) {
+			profiler.startCollecting();
+		}
+
 		// Initialize database
-		Tables.checkTables();
+		try {
+			Tables.checkTables();
+		} catch (SQLException e1) {
+			LOGGER.error("Database was not initialized.");
+		}
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -462,6 +477,7 @@ public class PMS {
 		fileWatcher = new FileWatcher();
 
 		globalRepo = new GlobalIdRepo();
+		LOGGER.trace("Initialized globalRepo");
 
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
@@ -674,7 +690,14 @@ public class PMS {
 					get().getServer().stop();
 					Thread.sleep(500);
 
+					if (configuration.getDatabaseLogging()) {
+						LOGGER.trace("-------------------------------------------------------------");
+						LOGGER.trace(profiler.getTop(5));
+						LOGGER.trace("-------------------------------------------------------------");
+					}
+
 					LOGGER.debug("Shutting down all active processes");
+
 
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
@@ -708,6 +731,14 @@ public class PMS {
 					System.err.println("Unable to shut down logging gracefully");
 				}
 
+				if (configuration.getDatabaseLogging()) {
+					// use an automatic H2database profiling tool to make a report at the end of the logging file
+					// converted to the "logging_report.txt" in the database directory
+					try {
+						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
+							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
+					} catch (SQLException e) {}
+				}
 			}
 		});
 
@@ -892,6 +923,13 @@ public class PMS {
 		return instance;
 	}
 
+	@Nonnull
+	public static PMS getNewInstance() {
+		instance=null;
+		createInstance();
+		return instance;
+	}
+
 	private synchronized static void createInstance() {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
@@ -1010,6 +1048,14 @@ public class PMS {
 		try {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
+
+			// Log whether the service is installed as it may help with debugging and support
+			if (Platform.isWindows()) {
+				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+				if (isUmsServiceInstalled) {
+					LOGGER.info("The Windows service is installed.");
+				}
+			}
 
 			/* Rename previous log file to .prev
 			 * Log file location is unknown at this point, it's finally decided during loadFile() below
@@ -1291,7 +1337,7 @@ public class PMS {
 	/**
 	 * Restart handling
 	 */
-	private static void killOld() {
+	public static void killOld() {
 		// Note: failure here doesn't necessarily mean we need admin rights,
 		// only that we lack the required permission for these specific items.
 		try {

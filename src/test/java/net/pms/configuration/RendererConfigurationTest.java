@@ -107,6 +107,10 @@ public class RendererConfigurationTest {
 
 		testHeaders("D-Link DSM-510", "User-Agent: DLNADOC/1.50 INTEL_NMPR/2.1");
 
+		testUPNPDetails("Denon AVR-4311CI", "manufacturer=DENON, modelName=AVR-4311");
+
+		testUPNPDetails("Denon AVR-X4200W", "manufacturer=Denon, modelName=*AVR-X4200W");
+
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
@@ -186,7 +190,22 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
-		testHeaders("Samsung Soundbar MS750", "User-Agent: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
+		
+		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
+
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QN49Q70RAFXZA"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QN75Q90RAFXZA"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=UE43RU7179UXZG"
+		);
 
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
 

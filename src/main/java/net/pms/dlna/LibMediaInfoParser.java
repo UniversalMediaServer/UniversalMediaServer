@@ -61,7 +61,6 @@ public class LibMediaInfoParser {
 				MI.Option("Legacy", "1");
 			}
 
-			MI.Option("ParseSpeed", "0");
 //			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		} else {
 			VERSION = null;
@@ -638,7 +637,7 @@ public class LibMediaInfoParser {
 			value.equals("u263")
 		) {
 			format = FormatConfiguration.H263;
-		} else if (value.startsWith("avc") || value.startsWith("h264")) {
+		} else if (streamType == StreamType.Video && (value.startsWith("avc") || value.startsWith("h264"))) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
 			format = FormatConfiguration.H265;
@@ -695,8 +694,10 @@ public class LibMediaInfoParser {
 				value.equals("wmva")
 			) {
 				format = FormatConfiguration.VC1;
-		} else if (value.equals("au") || value.equals("uLaw/AU Audio File")) {
+		} else if (value.equals("au") || value.equals("ulaw/au audio file")) {
 			format = FormatConfiguration.AU;
+		} else if (value.equals("av01") || value.contains("av1")) {
+			format = FormatConfiguration.AV1;
 		} else if (value.equals("layer 3")) {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.MPA)) {
 				format = FormatConfiguration.MP3;

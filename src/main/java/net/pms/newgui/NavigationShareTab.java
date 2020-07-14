@@ -25,30 +25,16 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.event.*;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
-import javax.annotation.Nullable;
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.database.TableFilesStatus;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
-import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.newgui.components.AnimatedIcon;
-import net.pms.newgui.components.AnimatedIcon.AnimatedIconFrame;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.JAnimatedButton;
-import net.pms.newgui.components.JImageButton;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
@@ -679,7 +665,7 @@ public class NavigationShareTab {
 			new FullyPlayedAction[]{
 				FullyPlayedAction.NO_ACTION,
 				FullyPlayedAction.MARK,
-				FullyPlayedAction.HIDE_VIDEO,
+				FullyPlayedAction.HIDE_MEDIA,
 				FullyPlayedAction.MOVE_FOLDER,
 				FullyPlayedAction.MOVE_TRASH
 			},

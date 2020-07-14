@@ -13,6 +13,8 @@
 			}
 		</script>
 		<meta charset="utf-8">
+		<!-- Mobile-friendly -->
+		<meta name="viewport" content="width=device-width, initial-scale=1"> 
 		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
@@ -32,7 +34,7 @@
 		<script src="/files/util/keycode.js"></script>
 		<script src="/files/util/keycontroller.js"></script>
 		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css">
 		<link rel="stylesheet" href="/files/util/jQKeyboard.css" type="text/css">
 		<title>{{name}}</title>
 	</head>
@@ -46,7 +48,8 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a  id="HomeButton" class="navbar-brand" href="/browse/0" title="UMS"></a>
+					<a id="HomeButton" class="navbar-brand" href="/browse/0" title="UMS"></a>
+					<span class="VersionNumber">{{umsversion}}</span>
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
@@ -121,7 +124,7 @@
 			</nav>
 		</div>
 	</body>
-	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
+	<script src="/files/util/fontawesome/js/all.min.js"></script>
 	{{#hasFile}}
 	<script src="/files/util/searchclassie.js"></script>
 	<script src="/files/util/search.js"></script>

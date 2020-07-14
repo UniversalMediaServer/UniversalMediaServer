@@ -123,7 +123,7 @@ public class RemotePlayHandler implements HttpHandler {
 		root.getDefaultRenderer().setRootFolder(root);
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r.mimeType(), r.getMedia());
+		String mime = root.getDefaultRenderer().getMimeType(r);
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
 		@SuppressWarnings("unused")

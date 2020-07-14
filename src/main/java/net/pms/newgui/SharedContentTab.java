@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
@@ -56,6 +57,7 @@ import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.ShortcutFileSystemView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -257,8 +259,12 @@ public class SharedContentTab {
 				JFileChooser chooser;
 				try {
 					chooser = new JFileChooser();
+					if (Platform.isWindows()) {
+						chooser.setFileSystemView(new ShortcutFileSystemView());
+					}
 				} catch (Exception ee) {
 					chooser = new JFileChooser(new RestrictedFileSystemView());
+					LOGGER.debug("Using RestrictedFileSystemView because {}", ee.getMessage());
 				}
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
@@ -307,7 +313,7 @@ public class SharedContentTab {
 		});
 		builderFolder.add(removeButton, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		arrowDownButton.setToolTipText(Messages.getString("SharedFolders.ArrowDown"));
+		arrowDownButton.setToolTipText(Messages.getString("SharedContentTab.ArrowDown"));
 		arrowDownButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -329,7 +335,7 @@ public class SharedContentTab {
 		});
 		builderFolder.add(arrowDownButton, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		arrowUpButton.setToolTipText(Messages.getString("SharedFolders.ArrowUp"));
+		arrowUpButton.setToolTipText(Messages.getString("SharedContentTab.ArrowUp"));
 		arrowUpButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -667,19 +673,19 @@ public class SharedContentTab {
 				rowVector.setElementAt(aValue, column);
 			}
 			fireTableCellUpdated(row, column);
-			configuration.setSharedFolders(folderTableModel.getDataVector());
+			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
 		}
 
 		@Override
 		public void insertRow(int row, Vector rowData) {
 			super.insertRow(row, rowData);
-			configuration.setSharedFolders(folderTableModel.getDataVector());
+			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
 		}
 
 		@Override
 		public void removeRow(int row) {
 			super.removeRow(row);
-			configuration.setSharedFolders(folderTableModel.getDataVector());
+			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
 		}
 	}
 

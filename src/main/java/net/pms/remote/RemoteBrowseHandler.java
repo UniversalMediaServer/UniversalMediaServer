@@ -18,6 +18,7 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
+import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -111,7 +112,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				HashMap<String, String> item = new HashMap<>();
 				sb.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
 						.append("', true);return false;\" title=\"").append(name).append("\">")
-						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 				item.put("thumb", sb.toString());
 				sb.setLength(0);
@@ -187,7 +188,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				if (WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
 					sb.append("<a href=\"/play/").append(idForWeb)
 						.append("\" title=\"").append(name).append("\">")
-						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());
 					sb.setLength(0);
@@ -201,7 +202,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					sb.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
 						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
 						.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
-						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 					item.put("thumb", sb.toString());
 					sb.setLength(0);
@@ -219,6 +220,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		vars.put("hasFile", hasFile);
 		vars.put("folders", folders);
 		vars.put("media", media);
+		vars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 		if (configuration.useWebControl()) {
 			vars.put("push", true);
 		}

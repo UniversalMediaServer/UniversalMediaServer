@@ -22,6 +22,7 @@ import java.net.*;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,11 +85,12 @@ public class NetworkConfiguration {
 		}
 
 		/**
-		 * Returns the display name of the interface association.
+		 * Returns the display name of the interface association 
+		 * with IP address if exists.
 		 *
 		 * @return The name.
 		 */
-		public String getDisplayName() {
+		public String getDisplayNameWithAddress() {
 			String displayName = iface.getDisplayName();
 
 			if (displayName != null) {
@@ -103,7 +105,24 @@ public class NetworkConfiguration {
 
 			return displayName;
 		}
-		
+
+		/**
+		 * Returns the display name of the interface association.
+		 *
+		 * @return The name.
+		 */
+		public String getDisplayName() {
+			String displayName = iface.getDisplayName();
+
+			if (displayName != null) {
+				displayName = displayName.trim();
+			} else {
+				displayName = iface.getName();
+			}
+
+			return displayName;
+		}
+
 		@Override
 		public String toString() {
 			return "InterfaceAssociation(addr=" + addr + ", iface=" + iface + ", parent=" + parentName + ')';
@@ -287,7 +306,7 @@ public class NetworkConfiguration {
 						LOGGER.trace("found {} -> {}", networkInterface.getName(), address.getHostAddress());
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
-						mainAddress.put(networkInterface.getName(), ia);
+						mainAddress.put(networkInterface.getDisplayName(), ia);
 						foundAddress = true;
 					}
 				} else {
@@ -303,16 +322,18 @@ public class NetworkConfiguration {
 		}
 	}
 
+
 	/**
-	 * Returns the list of discovered interface names.
+	 * Returns the list of user friendly names of interfaces with their IP
+	 * address.
 	 *
-	 * @return The interface names.
+	 * @return The list of names.
 	 */
-	public List<String> getKeys() {
+	public List<String> getDisplayNamesWithAddress() {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-			result.add(i.getShortName());
+			result.add(i.getDisplayNameWithAddress());
 		}
 
 		return result;
@@ -328,7 +349,7 @@ public class NetworkConfiguration {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-				result.add(i.getDisplayName());
+			result.add(i.getDisplayName());
 		}
 
 		return result;
@@ -386,6 +407,8 @@ public class NetworkConfiguration {
 	 * @return The IP address.
 	 */
 	public InterfaceAssociation getAddressForNetworkInterfaceName(String name) {
+		// for backwards-compatibility check if the short network interface name is used
+		name = replaceShortInterfaceNameByDisplayName(name);
 		return mainAddress.get(name);
 	}
 
@@ -462,5 +485,22 @@ public class NetworkConfiguration {
 	 */
 	public static synchronized void forgetConfiguration() {
 		config = null;
+	}
+
+	/**
+	 * for backwards-compatibility check if the short network interface name is used
+	 * 
+	 * @return the standard display name 
+	 */
+	public String replaceShortInterfaceNameByDisplayName(String interfaceName) {
+		if (StringUtils.isNotBlank(interfaceName)) {
+			for (InterfaceAssociation netInterface : interfaces) {
+				if (netInterface.getShortName().equals(interfaceName)) {
+					interfaceName = netInterface.getDisplayName();
+					break;
+				}
+			}
+		}
+		return interfaceName;
 	}
 }
