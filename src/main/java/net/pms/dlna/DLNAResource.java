@@ -2003,22 +2003,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String dlnaOrgPnFlags = null;
 
 		if (mediaRenderer.isDLNAOrgPNUsed() || mediaRenderer.isAccurateDLNAOrgPN()) {
+			// TODO: See if this PS3 condition is still needed
 			if (mediaRenderer.isPS3()) {
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
 				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=WMVHIGH_PRO";
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWMV_OrgPN(media, mediaRenderer, player == null);
 				}
 			} else {
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
 				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=WMVHIGH_PRO";
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWMV_OrgPN(media, mediaRenderer, player == null);
 				} else if (mime.equals(MPEG_TYPEMIME)) {
-					/**
-					 * TODO: The first part of the ORG_PN strings represents the video codec, so
-					 * we should refactor this code to segment on that rather than MIME type.
-					 */
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_OrgPN(localizationValue);
 
 					// If player is not null, we are not streaming it
@@ -2126,16 +2123,37 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						}
 					}
-				} else if (media != null && mime.equals("video/vnd.dlna.mpeg-tts")) {
+				} else if (media != null && mime.equals(MPEGTS_TYPEMIME)) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
 					if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
 					} else {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
 					}
-				} else if (media != null && mime.equals("video/x-matroska")) {
+				} else if (media != null && mime.equals(MP4_TYPEMIME)) {
+					if (
+						player == null &&
+						media.getCodecV().equals("h265") &&
+						media.getFirstAudioTrack() != null &&
+						(
+							media.getFirstAudioTrack().isAC3() ||
+							media.getFirstAudioTrack().isEAC3() ||
+							media.getFirstAudioTrack().isHEAAC()
+						)
+					) {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=DASH_HEVC_MP4_UHD_NA";
+					}
+				} else if (media != null && mime.equals(MATROSKA_TYPEMIME)) {
 					if (player == null && media.isH264()) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMKV_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+					}
+				} else if (media != null && mime.equals(ASF_TYPEMIME)) {
+					if (player == null && media.getCodecV().equals("vc1") && media.getFirstAudioTrack().isWMA()) {
+						if (media.isHDVideo()) {
+							dlnaOrgPnFlags = "DLNA.ORG_PN=VC1_ASF_AP_L2_WMA";
+						} else {
+							dlnaOrgPnFlags = "DLNA.ORG_PN=VC1_ASF_AP_L1_WMA";
+						}
 					}
 				} else if (media != null && mime.equals(JPEG_TYPEMIME)) {
 					int width = media.getWidth();

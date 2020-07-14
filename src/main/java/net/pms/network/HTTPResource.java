@@ -377,4 +377,37 @@ public class HTTPResource {
 
 		return orgPN;
 	}
+
+	public final String getWMV_OrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "WMV";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HIGH";
+		} else {
+			orgPN += "MED";
+		}
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isWMA()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToWMV()
+				)
+			) {
+				orgPN += "_FULL";
+			} else if (
+				isStreaming &&
+				(
+					media.getFirstAudioTrack().isWMAPro() ||
+					media.getFirstAudioTrack().isWMA10()
+				)
+			) {
+				orgPN += "_PRO";
+			}
+		}
+
+		return orgPN;
+	}
 }
