@@ -254,11 +254,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		synchronized(loadRendererConfigurationsLock) {
 			_pmsConfiguration = pmsConf;
 			enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
-
+			
 			try {
 				defaultConf = new RendererConfiguration();
+				streamingConf = new DeviceConfiguration();
 				streamingConf.inherit(defaultConf);
-			} catch (ConfigurationException e) {
+			} catch (ConfigurationException | InterruptedException e) {
 				LOGGER.debug("Caught exception", e);
 			}
 
