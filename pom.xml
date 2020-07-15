@@ -107,7 +107,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>5.5.0</jna-version>
+		<jna-version>5.6.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -539,7 +539,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.2.0</version>
+			<version>5.2.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
