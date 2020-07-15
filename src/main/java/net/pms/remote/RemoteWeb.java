@@ -24,9 +24,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Iterator;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -51,6 +60,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.Range;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
@@ -74,6 +84,9 @@ public class RemoteWeb {
 	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
+	//ID, Resource, Seconds
+	protected static final Map<String,Map.Entry<DLNAResource,Long>> mediaResources = new ConcurrentHashMap<String,Map.Entry<DLNAResource,Long>>(); 
+	private static Timer timedEvents = null;
 
 	public RemoteWeb() throws IOException {
 		this(defaultPort);
@@ -143,6 +156,47 @@ public class RemoteWeb {
 			addCtx("/poll", new RemotePollHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
+		}
+
+		//Start a cleaner thread
+		if (this.timedEvents == null) {
+			this.timedEvents = new Timer(true);
+			this.timedEvents.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						Iterator entries = mediaResources.entrySet().iterator();
+						while (entries.hasNext()) {
+							Map.Entry<String,Map.Entry<DLNAResource,Long>> entry = (Map.Entry<String,Map.Entry<DLNAResource,Long>>)entries.next();
+							String key = entry.getKey();
+							Map.Entry<DLNAResource,Long> value = entry.getValue();
+
+							long seconds = System.currentTimeMillis() / 1000L;
+							//If last seen 5 minutes ago
+							if (value.getValue() + 5*60 < seconds) {
+								DLNAResource resource = value.getKey();
+
+								try {
+									InputStream in = resource.getInputStream(new Range.Byte(0L, 1L), resource.getDefaultRenderer());
+									in.close();
+								} catch (Exception e) {
+									LOGGER.debug("DLNAResource InputStream close error  " + e);
+								}
+								try {
+									WebRender renderer = (WebRender)resource.getDefaultRenderer();
+									renderer.stop();
+								} catch (Exception e) {
+									LOGGER.debug("DLNAResource WebRender stop error  " + e);
+								}
+
+								LOGGER.debug("Media id {} closed!", key);
+								entries.remove();
+							}
+						}
+					}
+				},
+				5*1000, //Run after 5 second delay
+				2*60*1000 //Run every 2 minutes
+			);
 		}
 	}
 
@@ -622,6 +676,7 @@ public class RemoteWeb {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
+		private final static Pattern mediaPattern = Pattern.compile("/play/(\\d+)");
 
 		private RemoteWeb parent;
 
@@ -640,6 +695,25 @@ public class RemoteWeb {
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
 				String json = renderer.getPushData();
 				RemoteUtil.respond(t, json, 200, "text");
+
+				//Update last update time
+				Headers h = t.getRequestHeaders();
+				String value=h.getFirst("Referer");
+				if (value != null) { //If header was found
+					Matcher m = this.mediaPattern.matcher(value);
+					while (m.find()) {
+						String id = m.group(1);
+						this.parent.mediaResources.computeIfPresent(id, (k, v) -> {
+							long seconds = System.currentTimeMillis() / 1000L;
+							//Uhh, this might spam, perhaps only do this if there is a 10 second difference
+							LOGGER.debug("Update lastaccess for key {} to {}", id, seconds);
+							return new SimpleEntry<DLNAResource,Long>(
+								v.getKey(),
+								seconds
+							);
+						});
+					}
+				}
 			} catch (IOException e) {
 				throw e;
 			} catch (Exception e) {

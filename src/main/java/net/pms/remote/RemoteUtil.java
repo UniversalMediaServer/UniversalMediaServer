@@ -76,10 +76,13 @@ public class RemoteUtil {
 
 
 	public static void dump(final InputStream in, final OutputStream os) {
-		dump(in, os, null);
+		dump(in, os, null, true);
+	}
+	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
+		dump(in, os, null, true);
 	}
 
-	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
+	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer, final boolean shouldclose) {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -96,18 +99,52 @@ public class RemoteUtil {
 				} catch (IOException e) {
 					LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
 				} finally {
-					try {
-						in.close();
-					} catch (IOException e) {
+					if (shouldclose) {
+						try {
+							in.close();
+						} catch (IOException e) {}
 					}
 				}
 				try {
 					os.close();
+				} catch (IOException e) {}
+				if (shouldclose) {
+					if (renderer != null) {
+						renderer.stop();
+					}
+				}
+			}
+		};
+		new Thread(r).start();
+	}
+	public static void dumpLimit(final InputStream in, final OutputStream os, final WebRender renderer, final int length) {
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				byte[] buffer = new byte[32 * 1024];
+				int bytes;
+				int sendBytes = 0;
+
+				try {
+					while ((bytes = in.read(buffer)) != -1) {
+						sendBytes += bytes;
+
+						if (sendBytes >= length) {
+							//Send the allowed amount
+							os.write(buffer, 0, bytes - (sendBytes - length));
+							break;
+						}
+
+						os.write(buffer, 0, bytes);
+						os.flush();
+					}
 				} catch (IOException e) {
+					LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+				} finally {
 				}
-				if (renderer != null) {
-					renderer.stop();
-				}
+				try {
+					os.close();
+				} catch (IOException e) {}
 			}
 		};
 		new Thread(r).start();

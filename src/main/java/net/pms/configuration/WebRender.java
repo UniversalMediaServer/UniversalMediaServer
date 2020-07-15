@@ -278,7 +278,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public String getVideoMimeType() {
 		if (browser == CHROME) {
 			return HTTPResource.WEBM_TYPEMIME;
-		} else if (browser == FIREFOX) {
+		} else if (browser == FIREFOX || browser == SAFARI) {
 			return HTTPResource.MP4_TYPEMIME;
 		}
 		return defaultMime;
