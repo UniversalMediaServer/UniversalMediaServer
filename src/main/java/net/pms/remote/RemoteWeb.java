@@ -27,13 +27,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
-
 import com.samskivert.mustache.MustacheException;
 import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.BasicAuthenticator;
@@ -45,7 +43,6 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -275,7 +272,7 @@ public class RemoteWeb {
 	private void addCtx(String path, HttpHandler h) {
 		HttpContext ctx = server.createContext(path, h);
 		if (configuration.isWebAuthenticate()) {
-			ctx.setAuthenticator(new BasicAuthenticator("") {
+			ctx.setAuthenticator(new BasicAuthenticator(configuration.getServerName()) {
 				@Override
 				public boolean checkCredentials(String user, String pwd) {
 					LOGGER.debug("authenticate " + user);
