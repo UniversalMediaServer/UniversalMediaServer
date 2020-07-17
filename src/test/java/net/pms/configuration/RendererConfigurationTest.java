@@ -180,8 +180,10 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
+		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
 		
+		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
