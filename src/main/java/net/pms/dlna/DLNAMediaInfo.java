@@ -28,6 +28,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.AudioAsVideo;
@@ -2167,6 +2168,20 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public String getFrameRate() {
 		return frameRate;
+	}
+
+	/**
+	 * @return the frame rate in DLNA format
+	 */
+	public String getFrameRateDLNA() {
+		int framerateDLNA = (int) Math.round(Double.parseDouble(frameRate));
+		String framerateDLNAString = String.valueOf(framerateDLNA);
+		if (scanType != null && scanType == ScanType.INTERLACED) {
+			framerateDLNAString += "i";
+		} else {
+			framerateDLNAString += "p";
+		}
+		return framerateDLNAString;
 	}
 
 	/**

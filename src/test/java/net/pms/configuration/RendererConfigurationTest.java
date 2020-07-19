@@ -113,6 +113,11 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
+		testUPNPDetails(
+			"Panasonic DX",
+			"friendlyName=55DX640_Series, address=192.168.1.7, udn=uuid:4D454930-0100-1000-8001-A81374A2AA5D, manufacturer=Panasonic, modelName=Panasonic VIErA, modelNumber=TH-55DX640Z"
+		);
+
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
 
 		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
