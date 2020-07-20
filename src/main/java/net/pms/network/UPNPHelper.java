@@ -478,12 +478,18 @@ public class UPNPHelper extends UPNPControl {
 
 							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
 
-							if (packetType == M_SEARCH) {
+							if (packetType == M_SEARCH || packetType == NOTIFY) {
 								if (configuration.getIpFiltering().allowed(address)) {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
 									if (!redundant && LOGGER.isTraceEnabled()) {
-										LOGGER.trace("Received a M-SEARCH from [{}:{}]: {}", remoteAddr, remotePort, s);
+										String requestType = "unreognized";
+										if (packetType == M_SEARCH) {
+											requestType = "M-SEARCH";
+										} else if (packetType == NOTIFY) {
+											requestType = "NOTIFY";
+										}
+										LOGGER.trace("Received a " + requestType + " from [{}:{}]: {}", remoteAddr, remotePort, s);
 									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -505,9 +511,6 @@ public class UPNPHelper extends UPNPControl {
 										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 									}
 								}
-							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Received a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 							}
 							lastAddress = address;
 							lastPacketType = packetType;

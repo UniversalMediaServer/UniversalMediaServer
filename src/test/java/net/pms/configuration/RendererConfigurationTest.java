@@ -123,6 +123,9 @@ public class RendererConfigurationTest {
 		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
 		testUPNPDetails("Philips PUS TV", "friendlyName=49PUS8503/12");
 
+		testHeaders("Philips 6500 Series TV", "User-Agent: 50PUS6523/12");
+		testUPNPDetails("Philips 6500 Series TV", "friendlyName=50PUS6523/12");
+
 		testHeaders(
 			"Philips TV",
 			"User-Agent: Windows2000/0.0 UPnP/1.0 PhilipsIntelSDK/1.4 DLNADOC/1.50",
@@ -185,8 +188,10 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
+		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
 		
+		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
