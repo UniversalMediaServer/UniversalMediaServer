@@ -31,12 +31,14 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.network.UPNPControl.DeviceMap;
 import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.model.types.DeviceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -476,8 +478,11 @@ public class UPNPHelper extends UPNPControl {
 							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
 							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+							// Is the request from our own server, i.e. self-originating?
+							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) &&
+								s.contains("UMS/");
 
-							if (packetType == M_SEARCH || packetType == NOTIFY) {
+							if (!isSelf && (packetType == M_SEARCH || packetType == NOTIFY)) {
 								if (configuration.getIpFiltering().allowed(address)) {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
@@ -488,7 +493,7 @@ public class UPNPHelper extends UPNPControl {
 										} else if (packetType == NOTIFY) {
 											requestType = "NOTIFY";
 										}
-										LOGGER.trace("Received a " + requestType + " from [{}:{}]: {}", remoteAddr, remotePort, s);
+										LOGGER.trace("Received a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
 									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
