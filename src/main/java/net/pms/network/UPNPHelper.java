@@ -398,7 +398,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	private static int ALIVE_delay = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 10000;
+	private final static int ALIVE_DELAY = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 30000;
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
@@ -411,7 +411,7 @@ public class UPNPHelper extends UPNPControl {
 			@Override
 			public void run() {
 				while (true) {
-					sleep(ALIVE_delay);
+					sleep(ALIVE_DELAY);
 					sendAlive();
 				}
 			}
