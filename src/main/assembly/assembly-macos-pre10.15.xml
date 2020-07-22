@@ -29,8 +29,8 @@
 				<include>ffmpeg</include>
 				<include>flac</include>
 				<include>libmediainfo.dylib</include>
-				<include>10.15/mencoder</include>
-				<include>10.15/mplayer</include>
+				<include>mencoder</include>
+				<include>mplayer</include>
 				<include>tsMuxeR</include>
 				<include>tsMuxeR-new</include>
 			</includes>
