@@ -155,7 +155,6 @@
 			<artifactId>commons-configuration</artifactId>
 			<!--
 				commons-logging:commons-logging is shared with
-					- com.github.junrar:junrar
 					- fm.last:coverartarchive-api
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
@@ -351,14 +350,13 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
-			<!--
-				commons-logging:commons-logging is shared with
-					- commons-configuration:commons-configuration
-					- fm.last:coverartarchive-api
-
-				Check the commons-logging:commons-logging version of the other libraries before upgrading
-			-->
-			<version>4.0.0</version>
+			<version>6.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
@@ -489,7 +487,6 @@
 
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
-					- com.github.junrar:junrar
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 
@@ -539,7 +536,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.2.1</version>
+			<version>5.2.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

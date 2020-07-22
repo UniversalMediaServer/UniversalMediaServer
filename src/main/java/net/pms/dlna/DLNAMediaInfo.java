@@ -2170,6 +2170,20 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @return the frame rate in DLNA format
+	 */
+	public String getFrameRateDLNA() {
+		int framerateDLNA = (int) Math.round(Double.parseDouble(frameRate));
+		String framerateDLNAString = String.valueOf(framerateDLNA);
+		if (scanType != null && scanType == ScanType.INTERLACED) {
+			framerateDLNAString += "i";
+		} else {
+			framerateDLNAString += "p";
+		}
+		return framerateDLNAString;
+	}
+
+	/**
 	 * @param frameRate the frame rate to set
 	 * @since 1.50.0
 	 */
