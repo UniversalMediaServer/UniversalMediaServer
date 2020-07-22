@@ -1383,7 +1383,13 @@ public class MEncoderVideo extends Player {
 					":threads=" + configuration.getMencoderMaxThreads();
 
 				// The options for lavc to pass to libx264
-				encodeSettings += ":o=qcomp=0.6,preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+				String osVersionRaw = System.getProperty("os.version");
+				Version osVersion = new Version(osVersionRaw);
+				encodeSettings += ":o=qcomp=0.6";
+				boolean isMacOSPreCatalina = Platform.isMac() && osVersion != null && osVersion.isLessThan(new Version("10.15"));
+				if (!isMacOSPreCatalina) {
+					encodeSettings += ",preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+				}
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
 			}
