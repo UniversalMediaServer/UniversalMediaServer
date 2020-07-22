@@ -480,12 +480,12 @@ public class UPNPHelper extends UPNPControl {
 							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) &&
 								s.contains("UMS/");
 
-							if (packetType == M_SEARCH || packetType == NOTIFY && !isSelf) {
-								if (configuration.getIpFiltering().allowed(address)) {
-									String remoteAddr = address.getHostAddress();
-									int remotePort = receivePacket.getPort();
+							if (configuration.getIpFiltering().allowed(address) && !isSelf) {
+								String remoteAddr = address.getHostAddress();
+								int remotePort = receivePacket.getPort();
+								if (packetType == M_SEARCH || packetType == NOTIFY) {
 									if (!redundant && LOGGER.isTraceEnabled()) {
-										String requestType = "unreognized";
+										String requestType = "";
 										if (packetType == M_SEARCH) {
 											requestType = "M-SEARCH";
 										} else if (packetType == NOTIFY) {
@@ -512,6 +512,8 @@ public class UPNPHelper extends UPNPControl {
 									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
 										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 									}
+								} else {
+									LOGGER.trace("Received an unrecognized request from [{}:{}]: {}", remoteAddr, remotePort, s);
 								}
 							}
 							lastAddress = address;
