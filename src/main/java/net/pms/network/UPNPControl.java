@@ -311,7 +311,7 @@ public class UPNPControl {
 					if (device.hasEmbeddedDevices()) {
 						for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
 							if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
-								LOGGER.debug("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+								LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
 							}
 						}
 					}
