@@ -399,7 +399,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	private static int ALIVE_delay = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 10000;
+	private final static int ALIVE_DELAY = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 30000;
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
@@ -412,7 +412,7 @@ public class UPNPHelper extends UPNPControl {
 			@Override
 			public void run() {
 				while (true) {
-					sleep(ALIVE_delay);
+					sleep(ALIVE_DELAY);
 					sendAlive();
 				}
 			}
@@ -477,19 +477,22 @@ public class UPNPHelper extends UPNPControl {
 							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
 							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+							// Is the request from our own server, i.e. self-originating?
+							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) &&
+								s.contains("UMS/");
 
-							if (packetType == M_SEARCH || packetType == NOTIFY) {
-								if (configuration.getIpFiltering().allowed(address)) {
-									String remoteAddr = address.getHostAddress();
-									int remotePort = receivePacket.getPort();
+							if (configuration.getIpFiltering().allowed(address) && !isSelf) {
+								String remoteAddr = address.getHostAddress();
+								int remotePort = receivePacket.getPort();
+								if (packetType == M_SEARCH || packetType == NOTIFY) {
 									if (!redundant && LOGGER.isTraceEnabled()) {
-										String requestType = "unreognized";
+										String requestType = "";
 										if (packetType == M_SEARCH) {
 											requestType = "M-SEARCH";
 										} else if (packetType == NOTIFY) {
 											requestType = "NOTIFY";
 										}
-										LOGGER.trace("Received a " + requestType + " from [{}:{}]: {}", remoteAddr, remotePort, s);
+										LOGGER.trace("Received a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
 									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -510,6 +513,8 @@ public class UPNPHelper extends UPNPControl {
 									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
 										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 									}
+								} else {
+									LOGGER.trace("Received an unrecognized request from [{}:{}]: {}", remoteAddr, remotePort, s);
 								}
 							}
 							lastAddress = address;
