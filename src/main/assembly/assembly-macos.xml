@@ -17,6 +17,18 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 
 	<fileSets>
+		<!-- Include the binaries specific to 10.15 onwards -->
+		<fileSet>
+			<directory>${project.binaries}/osx/10.15</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/osx</outputDirectory>
+			<useDefaultExcludes>true</useDefaultExcludes>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>mencoder</include>
+				<include>mplayer</include>
+			</includes>
+		</fileSet>
+
 		<!-- Include the unzipped binaries -->
 		<fileSet>
 			<directory>${project.binaries}/osx</directory>
@@ -29,8 +41,6 @@
 				<include>ffmpeg</include>
 				<include>flac</include>
 				<include>libmediainfo.dylib</include>
-				<include>10.15/mencoder</include>
-				<include>10.15/mplayer</include>
 				<include>tsMuxeR</include>
 				<include>tsMuxeR-new</include>
 			</includes>
