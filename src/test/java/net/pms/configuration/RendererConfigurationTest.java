@@ -113,10 +113,18 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
+		testUPNPDetails(
+			"Panasonic DX",
+			"friendlyName=55DX640_Series, address=192.168.1.7, udn=uuid:4D454930-0100-1000-8001-A81374A2AA5D, manufacturer=Panasonic, modelName=Panasonic VIErA, modelNumber=TH-55DX640Z"
+		);
+
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
 
 		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
 		testUPNPDetails("Philips PUS TV", "friendlyName=49PUS8503/12");
+
+		testHeaders("Philips 6500 Series TV", "User-Agent: 50PUS6523/12");
+		testUPNPDetails("Philips 6500 Series TV", "friendlyName=50PUS6523/12");
 
 		testHeaders(
 			"Philips TV",
@@ -180,7 +188,11 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
-		testHeaders("Samsung Soundbar MS750", "User-Agent: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
+		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
+		
+		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
 			"Samsung QLED 4K 2019+",

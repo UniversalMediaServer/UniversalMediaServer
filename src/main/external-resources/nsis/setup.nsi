@@ -362,6 +362,7 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
+	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre14\bin\java.exe" enable=yes profile=public,private'
 	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre14\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
@@ -474,6 +475,8 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraVT60.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-AureaAndNetTV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PFL.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PUS.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PUS-6500Series.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-Streamium.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Pioneer-BDP.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Pioneer-Kuro.conf"

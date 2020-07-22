@@ -157,10 +157,8 @@ public class GeneralTab {
 		}
 
 		int xpos = 1;
-		if (!Platform.isMac()) {
-			builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
-			xpos += 2;
-		}
+		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
+		xpos += 2;
 
 		if (Platform.isWindows()) {
 			autoStart = new JCheckBox(Messages.getString("GeneralTab.StartWithWindows"), configuration.isAutoStart());
