@@ -1257,6 +1257,48 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * This is used to determine whether transcoding engines can safely remux
+	 * video streams into the transcoding container instead of re-encoding
+	 * them to the same format.
+	 * There is a lot of logic necessary to determine that and this is only
+	 * one step in the process.
+	 *
+	 * @param media
+	 * @return whether this renderer supports the video stream type of this
+	 *         resource inside the container it wants for transcoding.
+	 */
+	public boolean isVideoStreamTypeSupportedInTranscodingContainer(DLNAMediaInfo media) {
+		if (
+			(isTranscodeToH264() && media.isH264()) ||
+			(isTranscodeToH265() && media.isH265())
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * This is used to determine whether transcoding engines can safely remux
+	 * audio streams into the transcoding container instead of re-encoding
+	 * them to the same format.
+	 * There is a lot of logic necessary to determine that and this is only
+	 * one step in the process.
+	 *
+	 * @param audio
+	 * @return whether this renderer supports the audio stream type of this
+	 *         resource inside the container it wants for transcoding.
+	 */
+	public boolean isAudioStreamTypeSupportedInTranscodingContainer(DLNAMediaAudio audio) {
+		if (
+			(isTranscodeToAAC() && audio.isAACLC()) ||
+			(isTranscodeToAC3() && audio.isAC3())
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Determine the mime type specific for this renderer, given a generic mime
 	 * type by resource. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.

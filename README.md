@@ -1,5 +1,5 @@
 # Universal Media Server
-[![Build Status](https://travis-ci.org/UniversalMediaServer/UniversalMediaServer.svg?branch=master)](https://travis-ci.org/UniversalMediaServer/UniversalMediaServer)
+![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/Universal%20Media%20Server%20CI/badge.svg)
 
 [<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA-compliant UPnP Media Server.
 It is capable of sharing video, audio and images between most modern devices.

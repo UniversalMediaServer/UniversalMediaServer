@@ -74,19 +74,19 @@
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.5</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.6</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>108</binary-revision>
+		<binary-revision>110</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>4.0.0</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>4.0.1</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
 
@@ -107,7 +107,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>5.5.0</jna-version>
+		<jna-version>5.6.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -155,7 +155,6 @@
 			<artifactId>commons-configuration</artifactId>
 			<!--
 				commons-logging:commons-logging is shared with
-					- com.github.junrar:junrar
 					- fm.last:coverartarchive-api
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
@@ -240,7 +239,7 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>1.14.1</version>
+			<version>1.15.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -351,14 +350,13 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
-			<!--
-				commons-logging:commons-logging is shared with
-					- commons-configuration:commons-configuration
-					- fm.last:coverartarchive-api
-
-				Check the commons-logging:commons-logging version of the other libraries before upgrading
-			-->
-			<version>4.0.0</version>
+			<version>6.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
@@ -489,7 +487,6 @@
 
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
-					- com.github.junrar:junrar
 
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 
@@ -539,7 +536,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.2.0</version>
+			<version>5.2.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -2556,20 +2553,15 @@
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/java.xml.crypto" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.accessibility" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.charsets" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.compiler" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.crypto.cryptoki" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.crypto.ec" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.dynalink" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.httpserver" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.jpackage" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.internal.opt" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jdeps" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jfr" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jlink" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jsobject" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.localedata" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.management" />
@@ -2602,21 +2594,12 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/readme.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/readme.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/release?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/release" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/java?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/java" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/javac?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/javac" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/javap?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/javap" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/jdeprscan?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jdeprscan" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/jdeps?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jdeps" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/jfr?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jfr" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/jimage?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jimage" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/jjs?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jjs" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/jlink?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jlink" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/jmod?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jmod" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/jpackage?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jpackage" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/jrunscript?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jrunscript" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/keytool?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/keytool" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/rmid?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/rmid" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/rmiregistry?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/rmiregistry" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/serialver?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/serialver" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/logging.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/logging.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/net.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/net.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/conf/sound.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/conf/sound.properties" usetimestamp="true" />
@@ -2727,9 +2710,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.charsets/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.charsets/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.charsets/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.charsets/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.charsets/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.charsets/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.compiler/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.compiler/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.compiler/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.compiler/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.compiler/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.compiler/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.crypto.cryptoki/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.crypto.cryptoki/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.crypto.cryptoki/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.crypto.cryptoki/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.crypto.cryptoki/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.crypto.cryptoki/LICENSE" usetimestamp="true" />
@@ -2749,9 +2729,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.foreign/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.foreign/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.foreign/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.jpackage/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.jpackage/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.ed/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed/LICENSE" usetimestamp="true" />
@@ -2759,22 +2736,12 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.le/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.le/jline.md?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le/jline.md" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.le/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.opt/jopt-simple.md?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.opt/jopt-simple.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.opt/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.opt/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdeps/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdeps/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdeps/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdeps/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdeps/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdeps/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdwp.agent/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdwp.agent/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdwp.agent/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jfr/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jfr/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jfr/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jfr/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jfr/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jfr/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jlink/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jlink/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jlink/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jlink/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jlink/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jlink/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jsobject/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jsobject/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jsobject/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jsobject/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jsobject/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jsobject/LICENSE" usetimestamp="true" />
@@ -2831,7 +2798,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.zipfs/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.zipfs/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.zipfs/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.zipfs/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/lib/classlist?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/lib/classlist" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/lib/ct.sym?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/lib/ct.sym" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/lib/jexec?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/lib/jexec" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/lib/jrt-fs.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/lib/jrt-fs.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/lib/jspawnhelper?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/lib/jspawnhelper" usetimestamp="true" />
@@ -3476,8 +3442,8 @@
 		</profile>
 
 		<!--
-			macOS profile: takes care of building the final package for macOS.
-			Note: This does not make the .dmg you will have to do that manually. Use the open source dmgCreator
+			macOS 10.15 (Catalina) onwards
+			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
 		-->
 		<profile>
 			<id>macos</id>
@@ -3515,7 +3481,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-osx-java-8</id>
+								<id>process-resources-macos</id>
 								<phase>test</phase>
 								<goals>
 									<goal>run</goal>
@@ -3525,17 +3491,18 @@
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />
+										<mkdir dir="${project.binaries}/osx/10.15" />
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR-new" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac?p=${binary-revision}" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
@@ -3547,7 +3514,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>prepare-package-osx-java-8</id>
+								<id>prepare-package-macos</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3658,6 +3625,204 @@
 								<configuration>
 									<descriptors>
 										<descriptor>${project.basedir}/src/main/assembly/assembly-macos.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			macOS pre-10.15 (Catalina)
+			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+		-->
+		<profile>
+			<id>macos-pre1015</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>${maven-enforcer-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>[1.8.0-51,14.999.999]</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-macos-pre1015</id>
+								<phase>test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/flac?p=${binary-revision}" dest="${project.binaries}/osx/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-macos-pre1015</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package app</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<property environment="env" />
+									<target name="bundle">
+										<!-- Obtain path to the selected JRE -->
+										<exec executable="/usr/libexec/java_home"
+													failonerror="true"
+													outputproperty="runtime">
+											<arg value="-v"/>
+											<arg value="14"/>
+										</exec>
+
+										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
+										<bundleapp 
+											jrePreferred="true"
+											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+											name="${project.name}"
+											displayname="${project.name}"
+											executableName="UMS"
+											identifier="net.pms.PMS"
+											shortversion="${project.version.short}"
+											version="${project.version}"
+											icon="${project.basedir}/src/main/resources/images/logo.icns"
+											applicationCategory="public.app-category.entertainment"
+											workingdirectory="$APP_ROOT/Contents/Resources"
+											mainclassname="net.pms.PMS"
+										>
+											<runtime dir="${runtime}"/>
+											<!-- the following line can be used to force the use of JRE if the jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
+											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-14.jre/Contents/Home"/> -->
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx1280M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=UMS"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-macos-pre1015</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the files in the right place before
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-macos-pre1015</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-macos-pre10.15.xml</descriptor>
 									</descriptors>
 									<archive>
 										<manifest>
@@ -3844,6 +4009,33 @@
 						</executions>
 					</plugin>
 					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>3.1.0</version>
+						<executions>
+							<execution>
+								<id>copy-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>C:/Program Files (x86)/Universal Media Server/</outputDirectory>
+									<fileMode>0644</fileMode>
+									<directoryMode>0755</directoryMode>
+									<resources>
+										<resource>
+											<directory>${project.external-resources}</directory>
+											<includes>
+												<include>web/**</include>
+											</includes>
+											<filtering>true</filtering>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>${exec-maven-plugin-version}</version>
@@ -3921,6 +4113,32 @@
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 													tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
 									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Copy Web resources -->
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>3.1.0</version>
+						<executions>
+							<execution>
+								<id>copy-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${project.external-resources}</directory>
+											<includes>
+												<include>web/**</include>
+											</includes>
+											<filtering>true</filtering>
+										</resource>
+									</resources>
 								</configuration>
 							</execution>
 						</executions>

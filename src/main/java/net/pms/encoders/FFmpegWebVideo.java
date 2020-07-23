@@ -290,7 +290,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		if (!override) {
-			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+			// TODO: See if that last boolean can be set more carefully to disable unnecessary transcoding
+			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params, false));
 
 			// Add video bitrate options
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
