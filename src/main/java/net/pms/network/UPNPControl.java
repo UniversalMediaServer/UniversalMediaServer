@@ -553,7 +553,11 @@ public class UPNPControl {
 		return null;
 	}
 
-	// Returns the first device regardless of type at the given address, if any
+	/**
+	 * Returns the first device regardless of type at the given address, if any
+	 * 
+	 * @param socket address of the checked remote device. 
+	 */
 	public static Device getAnyDevice(InetAddress socket) {
 		if (upnpService != null) {
 			for (Device d : upnpService.getRegistry().getDevices()) {
@@ -568,7 +572,11 @@ public class UPNPControl {
 		return null;
 	}
 
-	// Returns the first renderer at the given address, if any
+	/**
+	 * Returns the first renderer at the given address, if any.
+	 * 
+	 * @param socket address of the checked remote device. 
+	 */
 	public static Device getDevice(InetAddress socket) {
 		if (upnpService != null) {
 			for (DeviceType r : mediaRendererTypes) {
