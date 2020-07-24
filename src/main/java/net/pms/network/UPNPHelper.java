@@ -477,7 +477,10 @@ public class UPNPHelper extends UPNPControl {
 
 							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
 
-							if (configuration.getIpFiltering().allowed(address) && getDevice(address) != null) {
+							// Is the request from our own server, i.e. self-originating?
+							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
+
+							if (configuration.getIpFiltering().allowed(address) && !isSelf) {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = receivePacket.getPort();
 								if (packetType == M_SEARCH || packetType == NOTIFY) {
