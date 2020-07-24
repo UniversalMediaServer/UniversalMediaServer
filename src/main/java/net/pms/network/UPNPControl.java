@@ -297,6 +297,8 @@ public class UPNPControl {
 		if (!ignoredDevices.contains(device)) {
 			ignoredDevices.add(device);
 			LOGGER.trace("This device added to the list of ignored devices.");
+		} else {
+			LOGGER.trace("This device is in the list of ignored devices so not be added.");
 		}
 	}
 	
