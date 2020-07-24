@@ -282,6 +282,43 @@ public class UPNPControl {
 		rendererMap = new DeviceMap<>(Renderer.class);
 	}
 
+	/**
+	 * List of ignored devices (non-Renderers) from the network infrastructure
+	 * e.g. gateways, routers, printers etc.
+	 */
+	private static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<RemoteDevice>();
+	
+	/**
+	 * Add device to the list of ignored devices when not exists on the list.
+	 * 
+	 * @param device The device to add to the list.
+	 */
+	static void addIgnoredDeviceToList (RemoteDevice device) {
+		if (!ignoredDevices.contains(device)) {
+			ignoredDevices.add(device);
+			LOGGER.trace("This device added to the list of ignored devices.");
+		}
+	}
+	
+	/**
+	 * Check if the device is on the list of ignored devices.
+	 * e.g. routers, printers etc.
+	 *
+	 * @param device The device to verify.
+	 * @return True when is ignored, false otherwise.
+	 */
+	static boolean isIgnoredDevice(RemoteDevice device) {
+		if (ignoredDevices != null) {
+			for (RemoteDevice rd : ignoredDevices) {
+				if (rd.equals(device)) {
+					return true;
+				}
+			}
+		}
+	
+		return false;
+	}
+	
 	public void init() {
 		try {
 			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
@@ -306,12 +343,14 @@ public class UPNPControl {
 					super.remoteDeviceAdded(registry, device);
 					if (isBlocked(getUUID(device)) || !addRenderer(device)) {
 						LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
+						addIgnoredDeviceToList(device);
 					}
 					// This may be unnecessary, but we might as well be thorough
 					if (device.hasEmbeddedDevices()) {
 						for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
 							if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
 								LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+								addIgnoredDeviceToList(device);
 							}
 						}
 					}
@@ -567,6 +606,23 @@ public class UPNPControl {
 						return d;
 					}
 				} catch (Exception e) {}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get the device with the requested UDN if is registered in the UpnpService
+	 * 
+	 * @param udn the UDN of the device to be checked.
+	 * @return true if the device is registered in the UpnpService, false otherwise
+	 */
+	public static Device getDevice(UDN udn) {
+		if (upnpService != null) {
+			for (Device d : upnpService.getRegistry().getDevices()) {
+				if (d.findDevice(udn) != null) {
+					return d;
+				}
 			}
 		}
 		return null;

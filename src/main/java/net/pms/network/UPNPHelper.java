@@ -37,6 +37,8 @@ import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.model.meta.RemoteDevice;
+import org.fourthline.cling.model.types.UDN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +98,7 @@ public class UPNPHelper extends UPNPControl {
 
 	private static final UPNPHelper instance = new UPNPHelper();
 	private static PlayerControlHandler httpControlHandler;
+	private static final String UUID = "uuid:";
 
 	/**
 	 * This utility class is not meant to be instantiated.
@@ -476,8 +479,14 @@ public class UPNPHelper extends UPNPControl {
 							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
 							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+							// Is the request from our own server, i.e. self-originating?
+							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
 
-							if (configuration.getIpFiltering().allowed(address) && getDevice(address) != null) {
+							int uuidPosition = s.indexOf(UUID);
+							UDN udn = UDN.valueOf(s.substring(uuidPosition, s.indexOf(":", uuidPosition + UUID.length())));
+							Device<?, ?, ?> device = getDevice(udn);
+
+							if (configuration.getIpFiltering().allowed(address) && !isSelf && !isIgnoredDevice((RemoteDevice) device)) {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = receivePacket.getPort();
 								if (packetType == M_SEARCH || packetType == NOTIFY) {
