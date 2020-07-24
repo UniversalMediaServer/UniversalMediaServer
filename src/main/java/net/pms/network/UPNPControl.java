@@ -617,7 +617,7 @@ public class UPNPControl {
 	 * Get the device with the requested UDN if is registered in the UpnpService
 	 * 
 	 * @param udn the UDN of the device to be checked.
-	 * @return true if the device is registered in the UpnpService, false otherwise
+	 * @return the device registered in the UpnpService, null otherwise
 	 */
 	public static Device getDevice(UDN udn) {
 		if (upnpService != null) {
