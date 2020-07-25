@@ -5010,7 +5010,7 @@ public class OpenSubtitle {
 							 * This either means there is no entry in the TV Series table for this series, or 
 							 * there is but it only contains filename info - not API yet.
 							 */
-							HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(title, seriesIMDbIDFromAPI, yearFromFilename);
+							HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, yearFromFilename);
 							if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
 								if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
 									LOGGER.debug("Got a 500 error while looking for TV series " + seriesIMDbIDFromAPI);
