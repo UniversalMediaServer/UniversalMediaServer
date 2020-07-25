@@ -296,7 +296,7 @@ public class UPNPControl {
 	static void addIgnoredDeviceToList (RemoteDevice device) {
 		if (!ignoredDevices.contains(device)) {
 			ignoredDevices.add(device);
-			LOGGER.trace("This device added to the list of ignored devices.");
+			LOGGER.trace("This device was added to the list of ignored devices.");
 		} else {
 			LOGGER.trace("This device is in the list of ignored devices so not be added.");
 		}
