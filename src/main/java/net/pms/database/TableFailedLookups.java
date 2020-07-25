@@ -105,20 +105,22 @@ public final class TableFailedLookups extends Tables {
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
+	 * @param failureDetails the response the API server returned, or a client-side message
 	 */
-	public static void set(final String fullPathToFile) {
+	public static void set(final String fullPathToFile, final String failureDetails) {
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = database.getConnection()) {
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO " + TABLE_NAME + " (" +
-					"FILENAME" +
+					"FILENAME, FAILUREDETAILS" +
 				") VALUES (" +
-					"?" +
+					"?, ?" +
 				")",
 				Statement.RETURN_GENERATED_KEYS
 			);
 			insertStatement.clearParameters();
-			insertStatement.setString(1, left(fullPathToFile, 255));
+			insertStatement.setString(1, left(fullPathToFile, 1024));
+			insertStatement.setString(2, left(failureDetails, 20000));
 
 			insertStatement.executeUpdate();
 			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
@@ -218,9 +220,10 @@ public final class TableFailedLookups extends Tables {
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID           IDENTITY                   PRIMARY KEY, " +
-					"FILENAME     VARCHAR2(1024)             NOT NULL, " +
-					"LASTATTEMPT  TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
+					"ID               IDENTITY                   PRIMARY KEY, " +
+					"FILENAME         VARCHAR2(1024)             NOT NULL, " +
+					"FAILUREDETAILS   VARCHAR2(20000)            NOT NULL, " +
+					"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
 				")"
 			);
 

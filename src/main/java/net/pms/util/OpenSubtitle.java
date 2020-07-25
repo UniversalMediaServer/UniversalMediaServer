@@ -273,7 +273,7 @@ public class OpenSubtitle {
 					}
 
 					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
-					return "{ statusCode: \"" + status + "\" }";
+					return "{ statusCode: \"" + status + "\", serverResponse: " + gson.toJson(errorMessage) + " }";
 			}
 		} catch (MalformedURLException ex) {
 			LOGGER.debug("" + ex);
@@ -4914,12 +4914,7 @@ public class OpenSubtitle {
 
 					if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
 						LOGGER.trace("Failed lookup for " + file.getName());
-						if (metadataFromAPI != null && metadataFromAPI.containsKey("statusCode") && metadataFromAPI.get("statusCode") == "500") {
-							// If we received a 500 error, we return but do not store it as failed.
-							LOGGER.debug("Got a 500 error while looking for " + file.getName());
-							return;
-						}
-						TableFailedLookups.set(file.getAbsolutePath());
+						TableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""));
 						return;
 					}
 
@@ -4973,7 +4968,7 @@ public class OpenSubtitle {
 						)
 					) {
 						LOGGER.debug("API data was different to our parsed data, not storing it.");
-						TableFailedLookups.set(file.getAbsolutePath());
+						TableFailedLookups.set(file.getAbsolutePath(), "Data mismatch");
 
 						if (overTheTopLogging) {
 							LOGGER.trace("Filename data: " + media);
