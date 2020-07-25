@@ -41,6 +41,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
@@ -1968,9 +1969,9 @@ public class OpenSubtitle {
 
 	/**
 	 * Attempt to return information from OpenSubtitles about the file based on
-	 * the filename or sanitized (prettified) filename.
+	 * the title or sanitized (prettified) filename.
 	 *
-	 * @param filename filename (possibly prettified)
+	 * @param title title or filename
 	 *
 	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
@@ -1978,13 +1979,14 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String getInfoFromFilename(String filename, boolean isSeries, String year) throws IOException {
+	private static String getInfoFromFilename(String title, boolean isSeries, String year) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		String endpoint = isSeries == true ? "seriestitle" : "title";
 
 		List getParameters = new ArrayList();
-		if (isNotBlank(filename)) {
-			getParameters.add("title=" + filename);
+		if (isNotBlank(title)) {
+			title = URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
+			getParameters.add("title=" + title);
 		}
 		if (isNotBlank(year)) {
 			getParameters.add("year=" + year);
