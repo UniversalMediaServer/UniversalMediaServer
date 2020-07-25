@@ -482,15 +482,15 @@ public class UPNPHelper extends UPNPControl {
 							// Is the request from our own server, i.e. self-originating?
 							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
 
-							UDN udn = null;
+							String uuid = null;
 							int uuidPosition = s.indexOf(UUID);
 							if (uuidPosition != -1) {
-								udn = UDN.valueOf(s.substring(uuidPosition, s.indexOf(":", uuidPosition + UUID.length())));
+								uuid = s.substring(uuidPosition, s.indexOf(":", uuidPosition + UUID.length()));
 							} else {
 								LOGGER.trace("The request doesn't contain UUID");
 							}
-							
-							Device<?, ?, ?> device = getDevice(udn);
+
+							Device<?, ?, ?> device = getDevice(uuid);
 
 							if (configuration.getIpFiltering().allowed(address) && !isSelf && !isIgnoredDevice((RemoteDevice) device)) {
 								String remoteAddr = address.getHostAddress();
