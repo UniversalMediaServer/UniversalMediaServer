@@ -241,10 +241,10 @@ public class UPNPControl {
 	}
 
 	/**
-	 * Get the device with the requested UUID if is registered in the UpnpService
+	 * Get the registered device root or embedded with the requested UUID
 	 * 
 	 * @param uuid the UUID of the device to be checked.
-	 * @return the device registered in the UpnpService, null otherwise
+	 * @return the device registered in the UpnpService.Registry, null otherwise
 	 */
 	public static Device getDevice(String uuid) {
 		return uuid != null && upnpService != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
