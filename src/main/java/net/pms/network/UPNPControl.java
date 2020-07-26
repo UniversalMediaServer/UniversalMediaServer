@@ -240,6 +240,12 @@ public class UPNPControl {
 		}
 	}
 
+	/**
+	 * Get the registered device root or embedded with the requested UUID
+	 * 
+	 * @param uuid the UUID of the device to be checked.
+	 * @return the device registered in the UpnpService.Registry, null otherwise
+	 */
 	public static Device getDevice(String uuid) {
 		return uuid != null && upnpService != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
 	}
@@ -297,7 +303,7 @@ public class UPNPControl {
 		if (!ignoredDevices.contains(device)) {
 			ignoredDevices.add(device);
 			LOGGER.trace("This device was added to the list of ignored devices.");
-		} else {
+		} else { // this should not occurs but let it here
 			LOGGER.trace("This device is in the list of ignored devices so not be added.");
 		}
 	}
@@ -310,6 +316,10 @@ public class UPNPControl {
 	 * @return True when is ignored, false otherwise.
 	 */
 	static boolean isIgnoredDevice(RemoteDevice device) {
+		if (device == null) {
+			return false;
+		}
+
 		if (ignoredDevices != null) {
 			for (RemoteDevice rd : ignoredDevices) {
 				if (rd.equals(device)) {
@@ -608,23 +618,6 @@ public class UPNPControl {
 						return d;
 					}
 				} catch (Exception e) {}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Get the device with the requested UDN if is registered in the UpnpService
-	 * 
-	 * @param udn the UDN of the device to be checked.
-	 * @return the device registered in the UpnpService, null otherwise
-	 */
-	public static Device getDevice(UDN udn) {
-		if (upnpService != null) {
-			for (Device d : upnpService.getRegistry().getDevices()) {
-				if (d.findDevice(udn) != null) {
-					return d;
-				}
 			}
 		}
 		return null;
