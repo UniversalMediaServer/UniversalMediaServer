@@ -4229,7 +4229,7 @@
 								<configuration>
 									<target unless="offline">
 										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
