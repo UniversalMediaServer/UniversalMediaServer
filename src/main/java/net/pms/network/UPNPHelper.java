@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.fourthline.cling.model.meta.Device;
 import org.fourthline.cling.model.meta.RemoteDevice;
+import org.fourthline.cling.model.types.UDN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -489,17 +490,7 @@ public class UPNPHelper extends UPNPControl {
 							// Is the request from our own server, i.e. self-originating?
 							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
 
-							String uuid = null;
-							int uuidPosition = s.indexOf(UUID);
-							if (uuidPosition != -1) {
-								uuid = s.substring(uuidPosition, s.indexOf(":", uuidPosition + UUID.length()));
-							} else {
-								LOGGER.trace("The request doesn't contain UUID");
-							}
-
-							Device<?, ?, ?> device = getDevice(uuid);
-
-							if (configuration.getIpFiltering().allowed(address) && !isSelf && !isIgnoredDevice((RemoteDevice) device)) {
+							if (configuration.getIpFiltering().allowed(address) && !isSelf && isNotIgnoredDevice(s)) {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = receivePacket.getPort();
 								if (!redundant) {
@@ -544,7 +535,7 @@ public class UPNPHelper extends UPNPControl {
 										} else if (packetType == NOTIFY) {
 											requestType = "NOTIFY";
 										}
-										LOGGER.trace("Ignoring a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
+										LOGGER.trace("Ignoring a {} from [{}:{}]", requestType, remoteAddr, remotePort);
 									}
 								}
 							}
@@ -930,5 +921,35 @@ public class UPNPHelper extends UPNPControl {
 
 	public static String unescape(String s) throws UnsupportedEncodingException {
 		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, "UTF-8")));
+	}
+
+	/**
+	 * Check if the request was send from ignored devices.
+	 * e.g. routers, printers etc.
+	 *
+	 * @param request The message to check.
+	 * @return True when requesting device is NOT on the list of ignored devices, false otherwise.
+	 */
+	private static boolean isNotIgnoredDevice(String request) {
+		String uuid = null;
+		int uuidPosition = request.indexOf(UUID);
+		if (uuidPosition != -1) {
+			String temp = request.substring(uuidPosition);
+			temp = temp.substring(0, temp.indexOf(CRLF)); // get only the line of message containing UUID
+			if (temp.indexOf(":") == temp.lastIndexOf(":")) {
+				uuid = temp; // there are no additional information in the USN:
+			} else {
+				uuid = temp.substring(0, temp.indexOf(":", UUID.length()));
+			}
+		} else {
+			LOGGER.trace("The request doesn't contain UUID");
+		}
+
+		boolean isNotIgnoredDevice = !isIgnoredDevice(UDN.valueOf(uuid));
+		if (!isNotIgnoredDevice) {
+			LOGGER.trace("Ignoring request from device with UUID: [{}]", uuid);
+		}
+
+		return isNotIgnoredDevice;
 	}
 }
