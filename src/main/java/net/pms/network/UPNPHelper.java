@@ -466,6 +466,7 @@ public class UPNPHelper extends UPNPControl {
 						final int NOTIFY = 2;
 						InetAddress lastAddress = null;
 						int lastPacketType = 0;
+						long lastValidPacketReceivedTime = System.currentTimeMillis();
 
 						while (true) {
 							byte[] buf = new byte[1024];
@@ -477,7 +478,14 @@ public class UPNPHelper extends UPNPControl {
 							InetAddress address = receivePacket.getAddress();
 							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
-							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+							long currentTime = System.currentTimeMillis();
+							/*
+							 * Do not respond to a message if it:
+							 * - Is from the same address as the last message, and
+							 * - Is the same packet type as the last message, and
+							 * - Has happened within 10 seconds of the last valid message
+							 */
+							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType && currentTime < (lastValidPacketReceivedTime + 10*1000);
 							// Is the request from our own server, i.e. self-originating?
 							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
 
@@ -494,37 +502,50 @@ public class UPNPHelper extends UPNPControl {
 							if (configuration.getIpFiltering().allowed(address) && !isSelf && !isIgnoredDevice((RemoteDevice) device)) {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = receivePacket.getPort();
-								if (packetType == M_SEARCH || packetType == NOTIFY) {
-									if (!redundant && LOGGER.isTraceEnabled()) {
+								if (!redundant) {
+									if (packetType == M_SEARCH || packetType == NOTIFY) {
+										if (LOGGER.isTraceEnabled()) {
+											String requestType = "";
+											if (packetType == M_SEARCH) {
+												requestType = "M-SEARCH";
+											} else if (packetType == NOTIFY) {
+												requestType = "NOTIFY";
+											}
+											LOGGER.trace("Received a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
+										}
+
+										if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
+											sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
+										}
+
+										if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
+											sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
+										}
+
+										if (
+											StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
+											StringUtils.indexOf(s, "ssdp:all") > 0
+										) {
+											sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+										}
+
+										if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
+											sendDiscover(remoteAddr, remotePort, PMS.get().usn());
+										}
+									} else {
+										LOGGER.trace("Received an unrecognized request from [{}:{}]: {}", remoteAddr, remotePort, s);
+									}
+									lastValidPacketReceivedTime = System.currentTimeMillis();
+								} else {
+									if (LOGGER.isTraceEnabled()) {
 										String requestType = "";
 										if (packetType == M_SEARCH) {
 											requestType = "M-SEARCH";
 										} else if (packetType == NOTIFY) {
 											requestType = "NOTIFY";
 										}
-										LOGGER.trace("Received a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
+										LOGGER.trace("Ignoring a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
 									}
-
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-									}
-
-									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
-										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
-									}
-
-									if (
-										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
-										StringUtils.indexOf(s, "ssdp:all") > 0
-									) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
-										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
-									}
-								} else {
-									LOGGER.trace("Received an unrecognized request from [{}:{}]: {}", remoteAddr, remotePort, s);
 								}
 							}
 							lastAddress = address;
