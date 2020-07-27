@@ -156,6 +156,11 @@ ul#Folders li span {
 	padding: 20px 0 20px 20px;
 }
 
+#Media {
+	overflow-y: hidden;
+	padding-right: 0;
+}
+
 ul#Media li {
 	float: left;
 	margin-right: 20px;

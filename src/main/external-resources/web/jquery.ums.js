@@ -1,8 +1,11 @@
 var viewType = 'grid';
 var fontSize = 'small';
+var isSingleRow;
 
 function changeMargins() {
-	$('#Media').css({paddingRight: '0px', });
+	if (isSingleRow === undefined) {
+		isSingleRow = $('#Media').hasClass('media-single-row');
+	}
 	var total_w = $('#Media').width();
 	var cells = $('#Media li');
 	var aspect = 16 / 9;
@@ -19,6 +22,9 @@ function changeMargins() {
 			if (wrap || i === cells.length - 1) {
 				if (wrap) {
 					row_h = avail_w / images_w * 180;
+					if (isSingleRow === true) {
+						$('#Media').height((row_h + 40) + 'px');
+					}
 				}
 				var cell_w = row_h * aspect;
 

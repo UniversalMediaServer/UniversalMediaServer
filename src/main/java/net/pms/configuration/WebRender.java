@@ -486,6 +486,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public static boolean supportedFormat(Format f) {
+		if (f == null) {
+			return false;
+		}
 		for (Format f1 : supportedFormats) {
 			if (f.getIdentifier() == f1.getIdentifier() || f1.mimeType().equals(f.mimeType())) {
 				return true;

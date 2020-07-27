@@ -1499,6 +1499,10 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
+	public Playlist getRecentlyPlayed() {
+		return recentlyPlayed;
+	}
+
 	// Automatic reloading
 
 	public final static int RELOAD_WEB_CONF = 1;

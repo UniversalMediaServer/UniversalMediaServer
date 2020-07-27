@@ -38,6 +38,77 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
+	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
+		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
+		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+
+		StringBuilder bumpHTML = new StringBuilder();
+		HashMap<String, String> item = new HashMap<>();
+		if (upnpAllowed) {
+			if (upnpControl) {
+				bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
+					.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
+					.append(name.replace("'", "\\'")).append("')\" title=\"")
+					.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
+			} else {
+				bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
+				   .append(RemoteUtil.getMsgString("Web.2", t))
+				   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
+			}
+			if (resource.getParent() instanceof Playlist) {
+				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
+					.append(idForWeb).append("', true);return false;\" title=\"")
+				    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
+			} else {
+				bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
+					.append(idForWeb).append("', false);return false;\" title=\"")
+				    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
+			}
+		} else {
+			// ensure that we got a string
+			bumpHTML.append("");
+		}
+		item.put("bump", bumpHTML.toString());
+
+		if (WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
+			if (resource.getMedia() != null) {
+				DLNAMediaInfo mediaResource = resource.getMedia();
+				if (mediaResource.getTVSeason() != null) {
+					LOGGER.info("13 " + mediaResource.getTVSeason());
+				}
+			}
+
+			StringBuilder thumbHTML = new StringBuilder();
+			thumbHTML.append("<a href=\"/play/").append(idForWeb)
+				.append("\" title=\"").append(name).append("\">")
+				.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+				.append("</a>");
+			item.put("thumb", thumbHTML.toString());
+
+			StringBuilder captionHTML = new StringBuilder();
+			captionHTML.append("<a href=\"/play/").append(idForWeb)
+				.append("\" title=\"").append(name).append("\">")
+				.append("<span class=\"caption\">").append(name).append("</span>")
+				.append("</a>");
+			item.put("caption", captionHTML.toString());
+		} else if (upnpControl && upnpAllowed) {
+			// Include it as a web-disabled item so it can be thrown via upnp
+			StringBuilder thumbHTML = new StringBuilder();
+			thumbHTML.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
+				.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
+				.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
+				.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+				.append("</a>");
+			item.put("thumb", thumbHTML.toString());
+
+			StringBuilder captionHTML = new StringBuilder();
+			captionHTML.append("<span class=\"webdisabled caption\">").append(name).append("</span>");
+			item.put("caption", captionHTML.toString());
+		}
+
+		return item;
+	}
+
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
 		String user = RemoteUtil.userName(t);
@@ -46,8 +117,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
-		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
-		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		if (
 			!resources.isEmpty() &&
 			resources.get(0).getParent() != null &&
@@ -161,6 +230,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
 		mustacheVars.put("breadcrumbs", breadcrumbs);
+		mustacheVars.put("recentlyPlayed", "");
+		mustacheVars.put("hasRecentlyPlayed", false);
 
 		// Generate innerHtml snippets for folders and media items
 		for (DLNAResource resource : resources) {
@@ -194,107 +265,73 @@ public class RemoteBrowseHandler implements HttpHandler {
 			if (resource.isFolder()) {
 				Boolean isTvSeriesBrowsePage = resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"));
 				if (!isTvSeriesBrowsePage || !(isTvSeriesBrowsePage && (resource instanceof MediaLibraryFolder))) {
-					StringBuilder folderHTML = new StringBuilder();
-					// The resource is a folder
-					String p = "/browse/" + idForWeb;
-					boolean code = (resource instanceof CodeEnter);
-					String txt = RemoteUtil.getMsgString("Web.8", t);
-					if (code) {
-						txt = RemoteUtil.getMsgString("Web.9", t);
-					}
-					if (resource.getClass().getName().contains("SearchFolder") || code) {
-						// search folder add a prompt
-						// NOTE!!!
-						// Yes doing getClass.getname is REALLY BAD, but this
-						// is to make legacy plugins utilize this function as well
-						folderHTML.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
-						.append(txt).append("');\" title=\"").append(name).append("\">");
-					} else {
-						folderHTML.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
-						.append("','").append(txt).append("');\" title=\"").append(name).append("\">");
-					}
-					folderHTML.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(thumb).append(")\"></div>");
-					folderHTML.append("<span>").append(name).append("</span>");
-					folderHTML.append("</a>");
-					folders.add(folderHTML.toString());
-			    }
-			} else {
-				// The resource is a media file
-				StringBuilder bumpHTML = new StringBuilder();
-				HashMap<String, String> item = new HashMap<>();
-				if (upnpAllowed) {
-					if (upnpControl) {
-						bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
-							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-							.append(name.replace("'", "\\'")).append("')\" title=\"")
-							.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
-					} else {
-						bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
-						   .append(RemoteUtil.getMsgString("Web.2", t))
-						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
-					}
-					if (resource.getParent() instanceof Playlist) {
-						bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
-							.append(idForWeb).append("', true);return false;\" title=\"")
-						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
-					} else {
-						bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
-							.append(idForWeb).append("', false);return false;\" title=\"")
-						    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
-					}
-				} else {
-					// ensure that we got a string
-					bumpHTML.append("");
-				}
-				item.put("bump", bumpHTML.toString());
+					boolean isSkipThisFolder = false;
 
-				if (WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
-					if (resource.getMedia() != null) {
-						DLNAMediaInfo mediaResource = resource.getMedia();
-						if (mediaResource.getTVSeason() != null) {
-							LOGGER.info("13 " + mediaResource.getTVSeason());
+					// Populate the front page
+					if (id.equals("0")) {
+						if (configuration.isShowRecentlyPlayedFolder() && resource.getName().equals(Messages.getString("VirtualFolder.1"))) {
+							ArrayList<HashMap<String, String>> recentlyPlayedItemsHTML = new ArrayList<>();
+							int i = 0;
+							List<DLNAResource> recentlyPlayedResources = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer());
+							for (DLNAResource recentlyPlayedResource : recentlyPlayedResources) {
+								newId = recentlyPlayedResource.getResourceId();
+								idForWeb = URLEncoder.encode(newId, "UTF-8");
+								thumb = "/thumb/" + idForWeb;
+								name = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
+
+								// Skip the Clear and #--TRANSCODE--# entries
+								if (
+									name.equals(Messages.getString("TracesTab.3")) ||
+									name.equals(Messages.getString("TranscodeVirtualFolder.0"))
+								) {
+									continue;
+								}
+
+								recentlyPlayedItemsHTML.add(getMediaHTML(recentlyPlayedResource, idForWeb, name, thumb, t));
+								i++;
+								if (i == 1) {
+									mustacheVars.put("hasRecentlyPlayed", true);
+								} else if (i == 5) {
+									break;
+								}
+							}
+							mustacheVars.put("recentlyPlayed", recentlyPlayedItemsHTML);
+							isSkipThisFolder = true;
 						}
 					}
 
-					StringBuilder thumbHTML = new StringBuilder();
-					thumbHTML.append("<a href=\"/play/").append(idForWeb)
-						.append("\" title=\"").append(name).append("\">")
-						.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
-						.append("</a>");
-					item.put("thumb", thumbHTML.toString());
-
-					StringBuilder captionHTML = new StringBuilder();
-					captionHTML.append("<a href=\"/play/").append(idForWeb)
-						.append("\" title=\"").append(name).append("\">")
-						.append("<span class=\"caption\">").append(name).append("</span>")
-						.append("</a>");
-					item.put("caption", captionHTML.toString());
-				} else if (upnpControl && upnpAllowed) {
-					// Include it as a web-disabled item so it can be thrown via upnp
-					StringBuilder thumbHTML = new StringBuilder();
-					thumbHTML.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
-						.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
-						.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
-						.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
-						.append("</a>");
-					item.put("thumb", thumbHTML.toString());
-
-					StringBuilder captionHTML = new StringBuilder();
-					captionHTML.append("<span class=\"webdisabled caption\">").append(name).append("</span>");
-					item.put("caption", captionHTML.toString());
+					if (!isSkipThisFolder) {
+						StringBuilder folderHTML = new StringBuilder();
+						// The resource is a folder
+						String p = "/browse/" + idForWeb;
+						boolean code = (resource instanceof CodeEnter);
+						String txt = RemoteUtil.getMsgString("Web.8", t);
+						if (code) {
+							txt = RemoteUtil.getMsgString("Web.9", t);
+						}
+						if (resource.getClass().getName().contains("SearchFolder") || code) {
+							// search folder add a prompt
+							// NOTE!!!
+							// Yes doing getClass.getname is REALLY BAD, but this
+							// is to make legacy plugins utilize this function as well
+							folderHTML.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
+							.append(txt).append("');\" title=\"").append(name).append("\">");
+						} else {
+							folderHTML.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
+							.append("','").append(txt).append("');\" title=\"").append(name).append("\">");
+						}
+						folderHTML.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(thumb).append(")\"></div>");
+						folderHTML.append("<span>").append(name).append("</span>");
+						folderHTML.append("</a>");
+						folders.add(folderHTML.toString());
+					}
 				}
-				media.add(item);
+			} else {
+				// The resource is a media file
+				media.add(getMediaHTML(resource, idForWeb, name, thumb, t));
 				hasFile = true;
 			}
 		}
-
-			mustacheVars.put("name", id.equals("0") ? configuration.getServerDisplayName() :
-			StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
-		mustacheVars.put("hasFile", hasFile);
-		mustacheVars.put("folders", folders);
-		mustacheVars.put("media", media);
-		mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-		mustacheVars.put("javascriptVarsScript", "");
 
 		if (rootResource != null && rootResource instanceof MediaLibraryFolder) {
 			MediaLibraryFolder folder = (MediaLibraryFolder) rootResource;
@@ -339,6 +376,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 		if (configuration.useWebControl()) {
 			mustacheVars.put("push", true);
 		}
+
+		mustacheVars.put("name", id.equals("0") ? configuration.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
+		mustacheVars.put("hasFile", hasFile);
+		mustacheVars.put("folders", folders);
+		mustacheVars.put("media", media);
+		mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
+		mustacheVars.put("javascriptVarsScript", "");
 
 		return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
 	}

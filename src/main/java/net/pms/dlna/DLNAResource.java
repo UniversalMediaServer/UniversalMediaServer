@@ -1900,7 +1900,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
-	protected DLNAResource clone() {
+	public DLNAResource clone() {
 		DLNAResource o = null;
 		try {
 			o = (DLNAResource) super.clone();
