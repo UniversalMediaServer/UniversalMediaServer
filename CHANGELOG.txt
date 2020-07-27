@@ -1,3 +1,8 @@
+9.8.1 - 2020
+
+	Dependencies:
+		Bump MediaInfo from 18.12 to 20.03
+
 9.8.0 - 2020-07-26
 
 	General:
@@ -26,6 +31,7 @@
 		Bump git-commit-id-plugin from 4.0.0 to 4.0.1
 		Bump jna-version from 5.5.0 to 5.6.0
 		Bump junrar from 4.0.0 to 6.0.1
+		Bump MPlayer/MEncoder for macOS to SB66
 		Bump oshi-core from 5.2.1 to 5.2.2
 		Bump rome from 1.14.1 to 1.15.0
 		Bump twelvemonkeys-imageio-version from 3.5 to 3.6
