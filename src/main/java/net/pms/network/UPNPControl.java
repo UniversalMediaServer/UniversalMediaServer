@@ -309,20 +309,20 @@ public class UPNPControl {
 	}
 	
 	/**
-	 * Check if the device is on the list of ignored devices.
+	 * Check if the device with the requested UDN is on the list of ignored devices.
 	 * e.g. routers, printers etc.
 	 *
-	 * @param device The device to verify.
+	 * @param udn the UDN to verify.
 	 * @return True when is ignored, false otherwise.
 	 */
-	static boolean isIgnoredDevice(RemoteDevice device) {
-		if (device == null) {
+	static boolean isIgnoredDevice(UDN udn) {
+		if (udn == null) {
 			return false;
 		}
 
 		if (ignoredDevices != null) {
 			for (RemoteDevice rd : ignoredDevices) {
-				if (rd.equals(device)) {
+				if (rd.findDevice(udn) != null) {
 					return true;
 				}
 			}
