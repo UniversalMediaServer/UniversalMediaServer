@@ -292,7 +292,7 @@ public class UPNPControl {
 	 * List of ignored devices (non-Renderers) from the network infrastructure
 	 * e.g. gateways, routers, printers etc.
 	 */
-	private static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<RemoteDevice>();
+	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<RemoteDevice>();
 	
 	/**
 	 * Add device to the list of ignored devices when not exists on the list.
@@ -303,32 +303,9 @@ public class UPNPControl {
 		if (!ignoredDevices.contains(device)) {
 			ignoredDevices.add(device);
 			LOGGER.trace("This device was added to the list of ignored devices.");
-		} else { // this should not occurs but let it here
+		} else {
 			LOGGER.trace("This device is in the list of ignored devices so not be added.");
 		}
-	}
-	
-	/**
-	 * Check if the device with the requested UDN is on the list of ignored devices.
-	 * e.g. routers, printers etc.
-	 *
-	 * @param udn the UDN to verify.
-	 * @return True when is ignored, false otherwise.
-	 */
-	static boolean isIgnoredDevice(UDN udn) {
-		if (udn == null) {
-			return false;
-		}
-
-		if (ignoredDevices != null) {
-			for (RemoteDevice rd : ignoredDevices) {
-				if (rd.findDevice(udn) != null) {
-					return true;
-				}
-			}
-		}
-	
-		return false;
 	}
 	
 	public void init() {
