@@ -2036,6 +2036,11 @@
 										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 									</target>
 								</configuration>
 							</execution>
@@ -2050,11 +2055,6 @@
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
-
-										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 
 										<!-- Copy the wrapper to its destination -->
 										<mkdir dir="${project.basedir}/win32/service" />
