@@ -206,6 +206,11 @@ public class UPNPHelper extends UPNPControl {
 		try (DatagramSocket datagramSocket = new DatagramSocket()) {
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
+			// Send the message three times as recommended by the standard
+			datagramSocket.send(dgmPacket);
+			sleep(100);
+			datagramSocket.send(dgmPacket);
+			sleep(100);
 			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
 			LOGGER.info(e.getMessage());
@@ -946,11 +951,16 @@ public class UPNPHelper extends UPNPControl {
 			return true;
 		}
 
-		boolean isNotIgnoredDevice = !isIgnoredDevice(UDN.valueOf(uuid));
-		if (!isNotIgnoredDevice) {
-			LOGGER.trace("Ignoring request from device with UUID: [{}]", uuid);
+		if (ignoredDevices != null) {
+			UDN udn = UDN.valueOf(uuid);
+			for (RemoteDevice rd : ignoredDevices) {
+				if (rd.findDevice(udn) != null) {
+					LOGGER.trace("Ignoring request from device with UUID: [{}]", uuid);
+					return false;
+				}
+			}
 		}
 
-		return isNotIgnoredDevice;
+		return true;
 	}
 }
