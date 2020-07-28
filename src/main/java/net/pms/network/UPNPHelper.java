@@ -943,6 +943,7 @@ public class UPNPHelper extends UPNPControl {
 			}
 		} else {
 			LOGGER.trace("The request doesn't contain UUID");
+			return true;
 		}
 
 		boolean isNotIgnoredDevice = !isIgnoredDevice(UDN.valueOf(uuid));
