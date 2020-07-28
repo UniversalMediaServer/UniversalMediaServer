@@ -929,7 +929,7 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
-	 * Check if the request was send from ignored devices.
+	 * Check if the request was send from NOT ignored devices.
 	 * e.g. routers, printers etc.
 	 *
 	 * @param request The message to check.
