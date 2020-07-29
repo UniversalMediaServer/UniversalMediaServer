@@ -929,8 +929,7 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
-	 * Check if the request was send from NOT ignored devices.
-	 * e.g. routers, printers etc.
+	 * Check if the request was send from NOT ignored device.
 	 *
 	 * @param request The message to check.
 	 * @return True when requesting device is NOT on the list of ignored devices, false otherwise.
@@ -941,10 +940,10 @@ public class UPNPHelper extends UPNPControl {
 		if (uuidPosition != -1) {
 			String temp = request.substring(uuidPosition);
 			temp = temp.substring(0, temp.indexOf(CRLF)); // get only the line of message containing UUID
-			if (temp.indexOf(":") == temp.lastIndexOf(":")) {
-				uuid = temp; // there are no additional information in the USN:
+			if (temp.indexOf(':') == temp.lastIndexOf(':')) {
+				uuid = temp; // there are no additional informations in the line
 			} else {
-				uuid = temp.substring(0, temp.indexOf(":", UUID.length()));
+				uuid = temp.substring(0, temp.indexOf(':', UUID.length()));
 			}
 		} else {
 			LOGGER.trace("The request doesn't contain UUID");
