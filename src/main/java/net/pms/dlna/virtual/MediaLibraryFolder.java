@@ -131,13 +131,12 @@ public class MediaLibraryFolder extends VirtualFolder {
 		int expectedOutput = 0;
 		if (sqls.length > 0) {
 			String sql = sqls[0];
-LOGGER.info("sql: " + sql);
 			expectedOutput = expectedOutputs[0];
-LOGGER.info("expectedOutput: " + expectedOutput);
 			if (sql != null) {
 				sql = transformSQL(sql);
 
 				if (
+					expectedOutput == EPISODES ||
 					expectedOutput == EPISODES_WITHIN_SEASON ||
 					expectedOutput == FILES ||
 					expectedOutput == FILES_NOSORT ||
@@ -147,8 +146,6 @@ LOGGER.info("expectedOutput: " + expectedOutput);
 					expectedOutput == PLAYLISTS
 				) {
 					return !UMSUtils.isListsEqual(populatedFilesListFromDb, database.getStrings(sql));
-				} else if (expectedOutput == EPISODES) {
-					return !UMSUtils.isListsEqual(populatedFilesListFromDb, database.getStrings(sql)) || !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, database.getStrings(sql));
 				} else if (isTextOutputExpected(expectedOutput)) {
 					return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, database.getStrings(sql));
 				}
