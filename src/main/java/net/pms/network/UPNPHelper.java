@@ -948,6 +948,8 @@ public class UPNPHelper extends UPNPControl {
 				uuid = temp.substring(0, temp.indexOf(':', UUID.length()));
 			}
 		} else {
+			// TODO remove or make as REM this line when this change will be approved
+			// it spams the log.
 			LOGGER.trace("The request doesn't contain UUID");
 			return true;
 		}
