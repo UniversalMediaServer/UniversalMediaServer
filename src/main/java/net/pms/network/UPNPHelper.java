@@ -206,10 +206,8 @@ public class UPNPHelper extends UPNPControl {
 		try (DatagramSocket datagramSocket = new DatagramSocket()) {
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
-			// Send the message three times as recommended by the standard
 			datagramSocket.send(dgmPacket);
-			sleep(100);
-			datagramSocket.send(dgmPacket);
+			// Repeat the message as recommended by the standard
 			sleep(100);
 			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
@@ -397,10 +395,8 @@ public class UPNPHelper extends UPNPControl {
 		sleep(rand.nextInt(101));
 		socket.send(ssdpPacket);
 
-		// Send the message three times as recommended by the standard
+		// Repeat the message as recommended by the standard
 		if (!sendOnce) {
-			sleep(100);
-			socket.send(ssdpPacket);
 			sleep(100);
 			socket.send(ssdpPacket);
 		}
