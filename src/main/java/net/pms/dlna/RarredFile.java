@@ -19,7 +19,7 @@
 package net.pms.dlna;
 
 import com.github.junrar.Archive;
-import com.github.junrar.impl.FileVolumeManager;
+import com.github.junrar.volume.FileVolumeManager;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
 import java.io.File;
@@ -40,7 +40,7 @@ public class RarredFile extends DLNAResource {
 		setLastModified(f.lastModified());
 
 		try {
-			rarFile = new Archive(new FileVolumeManager(f),null);
+			rarFile = new Archive(new FileVolumeManager(f),null, null);
 			List<FileHeader> headers = rarFile.getFileHeaders();
 
 			for (FileHeader fh : headers) {
