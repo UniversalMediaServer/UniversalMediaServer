@@ -533,6 +533,8 @@ public class UPNPHelper extends UPNPControl {
 									}
 									lastValidPacketReceivedTime = System.currentTimeMillis();
 								} else {
+									// TODO remove or make as REM those lines when this change will be approved
+									// it spams the log.
 									if (LOGGER.isTraceEnabled()) {
 										String requestType = "";
 										if (packetType == M_SEARCH) {
@@ -954,6 +956,8 @@ public class UPNPHelper extends UPNPControl {
 			UDN udn = UDN.valueOf(uuid);
 			for (RemoteDevice rd : ignoredDevices) {
 				if (rd.findDevice(udn) != null) {
+					// TODO remove or make as REM this line when this change will be approved
+					// it spams the log.
 					LOGGER.trace("Ignoring request from device with UUID: [{}]", uuid);
 					return false;
 				}
