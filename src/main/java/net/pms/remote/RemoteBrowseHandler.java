@@ -71,13 +71,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		item.put("bump", bumpHTML.toString());
 
 		if (WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
-			if (resource.getMedia() != null) {
-				DLNAMediaInfo mediaResource = resource.getMedia();
-				if (mediaResource.getTVSeason() != null) {
-					LOGGER.info("13 " + mediaResource.getTVSeason());
-				}
-			}
-
 			StringBuilder thumbHTML = new StringBuilder();
 			thumbHTML.append("<a href=\"/play/").append(idForWeb)
 				.append("\" title=\"").append(name).append("\">")
@@ -231,7 +224,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
 		mustacheVars.put("breadcrumbs", breadcrumbs);
 		mustacheVars.put("recentlyPlayed", "");
+		mustacheVars.put("recentlyPlayedLink", "");
 		mustacheVars.put("hasRecentlyPlayed", false);
+		mustacheVars.put("recentlyAdded", "");
+		mustacheVars.put("recentlyAddedLink", "");
+		mustacheVars.put("hasRecentlyAdded", false);
 
 		// Generate innerHtml snippets for folders and media items
 		for (DLNAResource resource : resources) {
@@ -272,31 +269,77 @@ public class RemoteBrowseHandler implements HttpHandler {
 						if (configuration.isShowRecentlyPlayedFolder() && resource.getName().equals(Messages.getString("VirtualFolder.1"))) {
 							ArrayList<HashMap<String, String>> recentlyPlayedItemsHTML = new ArrayList<>();
 							int i = 0;
-							List<DLNAResource> recentlyPlayedResources = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer());
+							List<DLNAResource> recentlyPlayedResources = root.getDLNAResources(resource.getId(), true, 0, 7, root.getDefaultRenderer());
 							for (DLNAResource recentlyPlayedResource : recentlyPlayedResources) {
-								newId = recentlyPlayedResource.getResourceId();
-								idForWeb = URLEncoder.encode(newId, "UTF-8");
-								thumb = "/thumb/" + idForWeb;
-								name = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
+								String recentlyPlayedResourceId = recentlyPlayedResource.getResourceId();
+								String recentlyPlayedResourceidForWeb = URLEncoder.encode(recentlyPlayedResourceId, "UTF-8");
+								String recentlyPlayedResourcethumb = "/thumb/" + recentlyPlayedResourceidForWeb;
+								String recentlyPlayedResourcename = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
 
 								// Skip the Clear and #--TRANSCODE--# entries
 								if (
-									name.equals(Messages.getString("TracesTab.3")) ||
-									name.equals(Messages.getString("TranscodeVirtualFolder.0"))
+									recentlyPlayedResourcename.equals(Messages.getString("TracesTab.3")) ||
+									recentlyPlayedResourcename.equals(Messages.getString("TranscodeVirtualFolder.0"))
 								) {
 									continue;
 								}
 
-								recentlyPlayedItemsHTML.add(getMediaHTML(recentlyPlayedResource, idForWeb, name, thumb, t));
+								recentlyPlayedItemsHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedResourceidForWeb, recentlyPlayedResourcename, recentlyPlayedResourcethumb, t));
 								i++;
 								if (i == 1) {
 									mustacheVars.put("hasRecentlyPlayed", true);
-								} else if (i == 5) {
-									break;
+									StringBuilder recentlyPlayedLink = new StringBuilder();
+									recentlyPlayedLink.append("<a href=\"/browse/").append(idForWeb);
+									recentlyPlayedLink.append("\" title=\"").append(name).append("\">");
+									recentlyPlayedLink.append(name).append(":");
+									recentlyPlayedLink.append("</a>");
+									mustacheVars.put("recentlyPlayedLink", recentlyPlayedLink.toString());
 								}
 							}
 							mustacheVars.put("recentlyPlayed", recentlyPlayedItemsHTML);
 							isSkipThisFolder = true;
+						}
+						if (resource.getName().equals(Messages.getString("PMS.MediaLibrary"))) {
+							ArrayList<HashMap<String, String>> recentlyAddedVideosHTML = new ArrayList<>();
+							int i = 0;
+							List<DLNAResource> mediaLibraryChildren = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
+							UMSUtils.postSearch(mediaLibraryChildren, Messages.getString("PMS.34"));
+							DLNAResource videoFolder = mediaLibraryChildren.get(0);
+
+							List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("MediaLibrary.RecentlyAdded"));
+							UMSUtils.postSearch(videoFolderChildren, Messages.getString("MediaLibrary.RecentlyAdded"));
+							DLNAResource recentlyAddedFolder = videoFolderChildren.get(0);
+
+							List<DLNAResource> recentlyAddedVideos = root.getDLNAResources(recentlyAddedFolder.getId(), true, 0, 6, root.getDefaultRenderer());
+
+							for (DLNAResource recentlyAddedResource : recentlyAddedVideos) {
+								String recentlyAddedId = recentlyAddedResource.getResourceId();
+								String recentlyAddedIdForWeb = URLEncoder.encode(recentlyAddedId, "UTF-8");
+								String recentlyAddedThumb = "/thumb/" + recentlyAddedIdForWeb;
+								String recentlyAddedName = StringEscapeUtils.escapeHtml4(recentlyAddedResource.resumeName());
+
+								// Skip the #--TRANSCODE--# entry
+								if (
+									recentlyAddedName.equals(Messages.getString("TranscodeVirtualFolder.0"))
+								) {
+									continue;
+								}
+
+								recentlyAddedVideosHTML.add(getMediaHTML(recentlyAddedResource, recentlyAddedIdForWeb, recentlyAddedName, recentlyAddedThumb, t));
+								i++;
+								if (i == 1) {
+									mustacheVars.put("hasRecentlyAdded", true);
+									StringBuilder recentlyAddedLink = new StringBuilder();
+									String recentlyAddedFolderId = recentlyAddedFolder.getResourceId();
+									String recentlyAddedFolderidForWeb = URLEncoder.encode(recentlyAddedFolderId, "UTF-8");
+									recentlyAddedLink.append("<a href=\"/browse/").append(recentlyAddedFolderidForWeb);
+									recentlyAddedLink.append("\" title=\"").append(Messages.getString("Web.RecentlyAddedVideos")).append("\">");
+									recentlyAddedLink.append(Messages.getString("Web.RecentlyAddedVideos")).append(":");
+									recentlyAddedLink.append("</a>");
+									mustacheVars.put("recentlyAddedLink", recentlyAddedLink.toString());
+								}
+							}
+							mustacheVars.put("recentlyAdded", recentlyAddedVideosHTML);
 						}
 					}
 

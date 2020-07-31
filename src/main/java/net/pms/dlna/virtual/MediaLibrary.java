@@ -49,6 +49,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND (YEAR IS NULL OR YEAR = '')" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("MediaLibrary.RecentlyAdded"), sqlJoinStart + "FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), sqlJoinStart + "FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
@@ -91,11 +92,17 @@ public class MediaLibrary extends VirtualFolder {
 			"TYPE = 4 ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
+
+		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
+			Messages.getString("MediaLibrary.RecentlyAdded"),
+			new String[]{ "SELECT * FROM FILES WHERE TYPE = 4 ORDER BY FILES.MODIFIED DESC LIMIT 100" },
+			new int[]{ MediaLibraryFolder.FILES }
+		);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
-				"SELECT FORMATDATETIME(MODIFIED, 'yyyy MM d') FROM FILES WHERE TYPE = 4 ORDER BY MODIFIED DESC",
-				"TYPE = 4 AND FORMATDATETIME(MODIFIED, 'yyyy MM d') = '${0}' ORDER BY FILENAME ASC"
+				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') FROM FILES WHERE TYPE = 4 ORDER BY FILES.MODIFIED DESC",
+				"TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') = '${0}' ORDER BY FILES.FILENAME ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT_WITH_FILTERS, MediaLibraryFolder.FILES}
 		);
@@ -121,6 +128,7 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(unwatchedMoviesFolder);
 			vfVideo.addChild(unwatchedMovies3DFolder);
 			vfVideo.addChild(unwatchedUnsortedFolder);
+			vfVideo.addChild(unwatchedRecentlyAddedVideos);
 			vfVideo.addChild(unwatchedAllVideosFolder);
 			vfVideo.addChild(unwatchedMlfVideo02);
 			vfVideo.addChild(unwatchedMlfVideo03);
@@ -132,6 +140,7 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(moviesFolder);
 			vfVideo.addChild(movies3DFolder);
 			vfVideo.addChild(unsortedFolder);
+			vfVideo.addChild(recentlyAddedVideos);
 			vfVideo.addChild(allVideosFolder);
 			vfVideo.addChild(mlfVideo02);
 			vfVideo.addChild(mlfVideo03);
