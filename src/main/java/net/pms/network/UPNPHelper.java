@@ -207,9 +207,6 @@ public class UPNPHelper extends UPNPControl {
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
 			datagramSocket.send(dgmPacket);
-			// Repeat the message as recommended by the standard
-			sleep(100);
-			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
 			LOGGER.info(e.getMessage());
 			LOGGER.debug("Error sending reply", e);
