@@ -37,6 +37,8 @@ import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.fourthline.cling.model.meta.Device;
+import org.fourthline.cling.model.meta.RemoteDevice;
+import org.fourthline.cling.model.types.UDN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +98,7 @@ public class UPNPHelper extends UPNPControl {
 
 	private static final UPNPHelper instance = new UPNPHelper();
 	private static PlayerControlHandler httpControlHandler;
+	private static final String UUID = "uuid:";
 
 	/**
 	 * This utility class is not meant to be instantiated.
@@ -390,16 +393,14 @@ public class UPNPHelper extends UPNPControl {
 		sleep(rand.nextInt(101));
 		socket.send(ssdpPacket);
 
-		// Send the message three times as recommended by the standard
+		// Repeat the message as recommended by the standard
 		if (!sendOnce) {
-			sleep(100);
-			socket.send(ssdpPacket);
 			sleep(100);
 			socket.send(ssdpPacket);
 		}
 	}
 
-	private static int ALIVE_delay = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 10000;
+	private final static int ALIVE_DELAY = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 30000;
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
@@ -412,7 +413,7 @@ public class UPNPHelper extends UPNPControl {
 			@Override
 			public void run() {
 				while (true) {
-					sleep(ALIVE_delay);
+					sleep(ALIVE_DELAY);
 					sendAlive();
 				}
 			}
@@ -465,6 +466,7 @@ public class UPNPHelper extends UPNPControl {
 						final int NOTIFY = 2;
 						InetAddress lastAddress = null;
 						int lastPacketType = 0;
+						long lastValidPacketReceivedTime = System.currentTimeMillis();
 
 						while (true) {
 							byte[] buf = new byte[1024];
@@ -476,38 +478,67 @@ public class UPNPHelper extends UPNPControl {
 							InetAddress address = receivePacket.getAddress();
 							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
-							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
+							long currentTime = System.currentTimeMillis();
+							/*
+							 * Do not respond to a message if it:
+							 * - Is from the same address as the last message, and
+							 * - Is the same packet type as the last message, and
+							 * - Has happened within 10 seconds of the last valid message
+							 */
+							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType && currentTime < (lastValidPacketReceivedTime + 10*1000);
+							// Is the request from our own server, i.e. self-originating?
+							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
 
-							if (packetType == M_SEARCH) {
-								if (configuration.getIpFiltering().allowed(address)) {
-									String remoteAddr = address.getHostAddress();
-									int remotePort = receivePacket.getPort();
-									if (!redundant && LOGGER.isTraceEnabled()) {
-										LOGGER.trace("Received a M-SEARCH from [{}:{}]: {}", remoteAddr, remotePort, s);
+							if (configuration.getIpFiltering().allowed(address) && !isSelf && isNotIgnoredDevice(s)) {
+								String remoteAddr = address.getHostAddress();
+								int remotePort = receivePacket.getPort();
+								if (!redundant) {
+									if (packetType == M_SEARCH || packetType == NOTIFY) {
+										if (LOGGER.isTraceEnabled()) {
+											String requestType = "";
+											if (packetType == M_SEARCH) {
+												requestType = "M-SEARCH";
+											} else if (packetType == NOTIFY) {
+												requestType = "NOTIFY";
+											}
+											LOGGER.trace("Received a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
+										}
+
+										if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
+											sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
+										}
+
+										if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
+											sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
+										}
+
+										if (
+											StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
+											StringUtils.indexOf(s, "ssdp:all") > 0
+										) {
+											sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+										}
+
+										if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
+											sendDiscover(remoteAddr, remotePort, PMS.get().usn());
+										}
+									} else {
+										LOGGER.trace("Received an unrecognized request from [{}:{}]: {}", remoteAddr, remotePort, s);
 									}
-
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-									}
-
-									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
-										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
-									}
-
-									if (
-										StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
-										StringUtils.indexOf(s, "ssdp:all") > 0
-									) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
-										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
+									lastValidPacketReceivedTime = System.currentTimeMillis();
+								} else {
+									// TODO remove or make as REM those lines when this change will be approved
+									// it spams the log.
+									if (LOGGER.isTraceEnabled()) {
+										String requestType = "";
+										if (packetType == M_SEARCH) {
+											requestType = "M-SEARCH";
+										} else if (packetType == NOTIFY) {
+											requestType = "NOTIFY";
+										}
+										LOGGER.trace("Ignoring a {} from [{}:{}]", requestType, remoteAddr, remotePort);
 									}
 								}
-							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && !redundant && LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Received a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 							}
 							lastAddress = address;
 							lastPacketType = packetType;
@@ -890,5 +921,44 @@ public class UPNPHelper extends UPNPControl {
 
 	public static String unescape(String s) throws UnsupportedEncodingException {
 		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, "UTF-8")));
+	}
+
+	/**
+	 * Check if the request was send from NOT ignored device.
+	 *
+	 * @param request The message to check.
+	 * @return True when requesting device is NOT on the list of ignored devices, false otherwise.
+	 */
+	private static boolean isNotIgnoredDevice(String request) {
+		String uuid = null;
+		int uuidPosition = request.indexOf(UUID);
+		if (uuidPosition != -1) {
+			String temp = request.substring(uuidPosition);
+			temp = temp.substring(0, temp.indexOf(CRLF)); // get only the line of message containing UUID
+			if (temp.indexOf(':') == temp.lastIndexOf(':')) {
+				uuid = temp; // there are no additional informations in the line
+			} else {
+				uuid = temp.substring(0, temp.indexOf(':', UUID.length()));
+			}
+		} else {
+			// TODO remove or make as REM this line when this change will be approved
+			// it spams the log.
+			LOGGER.trace("The request doesn't contain UUID");
+			return true;
+		}
+
+		if (ignoredDevices != null) {
+			UDN udn = UDN.valueOf(uuid);
+			for (RemoteDevice rd : ignoredDevices) {
+				if (rd.findDevice(udn) != null) {
+					// TODO remove or make as REM this line when this change will be approved
+					// it spams the log.
+					LOGGER.trace("Ignoring request from device with UUID: [{}]", uuid);
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 }
