@@ -206,11 +206,6 @@ public class UPNPHelper extends UPNPControl {
 		try (DatagramSocket datagramSocket = new DatagramSocket()) {
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
-			// Send the message three times as recommended by the standard
-			datagramSocket.send(dgmPacket);
-			sleep(100);
-			datagramSocket.send(dgmPacket);
-			sleep(100);
 			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
 			LOGGER.info(e.getMessage());
@@ -398,10 +393,8 @@ public class UPNPHelper extends UPNPControl {
 		sleep(rand.nextInt(101));
 		socket.send(ssdpPacket);
 
-		// Send the message three times as recommended by the standard
+		// Repeat the message as recommended by the standard
 		if (!sendOnce) {
-			sleep(100);
-			socket.send(ssdpPacket);
 			sleep(100);
 			socket.send(ssdpPacket);
 		}
@@ -534,6 +527,8 @@ public class UPNPHelper extends UPNPControl {
 									}
 									lastValidPacketReceivedTime = System.currentTimeMillis();
 								} else {
+									// TODO remove or make as REM those lines when this change will be approved
+									// it spams the log.
 									if (LOGGER.isTraceEnabled()) {
 										String requestType = "";
 										if (packetType == M_SEARCH) {
@@ -946,6 +941,8 @@ public class UPNPHelper extends UPNPControl {
 				uuid = temp.substring(0, temp.indexOf(':', UUID.length()));
 			}
 		} else {
+			// TODO remove or make as REM this line when this change will be approved
+			// it spams the log.
 			LOGGER.trace("The request doesn't contain UUID");
 			return true;
 		}
@@ -954,6 +951,8 @@ public class UPNPHelper extends UPNPControl {
 			UDN udn = UDN.valueOf(uuid);
 			for (RemoteDevice rd : ignoredDevices) {
 				if (rd.findDevice(udn) != null) {
+					// TODO remove or make as REM this line when this change will be approved
+					// it spams the log.
 					LOGGER.trace("Ignoring request from device with UUID: [{}]", uuid);
 					return false;
 				}
