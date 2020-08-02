@@ -339,7 +339,7 @@ public class UPNPControl {
 						for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
 							if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
 								LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
-								addIgnoredDeviceToList(device);
+								addIgnoredDeviceToList((RemoteDevice) embedded);
 							}
 						}
 					}
