@@ -201,6 +201,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
 	 */
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
+
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
@@ -269,6 +270,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
+
 	/**
 	 * This key was used in older versions, only supports {@code true} or
 	 * {@code false}. Kept for backwards-compatibility for now.
@@ -277,6 +279,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	@Deprecated
 	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+
 	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
@@ -1129,12 +1132,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * The AC-3 audio bitrate determines the quality of digital audio sound. An AV-receiver
-	 * or amplifier has to be capable of playing this quality. Default value is 640.
-	 * @return The AC-3 audio bitrate.
+	 * The bitrate for AC-3 audio transcoding.
+	 *
+	 * @return The user-specified AC-3 audio bitrate or 448
 	 */
 	public int getAudioBitrate() {
-		return getInt(KEY_AUDIO_BITRATE, 640);
+		return getInt(KEY_AUDIO_BITRATE, 448);
 	}
 
 	/**
@@ -2144,10 +2147,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether we should start minimized
 	 */
 	public boolean isMinimized() {
-		if (Platform.isMac()) {
-			return false;
-		}
-
 		return getBoolean(KEY_MINIMIZED, false);
 	}
 

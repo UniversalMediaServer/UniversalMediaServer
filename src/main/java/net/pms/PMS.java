@@ -86,6 +86,8 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
+import org.h2.tools.ConvertTraceFile;
+import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -425,6 +427,11 @@ public class PMS {
 		// Call this as early as possible
 		displayBanner();
 
+		final Profiler profiler = new Profiler();
+		if (configuration.getDatabaseLogging()) {
+			profiler.startCollecting();
+		}
+
 		// Initialize database
 		try {
 			Tables.checkTables();
@@ -683,7 +690,14 @@ public class PMS {
 					get().getServer().stop();
 					Thread.sleep(500);
 
+					if (configuration.getDatabaseLogging()) {
+						LOGGER.trace("-------------------------------------------------------------");
+						LOGGER.trace(profiler.getTop(5));
+						LOGGER.trace("-------------------------------------------------------------");
+					}
+
 					LOGGER.debug("Shutting down all active processes");
+
 
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
@@ -717,6 +731,14 @@ public class PMS {
 					System.err.println("Unable to shut down logging gracefully");
 				}
 
+				if (configuration.getDatabaseLogging()) {
+					// use an automatic H2database profiling tool to make a report at the end of the logging file
+					// converted to the "logging_report.txt" in the database directory
+					try {
+						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
+							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
+					} catch (SQLException e) {}
+				}
 			}
 		});
 
@@ -1026,6 +1048,14 @@ public class PMS {
 		try {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
+
+			// Log whether the service is installed as it may help with debugging and support
+			if (Platform.isWindows()) {
+				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+				if (isUmsServiceInstalled) {
+					LOGGER.info("The Windows service is installed.");
+				}
+			}
 
 			/* Rename previous log file to .prev
 			 * Log file location is unknown at this point, it's finally decided during loadFile() below

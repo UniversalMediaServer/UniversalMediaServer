@@ -125,7 +125,7 @@ public class DLNAMediaDatabase implements Runnable {
 		File profileDirectory = new File(configuration.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
 		boolean logDB = configuration.getDatabaseLogging();
-		url = Constants.START_URL + dbDir + File.separator + dbName + (logDB ? ";TRACE_LEVEL_FILE=4" : "");
+		url = Constants.START_URL + dbDir + File.separator + dbName + (logDB ? ";TRACE_LEVEL_FILE=3" : "");
 		LOGGER.debug("Using database URL: {}", url);
 		LOGGER.info("Using database located at: \"{}\"", dbDir);
 		if (logDB) {
@@ -157,6 +157,19 @@ public class DLNAMediaDatabase implements Runnable {
 			return null;
 		}
 		return dbDir + File.separator + dbName;
+	}
+
+	/**
+	 * Gets the database path
+	 *
+	 * @return The database path
+	 */
+	public String getDatabasePath() {
+		if (dbDir == null) {
+			return null;
+		}
+
+		return dbDir;
 	}
 
 	/**
