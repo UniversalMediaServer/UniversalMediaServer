@@ -4874,6 +4874,175 @@ public class OpenSubtitle {
 	}
 
 	/**
+	 * Performs a database lookup for the TV series, and an API lookup if it
+	 * does not already exist with API data.
+	 * Also writes the poster from the API to the thumbnail in the database.
+	 * Also standardizes the series name across the episode records in the
+	 * FILES table.
+	 *
+	 * @param isTVEpisodeBasedOnFilename
+	 * @param seriesIMDbIDFromAPI
+	 * @param titleFromFilename
+	 * @param yearFromFilename
+	 * @param title
+	 * @return the title of the series.
+	 */
+	private static String setTVSeriesInfo(String seriesIMDbIDFromAPI, String titleFromFilename, String yearFromFilename, String titleSimplifiedFromFilename, File file) {
+		final boolean overTheTopLogging = true;
+
+		long tvSeriesDatabaseId;
+		String title;
+		String titleSimplified;
+
+		String failedLookupKey = titleSimplifiedFromFilename;
+		if (seriesIMDbIDFromAPI != null) {
+			failedLookupKey += seriesIMDbIDFromAPI;
+		}
+
+		/*
+		 * Get the TV series title from our database, or from our API if it's not
+		 * in our database yet, and persist it to our database.
+		 */
+		try {
+			HashMap<String, Object> seriesMetadataFromDatabase;
+			if (seriesIMDbIDFromAPI != null) {
+				seriesMetadataFromDatabase = TableTVSeries.getByIMDbID(seriesIMDbIDFromAPI);
+			} else {
+				seriesMetadataFromDatabase = null;
+			}
+
+			if (seriesMetadataFromDatabase != null) {
+				if (overTheTopLogging) {
+					LOGGER.trace("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("TITLE"));
+				}
+				return (String) seriesMetadataFromDatabase.get("TITLE");
+			} else {
+				/*
+				 * This either means there is no entry in the TV Series table for this series, or 
+				 * there is but it only contains filename info - not API yet.
+				 */
+				
+				// Start by checking if we have already failed this lookup recently
+				if (TableFailedLookups.hasLookupFailedRecently(failedLookupKey) == true) {
+					return null;
+				}
+
+				HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, yearFromFilename);
+				if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
+					if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
+						LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
+					}
+					if (overTheTopLogging) {
+						LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
+					}
+					// Return now because the API data is wrong if we have an episode but no series in the API
+					return null;
+				}
+
+				title = (String) seriesMetadataFromAPI.get("title");
+				titleSimplified = FileUtil.getSimplifiedShowName(title);
+
+				// Only continue if the simplified titles match
+				if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
+					LOGGER.debug("File and API TV series titles do not match, not storing the result. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
+					TableFailedLookups.set(titleSimplifiedFromFilename, "Data mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified);
+
+					return null;
+				}
+
+				/*
+				 * Now we have an API result for the TV series, we need to see whether
+				 * to insert it or update existing data, so we attempt to find an entry
+				 * based on the title.
+				 */
+				seriesMetadataFromDatabase = TableTVSeries.getByTitle(title);
+				if (seriesMetadataFromDatabase == null) {
+					// No title match, so let's make a new entry
+					if (overTheTopLogging) {
+						LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
+					}
+					tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
+				} else {
+					// There is an existing entry, so let's fill it in with API data
+					if (overTheTopLogging) {
+						LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
+					}
+					tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
+					TableTVSeries.insertAPIMetadata(seriesMetadataFromAPI);
+				}
+
+				if (tvSeriesDatabaseId == -1) {
+					LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
+					return null;
+				}
+
+				// Now we insert the TV series data into the other tables
+				HashSet actorsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("actors"));
+				if (!actorsFromAPI.isEmpty()) {
+					TableVideoMetadataActors.set("", actorsFromAPI, tvSeriesDatabaseId);
+				}
+				TableVideoMetadataAwards.set("", (String) seriesMetadataFromAPI.get("awards"), tvSeriesDatabaseId);
+				TableVideoMetadataCountries.set("", (String) seriesMetadataFromAPI.get("country"), tvSeriesDatabaseId);
+				HashSet directorsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("directors"));
+				if (!directorsFromAPI.isEmpty()) {
+					TableVideoMetadataDirectors.set("", directorsFromAPI, tvSeriesDatabaseId);
+				}
+				HashSet genresFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("genres"));
+				if (!genresFromAPI.isEmpty()) {
+					TableVideoMetadataGenres.set("", genresFromAPI, tvSeriesDatabaseId);
+				}
+				TableVideoMetadataProduction.set("", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
+
+				// Set the poster as the thumbnail
+				if (seriesMetadataFromAPI.get("poster") != null) {
+					try {
+						byte[] image = uriFileRetriever.get((String) seriesMetadataFromAPI.get("poster"));
+						TableThumbnails.setThumbnail(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+					} catch (EOFException e) {
+						LOGGER.debug(
+							"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
+							file.getName()
+						);
+					} catch (UnknownFormatException e) {
+						LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+					} catch (IOException e) {
+						LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+						LOGGER.trace("", e);
+					}
+				}
+
+				TableVideoMetadataPosters.set("", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
+				TableVideoMetadataRated.set("", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
+				HashSet ratingsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("ratings"));
+				if (!ratingsFromAPI.isEmpty()) {
+					TableVideoMetadataRatings.set("", ratingsFromAPI, tvSeriesDatabaseId);
+				}
+				TableVideoMetadataReleased.set("", (String) seriesMetadataFromAPI.get("released"), tvSeriesDatabaseId);
+
+				// Replace any close-but-not-exact titles in the FILES table
+				if (
+					titleFromFilename != null &&
+					titleSimplifiedFromFilename != null &&
+					!title.equals(titleFromFilename) &&
+					titleSimplified.equals(titleSimplifiedFromFilename)
+				) {
+					if (overTheTopLogging) {
+						LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
+					}
+					PMS.get().getDatabase().updateMovieOrShowName(titleFromFilename, title);
+				}
+			}
+
+			return title;
+		} catch (IOException e) {
+			LOGGER.error("Error getting \"{}\" TV series info from API: {}", file.getName(), e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Enhances existing metadata attached to this media by querying our API.
 	 *
 	 * @param file
@@ -4915,14 +5084,16 @@ public class OpenSubtitle {
 					if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
 						LOGGER.trace("Failed lookup for " + file.getName());
 						TableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""));
-						return;
-					}
 
-					if (overTheTopLogging) {
+						// File lookup failed, but before we return, attempt to enhance TV series data
+						if (isTVEpisodeBasedOnFilename) {
+							setTVSeriesInfo(null, titleFromFilename, yearFromFilename, titleSimplifiedFromFilename, file);
+						}
+
+						return;
+					} else if (overTheTopLogging) {
 						LOGGER.trace("Found an API match for " + file.getName());
 					}
-
-					long tvSeriesDatabaseId;
 
 					String typeFromAPI = (String) metadataFromAPI.get("type");
 					String yearFromAPI = (String) metadataFromAPI.get("year");
@@ -4990,124 +5161,10 @@ public class OpenSubtitle {
 					String tvSeason        = tvSeasonFromAPI;
 					String year            = yearFromAPI;
 
-					/*
-					 * Get the TV series title from our database, or from our API if it's not
-					 * in our database yet, and persist it to our database.
-					 */
-					if (isTVEpisode) {
-						HashMap<String, Object> seriesMetadataFromDatabase = TableTVSeries.getByIMDbID(seriesIMDbIDFromAPI);
-						if (seriesMetadataFromDatabase != null) {
-							if (overTheTopLogging) {
-								LOGGER.trace("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("TITLE"));
-							}
-							title = (String) seriesMetadataFromDatabase.get("TITLE");
-							titleSimplified = FileUtil.getSimplifiedShowName(title);
-						} else {
-							/*
-							 * This either means there is no entry in the TV Series table for this series, or 
-							 * there is but it only contains filename info - not API yet.
-							 */
-							HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, yearFromFilename);
-							if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
-								if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
-									LOGGER.debug("Got a 500 error while looking for TV series " + seriesIMDbIDFromAPI);
-									return;
-								}
-								if (overTheTopLogging) {
-									LOGGER.trace("Did not find matching series for the episode in our API " + file.getName() + " : " + title);
-								}
-								// Return now because the API data is wrong if we have an episode but no series in the API
-								return;
-							}
-
-							title = (String) seriesMetadataFromAPI.get("title");
-							titleSimplified = FileUtil.getSimplifiedShowName(title);
-
-							/*
-							 * Now we have an API result for the TV series, we need to see whether
-							 * to insert it or update existing data, so we attempt to find an entry
-							 * based on the title.
-							 */
-							seriesMetadataFromDatabase = TableTVSeries.getByTitle(title);
-							if (seriesMetadataFromDatabase == null) {
-								// No title match, so let's make a new entry
-								if (overTheTopLogging) {
-									LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
-								}
-								tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
-							} else {
-								// There is an existing entry, so let's fill it in with API data
-								if (overTheTopLogging) {
-									LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
-								}
-								tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
-								TableTVSeries.insertAPIMetadata(seriesMetadataFromAPI);
-							}
-
-							if (tvSeriesDatabaseId == -1) {
-								LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
-								return;
-							}
-
-							// Now we insert the TV series data into the other tables
-							HashSet actorsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("actors"));
-							if (!actorsFromAPI.isEmpty()) {
-								TableVideoMetadataActors.set("", actorsFromAPI, tvSeriesDatabaseId);
-							}
-							TableVideoMetadataAwards.set("", (String) seriesMetadataFromAPI.get("awards"), tvSeriesDatabaseId);
-							TableVideoMetadataCountries.set("", (String) seriesMetadataFromAPI.get("country"), tvSeriesDatabaseId);
-							HashSet directorsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("directors"));
-							if (!directorsFromAPI.isEmpty()) {
-								TableVideoMetadataDirectors.set("", directorsFromAPI, tvSeriesDatabaseId);
-							}
-							HashSet genresFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("genres"));
-							if (!genresFromAPI.isEmpty()) {
-								TableVideoMetadataGenres.set("", genresFromAPI, tvSeriesDatabaseId);
-							}
-							TableVideoMetadataProduction.set("", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
-
-							// Set the poster as the thumbnail
-							if (seriesMetadataFromAPI.get("poster") != null) {
-								byte[] image = uriFileRetriever.get((String) seriesMetadataFromAPI.get("poster"));
-								try {
-									TableThumbnails.setThumbnail(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
-								} catch (EOFException e) {
-									LOGGER.debug(
-										"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
-										file.getName()
-									);
-								} catch (UnknownFormatException e) {
-									LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-								} catch (IOException e) {
-									LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-									LOGGER.trace("", e);
-								}
-							}
-
-							TableVideoMetadataPosters.set("", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
-							TableVideoMetadataRated.set("", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
-							HashSet ratingsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("ratings"));
-							if (!ratingsFromAPI.isEmpty()) {
-								TableVideoMetadataRatings.set("", ratingsFromAPI, tvSeriesDatabaseId);
-							}
-							TableVideoMetadataReleased.set("", (String) seriesMetadataFromAPI.get("released"), tvSeriesDatabaseId);
-
-							// Replace any close-but-not-exact titles in the FILES table
-							if (
-								titleFromFilename != null &&
-								titleSimplifiedFromFilename != null &&
-								!title.equals(titleFromFilename) &&
-								titleSimplified.equals(titleSimplifiedFromFilename)
-							) {
-								if (overTheTopLogging) {
-									LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-								}
-								PMS.get().getDatabase().updateMovieOrShowName(titleFromFilename, title);
-							}
-						}
-					} else {
-						if (overTheTopLogging) {
-							LOGGER.trace("File is not a TV episode: " + file.getName());
+					if (isTVEpisodeBasedOnFilename) {
+						String titleFromDatabase = setTVSeriesInfo(seriesIMDbIDFromAPI, titleFromFilename, yearFromFilename, titleSimplifiedFromFilename, file);
+						if (titleFromDatabase != null) {
+							title = titleFromDatabase;
 						}
 					}
 
