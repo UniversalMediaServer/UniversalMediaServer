@@ -60,7 +60,7 @@ public class UriFileRetriever {
 			HttpResponse response = future.get();
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HttpStatus.SC_OK) {
-				throw new IOException("HTTP response not OK");
+				throw new IOException("HTTP response not OK for " + uri);
 			}
 
 			return IOUtils.toByteArray(response.getEntity().getContent());

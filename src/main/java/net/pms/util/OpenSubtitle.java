@@ -4941,12 +4941,23 @@ public class OpenSubtitle {
 
 				title = (String) seriesMetadataFromAPI.get("title");
 				titleSimplified = FileUtil.getSimplifiedShowName(title);
+				String typeFromAPI = (String) seriesMetadataFromAPI.get("type");
+				boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
 
+				boolean isAPIDataValid = true;
+				String validationFailedPrepend = "not storing the series API lookup result because ";
 				// Only continue if the simplified titles match
 				if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
-					LOGGER.debug("File and API TV series titles do not match, not storing the result. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
-					TableFailedLookups.set(titleSimplifiedFromFilename, "Data mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified);
+					isAPIDataValid = false;
+					LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
+					TableFailedLookups.set(titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified);
+				} else if (!isSeriesFromAPI) {
+					isAPIDataValid = false;
+					LOGGER.debug(validationFailedPrepend + "we received a non-series from API");
+					TableFailedLookups.set(titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI);
+				}
 
+				if (!isAPIDataValid) {
 					return null;
 				}
 
@@ -5193,8 +5204,8 @@ public class OpenSubtitle {
 					// Set the poster as the thumbnail
 					if (metadataFromAPI.get("poster") != null) {
 						media.setPoster((String) metadataFromAPI.get("poster"));
-						byte[] image = uriFileRetriever.get(media.getPoster());
 						try {
+							byte[] image = uriFileRetriever.get(media.getPoster());
 							media.setThumb(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false));
 						} catch (EOFException e) {
 							LOGGER.debug(
