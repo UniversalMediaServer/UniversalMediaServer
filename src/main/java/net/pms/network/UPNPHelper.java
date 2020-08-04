@@ -224,6 +224,7 @@ public class UPNPHelper extends UPNPControl {
 			multicastSocket = getNewMulticastSocket();
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
+			multicastLog = true;
 
 			for (String NT: NT_LIST) {
 				sendMessage(multicastSocket, NT, ALIVE);
@@ -280,7 +281,13 @@ public class UPNPHelper extends UPNPControl {
 
 		MulticastSocket ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
 		ssdpSocket.setReuseAddress(true);
-		ssdpSocket.setTimeToLive(32);
+		// In the UPnP standard is written:
+		// To limit network congestion, the time-to-live (TTL) of each IP packet for each multicast message SHOULD default to 2 and 
+		// SHOULD be configurable. When the TTL is greater than 1, it is possible for multicast messages to traverse multiple routers; 
+		// therefore control points and devices using non-AutoIP addresses MUST send an IGMP Join message so that routers will forward 
+		// multicast messages to them (this is not necessary when using an Auto-IP address, since packets with Auto-IP addresses will not be 
+		// forwarded by routers). 
+		ssdpSocket.setTimeToLive(2);
 
 		try {
 			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
@@ -319,6 +326,7 @@ public class UPNPHelper extends UPNPControl {
 			multicastSocket = getNewMulticastSocket();
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
+			multicastLog = true;
 
 			for (String NT: NT_LIST) {
 				sendMessage(multicastSocket, NT, BYEBYE, true);
@@ -378,7 +386,7 @@ public class UPNPHelper extends UPNPControl {
 		String msg = buildMsg(nt, message);
 		Random rand = new Random();
 
-		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
+		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + msg);
 
 		InetAddress upnpAddress = getUPNPAddress();
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
