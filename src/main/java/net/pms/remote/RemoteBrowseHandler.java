@@ -223,6 +223,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
 		mustacheVars.put("breadcrumbs", breadcrumbs);
+		mustacheVars.put("javascriptVarsScript", "");
 		mustacheVars.put("recentlyPlayed", "");
 		mustacheVars.put("recentlyPlayedLink", "");
 		mustacheVars.put("hasRecentlyPlayed", false);
@@ -425,7 +426,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		mustacheVars.put("folders", folders);
 		mustacheVars.put("media", media);
 		mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-		mustacheVars.put("javascriptVarsScript", "");
 
 		return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
 	}
