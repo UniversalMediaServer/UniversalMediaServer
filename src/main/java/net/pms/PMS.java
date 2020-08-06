@@ -677,6 +677,7 @@ public class PMS {
 		frame.serverReady();
 
 		ready = true;
+		UPNPHelper.getInstance().createMulticastSocket();
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {

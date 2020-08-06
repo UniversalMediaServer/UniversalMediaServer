@@ -213,35 +213,30 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
+	private static MulticastSocket multicastSocket;
+	private static SocketAddress sa;
+	private static NetworkInterface ni;
+	
+	public void createMulticastSocket() throws IOException {
+		multicastSocket = getNewMulticastSocket();
+		sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+		multicastSocket.setTimeToLive(4);
+		multicastSocket.setReuseAddress(true);
+		multicastSocket.joinGroup(sa, ni);
+
+	}
+
 	/**
 	 * Send alive.
 	 */
 	public static void sendAlive() {
 		LOGGER.debug("Sending ALIVE...");
-		MulticastSocket multicastSocket = null;
-		SocketAddress sa = null;
-		NetworkInterface ni = null;
-		try {
-			multicastSocket = getNewMulticastSocket();
-			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-			ni = PMS.get().getServer().getNetworkInterface();
-			multicastSocket.joinGroup(sa, ni);
-
-			for (String NT: NT_LIST) {
+		for (String NT: NT_LIST) {
+			try {
 				sendMessage(multicastSocket, NT, ALIVE);
-			}
-		} catch (IOException e) {
-			LOGGER.debug("Error sending ALIVE message", e);
-		} finally {
-			if (multicastSocket != null) {
-				// Clean up the multicast socket nicely
-				try {
-					multicastSocket.leaveGroup(sa, ni);
-				} catch (IOException e) {
-				}
-
-				multicastSocket.disconnect();
-				multicastSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
@@ -255,11 +250,11 @@ public class UPNPHelper extends UPNPControl {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static MulticastSocket getNewMulticastSocket() throws IOException {
-		NetworkInterface networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+		ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
-		if (networkInterface == null) {
+		if (ni == null) {
 			try {
-				networkInterface = PMS.get().getServer().getNetworkInterface();
+				ni = PMS.get().getServer().getNetworkInterface();
 			} catch (NullPointerException e) {
 				LOGGER.debug("Couldn't get server network interface. Trying again in 5 seconds.");
 
@@ -268,14 +263,14 @@ public class UPNPHelper extends UPNPControl {
 				} catch (InterruptedException e2) { }
 
 				try {
-					networkInterface = PMS.get().getServer().getNetworkInterface();
+					ni = PMS.get().getServer().getNetworkInterface();
 				} catch (NullPointerException e3) {
 					LOGGER.debug("Couldn't get server network interface.");
 				}
 			}
 		}
 
-		if (networkInterface == null) {
+		if (ni == null) {
 			throw new IOException("No usable network interface found for UPnP multicast");
 		}
 
@@ -284,8 +279,8 @@ public class UPNPHelper extends UPNPControl {
 		ssdpSocket.setTimeToLive(32);
 
 		try {
-			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
-			ssdpSocket.setNetworkInterface(networkInterface);
+			LOGGER.trace("Setting SSDP network interface: {}", ni);
+			ssdpSocket.setNetworkInterface(ni);
 		} catch (SocketException ex) {
 			LOGGER.warn("Setting SSDP network interface failed: {}", ex);
 			NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
@@ -313,32 +308,17 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	public static void sendByeBye() {
 		LOGGER.debug("Sending BYEBYE...");
-		MulticastSocket multicastSocket = null;
-		SocketAddress sa = null;
-		NetworkInterface ni = null;
-		try {
-			multicastSocket = getNewMulticastSocket();
-			sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-			ni = PMS.get().getServer().getNetworkInterface();
-			multicastSocket.joinGroup(sa, ni);
-
-			for (String NT: NT_LIST) {
+		for (String NT: NT_LIST) {
+			try {
 				sendMessage(multicastSocket, NT, BYEBYE, true);
-			}
-		} catch (IOException e) {
-			LOGGER.debug("Error sending BYEBYE message", e);
-		} finally {
-			if (multicastSocket != null) {
-				// Clean up the multicast socket nicely
-				try {
-					multicastSocket.leaveGroup(sa, ni);
-				} catch (IOException e) {
-				}
-
-				multicastSocket.disconnect();
-				multicastSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
+
+//		multicastSocket.disconnect();
+//		multicastSocket.close();
 	}
 
 	/**
@@ -354,7 +334,7 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	/**
-	 * Send the provided message to the socket three times.
+	 * Send the provided message to the socket two times.
 	 *
 	 * @see #sendMessage(java.net.DatagramSocket, java.lang.String, java.lang.String, boolean)
 	 * @param socket the socket
@@ -381,8 +361,7 @@ public class UPNPHelper extends UPNPControl {
 
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
 
-		InetAddress upnpAddress = getIPv4MulticastAddress();
-		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
+		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), sa);
 
 		/**
 		 * Requirement [7.2.4.1]: UPnP endpoints (devices and control points) should
@@ -425,43 +404,10 @@ public class UPNPHelper extends UPNPControl {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				boolean bindErrorReported = false;
 				while (true) {
-					MulticastSocket multicastSocket = null;
-					SocketAddress sa = null;
-					NetworkInterface ni = null;
 					try {
 						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
-						sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
-						ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-
-						if (bindErrorReported) {
-							LOGGER.warn("Finally, acquiring port {} was successful!", configuration.getUpnpPort());
-						}
-
-						try {
-							/**
-							 * Setting the network interface will throw a SocketException on Mac OS X
-							 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
-							 * configurations will not listen at all.
-							 */
-							if (ni != null) {
-								multicastSocket.setNetworkInterface(ni);
-								LOGGER.trace("Setting multicast network interface: {}", ni);
-							} else if (PMS.get().getServer().getNetworkInterface() != null) {
-								ni = PMS.get().getServer().getNetworkInterface();
-								multicastSocket.setNetworkInterface(ni);
-								LOGGER.trace("Setting multicast network interface: {}", ni);
-							}
-						} catch (SocketException e) {
-							// Not setting the network interface will work just fine on Mac OS X.
-						}
-
-						multicastSocket.setTimeToLive(4);
-						multicastSocket.setReuseAddress(true);
-						multicastSocket.joinGroup(sa, ni);
-
+//						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
 						final int M_SEARCH = 1;
 						final int NOTIFY = 2;
 						InetAddress lastAddress = null;
@@ -543,17 +489,6 @@ public class UPNPHelper extends UPNPControl {
 							lastAddress = address;
 							lastPacketType = packetType;
 						}
-					} catch (BindException e) {
-						if (!bindErrorReported) {
-							LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
-							+ ", which means that UMS will not automatically appear on your renderer! "
-							+ "This usually means that another program occupies the port. Please "
-							+ "stop the other program and free up the port. "
-							+ "UMS will keep trying to bind to it...[{}]", e.getMessage());
-						}
-
-						bindErrorReported = true;
-						sleep(5000);
 					} catch (IOException e) {
 						LOGGER.error("UPnP network exception: {}", e.getMessage());
 						LOGGER.trace("", e);
