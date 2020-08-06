@@ -3482,7 +3482,7 @@
 						<executions>
 							<execution>
 								<id>process-resources-macos</id>
-								<phase>test</phase>
+								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3681,7 +3681,7 @@
 						<executions>
 							<execution>
 								<id>process-resources-macos-pre1015</id>
-								<phase>test</phase>
+								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
