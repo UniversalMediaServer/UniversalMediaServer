@@ -100,6 +100,10 @@ public class UPNPHelper extends UPNPControl {
 	private static PlayerControlHandler httpControlHandler;
 	private static final String UUID = "uuid:";
 
+	private static MulticastSocket multicastSocket;
+	private static SocketAddress socketAddress;
+	private static NetworkInterface networkInterface;
+
 	/**
 	 * This utility class is not meant to be instantiated.
 	 */
@@ -204,25 +208,20 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendReply(String host, int port, String msg) {
 		try (DatagramSocket datagramSocket = new DatagramSocket()) {
-			InetAddress inetAddr = InetAddress.getByName(host);
-			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
+			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), socketAddress);
 			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
 			LOGGER.info(e.getMessage());
 			LOGGER.debug("Error sending reply", e);
 		}
 	}
-
-	private static MulticastSocket multicastSocket;
-	private static SocketAddress sa;
-	private static NetworkInterface ni;
 	
 	public void createMulticastSocket() throws IOException {
 		multicastSocket = getNewMulticastSocket();
-		sa = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
+		socketAddress = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
 		multicastSocket.setTimeToLive(4);
 		multicastSocket.setReuseAddress(true);
-		multicastSocket.joinGroup(sa, ni);
+		multicastSocket.joinGroup(socketAddress, networkInterface);
 
 	}
 
@@ -235,13 +234,10 @@ public class UPNPHelper extends UPNPControl {
 			try {
 				sendMessage(multicastSocket, NT, ALIVE);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.trace("Error when sending the ALIVE message: {}", e);
 			}
 		}
 	}
-
-	static boolean multicastLog = true;
 
 	/**
 	 * Gets the new multicast socket.
@@ -250,11 +246,11 @@ public class UPNPHelper extends UPNPControl {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static MulticastSocket getNewMulticastSocket() throws IOException {
-		ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+		networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
-		if (ni == null) {
+		if (networkInterface == null) {
 			try {
-				ni = PMS.get().getServer().getNetworkInterface();
+				networkInterface = PMS.get().getServer().getNetworkInterface();
 			} catch (NullPointerException e) {
 				LOGGER.debug("Couldn't get server network interface. Trying again in 5 seconds.");
 
@@ -263,24 +259,26 @@ public class UPNPHelper extends UPNPControl {
 				} catch (InterruptedException e2) { }
 
 				try {
-					ni = PMS.get().getServer().getNetworkInterface();
+					networkInterface = PMS.get().getServer().getNetworkInterface();
 				} catch (NullPointerException e3) {
 					LOGGER.debug("Couldn't get server network interface.");
 				}
 			}
 		}
 
-		if (ni == null) {
+		if (networkInterface == null) {
 			throw new IOException("No usable network interface found for UPnP multicast");
 		}
 
+		// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
+		// XXX this should not be configurable because it breaks the standard
 		MulticastSocket ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
 		ssdpSocket.setReuseAddress(true);
 		ssdpSocket.setTimeToLive(32);
 
 		try {
-			LOGGER.trace("Setting SSDP network interface: {}", ni);
-			ssdpSocket.setNetworkInterface(ni);
+			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
+			ssdpSocket.setNetworkInterface(networkInterface);
 		} catch (SocketException ex) {
 			LOGGER.warn("Setting SSDP network interface failed: {}", ex);
 			NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
@@ -293,13 +291,11 @@ public class UPNPHelper extends UPNPControl {
 				}
 			}
 		}
-		if (multicastLog) {
-			LOGGER.trace("Sending message from multicast socket on network interface: {}", ssdpSocket.getNetworkInterface());
-			LOGGER.trace("Multicast socket is on interface address: {} and local port {}", ssdpSocket.getInterface(), ssdpSocket.getLocalPort());
-			LOGGER.trace("Socket Timeout: {}", ssdpSocket.getSoTimeout());
-			LOGGER.trace("Socket TTL: {}", ssdpSocket.getTimeToLive());
-			multicastLog = false;
-		}
+
+		LOGGER.trace("Created multicast socket on network interface: {}", ssdpSocket.getNetworkInterface());
+		LOGGER.trace("Multicast socket is on interface address: {} and local port {}", ssdpSocket.getNetworkInterface() , ssdpSocket.getLocalPort());
+		LOGGER.trace("Socket Timeout: {}", ssdpSocket.getSoTimeout());
+		LOGGER.trace("Socket TTL: {}", ssdpSocket.getTimeToLive());
 		return ssdpSocket;
 	}
 
@@ -312,13 +308,9 @@ public class UPNPHelper extends UPNPControl {
 			try {
 				sendMessage(multicastSocket, NT, BYEBYE, true);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.trace("Error when sending the BYEBYE message: {}", e);
 			}
 		}
-
-//		multicastSocket.disconnect();
-//		multicastSocket.close();
 	}
 
 	/**
@@ -361,7 +353,7 @@ public class UPNPHelper extends UPNPControl {
 
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
 
-		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), sa);
+		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), socketAddress);
 
 		/**
 		 * Requirement [7.2.4.1]: UPnP endpoints (devices and control points) should
@@ -406,8 +398,6 @@ public class UPNPHelper extends UPNPControl {
 			public void run() {
 				while (true) {
 					try {
-						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-//						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
 						final int M_SEARCH = 1;
 						final int NOTIFY = 2;
 						InetAddress lastAddress = null;
@@ -497,7 +487,7 @@ public class UPNPHelper extends UPNPControl {
 						if (multicastSocket != null) {
 							// Clean up the multicast socket nicely
 							try {
-								multicastSocket.leaveGroup(sa, ni);
+								multicastSocket.leaveGroup(socketAddress, networkInterface);
 							} catch (IOException e) {
 								LOGGER.trace("Final UPnP network exception: {}", e.getMessage());
 								LOGGER.trace("", e);
