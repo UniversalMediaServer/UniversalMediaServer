@@ -208,7 +208,8 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendReply(String host, int port, String msg) {
 		try (DatagramSocket datagramSocket = new DatagramSocket()) {
-			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), socketAddress);
+			InetAddress inetAddr = InetAddress.getByName(host);
+			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
 			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
 			LOGGER.info(e.getMessage());
