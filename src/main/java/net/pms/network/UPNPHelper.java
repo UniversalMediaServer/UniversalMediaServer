@@ -294,7 +294,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		LOGGER.trace("Created multicast socket on network interface: {}", ssdpSocket.getNetworkInterface());
-		LOGGER.trace("Multicast socket is on interface address: {} and local port {}", ssdpSocket.getNetworkInterface() , ssdpSocket.getLocalPort());
+		LOGGER.trace("Socket local port: {}", ssdpSocket.getLocalPort());
 		LOGGER.trace("Socket Timeout: {}", ssdpSocket.getSoTimeout());
 		LOGGER.trace("Socket TTL: {}", ssdpSocket.getTimeToLive());
 		return ssdpSocket;
