@@ -273,7 +273,17 @@ public class UPNPHelper extends UPNPControl {
 
 		// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
 		// XXX this should not be configurable because it breaks the standard
-		MulticastSocket ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
+		MulticastSocket ssdpSocket = null;
+		try {
+			ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
+		} catch (IOException e) {
+			LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
+			+ ", which means that UMS will not automatically appear on your renderer! "
+			+ "This usually means that another program occupies the port. Please "
+			+ "stop the UMS and the other program to free up the port and start the UMS again.");
+			throw new IOException(e);
+		}
+
 		ssdpSocket.setReuseAddress(true);
 		ssdpSocket.setTimeToLive(32);
 
