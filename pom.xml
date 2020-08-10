@@ -86,7 +86,7 @@
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>4.0.1</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>4.0.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
 
@@ -350,7 +350,7 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
-			<version>7.2.0</version>
+			<version>7.3.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -536,7 +536,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.2.2</version>
+			<version>5.2.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -3482,7 +3482,7 @@
 						<executions>
 							<execution>
 								<id>process-resources-macos</id>
-								<phase>test</phase>
+								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
@@ -3681,7 +3681,7 @@
 						<executions>
 							<execution>
 								<id>process-resources-macos-pre1015</id>
-								<phase>test</phase>
+								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
