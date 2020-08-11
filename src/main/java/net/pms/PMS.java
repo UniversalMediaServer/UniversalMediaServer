@@ -678,6 +678,7 @@ public class PMS {
 		frame.serverReady();
 
 		ready = true;
+		UPNPHelper.getInstance().createMulticastSocket();
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
@@ -799,6 +800,9 @@ public class PMS {
 
 					server = new HTTPServer(configuration.getServerPort());
 					server.start();
+					
+					// re-create the multicast socked because may happened the change of the used interface
+					UPNPHelper.getInstance().createMulticastSocket();
 					UPNPHelper.sendAlive();
 					frame.setReloadable(false);
 				} catch (IOException e) {
