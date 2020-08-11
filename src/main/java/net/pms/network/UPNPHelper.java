@@ -283,7 +283,7 @@ public class UPNPHelper extends UPNPControl {
 		try {
 			ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
 		} catch (IOException e) {
-			LOGGER.error("Unable to bind MulticastSocket to port: " + configuration.getUpnpPort()
+			LOGGER.error("Unable to bind multicast socket to port: " + configuration.getUpnpPort()
 			+ ", which means that UMS will not automatically appear on your renderer! "
 			+ "This usually means that another program occupies the port. Please "
 			+ "stop the UMS and the other program to free up the port and start the UMS again.");
@@ -306,7 +306,6 @@ public class UPNPHelper extends UPNPControl {
 				} catch (SocketException ex2) {
 					LOGGER.warn("Setting SSDP network interface from configuration failed: {}", ex2);
 					throw new IOException(ex);
-					
 				}
 			}
 		}
