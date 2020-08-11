@@ -216,7 +216,13 @@ public class UPNPHelper extends UPNPControl {
 			LOGGER.debug("Error sending reply", e);
 		}
 	}
-	
+
+	/**
+	 * Create the multicast socket and its socket address used for sending/receiving the
+	 * multicast messages.
+	 *
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public void createMulticastSocket() throws IOException {
 		multicastSocket = getNewMulticastSocket();
 		socketAddress = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
@@ -277,7 +283,7 @@ public class UPNPHelper extends UPNPControl {
 		try {
 			ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
 		} catch (IOException e) {
-			LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
+			LOGGER.error("Unable to bind MulticastSocket to port: " + configuration.getUpnpPort()
 			+ ", which means that UMS will not automatically appear on your renderer! "
 			+ "This usually means that another program occupies the port. Please "
 			+ "stop the UMS and the other program to free up the port and start the UMS again.");
@@ -299,6 +305,8 @@ public class UPNPHelper extends UPNPControl {
 					ssdpSocket.setNetworkInterface(confIntf);
 				} catch (SocketException ex2) {
 					LOGGER.warn("Setting SSDP network interface from configuration failed: {}", ex2);
+					throw new IOException(ex);
+					
 				}
 			}
 		}
@@ -473,18 +481,6 @@ public class UPNPHelper extends UPNPControl {
 										LOGGER.trace("Received an unrecognized request from [{}:{}]: {}", remoteAddr, remotePort, s);
 									}
 									lastValidPacketReceivedTime = System.currentTimeMillis();
-								} else {
-									// TODO remove or make as REM those lines when this change will be approved
-									// it spams the log.
-									if (LOGGER.isTraceEnabled()) {
-										String requestType = "";
-										if (packetType == M_SEARCH) {
-											requestType = "M-SEARCH";
-										} else if (packetType == NOTIFY) {
-											requestType = "NOTIFY";
-										}
-										LOGGER.trace("Ignoring a {} from [{}:{}]", requestType, remoteAddr, remotePort);
-									}
 								}
 							}
 							lastAddress = address;
@@ -877,9 +873,6 @@ public class UPNPHelper extends UPNPControl {
 				uuid = temp.substring(0, temp.indexOf(':', UUID.length()));
 			}
 		} else {
-			// TODO remove or make as REM this line when this change will be approved
-			// it spams the log.
-			LOGGER.trace("The request doesn't contain UUID");
 			return true;
 		}
 
@@ -887,9 +880,6 @@ public class UPNPHelper extends UPNPControl {
 			UDN udn = UDN.valueOf(uuid);
 			for (RemoteDevice rd : ignoredDevices) {
 				if (rd.findDevice(udn) != null) {
-					// TODO remove or make as REM this line when this change will be approved
-					// it spams the log.
-					LOGGER.trace("Ignoring request from device with UUID: [{}]", uuid);
 					return false;
 				}
 			}
