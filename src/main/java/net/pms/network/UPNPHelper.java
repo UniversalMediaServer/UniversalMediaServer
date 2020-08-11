@@ -229,7 +229,6 @@ public class UPNPHelper extends UPNPControl {
 		multicastSocket.setTimeToLive(4);
 		multicastSocket.setReuseAddress(true);
 		multicastSocket.joinGroup(socketAddress, networkInterface);
-
 	}
 
 	/**
@@ -305,7 +304,7 @@ public class UPNPHelper extends UPNPControl {
 					ssdpSocket.setNetworkInterface(confIntf);
 				} catch (SocketException ex2) {
 					LOGGER.warn("Setting SSDP network interface from configuration failed: {}", ex2);
-					throw new IOException(ex);
+					throw new IOException(ex2);
 				}
 			}
 		}
