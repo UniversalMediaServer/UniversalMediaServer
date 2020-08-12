@@ -1,14 +1,19 @@
 9.8.1 - 2020
 
+	General:
+		Fixed older macOS auto-updating to UMS for newer macOS
 	Dependencies:
+		Bump git-commit-id-plugin from 4.0.1 to 4.0.2
+		Bump junrar from 6.0.1 to 7.3.0
 		Bump MediaInfo from 18.12 to 20.03
+		Bump oshi-core from 5.2.2 to 5.2.3
 
 9.8.0 - 2020-07-26
 
 	General:
 		Started releasing two macOS builds which fixed MEncoder not working on 10.15 (Catalina)
 		Improved support for ASF, MKV, MP4, MPEG-PS, MPEG-TS, and WMV videos by adding and improving accuracy of DLNA.ORG_PN values (thanks for testing, carlosvsilva!)
-		Reduced CPU use and video/audio quality by muxing some supported streams with FFmpeg instead of transcoding
+		Reduced CPU use and improved video/audio quality by muxing some supported streams with FFmpeg instead of transcoding
 		Other DLNA compatibility fixes, including sending correct framerates, color depths, and audio channel counts
 		Improved load time on web interface with many files by 10x or more (thanks, outnos!)
 		Fixed forced network interface not always persisting
