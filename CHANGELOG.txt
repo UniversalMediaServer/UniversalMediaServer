@@ -1,10 +1,13 @@
 9.8.1 - 2020
 
 	General:
+		Improved speed of renderers and UMS recognizing each other
+		Reduced network and CPU loads associated with renderer discovery
 		Fixed older macOS auto-updating to UMS for newer macOS
 	Dependencies:
 		Bump git-commit-id-plugin from 4.0.1 to 4.0.2
 		Bump junrar from 6.0.1 to 7.3.0
+		Bump maven-resources-plugin from 3.1.0 to 3.2.0
 		Bump MediaInfo from 18.12 to 20.03
 		Bump oshi-core from 5.2.2 to 5.2.3
 
