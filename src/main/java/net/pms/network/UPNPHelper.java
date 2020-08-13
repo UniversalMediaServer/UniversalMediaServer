@@ -183,18 +183,6 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		sendReply(host, port, msg);
-
-		for (String ST: ST_LIST) {
-			discovery = new StringBuilder();
-			discovery.append("M-SEARCH * HTTP/1.1").append(CRLF);
-			discovery.append("ST: ").append(ST).append(CRLF);
-			discovery.append("HOST: ").append(IPV4_UPNP_HOST).append(':').append(UPNP_PORT).append(CRLF);
-			discovery.append("MX: 3").append(CRLF);
-			discovery.append("MAN: \"ssdp:discover\"").append(CRLF).append(CRLF);
-			msg = discovery.toString();
-			sendReply(host, port, msg);
-		}
-
 		lastSearch = st;
 	}
 
