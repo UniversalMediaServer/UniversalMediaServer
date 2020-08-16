@@ -50,39 +50,52 @@ public class UMSUtils {
 		collator.setStrength(Collator.PRIMARY);
 	}
 
-	public static void postSearch(List<DLNAResource> files, String searchCriteria) {
-		if (files == null || searchCriteria == null) {
+	/**
+	 * Filters the list of resources in-place by removing all items that do
+	 * not contain searchString.
+	 *
+	 * @param resources
+	 * @param searchString 
+	 * @param isExpectOneResult if we only want one result, this will speed it up
+	 */
+	public static void filterResourcesByPartialName(List<DLNAResource> resources, String searchString, boolean isExpectOneResult) {
+		if (resources == null || searchString == null) {
 			return;
 		}
-		searchCriteria = searchCriteria.toLowerCase();
-		for (int i = files.size() - 1; i >= 0; i--) {
-			DLNAResource res = files.get(i);
+		searchString = searchString.toLowerCase();
+		for (int i = resources.size() - 1; i >= 0; i--) {
+			DLNAResource res = resources.get(i);
 
 			if (res.isSearched()) {
 				continue;
 			}
 
-			boolean keep = res.getName().toLowerCase().contains(searchCriteria);
+			boolean keep = res.getName().toLowerCase().contains(searchString);
 			final DLNAMediaInfo media = res.getMedia();
 
-			if (!keep && media != null && media.getAudioTracksList() != null) {
-				for (int j = 0; j < media.getAudioTracksList().size(); j++) {
-					DLNAMediaAudio audio = media.getAudioTracksList().get(j);
-					if (audio.getAlbum() != null) {
-						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
-					}
-					//TODO maciekberry: check whether it makes sense to use Album Artist
-					if (audio.getArtist() != null) {
-						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
-					}
-					if (audio.getSongname() != null) {
-						keep |= audio.getSongname().toLowerCase().contains(searchCriteria);
-					}
-				}
+			if (keep && isExpectOneResult) {
+				resources.clear();
+				resources.add(res);
+				break;
 			}
 
-			if (!keep) { // dump it
-				files.remove(i);
+			if (!keep) {
+				if (media != null && media.getAudioTracksList() != null) {
+					for (int j = 0; j < media.getAudioTracksList().size(); j++) {
+						DLNAMediaAudio audio = media.getAudioTracksList().get(j);
+						if (audio.getAlbum() != null) {
+							keep |= audio.getAlbum().toLowerCase().contains(searchString);
+						}
+						//TODO maciekberry: check whether it makes sense to use Album Artist
+						if (audio.getArtist() != null) {
+							keep |= audio.getArtist().toLowerCase().contains(searchString);
+						}
+						if (audio.getSongname() != null) {
+							keep |= audio.getSongname().toLowerCase().contains(searchString);
+						}
+					}
+				}
+				resources.remove(i);
 			}
 		}
 	}

@@ -110,7 +110,7 @@ public class RequestV2 extends HTTPResource {
 	private final static String CRLF = "\r\n";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
-	private static int BUFFER_SIZE = 8 * 1024;
+	private final static int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -221,8 +221,8 @@ public class RequestV2 extends HTTPResource {
 	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
 	 * Rewritten version of the {@link Request} class.
 	 * @param method The {@link String} that defines the HTTP method to be used.
-	 * @param argument The {@link HttpMethod} containing instructions for PMS. It contains a command,
-	 * 		a unique resource id and a resource name, all separated by slashes.
+	 * @param uri The {@link HttpMethod} containing instructions for PMS. It contains a command,
+	 *            a unique resource id and a resource name, all separated by slashes.
 	 */
 	public RequestV2(HttpMethod method, String uri) {
 		this.method = method;
@@ -1063,9 +1063,9 @@ public class RequestV2 extends HTTPResource {
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
 		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
 		// we may use here different container IDs in the future
-		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.audioItem\"/>").append(CRLF);
-		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.videoItem\"/>").append(CRLF);
-		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.imageItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
 		features.append("</Feature>").append(CRLF);
 		features.append("</Features>").append(CRLF);
 
@@ -1162,7 +1162,7 @@ public class RequestV2 extends HTTPResource {
 		);
 
 		if (searchCriteria != null && files != null) {
-			UMSUtils.postSearch(files, searchCriteria);
+			UMSUtils.filterResourcesByPartialName(files, searchCriteria, false);
 			if (xbox360) {
 				if (files.size() > 0) {
 					files = files.get(0).getChildren();
@@ -1213,7 +1213,7 @@ public class RequestV2 extends HTTPResource {
 
 		response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 		response.append(CRLF);
-		DLNAResource parentFolder = null;
+		DLNAResource parentFolder;
 
 		if (files != null && filessize > 0) {
 			parentFolder = files.get(0).getParent();

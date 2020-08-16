@@ -14,7 +14,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
@@ -31,8 +30,8 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
-	private RemoteWeb parent;
-	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private final RemoteWeb parent;
+	private final static PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RemoteBrowseHandler(RemoteWeb parent) {
 		this.parent = parent;
@@ -138,7 +137,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			return null;
 		}
 		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
-			UMSUtils.postSearch(resources, search);
+			UMSUtils.filterResourcesByPartialName(resources, search, false);
 		}
 
 		boolean hasFile = false;
@@ -165,7 +164,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					StringBuilder thumbHTML = new StringBuilder();
 					String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 					HashMap<String, String> item = new HashMap<>();
-					String faIcon = "";
+					String faIcon;
 					switch(name) {
 						case "Video":
 							faIcon = "fa-video";
@@ -286,8 +285,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 								}
 
 								recentlyPlayedItemsHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedResourceidForWeb, recentlyPlayedResourcename, recentlyPlayedResourcethumb, t));
-								i++;
-								if (i == 1) {
+
+								if (i == 0) {
 									mustacheVars.put("hasRecentlyPlayed", true);
 									StringBuilder recentlyPlayedLink = new StringBuilder();
 									recentlyPlayedLink.append("<a href=\"/browse/").append(idForWeb);
@@ -296,6 +295,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 									recentlyPlayedLink.append("</a>");
 									mustacheVars.put("recentlyPlayedLink", recentlyPlayedLink.toString());
 								}
+								i++;
 							}
 							mustacheVars.put("recentlyPlayed", recentlyPlayedItemsHTML);
 							isSkipThisFolder = true;
@@ -304,11 +304,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 							ArrayList<HashMap<String, String>> recentlyAddedVideosHTML = new ArrayList<>();
 							int i = 0;
 							List<DLNAResource> mediaLibraryChildren = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
-							UMSUtils.postSearch(mediaLibraryChildren, Messages.getString("PMS.34"));
+							UMSUtils.filterResourcesByPartialName(mediaLibraryChildren, Messages.getString("PMS.34"), true);
 							DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
 							List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("MediaLibrary.RecentlyAdded"));
-							UMSUtils.postSearch(videoFolderChildren, Messages.getString("MediaLibrary.RecentlyAdded"));
+							UMSUtils.filterResourcesByPartialName(videoFolderChildren, Messages.getString("MediaLibrary.RecentlyAdded"), true);
 							DLNAResource recentlyAddedFolder = videoFolderChildren.get(0);
 
 							List<DLNAResource> recentlyAddedVideos = root.getDLNAResources(recentlyAddedFolder.getId(), true, 0, 6, root.getDefaultRenderer());
