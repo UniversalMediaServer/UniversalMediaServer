@@ -37,13 +37,22 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
+	/**
+	 * @param resource
+	 * @param idForWeb
+	 * @param name
+	 * @param thumb
+	 * @param t
+	 * @param isFolder
+	 * @return a set of HTML strings to display a clickable thumbnail
+	 */
 	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 
 		StringBuilder bumpHTML = new StringBuilder();
 		HashMap<String, String> item = new HashMap<>();
-		if (upnpAllowed) {
+		if (!resource.isFolder() && upnpAllowed) {
 			if (upnpControl) {
 				bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 					.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
@@ -54,6 +63,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				   .append(RemoteUtil.getMsgString("Web.2", t))
 				   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 			}
+
 			if (resource.getParent() instanceof Playlist) {
 				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 					.append(idForWeb).append("', true);return false;\" title=\"")
@@ -69,7 +79,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 		item.put("bump", bumpHTML.toString());
 
-		if (WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
+		if (resource.isFolder() || WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
 			StringBuilder thumbHTML = new StringBuilder();
 			thumbHTML.append("<a href=\"/play/").append(idForWeb)
 				.append("\" title=\"").append(name).append("\">")
@@ -396,21 +406,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 					if (resource instanceof MediaLibraryFolder) {
 						String newId = resource.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
-						HashMap<String, String> item = new HashMap<>();
 						String thumb = "/thumb/" + idForWeb;
 						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
-						StringBuilder thumbHTML = new StringBuilder();
-						thumbHTML.append("<a href=\"/browse/").append(idForWeb)
-						.append("\" title=\"").append(name).append("\">")
-						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
-						.append("</a>");
 
-						item.put("thumb", thumbHTML.toString());
-						item.put("bump", "");
-						item.put("caption", resource.getDisplayName());
-						media.add(item);
-						mustacheVars.put("media", media);
-						mustacheVars.put("hasFile", hasFile);
+						media.add(getMediaHTML(resource, idForWeb, name, thumb, t));
 						hasFile = true;
 					}
 				}
