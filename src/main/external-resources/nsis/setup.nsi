@@ -675,6 +675,7 @@ Section "Uninstall"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
+	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
 	nsSCM::Stop "${PROJECT_NAME}"
 	nsSCM::Remove "${PROJECT_NAME}"
