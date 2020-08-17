@@ -4019,16 +4019,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server/</outputDirectory>
+									<outputDirectory>C:/Program Files (x86)/Universal Media Server/web/</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}</directory>
-											<includes>
-												<include>web/**</include>
-											</includes>
-											<filtering>true</filtering>
+											<directory>${project.external-resources}/web/</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -4110,7 +4106,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
+											tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -4128,14 +4124,10 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources</outputDirectory>
+									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources/web</outputDirectory>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}</directory>
-											<includes>
-												<include>web/**</include>
-											</includes>
-											<filtering>true</filtering>
+											<directory>${project.external-resources}/web/</directory>
 										</resource>
 									</resources>
 								</configuration>
