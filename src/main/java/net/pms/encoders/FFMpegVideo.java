@@ -941,35 +941,42 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		/**
-		 * Defer to MEncoder for subtitles if:
-		 * - MEncoder is enabled and available
-		 * - The setting is enabled
-		 * - There are subtitles to transcode
-		 * - The file is not being played via the transcode folder
-		 */
-		if (
-			PlayerFactory.isPlayerActive(MEncoderVideo.ID) &&
-			!(renderer instanceof RendererConfiguration.OutputOverride) &&
-			params.sid != null &&
-			!(
-				configuration.isShowTranscodeFolder() &&
-				dlna.isNoName() &&
-				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
-			) &&
-			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
-			params.sid.isEmbedded() &&
-			(
-				params.sid.getType().isText() ||
-				params.sid.getType() == SubtitleType.VOBSUB
-			)
-		) {
-			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
+		boolean deferToMencoder = true;
+		String prependMEncoderTraceReason = "Not muxing the video stream with MEncoder because ";
+		if (!PlayerFactory.isPlayerActive(MEncoderVideo.ID)) {
+			deferToMencoder = false;
+			LOGGER.trace(prependMEncoderTraceReason + "MEncoder is disabled.");
+		}
+		if (deferToMencoder == true && (renderer instanceof RendererConfiguration.OutputOverride)) {
+			deferToMencoder = false;
+			LOGGER.trace(prependMEncoderTraceReason + "renderer is overriding output format.");
+		}
+		if (deferToMencoder == true && configuration.isShowTranscodeFolder() && dlna.isNoName() && dlna.getParent() instanceof FileTranscodeVirtualFolder) {
+			deferToMencoder = false;
+			LOGGER.trace(prependMEncoderTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+		}
+		if (deferToMencoder == true && !configuration.isFFmpegDeferToMEncoderForProblematicSubtitles()) {
+			deferToMencoder = false;
+			LOGGER.trace(prependMEncoderTraceReason + "the configuration option to defer to MEncoder is disabled.");
+		}
+		if (deferToMencoder == true && params.sid == null) {
+			deferToMencoder = false;
+			LOGGER.trace(prependMEncoderTraceReason + "there are no subtitles.");
+		}
+		if (deferToMencoder == true && !params.sid.isEmbedded()) {
+			deferToMencoder = false;
+			LOGGER.trace(prependMEncoderTraceReason + "the subtitles are not embedded.");
+		}
+		if (deferToMencoder == true && !params.sid.getType().isText() && params.sid.getType() != SubtitleType.VOBSUB) {
+			deferToMencoder = false;
+			LOGGER.trace(prependMEncoderTraceReason + "the subtitles type {} is not known to be problematic with FFmpeg.", params.sid.getType());
+		}
+		if (deferToMencoder) {
+			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
 			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);
 			return mv.launchTranscode(dlna, media, params);
 		}
 
-		boolean deferToTsmuxer = true;
 		boolean canMuxVideoWithFFmpeg = true;
 		if (!(renderer instanceof RendererConfiguration.OutputOverride)) {
 			String prependTraceReason = "Not muxing the video stream with FFmpeg because ";
@@ -1008,6 +1015,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
+		boolean deferToTsmuxer = true;
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
