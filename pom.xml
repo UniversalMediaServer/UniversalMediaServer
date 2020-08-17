@@ -4019,12 +4019,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server/</outputDirectory>
+									<outputDirectory>C:/Program Files (x86)/Universal Media Server/web/</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/**</directory>
+											<directory>${project.external-resources}/web/</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -4125,11 +4125,10 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources</outputDirectory>
+									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources/web</outputDirectory>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/**</directory>
-											<filtering>true</filtering>
+											<directory>${project.external-resources}/web/</directory>
 										</resource>
 									</resources>
 								</configuration>
