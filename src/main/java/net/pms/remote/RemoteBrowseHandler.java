@@ -274,8 +274,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 			}
 
 			if (resource.isFolder()) {
-				Boolean isTvSeriesBrowsePage = resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"));
-				if (!isTvSeriesBrowsePage || !(isTvSeriesBrowsePage && (resource instanceof MediaLibraryFolder))) {
+				Boolean isDisplayFoldersAsThumbnails = false;
+				if (
+					resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
+					(
+						resource.getParent() != null &&
+						resource.getParent().getParent() != null &&
+						resource.getParent().getParent().getParent() != null &&
+						resource.getParent().getParent().getParent().getParent() != null &&
+						resource.getParent().getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
+					)
+				) {
+					isDisplayFoldersAsThumbnails = true;
+				}
+
+				if (!isDisplayFoldersAsThumbnails || !(isDisplayFoldersAsThumbnails && (resource instanceof MediaLibraryFolder))) {
 					boolean isSkipThisFolder = false;
 
 					// Populate the front page
@@ -404,9 +417,18 @@ public class RemoteBrowseHandler implements HttpHandler {
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 				}
 			}
-			if (folder.getDisplayName().equals(Messages.getString("VirtualFolder.4"))) {
+			
+			// Check whether this resource is expected to contain folders that display as big thumbnails
+			if (
+				folder.getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
+				(
+					folder.getParent() != null &&
+					folder.getParent().getParent() != null &&
+					folder.getParent().getParent().getParent() != null &&
+					folder.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
+				)
+			) {
 				for (DLNAResource resource : resources) {
-					// find TV Series folders
 					if (resource instanceof MediaLibraryFolder) {
 						String newId = resource.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
