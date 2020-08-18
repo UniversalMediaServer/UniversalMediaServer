@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.*;
 import net.pms.Messages;
@@ -22,11 +23,13 @@ import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
+import net.pms.dlna.RootFolder;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.Languages;
+import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -503,9 +506,12 @@ public class RemoteUtil {
 	 * @param resource
 	 * @param t
 	 * @param isTVSeries whether this is a TV series, or an episode/movie
-	 * @return a JavaScript string to be used by a web browser, or null when there is no metadata
+	 * @param rootFolder the root folder, used for looking up IDs
+	 * @return a JavaScript string to be used by a web browser which includes
+	 *         metadata names and when applicable, associated IDs, or null
+	 *         when there is no metadata
 	 */
-	public static String getAPIMetadataAsJavaScriptVars(DLNAResource resource, HttpExchange t, boolean isTVSeries) {
+	public static String getAPIMetadataAsJavaScriptVars(DLNAResource resource, HttpExchange t, boolean isTVSeries, RootFolder rootFolder) throws UnsupportedEncodingException {
 		List<HashMap<String, Object>> resourceMetadataFromDatabase;
 
 		if (isTVSeries) {
@@ -531,10 +537,38 @@ public class RemoteUtil {
 		String poster = "";
 		Double totalSeasons = null;
 		Boolean hasAPIMetadata = false;
+
+		DLNAResource genresFolder = null;
+
 		Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
 		while (i.hasNext()) {
+			if (genresFolder == null) {
+				// prepare to get IDs of certain metadata resources, to make them clickable
+				List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.MediaLibrary"));
+				UMSUtils.filterResourcesByPartialName(rootFolderChildren, Messages.getString("PMS.MediaLibrary"), true);
+				DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
+
+				List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.34"));
+				UMSUtils.filterResourcesByPartialName(mediaLibraryChildren, Messages.getString("PMS.34"), true);
+				DLNAResource videoFolder = mediaLibraryChildren.get(0);
+
+				String folderName = isTVSeries ? Messages.getString("VirtualFolder.4") : Messages.getString("VirtualFolder.5");
+				List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
+				UMSUtils.filterResourcesByPartialName(videoFolderChildren, folderName, true);
+				DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
+
+				List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.FilterByInformation"));
+				UMSUtils.filterResourcesByPartialName(tvShowsOrMoviesChildren, Messages.getString("VirtualFolder.FilterByInformation"), true);
+				DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
+
+				List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.Genres"));
+				UMSUtils.filterResourcesByPartialName(filterByInformationChildren, Messages.getString("VirtualFolder.Genres"), true);
+				genresFolder = filterByInformationChildren.get(0);
+
+				hasAPIMetadata = true;
+			}
+
 			HashMap<String, Object> row = i.next();
-			hasAPIMetadata = true;
 			if (row.get("AWARD") != null) {
 				awards = (String) row.get("AWARD");
 			}
@@ -572,9 +606,17 @@ public class RemoteUtil {
 			if (row.get("ACTOR") != null) {
 				actors.add((String) row.get("ACTOR"));
 			}
-			// These are for records that can have multiple results
 			if (row.get("GENRE") != null) {
-				genres.add((String) row.get("GENRE"));
+				String genre = (String) row.get("GENRE");
+				List<DLNAResource> genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genre);
+				UMSUtils.filterResourcesByPartialName(genresChildren, genre, true);
+				DLNAResource genreFolder = genresChildren.get(0);
+				
+				String genreId = genreFolder.getId();
+				String genreIdForWeb = URLEncoder.encode(genreId, "UTF-8");
+				
+				
+				genres.add("{ id: \"" + genreIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(genre) + "\" }");
 			}
 		}
 
@@ -611,7 +653,7 @@ public class RemoteUtil {
 		javascriptVarsScript += "var genresTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Genres", t) + "\";";
 		String genresArrayJavaScript = "var genres = [";
 		for (String genre : genres) {
-			genresArrayJavaScript += "\"" + StringEscapeUtils.escapeEcmaScript(genre) + "\",";
+			genresArrayJavaScript += genre + ",";
 		}
 		genresArrayJavaScript += "];";
 		javascriptVarsScript += genresArrayJavaScript;

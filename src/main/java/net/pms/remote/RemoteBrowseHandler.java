@@ -49,6 +49,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		String pageTypeUri = "/play/";
+		if (resource.isFolder()) {
+			pageTypeUri = "/browse/";
+		}
 
 		StringBuilder bumpHTML = new StringBuilder();
 		HashMap<String, String> item = new HashMap<>();
@@ -81,14 +85,14 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		if (resource.isFolder() || WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
 			StringBuilder thumbHTML = new StringBuilder();
-			thumbHTML.append("<a href=\"/play/").append(idForWeb)
+			thumbHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
 				.append("\" title=\"").append(name).append("\">")
 				.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
 				.append("</a>");
 			item.put("thumb", thumbHTML.toString());
 
 			StringBuilder captionHTML = new StringBuilder();
-			captionHTML.append("<a href=\"/play/").append(idForWeb)
+			captionHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
 				.append("\" title=\"").append(name).append("\">")
 				.append("<span class=\"caption\">").append(name).append("</span>")
 				.append("</a>");
@@ -393,7 +397,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				folder.isTVSeries() &&
 				configuration.getUseCache()
 			) {
-				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, true);
+				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, true, root);
 				if (apiMetadataAsJavaScriptVars != null) {
 					LOGGER.info("apiMetadataAsJavaScriptVars " + apiMetadataAsJavaScriptVars);
 					mustacheVars.put("isTVSeriesWithAPIData", true);

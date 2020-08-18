@@ -452,7 +452,12 @@ function populateMetadataDisplayFromGlobalVars() {
 		$('h1').append(' <a href="https://www.imdb.com/title/' + imdbID + '/"><i class=\"fab fa-imdb\"></i></a>');
 	}
 	if (genres && genres[0]) {
-		$('.genres').html('<strong>' + genresTranslation + ':</strong> ' + genres.join(', '));
+		var genreLinks = [];
+		for (var i = 0; i < genres.length; i++) {
+			var genre = genres[i];
+			genreLinks.push('<a href="/browse/' + genre.id + '">' + genre.name + '</a>');
+		}
+		$('.genres').html('<strong>' + genresTranslation + ':</strong> ' + genreLinks.join(', '));
 	}
 	if (plot) {
 		$('.plot').html('<strong>' + plotTranslation + ':</strong> ' + plot);
