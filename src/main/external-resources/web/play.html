@@ -15,7 +15,7 @@
 		<script src="/files/util/keycontroller.js"></script>
 		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" type="text/css">
-		<!--VideoJS 7.2.3 Support -->
+
 		<link href="/files/util/video-js/video-js.min.css" type="text/css" rel="stylesheet">
 		<script src="/files/util/video-js/video.min.js"></script>
 
@@ -66,7 +66,7 @@
 						{{^isVideo}}
 						<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
 						{{/isVideo}}
-						<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-fill {{^isVideo}}full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
+						<{{mediaType}} id="player" class="video-js vjs-default-skin {{^isVideo}}full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
 							   data-setup='{ "html5" : { "nativeTextTracks" : true } }'
 							   poster="/thumb/{{id1}}" data-setup="{}">
 
