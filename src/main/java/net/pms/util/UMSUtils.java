@@ -56,9 +56,10 @@ public class UMSUtils {
 	 *
 	 * @param resources
 	 * @param searchString 
-	 * @param isExpectOneResult if we only want one result, this will speed it up
+	 * @param isExpectOneResult whether to only return one result
+	 * @param isExactMatch whether to only return exact matches
 	 */
-	public static void filterResourcesByPartialName(List<DLNAResource> resources, String searchString, boolean isExpectOneResult) {
+	public static void filterResourcesByPartialName(List<DLNAResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
 		if (resources == null || searchString == null) {
 			return;
 		}
@@ -70,7 +71,13 @@ public class UMSUtils {
 				continue;
 			}
 
-			boolean keep = res.getName().toLowerCase().contains(searchString);
+			boolean keep;
+			if (isExactMatch) {
+				keep = res.getName().toLowerCase().equals(searchString);
+			} else {
+				keep = res.getName().toLowerCase().contains(searchString);
+			}
+
 			final DLNAMediaInfo media = res.getMedia();
 
 			if (keep && isExpectOneResult) {

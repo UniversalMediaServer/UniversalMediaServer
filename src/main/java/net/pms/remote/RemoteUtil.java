@@ -545,25 +545,25 @@ public class RemoteUtil {
 			if (genresFolder == null) {
 				// prepare to get IDs of certain metadata resources, to make them clickable
 				List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.MediaLibrary"));
-				UMSUtils.filterResourcesByPartialName(rootFolderChildren, Messages.getString("PMS.MediaLibrary"), true);
+				UMSUtils.filterResourcesByPartialName(rootFolderChildren, Messages.getString("PMS.MediaLibrary"), true, true);
 				DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
 
 				List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.34"));
-				UMSUtils.filterResourcesByPartialName(mediaLibraryChildren, Messages.getString("PMS.34"), true);
+				UMSUtils.filterResourcesByPartialName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
 				DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
 				boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
 				String folderName = isRelatedToTV ? Messages.getString("VirtualFolder.4") : Messages.getString("VirtualFolder.5");
 				List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
-				UMSUtils.filterResourcesByPartialName(videoFolderChildren, folderName, true);
+				UMSUtils.filterResourcesByPartialName(videoFolderChildren, folderName, true, true);
 				DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
 				List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.FilterByInformation"));
-				UMSUtils.filterResourcesByPartialName(tvShowsOrMoviesChildren, Messages.getString("VirtualFolder.FilterByInformation"), true);
+				UMSUtils.filterResourcesByPartialName(tvShowsOrMoviesChildren, Messages.getString("VirtualFolder.FilterByInformation"), true, true);
 				DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
 				List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.Genres"));
-				UMSUtils.filterResourcesByPartialName(filterByInformationChildren, Messages.getString("VirtualFolder.Genres"), true);
+				UMSUtils.filterResourcesByPartialName(filterByInformationChildren, Messages.getString("VirtualFolder.Genres"), true, true);
 				genresFolder = filterByInformationChildren.get(0);
 
 				hasAPIMetadata = true;
@@ -610,13 +610,12 @@ public class RemoteUtil {
 			if (row.get("GENRE") != null) {
 				String genre = (String) row.get("GENRE");
 				List<DLNAResource> genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genre);
-				UMSUtils.filterResourcesByPartialName(genresChildren, genre, true);
+				UMSUtils.filterResourcesByPartialName(genresChildren, genre, true, true);
 				DLNAResource genreFolder = genresChildren.get(0);
-				
+
 				String genreId = genreFolder.getId();
 				String genreIdForWeb = URLEncoder.encode(genreId, "UTF-8");
-				
-				
+
 				genres.add("{ id: \"" + genreIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(genre) + "\" }");
 			}
 		}

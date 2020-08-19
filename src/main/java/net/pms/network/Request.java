@@ -798,7 +798,7 @@ public class Request extends HTTPResource {
 				);
 
 				if (searchCriteria != null && files != null) {
-					UMSUtils.filterResourcesByPartialName(files, searchCriteria, false);
+					UMSUtils.filterResourcesByPartialName(files, searchCriteria, false, false);
 					if (xbox360) {
 						if (files.size() > 0) {
 							files = files.get(0).getChildren();

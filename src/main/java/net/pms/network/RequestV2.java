@@ -1153,7 +1153,7 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
-				objectID,
+			objectID,
 			browseDirectChildren,
 			startingIndex,
 			requestCount,
@@ -1162,11 +1162,9 @@ public class RequestV2 extends HTTPResource {
 		);
 
 		if (searchCriteria != null && files != null) {
-			UMSUtils.filterResourcesByPartialName(files, searchCriteria, false);
-			if (xbox360) {
-				if (files.size() > 0) {
-					files = files.get(0).getChildren();
-				}
+			UMSUtils.filterResourcesByPartialName(files, searchCriteria, false, false);
+			if (xbox360 && files.size() > 0) {
+				files = files.get(0).getChildren();
 			}
 		}
 
@@ -1178,11 +1176,15 @@ public class RequestV2 extends HTTPResource {
 					uf.setFakeParentId(containerID);
 				}
 
-				if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
-					|| uf.getPlayer().isPlayerCompatible(mediaRenderer))
-					 // do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-					 // all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					|| files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
+				if (
+					uf.isCompatible(mediaRenderer) &&
+					(
+						uf.getPlayer() == null ||
+						uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
+						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
+						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
+						files.get(0).getParent() instanceof FileTranscodeVirtualFolder
+				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {
 					minus++;
