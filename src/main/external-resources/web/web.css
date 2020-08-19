@@ -525,6 +525,10 @@ form#SearchForm {
 	border-radius: 4px;
 }
 
+.browsePage .mediaInfo {
+	display: flex;
+}
+
 body.dark .mediaInfoText {
 	background-color: rgba(255, 255, 255, 0.1);
 	color: rgba(18, 18, 18, 1);

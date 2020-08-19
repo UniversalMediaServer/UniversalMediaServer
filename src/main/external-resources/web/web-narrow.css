@@ -7,7 +7,7 @@ ul#Folders {
 ul#Media,
 #TVSeriesContainer {
 	margin: 0 -20px 0 0;
-	padding: 20px 0 20px 20px;
+	padding: 20px 20px 20px 0;
 }
 
 #ContentPage #Menu {
@@ -32,5 +32,18 @@ ul#Media,
 }
 
 .mediaInfo {
-	margin: 0 20px;
+	margin: 0 20px 0 0;
+	display: flex;
+}
+
+#VideoContainer {
+	float: none;
+}
+
+.mediaInfoText {
+	padding: 2px 20px
+}
+
+.videoPage .mediaInfoText {
+	margin-top: 60px;
 }

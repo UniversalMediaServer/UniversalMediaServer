@@ -27,8 +27,6 @@ div#FoldersContainer div {
 
 .posterContainer {
 	margin-right: 50px;
-	float: left;
-	height: 444px;
 }
 
 #MediaContainer {
@@ -38,14 +36,6 @@ div#FoldersContainer div {
 
 .mediaInfo {
 	margin: 50px 50px 20px 50px;
-}
-
-.mediaInfoText {
-	margin-left: 350px;
-}
-
-.mediaInfoText .no-api {
-	margin-left: 0;
 }
 
 .videoPage .mediaInfoText {
