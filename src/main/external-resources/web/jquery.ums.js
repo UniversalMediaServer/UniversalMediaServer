@@ -471,11 +471,13 @@ function populateMetadataDisplayFromGlobalVars() {
 		$('.posterContainer').html(img);
 	}
 	if (ratings && ratings[0]) {
-		$('.ratings').html('<strong>' + ratingsTranslation + ':</strong><ul>');
-		for (var ratingKey in ratings) {
-			$('.ratings').append('<li>' + ratings[ratingKey].source + ': ' + ratings[ratingKey].value + '</li>');
+		$('.ratings').html('<strong>' + ratingsTranslation + ':</strong>');
+		var ratingsList = "<ul>";
+		for (var i = 0; i < ratings.length; i++) {
+			ratingsList += '<li>' + ratings[i].source + ': ' + ratings[i].value + '</li>';
 		}
-		$('.ratings').append('</ul>');
+		ratingsList += "</ul>";
+		$('.ratings').append(ratingsList);
 	}
 	if (startYear) {
 		$('.startYear').html('<strong>' + yearStartedTranslation + ':</strong> ' + startYear);
