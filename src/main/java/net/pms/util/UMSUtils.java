@@ -52,14 +52,14 @@ public class UMSUtils {
 
 	/**
 	 * Filters the list of resources in-place by removing all items that do
-	 * not contain searchString.
+	 * not match or contain searchString.
 	 *
 	 * @param resources
 	 * @param searchString 
 	 * @param isExpectOneResult whether to only return one result
 	 * @param isExactMatch whether to only return exact matches
 	 */
-	public static void filterResourcesByPartialName(List<DLNAResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
+	public static void filterResourcesByName(List<DLNAResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
 		if (resources == null || searchString == null) {
 			return;
 		}

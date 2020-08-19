@@ -1162,7 +1162,7 @@ public class RequestV2 extends HTTPResource {
 		);
 
 		if (searchCriteria != null && files != null) {
-			UMSUtils.filterResourcesByPartialName(files, searchCriteria, false, false);
+			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
 			if (xbox360 && files.size() > 0) {
 				files = files.get(0).getChildren();
 			}

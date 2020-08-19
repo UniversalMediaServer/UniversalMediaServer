@@ -437,13 +437,18 @@ function setBackgroundColorFromPoster() {
 
 function populateMetadataDisplayFromGlobalVars() {
 	if (actors && actors[0]) {
-		$('.actors').html('<strong>' + actorsTranslation + ':</strong> ' + actors.join(', '));
+		var actorLinks = [];
+		for (var i = 0; i < actors.length; i++) {
+			var actor = actors[i];
+			actorLinks.push('<a href="/browse/' + actor.id + '">' + actor.name + '</a>');
+		}
+		$('.actors').html('<strong>' + actorsTranslation + ':</strong> ' + actorLinks.join(', '));
 	}
 	if (awards) {
 		$('.awards').html('<strong>' + awardsTranslation + ':</strong> ' + awards);
 	}
-	if (country) {
-		$('.country').html('<strong>' + countryTranslation + ':</strong> ' + country);
+	if (country && country.id) {
+		$('.country').html('<strong>' + countryTranslation + ':</strong> <a href="/browse/' + country.id + '">' + country.name + '</a>');
 	}
 	if (directors) {
 		$('.directors').html('<strong>' + directorsTranslation + ':</strong> ' + directors);

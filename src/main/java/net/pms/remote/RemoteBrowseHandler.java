@@ -151,7 +151,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			return null;
 		}
 		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
-			UMSUtils.filterResourcesByPartialName(resources, search, false, false);
+			UMSUtils.filterResourcesByName(resources, search, false, false);
 		}
 
 		boolean hasFile = false;
@@ -331,11 +331,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 							ArrayList<HashMap<String, String>> recentlyAddedVideosHTML = new ArrayList<>();
 							int i = 0;
 							List<DLNAResource> mediaLibraryChildren = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
-							UMSUtils.filterResourcesByPartialName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
+							UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
 							DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
 							List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("MediaLibrary.RecentlyAdded"));
-							UMSUtils.filterResourcesByPartialName(videoFolderChildren, Messages.getString("MediaLibrary.RecentlyAdded"), true, true);
+							UMSUtils.filterResourcesByName(videoFolderChildren, Messages.getString("MediaLibrary.RecentlyAdded"), true, true);
 							DLNAResource recentlyAddedFolder = videoFolderChildren.get(0);
 
 							List<DLNAResource> recentlyAddedVideos = root.getDLNAResources(recentlyAddedFolder.getId(), true, 0, 6, root.getDefaultRenderer());

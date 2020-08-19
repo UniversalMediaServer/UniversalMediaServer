@@ -538,33 +538,47 @@ public class RemoteUtil {
 		Double totalSeasons = null;
 		Boolean hasAPIMetadata = false;
 
+		DLNAResource actorsFolder = null;
+		DLNAResource countryFolder = null;
 		DLNAResource genresFolder = null;
+
+		List<DLNAResource> actorsChildren = null;
+		List<DLNAResource> genresChildren = null;
 
 		Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
 		while (i.hasNext()) {
 			if (genresFolder == null) {
 				// prepare to get IDs of certain metadata resources, to make them clickable
 				List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.MediaLibrary"));
-				UMSUtils.filterResourcesByPartialName(rootFolderChildren, Messages.getString("PMS.MediaLibrary"), true, true);
+				UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("PMS.MediaLibrary"), true, true);
 				DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
 
 				List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.34"));
-				UMSUtils.filterResourcesByPartialName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
+				UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
 				DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
 				boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
 				String folderName = isRelatedToTV ? Messages.getString("VirtualFolder.4") : Messages.getString("VirtualFolder.5");
 				List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
-				UMSUtils.filterResourcesByPartialName(videoFolderChildren, folderName, true, true);
+				UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
 				DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
 				List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.FilterByInformation"));
-				UMSUtils.filterResourcesByPartialName(tvShowsOrMoviesChildren, Messages.getString("VirtualFolder.FilterByInformation"), true, true);
+				UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("VirtualFolder.FilterByInformation"), true, true);
 				DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
 				List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.Genres"));
-				UMSUtils.filterResourcesByPartialName(filterByInformationChildren, Messages.getString("VirtualFolder.Genres"), true, true);
-				genresFolder = filterByInformationChildren.get(0);
+
+				for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
+					DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
+					if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Actors"))) {
+						actorsFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Country"))) {
+						countryFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Genres"))) {
+						genresFolder = filterByInformationChild;
+					}
+				}
 
 				hasAPIMetadata = true;
 			}
@@ -573,8 +587,16 @@ public class RemoteUtil {
 			if (row.get("AWARD") != null) {
 				awards = (String) row.get("AWARD");
 			}
-			if (row.get("COUNTRY") != null) {
-				country = (String) row.get("COUNTRY");
+			if (row.get("COUNTRY") != null && StringUtils.isBlank(country)) {
+				String countryTranslation = (String) row.get("COUNTRY");
+				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryTranslation);
+				UMSUtils.filterResourcesByName(countriesChildren, countryTranslation, true, true);
+				DLNAResource filteredCountryFolder = countriesChildren.get(0);
+
+				String countryId = filteredCountryFolder.getId();
+				String countryIdForWeb = URLEncoder.encode(countryId, "UTF-8");
+
+				country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryTranslation) + "\" }";
 			}
 			if (row.get("DIRECTOR") != null) {
 				directors = (String) row.get("DIRECTOR");
@@ -605,18 +627,46 @@ public class RemoteUtil {
 
 			// These are for records that can have multiple results
 			if (row.get("ACTOR") != null) {
-				actors.add((String) row.get("ACTOR"));
+				String actor = (String) row.get("ACTOR");
+				String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(actor) + "\"";
+				if (actorsFolder != null && !actors.contains(namePartOfJSObject)) {
+					if (actorsChildren == null) {
+						actorsChildren = actorsFolder.getDLNAResources(actorsFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), actor);
+					}
+					for (int actorsIterator = 0; actorsIterator < actorsChildren.size(); actorsIterator++) {
+						DLNAResource filterByInformationChild = actorsChildren.get(actorsIterator);
+						if (filterByInformationChild.getDisplayName().equals(actor)) {
+							DLNAResource actorFolder = filterByInformationChild;
+
+							String actorId = actorFolder.getId();
+							String actorIdForWeb = URLEncoder.encode(actorId, "UTF-8");
+
+							actors.add("{ id: \"" + actorIdForWeb + "\"" + namePartOfJSObject + " }");
+							break;
+						}
+					}
+				}
 			}
 			if (row.get("GENRE") != null) {
 				String genre = (String) row.get("GENRE");
-				List<DLNAResource> genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genre);
-				UMSUtils.filterResourcesByPartialName(genresChildren, genre, true, true);
-				DLNAResource genreFolder = genresChildren.get(0);
+				String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(genre) + "\"";
+				if (genresFolder != null && !genres.contains(namePartOfJSObject)) {
+					if (genresChildren == null) {
+						genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genre);
+					}
+					for (int genresIterator = 0; genresIterator < genresChildren.size(); genresIterator++) {
+						DLNAResource filterByInformationChild = genresChildren.get(genresIterator);
+						if (filterByInformationChild.getDisplayName().equals(genre)) {
+							DLNAResource genreFolder = filterByInformationChild;
 
-				String genreId = genreFolder.getId();
-				String genreIdForWeb = URLEncoder.encode(genreId, "UTF-8");
+							String genreId = genreFolder.getId();
+							String genreIdForWeb = URLEncoder.encode(genreId, "UTF-8");
 
-				genres.add("{ id: \"" + genreIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(genre) + "\" }");
+							genres.add("{ id: \"" + genreIdForWeb + "\"" + namePartOfJSObject + " }");
+							break;
+						}
+					}
+				}
 			}
 		}
 
@@ -627,7 +677,7 @@ public class RemoteUtil {
 		String javascriptVarsScript = "";
 		javascriptVarsScript += "var awards = \"" + StringEscapeUtils.escapeEcmaScript(awards) + "\";";
 		javascriptVarsScript += "var awardsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Awards", t) + "\";";
-		javascriptVarsScript += "var country = \"" + StringEscapeUtils.escapeEcmaScript(country) + "\";";
+		javascriptVarsScript += "var country = " + country + ";";
 		javascriptVarsScript += "var countryTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Country", t) + "\";";
 		javascriptVarsScript += "var directors = \"" + StringEscapeUtils.escapeEcmaScript(directors) + "\";";
 		javascriptVarsScript += "var directorsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Directors", t) + "\";";
@@ -645,7 +695,7 @@ public class RemoteUtil {
 		javascriptVarsScript += "var actorsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Actors", t) + "\";";
 		String actorsArrayJavaScript = "var actors = [";
 		for (String actor : actors) {
-			actorsArrayJavaScript += "\"" + StringEscapeUtils.escapeEcmaScript(actor) + "\",";
+			actorsArrayJavaScript += actor + ",";
 		}
 		actorsArrayJavaScript += "];";
 		javascriptVarsScript += actorsArrayJavaScript;
