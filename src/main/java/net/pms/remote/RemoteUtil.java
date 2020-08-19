@@ -552,7 +552,8 @@ public class RemoteUtil {
 				UMSUtils.filterResourcesByPartialName(mediaLibraryChildren, Messages.getString("PMS.34"), true);
 				DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
-				String folderName = isTVSeries ? Messages.getString("VirtualFolder.4") : Messages.getString("VirtualFolder.5");
+				boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
+				String folderName = isRelatedToTV ? Messages.getString("VirtualFolder.4") : Messages.getString("VirtualFolder.5");
 				List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
 				UMSUtils.filterResourcesByPartialName(videoFolderChildren, folderName, true);
 				DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
