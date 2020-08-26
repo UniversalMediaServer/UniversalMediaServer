@@ -587,7 +587,7 @@ public class RemoteUtil {
 			if (row.get("AWARD") != null) {
 				awards = (String) row.get("AWARD");
 			}
-			if (row.get("COUNTRY") != null && StringUtils.isBlank(country)) {
+			if (row.get("COUNTRY") != null && StringUtils.isBlank(country) && countryFolder != null) {
 				String countryTranslation = (String) row.get("COUNTRY");
 				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryTranslation);
 				UMSUtils.filterResourcesByName(countriesChildren, countryTranslation, true, true);
@@ -626,10 +626,10 @@ public class RemoteUtil {
 			}
 
 			// These are for records that can have multiple results
-			if (row.get("ACTOR") != null) {
+			if (row.get("ACTOR") != null && actorsFolder != null) {
 				String actor = (String) row.get("ACTOR");
 				String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(actor) + "\"";
-				if (actorsFolder != null && !actors.contains(namePartOfJSObject)) {
+				if (!actors.contains(namePartOfJSObject)) {
 					if (actorsChildren == null) {
 						actorsChildren = actorsFolder.getDLNAResources(actorsFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), actor);
 					}
@@ -647,10 +647,10 @@ public class RemoteUtil {
 					}
 				}
 			}
-			if (row.get("GENRE") != null) {
+			if (row.get("GENRE") != null && genresFolder != null) {
 				String genre = (String) row.get("GENRE");
 				String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(genre) + "\"";
-				if (genresFolder != null && !genres.contains(namePartOfJSObject)) {
+				if (!genres.contains(namePartOfJSObject)) {
 					if (genresChildren == null) {
 						genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genre);
 					}
