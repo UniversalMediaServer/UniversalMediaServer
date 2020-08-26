@@ -63,6 +63,7 @@ import static net.pms.database.Tables.sqlQuote;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.database.TableTVSeries;
+import net.pms.database.TableVideoMetadataIMDbRating;
 import net.pms.newgui.SharedContentTab;
 
 /**

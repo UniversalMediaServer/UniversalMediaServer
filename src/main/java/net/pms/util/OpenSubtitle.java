@@ -94,6 +94,7 @@ import net.pms.database.TableVideoMetadataAwards;
 import net.pms.database.TableVideoMetadataCountries;
 import net.pms.database.TableVideoMetadataDirectors;
 import net.pms.database.TableVideoMetadataGenres;
+import net.pms.database.TableVideoMetadataIMDbRating;
 import net.pms.database.TableVideoMetadataPosters;
 import net.pms.database.TableVideoMetadataProduction;
 import net.pms.database.TableVideoMetadataRated;
@@ -5222,7 +5223,7 @@ public class OpenSubtitle {
 
 					media.setRated((String) metadataFromAPI.get("rated"));
 					if (metadataFromAPI.get("rating") != null) {
-						media.setRating(Double.toString((Double) metadataFromAPI.get("rating")));
+						media.setIMDbRating(Double.toString((Double) metadataFromAPI.get("rating")));
 					}
 					if (metadataFromAPI.get("ratings") != null) {
 						media.setRatings(new HashSet((ArrayList) metadataFromAPI.get("ratings")));
@@ -5262,6 +5263,7 @@ public class OpenSubtitle {
 						TableVideoMetadataAwards.set(file.getAbsolutePath(), media.getAwards(), -1);
 						TableVideoMetadataCountries.set(file.getAbsolutePath(), media.getCountry(), -1);
 						TableVideoMetadataDirectors.set(file.getAbsolutePath(), media.getDirectors(), -1);
+						TableVideoMetadataIMDbRating.set(file.getAbsolutePath(), media.getIMDbRating(), -1);
 						TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres(), -1);
 						TableVideoMetadataPosters.set(file.getAbsolutePath(), media.getPoster(), -1);
 						TableVideoMetadataProduction.set(file.getAbsolutePath(), media.getProduction(), -1);

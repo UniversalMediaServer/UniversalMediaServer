@@ -205,7 +205,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String production;
 	private String poster;
 	private String rated;
-	private String rating;
+	private String imdbRating;
 	private HashSet<String> ratings = new HashSet<>();
 	private String released;
 	private String runtime;
@@ -2485,12 +2485,12 @@ public class DLNAMediaInfo implements Cloneable {
 		this.rated = value;
 	}
 
-	public String getRating() {
-		return rating;
+	public String getIMDbRating() {
+		return imdbRating;
 	}
 
-	public void setRating(String value) {
-		this.rating = value;
+	public void setIMDbRating(String value) {
+		this.imdbRating = value;
 	}
 
 	public HashSet getRatings() {

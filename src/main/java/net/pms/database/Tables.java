@@ -84,6 +84,7 @@ public class Tables {
 					TableVideoMetadataAwards.checkTable(connection);
 					TableVideoMetadataCountries.checkTable(connection);
 					TableVideoMetadataDirectors.checkTable(connection);
+					TableVideoMetadataIMDbRating.checkTable(connection);
 					TableVideoMetadataGenres.checkTable(connection);
 					TableVideoMetadataPosters.checkTable(connection);
 					TableVideoMetadataProduction.checkTable(connection);
