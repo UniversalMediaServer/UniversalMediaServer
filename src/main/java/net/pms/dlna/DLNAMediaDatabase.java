@@ -1573,6 +1573,56 @@ public class DLNAMediaDatabase implements Runnable {
 				");"
 			);
 			ps.execute();
+
+			/*
+			 * Cleanup of TV_SERIES table
+			 *
+			 * Removes entries that are not referenced by any rows in the FILES table.
+			 */
+			ps = conn.prepareStatement(
+				"DELETE FROM " + TableTVSeries.TABLE_NAME + " " +
+				"WHERE NOT EXISTS (" +
+					"SELECT MOVIEORSHOWNAMESIMPLE FROM FILES " +
+					"WHERE FILES.MOVIEORSHOWNAMESIMPLE = " + TableTVSeries.TABLE_NAME + ".SIMPLIFIEDTITLE " +
+					"LIMIT 1" +
+				");"
+			);
+			ps.execute();
+
+			/*
+			 * Cleanup of metadata tables
+			 *
+			 * Now that the TV_SERIES table is clean, remove metadata
+			 * that does not correspond to any TV series or files
+			 */
+			String[] metadataTables = {
+				TableVideoMetadataActors.TABLE_NAME,
+				TableVideoMetadataAwards.TABLE_NAME,
+				TableVideoMetadataCountries.TABLE_NAME,
+				TableVideoMetadataDirectors.TABLE_NAME,
+				TableVideoMetadataIMDbRating.TABLE_NAME,
+				TableVideoMetadataGenres.TABLE_NAME,
+				TableVideoMetadataPosters.TABLE_NAME,
+				TableVideoMetadataProduction.TABLE_NAME,
+				TableVideoMetadataRated.TABLE_NAME,
+				TableVideoMetadataRatings.TABLE_NAME,
+				TableVideoMetadataReleased.TABLE_NAME
+			};
+			for (String table : metadataTables) {
+				ps = conn.prepareStatement(
+					"DELETE FROM " + table + " " +
+					"WHERE NOT EXISTS (" +
+						"SELECT FILENAME FROM " + TABLE_NAME + " " +
+						"WHERE " + TABLE_NAME + ".FILENAME = " + table + ".FILENAME " +
+						"LIMIT 1" +
+					") AND NOT EXISTS (" +
+						"SELECT ID FROM " + TableTVSeries.TABLE_NAME + " " +
+						"WHERE " + TableTVSeries.TABLE_NAME + ".ID = " + table + ".TVSERIESID " +
+						"LIMIT 1" +
+					");"
+				);
+				ps.execute();
+			}
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {
