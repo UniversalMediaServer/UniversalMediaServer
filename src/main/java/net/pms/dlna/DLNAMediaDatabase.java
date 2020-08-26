@@ -690,40 +690,40 @@ public class DLNAMediaDatabase implements Runnable {
 								media.getSubtitleTracksList().add(sub);
 							}
 						}
-					}
 
-					awards.setString(1, name);
-					try (ResultSet elements = awards.executeQuery()) {
-						while (elements.next()) {
-							media.setAwards(elements.getString("AWARD"));
+						awards.setString(1, name);
+						try (ResultSet elements = awards.executeQuery()) {
+							while (elements.next()) {
+								media.setAwards(elements.getString("AWARD"));
+							}
 						}
-					}
 
-					actors.setString(1, name);
-					try (ResultSet elements = actors.executeQuery()) {
-						while (elements.next()) {
-							media.addActor(elements.getString("ACTOR"));
+						actors.setString(1, name);
+						try (ResultSet elements = actors.executeQuery()) {
+							while (elements.next()) {
+								media.addActor(elements.getString("ACTOR"));
+							}
 						}
-					}
 
-					directors.setString(1, name);
-					try (ResultSet elements = directors.executeQuery()) {
-						while (elements.next()) {
-							media.addDirector(elements.getString("DIRECTOR"));
+						directors.setString(1, name);
+						try (ResultSet elements = directors.executeQuery()) {
+							while (elements.next()) {
+								media.addDirector(elements.getString("DIRECTOR"));
+							}
 						}
-					}
 
-					genres.setString(1, name);
-					try (ResultSet elements = genres.executeQuery()) {
-						while (elements.next()) {
-							media.addGenre(elements.getString("GENRE"));
+						genres.setString(1, name);
+						try (ResultSet elements = genres.executeQuery()) {
+							while (elements.next()) {
+								media.addGenre(elements.getString("GENRE"));
+							}
 						}
-					}
 
-					ratings.setString(1, name);
-					try (ResultSet elements = ratings.executeQuery()) {
-						while (elements.next()) {
-//							media.addRating(elements.getString("RATING"));
+						ratings.setString(1, name);
+						try (ResultSet elements = ratings.executeQuery()) {
+							while (elements.next()) {
+	//							media.addRating(elements.getString("RATING"));
+							}
 						}
 					}
 				}
@@ -1481,7 +1481,7 @@ public class DLNAMediaDatabase implements Runnable {
 		try {
 			conn = getConnection();
 
-			/**
+			/*
 			 * Cleanup of FILES table
 			 *
 			 * Removes entries that are not on the hard drive anymore, and
@@ -1541,7 +1541,7 @@ public class DLNAMediaDatabase implements Runnable {
 				PMS.get().getFrame().setStatusLine(null);
 			}
 
-			/**
+			/*
 			 * Cleanup of THUMBNAILS table
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
@@ -1550,16 +1550,17 @@ public class DLNAMediaDatabase implements Runnable {
 				"DELETE FROM " + TableThumbnails.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT ID FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID" +
-				") " +
-				"AND NOT EXISTS (" +
+					"WHERE " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+					"LIMIT 1" +
+				") AND NOT EXISTS (" +
 					"SELECT ID FROM " + TableTVSeries.TABLE_NAME + " " +
-					"WHERE " + TableTVSeries.TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID" +
+					"WHERE " + TableTVSeries.TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+					"LIMIT 1" +
 				");"
 			);
 			ps.execute();
 
-			/**
+			/*
 			 * Cleanup of FILES_STATUS table
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
