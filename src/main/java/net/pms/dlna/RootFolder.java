@@ -666,7 +666,7 @@ public class RootFolder extends DLNAResource {
 				// This command will show the XML files for recently opened iPhoto databases
 				Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
 				inputStream = process.getInputStream();
-				List<String> lines = IOUtils.readLines(inputStream, "UTF-8");
+				List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
 				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 
 				if (lines.size() >= 2) {

@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -447,7 +448,7 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsCharsetUTF8() throws Exception {
-		assertThat(FileUtil.isCharsetUTF8("UTF-8")).isTrue();
+		assertThat(FileUtil.isCharsetUTF8(StandardCharsets.UTF_8)).isTrue();
 		assertThat(FileUtil.isCharsetUTF8("uTf-8")).isTrue();
 		assertThat(FileUtil.isCharsetUTF8("uTf-88")).isFalse();
 	}
@@ -483,9 +484,9 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsCharsetUTF16() throws Exception {
-		assertThat(FileUtil.isCharsetUTF16("UTF-8")).isFalse();
-		assertThat(FileUtil.isCharsetUTF16("UTF-16BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16("UTF-16LE")).isTrue();
+		assertThat(FileUtil.isCharsetUTF16(StandardCharsets.UTF_8)).isFalse();
+		assertThat(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16BE)).isTrue();
+		assertThat(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16LE)).isTrue();
 		assertThat(FileUtil.isCharsetUTF16("utF-16le")).isTrue();
 		assertThat(FileUtil.isCharsetUTF16(" utF-16le")).isFalse();
 	}

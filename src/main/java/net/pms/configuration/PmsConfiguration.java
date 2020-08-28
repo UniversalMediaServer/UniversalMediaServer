@@ -5043,7 +5043,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		try {
 			Path webConfFilePath = Paths.get(getWebConfPath());
-			Files.write(webConfFilePath, contentsToWrite, Charset.forName("UTF-8"));
+			Files.write(webConfFilePath, contentsToWrite, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.debug("An error occurred while writing the web config file: {}", e);
 		}

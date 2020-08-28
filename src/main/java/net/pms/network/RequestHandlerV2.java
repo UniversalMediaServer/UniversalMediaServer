@@ -249,7 +249,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ChannelBuffer content = nettyRequest.getContent();
 			content.readBytes(data);
-			String textContent = new String(data, "UTF-8");
+			String textContent = new String(data, StandardCharsets.UTF_8);
 			request.setTextContent(textContent);
 			if (LOGGER.isTraceEnabled()) {
 				logMessageReceived(event, textContent, renderer);
@@ -448,7 +448,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		response.headers().set(
 			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		response.setContent(ChannelBuffers.copiedBuffer(
-			"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
+			"Failure: " + status.toString() + "\r\n", StandardCharsets.UTF_8));
 
 		// Close the connection as soon as the error message is sent.
 		ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);

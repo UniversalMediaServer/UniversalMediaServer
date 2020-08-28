@@ -920,7 +920,7 @@ public class StringUtil {
 		try {
 			Document xmlDocument = XmlUtils.xxeDisabledDocumentBuilderFactory()
 				.newDocumentBuilder()
-				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))));
 			return prettifyXML(xmlDocument, indentWidth);
 		} catch (IOException e) {
 			LOGGER.warn("Failed to read XML document, returning the source document: {}", e.getMessage());
