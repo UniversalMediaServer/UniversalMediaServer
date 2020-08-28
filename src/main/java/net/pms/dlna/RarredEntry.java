@@ -110,13 +110,13 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 					rarFile = new Archive(new FileVolumeManager(file),null, null);
 					FileHeader header = null;
 					for (FileHeader fh : rarFile.getFileHeaders()) {
-						if (fh.getFileNameString().equals(fileHeaderName)) {
+						if (fh.getFileName().equals(fileHeaderName)) {
 							header = fh;
 							break;
 						}
 					}
 					if (header != null) {
-						LOGGER.trace("Starting the extraction of " + header.getFileNameString());
+						LOGGER.trace("Starting the extraction of " + header.getFileName());
 						rarFile.extractFile(header, out);
 					}
 				} catch (RarException | IOException e) {

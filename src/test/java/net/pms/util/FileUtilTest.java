@@ -28,12 +28,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.util.FilePermissions.FileFlag;
 import static net.pms.util.Constants.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -94,10 +91,8 @@ public class FileUtilTest {
 	 */
 	@Test
 	public void testGetFileNameWithRewriting() throws Exception {
-		JsonParser parser = new JsonParser();
-
 		try {
-			JsonElement tree = parser.parse(
+			JsonElement tree = JsonParser.parseReader(
 				new java.io.FileReader(
 					FileUtils.toFile(
 						CLASS.getResource("prettified_filenames_metadata.json")
@@ -127,10 +122,8 @@ public class FileUtilTest {
 	public void testGetFileNameMetadata() throws Exception {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
-		JsonParser parser = new JsonParser();
-
 		try {
-			JsonElement tree = parser.parse(
+			JsonElement tree = JsonParser.parseReader(
 				new java.io.FileReader(
 					FileUtils.toFile(
 						CLASS.getResource("prettified_filenames_metadata.json")

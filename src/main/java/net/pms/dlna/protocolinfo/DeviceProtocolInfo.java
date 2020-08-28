@@ -30,8 +30,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
-import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.text.translate.CharSequenceTranslator;
+import org.apache.commons.text.translate.LookupTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAImageProfile;
@@ -81,29 +81,25 @@ public class DeviceProtocolInfo implements Serializable {
 	 */
 	public static final String COMMA_SPLIT_REGEX = "\\s*(?:(?<!\\\\),|(?<!\\\\)\\\\\\\\,)\\s*";
 
+	private static Map<CharSequence, CharSequence> unescapeMap =
+		Map.of("\\\\", "\\", "\\,", ",");
+	
 	/**
 	 * A {@link CharSequenceTranslator} for unescaping individual
 	 * {@code GetProtocolInfo} elements.
 	 */
 	public static final CharSequenceTranslator PROTOCOLINFO_UNESCAPE =
-		new LookupTranslator(
-			new String[][] {
-				{"\\\\", "\\"},
-				{"\\,", ","}
-			}
-		);
+		new LookupTranslator(unescapeMap);
+
+	private static Map<CharSequence, CharSequence> escapeMap =
+		Map.of(",", "\\,", "\\", "\\\\");
 
 	/**
 	 * A {@link CharSequenceTranslator} for escaping individual
 	 * {@code GetProtocolInfo} elements.
 	 */
 	public static final CharSequenceTranslator PROTOCOLINFO_ESCAPE =
-		new LookupTranslator(
-			new String[][] {
-				{",", "\\,"},
-				{"\\", "\\\\"},
-			}
-		);
+		new LookupTranslator(escapeMap);
 
 	/** The sets lock. */
 	protected final ReentrantReadWriteLock setsLock = new ReentrantReadWriteLock();
