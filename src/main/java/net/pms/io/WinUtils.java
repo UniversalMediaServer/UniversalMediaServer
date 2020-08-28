@@ -48,7 +48,7 @@ public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 
 	public interface Kernel32 extends Library {
-		Kernel32 INSTANCE = Native.loadLibrary("kernel32", Kernel32.class);
+		Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
 
 		int GetShortPathNameW(WString lpszLongPath, char[] lpdzShortPath, int cchBuffer);
