@@ -490,10 +490,6 @@ function populateMetadataDisplayFromGlobalVars() {
 	if (totalSeasons) {
 		$('.totalSeasons').html('<strong>' + totalSeasonsTranslation + ':</strong> ' + totalSeasons);
 	}
-
-	if (recommendationsVirtualFolderId) {
-		$('.recommendations').html('<a href="/browse/1"> Recommendations: </a>');
-	}
 	
 }
 
