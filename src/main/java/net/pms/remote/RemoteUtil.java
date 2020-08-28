@@ -532,6 +532,7 @@ public class RemoteUtil {
 		String directors = "";
 		HashSet<String> genres = new HashSet();
 		String imdbID = "";
+		String rated = "";
 		List<HashMap<String, String>> ratings = new ArrayList<>();
 		String plot = "";
 		String poster = "";
@@ -541,6 +542,7 @@ public class RemoteUtil {
 		DLNAResource actorsFolder = null;
 		DLNAResource countryFolder = null;
 		DLNAResource genresFolder = null;
+		DLNAResource ratedFolder = null;
 
 		List<DLNAResource> actorsChildren = null;
 		List<DLNAResource> genresChildren = null;
@@ -577,6 +579,8 @@ public class RemoteUtil {
 						countryFolder = filterByInformationChild;
 					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Genres"))) {
 						genresFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Rated"))) {
+						ratedFolder = filterByInformationChild;
 					}
 				}
 
@@ -588,15 +592,15 @@ public class RemoteUtil {
 				awards = (String) row.get("AWARD");
 			}
 			if (row.get("COUNTRY") != null && StringUtils.isBlank(country) && countryFolder != null) {
-				String countryTranslation = (String) row.get("COUNTRY");
-				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryTranslation);
-				UMSUtils.filterResourcesByName(countriesChildren, countryTranslation, true, true);
+				String countryValue = (String) row.get("COUNTRY");
+				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
+				UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
 				DLNAResource filteredCountryFolder = countriesChildren.get(0);
 
 				String countryId = filteredCountryFolder.getId();
 				String countryIdForWeb = URLEncoder.encode(countryId, "UTF-8");
 
-				country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryTranslation) + "\" }";
+				country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryValue) + "\" }";
 			}
 			if (row.get("DIRECTOR") != null) {
 				directors = (String) row.get("DIRECTOR");
@@ -609,6 +613,17 @@ public class RemoteUtil {
 			}
 			if (row.get("POSTER") != null) {
 				poster = (String) row.get("POSTER");
+			}
+			if (row.get("RATED") != null && StringUtils.isBlank(rated) && ratedFolder != null) {
+				String ratedValue = (String) row.get("RATING");
+				List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
+				UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
+				DLNAResource filteredRatedFolder = ratedChildren.get(0);
+
+				String ratedId = filteredRatedFolder.getId();
+				String ratedIdForWeb = URLEncoder.encode(ratedId, "UTF-8");
+
+				rated = "{ id: \"" + ratedIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(ratedValue) + "\" }";
 			}
 			if (row.get("RATINGVALUE") != null && row.get("RATINGSOURCE") != null) {
 				HashMap<String, String> ratingToInsert = new HashMap();

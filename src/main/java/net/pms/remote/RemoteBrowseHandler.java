@@ -290,13 +290,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						resource.getParent().getParent().getParent().getParent() != null &&
 						resource.getParent().getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
 					) ||
-					(
-						resource.getParent() != null &&
-						resource.getParent().getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) &&
-						resource.getParent().getParent() != null &&
-						resource.getParent().getParent().getParent() != null &&
-						resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
-					)
+					resource.getParent().getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations"))
 				) {
 					isDisplayFoldersAsThumbnails = true;
 				}
@@ -440,12 +434,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					folder.getParent().getParent().getParent() != null &&
 					folder.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
 				) ||
-				(
-					folder.getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) &&
-					folder.getParent() != null &&
-					folder.getParent().getParent() != null &&
-					folder.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
-				)
+				folder.getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations"))
 			) {
 				for (DLNAResource resource : resources) {
 					if (resource instanceof MediaLibraryFolder) {
