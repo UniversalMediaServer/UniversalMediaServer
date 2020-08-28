@@ -5025,6 +5025,9 @@ public class OpenSubtitle {
 
 				TableVideoMetadataPosters.set("", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
 				TableVideoMetadataRated.set("", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
+				if (seriesMetadataFromAPI.get("rating") != null && (Double) seriesMetadataFromAPI.get("rating") != 0.0) {
+					TableVideoMetadataIMDbRating.set("", Double.toString((Double) seriesMetadataFromAPI.get("rating")), tvSeriesDatabaseId);
+				}
 				HashSet ratingsFromAPI = new HashSet((ArrayList) seriesMetadataFromAPI.get("ratings"));
 				if (!ratingsFromAPI.isEmpty()) {
 					TableVideoMetadataRatings.set("", ratingsFromAPI, tvSeriesDatabaseId);
@@ -5222,7 +5225,7 @@ public class OpenSubtitle {
 					}
 
 					media.setRated((String) metadataFromAPI.get("rated"));
-					if (metadataFromAPI.get("rating") != null) {
+					if (metadataFromAPI.get("rating") != null && (Double) metadataFromAPI.get("rating") != 0.0) {
 						media.setIMDbRating(Double.toString((Double) metadataFromAPI.get("rating")));
 					}
 					if (metadataFromAPI.get("ratings") != null) {

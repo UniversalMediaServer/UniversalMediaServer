@@ -1778,7 +1778,6 @@ public class DLNAMediaDatabase implements Runnable {
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
-						LOGGER.info("0 " + resultSet.toString());
 						return convertResultSetToList(resultSet);
 					}
 				}

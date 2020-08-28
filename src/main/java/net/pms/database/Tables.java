@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaDatabase;
@@ -333,6 +334,21 @@ public class Tables {
 				row.put(md.getColumnName(i), rs.getObject(i));
 			}
 			list.add(row);
+		}
+
+		return list;
+	}
+
+	/**
+	 * @param rs
+	 * @return the rows of the first column of a result set
+	 * @throws SQLException 
+	 */
+	public static HashSet convertResultSetToHashSet(ResultSet rs) throws SQLException {
+		HashSet list = new HashSet();
+
+		while (rs.next()) {
+			list.add(rs.getString(1));
 		}
 
 		return list;

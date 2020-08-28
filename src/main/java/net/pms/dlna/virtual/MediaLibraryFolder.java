@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -14,8 +16,10 @@ import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataCountries;
 import net.pms.database.TableVideoMetadataDirectors;
 import net.pms.database.TableVideoMetadataGenres;
+import net.pms.database.TableVideoMetadataIMDbRating;
 import net.pms.database.TableVideoMetadataRated;
 import net.pms.database.TableVideoMetadataReleased;
+import static net.pms.database.Tables.sqlQuote;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -45,7 +49,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int ISOS_WITH_FILTERS = 11;
 	public static final int TVSERIES_WITH_FILTERS = 12;
 	public static final int TVSERIES = 13;
-	public static final int EPISODES_WITHIN_SEASON = 14;
+	public static final int TVSERIES_NOSORT = 14;
+	public static final int EPISODES_WITHIN_SEASON = 15;
 	private boolean isTVSeries = false;
 	private String sqls[];
 	private int expectedOutputs[];
@@ -273,6 +278,7 @@ LOGGER.info("2firstSql: " + firstSql);
 					case TEXTS_NOSORT:
 					case SEASONS:
 					case TVSERIES:
+					case TVSERIES_NOSORT:
 						virtualFoldersListFromDb = database.getStrings(firstSql);
 						populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 						break;
@@ -388,7 +394,7 @@ LOGGER.info("2firstSql: " + firstSql);
 		}
 
 		if (virtualFoldersListFromDb != null) {
-			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS) {
+			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT) {
 				UMSUtils.sort(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
 			}
 
@@ -560,12 +566,70 @@ LOGGER.info("2firstSql: " + firstSql);
 							LOGGER.trace("2 sqls2: " + Arrays.toString(sqls2));
 						}
 					}
-					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_WITH_FILTERS;
+					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
 					LOGGER.info("33 " + virtualFolderName);
 					LOGGER.info("34 " + Arrays.toString(sqls2));
 					LOGGER.info("35 " + Arrays.toString(expectedOutputs2));
 					addChild(new MediaLibraryFolder(virtualFolderName, sqls2, expectedOutputs2, nameToDisplay, isExpectedTVSeries));
 				}
+			}
+		}
+
+		// Recommendations for TV series, episodes and movies
+		if (expectedOutput == EPISODES) {
+			HashSet genres = TableVideoMetadataGenres.getByTVSeriesName(getName());
+			String genresCondition = "";
+			Iterator<String> i = genres.iterator();
+			while (i.hasNext()) {
+				String genre = i.next();
+				if (isNotBlank(genresCondition)) {
+					genresCondition += " OR ";
+				}
+				genresCondition += TableVideoMetadataGenres.TABLE_NAME + ".GENRE = " + sqlQuote(genre);
+			}
+
+			String rated = TableVideoMetadataRated.getByTVSeriesName(getName());
+			String ratedCondition = "";
+			if (isNotBlank(rated)) {
+				ratedCondition = TableVideoMetadataRated.TABLE_NAME + ".RATING = " + sqlQuote(rated) + " ";
+			}
+
+			if (isNotBlank(genresCondition) && isNotBlank(ratedCondition)) {
+				VirtualFolder recommendations = new MediaLibraryFolder(
+					Messages.getString("MediaLibrary.Recommendations"),
+					new String[]{
+						"SELECT DISTINCT " + TableTVSeries.TABLE_NAME + ".TITLE, " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING " +
+							"FROM " + TableTVSeries.TABLE_NAME + " " +
+								"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID " +
+								"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".TVSERIESID " +
+								"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME + ".TVSERIESID " +
+							"WHERE " +
+								"(" + genresCondition + ") AND " +
+								ratedCondition + " AND " +
+								TableTVSeries.TABLE_NAME + ".TITLE != " + sqlQuote(getName()) + " " +
+							"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING DESC",
+						"SELECT * FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
+					},
+					new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
+				);
+				// note for file recommendations
+	//			VirtualFolder recommendations = new MediaLibraryFolder(
+	//				Messages.getString("MediaLibrary.Recommendations"),
+	//				"SELECT DISTINCT " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME, " + DLNAMediaDatabase.TABLE_NAME + ".MODIFIED, " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING " +
+	//				"FROM " + DLNAMediaDatabase.TABLE_NAME + " " +
+	//					"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
+	//					"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
+	//					"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".FILENAME " +
+	//				"WHERE " + DLNAMediaDatabase.TABLE_NAME + ".TYPE = 4 " +
+	//					"AND NOT " + DLNAMediaDatabase.TABLE_NAME + ".ISTVEPISODE " +
+	//					"AND " + DLNAMediaDatabase.TABLE_NAME + ".YEAR != '' " +
+	//					"AND " + DLNAMediaDatabase.TABLE_NAME + ".STEREOSCOPY = '' "	+
+	//					"AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
+	//					"AND (" + genresCondition + ") " +
+	//				"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING ASC",
+	//				MediaLibraryFolder.FILES_NOSORT
+	//			);
+				addChild(recommendations);
 			}
 		}
 
@@ -610,6 +674,7 @@ LOGGER.info("2firstSql: " + firstSql);
 			expectedOutput == TEXTS_WITH_FILTERS ||
 			expectedOutput == SEASONS ||
 			expectedOutput == TVSERIES_WITH_FILTERS ||
+			expectedOutput == TVSERIES_NOSORT ||
 			expectedOutput == TVSERIES ||
 			expectedOutput == EPISODES;
 	}

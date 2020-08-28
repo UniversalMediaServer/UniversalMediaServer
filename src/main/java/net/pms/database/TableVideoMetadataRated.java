@@ -55,6 +55,41 @@ public final class TableVideoMetadataRated extends Tables {
 	}
 
 	/**
+	 * @param tvSeriesTitle
+	 * @return the rating for a TV series, if it has an IMDb ID stored.
+	 */
+	public static String getByTVSeriesName(final String tvSeriesTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT RATING FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
+				"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle) + " " +
+				"LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						return resultSet.getString(1);
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSeriesTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile

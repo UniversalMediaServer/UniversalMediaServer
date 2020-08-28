@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import static net.pms.database.Tables.database;
+import static net.pms.database.Tables.sqlQuote;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +55,38 @@ public final class TableVideoMetadataGenres extends Tables {
 
 	// No instantiation
 	private TableVideoMetadataGenres() {
+	}
+
+	/**
+	 * @param tvSeriesTitle
+	 * @return all data in this table for a TV series, if it has an IMDb ID stored.
+	 */
+	public static HashSet getByTVSeriesName(final String tvSeriesTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = database.getConnection()) {
+			String query = "SELECT GENRE FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
+				"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle);
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					return convertResultSetToHashSet(resultSet);
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSeriesTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
 	}
 
 	/**

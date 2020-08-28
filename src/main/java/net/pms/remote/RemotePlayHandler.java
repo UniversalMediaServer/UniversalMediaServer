@@ -84,22 +84,22 @@ public class RemotePlayHandler implements HttpHandler {
 		WebRender renderer = (WebRender) root.getDefaultRenderer();
 		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
-		DLNAResource r = root.getDLNAResource(id, renderer);
-		if (r == null) {
+		DLNAResource rootResource = root.getDLNAResource(id, renderer);
+		if (rootResource == null) {
 			LOGGER.debug("Bad web play id: " + id);
 			throw new IOException("Bad Id");
 		}
-		if (!r.isCodeValid(r)) {
+		if (!rootResource.isCodeValid(rootResource)) {
 			LOGGER.debug("coded object with invalid code");
 			throw new IOException("Bad code");
 		}
-		if (r instanceof VirtualVideoAction) {
+		if (rootResource instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
-			if (((VirtualVideoAction) r).enable()) {
-				renderer.notify(renderer.INFO, r.getName() + " enabled");
+			if (((VirtualVideoAction) rootResource).enable()) {
+				renderer.notify(renderer.INFO, rootResource.getName() + " enabled");
 			} else {
-				renderer.notify(renderer.INFO, r.getName() + " disabled");
+				renderer.notify(renderer.INFO, rootResource.getName() + " disabled");
 			}
 			return returnPage();
 		}
@@ -112,10 +112,10 @@ public class RemotePlayHandler implements HttpHandler {
 		Boolean isShowBreadcrumbs = false;
 
 		if (
-			r.getParent() != null &&
-			r.getParent().isFolder()
+			rootResource.getParent() != null &&
+			rootResource.getParent().isFolder()
 		) {
-			DLNAResource thisResourceFromResources = r;
+			DLNAResource thisResourceFromResources = rootResource;
 			String thisName = thisResourceFromResources.getDisplayName();
 
 			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
@@ -129,7 +129,7 @@ public class RemotePlayHandler implements HttpHandler {
 				isShowBreadcrumbs = true;
 			}
 
-			DLNAResource parentFromResources = r.getParent();
+			DLNAResource parentFromResources = rootResource.getParent();
 			String parentID = parentFromResources.getResourceId();
 			String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 			String backUri = "/browse/" + parentIDForWeb;
@@ -142,7 +142,7 @@ public class RemotePlayHandler implements HttpHandler {
 		mustacheVars.put("breadcrumbs", breadcrumbs);
 		mustacheVars.put("folders", folders);
 
-		Format format =  r.getFormat();
+		Format format =  rootResource.getFormat();
 		boolean isImage = format.isImage();
 		boolean isVideo = format.isVideo();
 		boolean isAudio = format.isAudio();
@@ -153,8 +153,8 @@ public class RemotePlayHandler implements HttpHandler {
 
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
-		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r);
+		String name = StringEscapeUtils.escapeHtml(rootResource.resumeName());
+		String mime = root.getDefaultRenderer().getMimeType(rootResource);
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
 		@SuppressWarnings("unused")
@@ -162,22 +162,28 @@ public class RemotePlayHandler implements HttpHandler {
 
 		mustacheVars.put("isVideoWithAPIData", false);
 		mustacheVars.put("javascriptVarsScript", "");
-		if (isVideo && configuration.getUseCache()) {
-			String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(r, t, false, root);
-			if (apiMetadataAsJavaScriptVars != null) {
-				LOGGER.info("apiMetadataAsJavaScriptVars: " + apiMetadataAsJavaScriptVars);
-				mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
-				mustacheVars.put("isVideoWithAPIData", true);
+		if (isVideo) {
+			if (configuration.getUseCache()) {
+				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, false, root);
+				if (apiMetadataAsJavaScriptVars != null) {
+					LOGGER.info("apiMetadataAsJavaScriptVars: " + apiMetadataAsJavaScriptVars);
+					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
+					mustacheVars.put("isVideoWithAPIData", true);
+
+					if (rootResource.getMedia() != null && rootResource.getMedia().getGenres() != null) {
+						
+					}
+				}
 			}
 
 			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
-				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
-					mime = r.getMedia().getMimeType();
+				if (rootResource.getMedia() != null && rootResource.getMedia().getMimeType() != null) {
+					mime = rootResource.getMedia().getMimeType();
 				}
 			}
 			if (!flowplayer) {
-				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
-					WebRender render = (WebRender) r.getDefaultRenderer();
+				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
+					WebRender render = (WebRender) rootResource.getDefaultRenderer();
 					mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
 				}
 			}
@@ -187,7 +193,7 @@ public class RemotePlayHandler implements HttpHandler {
 		mustacheVars.put("id1", id1);
 		mustacheVars.put("autoContinue", configuration.getWebAutoCont(format));
 		if (configuration.isDynamicPls()) {
-			if (r.getParent() instanceof Playlist) {
+			if (rootResource.getParent() instanceof Playlist) {
 				mustacheVars.put("plsOp", "del");
 				mustacheVars.put("plsSign", "-");
 				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.4", t));
@@ -197,7 +203,7 @@ public class RemotePlayHandler implements HttpHandler {
 				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.5", t));
 			}
 		}
-		addNextByType(r, mustacheVars);
+		addNextByType(rootResource, mustacheVars);
 		if (isImage) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
@@ -212,8 +218,8 @@ public class RemotePlayHandler implements HttpHandler {
 			if (flowplayer) {
 				if (
 					RemoteUtil.directmime(mime) &&
-					!RemoteUtil.transMp4(mime, r.getMedia()) &&
-					!r.isResume() &&
+					!RemoteUtil.transMp4(mime, rootResource.getMedia()) &&
+					!rootResource.isResume() &&
 					!forceFlash
 				) {
 					mustacheVars.put("src", true);
@@ -235,11 +241,11 @@ public class RemotePlayHandler implements HttpHandler {
 				configuration.setFFmpegFontConfig(false);
 			}
 			OutputParams p = new OutputParams(configuration);
-			p.sid = r.getMediaSubtitle();
-			Player.setAudioAndSubs(r, p);
+			p.sid = rootResource.getMediaSubtitle();
+			Player.setAudioAndSubs(rootResource, p);
 			if (p.sid != null && p.sid.getType().isText()) {
 				try {
-					File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
+					File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, configuration, SubtitleType.WEBVTT);
 					LOGGER.debug("subFile " + subFile);
 					if (subFile != null) {
 						mustacheVars.put("sub", parent.getResources().add(subFile));
