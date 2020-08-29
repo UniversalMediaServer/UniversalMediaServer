@@ -426,7 +426,7 @@ public class RemoteWeb {
 	                    while ((n = t.getRequestBody().read(buf)) > -1) {
 	                        bytes.write(buf, 0, n);
 	                    }
-	                    String str = bytes.toString(StandardCharsets.UTF_8);
+	                    String str = bytes.toString("utf-8");
 	                    
 	                    URLConnection conn = new URL(url).openConnection();
 	                    ((HttpURLConnection)conn).setRequestMethod("POST");

@@ -185,14 +185,14 @@ public class JNATypesTest {
 		FixedCharArrayByReference fixedCharArrayByReference = new FixedCharArrayByReference(4);
 		fixedCharArrayByReference.setByteArray(populatedByteArray);
 		assertEquals(4, fixedCharArrayByReference.getSize());
-//		assertEquals("?d\u0001>", fixedCharArrayByReference.getString(StandardCharsets.US_ASCII));
+		assertEquals("?d\u0001>", fixedCharArrayByReference.getString(StandardCharsets.US_ASCII));
 
 		fixedCharArrayByReference.setString("\u001E\u1D88", StandardCharsets.UTF_16);
 		assertArrayEquals(new byte[] {(byte) -2, (byte) -1, (byte) 0, (byte) 30}, fixedCharArrayByReference.getByteArray());
 		fixedCharArrayByReference = new FixedCharArrayByReference(6);
 		fixedCharArrayByReference.setString("\u001E\u1D88", StandardCharsets.UTF_16);
-//		assertEquals("\u001E\u1D88", fixedCharArrayByReference.getString(StandardCharsets.UTF_16));
-//		assertEquals("??", fixedCharArrayByReference.getString(StandardCharsets.US_ASCII));
+		assertEquals("\u001E\u1D88", fixedCharArrayByReference.getString(StandardCharsets.UTF_16));
+		assertEquals("??", fixedCharArrayByReference.getString(StandardCharsets.US_ASCII));
 
 		try {
 			fixedCharArrayByReference.setByteArray(new byte[] {(byte) 100, (byte) 1, (byte) 1});
