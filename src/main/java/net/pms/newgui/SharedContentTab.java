@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
@@ -57,7 +56,6 @@ import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
-import net.pms.util.ShortcutFileSystemView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -256,16 +254,7 @@ public class SharedContentTab {
 		addButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser;
-				try {
-					chooser = new JFileChooser();
-					if (Platform.isWindows()) {
-						chooser.setFileSystemView(new ShortcutFileSystemView());
-					}
-				} catch (Exception ee) {
-					chooser = new JFileChooser(new RestrictedFileSystemView());
-					LOGGER.debug("Using RestrictedFileSystemView because {}", ee.getMessage());
-				}
+				JFileChooser chooser = new JFileChooser();
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
