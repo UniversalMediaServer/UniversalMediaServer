@@ -840,9 +840,9 @@ public class ProcessManager {
 			if (process == null) {
 				return;
 			}
-			IOUtils.closeQuietly(process.getInputStream());
-			IOUtils.closeQuietly(process.getErrorStream());
-			IOUtils.closeQuietly(process.getOutputStream());
+			IOUtils.closeQuietly(process.getInputStream(), null);
+			IOUtils.closeQuietly(process.getErrorStream(), null);
+			IOUtils.closeQuietly(process.getOutputStream(), null);
 			process.destroy();
 		}
 
