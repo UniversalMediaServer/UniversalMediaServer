@@ -172,7 +172,13 @@ public class Wizard {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					JFileChooser chooser = new JFileChooser();
+					JFileChooser chooser;
+					try {
+						chooser = new JFileChooser();
+					} catch (Exception ee) {
+						chooser = new JFileChooser(new RestrictedFileSystemView());
+					}
+
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setDialogTitle(Messages.getString("Wizard.12"));
 					chooser.setMultiSelectionEnabled(false);
