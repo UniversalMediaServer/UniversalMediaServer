@@ -636,7 +636,7 @@ public class FileUtil {
 	 * @return The prettified filename
 	 */
 	public static String getFileNamePrettified(String f, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
-		String formattedName = null;
+		String formattedName;
 
 		String title;
 		String year;
@@ -717,8 +717,12 @@ public class FileUtil {
 					formattedName += tvEpisodeName;
 				}
 			} else {
+				formattedName = title;
+				if (isNotBlank(year)) {
+					formattedName += " (" + year + ")";
+				}
 				if (isNotBlank(tvSeasonPadded) && isNotBlank(tvEpisodeNumber)) {
-					formattedName = title + " " + tvSeasonPadded + tvEpisodeNumber;
+					formattedName += " " + tvSeasonPadded + tvEpisodeNumber;
 				}
 
 				if (isNotBlank(tvEpisodeName)) {
@@ -766,7 +770,7 @@ public class FileUtil {
 		String edition         = null;
 		
 		// This can contain editions and "Sample" for now
-		String extraInformation = null;
+		String extraInformation;
 
 		Pattern pattern;
 		Matcher matcher;
@@ -1009,8 +1013,8 @@ public class FileUtil {
 			}
 			int yearIndex = indexOf(Pattern.compile("\\s(?:19|20)\\d{2}"), movieOrShowName);
 			if (yearIndex > -1) {
-				movieOrShowName = formattedName.substring(0, yearIndex);
 				year = formattedName.substring(yearIndex + 1, yearIndex + 5);
+				movieOrShowName = formattedName.substring(0, yearIndex) + " (" + year + ")";
 			}
 		} else {
 			if (isMovieWithoutYear) {

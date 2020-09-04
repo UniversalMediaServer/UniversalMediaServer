@@ -111,6 +111,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.newgui.IFrame;
+import static net.pms.util.FileUtil.indexOf;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
 import net.pms.util.XMLRPCUtil.MemberInt;
@@ -1910,7 +1911,7 @@ public class OpenSubtitle {
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
 	public static HashMap<String, Object> getTVSeriesInfo(String formattedName, String imdbID, String year) throws IOException {
-		LOGGER.trace("getting API info for {}, {}", formattedName, imdbID);
+		LOGGER.trace("getting API info for {}, {}, {}", formattedName, imdbID, year);
 		String apiResult = null;
 
 		if (isNotBlank(imdbID)) {
@@ -1919,6 +1920,11 @@ public class OpenSubtitle {
 		}
 
 		if (formattedName != null && (apiResult == null || apiResult.contains("statusCode"))) {
+			// Remove the year from the title if it exists
+			int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), formattedName);
+			if (yearIndex > -1) {
+				formattedName = formattedName.substring(0, yearIndex);
+			}
 			LOGGER.trace("looking up title {}", formattedName);
 			apiResult = getInfoFromFilename(formattedName, true, year);
 		}
@@ -4941,6 +4947,9 @@ public class OpenSubtitle {
 				}
 
 				title = (String) seriesMetadataFromAPI.get("title");
+				if (isNotBlank(yearFromFilename)) {
+					title += " (" + yearFromFilename + ")";
+				}
 				titleSimplified = FileUtil.getSimplifiedShowName(title);
 				String typeFromAPI = (String) seriesMetadataFromAPI.get("type");
 				boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
@@ -5113,7 +5122,16 @@ public class OpenSubtitle {
 					String typeFromAPI = (String) metadataFromAPI.get("type");
 					String yearFromAPI = (String) metadataFromAPI.get("year");
 					boolean isTVEpisodeFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("episode");
-					String titleFromAPI = (String) metadataFromAPI.get("title");
+
+					// At this point, this is the episode title if it is an episode
+					String titleFromAPI = null;
+					String tvEpisodeTitleFromAPI = null;
+					if (isTVEpisodeFromAPI) {
+						tvEpisodeTitleFromAPI = (String) metadataFromAPI.get("title");
+					} else {
+						titleFromAPI = (String) metadataFromAPI.get("title");
+					}
+
 					String tvSeasonFromAPI = (String) metadataFromAPI.get("seasonNumber");
 					String tvEpisodeNumberFromAPI = (String) metadataFromAPI.get("episodeNumber");
 					if (tvEpisodeNumberFromAPI != null && tvEpisodeNumberFromAPI.length() == 1) {
@@ -5169,10 +5187,9 @@ public class OpenSubtitle {
 
 					// Now that we are happy with the API data, let's make some clearer variables
 					boolean isTVEpisode    = isTVEpisodeBasedOnFilename;
-					String title           = titleFromAPI;
-					String titleSimplified = FileUtil.getSimplifiedShowName(title);
+					String title = null;
 					String tvEpisodeNumber = tvEpisodeNumberFromAPI;
-					String tvEpisodeTitle  = (String) metadataFromAPI.get("title");
+					String tvEpisodeTitle  = tvEpisodeTitleFromAPI;
 					String tvSeason        = tvSeasonFromAPI;
 					String year            = yearFromAPI;
 
@@ -5181,7 +5198,14 @@ public class OpenSubtitle {
 						if (titleFromDatabase != null) {
 							title = titleFromDatabase;
 						}
+					} else {
+						title = isNotBlank(titleFromAPI) ? titleFromAPI : titleFromFilename;
 					}
+
+					if (isBlank(title)) {
+						title = titleFromFilename;
+					}
+					String titleSimplified = FileUtil.getSimplifiedShowName(title);
 
 					media.setMovieOrShowName(title);
 					media.setSimplifiedMovieOrShowName(titleSimplified);
