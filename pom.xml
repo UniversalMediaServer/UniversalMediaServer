@@ -408,7 +408,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>3.17.0</version>
+			<version>3.17.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -536,7 +536,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.2.4</version>
+			<version>5.2.5</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
