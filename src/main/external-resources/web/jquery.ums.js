@@ -476,7 +476,7 @@ function populateMetadataDisplayFromGlobalVars() {
 		$('.posterContainer').html(img);
 	}
 	if (rated) {
-		$('.rated').html('<strong>' + ratedTranslation + ':</strong> ' + rated);
+		$('.rated').html('<strong>' + ratedTranslation + ':</strong> <a href="/browse/' + rated.id + '">' + rated.name + '</a>');
 	}
 	if (ratings && ratings[0]) {
 		$('.ratings').html('<strong>' + ratingsTranslation + ':</strong>');

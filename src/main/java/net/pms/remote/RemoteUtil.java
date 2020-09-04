@@ -614,7 +614,7 @@ public class RemoteUtil {
 			if (row.get("POSTER") != null) {
 				poster = (String) row.get("POSTER");
 			}
-			if (row.get("RATED") != null && StringUtils.isBlank(rated) && ratedFolder != null) {
+			if (row.get("RATING") != null && StringUtils.isBlank(rated) && ratedFolder != null) {
 				String ratedValue = (String) row.get("RATING");
 				List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
 				UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
@@ -700,6 +700,8 @@ public class RemoteUtil {
 		javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
 		javascriptVarsScript += "var plotTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Plot", t) + "\";";
 		javascriptVarsScript += "var poster = \"" + StringEscapeUtils.escapeEcmaScript(poster) + "\";";
+		javascriptVarsScript += "var rated = " + rated + ";";
+		javascriptVarsScript += "var ratedTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Rated", t) + "\";";
 		javascriptVarsScript += "var startYear = \"" + StringEscapeUtils.escapeEcmaScript(startYear) + "\";";
 		javascriptVarsScript += "var yearStartedTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.YearStarted", t) + "\";";
 		javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
