@@ -57,13 +57,13 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsUrl() throws Exception {
-		assertThat(FileUtil.isUrl("universalmediaserver.com")).isFalse();
-		assertThat(FileUtil.isUrl("http://www.universalmediaserver.com")).isTrue();
+		assertFalse(FileUtil.isUrl("universalmediaserver.com"));
+		assertTrue(FileUtil.isUrl("http://www.universalmediaserver.com"));
 	}
 
 	@Test
 	public void testGetProtocol() throws Exception {
-		assertThat(FileUtil.getProtocol("universalmediaserver.com")).isNull();
+		assertNull(FileUtil.getProtocol("universalmediaserver.com"));
 		assertThat(FileUtil.getProtocol("http://www.universalmediaserver.com")).isEqualTo("http");
 	}
 
@@ -75,7 +75,7 @@ public class FileUtilTest {
 
 	@Test
 	public void testGetUrlExtension() throws Exception {
-		assertThat(FileUtil.getUrlExtension("filename")).isNull();
+		assertNull(FileUtil.getUrlExtension("filename"));
 		assertThat(FileUtil.getUrlExtension("http://www.universalmediaserver.com/file.html?foo=bar")).isEqualTo("html");
 	}
 
@@ -429,57 +429,57 @@ public class FileUtilTest {
 	@Test
 	public void testIsFileUTF8() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8));
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8_2)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8_2));
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8_3)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8_3));
 		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf_16)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_utf_16));
 		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf_16_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_utf_16_2));
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.isFileUTF8(file_cp1251)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_cp1251));
 		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.isFileUTF8(file_ch)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_ch));
 		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.isFileUTF8(file_ch_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_ch_2));
 	}
 
 	@Test
 	public void testIsCharsetUTF8() throws Exception {
 		assertTrue(FileUtil.isCharsetUTF8(StandardCharsets.UTF_8));
-		assertThat(FileUtil.isCharsetUTF8("uTf-8")).isTrue();
-		assertThat(FileUtil.isCharsetUTF8("uTf-88")).isFalse();
+		assertTrue(FileUtil.isCharsetUTF8("uTf-8"));
+		assertFalse(FileUtil.isCharsetUTF8("uTf-88"));
 	}
 
 	@Test
 	public void testIsCharsetUTF18_withNullOrEmptyCharset() throws Exception {
 		String s = null;
-		assertThat(FileUtil.isCharsetUTF8(s)).isFalse();
+		assertFalse(FileUtil.isCharsetUTF8(s));
 		Charset c = null;
-		assertThat(FileUtil.isCharsetUTF8(c)).isFalse();
-		assertThat(FileUtil.isCharsetUTF8("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF8(c));
+		assertFalse(FileUtil.isCharsetUTF8(""));
 	}
 
 	@Test
 	public void testIsFileUTF16() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8));
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8_2));
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8_3)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8_3));
 		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf_16)).isTrue();
+		assertTrue(FileUtil.isFileUTF16(file_utf_16));
 		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf_16_2)).isTrue();
+		assertTrue(FileUtil.isFileUTF16(file_utf_16_2));
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.isFileUTF16(file_cp1251)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_cp1251));
 		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.isFileUTF16(file_ch)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_ch));
 		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.isFileUTF16(file_ch_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_ch_2));
 	}
 
 	@Test
@@ -487,33 +487,33 @@ public class FileUtilTest {
 		assertFalse(FileUtil.isCharsetUTF16(StandardCharsets.UTF_8));
 		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16BE));
 		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16LE));
-		assertThat(FileUtil.isCharsetUTF16("utF-16le")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16(" utF-16le")).isFalse();
+		assertTrue(FileUtil.isCharsetUTF16("utF-16le"));
+		assertFalse(FileUtil.isCharsetUTF16(" utF-16le"));
 	}
 
 	@Test
 	public void testIsCharsetUTF16_withNullOrEmptyCharset() throws Exception {
 		String s = null;
-		assertThat(FileUtil.isCharsetUTF16(s)).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(s));
 		Charset c = null;
-		assertThat(FileUtil.isCharsetUTF16(c)).isFalse();
-		assertThat(FileUtil.isCharsetUTF16("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(c));
+		assertFalse(FileUtil.isCharsetUTF16(""));
 	}
 
 	@Test
 	public void testIsCharsetUTF32() throws Exception {
-		assertThat(FileUtil.isCharsetUTF32("UTF-8")).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("UTF-16BE")).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("utF-32Be")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("utF-332Be")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF32("UTF-8"));
+		assertFalse(FileUtil.isCharsetUTF32("UTF-16BE"));
+		assertTrue(FileUtil.isCharsetUTF32("UTF-32BE"));
+		assertTrue(FileUtil.isCharsetUTF32("UTF-32BE"));
+		assertTrue(FileUtil.isCharsetUTF32("utF-32Be"));
+		assertFalse(FileUtil.isCharsetUTF32("utF-332Be"));
 	}
 
 	@Test
 	public void testIsCharsetUTF32_withNullOrEmptyCharset() throws Exception {
-		assertThat(FileUtil.isCharsetUTF32(null)).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF32(null));
+		assertFalse(FileUtil.isCharsetUTF32(""));
 	}
 
 	@Test
@@ -523,7 +523,7 @@ public class FileUtilTest {
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8le, outputFile);
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
 
@@ -534,7 +534,7 @@ public class FileUtilTest {
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8be, outputFile);
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
 
