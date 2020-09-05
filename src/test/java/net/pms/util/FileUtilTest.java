@@ -448,7 +448,7 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsCharsetUTF8() throws Exception {
-		assertThat(FileUtil.isCharsetUTF8(StandardCharsets.UTF_8)).isTrue();
+		assertTrue(FileUtil.isCharsetUTF8(StandardCharsets.UTF_8));
 		assertThat(FileUtil.isCharsetUTF8("uTf-8")).isTrue();
 		assertThat(FileUtil.isCharsetUTF8("uTf-88")).isFalse();
 	}
@@ -484,9 +484,9 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsCharsetUTF16() throws Exception {
-		assertThat(FileUtil.isCharsetUTF16(StandardCharsets.UTF_8)).isFalse();
-		assertThat(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16BE)).isTrue();
-		assertThat(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16LE)).isTrue();
+		assertFalse(FileUtil.isCharsetUTF16(StandardCharsets.UTF_8));
+		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16BE));
+		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16LE));
 		assertThat(FileUtil.isCharsetUTF16("utF-16le")).isTrue();
 		assertThat(FileUtil.isCharsetUTF16(" utF-16le")).isFalse();
 	}
