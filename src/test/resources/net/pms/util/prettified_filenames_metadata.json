@@ -13,10 +13,10 @@
 	{
 		"comment": "Video of a TV episode with a year in the series title",
 		"filename": "Universal.Media.Server.2019.S01E02.720p.mkv",
-		"prettified": "Universal Media Server S01E02",
+		"prettified": "Universal Media Server (2019) S01E02",
 		"metadata": {
 			"type": "tv-series-episodes",
-			"series": "Universal Media Server",
+			"series": "Universal Media Server (2019)",
 			"season": 1,
 			"episodes": [2],
 			"released": { "year": 2019 }

@@ -718,9 +718,6 @@ public class FileUtil {
 				}
 			} else {
 				formattedName = title;
-				if (isNotBlank(year)) {
-					formattedName += " (" + year + ")";
-				}
 				if (isNotBlank(tvSeasonPadded) && isNotBlank(tvEpisodeNumber)) {
 					formattedName += " " + tvSeasonPadded + tvEpisodeNumber;
 				}
