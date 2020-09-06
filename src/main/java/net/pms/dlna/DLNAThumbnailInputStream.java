@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ColorSpaceType;
 import net.pms.image.ImageFormat;

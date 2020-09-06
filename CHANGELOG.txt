@@ -1,15 +1,23 @@
-9.8.1 - 2020
+9.8.1 - 2020-09-05
 
 	General:
 		Improved speed of renderers and UMS recognizing each other
 		Reduced network and CPU loads associated with renderer discovery
+		Improved loading of external libraries
 		Fixed older macOS auto-updating to UMS for newer macOS
+		Fixed quickrun scripts for developers
+		Fixed not removing the Windows service firewall rule on uninstall
+	Translation updates via Crowdin:
+		English (United Kingdom) (33%)
+		German (98%)
+		Slovak (98%)
 	Dependencies:
+		Bump assertj-core from 3.16.1 to 3.17.1
 		Bump git-commit-id-plugin from 4.0.1 to 4.0.2
 		Bump junrar from 6.0.1 to 7.3.0
 		Bump maven-resources-plugin from 3.1.0 to 3.2.0
-		Bump MediaInfo from 18.12 to 20.03
-		Bump oshi-core from 5.2.2 to 5.2.3
+		Bump MediaInfo from 18.12 to 20.08
+		Bump oshi-core from 5.2.2 to 5.2.5
 
 9.8.0 - 2020-07-26
 

@@ -447,9 +447,9 @@ public class ExternalFactory {
 			// time but rather at a later time.
 			try {
 				// Create a new instance of the plugin class and store it
-				ExternalListener instance = (ExternalListener) clazz.newInstance();
+				ExternalListener instance = (ExternalListener) clazz.getDeclaredConstructor().newInstance();
 				registerListener(instance);
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				LOGGER.error("Error instantiating plugin", e);
 			}
 		}
@@ -495,10 +495,10 @@ public class ExternalFactory {
 				doUpdate(update, Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
 				postInstall(clazz);
 				LOGGER.debug("do inst of " + clazz.getSimpleName());
-				instance = (ExternalListener) clazz.newInstance();
+				instance = (ExternalListener) clazz.getDeclaredConstructor().newInstance();
 				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				LOGGER.error("Error instantiating plugin", e);
 			}
 		}

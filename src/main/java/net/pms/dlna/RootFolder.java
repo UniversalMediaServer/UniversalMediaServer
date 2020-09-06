@@ -660,12 +660,16 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac()) {
 			LOGGER.debug("Adding iPhoto folder");
+			Process process = null;
+			try {
+				// This command will show the XML files for recently opened iPhoto databases
+				process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
+			} catch (IOException e1) {
+				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e1);
+				return null;
+			}
 
-			// This command will show the XML files for recently opened iPhoto database
-			try (InputStream inputStream = Runtime.getRuntime()
-				.exec("defaults read com.apple.iApps iPhotoRecentDatabases")
-				.getInputStream())
-			{	
+			try (InputStream inputStream = process.getInputStream()) {
 				List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
 				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 

@@ -953,7 +953,7 @@ public class Request extends HTTPResource {
 
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
-			byte responseData[] = response.toString().getBytes("UTF-8");
+			byte responseData[] = response.toString().getBytes(StandardCharsets.UTF_8);
 			appendToHeader(responseHeader, "Content-Length: " + responseData.length);
 			appendToHeader(responseHeader, "");
 			sendHeader(responseHeader);
@@ -1084,13 +1084,13 @@ public class Request extends HTTPResource {
 	}
 
 	private static void sendLine(OutputStream output, String line) throws IOException {
-		output.write((line + CRLF).getBytes("UTF-8"));
+		output.write((line + CRLF).getBytes(StandardCharsets.UTF_8));
 		LOGGER.trace("Wrote on socket: " + line);
 	}
 
 	private void sendHeader(List<String> responseHeader) throws IOException {
 		for (String line : responseHeader) {
-			output.write((line + CRLF).getBytes("UTF-8"));
+			output.write((line + CRLF).getBytes(StandardCharsets.UTF_8));
 		}
 		output.flush();
 	}

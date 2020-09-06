@@ -681,7 +681,7 @@ public class RequestV2 extends HTTPResource {
 		ChannelFuture future;
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
-			byte responseData[] = response.toString().getBytes("UTF-8");
+			byte responseData[] = response.toString().getBytes(StandardCharsets.UTF_8);
 			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
 
 			// HEAD requests only require headers to be set, no need to set contents.

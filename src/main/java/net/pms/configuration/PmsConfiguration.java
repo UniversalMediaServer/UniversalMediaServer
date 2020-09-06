@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -5043,7 +5042,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		try {
 			Path webConfFilePath = Paths.get(getWebConfPath());
-			Files.write(webConfFilePath, contentsToWrite, Charset.forName("UTF-8"));
+			Files.write(webConfFilePath, contentsToWrite, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.debug("An error occurred while writing the web config file: {}", e);
 		}

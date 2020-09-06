@@ -844,7 +844,6 @@ public class ProcessManager {
 			IOUtils.closeSilently(process.getInputStream());
 			IOUtils.closeSilently(process.getErrorStream());
 			IOUtils.closeSilently(process.getOutputStream());
-
 			process.destroy();
 		}
 

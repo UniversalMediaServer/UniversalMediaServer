@@ -11,7 +11,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -123,7 +123,7 @@ public class RemoteUtil {
 
 	public static String read(File f) {
 		try {
-			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
+			return FileUtils.readFileToString(f, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.debug("Error reading file: " + e);
 		}
@@ -435,7 +435,7 @@ public class RemoteUtil {
 
 		public String read(String filename) {
 			try {
-				return IOUtils.toString(getInputStream(filename), "UTF-8");
+				return IOUtils.toString(getInputStream(filename), StandardCharsets.UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Error reading resource {}: {}", filename, e);
 			}
