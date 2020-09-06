@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import net.pms.PMS;
@@ -221,7 +222,7 @@ public class RemotePlayHandler implements HttpHandler {
 				//LOGGER.trace("play page " + response);
 				RemoteUtil.respond(t, response, 200, "text/html");
 			} else if (p.contains("/playerstatus/")) {
-				String json = IOUtils.toString(t.getRequestBody(), "UTF-8");
+				String json = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
 				LOGGER.trace("got player status: " + json);
 				RemoteUtil.respond(t, "", 200, "text/html");
 

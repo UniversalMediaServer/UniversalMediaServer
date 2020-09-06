@@ -16,6 +16,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -450,7 +451,7 @@ public class RemoteWeb {
 	                        }
 	                    }
 	                } else if (t.getRequestMethod().equals("OPTIONS")) {
-	                    in = new ByteArrayInputStream("".getBytes("utf-8"));
+	                    in = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
 	                } else {
 	                    in = HTTPResource.downloadAndSend(url, false);
 	                    

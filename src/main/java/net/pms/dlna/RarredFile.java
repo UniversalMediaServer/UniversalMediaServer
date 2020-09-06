@@ -45,7 +45,7 @@ public class RarredFile extends DLNAResource {
 
 			for (FileHeader fh : headers) {
 				// if (fh.getFullUnpackSize() < MAX_ARCHIVE_ENTRY_SIZE && fh.getFullPackSize() < MAX_ARCHIVE_ENTRY_SIZE)
-				addChild(new RarredEntry(fh.getFileNameString(), f, fh.getFileNameString(), fh.getFullUnpackSize()));
+				addChild(new RarredEntry(fh.getFileName(), f, fh.getFileName(), fh.getFullUnpackSize()));
 			}
 
 			rarFile.close();

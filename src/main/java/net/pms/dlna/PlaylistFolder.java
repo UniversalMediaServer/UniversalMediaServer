@@ -92,7 +92,8 @@ public class PlaylistFolder extends DLNAResource {
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
-				return new BufferedReader(new InputStreamReader(new BOMInputStream(new FileInputStream(playlistfile)), charset));
+				FileInputStream inputStream = new FileInputStream(playlistfile);
+				return new BufferedReader(new InputStreamReader(new BOMInputStream(inputStream), charset));
 			}
 		}
 		return null;
