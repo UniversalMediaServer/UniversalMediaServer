@@ -512,6 +512,7 @@ form#SearchForm {
 
 .mediaInfo h1 {
 	margin-bottom: 30px;
+	overflow-wrap: break-word;
 }
 
 .mediaInfo h1 > a {
