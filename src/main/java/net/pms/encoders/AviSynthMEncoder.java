@@ -54,7 +54,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_MENCODER;
 	public static final String NAME = "AviSynth/MEncoder";
 
-	public AviSynthMEncoder() {
+	// Not to be instantiated by anything but PlayerFactory
+	AviSynthMEncoder() {
 	}
 
 	private JTextArea textArea;
@@ -264,7 +265,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			String mtLine2         = "";
 			String mtLine3         = "";
 			String interframeLines = null;
-			String interframePath  = configuration.getInterFrameDefaultPath();
+			String interframePath  = configuration.getInterFramePath();
 
 			int Cores = 1;
 			if (configuration.getAvisynthMultiThreading()) {
@@ -299,14 +300,21 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			}
 
 			String subLine = null;
-			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
+			if (
+				subTrack != null &&
+				subTrack.isExternal() &&
+				configuration.isAutoloadExternalSubtitles() &&
+				!configuration.isDisableSubtitles()
+			) {
 				if (subTrack.getExternalFile() != null) {
-					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
+					LOGGER.info("AviSynth script: Using subtitle track: {}", subTrack);
 					String function = "TextSub";
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+				} else {
+					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}
 			}
 
@@ -356,9 +364,6 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		return file;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
@@ -375,7 +380,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		// Uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// This engine only supports external subtitles
-			if (subtitle.getExternalFile() != null) {
+			if (subtitle.isExternal()) {
 				return true;
 			}
 

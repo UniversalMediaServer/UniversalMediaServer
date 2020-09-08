@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import net.pms.PMS;
 import static net.pms.network.UPNPHelper.sleep;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -17,6 +16,7 @@ import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.UpnpService;
@@ -86,7 +86,7 @@ public class UPNPControl {
 			HashMap<String, T> m = get(uuid);
 			if (!m.containsKey(id)) {
 				try {
-					T newitem = TClass.newInstance();
+					T newitem = TClass.getDeclaredConstructor().newInstance();
 					newitem.uuid = uuid;
 					m.put(id, newitem);
 				} catch (Exception e) {
@@ -240,6 +240,12 @@ public class UPNPControl {
 		}
 	}
 
+	/**
+	 * Get the registered device root or embedded with the requested UUID
+	 * 
+	 * @param uuid the UUID of the device to be checked.
+	 * @return the device registered in the UpnpService.Registry, null otherwise
+	 */
 	public static Device getDevice(String uuid) {
 		return uuid != null && upnpService != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
 	}
@@ -282,9 +288,29 @@ public class UPNPControl {
 		rendererMap = new DeviceMap<>(Renderer.class);
 	}
 
+	/**
+	 * List of ignored devices (non-Renderers) from the network infrastructure
+	 * e.g. gateways, routers, printers etc.
+	 */
+	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<RemoteDevice>();
+	
+	/**
+	 * Add device to the list of ignored devices when not exists on the list.
+	 * 
+	 * @param device The device to add to the list.
+	 */
+	static void addIgnoredDeviceToList (RemoteDevice device) {
+		if (!ignoredDevices.contains(device)) {
+			ignoredDevices.add(device);
+			LOGGER.trace("This device was added to the list of ignored devices.");
+		} else {
+			LOGGER.trace("This device is in the list of ignored devices so not be added.");
+		}
+	}
+	
 	public void init() {
 		try {
-			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
 			UMSHeaders = new UpnpHeaders();
 			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 
@@ -306,12 +332,14 @@ public class UPNPControl {
 					super.remoteDeviceAdded(registry, device);
 					if (isBlocked(getUUID(device)) || !addRenderer(device)) {
 						LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
+						addIgnoredDeviceToList(device);
 					}
 					// This may be unnecessary, but we might as well be thorough
 					if (device.hasEmbeddedDevices()) {
 						for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
 							if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
-								LOGGER.debug("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+								LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+								addIgnoredDeviceToList((RemoteDevice) embedded);
 							}
 						}
 					}
@@ -553,7 +581,11 @@ public class UPNPControl {
 		return null;
 	}
 
-	// Returns the first device regardless of type at the given address, if any
+	/**
+	 * Returns the first device regardless of type at the given address, if any
+	 * 
+	 * @param socket address of the checked remote device. 
+	 */
 	public static Device getAnyDevice(InetAddress socket) {
 		if (upnpService != null) {
 			for (Device d : upnpService.getRegistry().getDevices()) {
@@ -568,7 +600,11 @@ public class UPNPControl {
 		return null;
 	}
 
-	// Returns the first renderer at the given address, if any
+	/**
+	 * Returns the first renderer at the given address, if any.
+	 * 
+	 * @param socket address of the checked remote device. 
+	 */
 	public static Device getDevice(InetAddress socket) {
 		if (upnpService != null) {
 			for (DeviceType r : mediaRendererTypes) {

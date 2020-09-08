@@ -20,8 +20,6 @@ package net.pms.dlna;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -30,6 +28,8 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -49,7 +49,6 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.Rational;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import static net.pms.util.StringUtil.*;
@@ -127,7 +126,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String codecV;
 	private String frameRate;
 	private String frameRateMode;
-	private Rational pixelAspectRatio;
+	private String pixelAspectRatio;
 	private ScanType scanType;
 	private ScanOrder scanOrder;
 
@@ -136,9 +135,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	private String frameRateModeRaw;
 	private String frameRateOriginal;
-	private Rational aspectRatioDvdIso;
-	private Rational aspectRatioContainer;
-	private Rational aspectRatioVideoTrack;
+	private String aspectRatioDvdIso;
+	private String aspectRatioContainer;
+	private String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 
 	private volatile DLNAThumbnail thumb = null;
@@ -313,13 +312,6 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	/**
-	 * @return true when there are subtitle tracks embedded in the media file.
-	 */
-	public boolean hasSubtitles() {
-		return subtitleTracks.size() > 0;
-	}
-
 	public boolean isImage() {
 		return MediaType.IMAGE == getMediaType();
 	}
@@ -487,7 +479,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFmpegThumbnail(InputFile media, boolean resume) {
-		/**
+		/*
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
 		 * minimize the amount of text given by FFmpeg here
@@ -495,7 +487,12 @@ public class DLNAMediaInfo implements Cloneable {
 		ArrayList<String> args = new ArrayList<>();
 		boolean generateThumbnail = configuration.isThumbnailGenerationEnabled() && !configuration.isUseMplayerForVideoThumbs();
 
-		args.add(getFfmpegPath());
+		args.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
+		if (args.get(0) == null) {
+			LOGGER.warn("Cannot generate thumbnail for {} since the FFmpeg executable is undefined");
+			return null;
+		}
+
 		if (generateThumbnail) {
 			args.add("-ss");
 			if (resume) {
@@ -567,7 +564,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
 		File file = media.getFile();
 		String args[] = new String[14];
-		args[0] = configuration.getMPlayerDefaultPath();
+		args[0] = configuration.getMPlayerPath();
 		args[1] = "-ss";
 		if (resume) {
 			args[2] = "" + (int) getDurationInSeconds();
@@ -628,16 +625,6 @@ public class DLNAMediaInfo implements Cloneable {
 			parsing = false;
 		}
 		return pw;
-	}
-
-	private static String getFfmpegPath() {
-		String value = configuration.getFFmpegPath();
-
-		if (value == null) {
-			LOGGER.info("No FFmpeg - unable to thumbnail");
-			throw new RuntimeException("No FFmpeg - unable to thumbnail");
-		}
-		return value;
 	}
 
 	/**
@@ -795,11 +782,7 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 					}
 
-					if (StringUtils.isNotBlank(audio.getSongname())) {
-						if (renderer != null && renderer.isPrependTrackNumbers() && audio.getTrack() > 0) {
-							audio.setSongname(audio.getTrack() + ": " + audio.getSongname());
-						}
-					} else {
+					if (StringUtils.isBlank(audio.getSongname())) {
 						audio.setSongname(file.getName());
 					}
 
@@ -1312,7 +1295,16 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return {boolean}
 	 */
 	public boolean isH264() {
-		return codecV != null && codecV.startsWith("h264");
+		return codecV != null && codecV.startsWith(FormatConfiguration.H264);
+	}
+
+	/**
+	 * Whether the file contains H.265 (HEVC) video.
+	 *
+	 * @return {boolean}
+	 */
+	public boolean isH265() {
+		return codecV != null && codecV.startsWith(FormatConfiguration.H265);
 	}
 
 	/**
@@ -1322,9 +1314,8 @@ public class DLNAMediaInfo implements Cloneable {
 		if (container != null) {
 			if (container.equals("mp4")) {
 				return isH264();
-			} else {
-				return true;
 			}
+			return true;
 		}
 
 		return false;
@@ -1379,6 +1370,18 @@ public class DLNAMediaInfo implements Cloneable {
 					break;
 				case FormatConfiguration.FLV:
 					mimeType = HTTPResource.FLV_TYPEMIME;
+					break;
+				case FormatConfiguration.M4V:
+					mimeType = HTTPResource.M4V_TYPEMIME;
+					break;
+				case FormatConfiguration.MP4:
+					mimeType = HTTPResource.MP4_TYPEMIME;
+					break;
+				case FormatConfiguration.MPEGPS:
+					mimeType = HTTPResource.MPEG_TYPEMIME;
+					break;
+				case FormatConfiguration.MPEGTS:
+					mimeType = HTTPResource.MPEGTS_TYPEMIME;
 					break;
 				case FormatConfiguration.WMV:
 					mimeType = HTTPResource.WMV_TYPEMIME;
@@ -1552,11 +1555,6 @@ public class DLNAMediaInfo implements Cloneable {
 		if (getFirstAudioTrack() == null || !(type == Format.AUDIO && getFirstAudioTrack().getBitsperSample() == 24 && getFirstAudioTrack().getSampleRate() > 48000)) {
 			secondaryFormatValid = false;
 		}
-
-		// Check for external subs here
-		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()) {
-			FileUtil.isSubtitlesExists(f.getFile(), this);
-		}
 	}
 
 	/**
@@ -1687,25 +1685,17 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append("Container: ").append(getContainer().toUpperCase(Locale.ROOT)).append(", ");
 		}
 		result.append("Size: ").append(getSize());
+		result.append(", Overall Bitrate: ").append(getBitrate());
 		if (isVideo()) {
-			result.append(", Video Bitrate: ").append(getBitrate());
 			result.append(", Video Tracks: ").append(getVideoTrackCount());
 			result.append(", Video Codec: ").append(getCodecV());
 			result.append(", Duration: ").append(getDurationString());
 			result.append(", Video Resolution: ").append(getWidth()).append(" x ").append(getHeight());
 			if (aspectRatioContainer != null) {
-				result.append(", Display Aspect Ratio: ").append(aspectRatioContainer.toAspectRatio());
+				result.append(", Display Aspect Ratio: ").append(getAspectRatioContainer());
 			}
-			if (pixelAspectRatio != null && !Rational.ONE.equals(pixelAspectRatio)) {
-				result.append(", Pixel Aspect Ratio: ");
-				if (pixelAspectRatio.isInteger()) {
-					result.append(pixelAspectRatio.toDebugString());
-				} else {
-					result.append(pixelAspectRatio.toDecimalString(
-						new DecimalFormat("#0.##", DecimalFormatSymbols.getInstance(Locale.ROOT))
-					));
-					result.append(" (").append(pixelAspectRatio.toString()).append(")");
-				}
+			if (!"1.000".equals(getPixelAspectRatio())) {
+				result.append(", Pixel Aspect Ratio: ").append(getPixelAspectRatio());
 			}
 			if (scanType != null) {
 				result.append(", Scan Type: ").append(getScanType());
@@ -1736,8 +1726,14 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(getMatrixCoefficients())) {
 				result.append(", Matrix Coefficients: ").append(getMatrixCoefficients());
 			}
+			if (getReferenceFrameCount() > -1) {
+				result.append(", Reference Frame Count: ").append(getReferenceFrameCount());
+			}
 			if (isNotBlank(avcLevel)) {
 				result.append(", AVC Level: ").append(getAvcLevel());
+			}
+			if (isNotBlank(h264Profile)) {
+				result.append(", AVC Profile: ").append(getH264Profile());
 			}
 //			if (isNotBlank(getHevcLevel())) {
 //				result.append(", HEVC Level: ");
@@ -1756,10 +1752,9 @@ public class DLNAMediaInfo implements Cloneable {
 				appendAudioTracks(result);
 			}
 
-			if (hasSubtitles()) {
+			if (subtitleTracks != null && !subtitleTracks.isEmpty()) {
 				appendSubtitleTracks(result);
 			}
-
 		} else if (getAudioTrackCount() > 0) {
 			result.append(", Bitrate: ").append(getBitrate());
 			result.append(", Duration: ").append(getDurationString());
@@ -1868,7 +1863,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String a = null;
 
 		if (aspectRatioDvdIso != null) {
-			double aspectRatio = aspectRatioDvdIso.doubleValue();
+			double aspectRatio = Double.parseDouble(aspectRatioDvdIso);;
 
 			if (aspectRatio > 1.7 && aspectRatio < 1.8) {
 				a = ratios ? "16/9" : "1.777777777777777";
@@ -1914,7 +1909,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public byte[][] getAnnexBFrameHeader(InputFile f) {
 		String[] cmdArray = new String[14];
-		cmdArray[0] = configuration.getFFmpegPath();
+		cmdArray[0] = PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO);
+		if (cmdArray[0] == null) {
+			LOGGER.warn("Cannot process Annex B Frame Header is FFmpeg executable is undefined");
+			return null;
+		}
 		cmdArray[1] = "-i";
 
 		if (f.getPush() == null && f.getFilename() != null) {
@@ -2091,11 +2090,11 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public void setCodecV(String codecV) {
-		this.codecV = codecV != null ? codecV.toLowerCase(Locale.ROOT) : null ;
+		this.codecV = codecV != null ? codecV.toLowerCase(Locale.ROOT) : null;
 	}
 
 	/**
-	 * @return the frameRate
+	 * @return the frame rate
 	 * @since 1.50.0
 	 */
 	public String getFrameRate() {
@@ -2103,7 +2102,21 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @param frameRate the frameRate to set
+	 * @return the frame rate in DLNA format
+	 */
+	public String getFrameRateDLNA() {
+		int framerateDLNA = (int) Math.round(Double.parseDouble(frameRate));
+		String framerateDLNAString = String.valueOf(framerateDLNA);
+		if (scanType != null && scanType == ScanType.INTERLACED) {
+			framerateDLNAString += "i";
+		} else {
+			framerateDLNAString += "p";
+		}
+		return framerateDLNAString;
+	}
+
+	/**
+	 * @param frameRate the frame rate to set
 	 * @since 1.50.0
 	 */
 	public void setFrameRate(String frameRate) {
@@ -2256,19 +2269,8 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * @return The pixel aspect ratio.
 	 */
-	public Rational getPixelAspectRatio() {
+	public String getPixelAspectRatio() {
 		return pixelAspectRatio;
-	}
-
-	/**
-	 * Sets the pixel aspect ratio by parsing the specified {@link String}.
-	 *
-	 * @param pixelAspectRatio the pixel aspect ratio to set.
-	 * @throws NumberFormatException If {@code pixelAspectRatio} cannot be
-	 *             parsed.
-	 */
-	public void setPixelAspectRatio(String pixelAspectRatio) {
-		setPixelAspectRatio(Rational.valueOf(pixelAspectRatio));
 	}
 
 	/**
@@ -2276,12 +2278,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param pixelAspectRatio the pixel aspect ratio to set.
 	 */
-	public void setPixelAspectRatio(Rational pixelAspectRatio) {
-		if (Rational.isNotBlank(pixelAspectRatio)) {
-			this.pixelAspectRatio = pixelAspectRatio;
-		} else {
-			this.pixelAspectRatio = null;
-		}
+	public void setPixelAspectRatio(String pixelAspectRatio) {
+		this.pixelAspectRatio = pixelAspectRatio;
 	}
 
 	/**
@@ -2337,25 +2335,37 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+<<<<<<< HEAD
+=======
+	 * @deprecated use getAspectRatioDvdIso() for the original.
+	 * functionality of this method, or use getAspectRatioContainer() for a
+	 * better default method to get aspect ratios.
+	 */
+	@Deprecated
+	public String getAspect() {
+		return getAspectRatioDvdIso();
+	}
+
+	/**
+>>>>>>> refs/remotes/origin/master
 	 * The aspect ratio for a DVD ISO video track
 	 *
 	 * @return the aspect
 	 * @since 1.50.0
 	 */
-	public Rational getAspectRatioDvdIso() {
+	public String getAspectRatioDvdIso() {
 		return aspectRatioDvdIso;
 	}
-
 	/**
+<<<<<<< HEAD
 	 * @param aspect the aspect to set
+=======
+	 * @param aspectRatio the aspect to set
+>>>>>>> refs/remotes/origin/master
 	 * @since 1.50.0
 	 */
-	public void setAspectRatioDvdIso(Rational aspectRatio) {
-		if (Rational.isNotBlank(aspectRatio)) {
-			aspectRatioDvdIso = aspectRatio;
-		} else {
-			aspectRatioDvdIso = null;
-		}
+	public void setAspectRatioDvdIso(String aspectRatio) {
+		this.aspectRatioDvdIso = aspectRatio;
 	}
 
 	/**
@@ -2365,18 +2375,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @return the aspect ratio reported by the file/container
 	 */
-	public Rational getAspectRatioContainer() {
+	public String getAspectRatioContainer() {
 		return aspectRatioContainer;
-	}
-
-	/**
-	 * Set the aspect ratio reported by the file/container.
-	 *
-	 * @see #getAspectRatioContainer()
-	 * @param aspect the aspect ratio to set
-	 */
-	public void setAspectRatioContainer(String aspectRatio) {
-		setAspectRatioContainer(Rational.valueOf(aspectRatio));
 	}
 
 	/**
@@ -2384,12 +2384,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param aspectRatio the aspect ratio to set.
 	 */
-	public void setAspectRatioContainer(Rational aspectRatio) {
-		if (Rational.isNotBlank(aspectRatio)) {
-			aspectRatioContainer = aspectRatio;
-		} else {
-			aspectRatioContainer = null;
-		}
+	public void setAspectRatioContainer(String aspectRatio) {
+		this.aspectRatioContainer = getFormattedAspectRatio(aspectRatio);
 	}
 
 	/**
@@ -2400,29 +2396,94 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @return the aspect ratio of the video track
 	 */
-	public Rational getAspectRatioVideoTrack() {
+	public String getAspectRatioVideoTrack() {
 		return aspectRatioVideoTrack;
 	}
 
 	/**
-	 * @param aspect the aspect ratio to set
+	 * @param aspectRatio the aspect ratio to set
 	 */
 	public void setAspectRatioVideoTrack(String aspectRatio) {
-		setAspectRatioVideoTrack(Rational.valueOf(aspectRatio));
+		this.aspectRatioVideoTrack = getFormattedAspectRatio(aspectRatio);
 	}
-
+	
 	/**
-	 * Make sure the aspect ratio is formatted, e.g. 16:9 not 1.78
+	 * This takes an exact aspect ratio, and returns the closest common aspect
+	 * ratio to that, so that e.g. 720x416 and 720x420 are the same.
 	 *
-	 * @param aspect the possibly-unformatted aspect ratio
-	 *
-	 * @return the formatted aspect ratio or null
+	 * @param aspect
+	 * @return an approximate aspect ratio
 	 */
-	public void setAspectRatioVideoTrack(Rational aspectRatio) {
-		if (Rational.isNotBlank(aspectRatio)) {
-			aspectRatioVideoTrack = aspectRatio;
+	public String getFormattedAspectRatio(String aspect) {
+		if (isBlank(aspect)) {
+			return null;
+		}
+
+		if (aspect.contains(":")) {
+			return aspect;
+		}
+
+		double exactAspectRatio = Double.parseDouble(aspect);
+		if (exactAspectRatio >= 11.9 && exactAspectRatio <= 12.1) {
+			return "12.00:1";
+		} else if (exactAspectRatio >= 3.9 && exactAspectRatio <= 4.1) {
+			return "4.00:1";
+		} else if (exactAspectRatio >= 2.75 && exactAspectRatio <= 2.77) {
+			return "2.76:1";
+		} else if (exactAspectRatio >= 2.65 && exactAspectRatio <= 2.67) {
+			return "24:9";
+		} else if (exactAspectRatio >= 2.58 && exactAspectRatio <= 2.6) {
+			return "2.59:1";
+		} else if (exactAspectRatio >= 2.54  && exactAspectRatio <= 2.56) {
+			return "2.55:1";
+		} else if (exactAspectRatio >= 2.38 && exactAspectRatio <= 2.41) {
+			return "2.39:1";
+		} else if (exactAspectRatio > 2.36 && exactAspectRatio < 2.38) {
+			return "2.37:1";
+		} else if (exactAspectRatio >= 2.34 && exactAspectRatio <= 2.36) {
+			return "2.35:1";
+		} else if (exactAspectRatio >= 2.33 && exactAspectRatio < 2.34) {
+			return "21:9";
+		} else if (exactAspectRatio > 2.1  && exactAspectRatio < 2.3) {
+			return "11:5";
+		} else if (exactAspectRatio > 1.9 && exactAspectRatio < 2.1) {
+			return "2.00:1";
+		} else if (exactAspectRatio > 1.87  && exactAspectRatio <= 1.9) {
+			return "1.896:1";
+		} else if (exactAspectRatio >= 1.83 && exactAspectRatio <= 1.87) {
+			return "1.85:1";
+		} else if (exactAspectRatio >= 1.7 && exactAspectRatio <= 1.8) {
+			return "16:9";
+		} else if (exactAspectRatio >= 1.65 && exactAspectRatio <= 1.67) {
+			return "15:9";
+		} else if (exactAspectRatio >= 1.59 && exactAspectRatio <= 1.61) {
+			return "16:10";
+		} else if (exactAspectRatio >= 1.54 && exactAspectRatio <= 1.56) {
+			return "14:9";
+		} else if (exactAspectRatio >= 1.49 && exactAspectRatio <= 1.51) {
+			return "3:2";
+		} else if (exactAspectRatio > 1.42 && exactAspectRatio < 1.44) {
+			return "1.43:1";
+		} else if (exactAspectRatio > 1.372 && exactAspectRatio < 1.4) {
+			return "11:8";
+		} else if (exactAspectRatio > 1.35 && exactAspectRatio <= 1.372) {
+			return "1.37:1";
+		} else if (exactAspectRatio >= 1.3 && exactAspectRatio <= 1.35) {
+			return "4:3";
+		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+			return "5:4";
+		} else if (exactAspectRatio >= 1.18 && exactAspectRatio <= 1.195) {
+			return "19:16";
+		} else if (exactAspectRatio > 0.99 && exactAspectRatio < 1.1) {
+			return "1:1";
+		} else if (exactAspectRatio > 0.7 && exactAspectRatio < 0.9) {
+			return "4:5";
+		} else if (exactAspectRatio > 0.6 && exactAspectRatio < 0.7) {
+			return "2:3";
+		} else if (exactAspectRatio > 0.5 && exactAspectRatio < 0.6) {
+			return "9:16";
 		} else {
-			aspectRatioVideoTrack = null;
+			return aspect;
 		}
 	}
 
@@ -2591,6 +2652,21 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+<<<<<<< HEAD
+=======
+	 * @return the audioTracks
+	 * @deprecated use getAudioTracksList() instead
+	 */
+	@Deprecated
+	public ArrayList<DLNAMediaAudio> getAudioCodes() {
+		if (audioTracks instanceof ArrayList) {
+			return (ArrayList<DLNAMediaAudio>) audioTracks;
+		}
+		return new ArrayList<>();
+	}
+
+	/**
+>>>>>>> refs/remotes/origin/master
 	 * @param audioTracks the audioTracks to set
 	 * @since 1.60.0
 	 */
@@ -2608,6 +2684,21 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+<<<<<<< HEAD
+=======
+	 * @return the subtitleTracks
+	 * @deprecated use getSubtitleTracksList() instead
+	 */
+	@Deprecated
+	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
+		if (subtitleTracks instanceof ArrayList) {
+			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
+		}
+		return new ArrayList<>();
+	}
+
+	/**
+>>>>>>> refs/remotes/origin/master
 	 * @param subtitleTracks the subtitleTracks to set
 	 * @since 1.60.0
 	 */

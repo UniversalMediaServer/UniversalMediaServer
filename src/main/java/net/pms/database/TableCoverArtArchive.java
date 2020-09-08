@@ -96,7 +96,7 @@ public final class TableCoverArtArchive extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID);
+			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
 			}
@@ -158,7 +158,7 @@ public final class TableCoverArtArchive extends Tables {
 		CoverArtArchiveResult result;
 
 		try (Connection connection = database.getConnection()) {
-			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID);
+			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching for cover with \"{}\"", query);
@@ -270,7 +270,7 @@ public final class TableCoverArtArchive extends Tables {
 					"ID IDENTITY PRIMARY KEY, " +
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
-					"COVER BLOB, " +
+					"COVER BLOB" +
 				")");
 			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
 		}

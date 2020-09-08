@@ -332,7 +332,7 @@ public class RequestHandler implements Runnable {
 		String formattedContent = null;
 		if (StringUtils.isNotBlank(content)) {
 			try {
-				formattedContent = StringUtil.prettifyXML(content, 4);
+				formattedContent = StringUtil.prettifyXML(content, StandardCharsets.UTF_8, 2);
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";

@@ -19,7 +19,7 @@
 package net.pms.formats;
 
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 import net.pms.util.FileUtil;
 
 public class WEB extends Format {
@@ -63,7 +63,7 @@ public class WEB extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAMediaInfo media, RendererConfiguration renderer) {
+	public boolean isCompatible(DLNAResource dlna, RendererConfiguration renderer) {
 		return type == IMAGE;
 	}
 

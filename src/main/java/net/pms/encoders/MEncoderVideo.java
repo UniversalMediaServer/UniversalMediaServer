@@ -146,12 +146,12 @@ public class MEncoderVideo extends Player {
 		Messages.getString("MEncoderVideo.89") +
 		Messages.getString("MEncoderVideo.91");
 
+	// Not to be instantiated by anything but PlayerFactory
+	MEncoderVideo() {
+	}
 
 	public JCheckBox getNoskip() {
 		return noskip;
-	}
-
-	public MEncoderVideo() {
 	}
 
 	@Override
@@ -819,17 +819,21 @@ public class MEncoderVideo extends Player {
 		boolean avisynth = avisynth();
 
 		final String filename = dlna.getFileName();
-		setAudioAndSubs(filename, media, params);
+		setAudioAndSubs(dlna, params);
 		String externalSubtitlesFileName = null;
 
 		if (params.getSid() != null && params.getSid().isExternal()) {
-			if (params.getSid().isExternalFileUtf16()) {
-				// convert UTF-16 -> UTF-8
-				File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.getSid().getExternalFile().getName());
-				FileUtil.convertFileFromUtf16ToUtf8(params.getSid().getExternalFile(), convertedSubtitles);
-				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+			if (params.getSid().getExternalFile() != null) {
+				if (params.getSid().isExternalFileUtf16()) {
+					// convert UTF-16 -> UTF-8
+					File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.getSid().getExternalFile().getName());
+					FileUtil.convertFileFromUtf16ToUtf8(params.getSid().getExternalFile(), convertedSubtitles);
+					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+				} else {
+					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
+				}
 			} else {
-				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile().getAbsolutePath());
+				LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 			}
 		}
 
@@ -1372,10 +1376,13 @@ public class MEncoderVideo extends Player {
 				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
 					":threads=" + configuration.getMencoderMaxThreads();
 
-				// Start building the options for lavc to pass to libx264
+				// The options for lavc to pass to libx264
+				String osVersionRaw = System.getProperty("os.version");
+				Version osVersion = new Version(osVersionRaw);
 				encodeSettings += ":o=qcomp=0.6";
-				if (!Platform.isMac()) {
-					encodeSettings += ":preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+				boolean isMacOSPreCatalina = Platform.isMac() && osVersion != null && osVersion.isLessThan(new Version("10.15"));
+				if (!isMacOSPreCatalina) {
+					encodeSettings += ",preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
 				}
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.getMediaRenderer(), audioType);
@@ -1688,7 +1695,11 @@ public class MEncoderVideo extends Player {
 					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
 					cmdList.add("-slang");
 					cmdList.add("" + params.getSid().getLang());
-				} else if (!params.getSid().isStreamable() && !params.getMediaRenderer().streamSubsForTranscodedVideo()) { // when subs are streamable do not transcode them
+				} else if (
+					!params.getMediaRenderer().streamSubsForTranscodedVideo() ||
+					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), media, dlna)
+				) {
+					// Only transcode subtitles if they aren't streamable
 					cmdList.add("-sub");
 					DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 					if (media.is3d()) {

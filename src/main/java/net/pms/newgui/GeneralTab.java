@@ -49,7 +49,7 @@ public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	public JCheckBox smcheckBox;
 	private JCheckBox autoStart;
@@ -157,10 +157,8 @@ public class GeneralTab {
 		}
 
 		int xpos = 1;
-		if (!Platform.isMac()) {
-			builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
-			xpos += 2;
-		}
+		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
+		xpos += 2;
 
 		if (Platform.isWindows()) {
 			autoStart = new JCheckBox(Messages.getString("GeneralTab.StartWithWindows"), configuration.isAutoStart());
@@ -188,12 +186,11 @@ public class GeneralTab {
 		ypos += 2;
 		xpos += 2;
 
-		if (!configuration.isHideAdvancedOptions()) {
+		if (!configuration.isHideAdvancedOptions() && Platform.isWindows()) {
 			installService = new CustomJButton();
 			refreshInstallServiceButtonState();
 
-			builder.add(installService, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			ypos += 2;
+			builder.add(installService, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 		}
 
 		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("NetworkTab.8"));
@@ -376,12 +373,15 @@ public class GeneralTab {
 
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
 			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
-			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+			String savedNetworkInterface = configuration.getNetworkInterface();
+			// for backwards-compatibility check if the short network interface name is used
+			savedNetworkInterface = NetworkConfiguration.getInstance().replaceShortInterfaceNameByDisplayName(savedNetworkInterface);
+			networkInterfaces.setSelectedKey(savedNetworkInterface);
 			networkinterfacesCBX.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+						configuration.setNetworkInterface(networkInterfaces.getSelectedKey());
 					}
 				}
 			});
@@ -613,8 +613,8 @@ public class GeneralTab {
 	}
 
 	private KeyedComboBoxModel<String, String> createNetworkInterfacesModel() {
-		List<String> keys = NetworkConfiguration.getInstance().getKeys();
-		List<String> names = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> keys = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> names = NetworkConfiguration.getInstance().getDisplayNamesWithAddress();
 		keys.add(0, "");
 		names.add(0, "");
 		return new KeyedComboBoxModel<>(

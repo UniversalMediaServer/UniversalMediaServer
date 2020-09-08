@@ -20,12 +20,12 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import javax.swing.JComponent;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.HTTPResource;
 import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
@@ -35,7 +35,8 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	public static final String KEY_TSMUXER_AUDIO_EXECUTABLE_TYPE = "tsmuxer_audio_executable_type";
 	public static final String NAME = "tsMuxeR Audio";
 
-	public TsMuxeRAudio() {
+	// Not to be instantiated by anything but PlayerFactory
+	TsMuxeRAudio() {
 	}
 
 	@Override
@@ -67,6 +68,11 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 		params.setTimeEnd(media.getDurationInSeconds());
 		params.setWaitBeforeStart(2500);
 		return super.launchTranscode(dlna, media, params);
+	}
+
+	@Override
+	public String mimeType() {
+		return HTTPResource.AUDIO_TRANSCODE;
 	}
 
 	@Override

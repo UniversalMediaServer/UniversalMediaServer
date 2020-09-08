@@ -27,21 +27,27 @@ import org.apache.commons.lang3.StringUtils;
 public class DLNAMediaLang {
 	public static final String UND = "und";
 	private int id;
-	private String lang;
+	protected String lang;
+
+	/**
+	 * A special ID value that indicates that the instance is just a placeholder
+	 * that shouldn't be used.
+	 */
+	public static final int DUMMY_ID = Integer.MIN_VALUE;
 
 	/**
 	 * Returns the full language name for an audio or subtitle track based on a
 	 * translation from the ISO 639 language code. If no code has been set,
 	 * "Undetermined" is returned.
-	 * 
+	 *
 	 * @return The language name
 	 * @since 1.50
 	 */
 	public String getLangFullName() {
 		if (StringUtils.isNotBlank(lang)) {
-			return Iso639.getLanguage(lang);
+			return Iso639.getFirstName(lang);
 		}
-		return Iso639.getLanguage(DLNAMediaLang.UND);
+		return Iso639.getFirstName(DLNAMediaLang.UND);
 	}
 
 	public boolean matchCode(String code) {
@@ -50,7 +56,7 @@ public class DLNAMediaLang {
 
 	/**
 	 * Returns the unique id for this language object
-	 * 
+	 *
 	 * @return The id.
 	 * @since 1.50
 	 */
@@ -60,8 +66,8 @@ public class DLNAMediaLang {
 
 	/**
 	 * Sets a unique id for this language object.
-	 * 
-	 * @param id The id to set.
+	 *
+	 * @param id the id to set.
 	 * @since 1.50
 	 */
 	public void setId(int id) {
@@ -71,20 +77,21 @@ public class DLNAMediaLang {
 	/**
 	 * Returns the IS0 639 language code for this language object. If you
 	 * require the full language name, use {@link #getLangFullName()} instead.
-	 * Special return values are "und" (for "undetermined") and "off" 
+	 * Special return values are "und" (for "undetermined") and "off"
 	 * (indicates an audio track or subtitle should be disabled).
-	 * 
+	 *
 	 * @return The language code.
 	 * @since 1.50
 	 */
 	public String getLang() {
 		return lang;
 	}
+
 	/**
 	 * Sets the ISO 639 language code for this language object. Special values
 	 * are "und" (for "undetermined") and "off" (indicates an audio track or
 	 * subtitle should be disabled).
-	 * 
+	 *
 	 * @param lang The language code to set.
 	 * @since 1.50
 	 */

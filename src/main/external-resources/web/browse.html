@@ -13,6 +13,8 @@
 			}
 		</script>
 		<meta charset="utf-8">
+		<!-- Mobile-friendly -->
+		<meta name="viewport" content="width=device-width, initial-scale=1"> 
 		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
@@ -32,7 +34,7 @@
 		<script src="/files/util/keycode.js"></script>
 		<script src="/files/util/keycontroller.js"></script>
 		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css">
 		<link rel="stylesheet" href="/files/util/jQKeyboard.css" type="text/css">
 		<title>{{name}}</title>
 	</head>
@@ -46,7 +48,8 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a  id="HomeButton" class="navbar-brand onFocus" href="/browse/0" title="UMS"></a>
+					<a id="HomeButton" class="navbar-brand" href="/browse/0" title="UMS"></a>
+					<span class="VersionNumber">{{umsversion}}</span>
 				</div>
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
@@ -57,13 +60,24 @@
 								</a>
 							</li>
 						{{/hasFile}}
-						<li class="dropdown">
+						<li class="dropdown" id="fontsChangerContainer">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="fontChanger"><i class="fa fa-font"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="javascript:chooseFontSize('small')" title="Switch to small font" class="small"><i class="fa fa-font" aria-hidden="true"></i> Switch to small font</a></li>
+								<li><a href="javascript:chooseFontSize('medium')" title="Switch to medium font" class="medium"><i class="fa fa-font" aria-hidden="true"></i> Switch to medium font</a></li>
+								<li><a href="javascript:chooseFontSize('big')" title="Switch to big font" class="big"><i class="fa fa-font" aria-hidden="true"></i> Switch to big font</a></li>
+								<li><a href="javascript:chooseFontSize('extrabig')" title="Switch to extra big font" class="big"><i class="fa fa-font" aria-hidden="true"></i> Switch to extra big font</a></li>
+							</ul>
+						</li>
+						<li class="dropdown" id="settingsContainer">
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="settings"><i class="fa fa-cog"></i></a>
 							<ul class="dropdown-menu">
 								<li><a href="/doc" title="Documentation"><i class="fa fa-info-circle" aria-hidden="true"></i> Documentation</a></li>
+								<li><a href="/files/subs.html" title="Subtitle Translator"><i class="fa fa-file-export" aria-hidden="true"></i> Subtitle translator</a></li>
 								<li><a href="javascript:setPadColor(1)" title="Change padding color"><i class="fa fa-paint-brush" aria-hidden="true"></i> Change padding color</a></li>
 								<li><a href="javascript:chooseView('grid')" title="Switch to grid view"><i class="fa fa-th" aria-hidden="true"></i> Switch to grid view</a></li>
-								<li><a href="javascript:chooseView('dynamic')" title="Switch to dynamic view"><i class="fa fa-th-list" aria-hidden="true"></i> Switch to dynamic view</a></li>
+								<li><a href="javascript:chooseView('dynamic')" title="Switch to dynamic view"><i class="fa fa-list" aria-hidden="true"></i> Switch to dynamic view</a></li>
+								<li><a href="javascript:chooseView('list')" title="Switch to list view"><i class="fa fa-bars" aria-hidden="true"></i> Switch to list view</a></li>
 							</ul>
 						</li>
 					</ul>
@@ -81,13 +95,13 @@
 			{{#hasFile}}
 			<div id="MediaContainer">
 				<!--<div id="bumplist"></div>-->
-				<ul id="Media" class="nav nav-sidebar">
+				<ul id="Media" class="nav nav-sidebar row">
 					{{#media}}
-					<li>
+					<li class="column">
 						{{thumb}}
 						<div class="box-meta row">
-							<div class="col-xs-9 col-sm-9 col-lg-9">{{caption}}</div>
-							<div class="expand-bump col-xs-3 col-lg-3">{{bump}}</div>							
+							<div class="col-xs-9 col-sm-9 col-lg-10 clearPadding">{{caption}}</div>
+							<div class="expand-bump col-xs-3 col-sm-3 col-lg-2">{{bump}}</div>
 						</div>
 					</li>
 					{{/media}}
@@ -109,7 +123,7 @@
 			</nav>
 		</div>
 	</body>
-	<script defer src="/files/util/fontawesome/js/all.min.js" crossorigin="anonymous"></script>
+	<script src="/files/util/fontawesome/js/all.min.js"></script>
 	{{#hasFile}}
 	<script src="/files/util/searchclassie.js"></script>
 	<script src="/files/util/search.js"></script>

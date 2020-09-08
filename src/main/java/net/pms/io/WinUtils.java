@@ -28,11 +28,12 @@ import com.sun.jna.platform.win32.WinReg;
 import com.sun.jna.ptr.LongByReference;
 import java.io.File;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.prefs.Preferences;
 import javax.annotation.Nullable;
-import net.pms.PMS;
 import net.pms.util.FileUtil;
 import net.pms.util.Version;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 
 	public interface Kernel32 extends Library {
-		Kernel32 INSTANCE = Native.loadLibrary("kernel32", Kernel32.class);
+		Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
 
 		int GetShortPathNameW(WString lpszLongPath, char[] lpdzShortPath, int cchBuffer);
@@ -110,6 +111,9 @@ public class WinUtils extends BasicSystemUtils {
 
 	@Override
 	public String getShortPathNameW(String longPathName) {
+		if (longPathName == null) {
+			return null;
+		}
 		boolean unicodeChars;
 		try {
 			byte b1[] = longPathName.getBytes("UTF-8");
@@ -126,8 +130,9 @@ public class WinUtils extends BasicSystemUtils {
 				char test[] = new char[2 + pathname.length() * 2];
 				int r = Kernel32.INSTANCE.GetShortPathNameW(pathname, test, test.length);
 				if (r > 0) {
-					LOGGER.trace("Forcing short path name on " + pathname);
-					return Native.toString(test);
+					String result = Native.toString(test);
+					LOGGER.trace("Using short path name of \"{}\": \"{}\"", pathname, result);
+					return result;
 				}
 				LOGGER.debug("Can't find \"{}\"", pathname);
 				return null;
@@ -207,6 +212,25 @@ public class WinUtils extends BasicSystemUtils {
 	 */
 	public static int getOEMCP() {
 		return Kernel32.INSTANCE.GetOEMCP();
+	}
+
+	/**
+	 * @return The result of {@link #getOEMCP()} converted to a {@link Charset}
+	 *         or {@code null} if it couldn't be converted.
+	 */
+	public static Charset getOEMCharset() {
+		int codepage = Kernel32.INSTANCE.GetOEMCP();
+		Charset result = null;
+		String[] aliases = {"cp" + codepage, "MS" + codepage};
+		for (String alias : aliases) {
+			try {
+				result = Charset.forName(alias);
+				break;
+			} catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
+				result = null;
+			}
+		}
+		return result;
 	}
 
 	/**

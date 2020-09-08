@@ -18,19 +18,28 @@
  */
 package net.pms.network;
 
-import java.io.*;
+import static net.pms.util.StringUtil.convertURLToFileName;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
-import static net.pms.util.StringUtil.convertURLToFileName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
@@ -84,10 +93,12 @@ public class HTTPResource {
 	public static final String FLV_TYPEMIME = "video/x-flv";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
+	public static final String M4V_TYPEMIME = "video/x-m4v";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
+	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
@@ -146,7 +157,7 @@ public class HTTPResource {
 	 * @throws IOException
 	 * @see #downloadAndSendBinary(String)
 	 */
-	protected static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
+	public static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
 		URL url = new URL(u);
 		File f = null;
 
@@ -206,6 +217,18 @@ public class HTTPResource {
 
 		// GameTrailers blocks user-agents that identify themselves as "Java"
 		conn.setRequestProperty("User-agent", PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
+
+		CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
+		if (
+			cookieManager != null &&
+			cookieManager.getCookieStore() != null &&
+			cookieManager.getCookieStore().getCookies() != null &&
+			cookieManager.getCookieStore().getCookies().size() > 0
+		) {
+			// While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
+			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
+		}
+
 		FileOutputStream fOUT;
 		try (InputStream in = conn.getInputStream()) {
 			fOUT = null;
@@ -233,19 +256,19 @@ public class HTTPResource {
 
 	/**
 	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
-	 * @param mimetype MIME type to customize.
 	 * @param renderer media renderer to customize the MIME type for.
+	 * @param resource the resource
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(String mimetype, RendererConfiguration renderer, DLNAMediaInfo media) {
-		return renderer.getMimeType(mimetype, media);
+	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+		return renderer.getMimeType(resource);
 	}
 
 	public int getDLNALocalesCount() {
 		return 3;
 	}
 
-	public final String getMPEG_PS_PALLocalizedValue(int index) {
+	public final String getMPEG_PS_OrgPN(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -253,43 +276,138 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMPEG_TS_SD_EU_ISOLocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA_ISO";
+	public final String getMPEG_TS_MPEG2_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "MPEG_TS_";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HD";
+		} else {
+			orgPN += "SD";
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP_ISO";
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		return "MPEG_TS_SD_EU_ISO";
+		if (!isStreaming) {
+			orgPN += "_ISO";
+		}
+
+		return orgPN;
 	}
 
-	public final String getMPEG_TS_SD_EULocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA";
+	public final String getMPEG_TS_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_TS";
+
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP";
+		if (!isStreaming) {
+			orgPN += "_ISO";
 		}
 
-		return "MPEG_TS_SD_EU";
+		return orgPN;
 	}
 
-	public final String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
-		String definition = "SD";
-		if (isHD) {
-			definition = "HD";
+	public final String getMKV_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_MKV";
+
+		if (media == null || "high".equals(media.getH264Profile())) {
+			orgPN += "_HP";
+		} else {
+			orgPN += "_MP";
 		}
 
-		if (index == 1) {
-			return "MPEG_TS_" + definition + "_NA";
-		}
-		if (index == 2) {
-			return "MPEG_TS_" + definition + "_JP";
+		orgPN += "_HD";
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAACLC()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAAC()
+				)
+			) {
+				orgPN += "_AAC_MULT5";
+			} else if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAC3()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAC3()
+				)
+			) {
+				orgPN += "_AC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isDTS()
+			) {
+				orgPN += "_DTS";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isEAC3()
+			) {
+				orgPN += "_EAC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isHEAAC()
+			) {
+				orgPN += "_HEAAC_L4";
+			}
 		}
 
-		return "MPEG_TS_" + definition + "_EU";
+		return orgPN;
+	}
+
+	public final String getWMV_OrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "WMV";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HIGH";
+		} else {
+			orgPN += "MED";
+		}
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isWMA()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToWMV()
+				)
+			) {
+				orgPN += "_FULL";
+			} else if (
+				isStreaming &&
+				(
+					media.getFirstAudioTrack().isWMAPro() ||
+					media.getFirstAudioTrack().isWMA10()
+				)
+			) {
+				orgPN += "_PRO";
+			}
+		}
+
+		return orgPN;
 	}
 }

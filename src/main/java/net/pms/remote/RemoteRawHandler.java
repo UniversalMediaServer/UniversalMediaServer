@@ -40,6 +40,7 @@ public class RemoteRawHandler implements HttpHandler {
 			if (RemoteUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+
 			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 			if (root == null) {
 				throw new IOException("Unknown root");
@@ -67,7 +68,7 @@ public class RemoteRawHandler implements HttpHandler {
 				}
 				mime = dlna.getFormat() != null ?
 					dlna.getFormat().mimeType() :
-					root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
+					root.getDefaultRenderer().getMimeType(dlna);
 
 				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : dlna.length();
 				range = new Range.Byte(0l, len);
@@ -98,8 +99,9 @@ public class RemoteRawHandler implements HttpHandler {
 					// For web resources actual length may be unknown until we open the stream
 					len = dlna.length();
 				}
-				mime = root.getDefaultRenderer().getMimeType(dlna.mimeType(), dlna.getMedia());
+				mime = root.getDefaultRenderer().getMimeType(dlna);
 			}
+
 			Headers hdr = t.getResponseHeaders();
 			LOGGER.debug("Sending media \"{}\" with mime type \"{}\"", dlna, mime);
 			hdr.add("Content-Type", mime);

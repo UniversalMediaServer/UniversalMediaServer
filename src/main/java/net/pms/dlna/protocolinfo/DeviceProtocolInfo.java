@@ -80,7 +80,7 @@ public class DeviceProtocolInfo implements Serializable {
 	 * escaping rules into account.
 	 */
 	public static final String COMMA_SPLIT_REGEX = "\\s*(?:(?<!\\\\),|(?<!\\\\)\\\\\\\\,)\\s*";
-
+	
 	/**
 	 * A {@link CharSequenceTranslator} for unescaping individual
 	 * {@code GetProtocolInfo} elements.

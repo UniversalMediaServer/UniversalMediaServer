@@ -3,7 +3,6 @@ package net.pms.util;
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import com.sun.nio.file.SensitivityWatchEventModifier;
-import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
@@ -193,8 +192,7 @@ public class FileWatcher {
 		}
 
 		public boolean remove(Watch w) {
-			for (WatchKey k : keySet()) {
-				ArrayList<Watch> a = get(k);
+			for (ArrayList<Watch> a : values()) {
 				if (a.contains(w)) {
 					return a.remove(w);
 				}
@@ -227,6 +225,19 @@ public class FileWatcher {
 	public static void add(Watch w, Path dir, boolean nativeRecursive) {
 		if (watchService == null) {
 			start(dir);
+		}
+
+		// Ignore common system directories that should never be watched
+		if (
+			Platform.isMac() &&
+			(
+				dir.toString().contains("/Music/Audio Music Apps") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/resources/cpl/cloudsync.noindex/storage/filecache/") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/private") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/external")
+			)
+		) {
+			return;
 		}
 
 		WatchKey key;

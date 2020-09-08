@@ -19,7 +19,7 @@
 package net.pms.formats;
 
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 
 public class PLAYLIST extends Format {
 
@@ -44,7 +44,7 @@ public class PLAYLIST extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAMediaInfo media, RendererConfiguration renderer) {
+	public boolean isCompatible(DLNAResource dlna, RendererConfiguration renderer) {
 		// TODO: manage via renderer conf setting
 		return false;
 	}

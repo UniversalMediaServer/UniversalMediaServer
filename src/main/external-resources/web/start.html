@@ -15,23 +15,19 @@
 		<script src="/files/util/keycode.js"></script>
 		<script src="/files/util/keycontroller.js"></script>
 		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<!-- Mobile-friendly -->
+		<meta name="viewport" content="width=device-width, initial-scale=1"> 
 		<title>{{serverName}}</title>
 	</head>
 	<body>
-		<div class="site-wrapper">
-			<div class="site-wrapper-inner">
-				<div class="cover-container">
-					<div id="FrontPage">
-						<div id="Container">
-							<div id="Menu">
-								<a href="/browse/0" id="Logo" title="{{serverName}}">
-									<h3 class="onFocus different btn btn-lg btn-primary" role="button">{{serverName}}</h3>
-								</a>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+	<a href="/browse/0" id="loadingLink">
+		<div class="loading"></div>
+		<div class="loadingAfter"></div>
+		<div id="ButtonContainer">
+		<button class="onFocus different btn btn-lg btn-primary" role="button" onclick="location.href = '/browse/0';">{{serverName}}</button>
+	</div>
+	</a>
+	
 	</body>
+	<script>var delay = 3000; setTimeout(function(){ window.location = "/browse/0"; }, delay);</script>
 </html>

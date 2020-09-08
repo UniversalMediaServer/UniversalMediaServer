@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.ISOVOB;
@@ -43,6 +44,7 @@ import net.pms.util.MPlayerDvdAudioStreamChannels;
 import net.pms.util.MPlayerDvdAudioStreamTypes;
 import net.pms.util.ProcessUtil;
 import net.pms.util.Rational;
+import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +97,7 @@ public class DVDISOTitle extends DLNAResource {
 		if (generateThumbnails) {
 			String outFolder = "jpeg:outdir=mplayer_thumbs:subdirs=\"" + this.hashCode() + "\"";
 			cmd = new String[] {
-				configuration.getMPlayerDefaultPath(),
+				configuration.getMPlayerPath(),
 				"-identify",
 				"-ss",
 				Integer.toString(configuration.getThumbnailSeekPos()),
@@ -112,7 +114,7 @@ public class DVDISOTitle extends DLNAResource {
 			};
 		} else {
 			cmd = new String[] {
-				configuration.getMPlayerDefaultPath(),
+				configuration.getMPlayerPath(),
 				"-identify",
 				"-endpos",
 				"0",
@@ -257,7 +259,7 @@ public class DVDISOTitle extends DLNAResource {
 			getMedia().setDuration(d);
 		}
 		getMedia().setFrameRate(fps);
-		getMedia().setAspectRatioDvdIso(Rational.valueOf(aspect));
+		getMedia().setAspectRatioDvdIso(aspect);
 		getMedia().setDvdtrack(title);
 		getMedia().setContainer(FormatConfiguration.ISO);
 		getMedia().setCodecV(codecV != null ? codecV : FormatConfiguration.MPEG2);
@@ -371,9 +373,11 @@ public class DVDISOTitle extends DLNAResource {
 		if (cachedThumbnail != null) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
-			return getMedia().getThumbnailInputStream();
+			DLNAThumbnailInputStream inputStream = getMedia().getThumbnailInputStream();
+			return inputStream;
 		} else {
-			return getGenericThumbnailInputStream(null);
+			DLNAThumbnailInputStream inputStream = getGenericThumbnailInputStream(null);
+			return inputStream;
 		}
 	}
 
@@ -488,5 +492,21 @@ public class DVDISOTitle extends DLNAResource {
 		}
 		LOGGER.warn("Could not parse DVD subtitle stream \"{}\"", line);
 		return null;
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);
+		if (
+			getMedia() != null &&
+			renderer != null &&
+			getMedia().getDurationInSeconds() > 0 &&
+			renderer.isShowDVDTitleDuration()
+		) {
+			nameSuffix += " (" + StringUtil.convertTimeToString(getMedia().getDurationInSeconds(), "%01d:%02d:%02.0f") + ")";
+		}
+
+		return nameSuffix;
 	}
 }

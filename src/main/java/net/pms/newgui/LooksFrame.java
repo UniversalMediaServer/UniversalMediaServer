@@ -23,7 +23,9 @@ import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URI;
@@ -88,11 +90,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		null
 	};
 
-	private NavigationShareTab nt;
+	private NavigationShareTab navigationSettingsTab;
+	private SharedContentTab sharedContentTab;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
-	private GeneralTab gt;
+	private GeneralTab generalSettingsTab;
 	private HelpTab ht;
 	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");;
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
@@ -135,16 +138,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tt;
 	}
 
-	public NavigationShareTab getNt() {
-		return nt;
+	public NavigationShareTab getNavigationSettingsTab() {
+		return navigationSettingsTab;
+	}
+
+	public SharedContentTab getSharedContentTab() {
+		return sharedContentTab;
 	}
 
 	public TranscodingTab getTr() {
 		return tr;
 	}
 
-	public GeneralTab getGt() {
-		return gt;
+	public GeneralTab getGeneralSettingsTab() {
+		return generalSettingsTab;
 	}
 
 	public static void initializeLookAndFeel() {
@@ -168,16 +175,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			} else {
 				try {
 					String systemClassName = UIManager.getSystemLookAndFeelClassName();
-					// Workaround for Gnome
-					try {
-						String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-						Class.forName(gtkLAF);
 
-						if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
-							systemClassName = gtkLAF;
+					if (!Platform.isMac()) {
+						// Workaround for Gnome
+						try {
+							String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+							Class.forName(gtkLAF);
+
+							if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
+								systemClassName = gtkLAF;
+							}
+						} catch (ClassNotFoundException ce) {
+							LOGGER.error("Error loading GTK look and feel: ", ce);
 						}
-					} catch (ClassNotFoundException ce) {
-						LOGGER.error("Error loading GTK look and feel: ", ce);
 					}
 
 					LOGGER.trace("Choosing Java look and feel: " + systemClassName);
@@ -429,6 +439,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setTitle(title);
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		if (Platform.isMac()) {
+			addWindowListener(new WindowAdapter() {
+				public void windowClosing(WindowEvent e) {
+					setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+					setExtendedState(JFrame.ICONIFIED); 
+				}
+			});
+		}
 
 		// Display tooltips immediately and for a long time
 		ToolTipManager.sharedInstance().setInitialDelay(400);
@@ -438,6 +456,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
+
+		if (configuration.isMinimized() && Platform.isMac()) {
+			// setVisible is required to iconify the frame
+			setVisible(true);
+			setExtendedState(JFrame.ICONIFIED);
+		}
+
 		BasicSystemUtils.INSTANCE.addSystemTray(this);
 	}
 
@@ -547,15 +572,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration, this);
-		gt = new GeneralTab(configuration, this);
-		nt = new NavigationShareTab(configuration, this);
+		generalSettingsTab = new GeneralTab(configuration, this);
+		navigationSettingsTab = new NavigationShareTab(configuration, this);
+		sharedContentTab = new SharedContentTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabGeneralSettings"), generalSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabNavigationSettings"), navigationSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabSharedContent"), sharedContentTab.build());
 		if (!configuration.isDisableTranscoding()) {
 			tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		} else {
@@ -714,6 +741,9 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void checkForUpdates(boolean isStartup) {
 		if (autoUpdater != null) {
 			try {
+				if (!isStartup) {
+					autoUpdater.pollServer();
+				}
 				AutoUpdateDialog.showIfNecessary(this, autoUpdater, isStartup);
 			} catch (NoClassDefFoundError ncdfe) {
 				LOGGER.error("Error displaying AutoUpdateDialog", ncdfe);
@@ -746,12 +776,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void serverReady() {
 		st.updateMemoryUsage();
-		gt.addRenderers();
+		generalSettingsTab.addRenderers();
 	}
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
-		getNt().setScanLibraryEnabled(flag);
+		getSharedContentTab().setScanLibraryEnabled(flag);
 	}
 
 	@Override
