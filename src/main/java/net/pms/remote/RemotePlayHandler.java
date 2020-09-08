@@ -105,6 +105,7 @@ public class RemotePlayHandler implements HttpHandler {
 			return returnPage();
 		}
 
+		String name = StringEscapeUtils.escapeHtml(rootResource.resumeName());
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		mustacheVars.put("poster", "/thumb/" + id1);
 		ArrayList<String> folders = new ArrayList<>();
@@ -117,12 +118,12 @@ public class RemotePlayHandler implements HttpHandler {
 			rootResource.getParent().isFolder()
 		) {
 			DLNAResource thisResourceFromResources = rootResource;
-			String thisName = thisResourceFromResources.getDisplayName();
 
-			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
+			breadcrumbs.add("<li class=\"active\">" + name + "</li>");
 			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 				thisResourceFromResources = thisResourceFromResources.getParent();
 				String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
+				ancestorName = StringEscapeUtils.escapeHtml(ancestorName);
 				String ancestorID = thisResourceFromResources.getResourceId();
 				String ancestorIDForWeb = URLEncoder.encode(ancestorID, "UTF-8");
 				String ancestorUri = "/browse/" + ancestorIDForWeb;
@@ -154,7 +155,6 @@ public class RemotePlayHandler implements HttpHandler {
 
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
-		String name = StringEscapeUtils.escapeHtml(rootResource.resumeName());
 		String mime = root.getDefaultRenderer().getMimeType(rootResource);
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
