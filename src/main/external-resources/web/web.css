@@ -534,16 +534,18 @@ body.dark .mediaInfoText {
 	color: rgba(18, 18, 18, 1);
 }
 
-body.dark .mediaInfoText a {
-	color: rgba(35, 82, 124, 1);
+body .mediaInfoText .badge {
+	margin: 0 5px;
+	font-weight: 400;
+	background-color: rgba(51, 51, 51, 1);
 }
 
-body.light .mediaInfoText a {
-	color: rgba(152, 191, 226, 1);
+body .mediaInfoText a {
+	color: rgba(217, 217, 217, 1);
 }
 
-body.light .mediaInfoText a:hover {
-	color: rgba(108, 164, 213, 1);
+body .mediaInfoText a:hover {
+	color: rgba(255, 255, 255, 1);
 }
 
 .videoPage .posterContainer {

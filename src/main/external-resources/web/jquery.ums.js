@@ -436,19 +436,21 @@ function setBackgroundColorFromPoster() {
 }
 
 function populateMetadataDisplayFromGlobalVars() {
+	var isDark = $('body').hasClass('dark');
+	var badgeClass = isDark ? 'badge-light' : 'badge-dark';
 	if (actors && actors[0]) {
 		var actorLinks = [];
 		for (var i = 0; i < actors.length; i++) {
 			var actor = actors[i];
-			actorLinks.push('<a href="/browse/' + actor.id + '">' + actor.name + '</a>');
+			actorLinks.push('<a href="/browse/' + actor.id + '" class="badge ' + badgeClass + '">' + actor.name + '</a>');
 		}
-		$('.actors').html('<strong>' + actorsTranslation + ':</strong> ' + actorLinks.join(', '));
+		$('.actors').html('<strong>' + actorsTranslation + ':</strong> ' + actorLinks.join(''));
 	}
 	if (awards) {
 		$('.awards').html('<strong>' + awardsTranslation + ':</strong> ' + awards);
 	}
 	if (country && country.id) {
-		$('.country').html('<strong>' + countryTranslation + ':</strong> <a href="/browse/' + country.id + '">' + country.name + '</a>');
+		$('.country').html('<strong>' + countryTranslation + ':</strong> <a href="/browse/' + country.id + '" class="badge ' + badgeClass + '">' + country.name + '</a>');
 	}
 	if (directors) {
 		$('.directors').html('<strong>' + directorsTranslation + ':</strong> ' + directors);
@@ -460,9 +462,9 @@ function populateMetadataDisplayFromGlobalVars() {
 		var genreLinks = [];
 		for (var i = 0; i < genres.length; i++) {
 			var genre = genres[i];
-			genreLinks.push('<a href="/browse/' + genre.id + '">' + genre.name + '</a>');
+			genreLinks.push('<a href="/browse/' + genre.id + '" class="badge ' + badgeClass + '">' + genre.name + '</a>');
 		}
-		$('.genres').html('<strong>' + genresTranslation + ':</strong> ' + genreLinks.join(', '));
+		$('.genres').html('<strong>' + genresTranslation + ':</strong> ' + genreLinks.join(''));
 	}
 	if (plot) {
 		$('.plot').html('<strong>' + plotTranslation + ':</strong> ' + plot);
@@ -476,7 +478,7 @@ function populateMetadataDisplayFromGlobalVars() {
 		$('.posterContainer').html(img);
 	}
 	if (rated) {
-		$('.rated').html('<strong>' + ratedTranslation + ':</strong> <a href="/browse/' + rated.id + '">' + rated.name + '</a>');
+		$('.rated').html('<strong>' + ratedTranslation + ':</strong> <a href="/browse/' + rated.id + '" class="badge ' + badgeClass + '">' + rated.name + '</a>');
 	}
 	if (ratings && ratings[0]) {
 		$('.ratings').html('<strong>' + ratingsTranslation + ':</strong>');
