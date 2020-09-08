@@ -141,11 +141,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * @return the externalFile
-=======
 	 * @return The absolute external {@link File} or {@code null}.
->>>>>>> refs/remotes/origin/master
 	 */
 	public File getExternalFile() {
 		return externalFile;

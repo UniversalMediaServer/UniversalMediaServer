@@ -89,7 +89,6 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
 
 public class OpenSubtitle {

@@ -2335,19 +2335,6 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
-	 * @deprecated use getAspectRatioDvdIso() for the original.
-	 * functionality of this method, or use getAspectRatioContainer() for a
-	 * better default method to get aspect ratios.
-	 */
-	@Deprecated
-	public String getAspect() {
-		return getAspectRatioDvdIso();
-	}
-
-	/**
->>>>>>> refs/remotes/origin/master
 	 * The aspect ratio for a DVD ISO video track
 	 *
 	 * @return the aspect
@@ -2357,11 +2344,7 @@ public class DLNAMediaInfo implements Cloneable {
 		return aspectRatioDvdIso;
 	}
 	/**
-<<<<<<< HEAD
-	 * @param aspect the aspect to set
-=======
 	 * @param aspectRatio the aspect to set
->>>>>>> refs/remotes/origin/master
 	 * @since 1.50.0
 	 */
 	public void setAspectRatioDvdIso(String aspectRatio) {
@@ -2652,21 +2635,6 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
-	 * @return the audioTracks
-	 * @deprecated use getAudioTracksList() instead
-	 */
-	@Deprecated
-	public ArrayList<DLNAMediaAudio> getAudioCodes() {
-		if (audioTracks instanceof ArrayList) {
-			return (ArrayList<DLNAMediaAudio>) audioTracks;
-		}
-		return new ArrayList<>();
-	}
-
-	/**
->>>>>>> refs/remotes/origin/master
 	 * @param audioTracks the audioTracks to set
 	 * @since 1.60.0
 	 */
@@ -2684,21 +2652,6 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
-	 * @return the subtitleTracks
-	 * @deprecated use getSubtitleTracksList() instead
-	 */
-	@Deprecated
-	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
-		if (subtitleTracks instanceof ArrayList) {
-			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
-		}
-		return new ArrayList<>();
-	}
-
-	/**
->>>>>>> refs/remotes/origin/master
 	 * @param subtitleTracks the subtitleTracks to set
 	 * @since 1.60.0
 	 */

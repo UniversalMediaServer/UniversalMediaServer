@@ -43,7 +43,6 @@ import net.pms.util.Iso639;
 import net.pms.util.MPlayerDvdAudioStreamChannels;
 import net.pms.util.MPlayerDvdAudioStreamTypes;
 import net.pms.util.ProcessUtil;
-import net.pms.util.Rational;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

@@ -1250,20 +1250,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-<<<<<<< HEAD
 	 * Sets the preferred language for the DMS user interface.
-=======
-	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
-	 * @since 5.2.3
-	 */
-	@Deprecated
-	public String getLanguage() {
-		return getLanguageTag();
-	}
-
-	/**
-	 * Sets the preferred language for the UMS user interface.
->>>>>>> refs/remotes/origin/master
 	 * @param value The {@link java.net.Locale}.
 	 */
 	public void setLanguage(Locale locale) {
@@ -4489,20 +4476,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Set whether DMS should allow only one instance by shutting down
-=======
-	 * @deprecated
-	 * @see #setRunSingleInstance(boolean)
-	 */
-	@Deprecated
-	public void setSingle(boolean value) {
-		setRunSingleInstance(value);
-	}
-
-	/**
 	 * Set whether UMS should allow only one instance by shutting down
->>>>>>> refs/remotes/origin/master
 	 * the first one when a second one is launched.
 	 *
 	 * @param value whether to kill the old UMS instance
@@ -4512,20 +4486,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Whether DMS should allow only one instance by shutting down
-=======
-	 * @deprecated
-	 * @see #isRunSingleInstance()
-	 */
-	@Deprecated
-	public boolean getSingle() {
-		return isRunSingleInstance();
-	}
-
-	/**
 	 * Whether UMS should allow only one instance by shutting down
->>>>>>> refs/remotes/origin/master
 	 * the first one when a second one is launched.
 	 *
 	 * @return value whether to kill the old UMS instance

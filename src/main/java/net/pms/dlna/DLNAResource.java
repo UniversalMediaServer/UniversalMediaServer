@@ -3731,11 +3731,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Whether this resource has external subtitles.
-=======
 	 * Determines whether this resource has external subtitles.
->>>>>>> refs/remotes/origin/master
 	 *
 	 * @return {@code true} if this resource has external subtitles,
 	 *         {@code false} otherwise.
@@ -3745,11 +3741,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Sets whether this resource has external subtitles.
-=======
 	 * Determines whether this resource has external subtitles.
->>>>>>> refs/remotes/origin/master
 	 *
 	 * @param forceRefresh if {@code true} forces a new scan for external
 	 *            subtitles instead of relying on cached information (if it

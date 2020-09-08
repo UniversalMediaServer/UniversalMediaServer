@@ -25,7 +25,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
-import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
