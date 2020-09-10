@@ -356,7 +356,7 @@ public class RealFile extends MapFile {
 	@SuppressWarnings("deprecation")
 	@Override
 	protected String getDisplayNameBase() {
-		if (parent instanceof SubSelFile && getMediaSubtitle() instanceof DLNAMediaOnDemandSubtitle) {
+		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof DLNAMediaOnDemandSubtitle) {
 			return ((DLNAMediaOnDemandSubtitle) getMediaSubtitle()).getName();
 		}
 		if (isFolder()) {

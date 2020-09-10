@@ -103,7 +103,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		RenderingHints.VALUE_RENDER_QUALITY
 	);
 
-	protected DLNAResource parent;
+	private DLNAResource parent;
 
 	/**
 	 * The format of this resource.
@@ -501,7 +501,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (cobj == null || !((CodeEnter) cobj).getCode().equals(code)) {
 					LOGGER.debug("Resource {} is coded add code folder", child);
 					CodeEnter ce = new CodeEnter(child);
-					ce.parent = this;
+					ce.setParent(this);
 					ce.setDefaultRenderer(this.getDefaultRenderer());
 					ce.setCode(code);
 					addChildInternal(ce, isAddGlobally);
