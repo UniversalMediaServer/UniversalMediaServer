@@ -353,7 +353,6 @@ public class RealFile extends MapFile {
 	private volatile String baseNameWithoutExtension;
 	private final Object displayNameBaseLock = new Object();
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected String getDisplayNameBase() {
 		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof DLNAMediaOnDemandSubtitle) {

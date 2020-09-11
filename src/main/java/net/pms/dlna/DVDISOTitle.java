@@ -493,7 +493,6 @@ public class DVDISOTitle extends DLNAResource {
 		return null;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
 		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);

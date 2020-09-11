@@ -185,7 +185,6 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	 * This populates the file-specific transcode folder with all combinations of players,
 	 * audio tracks and subtitles.
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void resolveOnce() {
 		if (getChildren().isEmpty()) { // OK

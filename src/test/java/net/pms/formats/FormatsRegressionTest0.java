@@ -14,7 +14,7 @@ import org.junit.runners.MethodSorters;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@SuppressWarnings({ "deprecation", "unused" })
+@SuppressWarnings("unused")
 @SuppressFBWarnings({ "DLS_DEAD_LOCAL_STORE", "MS_SHOULD_BE_FINAL" })
 public class FormatsRegressionTest0 {
 

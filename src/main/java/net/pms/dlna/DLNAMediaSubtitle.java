@@ -191,7 +191,6 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 * Detects and sets the subtitles' character set. If the language isn't
 	 * set/known and it is detected, the language is also set.
 	 */
-	@SuppressWarnings("deprecation")
 	private void setFileSubsCharacterSet() {
 		if (externalFile != null && !type.isPicture()) {
 			try {
