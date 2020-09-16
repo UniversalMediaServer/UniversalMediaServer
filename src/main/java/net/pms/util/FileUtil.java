@@ -1875,18 +1875,6 @@ public class FileUtil {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
-	 * @deprecated Use {@link #createBufferedReaderDetectCharset(File, Charset)}
-	 *             instead.
-	 */
-	@Deprecated
-	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
-		return createBufferedReaderDetectCharset(file, StandardCharsets.UTF_8).getBufferedReader();
-	}
-
-	/**
->>>>>>> refs/remotes/origin/master
 	 * Attempts to detect the {@link Charset} used in the specified {@link File}
 	 * and creates a {@link BufferedReader} using that {@link Charset}. If the
 	 * {@link Charset} detection fails, the specified default {@link Charset}
