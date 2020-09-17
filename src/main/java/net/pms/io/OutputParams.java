@@ -86,8 +86,7 @@ public class OutputParams {
 	public void manageFastStart() {
 		if (getMediaRenderer() != null && getMediaRenderer().isTranscodeFastStart()) {
 			setWaitBeforeStart(0); // no delay when the transcode is starting
-			setMinBufferSize(1); // 1Mb of minimum buffer before sending the
-								 // file
+			setMinBufferSize(1); // 1Mb of minimum buffer before sending the file
 		}
 	}
 
