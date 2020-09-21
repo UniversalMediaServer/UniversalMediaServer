@@ -27,101 +27,23 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of the audio properties of media.
- *
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
  */
 public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaAudio.class);
 	private AudioProperties audioProperties = new AudioProperties();
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int bitsperSample = 16;
-
+	private int bitsperSample = 16;
 	private int bitRate;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String sampleFrequency;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int nrAudioChannels;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String codecA;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String album;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String artist;
-
-	/**
-	 * Global artist of an album.
-	 */
+	private String sampleFrequency;
+	private String codecA;
+	private String album;
+	private String artist;
+	private String songname;
+	private String genre;
+	private int year;
+	private int track;
+	private String audioTrackTitleFromMetadata;
+	private String muxingModeAudio;
 	private String albumartist;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String songname;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String genre;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int year;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int track;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int delay;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String audioTrackTitleFromMetadata;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String muxingModeAudio;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -706,31 +628,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns the number of channels for the audio.
-	 *
-	 * @return The number of channels
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().getNumberOfChannels() instead
-	 */
-	@Deprecated
-	public int getNrAudioChannels() {
-		return audioProperties.getNumberOfChannels();
-	}
-
-	/**
-	 * Sets the number of channels for the audio.
-	 *
-	 * @param numberOfChannels The number of channels to set.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().setNumberOfChannels(int numberOfChannels) instead
-	 */
-	@Deprecated
-	public void setNrAudioChannels(int numberOfChannels) {
-		this.nrAudioChannels = numberOfChannels;
-		audioProperties.setNumberOfChannels(numberOfChannels);
-	}
-
-	/**
 	 * Returns the name of the audio codec that is being used.
 	 *
 	 * @return The name of the audio codec.
@@ -887,47 +784,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setTrack(int track) {
 		this.track = track;
-	}
-
-	/**
-	 * Returns the delay for the audio.
-	 *
-	 * @return The delay.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().getAudioDelay() instead
-	 */
-	@Deprecated
-	public int getDelay() {
-		return audioProperties.getAudioDelay();
-	}
-
-	/**
-	 * Sets the delay for the audio.
-	 *
-	 * @param audioDelay The delay to set.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().setAudioDelay(int audioDelay) instead
-	 */
-	@Deprecated
-	public void setDelay(int audioDelay) {
-		this.delay = audioDelay;
-		audioProperties.setAudioDelay(audioDelay);
-	}
-
-	/**
-	 * @deprecated use getAudioTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public String getFlavor() {
-		return getAudioTrackTitleFromMetadata();
-	}
-
-	/**
-	 * @deprecated use setAudioTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public void setFlavor(String value) {
-		setAudioTrackTitleFromMetadata(value);
 	}
 
 	public String getAudioTrackTitleFromMetadata() {

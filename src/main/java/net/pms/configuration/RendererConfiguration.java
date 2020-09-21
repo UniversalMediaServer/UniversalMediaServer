@@ -104,20 +104,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String WAV = "WAV";
 	protected static final String WMV = "WMV";
 
-	// Old video transcoding options
-	@Deprecated
-	protected static final String DEPRECATED_MPEGAC3 = "MPEGAC3";
-
-	@Deprecated
-	protected static final String DEPRECATED_MPEGPSAC3 = "MPEGPSAC3";
-
-	@Deprecated
-	protected static final String DEPRECATED_MPEGTSAC3 = "MPEGTSAC3";
-
-	@Deprecated
-	protected static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
-
-	// Current video transcoding options
+	// video transcoding options
 	protected static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
 	protected static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
 	protected static final String MPEGTSH265AAC = "MPEGTS-H265-AAC";
@@ -208,12 +195,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String VIDEO = "Video";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
-
-	// Deprecated property names
-	@Deprecated
-	protected static final String THUMBNAIL_BG = "ThumbnailBackground";
-	@Deprecated
-	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -374,11 +355,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			LOGGER.trace("", e);
 			return null;
 		}
-	}
-
-	@Deprecated
-	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
-		return getEnabledRenderersConfigurations();
 	}
 
 	public boolean nox264() {
@@ -855,15 +831,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * @see #isXbox360()
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isXBOX() {
-		return isXbox360();
-	}
-
-	/**
 	 * @return whether this renderer is an Xbox 360
 	 */
 	public boolean isXbox360() {
@@ -1154,17 +1121,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isTranscodeToMPEGPSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGPSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
+		return videoTranscode.equals(MPEGPSMPEG2AC3);
 	}
 
 	public boolean isTranscodeToMPEGTSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGTSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGTSAC3);
+		return videoTranscode.equals(MPEGTSMPEG2AC3);
 	}
 
 	public boolean isTranscodeToMPEGTSH264AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGTSH264AC3) || videoTranscode.equals(DEPRECATED_H264TSAC3);
+		return videoTranscode.equals(MPEGTSH264AC3);
 	}
 
 	public boolean isTranscodeToMPEGTSH264AAC() {
@@ -1929,11 +1896,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return maximumBitrateTotal;
 	}
 
-	@Deprecated
-	public String getCustomMencoderQualitySettings() {
-		return getCustomMEncoderMPEG2Options();
-	}
-
 	/**
 	 * Returns the override settings for MEncoder quality settings as
 	 * defined in the renderer configuration. The default value is "".
@@ -2022,14 +1984,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public int getMaxVideoHeight() {
 		return getInt(MAX_VIDEO_HEIGHT, 1080);
-	}
-
-	/**
-	 * @Deprecated use isMaximumResolutionSpecified() instead
-	 */
-	@Deprecated
-	public boolean isVideoRescale() {
-		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
 	/**
@@ -2135,21 +2089,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getRendererName();
 	}
 
-	@Deprecated
-	public boolean isMediaParserV2() {
-		return isUseMediaInfo();
-	}
-
 	/**
 	 * @return whether to use MediaInfo
 	 */
 	public boolean isUseMediaInfo() {
 		return getBoolean(MEDIAPARSERV2, false) && LibMediaInfoParser.isValid();
-	}
-
-	@Deprecated
-	public boolean isMediaParserV2ThumbnailGeneration() {
-		return isMediaInfoThumbnailGeneration();
 	}
 
 	public boolean isMediaInfoThumbnailGeneration() {
@@ -2427,15 +2371,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		return name;
-	}
-
-	/**
-	 * @see #isSendDateMetadata()
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isOmitDcDate() {
-		return !isSendDateMetadata();
 	}
 
 	public static int getIntAt(String s, String key, int fallback) {

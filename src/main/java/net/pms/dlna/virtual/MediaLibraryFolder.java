@@ -723,7 +723,7 @@ LOGGER.info("2firstSql: " + firstSql);
 		StringBuilder result = new StringBuilder();
 		result.append(getClass().getSimpleName());
 		result.append(" [id=");
-		result.append(id);
+		result.append(getId());
 		result.append(", name=");
 		result.append(getName());
 		result.append(", full path=");

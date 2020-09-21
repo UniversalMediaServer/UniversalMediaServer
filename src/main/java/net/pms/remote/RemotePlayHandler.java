@@ -242,9 +242,9 @@ public class RemotePlayHandler implements HttpHandler {
 				configuration.setFFmpegFontConfig(false);
 			}
 			OutputParams p = new OutputParams(configuration);
-			p.sid = rootResource.getMediaSubtitle();
+			p.setSid(rootResource.getMediaSubtitle());
 			Player.setAudioAndSubs(rootResource, p);
-			if (p.sid != null && p.sid.getType().isText()) {
+			if (p.getSid() != null && p.getSid().getType().isText()) {
 				try {
 					File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, configuration, SubtitleType.WEBVTT);
 					LOGGER.debug("subFile " + subFile);

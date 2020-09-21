@@ -161,12 +161,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		params.minBufferSize = params.minFileSize;
-		params.secondread_minsize = 100000;
-		// Use device-specific DMS conf
+		params.setMinBufferSize(params.getMinFileSize());
+		params.setSecondReadMinSize(100000);
+		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
-		RendererConfiguration renderer = params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		RendererConfiguration renderer = params.getMediaRenderer();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
 
@@ -205,8 +205,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			filtersLock.readLock().unlock();
 		}
 		// - (http) header options
-		if (params.header != null && params.header.length > 0) {
-			String hdr = new String(params.header);
+		if (params.getHeader() != null && params.getHeader().length > 0) {
+			String hdr = new String(params.getHeader());
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options
@@ -264,9 +264,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.transferInputFileOptions(cmdList);
 		}
 
-		if (params.timeseek > 0) {
+		if (params.getTimeSeek() > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + (int) params.timeseek);
+			cmdList.add("" + (int) params.getTimeSeek());
 		}
 
 		cmdList.add("-i");
@@ -326,7 +326,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		 */
 		mkfifo_process.runInSameThread();
 
-		params.input_pipes[0] = pipe;
+		params.getInputPipes()[0] = pipe;
 
 		// Output file
 		cmdList.add(pipe.getInputPipe());
@@ -365,13 +365,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return NAME;
 	}
 
-	// TODO remove this when it's removed from Player
-	@Deprecated
-	@Override
-	public String[] args() {
-		return null;
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (PlayerUtil.isWebVideo(resource)) {

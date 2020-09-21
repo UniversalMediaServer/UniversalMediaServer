@@ -74,12 +74,6 @@ public class RarredFile extends DLNAResource {
 		return true;
 	}
 
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
-	}
-
 	@Override
 	public String getSystemName() {
 		return f.getAbsolutePath();

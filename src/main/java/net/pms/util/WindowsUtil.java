@@ -50,7 +50,7 @@ public class WindowsUtil {
 	public static boolean uninstallWin32Service() {
 		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-r", "wrapper.conf"};
 		OutputParams output = new OutputParams(PMS.getConfiguration());
-		output.noexitcheck = true;
+		output.setNoExitCheck(true);
 		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, true, output);
 		pwuninstall.runInSameThread();
 		return true;

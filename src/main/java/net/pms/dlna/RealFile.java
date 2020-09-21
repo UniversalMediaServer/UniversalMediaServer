@@ -184,7 +184,7 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	public synchronized void resolve() {
+	public synchronized void syncResolve() {
 		File file = getFile();
 		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {
 			boolean found = false;
@@ -360,11 +360,10 @@ public class RealFile extends MapFile {
 	private volatile String baseNameWithoutExtension;
 	private final Object displayNameBaseLock = new Object();
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected String getDisplayNameBase() {
-		if (parent instanceof SubSelFile && media_subtitle instanceof DLNAMediaOnDemandSubtitle) {
-			return ((DLNAMediaOnDemandSubtitle) media_subtitle).getName();
+		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof DLNAMediaOnDemandSubtitle) {
+			return ((DLNAMediaOnDemandSubtitle) getMediaSubtitle()).getName();
 		}
 		if (isFolder()) {
 			return super.getDisplayNameBase();
