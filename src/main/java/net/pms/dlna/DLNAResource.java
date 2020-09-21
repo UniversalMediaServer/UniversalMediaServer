@@ -2246,7 +2246,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					if (media.getDuration() != null) {
-						if (getSplitRange().isEndLimitAvailable()) {
+						if (isResume()) {
+							long offset = resume.getTimeOffset() / 1000;
+							double duration = media.getDuration() - offset;
+							addAttribute(sb, "duration", StringUtil.formatDLNADuration(duration));
+						} else if (getSplitRange().isEndLimitAvailable()) {
 							addAttribute(sb, "duration", StringUtil.formatDLNADuration(getSplitRange().getDuration()));
 						} else {
 							addAttribute(sb, "duration", media.getDurationString());
