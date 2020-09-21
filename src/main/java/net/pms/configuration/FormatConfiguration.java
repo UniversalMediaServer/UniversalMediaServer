@@ -717,7 +717,7 @@ public class FormatConfiguration {
 		return getMatchedMIMEtype(
 			media.getContainer(),
 			media.getCodecV(),
-			params.aid != null ? params.aid.getCodecA() : null,
+			params.getAid() != null ? params.getAid().getCodecA() : null,
 			0,
 			0,
 			0,
@@ -725,8 +725,8 @@ public class FormatConfiguration {
 			0,
 			0,
 			null,
-			params.sid.getType().name(),
-			params.sid.isExternal()
+			params.getSid().getType().name(),
+			params.getSid().isExternal()
 		);
 	}
 

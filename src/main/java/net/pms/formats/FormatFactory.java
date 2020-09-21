@@ -116,14 +116,6 @@ public final class FormatFactory {
 	}
 
 	/**
-	 * @deprecated Use {@link #getAssociatedFormat(String)} instead.
-	 */
-	@Deprecated
-	public static Format getAssociatedExtension(final String filename) {
-		return getAssociatedFormat(filename);
-	}
-
-	/**
 	 * Match a given filename to all known formats and return a fresh instance
 	 * of that format. Matching is done by the file extension (e.g. ".gif") or
 	 * protocol (e.g. "http://") of the filename. Will return <code>null</code>

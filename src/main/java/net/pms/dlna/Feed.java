@@ -35,58 +35,16 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
-/**
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
- */
 public class Feed extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Feed.class);
 	private static final int REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String name;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String url;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String tempItemTitle;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String tempItemLink;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String tempFeedLink;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String tempCategory;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String tempItemThumbURL;
+	private String name;
+	private String url;
+	private String tempItemTitle;
+	private String tempItemLink;
+	private String tempFeedLink;
+	private String tempCategory;
+	private String tempItemThumbURL;
 
 	@Override
 	protected void resolveOnce() {
@@ -183,12 +141,6 @@ public class Feed extends DLNAResource {
 
 	@Override
 	public long length() {
-		return 0;
-	}
-
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
 		return 0;
 	}
 

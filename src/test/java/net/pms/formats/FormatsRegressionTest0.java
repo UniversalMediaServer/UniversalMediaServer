@@ -14,7 +14,7 @@ import org.junit.runners.MethodSorters;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@SuppressWarnings({ "deprecation", "unused" })
+@SuppressWarnings("unused")
 @SuppressFBWarnings({ "DLS_DEAD_LOCAL_STORE", "MS_SHOULD_BE_FINAL" })
 public class FormatsRegressionTest0 {
 
@@ -29,7 +29,7 @@ public class FormatsRegressionTest0 {
 
 	@Test
 	public void test03() throws Throwable {
-		Format format1 = FormatFactory.getAssociatedExtension("hi!");
+		Format format1 = FormatFactory.getAssociatedFormat("hi!");
 
 		// Regression assertion (captures the current behavior of the code)
 		assertNull(format1);
@@ -47,7 +47,7 @@ public class FormatsRegressionTest0 {
 	public void test07() throws Throwable {
 		MKV mKV0 = new MKV();
 		String str1 = mKV0.toString();
-		String[] str_array2 = mKV0.getId();
+		String[] str_array2 = mKV0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
 		assertTrue("'" + str1 + "' != '" + "MKV" + "'", str1.equals("MKV"));
@@ -78,7 +78,7 @@ public class FormatsRegressionTest0 {
 		// The following exception was thrown during execution in test
 		// generation
 		try {
-			mPG0.parse(dLNAMediaInfo1, inputFile2, (short) 0);
+			mPG0.parse(dLNAMediaInfo1, inputFile2, (short) 0, null);
 			fail("Expected exception of type NullPointerException");
 		} catch (NullPointerException e) {
 			// Expected exception.
@@ -440,7 +440,7 @@ public class FormatsRegressionTest0 {
 	@Test
 	public void test50() throws Throwable {
 		MKV mKV0 = new MKV();
-		String[] str_array1 = mKV0.getId();
+		String[] str_array1 = mKV0.getSupportedExtensions();
 
 		// Regression assertion (captures the current behavior of the code)
 		assertNotNull(str_array1);

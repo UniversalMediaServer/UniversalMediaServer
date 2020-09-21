@@ -58,48 +58,16 @@ public class Track {
 		return sampleSize;
 	}
 
-	/**
-	 * @deprecated Use {@link #getBitsPerSample()}
-	 */
-	@Deprecated
-	public int getBitspersample() {
-		return getBitsPerSample();
-	}
-
 	public int getBitsPerSample() {
 		return bitsPerSample;
-	}
-
-	/**
-	 * @deprecated Use {@link #setBitsPerSample(int)}
-	 */
-	@Deprecated
-	public void setBitspersample(int bitsPerSample) {
-		setBitsPerSample(bitsPerSample);
 	}
 
 	public void setBitsPerSample(int bitsPerSample) {
 		this.bitsPerSample = bitsPerSample;
 	}
 
-	/**
-	 * @deprecated Use {@link #getNbAudio()}
-	 */
-	@Deprecated
-	public int getNbaudio() {
-		return getNbAudio();
-	}
-
 	public int getNbAudio() {
 		return nbAudio;
-	}
-
-	/**
-	 * @deprecated Use {@link #setNbAudio(int)}
-	 */
-	@Deprecated
-	public void setNbaudio(int nbAudio) {
-		setNbAudio(nbAudio);
 	}
 
 	public void setNbAudio(int nbAudio) {

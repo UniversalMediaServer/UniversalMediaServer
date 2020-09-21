@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,7 +80,6 @@ public class MediaMonitor extends VirtualFolder {
 					}
 				}
 			}
-			dumpFile(); //TODO: Remove this and delete the file when 7.0.0 beta is over
 		} catch (IOException e) {
 			LOGGER.error("Error reading monitor file \"{}\": {}", f.getAbsolutePath(), e.getMessage());
 			LOGGER.trace("", e);
@@ -358,37 +356,6 @@ public class MediaMonitor extends VirtualFolder {
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
 		} finally {
 			fullyPlayedEntriesLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Populates UMS.mon with a list of completely played media.
-	 *
-	 * @deprecated Should be removed when 7.0.0 is out of beta.
-	 * @throws IOException
-	 */
-	@Deprecated
-	private void dumpFile() throws IOException {
-		File f = monitorFile();
-		Date now = new Date();
-		try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8)) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("######\n");
-			sb.append("## NOTE!!!!!\n");
-			sb.append("## This file is auto generated\n");
-			sb.append("## Edit with EXTREME care\n");
-			sb.append("## Generated: ");
-			sb.append(now.toString());
-			sb.append("\n");
-//			for (String str : fullyPlayedEntries) {
-//				if (sb.indexOf(str) == -1) {
-//					sb.append("entry=");
-//					sb.append(str);
-//					sb.append("\n");
-//				}
-//			}
-			out.write(sb.toString());
-			out.flush();
 		}
 	}
 

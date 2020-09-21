@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -77,11 +76,6 @@ public class LibMediaInfoParser {
 		} catch (Throwable e) {
 			LOGGER.debug("Caught exception", e);
 		}
-	}
-
-	@Deprecated
-	public synchronized static void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
-		parse(media, inputFile, type, null);
 	}
 
 	/**
@@ -1071,55 +1065,6 @@ public class LibMediaInfoParser {
 
 		value = value.trim();
 		return value;
-	}
-
-	/**
-	 * @deprecated use trim()
-	 */
-	@Deprecated
-	public static String getFlavor(String value) {
-		value = value.trim();
-		return value;
-	}
-
-	/**
-	 * Parses the "Duration/String1" format.
-	 *
-	 * @deprecated Parse "Duration" with {@link #parseDuration(String)} instead.
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	private static double getDuration(String value) {
-		int h = 0, m = 0, s = 0;
-		StringTokenizer st = new StringTokenizer(value, " ");
-
-		while (st.hasMoreTokens()) {
-			String token = st.nextToken();
-			int hl = token.indexOf('h');
-
-			if (hl > -1) {
-				h = Integer.parseInt(token.substring(0, hl).trim());
-			}
-
-			int mnl = token.indexOf("mn");
-
-			if (mnl > -1) {
-				m = Integer.parseInt(token.substring(0, mnl).trim());
-			}
-
-			int msl = token.indexOf("ms");
-
-			if (msl == -1) {
-				// Only check if ms was not found
-				int sl = token.indexOf('s');
-
-				if (sl > -1) {
-					s = Integer.parseInt(token.substring(0, sl).trim());
-				}
-			}
-		}
-
-		return (h * 3600) + (m * 60) + s;
 	}
 
 	/**

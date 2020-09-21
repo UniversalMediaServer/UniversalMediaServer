@@ -185,7 +185,6 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	 * This populates the file-specific transcode folder with all combinations of players,
 	 * audio tracks and subtitles.
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void resolveOnce() {
 		if (getChildren().isEmpty()) { // OK
@@ -203,9 +202,9 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			// modifications to them
 			List<DLNAMediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracksList());
 			List<DLNAMediaSubtitle> subtitlesTracks;
-			if (media_subtitle != null) {
+			if (getMediaSubtitle() != null) {
 				// Transcode folder of live subtitles folder
-				subtitlesTracks = Collections.singletonList(media_subtitle);
+				subtitlesTracks = Collections.singletonList(getMediaSubtitle());
 			} else {
 				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitleTracksList());
 			}
@@ -265,7 +264,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				audioTracks.add(null);
 			}
 
-			if (media_subtitle == null) {
+			if (getMediaSubtitle() == null) {
 				if (subtitlesTracks.isEmpty()) {
 					subtitlesTracks.add(null);
 				} else {

@@ -107,14 +107,6 @@ public enum SubtitleType {
 		return subtitleType;
 	}
 
-	/**
-	 * @deprecated use getSubtitleTypeByFileExtension(String fileExtension) instead
-	 */
-	@Deprecated
-	public static SubtitleType getSubtitleTypeByFileExtension(String fileExtension) {
-		return valueOfFileExtension(fileExtension);
-	}
-
 	public static SubtitleType valueOfFileExtension(String fileExtension) {
 		if (isBlank(fileExtension)) {
 			return UNKNOWN;
@@ -124,14 +116,6 @@ public enum SubtitleType {
 			subtitleType = UNKNOWN;
 		}
 		return subtitleType;
-	}
-
-	/**
-	 * @deprecated use SubtitleType {@link #valueOfMediaInfoValue} instead.
-	 */
-	@Deprecated
-	public static SubtitleType getSubtitleTypeByLibMediaInfoCodec(String codec) {
-		return valueOfMediaInfoValue(codec);
 	}
 
 	public static SubtitleType valueOfMediaInfoValue(String value) {
