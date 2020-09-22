@@ -110,7 +110,7 @@ public class HTTPServer implements Runnable {
 			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(group);
 			bootstrap.setPipelineFactory(pipeline);
 			bootstrap.setOption("child.tcpNoDelay", true);
-			bootstrap.setOption("child.keepAlive", true);
+			bootstrap.setOption("child.keepAlive", false);
 			bootstrap.setOption("reuseAddress", true);
 			bootstrap.setOption("child.reuseAddress", true);
 			bootstrap.setOption("child.sendBufferSize", 65536);
