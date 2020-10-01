@@ -16,6 +16,7 @@ import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataCountries;
 import net.pms.database.TableVideoMetadataDirectors;
 import net.pms.database.TableVideoMetadataGenres;
+import static net.pms.database.TableVideoMetadataGenres.TABLE_NAME;
 import net.pms.database.TableVideoMetadataIMDbRating;
 import net.pms.database.TableVideoMetadataRated;
 import net.pms.database.TableVideoMetadataReleased;
@@ -132,7 +133,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	 */
 	@Override
 	public boolean isRefreshNeeded() {
-		int expectedOutput = 0;
+		int expectedOutput;
 		if (sqls.length > 0) {
 			String sql = sqls[0];
 			expectedOutput = expectedOutputs[0];
@@ -235,8 +236,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 		StringBuilder seasonsQuery = new StringBuilder();
 
 		int expectedOutput = 0;
+		String firstSql = null;
 		if (sqls.length > 0) {
-			String firstSql = sqls[0];
+			firstSql = sqls[0];
 			expectedOutput = expectedOutputs[0];
 
 LOGGER.info("2expectedOutput: " + expectedOutput);
@@ -338,7 +340,7 @@ LOGGER.info("2firstSql: " + firstSql);
 								if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
 									sql = "SELECT FILES.FILENAME, FILES.MODIFIED FROM FILES WHERE " + sql;
 								}
-							};
+							}
 							String whereString = "WHERE ";
 							int indexAfterFrom = sql.indexOf(FROM_FILES) + FROM_FILES.length();
 
@@ -384,9 +386,9 @@ LOGGER.info("2firstSql: " + firstSql);
 		if (filesListFromDb != null) {
 			UMSUtils.sort(filesListFromDb, PMS.getConfiguration().getSortMethod(null));
 
-			for (DLNAResource child : getChildren()) {
+			getChildren().forEach(child -> {
 				oldFiles.add(child);
-			}
+			});
 
 			for (File file : filesListFromDb) {
 				newFiles.add(file);
@@ -398,21 +400,22 @@ LOGGER.info("2firstSql: " + firstSql);
 				UMSUtils.sort(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
 			}
 
-			for (DLNAResource child : getChildren()) {
+			getChildren().forEach(child -> {
 				oldVirtualFolders.add(child);
-			}
+			});
 
 			for (String f : virtualFoldersListFromDb) {
 				newVirtualFolders.add(f);
 			}
 		}
 
-		for (DLNAResource fileResource : oldFiles) {
+		oldFiles.forEach(fileResource -> {
 			getChildren().remove(fileResource);
-		}
-		for (DLNAResource virtualFolderResource : oldVirtualFolders) {
+		});
+
+		oldVirtualFolders.forEach(virtualFolderResource -> {
 			getChildren().remove(virtualFolderResource);
-		}
+		});
 
 		// Add filters at the top
 		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
@@ -612,23 +615,50 @@ LOGGER.info("2firstSql: " + firstSql);
 					},
 					new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
 				);
-				// note for file recommendations
-	//			VirtualFolder recommendations = new MediaLibraryFolder(
-	//				Messages.getString("MediaLibrary.Recommendations"),
-	//				"SELECT DISTINCT " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME, " + DLNAMediaDatabase.TABLE_NAME + ".MODIFIED, " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING " +
-	//				"FROM " + DLNAMediaDatabase.TABLE_NAME + " " +
-	//					"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
-	//					"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
-	//					"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".FILENAME " +
-	//				"WHERE " + DLNAMediaDatabase.TABLE_NAME + ".TYPE = 4 " +
-	//					"AND NOT " + DLNAMediaDatabase.TABLE_NAME + ".ISTVEPISODE " +
-	//					"AND " + DLNAMediaDatabase.TABLE_NAME + ".YEAR != '' " +
-	//					"AND " + DLNAMediaDatabase.TABLE_NAME + ".STEREOSCOPY = '' "	+
-	//					"AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
-	//					"AND (" + genresCondition + ") " +
-	//				"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING ASC",
-	//				MediaLibraryFolder.FILES_NOSORT
-	//			);
+				addChild(recommendations);
+			}
+		} else if (expectedOutput == FILES) {
+			HashSet genres = TableVideoMetadataGenres.getByTVSeriesName(getName());
+			String genresCondition = "";
+			Iterator<String> i = genres.iterator();
+			while (i.hasNext()) {
+				String genre = i.next();
+				if (isNotBlank(genresCondition)) {
+					genresCondition += " OR ";
+				}
+				genresCondition += TableVideoMetadataGenres.TABLE_NAME + ".GENRE = " + sqlQuote(genre);
+			}
+
+			String rated = TableVideoMetadataRated.getByTVSeriesName(getName());
+			String ratedCondition = "";
+			if (isNotBlank(rated)) {
+				ratedCondition = TableVideoMetadataRated.TABLE_NAME + ".RATING = " + sqlQuote(rated) + " ";
+			}
+
+			if (isNotBlank(genresCondition) && isNotBlank(ratedCondition) && firstSql != null) {
+				VirtualFolder recommendations = new MediaLibraryFolder(
+					Messages.getString("MediaLibrary.Recommendations"),
+					new String[]{
+						firstSql,
+						"SELECT DISTINCT " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME, " + DLNAMediaDatabase.TABLE_NAME + ".MODIFIED, " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING " +
+							"FROM " + DLNAMediaDatabase.TABLE_NAME + " " +
+								"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
+								"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
+								"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".FILENAME " +
+								"INNER JOIN (" +
+									"SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " " +
+									"WHERE FILENAME = ${0}" +
+								") SubQuery ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
+							"WHERE " + DLNAMediaDatabase.TABLE_NAME + ".TYPE = 4 " +
+								"AND NOT " + DLNAMediaDatabase.TABLE_NAME + ".ISTVEPISODE " +
+								"AND " + DLNAMediaDatabase.TABLE_NAME + ".YEAR != '' " +
+								"AND " + DLNAMediaDatabase.TABLE_NAME + ".STEREOSCOPY = '' "	+
+								"AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
+								"AND (" + genresCondition + ") " +
+							"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING ASC"
+					},
+					new int[]{ MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES_NOSORT }
+				);
 				addChild(recommendations);
 			}
 		}
