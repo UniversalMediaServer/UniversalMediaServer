@@ -1443,7 +1443,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Use {@link #syncResolve()} instead
 	 */
-	private void resolve() {
+	public void resolve() {
 		if (!resolved) {
 			resolveOnce();
 			// if resolve() isn't overridden, this file/folder is immutable
