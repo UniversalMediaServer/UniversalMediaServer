@@ -617,6 +617,8 @@ LOGGER.info("2firstSql: " + firstSql);
 							TableVideoMetadataGenres.TABLE_NAME + ".GENRE, " +
 							TableVideoMetadataRated.TABLE_NAME + ".RATING " +
 						"FROM " +
+							"'rated', " +
+							"'genres', " +
 							TableTVSeries.TABLE_NAME + " " +
 								"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME +     " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME     + ".TVSERIESID " +
 								"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME +      " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME      + ".TVSERIESID " +
