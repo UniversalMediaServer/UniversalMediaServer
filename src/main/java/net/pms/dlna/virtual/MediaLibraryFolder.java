@@ -600,25 +600,27 @@ LOGGER.info("2firstSql: " + firstSql);
 				VirtualFolder recommendations = new MediaLibraryFolder(
 					Messages.getString("MediaLibrary.Recommendations"),
 					new String[]{
-						"WITH rated_condition AS (" +
-							"WITH genres_condition AS (" +
-								"SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " " +
-								"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
-								"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(getName()) +
-							") " +
+						"WITH rated AS (" +
 							"SELECT RATING FROM " + TableVideoMetadataRated.TABLE_NAME + " " +
 							"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TableVideoMetadataRated.TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
 							"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(getName()) + " " +
 							"LIMIT 1" +
+						"), " +
+						"genres AS (" +
+							"SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " " +
+							"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
+							"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(getName()) +
 						") " +
 						"SELECT DISTINCT " + TableTVSeries.TABLE_NAME + ".TITLE, " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING " +
 							"FROM " +
-								"genres_condition, " +
-								"rated_condition, " +
 								TableTVSeries.TABLE_NAME + " " +
+									"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME +     " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME     + ".TVSERIESID " +
+									"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME +      " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME      + ".TVSERIESID " +
 									"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".TVSERIESID " +
 							"WHERE " +
-								TableTVSeries.TABLE_NAME + ".TITLE != " + sqlQuote(getName()) + " " +
+								TableTVSeries.TABLE_NAME + ".TITLE != " + sqlQuote(getName()) + " AND " +
+								TableVideoMetadataGenres.TABLE_NAME + ".GENRE IN genres.genre AND " +
+								TableVideoMetadataRated.TABLE_NAME  + ".RATING = rated.rating " +
 							"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING DESC",
 						"SELECT * FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
 					},
