@@ -92,8 +92,8 @@ public class PlaylistFolder extends DLNAResource {
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
-				FileInputStream fis = new FileInputStream(playlistfile);
-				return new BufferedReader(new InputStreamReader(new BOMInputStream(fis), charset));
+				FileInputStream inputStream = new FileInputStream(playlistfile);
+				return new BufferedReader(new InputStreamReader(new BOMInputStream(inputStream), charset));
 			}
 		}
 		return null;
@@ -130,10 +130,10 @@ public class PlaylistFolder extends DLNAResource {
 							title = null;
 							int index = 0;
 							if (var.startsWith("file")) {
-								index = Integer.valueOf(var.substring(4));
+								index = Integer.parseInt(var.substring(4));
 								fileName = value;
 							} else if (var.startsWith("title")) {
-								index = Integer.valueOf(var.substring(5));
+								index = Integer.parseInt(var.substring(5));
 								title = value;
 							}
 							if (index > 0) {

@@ -36,13 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
- */
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
 
@@ -54,23 +47,13 @@ public class MapFile extends DLNAResource {
 	public static final Set<String> THUMBNAIL_EXTENSIONS = Collections.unmodifiableSet(new HashSet<>(
 		Arrays.asList(new String[] {"jpeg", "jpg", "png"})
 	));
+
 	private List<File> discoverable;
 	private List<File> emptyFoldersToRescan;
 	private String forcedName;
-
 	private ArrayList<RealFile> searchList;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public File potentialCover;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected MapFileConfiguration conf;
+	private File potentialCover;
+	private MapFileConfiguration conf;
 
 	public MapFile() {
 		this.conf = new MapFileConfiguration();

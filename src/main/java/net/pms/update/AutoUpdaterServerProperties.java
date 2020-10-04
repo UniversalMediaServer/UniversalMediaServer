@@ -46,6 +46,20 @@ public class AutoUpdaterServerProperties {
 	}
 
 	private String getPlatformSpecificKey(String key) {
-		return key + "." + operatingSystem.toString();
+		String os = operatingSystem.toString();
+		if (os.startsWith("windows")) {
+			os = operatingSystem.getPlatformName();
+		} else if (os.startsWith("mac")) {
+			os = operatingSystem.getPlatformName();
+			
+			String osVersionRaw = System.getProperty("os.version");
+			Version osVersion = new Version(osVersionRaw);
+			boolean isMacOSPreCatalina = osVersion.isLessThan(new Version("10.15"));
+			if (isMacOSPreCatalina) {
+				os += "-pre10.15";
+			}
+		}
+
+		return key + "." + os;
 	}
 }

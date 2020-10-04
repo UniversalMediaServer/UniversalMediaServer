@@ -62,7 +62,7 @@ import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -504,7 +504,7 @@ public class Request extends HTTPResource {
 								dlna.getMediaSubtitle() != null &&
 								dlna.getMediaSubtitle().isExternal() &&
 								!configuration.isDisableSubtitles() &&
-								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())
+								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia(), dlna)
 							) {
 								// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 								String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
@@ -539,7 +539,7 @@ public class Request extends HTTPResource {
 									reasons.add("dlna.getMediaSubtitle() is null");
 								} else if (!dlna.getMediaSubtitle().isExternal()) {
 									reasons.add("the subtitles are internal/embedded");
-								} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia())) {
+								} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia(), dlna)) {
 									reasons.add("the external subtitles format isn't supported by the renderer");
 								}
 								LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
@@ -953,7 +953,7 @@ public class Request extends HTTPResource {
 
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
-			byte responseData[] = response.toString().getBytes("UTF-8");
+			byte responseData[] = response.toString().getBytes(StandardCharsets.UTF_8);
 			appendToHeader(responseHeader, "Content-Length: " + responseData.length);
 			appendToHeader(responseHeader, "");
 			sendHeader(responseHeader);
@@ -1084,13 +1084,13 @@ public class Request extends HTTPResource {
 	}
 
 	private static void sendLine(OutputStream output, String line) throws IOException {
-		output.write((line + CRLF).getBytes("UTF-8"));
+		output.write((line + CRLF).getBytes(StandardCharsets.UTF_8));
 		LOGGER.trace("Wrote on socket: " + line);
 	}
 
 	private void sendHeader(List<String> responseHeader) throws IOException {
 		for (String line : responseHeader) {
-			output.write((line + CRLF).getBytes("UTF-8"));
+			output.write((line + CRLF).getBytes(StandardCharsets.UTF_8));
 		}
 		output.flush();
 	}

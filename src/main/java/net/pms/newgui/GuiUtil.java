@@ -378,6 +378,7 @@ public final class GuiUtil {
 	// the laf's default ProgressBarUI as a result of future
 	// invocations of JProgressBar.UpdateUI()
 	public static class CustomUIProgressBar extends JProgressBar {
+		private static final long serialVersionUID = 1L;
 		private ProgressBarUI ui;
 
 		public CustomUIProgressBar(int min, int max, ProgressBarUI ui) {

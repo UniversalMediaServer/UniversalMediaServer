@@ -104,20 +104,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String WAV = "WAV";
 	protected static final String WMV = "WMV";
 
-	// Old video transcoding options
-	@Deprecated
-	protected static final String DEPRECATED_MPEGAC3 = "MPEGAC3";
-
-	@Deprecated
-	protected static final String DEPRECATED_MPEGPSAC3 = "MPEGPSAC3";
-
-	@Deprecated
-	protected static final String DEPRECATED_MPEGTSAC3 = "MPEGTSAC3";
-
-	@Deprecated
-	protected static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
-
-	// Current video transcoding options
+	// video transcoding options
 	protected static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
 	protected static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
 	protected static final String MPEGTSH265AAC = "MPEGTS-H265-AAC";
@@ -206,15 +193,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	protected static final String USE_SAME_EXTENSION = "UseSameExtension";
 	protected static final String VIDEO = "Video";
-	protected static final String VIDEO_FORMATS_SUPPORTING_STREAMED_EXTERNAL_SUBTITLES = "VideoFormatsSupportingStreamedExternalSubtitles";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
-
-	// Deprecated property names
-	@Deprecated
-	protected static final String THUMBNAIL_BG = "ThumbnailBackground";
-	@Deprecated
-	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -375,11 +355,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			LOGGER.trace("", e);
 			return null;
 		}
-	}
-
-	@Deprecated
-	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
-		return getEnabledRenderersConfigurations();
 	}
 
 	public boolean nox264() {
@@ -856,15 +831,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * @see #isXbox360()
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isXBOX() {
-		return isXbox360();
-	}
-
-	/**
 	 * @return whether this renderer is an Xbox 360
 	 */
 	public boolean isXbox360() {
@@ -1155,17 +1121,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isTranscodeToMPEGPSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGPSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
+		return videoTranscode.equals(MPEGPSMPEG2AC3);
 	}
 
 	public boolean isTranscodeToMPEGTSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGTSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGTSAC3);
+		return videoTranscode.equals(MPEGTSMPEG2AC3);
 	}
 
 	public boolean isTranscodeToMPEGTSH264AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGTSH264AC3) || videoTranscode.equals(DEPRECATED_H264TSAC3);
+		return videoTranscode.equals(MPEGTSH264AC3);
 	}
 
 	public boolean isTranscodeToMPEGTSH264AAC() {
@@ -1258,6 +1224,48 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * This is used to determine whether transcoding engines can safely remux
+	 * video streams into the transcoding container instead of re-encoding
+	 * them to the same format.
+	 * There is a lot of logic necessary to determine that and this is only
+	 * one step in the process.
+	 *
+	 * @param media
+	 * @return whether this renderer supports the video stream type of this
+	 *         resource inside the container it wants for transcoding.
+	 */
+	public boolean isVideoStreamTypeSupportedInTranscodingContainer(DLNAMediaInfo media) {
+		if (
+			(isTranscodeToH264() && media.isH264()) ||
+			(isTranscodeToH265() && media.isH265())
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * This is used to determine whether transcoding engines can safely remux
+	 * audio streams into the transcoding container instead of re-encoding
+	 * them to the same format.
+	 * There is a lot of logic necessary to determine that and this is only
+	 * one step in the process.
+	 *
+	 * @param audio
+	 * @return whether this renderer supports the audio stream type of this
+	 *         resource inside the container it wants for transcoding.
+	 */
+	public boolean isAudioStreamTypeSupportedInTranscodingContainer(DLNAMediaAudio audio) {
+		if (
+			(isTranscodeToAAC() && audio.isAACLC()) ||
+			(isTranscodeToAC3() && audio.isAC3())
+		) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Determine the mime type specific for this renderer, given a generic mime
 	 * type by resource. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.
@@ -1279,29 +1287,29 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToMPEGTSH264AC3()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
 				} else if (isTranscodeToMPEGTSH264AAC()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC_LC);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC_LC);
 				} else if (isTranscodeToMPEGTSH265AC3()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AC3);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AC3);
 				} else if (isTranscodeToMPEGTSH265AAC()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AAC_LC);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AAC_LC);
 				} else if (isTranscodeToMPEGTSMPEG2AC3()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
 				} else {
 					// Default video transcoding mime type
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				}
 			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToWAV()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WAV, null, null);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.WAV, null, null);
 				} else if (isTranscodeToMP3()) {
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MP3, null, null);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MP3, null, null);
 				} else {
 					// Default audio transcoding mime type
-					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.LPCM, null, null);
 
 					if (matchedMimeType != null) {
 						if (pmsConfiguration.isAudioResample()) {
@@ -1722,7 +1730,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isMuxH264MpegTS() {
 		boolean muxCompatible = getBoolean(MUX_H264_WITH_MPEGTS, true);
 		if (isUseMediaInfo()) {
-			muxCompatible = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
+			muxCompatible = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
 		}
 
 		if (Platform.isMac() && System.getProperty("os.version") != null && System.getProperty("os.version").contains("10.4.")) {
@@ -1888,11 +1896,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return maximumBitrateTotal;
 	}
 
-	@Deprecated
-	public String getCustomMencoderQualitySettings() {
-		return getCustomMEncoderMPEG2Options();
-	}
-
 	/**
 	 * Returns the override settings for MEncoder quality settings as
 	 * defined in the renderer configuration. The default value is "".
@@ -1981,14 +1984,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public int getMaxVideoHeight() {
 		return getInt(MAX_VIDEO_HEIGHT, 1080);
-	}
-
-	/**
-	 * @Deprecated use isMaximumResolutionSpecified() instead
-	 */
-	@Deprecated
-	public boolean isVideoRescale() {
-		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
 	/**
@@ -2094,21 +2089,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getRendererName();
 	}
 
-	@Deprecated
-	public boolean isMediaParserV2() {
-		return isUseMediaInfo();
-	}
-
 	/**
 	 * @return whether to use MediaInfo
 	 */
 	public boolean isUseMediaInfo() {
 		return getBoolean(MEDIAPARSERV2, false) && LibMediaInfoParser.isValid();
-	}
-
-	@Deprecated
-	public boolean isMediaParserV2ThumbnailGeneration() {
-		return isMediaInfoThumbnailGeneration();
 	}
 
 	public boolean isMediaInfoThumbnailGeneration() {
@@ -2226,7 +2211,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
-		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().match(dlna) != null) {
+		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().getMatchedMIMEtype(dlna) != null) {
 			return true;
 		}
 
@@ -2388,43 +2373,27 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return name;
 	}
 
-	/**
-	 * @see #isSendDateMetadata()
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isOmitDcDate() {
-		return !isSendDateMetadata();
-	}
-
 	public static int getIntAt(String s, String key, int fallback) {
+		if (isBlank(s) || isBlank(key)) {
+			return fallback;
+		}
+
 		try {
-			return Integer.valueOf((s + " ").split(key)[1].split("\\D")[0]);
-		} catch (Exception e) {
+			return Integer.parseInt((s + " ").split(key)[1].split("\\D")[0]);
+		} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
 			return fallback;
 		}
 	}
 
 	/**
 	 * List of the renderer supported external subtitles formats
-	 * for streaming together with streaming (not transcoded) video.
+	 * for streaming together with streaming (not transcoded) video, for all
+	 * file types.
 	 *
 	 * @return A comma-separated list of supported text-based external subtitles formats.
 	 */
-	public String getSupportedExternalSubtitles() {
+	public String getExternalSubtitlesFormatsSupportedForAllFiletypes() {
 		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS, "");
-	}
-
-	/**
-	 * List of video formats for which supported external subtitles formats
-	 * are set for streaming together with streaming (not transcoded) video.
-	 * If empty all subtitles listed in "SupportedExternalSubtitlesFormats" will be streamed.
-	 * When specified only for listed video formats subtitles will be streamed.
-	 *
-	 * @return A comma-separated list of supported video formats listed in "Supported" section.
-	 */
-	public String getVideoFormatsSupportingStreamedExternalSubtitles() {
-		return getString(VIDEO_FORMATS_SUPPORTING_STREAMED_EXTERNAL_SUBTITLES, "");
 	}
 
 	/**
@@ -2448,55 +2417,54 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(OFFER_SUBTITLES_BY_PROTOCOL_INFO, true);
 	}
 
-	public boolean isSubtitlesStreamingSupported() {
-		return StringUtils.isNotBlank(getSupportedExternalSubtitles());
+	/**
+	 * Note: This can return false even when the renderer config has defined
+	 * external subtitles support for individual filetypes.
+	 *
+	 * @return whether this renderer supports streaming external subtitles
+	 * for all video formats.
+	 */
+	public boolean isSubtitlesStreamingSupportedForAllFiletypes() {
+		return StringUtils.isNotBlank(getExternalSubtitlesFormatsSupportedForAllFiletypes());
 	}
 
 	/**
 	 * Check if the given subtitle type is supported by renderer for streaming for given media.
 	 *
+	 * @todo this results in extra CPU use, since we probably already have
+	 *       the result of getMatchedMIMEtype, so it would be better to
+	 *       refactor the logic of the caller to make that function only run
+	 *       once
 	 * @param subtitle Subtitles for checking
 	 * @param media Played media
-	 *
-	 * @return True if the renderer specifies support for the subtitles and
+	 * @param dlna
+	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media) {
-		if (subtitle == null || media == null) {
+	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media, DLNAResource dlna) {
+		if (subtitle == null || media == null || dlna == null) {
 			return false;
 		}
 
-		if (isSubtitlesStreamingSupported()) {
-			String[] supportedFormats = null;
-			if (StringUtils.isNotBlank(getVideoFormatsSupportingStreamedExternalSubtitles())) {
-				supportedFormats = getVideoFormatsSupportingStreamedExternalSubtitles().split(",");
-			}
-
-			String[] supportedSubs = getSupportedExternalSubtitles().split(",");
+		// First, check if this subtitles format is supported for all filetypes
+		if (isSubtitlesStreamingSupportedForAllFiletypes()) {
+			String[] supportedSubs = getExternalSubtitlesFormatsSupportedForAllFiletypes().split(",");
 			for (String supportedSub : supportedSubs) {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
-					if (supportedFormats != null) {
-						for (String supportedFormat : supportedFormats) {
-							if (media.getCodecV() != null && media.getCodecV().equals(supportedFormat.trim())) {
-								return true;
-							}
-						}
-					} else {
-						return true;
-					}
-
+					return true;
 				}
 			}
 		}
 
-		return false;
+		LOGGER.trace("Checking whether the external subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " matches any 'se' entries in the 'Supported' lines");
+		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
 	}
 
 	/**
 	 * Check if the internal subtitle type is supported by renderer.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @return True if the renderer specifies support for the subtitles
+	 * @return whether the renderer specifies support for the subtitles
 	 */
 	public boolean isEmbeddedSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
 		if (subtitle == null) {
@@ -2935,19 +2903,30 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Check if the given video bit depth is supported.
 	 *
-	 * @param videoBitDepth The video bit depth
-	 *
+	 * @todo this results in extra CPU use, since we probably already have
+	 *       the result of getMatchedMIMEtype, so it would be better to
+	 *       refactor the logic of the caller to make that function only run
+	 *       once
+	 * @param dlna the resource to check
 	 * @return whether the video bit depth is supported.
 	 */
-	public boolean isVideoBitDepthSupported(int videoBitDepth) {
-		String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
-		for (String supportedBitDepth : supportedBitDepths) {
-			if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
-				return true;
+	public boolean isVideoBitDepthSupported(DLNAResource dlna) {
+		Integer videoBitDepth = null;
+		if (dlna.getMedia() != null) {
+			videoBitDepth = dlna.getMedia().getVideoBitDepth();
+		}
+
+		if (videoBitDepth != null) {
+			String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+			for (String supportedBitDepth : supportedBitDepths) {
+				if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+					return true;
+				}
 			}
 		}
 
-		return false;
+		LOGGER.trace("Checking whether the video bit depth " + (videoBitDepth != null ? videoBitDepth : "null") + " matches any 'vbd' entries in the 'Supported' lines");
+		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
 	}
 
 	public boolean isRemoveTagsFromSRTsubs() {

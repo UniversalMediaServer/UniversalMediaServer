@@ -258,14 +258,6 @@ public class RootFolder extends DLNAResource {
 		frame.setStatusLine(null);
 	}
 
-	/*
-	 * @deprecated Use {@link #stopScan()} instead.
-	 */
-	@Deprecated
-	public void stopscan() {
-		stopScan();
-	}
-
 	public void stopScan() {
 		running = false;
 	}
@@ -660,13 +652,18 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac()) {
 			LOGGER.debug("Adding iPhoto folder");
-			InputStream inputStream = null;
 
+			Process process = null;
 			try {
 				// This command will show the XML files for recently opened iPhoto databases
-				Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
-				inputStream = process.getInputStream();
-				List<String> lines = IOUtils.readLines(inputStream);
+				process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
+			} catch (IOException e1) {
+				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e1);
+				return null;
+			}
+
+			try (InputStream inputStream = process.getInputStream()) {
+				List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
 				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 
 				if (lines.size() >= 2) {
@@ -725,8 +722,6 @@ public class RootFolder extends DLNAResource {
 				}
 			} catch (XmlParseException | URISyntaxException | IOException e) {
 				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
-			} finally {
-				IOUtils.closeQuietly(inputStream);
 			}
 		}
 

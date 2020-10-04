@@ -22,7 +22,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.text.WordUtils;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
@@ -112,8 +112,8 @@ public class DVDISOFile extends VirtualFolder {
 			"dvd://"
 		};
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.log = true;
+		params.setMaxBufferSize(1);
+		params.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = new Runnable() {
 			@Override

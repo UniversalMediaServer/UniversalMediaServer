@@ -94,8 +94,8 @@ public class PipeProcess {
 	public ProcessWrapper getPipeProcess() {
 		if (!Platform.isWindows()) {
 			OutputParams mkfifo_vid_params = new OutputParams(configuration);
-			mkfifo_vid_params.maxBufferSize = 0.1;
-			mkfifo_vid_params.log = true;
+			mkfifo_vid_params.setMaxBufferSize(0.1);
+			mkfifo_vid_params.setLog(true);
 			String cmdArray[];
 
 			if (Platform.isMac() || Platform.isFreeBSD() || Platform.isSolaris()) {

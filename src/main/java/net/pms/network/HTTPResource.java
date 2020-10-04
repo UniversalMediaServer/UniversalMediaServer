@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
@@ -255,8 +256,8 @@ public class HTTPResource {
 
 	/**
 	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
-	 * @param mimetype MIME type to customize.
 	 * @param renderer media renderer to customize the MIME type for.
+	 * @param resource the resource
 	 * @return The MIME type
 	 */
 	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
@@ -267,7 +268,7 @@ public class HTTPResource {
 		return 3;
 	}
 
-	public final String getMPEG_PS_PALLocalizedValue(int index) {
+	public final String getMPEG_PS_OrgPN(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -275,43 +276,138 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMPEG_TS_SD_EU_ISOLocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA_ISO";
+	public final String getMPEG_TS_MPEG2_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "MPEG_TS_";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HD";
+		} else {
+			orgPN += "SD";
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP_ISO";
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		return "MPEG_TS_SD_EU_ISO";
+		if (!isStreaming) {
+			orgPN += "_ISO";
+		}
+
+		return orgPN;
 	}
 
-	public final String getMPEG_TS_SD_EULocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA";
+	public final String getMPEG_TS_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_TS";
+
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP";
+		if (!isStreaming) {
+			orgPN += "_ISO";
 		}
 
-		return "MPEG_TS_SD_EU";
+		return orgPN;
 	}
 
-	public final String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
-		String definition = "SD";
-		if (isHD) {
-			definition = "HD";
+	public final String getMKV_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_MKV";
+
+		if (media == null || "high".equals(media.getH264Profile())) {
+			orgPN += "_HP";
+		} else {
+			orgPN += "_MP";
 		}
 
-		if (index == 1) {
-			return "MPEG_TS_" + definition + "_NA";
-		}
-		if (index == 2) {
-			return "MPEG_TS_" + definition + "_JP";
+		orgPN += "_HD";
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAACLC()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAAC()
+				)
+			) {
+				orgPN += "_AAC_MULT5";
+			} else if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAC3()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAC3()
+				)
+			) {
+				orgPN += "_AC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isDTS()
+			) {
+				orgPN += "_DTS";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isEAC3()
+			) {
+				orgPN += "_EAC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isHEAAC()
+			) {
+				orgPN += "_HEAAC_L4";
+			}
 		}
 
-		return "MPEG_TS_" + definition + "_EU";
+		return orgPN;
+	}
+
+	public final String getWMV_OrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "WMV";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HIGH";
+		} else {
+			orgPN += "MED";
+		}
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isWMA()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToWMV()
+				)
+			) {
+				orgPN += "_FULL";
+			} else if (
+				isStreaming &&
+				(
+					media.getFirstAudioTrack().isWMAPro() ||
+					media.getFirstAudioTrack().isWMA10()
+				)
+			) {
+				orgPN += "_PRO";
+			}
+		}
+
+		return orgPN;
 	}
 }

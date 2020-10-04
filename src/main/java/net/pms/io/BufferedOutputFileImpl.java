@@ -181,10 +181,10 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	public BufferedOutputFileImpl(OutputParams params) {
 		// Use device-specific pms conf
 		configuration = PMS.getConfiguration(params);
-		this.renderer = params.mediaRenderer;
+		this.renderer = params.getMediaRenderer();
 		this.forcefirst = (configuration.getTrancodeBlocksMultipleConnections() && configuration.getTrancodeKeepFirstConnections());
-		this.minMemorySize = (int) (1048576 * params.minBufferSize);
-		this.maxMemorySize = (int) (1048576 * params.maxBufferSize);
+		this.minMemorySize = (int) (1048576 * params.getMinBufferSize());
+		this.maxMemorySize = (int) (1048576 * params.getMaxBufferSize());
 
 		// FIXME: Better to relate margin directly to maxMemorySize instead of using arbitrary fixed values
 
@@ -197,12 +197,12 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 		}
 		this.bufferOverflowWarning = this.maxMemorySize - margin;
-		this.secondread_minsize = params.secondread_minsize;
-		this.timeseek = params.timeseek;
-		this.timeend = params.timeend;
-		this.shiftScr = params.shift_scr;
-		this.hidebuffer = params.hidebuffer;
-		this.cleanup = params.cleanup;
+		this.secondread_minsize = params.getSecondReadMinSize();
+		this.timeseek = params.getTimeSeek();
+		this.timeend = params.getTimeEnd();
+		this.shiftScr = params.isShiftSscr();
+		this.hidebuffer = params.isHideBuffer();
+		this.cleanup = params.isCleanup();
 
 		if (maxMemorySize > INITIAL_BUFFER_SIZE) {
 			// Try to limit memory usage a bit.

@@ -37,7 +37,9 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
+import net.pms.formats.audio.M4A;
 import net.pms.formats.audio.MP3;
+import net.pms.formats.audio.OGA;
 import net.pms.formats.image.BMP;
 import net.pms.formats.image.GIF;
 import net.pms.formats.image.JPG;
@@ -73,7 +75,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private static final Format[] supportedFormats = {
 		new GIF(),
 		new JPG(),
+		new M4A(),
 		new MP3(),
+		new OGA(),
 		new PNG(),
 		new BMP()
 	};
@@ -120,14 +124,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
 		configuration.addProperty(SUPPORTED, "f:ogg v:theora m:video/ogg");
+		configuration.addProperty(SUPPORTED, "f:m4a m:audio/mp4");
 		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
-		configuration.addProperty(SUPPORTED, "f:bmp m:image/bmp");
-		configuration.addProperty(SUPPORTED, "f:jpg m:image/jpeg");
-		configuration.addProperty(SUPPORTED, "f:png m:image/png");
-		configuration.addProperty(SUPPORTED, "f:gif m:image/gif");
-		configuration.addProperty(SUPPORTED, "f:tiff m:image/tiff");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
 		return true;
 	}
@@ -195,9 +195,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 		if (info != null && umsInfo.reset(info).find()) {
 			platform = umsInfo.group(1).toLowerCase();
-			screenWidth = Integer.valueOf(umsInfo.group(2));
-			screenHeight = Integer.valueOf(umsInfo.group(3));
-			isTouchDevice = Boolean.valueOf(umsInfo.group(4));
+			screenWidth = Integer.parseInt(umsInfo.group(2));
+			screenHeight = Integer.parseInt(umsInfo.group(3));
+			isTouchDevice = Boolean.parseBoolean(umsInfo.group(4));
 
 			LOGGER.debug("Setting {} browser info: platform:{}, screen:{}x{}, isTouchDevice:{}",
 				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
@@ -663,7 +663,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			state.mute = "0".equals(data.get("mute")) ? false : true;
 			s = data.get("volume");
 			try {
-				state.volume = StringUtil.hasValue(s) ? Integer.valueOf(s) : 0;
+				state.volume = StringUtil.hasValue(s) ? Integer.parseInt(s) : 0;
 			} catch (NumberFormatException e) {
 				LOGGER.debug("Unexpected volume value \"{}\"", data.get("volume"));
 			}

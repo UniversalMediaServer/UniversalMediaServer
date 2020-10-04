@@ -594,8 +594,8 @@ public class FileUtil {
 	 * one of these strings, the string and everything after them will be
 	 * removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
 
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
@@ -1084,22 +1084,6 @@ public class FileUtil {
 		return matcher.find() ? matcher.start() : -1;
 	}
 
-	/**
-	 * @deprecated Use {@link #replaceExtension} instead.
-	 */
-	@Deprecated
-	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
-		return replaceExtension(parent, file, ext, true, true);
-	}
-
-	/**
-	 * @deprecated Use {@link #getFileNameWithNewExtension(File, File, String)}.
-	 */
-	@Deprecated
-	public static File getFileNameWitNewExtension(File parent, File f, String ext) {
-		return replaceExtension(parent, f, ext, true, true);
-	}
-
 	public static File getFileNameWithAddedExtension(File parent, File f, String ext) {
 		File ff = new File(parent, f.getName() + ext);
 
@@ -1108,30 +1092,6 @@ public class FileUtil {
 		}
 
 		return null;
-	}
-
-	/**
-	 * @deprecated Use {@link #getFileNameWithAddedExtension(File, File, String)}.
-	 */
-	@Deprecated
-	public static File getFileNameWitAddedExtension(File parent, File file, String ext) {
-		return getFileNameWithAddedExtension(parent, file, ext);
-	}
-
-	/**
-	 * @deprecated Use {@link #replaceExtension} instead.
-	 */
-	@Deprecated
-	public static File isFileExists(String f, String ext) {
-		return replaceExtension(new File(f), ext, true, true);
-	}
-
-	/**
-	 * @deprecated Use {@link #replaceExtension} instead.
-	 */
-	@Deprecated
-	public static File isFileExists(File f, String ext) {
-		return replaceExtension(f, ext, true, true);
 	}
 
 	/**
@@ -1912,15 +1872,6 @@ public class FileUtil {
 		}
 
 		return filename;
-	}
-
-	/**
-	 * @deprecated Use {@link #createBufferedReaderDetectCharset(File, Charset)}
-	 *             instead.
-	 */
-	@Deprecated
-	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
-		return createBufferedReaderDetectCharset(file, StandardCharsets.UTF_8).getBufferedReader();
 	}
 
 	/**
