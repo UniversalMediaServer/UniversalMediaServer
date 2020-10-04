@@ -424,7 +424,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 				}
 			}
-			
+
 			// Check whether this resource is expected to contain folders that display as big thumbnails
 			if (
 				folder.getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
