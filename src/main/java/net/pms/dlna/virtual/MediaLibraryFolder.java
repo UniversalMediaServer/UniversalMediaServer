@@ -638,22 +638,35 @@ LOGGER.info("2firstSql: " + firstSql);
 					Messages.getString("MediaLibrary.Recommendations"),
 					new String[]{
 						firstSql,
-						"SELECT DISTINCT " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME, " + DLNAMediaDatabase.TABLE_NAME + ".MODIFIED, " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING " +
-							"FROM " + DLNAMediaDatabase.TABLE_NAME + " " +
-								"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
-								"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
+						"WITH ratedSubquery AS (" +
+							"SELECT RATING FROM " + TableVideoMetadataRated.TABLE_NAME + " " +
+							"LEFT JOIN " + DLNAMediaDatabase.TABLE_NAME + " ON " + TableVideoMetadataRated.TABLE_NAME + ".FILENAME = " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME " +
+							"WHERE " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = '${0}' " +
+							"LIMIT 1" +
+						"), " +
+						"genresSubquery AS (" +
+							"SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " " +
+							"LEFT JOIN " + DLNAMediaDatabase.TABLE_NAME + " ON " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME = " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME " +
+							"WHERE " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = '${0}'" +
+						") " +
+						"SELECT " +
+							"DISTINCT " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME, " +
+							TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING, " +
+							TableVideoMetadataGenres.TABLE_NAME + ".GENRE, " +
+							TableVideoMetadataRated.TABLE_NAME + ".RATING " +
+						"FROM " +
+							"ratedSubquery, " +
+							"genresSubquery, " +
+							DLNAMediaDatabase.TABLE_NAME + " " +
+								"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME +     " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME     + ".FILENAME " +
+								"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME +      " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataRated.TABLE_NAME      + ".FILENAME " +
 								"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".FILENAME " +
-								"INNER JOIN (" +
-									"SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " " +
-									"WHERE FILENAME = ${0}" +
-								") SubQuery ON " + DLNAMediaDatabase.TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
-							"WHERE " + DLNAMediaDatabase.TABLE_NAME + ".TYPE = 4 " +
-								"AND NOT " + DLNAMediaDatabase.TABLE_NAME + ".ISTVEPISODE " +
-								"AND " + DLNAMediaDatabase.TABLE_NAME + ".YEAR != '' " +
-								"AND " + DLNAMediaDatabase.TABLE_NAME + ".STEREOSCOPY = '' "	+
-								"AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
-								"AND (" + genresCondition + ") " +
-							"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING ASC"
+						"WHERE " +
+							DLNAMediaDatabase.TABLE_NAME + ".FILENAME != '${0}' AND " +
+							TableVideoMetadataGenres.TABLE_NAME + ".GENRE IN (genresSubquery.GENRE) AND " +
+							TableVideoMetadataRated.TABLE_NAME  + ".RATING = ratedSubquery.RATING " +
+						"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING DESC",
+						"SELECT * FROM FILES WHERE TYPE = 4 AND FILENAME = '${0}' ORDER BY FILENAME"
 					},
 					new int[]{ MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES_NOSORT }
 				);

@@ -532,7 +532,7 @@ public class RemoteUtil {
 		String directors = "";
 		HashSet<String> genres = new HashSet();
 		String imdbID = "";
-		String rated = "";
+		String rated = "{}";
 		List<HashMap<String, String>> ratings = new ArrayList<>();
 		String plot = "";
 		String poster = "";
@@ -614,7 +614,7 @@ public class RemoteUtil {
 			if (row.get("POSTER") != null) {
 				poster = (String) row.get("POSTER");
 			}
-			if (row.get("RATING") != null && StringUtils.isBlank(rated) && ratedFolder != null) {
+			if (row.get("RATING") != null && "{}".equals(rated) && ratedFolder != null) {
 				String ratedValue = (String) row.get("RATING");
 				List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
 				UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);

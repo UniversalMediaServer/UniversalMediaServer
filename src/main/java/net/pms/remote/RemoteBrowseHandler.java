@@ -283,13 +283,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 				 */
 				if (
 					resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-					(
-						resource.getParent() != null &&
-						resource.getParent().getParent() != null &&
-						resource.getParent().getParent().getParent() != null &&
-						resource.getParent().getParent().getParent().getParent() != null &&
-						resource.getParent().getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
-					) ||
 					resource.getParent().getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations"))
 				) {
 					isDisplayFoldersAsThumbnails = true;
@@ -428,12 +421,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 			// Check whether this resource is expected to contain folders that display as big thumbnails
 			if (
 				folder.getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-				(
-					folder.getParent() != null &&
-					folder.getParent().getParent() != null &&
-					folder.getParent().getParent().getParent() != null &&
-					folder.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4"))
-				) ||
 				folder.getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations"))
 			) {
 				for (DLNAResource resource : resources) {
