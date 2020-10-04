@@ -332,7 +332,7 @@ LOGGER.info("2firstSql: " + firstSql);
 						// This block adds the second+ queries by modifying what was passed in, allowing this to be somewhat dynamic
 						int i = 0;
 						for (String sql : sqls) {
-							if (!sql.toLowerCase().startsWith("select")) {
+							if (!sql.toLowerCase().startsWith("select") && !sql.toLowerCase().startsWith("with")) {
 								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 									sql = "SELECT FILES.FILENAME FROM FILES WHERE " + sql;
 								}
@@ -579,61 +579,42 @@ LOGGER.info("2firstSql: " + firstSql);
 
 		// Recommendations for TV series, episodes and movies
 		if (expectedOutput == EPISODES) {
-			HashSet genres = TableVideoMetadataGenres.getByTVSeriesName(getName());
-			String genresCondition = "";
-			Iterator<String> i = genres.iterator();
-			while (i.hasNext()) {
-				String genre = i.next();
-				if (isNotBlank(genresCondition)) {
-					genresCondition += " OR ";
-				}
-				genresCondition += TableVideoMetadataGenres.TABLE_NAME + ".GENRE = " + sqlQuote(genre);
-			}
-
-			String rated = TableVideoMetadataRated.getByTVSeriesName(getName());
-			String ratedCondition = "";
-			if (isNotBlank(rated)) {
-				ratedCondition = TableVideoMetadataRated.TABLE_NAME + ".RATING = " + sqlQuote(rated) + " ";
-			}
-
-			if (isNotBlank(genresCondition) && isNotBlank(ratedCondition)) {
-				VirtualFolder recommendations = new MediaLibraryFolder(
-					Messages.getString("MediaLibrary.Recommendations"),
-					new String[]{
-						"WITH rated AS (" +
-							"SELECT RATING FROM " + TableVideoMetadataRated.TABLE_NAME + " " +
-							"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TableVideoMetadataRated.TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
-							"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(getName()) + " " +
-							"LIMIT 1" +
-						"), " +
-						"genres AS (" +
-							"SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " " +
-							"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
-							"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(getName()) +
-						") " +
-						"SELECT " +
-							"DISTINCT " + TableTVSeries.TABLE_NAME + ".TITLE, " +
-							TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING, " +
-							TableVideoMetadataGenres.TABLE_NAME + ".GENRE, " +
-							TableVideoMetadataRated.TABLE_NAME + ".RATING " +
-						"FROM " +
-							"'rated', " +
-							"'genres', " +
-							TableTVSeries.TABLE_NAME + " " +
-								"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME +     " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME     + ".TVSERIESID " +
-								"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME +      " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME      + ".TVSERIESID " +
-								"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".TVSERIESID " +
-						"WHERE " +
-							TableTVSeries.TABLE_NAME + ".TITLE != " + sqlQuote(getName()) + " AND " +
-							TableVideoMetadataGenres.TABLE_NAME + ".GENRE IN genres.GENRE AND " +
-							TableVideoMetadataRated.TABLE_NAME  + ".RATING = rated.RATING " +
-						"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING DESC",
-						"SELECT * FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
-					},
-					new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
-				);
-				addChild(recommendations);
-			}
+			VirtualFolder recommendations = new MediaLibraryFolder(
+				Messages.getString("MediaLibrary.Recommendations"),
+				new String[]{
+					"WITH ratedSubquery AS (" +
+						"SELECT RATING FROM " + TableVideoMetadataRated.TABLE_NAME + " " +
+						"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TableVideoMetadataRated.TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
+						"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(getName()) + " " +
+						"LIMIT 1" +
+					"), " +
+					"genresSubquery AS (" +
+						"SELECT GENRE FROM " + TableVideoMetadataGenres.TABLE_NAME + " " +
+						"LEFT JOIN " + TableTVSeries.TABLE_NAME + " ON " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID = " + TableTVSeries.TABLE_NAME + ".ID " +
+						"WHERE " + TableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(getName()) +
+					") " +
+					"SELECT " +
+						"DISTINCT " + TableTVSeries.TABLE_NAME + ".TITLE, " +
+						TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING, " +
+						TableVideoMetadataGenres.TABLE_NAME + ".GENRE, " +
+						TableVideoMetadataRated.TABLE_NAME + ".RATING " +
+					"FROM " +
+						"ratedSubquery, " +
+						"genresSubquery, " +
+						TableTVSeries.TABLE_NAME + " " +
+							"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME +     " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME     + ".TVSERIESID " +
+							"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME +      " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME      + ".TVSERIESID " +
+							"LEFT JOIN " + TableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TableTVSeries.TABLE_NAME + ".ID = " + TableVideoMetadataIMDbRating.TABLE_NAME + ".TVSERIESID " +
+					"WHERE " +
+						TableTVSeries.TABLE_NAME + ".TITLE != " + sqlQuote(getName()) + " AND " +
+						TableVideoMetadataGenres.TABLE_NAME + ".GENRE IN (genresSubquery.GENRE) AND " +
+						TableVideoMetadataRated.TABLE_NAME  + ".RATING = ratedSubquery.RATING " +
+					"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING DESC",
+					"SELECT * FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
+				},
+				new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
+			);
+			addChild(recommendations);
 		} else if (expectedOutput == FILES) {
 			HashSet genres = TableVideoMetadataGenres.getByTVSeriesName(getName());
 			String genresCondition = "";

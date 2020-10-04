@@ -1451,7 +1451,7 @@ public class DLNAMediaDatabase implements Runnable {
 		try (Connection connection = getConnection()) {
 			TABLE_LOCK.readLock().lock();
 			try (
-				PreparedStatement ps = connection.prepareStatement(sql.toLowerCase().startsWith("select") ? sql : ("SELECT FILENAME FROM FILES WHERE " + sql));
+				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM FILES WHERE " + sql));
 				ResultSet rs = ps.executeQuery()
 			) {
 				while (rs.next()) {
