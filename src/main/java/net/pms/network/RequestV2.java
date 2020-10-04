@@ -245,6 +245,12 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
+	 * The InputStream for the response to a received request.
+	 * Defining it here make it hopefully automatically closable. 
+	 */
+	private InputStream responseInputStream = null;
+
+	/**
 	 * Construct a proper HTTP response to a received request. After the response has been
 	 * created, it is sent and the resulting {@link ChannelFuture} object is returned.
 	 * See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
@@ -269,7 +275,6 @@ public class RequestV2 extends HTTPResource {
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
-		InputStream inputStream = null;
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (uri.startsWith("/")) {
@@ -340,7 +345,7 @@ public class RequestV2 extends HTTPResource {
 						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 					}
 					filterChain = dlna.addFlagFilters(filterChain);
-					inputStream = thumbInputStream.transcode(
+					responseInputStream = thumbInputStream.transcode(
 						imageProfile,
 						mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false,
 						filterChain
@@ -351,11 +356,11 @@ public class RequestV2 extends HTTPResource {
 							dlna.getDlnaContentFeatures(imageProfile, true)
 						);
 					}
-					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+					if (responseInputStream != null && (lowRange > 0 || highRange > 0)) {
 						if (lowRange > 0) {
-							inputStream.skip(lowRange);
+							responseInputStream.skip(lowRange);
 						}
-						inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+						responseInputStream = DLNAResource.wrap(responseInputStream, highRange, lowRange);
 					}
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -399,18 +404,18 @@ public class RequestV2 extends HTTPResource {
 						if (imageInputStream == null) {
 							LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
 						} else {
-							inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
+							responseInputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
 							if (contentFeatures != null) {
 								output.headers().set(
 									"ContentFeatures.DLNA.ORG",
 									dlna.getDlnaContentFeatures(imageProfile, false)
 								);
 							}
-							if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+							if (responseInputStream != null && (lowRange > 0 || highRange > 0)) {
 								if (lowRange > 0) {
-									inputStream.skip(lowRange);
+									responseInputStream.skip(lowRange);
 								}
-								inputStream = DLNAResource.wrap(inputStream, highRange, lowRange);
+								responseInputStream = DLNAResource.wrap(responseInputStream, highRange, lowRange);
 							}
 							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 							output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -450,9 +455,9 @@ public class RequestV2 extends HTTPResource {
 								try {
 									if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) {
 										// Remove tags from .srt subtitles if the renderer doesn't support them
-										inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
+										responseInputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
 									} else {
-										inputStream = new FileInputStream(sub.getExternalFile());
+										responseInputStream = new FileInputStream(sub.getExternalFile());
 									}
 									LOGGER.trace("Loading external subtitles file: {}", sub.getName());
 								} catch (IOException ioe) {
@@ -499,7 +504,7 @@ public class RequestV2 extends HTTPResource {
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
 					) {
-						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+						responseInputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
 						if (dlna.isResume()) {
 							// Update range to possibly adjusted resume time
 							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
@@ -563,7 +568,7 @@ public class RequestV2 extends HTTPResource {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
 					}
 
-					if (inputStream == null) {
+					if (responseInputStream == null) {
 						if (!ignoreTranscodeByteRangeRequests) {
 							// No inputStream indicates that transcoding / remuxing probably crashed.
 							LOGGER.error("There is no inputstream to return for " + name);
@@ -596,7 +601,7 @@ public class RequestV2 extends HTTPResource {
 
 						if (requested != 0) {
 							// Determine the range (i.e. smaller of known or requested bytes)
-							long bytes = remaining > -1 ? remaining : inputStream.available();
+							long bytes = remaining > -1 ? remaining : responseInputStream.available();
 
 							if (requested > 0 && bytes > requested) {
 								bytes = requested + 1;
@@ -638,7 +643,7 @@ public class RequestV2 extends HTTPResource {
 				}
 			}
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
-			inputStream = imageHandler(output);
+			responseInputStream = imageHandler(output);
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(serverSpecHandler(output));
@@ -697,7 +702,7 @@ public class RequestV2 extends HTTPResource {
 				// Close the channel after the response is sent.
 				future.addListener(ChannelFutureListener.CLOSE);
 			}
-		} else if (inputStream != null) {
+		} else if (responseInputStream != null) {
 			// There is an input stream to send as a response.
 
 			if (CLoverride > -2) {
@@ -709,7 +714,7 @@ public class RequestV2 extends HTTPResource {
 					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + CLoverride);
 				}
 			} else {
-				int contentLength = inputStream.available();
+				int contentLength = responseInputStream.available();
 				LOGGER.trace("Available Content-Length: {}", contentLength);
 				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 			}
@@ -728,10 +733,10 @@ public class RequestV2 extends HTTPResource {
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !HEAD.equals(method)) {
 				// Send the response body to the client in chunks.
-				ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
+				ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(responseInputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
-				final InputStream finalInputStream = inputStream;
+				final InputStream finalInputStream = responseInputStream;
 				chunkWriteFuture.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) {
@@ -748,13 +753,6 @@ public class RequestV2 extends HTTPResource {
 					}
 				});
 			} else {
-				// HEAD method is being used, so simply clean up after the response was sent.
-				try {
-					inputStream.close();
-				} catch (IOException ioe) {
-					LOGGER.error("Caught exception", ioe);
-				}
-
 				if (close) {
 					// Close the channel after the response is sent
 					future.addListener(ChannelFutureListener.CLOSE);
@@ -778,8 +776,9 @@ public class RequestV2 extends HTTPResource {
 
 		if (LOGGER.isTraceEnabled()) {
 			// Log trace information
-			logRequest(output, response, inputStream);
+			logRequest(output, response, responseInputStream);
 		}
+
 		return future;
 	}
 
