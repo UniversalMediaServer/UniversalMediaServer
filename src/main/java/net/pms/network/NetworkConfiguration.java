@@ -148,7 +148,7 @@ public class NetworkConfiguration {
 	/**
 	 * The map of discovered default IP addresses belonging to a network interface.
 	 */
-	private Map<String, InterfaceAssociation> mainAddress = new HashMap<>();
+	private Map<String, InterfaceAssociation> interfacesWithAssociatedAddress = new HashMap<>();
 
 	/**
 	 * The map of IP addresses connected to an interface name.
@@ -307,7 +307,7 @@ public class NetworkConfiguration {
 						LOGGER.trace("found {} -> {}", networkInterface.getName(), address.getHostAddress());
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
-						mainAddress.put(networkInterface.getDisplayName(), ia);
+						interfacesWithAssociatedAddress.put(networkInterface.getDisplayName(), ia);
 						foundAddress = true;
 					}
 				} else {
@@ -391,7 +391,7 @@ public class NetworkConfiguration {
 	 * @return The interface.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
-		for (Entry<String, InterfaceAssociation> entry : mainAddress.entrySet()) {
+		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
 			// Skip the virtual interface
 			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
 				continue;
@@ -414,7 +414,7 @@ public class NetworkConfiguration {
 	public InterfaceAssociation getAddressForNetworkInterfaceName(String name) {
 		// for backwards-compatibility check if the short network interface name is used
 		name = replaceShortInterfaceNameByDisplayName(name);
-		return mainAddress.get(name);
+		return interfacesWithAssociatedAddress.get(name);
 	}
 
 	/**
