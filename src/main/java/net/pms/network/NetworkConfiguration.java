@@ -20,6 +20,7 @@ package net.pms.network;
 
 import java.net.*;
 import java.util.*;
+import java.util.Map.Entry;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -390,14 +391,13 @@ public class NetworkConfiguration {
 	 * @return The interface.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
-		for (InterfaceAssociation ia : interfaces) {
-			if (ia.getAddr() != null) {
-				// Skip the virtual interface
-				if (ia.getDisplayName().toLowerCase().contains("virtual")) {
-					continue;
-				}
-				return ia;
+		for (Entry<String, InterfaceAssociation> entry : mainAddress.entrySet()) {
+			// Skip the virtual interface
+			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
+				continue;
 			}
+
+			return entry.getValue();
 		}
 
 		return null;
