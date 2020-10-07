@@ -391,13 +391,26 @@ public class NetworkConfiguration {
 	 * @return The interface.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
+		if (interfacesWithAssociatedAddress.isEmpty()) {
+			return null;
+		}
+
+		Map<String, InterfaceAssociation> virtualInterfaces = new HashMap<>();
 		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
-			// Skip the virtual interface
+			// Skip the virtual interface. We are looking for first non-virtual interface
 			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
+				virtualInterfaces.put(entry.getKey(), entry.getValue());
 				continue;
 			}
 
 			return entry.getValue();
+		}
+		
+		// The non-virtual interface was not found so choose the first virtual one if exists
+		if (!virtualInterfaces.isEmpty()) {
+			for (Entry<String, InterfaceAssociation> entry : virtualInterfaces.entrySet()) {
+				return entry.getValue();
+			}
 		}
 
 		return null;
