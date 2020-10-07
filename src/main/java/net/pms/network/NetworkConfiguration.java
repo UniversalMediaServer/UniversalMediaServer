@@ -384,9 +384,9 @@ public class NetworkConfiguration {
 
 	/**
 	 * Returns the first interface from the list of discovered interfaces that
-	 * has an address but is not the virtual interface. This virtual interface
-	 * can still be forced in the UMS GUI to be used. If no such interface can be
-	 * found or if no interfaces were discovered, <code>null</code> is returned.
+	 * has an address but is non-virtual interface. If the non-virtual interface
+	 * is not found the first virtual interface is returned. If no such interface
+	 * can be found or if no interfaces were discovered, <code>null</code> is returned.
 	 * 
 	 * @return The interface.
 	 */
