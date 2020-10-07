@@ -1445,7 +1445,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Use {@link #syncResolve()} instead
 	 */
-	private void resolve() {
+	public void resolve() {
 		if (!resolved) {
 			resolveOnce();
 			// if resolve() isn't overridden, this file/folder is immutable
@@ -2248,7 +2248,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					if (media.getDuration() != null) {
-						if (getSplitRange().isEndLimitAvailable()) {
+						if (isResume()) {
+							long offset = resume.getTimeOffset() / 1000;
+							double duration = media.getDuration() - offset;
+							addAttribute(sb, "duration", StringUtil.formatDLNADuration(duration));
+						} else if (getSplitRange().isEndLimitAvailable()) {
 							addAttribute(sb, "duration", StringUtil.formatDLNADuration(getSplitRange().getDuration()));
 						} else {
 							addAttribute(sb, "duration", media.getDurationString());
@@ -2256,7 +2260,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					if (media.getResolution() != null) {
-						if (player != null && mediaRenderer.isKeepAspectRatio()) {
+						if (player != null && (mediaRenderer.isKeepAspectRatio() || mediaRenderer.isKeepAspectRatioTranscoding())) {
 							addAttribute(sb, "resolution", getResolutionForKeepAR(media.getWidth(), media.getHeight()));
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());

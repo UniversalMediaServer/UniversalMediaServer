@@ -63,7 +63,7 @@ public class FolderLimit extends VirtualFolder {
 	}
 
 	@Override
-	public synchronized void syncResolve() {
+	public synchronized void resolve() {
 		this.setDiscovered(false);
 		this.getChildren().clear();
 	}
