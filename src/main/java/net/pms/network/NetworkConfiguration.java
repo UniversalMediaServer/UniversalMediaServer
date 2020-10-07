@@ -285,7 +285,7 @@ public class NetworkConfiguration {
 	 *            The name of the parent interface.
 	 */
 	private void checkNetworkInterface(NetworkInterface networkInterface, String parentName) {
-		LOGGER.trace("checking {}, display name: {}", networkInterface.getName(), networkInterface.getDisplayName());
+		LOGGER.trace("checking {}, display name: {}",networkInterface.getName(), networkInterface.getDisplayName());
 		addAvailableAddresses(networkInterface);
 		checkNetworkInterface(networkInterface.getSubInterfaces(), networkInterface.getName());
 
@@ -299,7 +299,7 @@ public class NetworkConfiguration {
 		// Use networkInterface.getInetAddresses() instead
 		for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
 			if (address != null) {
-				LOGGER.trace("checking {} on {}", address, networkInterface.getName());
+				LOGGER.trace("checking {} on {}", new Object[] { address, networkInterface.getName() });
 
 				if (isRelevantAddress(address)) {
 					// Avoid adding duplicates
