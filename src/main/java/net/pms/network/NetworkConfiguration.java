@@ -406,7 +406,6 @@ public class NetworkConfiguration {
 
 		Map<String, InterfaceAssociation> virtualInterfaces = new HashMap<>();
 		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
-			boolean bol = entry.getValue().iface.isVirtual();
 			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
 				virtualInterfaces.put(entry.getKey(), entry.getValue());
 				continue;
