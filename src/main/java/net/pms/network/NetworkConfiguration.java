@@ -299,7 +299,7 @@ public class NetworkConfiguration {
 		// Use networkInterface.getInetAddresses() instead
 		for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
 			if (address != null) {
-				LOGGER.trace("checking {} on {}", new Object[] { address, networkInterface.getName() });
+				LOGGER.trace("checking {} on {}", address, networkInterface.getName());
 
 				if (isRelevantAddress(address)) {
 					// Avoid adding duplicates
@@ -307,7 +307,16 @@ public class NetworkConfiguration {
 						LOGGER.trace("found {} -> {}", networkInterface.getName(), address.getHostAddress());
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
-						interfacesWithAssociatedAddress.put(networkInterface.getDisplayName(), ia);
+						try {
+							// Add network interface to the list of interfaces with associated address only 
+							// if interface is supporting multicast.
+							if (networkInterface.supportsMulticast()) {
+								interfacesWithAssociatedAddress.put(networkInterface.getDisplayName(), ia);
+							}
+						} catch (SocketException e) {
+							LOGGER.trace("Interface {} raised exception when checking the multicast capability", networkInterface.getName());
+						}
+
 						foundAddress = true;
 					}
 				} else {
@@ -397,7 +406,7 @@ public class NetworkConfiguration {
 
 		Map<String, InterfaceAssociation> virtualInterfaces = new HashMap<>();
 		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
-			// Skip the virtual interface. We are looking for first non-virtual interface
+			boolean bol = entry.getValue().iface.isVirtual();
 			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
 				virtualInterfaces.put(entry.getKey(), entry.getValue());
 				continue;
