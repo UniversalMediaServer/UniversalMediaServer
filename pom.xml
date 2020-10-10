@@ -1394,7 +1394,6 @@
 										<get src="${project.binaries-base}/win32/jre15-x64/bin/jfr.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre15-x64/bin/jfr.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre15-x64/bin/jimage.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre15-x64/bin/jimage.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre15-x64/bin/jimage.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre15-x64/bin/jimage.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre15-x64/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre15-x64/bin/jjs.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre15-x64/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre15-x64/bin/jli.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre15-x64/bin/jlink.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre15-x64/bin/jlink.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre15-x64/bin/jmod.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre15-x64/bin/jmod.exe" usetimestamp="true" />
