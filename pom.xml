@@ -81,7 +81,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>112</binary-revision>
+		<binary-revision>115</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -1143,7 +1143,6 @@
 										<mkdir dir="${project.binaries}/win32/jre14-x64/conf" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/lib" />
-										<mkdir dir="${project.binaries}/win32/jre14-x64/bin/client" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/bin/server" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/conf/management" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/conf/security" />
@@ -1183,8 +1182,6 @@
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.httpserver" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.incubator.foreign" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.incubator.jpackage" />
-										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.internal.ed" />
-										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.internal.le" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.internal.opt" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.internal.vm.ci" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.internal.vm.compiler" />
@@ -1202,8 +1199,6 @@
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.naming.rmi" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.net" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.nio.mapmode" />
-										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn" />
-										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn.shell" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.sctp" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.security.auth" />
 										<mkdir dir="${project.binaries}/win32/jre14-x64/legal/jdk.security.jgss" />
@@ -1257,8 +1252,6 @@
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.httpserver" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.incubator.foreign" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.incubator.jpackage" />
-										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.internal.ed" />
-										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.internal.le" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.internal.opt" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.jdeps" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.jdwp.agent" />
@@ -1273,8 +1266,6 @@
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.naming.rmi" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.net" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.nio.mapmode" />
-										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn" />
-										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn.shell" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.sctp" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.security.auth" />
 										<mkdir dir="${project.binaries}/win32/jre14-x86/legal/jdk.security.jgss" />
@@ -1402,7 +1393,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/jfr.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/jfr.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/jimage.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/jimage.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/jimage.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/jimage.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/jjs.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/jli.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/jlink.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/jlink.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/jmod.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/jmod.exe" usetimestamp="true" />
@@ -1415,7 +1405,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/klist.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/ktab.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/lcms.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/bin/le.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/le.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/management.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/management_agent.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/management_agent.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/management_ext.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/management_ext.dll" usetimestamp="true" />
@@ -1438,8 +1427,8 @@
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/w2k_lsa_auth.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/WindowsAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/WindowsAccessBridge-64.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/zip.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/bin/client/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/client/jvm.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/server/classes.jsa?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/server/classes.jsa" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre14-x64/bin/server/classes_nocoops.jsa?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/server/classes_nocoops.jsa" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/bin/server/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/bin/server/jvm.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/logging.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/logging.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/conf/net.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/conf/net.properties" usetimestamp="true" />
@@ -1580,13 +1569,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.incubator.jpackage/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.incubator.jpackage/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.ed/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.ed/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.le/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.le/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.le/jline.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.le/jline.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.le/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.le/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.internal.opt/jopt-simple.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.internal.opt/jopt-simple.md" usetimestamp="true" />
@@ -1641,14 +1623,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.nio.mapmode/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.nio.mapmode/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn/double-conversion.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn/double-conversion.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn/joni.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn/joni.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.scripting.nashorn.shell/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.scripting.nashorn.shell/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.sctp/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.sctp/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x64/legal/jdk.sctp/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x64/legal/jdk.sctp/LICENSE" usetimestamp="true" />
@@ -1759,7 +1733,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/jfr.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/jfr.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/jimage.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/jimage.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/jimage.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/jimage.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/jjs.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/jli.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/jlink.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/jlink.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/jmod.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/jmod.exe" usetimestamp="true" />
@@ -1772,7 +1745,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/klist.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/ktab.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/lcms.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/bin/le.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/le.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/management.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/management_agent.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/management_agent.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/management_ext.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/management_ext.dll" usetimestamp="true" />
@@ -1796,8 +1768,8 @@
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/WindowsAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/WindowsAccessBridge.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/WindowsAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/WindowsAccessBridge-32.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/zip.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/bin/client/classes.jsa?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/client/classes.jsa" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/client/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/client/jvm.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre14-x86/bin/server/classes.jsa?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/server/classes.jsa" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/bin/server/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/bin/server/jvm.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/logging.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/logging.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/conf/net.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/conf/net.properties" usetimestamp="true" />
@@ -1935,13 +1907,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.incubator.jpackage/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.incubator.jpackage/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.ed/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.ed/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.le/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.le/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.le/jline.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.le/jline.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.le/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.le/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.internal.opt/jopt-simple.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.internal.opt/jopt-simple.md" usetimestamp="true" />
@@ -1987,14 +1952,6 @@
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.nio.mapmode/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.nio.mapmode/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn/double-conversion.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn/double-conversion.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn/joni.md?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn/joni.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.scripting.nashorn.shell/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.scripting.nashorn.shell/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.sctp/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.sctp/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre14-x86/legal/jdk.sctp/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre14-x86/legal/jdk.sctp/LICENSE" usetimestamp="true" />
@@ -2558,8 +2515,6 @@
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.dynalink" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.httpserver" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jfr" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.jsobject" />
@@ -2571,8 +2526,6 @@
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.naming.rmi" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.net" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.nio.mapmode" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn" />
-										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn.shell" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.sctp" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.security.auth" />
 										<mkdir dir="${project.binaries}/linux/x86/jre14/legal/jdk.security.jgss" />
@@ -2595,7 +2548,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/release?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/release" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/java?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/java" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/jfr?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jfr" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/bin/jjs?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jjs" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/jrunscript?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/jrunscript" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/keytool?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/keytool" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/bin/rmid?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/bin/rmid" usetimestamp="true" />
@@ -2729,13 +2681,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.foreign/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.foreign/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.incubator.foreign/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.incubator.foreign/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.ed/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.ed/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.le/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.le/jline.md?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le/jline.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.internal.le/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.internal.le/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdwp.agent/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdwp.agent/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.jdwp.agent/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.jdwp.agent/LICENSE" usetimestamp="true" />
@@ -2771,14 +2716,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.nio.mapmode/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.nio.mapmode/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn/double-conversion.md?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn/double-conversion.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn/joni.md?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn/joni.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.scripting.nashorn.shell/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.scripting.nashorn.shell/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.sctp/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.sctp/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre14/legal/jdk.sctp/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre14/legal/jdk.sctp/LICENSE" usetimestamp="true" />
@@ -2997,8 +2934,6 @@
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.httpserver" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.incubator.foreign" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.incubator.jpackage" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.ed" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.le" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.opt" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.vm.ci" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.vm.compiler" />
@@ -3016,8 +2951,6 @@
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.naming.rmi" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.net" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.nio.mapmode" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn.shell" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.sctp" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.security.auth" />
 										<mkdir dir="${project.binaries}/linux/x86_64/jre14/legal/jdk.security.jgss" />
@@ -3043,7 +2976,6 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre14/bin/jdeps?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/bin/jdeps" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/bin/jfr?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/bin/jfr" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/bin/jimage?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/bin/jimage" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/bin/jjs?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/bin/jjs" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/bin/jlink?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/bin/jlink" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/bin/jmod?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/bin/jmod" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/bin/jpackage?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/bin/jpackage" usetimestamp="true" />
@@ -3190,13 +3122,6 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.incubator.jpackage/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.incubator.jpackage/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.incubator.jpackage/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.incubator.jpackage/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.ed/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.ed/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.ed/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.le/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.le/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.le/jline.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.le/jline.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.le/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.le/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.opt/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.internal.opt/jopt-simple.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.internal.opt/jopt-simple.md" usetimestamp="true" />
@@ -3251,14 +3176,6 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.nio.mapmode/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.nio.mapmode/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.nio.mapmode/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.nio.mapmode/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/double-conversion.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/double-conversion.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/joni.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/joni.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn.shell/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn.shell/ASSEMBLY_EXCEPTION" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.scripting.nashorn.shell/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.scripting.nashorn.shell/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.sctp/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.sctp/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.sctp/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/legal/jdk.sctp/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/legal/jdk.sctp/LICENSE" usetimestamp="true" />
@@ -3328,6 +3245,7 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre14/lib/security/default.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/lib/security/default.policy" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/lib/security/public_suffix_list.dat?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/lib/security/public_suffix_list.dat" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/lib/server/classes.jsa?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/lib/server/classes.jsa" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/jre14/lib/server/classes_nocoops.jsa?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/lib/server/classes_nocoops.jsa" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/lib/server/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/lib/server/libjsig.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre14/lib/server/libjvm.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre14/lib/server/libjvm.so" usetimestamp="true" />
 									</target>
