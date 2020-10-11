@@ -217,6 +217,11 @@ public class DbgPacker implements ActionListener {
 				return "*.zip";
 			}
 		});
+		zippedLogFile = PMS.getConfiguration().getDefaultLogFilePath();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+		Date date = new Date();
+		String fileName = "ums_dbg_" + dateFormat.format(date) + ".zip";
+		zippedLogFile = FileUtil.appendPathSeparator(zippedLogFile) + fileName;
 		fc.setSelectedFile(new File(zippedLogFile));
 		if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 			zippedLogFile = fc.getSelectedFile().getPath();
@@ -230,6 +235,7 @@ public class DbgPacker implements ActionListener {
 			return;
 		}
 		try {
+
 			try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zippedLogFile))) {
 				for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
 					if (item.getValue().isSelected()) {
