@@ -22,7 +22,7 @@ public class FolderLimitLevel extends VirtualFolder {
 		} else {
 			start = r.getParent().clone();
 		}
-		syncResolve();
+		resolve();
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class FolderLimitLevel extends VirtualFolder {
 	}
 
 	@Override
-	public synchronized void syncResolve() {
+	public synchronized void resolve() {
 		this.setDiscovered(false);
 		this.getChildren().clear();
 	}
