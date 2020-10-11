@@ -235,7 +235,6 @@ public class DbgPacker implements ActionListener {
 			return;
 		}
 		try {
-
 			try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zippedLogFile))) {
 				for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
 					if (item.getValue().isSelected()) {
