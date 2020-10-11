@@ -82,8 +82,7 @@ public class MediaInfo {
 			}
 		});
 
-		@SuppressWarnings("cast")
-		MediaInfoDLL_Internal INSTANCE = (MediaInfoDLL_Internal) Native.loadLibrary(
+		MediaInfoDLL_Internal INSTANCE = Native.load(
 			libraryName,
 			MediaInfoDLL_Internal.class,
 			options

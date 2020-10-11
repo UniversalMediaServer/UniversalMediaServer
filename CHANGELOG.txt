@@ -1,3 +1,104 @@
+9.8.1 - 2020-09-05
+
+	General:
+		Improved speed of renderers and UMS recognizing each other
+		Reduced network and CPU loads associated with renderer discovery
+		Improved loading of external libraries
+		Fixed older macOS auto-updating to UMS for newer macOS
+		Fixed quickrun scripts for developers
+		Fixed not removing the Windows service firewall rule on uninstall
+	Translation updates via Crowdin:
+		English (United Kingdom) (33%)
+		German (98%)
+		Slovak (98%)
+	Dependencies:
+		Bump assertj-core from 3.16.1 to 3.17.1
+		Bump git-commit-id-plugin from 4.0.1 to 4.0.2
+		Bump junrar from 6.0.1 to 7.3.0
+		Bump maven-resources-plugin from 3.1.0 to 3.2.0
+		Bump MediaInfo from 18.12 to 20.08
+		Bump oshi-core from 5.2.2 to 5.2.5
+
+9.8.0 - 2020-07-26
+
+	General:
+		Started releasing two macOS builds which fixed MEncoder not working on 10.15 (Catalina)
+		Improved support for ASF, MKV, MP4, MPEG-PS, MPEG-TS, and WMV videos by adding and improving accuracy of DLNA.ORG_PN values (thanks for testing, carlosvsilva!)
+		Reduced CPU use and improved video/audio quality by muxing some supported streams with FFmpeg instead of transcoding
+		Other DLNA compatibility fixes, including sending correct framerates, color depths, and audio channel counts
+		Improved load time on web interface with many files by 10x or more (thanks, outnos!)
+		Fixed forced network interface not always persisting
+		Fixed Safari login prompts with HTTPS on web interface (thanks, outnos!)
+		Fixed not displaying the Minimize on startup option in GUI on macOS
+		Fixed Windows installer not adding a Windows Firewall exception for the service
+	Renderers:
+		Improved support for Philips PUS 6500 Series TVs
+		Improved support for AVI files on Panasonic Viera VT60 TVs
+		Improved support for Samsung Q7 Series TVs
+		Fixed detection of Panasonic Viera DX Series TVs
+		Fixed detection of Samsung Q9 TVs
+		Fixed detection of Samsung Soundbar MS750
+		Fixed false-detection of XBMC
+	Translation updates via Crowdin:
+		Danish (100%)
+		Korean (34%)
+	Dependencies:
+		Bump AdoptOpenJDK to 14.0.2
+		Bump git-commit-id-plugin from 4.0.0 to 4.0.1
+		Bump jna-version from 5.5.0 to 5.6.0
+		Bump junrar from 4.0.0 to 6.0.1
+		Bump MPlayer/MEncoder for macOS to SB66
+		Bump oshi-core from 5.2.1 to 5.2.2
+		Bump rome from 1.14.1 to 1.15.0
+		Bump twelvemonkeys-imageio-version from 3.5 to 3.6
+
+9.7.2 - 2020-07-11
+
+	General:
+		Fixed HTTPS and authentication in the web interface (thanks, outnos!)
+		Fixed Windows service
+		Fixed auto updater getting stuck on program startup
+		Fixed high CPU usage for some users
+		Fixed fontconfig warning
+	Renderers:
+		Added support for Sony STR-DN1080 AV Receiver (thanks, GurliGebis!)
+		Fixed detection of newer versions of VLC on Apple TV (thanks, ajkessel!)
+	Translation updates via Crowdin:
+		Bulgarian (100%)
+		French (100%)
+		Hungarian (100%)
+
+9.7.1 - 2020-07-05
+
+	General:
+		Implemented the minimize on startup option on macOS
+		Added dates to the debug log zip (thanks, midhun1998!)
+		Added profiling logging for the database
+		Windows installer stops the existing service if it is running
+		Windows installer starts the service if the checkbox is enabled at the end and the service is installed, instead of starting the GUI
+		Windows installer does not try to start the GUI on computer startup if the service is installed
+		GUI warns about using it as a GUI when it is already installed as a service
+		The service uses our bundled Java instead of the system one
+		Changed the default AC-3 transcoding bitrate to 448 for better transcoding compatibility
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (99%)
+		English (United Kingdom) (25%)
+		Finnish (100%)
+		Polish (100%)
+		Portuguese (100%)
+		Portuguese (Brazilian) (100%)
+		Russian (93%)
+		Slovak (98%)
+		Spanish (99%)
+		Turkish (100%)
+		Ukrainian (17%)
+	Dependency updates:
+		Bump maven-site-plugin from 3.9.0 to 3.9.1
+		Bump oshi-core from 5.1.2 to 5.2.0
+		Bump rome from 1.13.1 to 1.14.1
+		Bump spotbugs-maven-plugin from 4.0.0 to 4.0.4
+
 9.7.0 - 2020-06-21
 
 	General:

@@ -71,12 +71,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of media file metadata scanned by the MediaInfo library.
- *
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
  */
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
@@ -125,43 +119,12 @@ public class DLNAMediaInfo implements Cloneable {
 
 	// Stored in database
 	private Double durationSec;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int bitrate;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int width;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int height;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public long size;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String codecV;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String frameRate;
-
+	private int bitrate;
+	private int width;
+	private int height;
+	private long size;
+	private String codecV;
+	private String frameRate;
 	private String frameRateMode;
 	private String pixelAspectRatio;
 	private ScanType scanType;
@@ -193,19 +156,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private boolean isTVEpisode;
 
 	private volatile ImageInfo imageInfo = null;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String mimeType;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int bitsPerPixel;
-
+	private String mimeType;
 	private final ReentrantReadWriteLock referenceFrameCountLock = new ReentrantReadWriteLock();
 	private byte referenceFrameCount = -1;
 
@@ -218,23 +169,29 @@ public class DLNAMediaInfo implements Cloneable {
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String muxingMode;
+	private boolean externalSubsExist = false;
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String muxingModeAudio;
+	public void setExternalSubsExist(boolean exist) {
+		this.externalSubsExist = exist;
+	}
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String container;
+	public boolean isExternalSubsExist() {
+		return externalSubsExist;
+	}
+
+	private boolean externalSubsParsed = false;
+
+	public void setExternalSubsParsed(boolean parsed) {
+		this.externalSubsParsed = parsed;
+	}
+
+	public boolean isExternalSubsParsed() {
+		return externalSubsParsed;
+	}
+
+	private String muxingMode;
+	private String muxingModeAudio;
+	private String container;
 
 	private final Object h264_annexBLock = new Object();
 	private byte[] h264_annexB;
@@ -249,23 +206,11 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * isUseMediaInfo-related, used to manage thumbnail management separated
 	 * from the main parsing process.
-	 *
-	 * @deprecated Use standard getter and setter to access this variable.
 	 */
-	@Deprecated
-	public volatile boolean thumbready;
+	private volatile boolean thumbready;
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int dvdtrack;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public boolean secondaryFormatValid = true;
+	private int dvdtrack;
+	private boolean secondaryFormatValid = true;
 
 	private final Object parsingLock = new Object();
 	private boolean parsing = false;
@@ -277,36 +222,11 @@ public class DLNAMediaInfo implements Cloneable {
 	private boolean ffmpeg_annexb_failure;
 	private boolean muxable;
 	private Map<String, String> extras;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public boolean encrypted;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String matrixCoefficients;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String stereoscopy;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String fileTitleFromMetadata;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String videoTrackTitleFromMetadata;
+	private boolean encrypted;
+	private String matrixCoefficients;
+	private String stereoscopy;
+	private String fileTitleFromMetadata;
+	private String videoTrackTitleFromMetadata;
 
 	private int videoTrackCount = 0;
 	private int imageCount = 0;
@@ -483,14 +403,14 @@ public class DLNAMediaInfo implements Cloneable {
 				getVideoTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			) ||
 			(
-				params.aid != null &&
-				params.aid.getAudioTrackTitleFromMetadata() != null &&
-				params.aid.getAudioTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+				params.getAid() != null &&
+				params.getAid().getAudioTrackTitleFromMetadata() != null &&
+				params.getAid().getAudioTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			) ||
 			(
-				params.sid != null &&
-				params.sid.getSubtitlesTrackTitleFromMetadata() != null &&
-				params.sid.getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+				params.getSid() != null &&
+				params.getSid().getSubtitlesTrackTitleFromMetadata() != null &&
+				params.getSid().getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			)
 		) {
 			return true;
@@ -509,11 +429,6 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		extras.put(key, value);
-	}
-
-	@Deprecated
-	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume) {
-		generateThumbnail(input, ext, type, seekPosition, resume, null);
 	}
 
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume, RendererConfiguration renderer) {
@@ -578,9 +493,9 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.stdin = media.getPush();
-		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
+		params.setMaxBufferSize(1);
+		params.setStdIn(media.getPush());
+		params.setNoExitCheck(true); // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(new String[args.size()]), true, params, false, true);
@@ -647,11 +562,11 @@ public class DLNAMediaInfo implements Cloneable {
 		args[12] = "jpeg:outdir=" + frameName;
 		args[13] = "-nosound";
 		OutputParams params = new OutputParams(configuration);
-		params.workDir = configuration.getTempFolder();
-		params.maxBufferSize = 1;
-		params.stdin = media.getPush();
-		params.log = true;
-		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
+		params.setWorkDir(configuration.getTempFolder());
+		params.setMaxBufferSize(1);
+		params.setStdIn(media.getPush());
+		params.setLog(true);
+		params.setNoExitCheck(true); // not serious if anything happens during the thumbnailer
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args, true, params);
 
 		// FAILSAFE
@@ -679,11 +594,6 @@ public class DLNAMediaInfo implements Cloneable {
 			parsing = false;
 		}
 		return pw;
-	}
-
-	@Deprecated
-	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume) {
-		parse(inputFile, ext, type, thumbOnly, resume, null);
 	}
 
 	/**
@@ -1354,7 +1264,16 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return {boolean}
 	 */
 	public boolean isH264() {
-		return codecV != null && codecV.startsWith("h264");
+		return codecV != null && codecV.startsWith(FormatConfiguration.H264);
+	}
+
+	/**
+	 * Whether the file contains H.265 (HEVC) video.
+	 *
+	 * @return {boolean}
+	 */
+	public boolean isH265() {
+		return codecV != null && codecV.startsWith(FormatConfiguration.H265);
 	}
 
 	/**
@@ -1398,14 +1317,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public String getDurationString() {
 		return durationSec != null ? StringUtil.formatDLNADuration(durationSec) : null;
-	}
-
-	/**
-	 * @deprecated Use {@link StringUtil#formatDLNADuration} instead.
-	 */
-	@Deprecated
-	public static String getDurationString(double d) {
-		return StringUtil.formatDLNADuration(d);
 	}
 
 	public static Double parseDurationString(String duration) {
@@ -1907,16 +1818,6 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @deprecated use getAspectRatioMencoderMpegopts() for the original
-	 * functionality of this method, or use getAspectRatioContainer() for a
-	 * better default method to get aspect ratios.
-	 */
-	@Deprecated
-	public String getValidAspect(boolean ratios) {
-		return getAspectRatioMencoderMpegopts(ratios);
-	}
-
-	/**
 	 * Converts the result of getAspectRatioDvdIso() to provide
 	 * MEncoderVideo with a valid value for the "vaspect" option in the
 	 * "-mpegopts" command.
@@ -2004,8 +1905,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 		byte[][] returnData = new byte[2][];
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.stdin = f.getPush();
+		params.setMaxBufferSize(1);
+		params.setStdIn(f.getPush());
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params);
 
@@ -2068,12 +1969,12 @@ public class DLNAMediaInfo implements Cloneable {
 	@Override
 	protected DLNAMediaInfo clone() throws CloneNotSupportedException {
 		DLNAMediaInfo mediaCloned = (DLNAMediaInfo) super.clone();
-		mediaCloned.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+		mediaCloned.setAudioTracks(new ArrayList<DLNAMediaAudio>());
 		for (DLNAMediaAudio audio : audioTracks) {
 			mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
 		}
 
-		mediaCloned.setSubtitleTracksList(new ArrayList<DLNAMediaSubtitle>());
+		mediaCloned.setSubtitleTracks(new ArrayList<DLNAMediaSubtitle>());
 		for (DLNAMediaSubtitle sub : subtitleTracks) {
 			mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
 		}
@@ -2167,6 +2068,20 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public String getFrameRate() {
 		return frameRate;
+	}
+
+	/**
+	 * @return the frame rate in DLNA format
+	 */
+	public String getFrameRateDLNA() {
+		int framerateDLNA = (int) Math.round(Double.parseDouble(frameRate));
+		String framerateDLNAString = String.valueOf(framerateDLNA);
+		if (scanType != null && scanType == ScanType.INTERLACED) {
+			framerateDLNAString += "i";
+		} else {
+			framerateDLNAString += "p";
+		}
+		return framerateDLNAString;
 	}
 
 	/**
@@ -2389,16 +2304,6 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @deprecated use getAspectRatioDvdIso() for the original.
-	 * functionality of this method, or use getAspectRatioContainer() for a
-	 * better default method to get aspect ratios.
-	 */
-	@Deprecated
-	public String getAspect() {
-		return getAspectRatioDvdIso();
-	}
-
-	/**
 	 * The aspect ratio for a DVD ISO video track
 	 *
 	 * @return the aspect
@@ -2540,31 +2445,6 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public DLNAThumbnail getThumb() {
 		return thumb;
-	}
-
-	/**
-	 * @param thumb the thumb to set
-	 * @since 1.50.0
-	 * @deprecated Use {@link #setThumb(DLNAThumbnail)} instead.
-	 */
-	@Deprecated
-	public void setThumb(byte[] thumb) {
-		try {
-			this.thumb = DLNAThumbnail.toThumbnail(
-				thumb,
-				640,
-				480,
-				ScaleType.MAX,
-				ImageFormat.SOURCE,
-				false
-			);
-			if (this.thumb != null) {
-				thumbready = true;
-			}
-		} catch (IOException e) {
-			LOGGER.error("An error occurred while trying to store thumbnail: {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
 	}
 
 	/**
@@ -2724,33 +2604,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the audioTracks
-	 * @deprecated use getAudioTracksList() instead
-	 */
-	@Deprecated
-	public ArrayList<DLNAMediaAudio> getAudioCodes() {
-		if (audioTracks instanceof ArrayList) {
-			return (ArrayList<DLNAMediaAudio>) audioTracks;
-		}
-		return new ArrayList<>();
-	}
-
-	/**
 	 * @param audioTracks the audioTracks to set
 	 * @since 1.60.0
 	 */
-	// TODO (breaking change): rename to setAudioTracks
-	public void setAudioTracksList(List<DLNAMediaAudio> audioTracks) {
+	public void setAudioTracks(List<DLNAMediaAudio> audioTracks) {
 		this.audioTracks = audioTracks;
-	}
-
-	/**
-	 * @param audioTracks the audioTracks to set
-	 * @deprecated use setAudioTracksList(ArrayList<DLNAMediaAudio> audioTracks) instead
-	 */
-	@Deprecated
-	public void setAudioCodes(List<DLNAMediaAudio> audioTracks) {
-		setAudioTracksList(audioTracks);
 	}
 
 	/**
@@ -2763,33 +2621,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the subtitleTracks
-	 * @deprecated use getSubtitleTracksList() instead
-	 */
-	@Deprecated
-	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
-		if (subtitleTracks instanceof ArrayList) {
-			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
-		}
-		return new ArrayList<>();
-	}
-
-	/**
 	 * @param subtitleTracks the subtitleTracks to set
 	 * @since 1.60.0
 	 */
-	// TODO (breaking change): rename to setSubtitleTracks
-	public void setSubtitleTracksList(List<DLNAMediaSubtitle> subtitleTracks) {
+	public void setSubtitleTracks(List<DLNAMediaSubtitle> subtitleTracks) {
 		this.subtitleTracks = subtitleTracks;
-	}
-
-	/**
-	 * @param subtitleTracks the subtitleTracks to set
-	 * @deprecated use setSubtitleTracksList(ArrayList<DLNAMediaSubtitle> subtitleTracks) instead
-	 */
-	@Deprecated
-	public void setSubtitlesCodes(List<DLNAMediaSubtitle> subtitleTracks) {
-		setSubtitleTracksList(subtitleTracks);
 	}
 
 	/**

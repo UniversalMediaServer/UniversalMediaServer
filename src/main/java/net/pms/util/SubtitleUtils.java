@@ -230,9 +230,9 @@ public class SubtitleUtils {
 	) throws IOException {
 		if (
 			media == null ||
-			params.sid == null ||
-			params.sid.getId() == DLNAMediaLang.DUMMY_ID ||
-			!params.sid.getType().isText()
+			params.getSid() == null ||
+			params.getSid().getId() == DLNAMediaLang.DUMMY_ID ||
+			!params.getSid().getType().isText()
 		) {
 			return null;
 		}
@@ -246,25 +246,25 @@ public class SubtitleUtils {
 			}
 		}
 
-		if (params.sid.isExternal() && params.sid.getExternalFile() == null) {
+		if (params.getSid().isExternal() && params.getSid().getExternalFile() == null) {
 			// This happens when for example OpenSubtitles fail to download
 			return null;
 		}
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
-		boolean isEmbeddedSource = params.sid.isEmbedded();
+		boolean isEmbeddedSource = params.getSid().isEmbedded();
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
-		File convertedFile = params.sid.getConvertedFile();
+		File convertedFile = params.getSid().getConvertedFile();
 
 		if (convertedFile != null && convertedFile.canRead()) {
 			// subs are already converted and exists
-			params.sid.setType(SubtitleType.ASS);
-			params.sid.setSubCharacterSet(CHARSET_UTF_8);
+			params.getSid().setType(SubtitleType.ASS);
+			params.getSid().setSubCharacterSet(CHARSET_UTF_8);
 			return convertedFile;
 		}
 
 		String filename = isEmbeddedSource ?
-			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+			dlna.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
 
 		String basename;
 
@@ -283,7 +283,7 @@ public class SubtitleUtils {
 		StringBuilder nameBuilder = new StringBuilder(subsPath.getAbsolutePath());
 		nameBuilder.append(File.separator).append(basename);
 		if (isEmbeddedSource) {
-			nameBuilder.append("_ID").append(params.sid.getId());
+			nameBuilder.append("_ID").append(params.getSid().getId());
 		}
 		if (applyFontConfig) {
 			nameBuilder.append("_FB");
@@ -307,21 +307,21 @@ public class SubtitleUtils {
 		if (convertedSubs.canRead() || converted3DSubs.canRead()) {
 			// subs are already converted
 			if (applyFontConfig || isEmbeddedSource || is3D) {
-				params.sid.setType(SubtitleType.ASS);
-				params.sid.setSubCharacterSet(CHARSET_UTF_8);
+				params.getSid().setType(SubtitleType.ASS);
+				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
 				if (converted3DSubs.canRead()) {
 					convertedSubs = converted3DSubs;
 				}
 			}
 
-			params.sid.setConvertedFile(convertedSubs);
+			params.getSid().setConvertedFile(convertedSubs);
 			return convertedSubs;
 		}
 
 		boolean isExternalAss = false;
 		if (
-			params.sid.getType() == SubtitleType.ASS &&
-			params.sid.isExternal() &&
+			params.getSid().getType() == SubtitleType.ASS &&
+			params.getSid().isExternal() &&
 			!isEmbeddedSource
 		) {
 			isExternalAss = true;
@@ -333,12 +333,12 @@ public class SubtitleUtils {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
-				(params.sid.getType() == subtitleType) &&
-				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT) &&
+				(params.getSid().getType() == subtitleType) &&
+				(params.getSid().getType() == SubtitleType.SUBRIP || params.getSid().getType() == SubtitleType.WEBVTT) &&
 				!is3D
 			)
 		) {
-			tempSubs = params.sid.getExternalFile();
+			tempSubs = params.getSid().getExternalFile();
 		} else {
 			tempSubs = convertSubsToSubtitleType(filename, media, params, configuration, subtitleType);
 		}
@@ -350,9 +350,9 @@ public class SubtitleUtils {
 		if (!FileUtil.isFileUTF8(tempSubs)) {
 			try {
 				tempSubs = applyCodepageConversion(tempSubs, convertedSubs);
-				params.sid.setSubCharacterSet(CHARSET_UTF_8);
+				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
 			} catch (IOException ex) {
-				params.sid.setSubCharacterSet(null);
+				params.getSid().setSubCharacterSet(null);
 				LOGGER.warn("Exception during external file charset detection.", ex);
 			}
 		} else {
@@ -365,12 +365,12 @@ public class SubtitleUtils {
 			applyFontConfig &&
 			!(
 				configuration.isUseEmbeddedSubtitlesStyle() &&
-				params.sid.getType() == SubtitleType.ASS
+				params.getSid().getType() == SubtitleType.ASS
 			)
 		) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
-				params.sid.setSubCharacterSet(CHARSET_UTF_8);
+				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
@@ -388,11 +388,11 @@ public class SubtitleUtils {
 
 		if (isEmbeddedSource) {
 //			params.sid.setExternalFile(tempSubs);
-			params.sid.setType(SubtitleType.ASS);
+			params.getSid().setType(SubtitleType.ASS);
 		}
 
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
-		params.sid.setConvertedFile(tempSubs);
+		params.getSid().setConvertedFile(tempSubs);
 		return tempSubs;
 	}
 
@@ -407,7 +407,7 @@ public class SubtitleUtils {
 	 * @return Converted subtitles file in requested type
 	 */
 	public static File convertSubsToSubtitleType(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration, SubtitleType outputSubtitleType) {
-		if (!params.sid.getType().isText()) {
+		if (!params.getSid().getType().isText()) {
 			return null;
 		}
 		List<String> cmdList = new ArrayList<>();
@@ -422,15 +422,15 @@ public class SubtitleUtils {
 		}
 
 		// Try to specify input encoding if we have a non utf-8 external sub
-		if (params.sid.isExternal() && !params.sid.isExternalFileUtf8()) {
+		if (params.getSid().isExternal() && !params.getSid().isExternalFileUtf8()) {
 			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 					// Prefer the global user-specified encoding if we have one.
 					// Note: likely wrong if the file isn't supplied by the user.
 					configuration.getSubtitlesCodepage() :
-				params.sid.getSubCharacterSet() != null ?
+				params.getSid().getSubCharacterSet() != null ?
 					// Fall back on the actually detected encoding if we have it.
 					// Note: accuracy isn't 100% guaranteed.
-					params.sid.getSubCharacterSet() :
+					params.getSid().getSubCharacterSet() :
 				null; // Otherwise we're out of luck!
 			if (encoding != null) {
 				cmdList.add("-sub_charenc");
@@ -441,9 +441,9 @@ public class SubtitleUtils {
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
-		if (params.sid.isEmbedded()) {
+		if (params.getSid().isEmbedded()) {
 			cmdList.add("-map");
-			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.sid)));
+			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.getSid())));
 		}
 
 		try {

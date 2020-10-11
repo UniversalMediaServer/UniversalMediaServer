@@ -142,7 +142,7 @@ public class VideoLanVideoStreaming extends Player {
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
@@ -153,9 +153,9 @@ public class VideoLanVideoStreaming extends Player {
 		pipe_process.runInNewThread();
 		tsPipe.deleteLater();
 
-		params.input_pipes[0] = tsPipe;
-		params.minBufferSize = params.minFileSize;
-		params.secondread_minsize = 100000;
+		params.getInputPipes()[0] = tsPipe;
+		params.setMinBufferSize(params.getMinFileSize());
+		params.setSecondReadMinSize(100000);
 
 		List<String> cmdList = new ArrayList<>();
 		cmdList.add(getExecutable());

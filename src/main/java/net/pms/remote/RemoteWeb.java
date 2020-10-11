@@ -16,6 +16,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -27,13 +28,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
-
 import com.samskivert.mustache.MustacheException;
 import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.BasicAuthenticator;
@@ -45,7 +44,6 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -116,7 +114,7 @@ public class RemoteWeb {
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info(
 						"To enable HTTPS please generate a self-signed keystore file " +
-						"called \"DMS.jks\" with password \"dmsdms\" using the java " +
+						"called \"UMS.jks\" with password \"umsums\" using the java " +
 						"'keytool' commandline utility, and place it in the profile folder"
 					);				}
 			} catch (GeneralSecurityException e) {
@@ -155,7 +153,7 @@ public class RemoteWeb {
 		keyStore = KeyStore.getInstance("JKS");
 		try (
 			FileInputStream fis = new FileInputStream(
-				FileUtil.appendPathSeparator(configuration.getProfileDirectory()) + "DMS.jks"
+				FileUtil.appendPathSeparator(configuration.getProfileDirectory()) + "UMS.jks"
 			)
 		) {
 			keyStore.load(fis, password);
@@ -275,7 +273,7 @@ public class RemoteWeb {
 	private void addCtx(String path, HttpHandler h) {
 		HttpContext ctx = server.createContext(path, h);
 		if (configuration.isWebAuthenticate()) {
-			ctx.setAuthenticator(new BasicAuthenticator("") {
+			ctx.setAuthenticator(new BasicAuthenticator(configuration.getServerName()) {
 				@Override
 				public boolean checkCredentials(String user, String pwd) {
 					LOGGER.debug("authenticate " + user);
@@ -453,7 +451,7 @@ public class RemoteWeb {
 	                        }
 	                    }
 	                } else if (t.getRequestMethod().equals("OPTIONS")) {
-	                    in = new ByteArrayInputStream("".getBytes("utf-8"));
+	                    in = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
 	                } else {
 	                    in = HTTPResource.downloadAndSend(url, false);
 	                    

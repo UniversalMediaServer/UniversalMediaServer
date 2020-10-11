@@ -53,22 +53,6 @@ public class KeyedStringComboBoxModel extends KeyedComboBoxModel<String, String>
 	}
 
 	/**
-	 * Set the selected item. The implementation of this  method should notify
-	 * all registered <code>ListDataListener</code>s that the contents have
-	 * changed.
-	 *
-	 * @param anItem the list object to select or <code>null</code> to clear the
-	 *               selection
-	 *
-	 * @deprecated Inherited method. Use {@link #setSelectedKey(String)} or
-	 * {@link #setSelectedValue(String)} instead.
-	 */
-	@Override
-	public void setSelectedItem(final Object anItem) {
-		setSelectedValue((String) anItem);
-	}
-
-	/**
 	 * Sets the selected value. If the {@link String} is not in the list of
 	 * values, a new custom entry is generated.
 	 *
@@ -130,14 +114,6 @@ public class KeyedStringComboBoxModel extends KeyedComboBoxModel<String, String>
 			}
 		}
 		fireListDataEvent(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, -1, -1));
-	}
-
-	/**
-	 * @deprecated Inherited method with no function.
-	 */
-	@Override
-	public void setAllowOtherValue(final boolean allowOtherValue) {
-		throw new IllegalArgumentException("AllowOtherValue is implicit in KeyedStringComboBoxModel");
 	}
 
 	private String generateCustomValue(String key) {

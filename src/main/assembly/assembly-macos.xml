@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
 	
 	<!--
-		For Mac OS X the actual assembly of the App Bundle and DMG disk image 
+		For macOS the actual assembly of the App Bundle and DMG disk image 
 		is handled by the osxappbundle-maven-plugin. This assembly descriptor merely 
 		copies all the files in the right place so the other plugin can pick them 
 		up easily.
@@ -17,6 +17,18 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 
 	<fileSets>
+		<!-- Include the binaries specific to 10.15 onwards -->
+		<fileSet>
+			<directory>${project.binaries}/osx/10.15</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/osx</outputDirectory>
+			<useDefaultExcludes>true</useDefaultExcludes>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>mencoder</include>
+				<include>mplayer</include>
+			</includes>
+		</fileSet>
+
 		<!-- Include the unzipped binaries -->
 		<fileSet>
 			<directory>${project.binaries}/osx</directory>
@@ -24,11 +36,14 @@
 			<useDefaultExcludes>true</useDefaultExcludes>
 			<fileMode>0755</fileMode>
 			<includes>
-				<include>*</include>
+				<include>builds.txt</include>
+				<include>dcraw</include>
+				<include>ffmpeg</include>
+				<include>flac</include>
+				<include>libmediainfo.dylib</include>
+				<include>tsMuxeR</include>
+				<include>tsMuxeR-new</include>
 			</includes>
-			<excludes>
-				<exclude>pms.icns</exclude>
-			</excludes>
 		</fileSet>
 
 		<!-- Include unzipped libmediainfo.dylib -->

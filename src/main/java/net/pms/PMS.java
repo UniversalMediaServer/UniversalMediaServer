@@ -63,7 +63,6 @@ import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
-import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
@@ -86,6 +85,8 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
+import org.h2.tools.ConvertTraceFile;
+import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,14 +191,6 @@ public class PMS {
 	 */
 	public List<RendererConfiguration> getFoundRenderers() {
 		return foundRenderers;
-	}
-
-	/**
-	 * @deprecated Use {@link #setRendererFound(RendererConfiguration)} instead.
-	 */
-	@Deprecated
-	public void setRendererfound(RendererConfiguration renderer) {
-		setRendererFound(renderer);
 	}
 
 	/**
@@ -424,6 +417,11 @@ public class PMS {
 
 		// Call this as early as possible
 		displayBanner();
+
+		final Profiler profiler = new Profiler();
+		if (configuration.getDatabaseLogging()) {
+			profiler.startCollecting();
+		}
 
 		// Initialize database
 		try {
@@ -670,6 +668,7 @@ public class PMS {
 		frame.serverReady();
 
 		ready = true;
+		UPNPHelper.getInstance().createMulticastSocket();
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
@@ -683,7 +682,14 @@ public class PMS {
 					get().getServer().stop();
 					Thread.sleep(500);
 
+					if (configuration.getDatabaseLogging()) {
+						LOGGER.trace("-------------------------------------------------------------");
+						LOGGER.trace(profiler.getTop(5));
+						LOGGER.trace("-------------------------------------------------------------");
+					}
+
 					LOGGER.debug("Shutting down all active processes");
+
 
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
@@ -717,6 +723,14 @@ public class PMS {
 					System.err.println("Unable to shut down logging gracefully");
 				}
 
+				if (configuration.getDatabaseLogging()) {
+					// use an automatic H2database profiling tool to make a report at the end of the logging file
+					// converted to the "logging_report.txt" in the database directory
+					try {
+						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
+							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
+					} catch (SQLException e) {}
+				}
 			}
 		});
 
@@ -776,6 +790,9 @@ public class PMS {
 
 					server = new HTTPServer(configuration.getServerPort());
 					server.start();
+					
+					// re-create the multicast socked because may happened the change of the used interface
+					UPNPHelper.getInstance().createMulticastSocket();
 					UPNPHelper.sendAlive();
 					frame.setReloadable(false);
 				} catch (IOException e) {
@@ -783,53 +800,6 @@ public class PMS {
 				}
 			}
 		});
-	}
-
-	// Cannot remove these methods because of backwards compatibility;
-	// none of the DMS code uses it, but some plugins still do.
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the debug stream, or {@link System#out} in case the
-	 * debug stream has not been set up yet.
-	 * @param msg {@link String} to be added to the debug stream.
-	 */
-	@Deprecated
-	public static void debug(String msg) {
-		LOGGER.trace(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the info stream.
-	 * @param msg {@link String} to be added to the info stream.
-	 */
-	@Deprecated
-	public static void info(String msg) {
-		LOGGER.debug(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the minimal stream. This stream is also
-	 * shown in the Trace tab.
-	 * @param msg {@link String} to be added to the minimal stream.
-	 */
-	@Deprecated
-	public static void minimal(String msg) {
-		LOGGER.info(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the error stream. This is usually called by
-	 * statements that are in a try/catch block.
-	 * @param msg {@link String} to be added to the error stream
-	 * @param t {@link Throwable} comes from an {@link Exception}
-	 */
-	@Deprecated
-	public static void error(String msg, Throwable t) {
-		LOGGER.error(msg, t);
 	}
 
 	/**
@@ -924,18 +894,6 @@ public class PMS {
 		}
 	}
 
-	/**
-	 * @deprecated Use {@link net.pms.formats.FormatFactory#getAssociatedFormat(String)}
-	 * instead.
-	 *
-	 * @param filename
-	 * @return The format.
-	 */
-	@Deprecated
-	public Format getAssociatedFormat(String filename) {
-		return FormatFactory.getAssociatedFormat(filename);
-	}
-
 	public static void main(String args[]) {
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
@@ -1026,6 +984,14 @@ public class PMS {
 		try {
 			setConfiguration(new PmsConfiguration());
 			assert getConfiguration() != null;
+
+			// Log whether the service is installed as it may help with debugging and support
+			if (Platform.isWindows()) {
+				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+				if (isUmsServiceInstalled) {
+					LOGGER.info("The Windows service is installed.");
+				}
+			}
 
 			/* Rename previous log file to .prev
 			 * Log file location is unknown at this point, it's finally decided during loadFile() below
@@ -1192,7 +1158,7 @@ public class PMS {
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
-		return getConfiguration(params != null ? params.mediaRenderer : null);
+		return getConfiguration(params != null ? params.getMediaRenderer() : null);
 	}
 
 	// Note: this should be used only when no RendererConfiguration or OutputParams is available
@@ -1218,22 +1184,6 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
-	}
-
-	/**
-	 * Returns whether the operating system is 64-bit or 32-bit.
-	 *
-	 * This will work with Windows and OS X but not necessarily with Linux
-	 * because when the OS is not Windows we are using Java's os.arch which
-	 * only detects the bitness of Java, not of the operating system.
-	 *
-	 * @return The bitness of the operating system.
-	 *
-	 * @deprecated Use {@link SystemInformation#getOSBitness()} instead.
-	 */
-	@Deprecated
-	public static int getOSBitness() {
-		return SystemInformation.getOSBitness();
 	}
 
 	/**
@@ -1621,14 +1571,6 @@ public class PMS {
 		return helpPage;
 	}
 
-	/**
-	 * @deprecated Use {@link com.sun.jna.Platform#isWindows()} instead
-	 */
-	@Deprecated
-	public boolean isWindows() {
-		return Platform.isWindows();
-	}
-
 	public static boolean isReady() {
 		return get().ready;
 	}
@@ -1640,11 +1582,6 @@ public class PMS {
 	private InfoDb infoDb;
 	private CodeDb codes;
 	private CodeEnter masterCode;
-
-	@Deprecated
-	public void infoDbAdd(File f, String formattedName) {
-		infoDb.backgroundAdd(f, formattedName);
-	}
 
 	public InfoDb infoDb() {
 		return infoDb;
