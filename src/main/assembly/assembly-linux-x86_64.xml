@@ -60,7 +60,7 @@
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 			<includes>
-				<include>/jre14/**</include>
+				<include>/jre15/**</include>
 			</includes>
 		</fileSet>
 
