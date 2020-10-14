@@ -209,16 +209,16 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
-	RMDir /R /REBOOTOK "$INSTDIR\jre14"
+	RMDir /R /REBOOTOK "$INSTDIR\jre15"
 
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x64"
-		File /r /x "ffmpeg.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre14-x64 jre14
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre15-x64"
+		File /r /x "ffmpeg.exe" /x "jre15-x64" /x "jre15-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre15-x64 jre15
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x86"
-		File /r /x "ffmpeg64.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre14-x86 jre14
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre15-x86"
+		File /r /x "ffmpeg64.exe" /x "jre15-x64" /x "jre15-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre15-x86 jre15
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -362,8 +362,13 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
-	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre14\bin\java.exe" enable=yes profile=public,private'
-	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre14\bin\javaw.exe" enable=yes profile=public,private'
+	; Remove existing firewall rules in case they need updating
+	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
+	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
+
+	; Add firewall rules
+	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre15\bin\java.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre15\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -391,18 +396,19 @@ SectionEnd
 Section "Uninstall"
 	SetShellVarContext all
 
+	; Current files/folders
 	Delete /REBOOTOK "$INSTDIR\uninst.exe"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
+	RMDir /R /REBOOTOK "$INSTDIR\jre15"
+	RMDir /R /REBOOTOK "$INSTDIR\web"
+	RMDir /R /REBOOTOK "$INSTDIR\win32"
+
+	; Old folders
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
-	RMDir /R /REBOOTOK "$INSTDIR\web"
-	RMDir /R /REBOOTOK "$INSTDIR\win32"
-	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
-	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
-	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
 
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"

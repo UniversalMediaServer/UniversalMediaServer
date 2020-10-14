@@ -284,7 +284,7 @@ public class NetworkConfiguration {
 	 *            The name of the parent interface.
 	 */
 	private void checkNetworkInterface(NetworkInterface networkInterface, String parentName) {
-		LOGGER.trace("checking {}, display name: {}", networkInterface.getName(), networkInterface.getDisplayName());
+		LOGGER.trace("checking {}, display name: {}",networkInterface.getName(), networkInterface.getDisplayName());
 		addAvailableAddresses(networkInterface);
 		checkNetworkInterface(networkInterface.getSubInterfaces(), networkInterface.getName());
 
@@ -298,7 +298,7 @@ public class NetworkConfiguration {
 		// Use networkInterface.getInetAddresses() instead
 		for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
 			if (address != null) {
-				LOGGER.trace("checking {} on {}", address, networkInterface.getName());
+				LOGGER.trace("checking {} on {}", new Object[] { address, networkInterface.getName() });
 
 				if (isRelevantAddress(address)) {
 					// Avoid adding duplicates
@@ -383,19 +383,14 @@ public class NetworkConfiguration {
 
 	/**
 	 * Returns the first interface from the list of discovered interfaces that
-	 * has an address but is not the virtual interface. This virtual interface
-	 * can still be forced to be used. If no such interface can be found or if
-	 * no interfaces were discovered, <code>null</code> is returned.
+	 * has an address. If no such interface can be found or if no interfaces
+	 * were discovered, <code>null</code> is returned.
 	 * 
 	 * @return The interface.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
 		for (InterfaceAssociation ia : interfaces) {
 			if (ia.getAddr() != null) {
-				// Skip the virtual interface
-				if (ia.getDisplayName().toLowerCase().contains("virtual")) {
-					continue;
-				}
 				return ia;
 			}
 		}
