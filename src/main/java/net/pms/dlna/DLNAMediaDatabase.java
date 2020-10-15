@@ -59,12 +59,13 @@ import net.pms.database.TableVideoMetadataRated;
 import net.pms.database.TableVideoMetadataRatings;
 import net.pms.database.TableVideoMetadataReleased;
 import static net.pms.database.Tables.convertResultSetToList;
-import static net.pms.database.Tables.sqlQuote;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.database.TableTVSeries;
 import net.pms.database.TableVideoMetadataIMDbRating;
+import static net.pms.database.Tables.sqlQuote;
 import net.pms.newgui.SharedContentTab;
+import net.pms.util.FileUtil;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -1640,7 +1641,7 @@ public class DLNAMediaDatabase implements Runnable {
 			TABLE_LOCK.readLock().lock();
 			try (
 				PreparedStatement ps = connection.prepareStatement(
-					sql.toLowerCase().startsWith("select") ? sql : ("SELECT FILENAME, MODIFIED FROM FILES WHERE " + sql)
+					sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with") ? sql : ("SELECT FILENAME, MODIFIED FROM FILES WHERE " + sql)
 				);
 				ResultSet rs = ps.executeQuery();
 			) {
@@ -1786,6 +1787,45 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", filename, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param title
+	 * @return a thumbnail based on title.
+	 */
+	public static DLNAThumbnail getThumbnailByTitle(final String title) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+
+		try (Connection connection = PMS.get().getDatabase().getConnection()) {
+			String query = "SELECT THUMBNAIL " +
+				"FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+				"WHERE MOVIEORSHOWNAMESIMPLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					LOGGER.info("executed query for " + title);
+					if (resultSet.next()) {
+						LOGGER.info("got result for " + title);
+						return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
