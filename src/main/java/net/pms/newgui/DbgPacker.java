@@ -50,18 +50,6 @@ public class DbgPacker implements ActionListener {
 				Map.Entry<String, String> entry = logFilePaths.entrySet().iterator().next();
 				defaultLogFile = entry.getValue();
 			}
-			zippedLogFile = new File(defaultLogFile).getParent().toString();
-		} else {
-			// Fall back to getting the default folder
-			zippedLogFile = PMS.getConfiguration().getDefaultLogFilePath();
-		}
-		if (!zippedLogFile.isEmpty()) {
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
-			Date date = new Date();
-			String fileName = "ums_dbg_" + dateFormat.format(date) + ".zip";
-			zippedLogFile = FileUtil.appendPathSeparator(zippedLogFile) + fileName;
-		} else {
-			LOGGER.error("Could not find destination folder for packed debug files");
 		}
 	}
 
