@@ -5211,29 +5211,12 @@ public class OpenSubtitle {
 					media.setSimplifiedMovieOrShowName(titleSimplified);
 					media.setYear(year);
 
-					// Set the API-specific data
-					if (metadataFromAPI.get("actors") != null) {
-						media.setActors(new HashSet((ArrayList) metadataFromAPI.get("actors")));
-					}
-					media.setAwards((String) metadataFromAPI.get("awards"));
-					media.setBoxOffice((String) metadataFromAPI.get("boxoffice"));
-					media.setCountry((String) metadataFromAPI.get("country"));
-					if (metadataFromAPI.get("directors") != null) {
-						media.setDirectors(new HashSet((ArrayList) metadataFromAPI.get("directors")));
-					}
-					if (metadataFromAPI.get("genres") != null) {
-						media.setGenres(new HashSet((ArrayList) metadataFromAPI.get("genres")));
-					}
-					media.setGoofs((String) metadataFromAPI.get("goofs"));
 					media.setIMDbID((String) metadataFromAPI.get("imdbID"));
-					media.setMetascore((String) metadataFromAPI.get("metascore"));
-					media.setProduction((String) metadataFromAPI.get("production"));
 
 					// Set the poster as the thumbnail
 					if (metadataFromAPI.get("poster") != null) {
-						media.setPoster((String) metadataFromAPI.get("poster"));
 						try {
-							byte[] image = uriFileRetriever.get(media.getPoster());
+							byte[] image = uriFileRetriever.get((String) metadataFromAPI.get("poster"));
 							media.setThumb(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false));
 						} catch (EOFException e) {
 							LOGGER.debug(
@@ -5247,19 +5230,13 @@ public class OpenSubtitle {
 							LOGGER.trace("", e);
 						}
 					}
-
-					media.setRated((String) metadataFromAPI.get("rated"));
-					if (metadataFromAPI.get("rating") != null && (Double) metadataFromAPI.get("rating") != 0.0) {
-						media.setIMDbRating(Double.toString((Double) metadataFromAPI.get("rating")));
-					}
-					if (metadataFromAPI.get("ratings") != null) {
-						media.setRatings(new HashSet((ArrayList) metadataFromAPI.get("ratings")));
-					}
-					media.setReleased((String) metadataFromAPI.get("released"));
-					media.setRuntime((String) metadataFromAPI.get("runtime"));
-					media.setTagline((String) metadataFromAPI.get("tagline"));
-					media.setTrivia((String) metadataFromAPI.get("trivia"));
-					media.setVotes((String) metadataFromAPI.get("votes"));
+					
+					// unused metadata from our api
+//					media.setTagline((String) metadataFromAPI.get("tagline"));
+//					media.setTrivia((String) metadataFromAPI.get("trivia"));
+//					media.setVotes((String) metadataFromAPI.get("votes"));
+//					media.setBoxOffice((String) metadataFromAPI.get("boxoffice"));
+//					media.setGoofs((String) metadataFromAPI.get("goofs"));
 
 					if (isTVEpisode) {
 						media.setTVSeason(tvSeason);
@@ -5286,17 +5263,27 @@ public class OpenSubtitle {
 							TableThumbnails.setThumbnail(media.getThumb(), file.getAbsolutePath(), -1);
 						}
 
-						TableVideoMetadataActors.set(file.getAbsolutePath(), media.getActors(), -1);
-						TableVideoMetadataAwards.set(file.getAbsolutePath(), media.getAwards(), -1);
-						TableVideoMetadataCountries.set(file.getAbsolutePath(), media.getCountry(), -1);
-						TableVideoMetadataDirectors.set(file.getAbsolutePath(), media.getDirectors(), -1);
-						TableVideoMetadataIMDbRating.set(file.getAbsolutePath(), media.getIMDbRating(), -1);
-						TableVideoMetadataGenres.set(file.getAbsolutePath(), media.getGenres(), -1);
-						TableVideoMetadataPosters.set(file.getAbsolutePath(), media.getPoster(), -1);
-						TableVideoMetadataProduction.set(file.getAbsolutePath(), media.getProduction(), -1);
-						TableVideoMetadataRated.set(file.getAbsolutePath(), media.getRated(), -1);
-						TableVideoMetadataRatings.set(file.getAbsolutePath(), media.getRatings(), -1);
-						TableVideoMetadataReleased.set(file.getAbsolutePath(), media.getReleased(), -1);
+						if (metadataFromAPI.get("actors") != null) {
+							TableVideoMetadataActors.set(file.getAbsolutePath(), new HashSet((ArrayList) metadataFromAPI.get("actors")), -1);
+						}
+						TableVideoMetadataAwards.set(file.getAbsolutePath(), (String) metadataFromAPI.get("awards"), -1);
+						TableVideoMetadataCountries.set(file.getAbsolutePath(), (String) metadataFromAPI.get("country"), -1);
+						if (metadataFromAPI.get("directors") != null) {
+							TableVideoMetadataDirectors.set(file.getAbsolutePath(), new HashSet((ArrayList) metadataFromAPI.get("directors")), -1);
+						}
+						if (metadataFromAPI.get("rating") != null && (Double) metadataFromAPI.get("rating") != 0.0) {
+							TableVideoMetadataIMDbRating.set(file.getAbsolutePath(), Double.toString((Double) metadataFromAPI.get("rating")), -1);
+						}
+						if (metadataFromAPI.get("genres") != null) {
+							TableVideoMetadataGenres.set(file.getAbsolutePath(), new HashSet((ArrayList) metadataFromAPI.get("genres")), -1);
+						}
+						TableVideoMetadataPosters.set(file.getAbsolutePath(), (String) metadataFromAPI.get("poster"), -1);
+						TableVideoMetadataProduction.set(file.getAbsolutePath(), (String) metadataFromAPI.get("production"), -1);
+						TableVideoMetadataRated.set(file.getAbsolutePath(), (String) metadataFromAPI.get("rated"), -1);
+						if (metadataFromAPI.get("ratings") != null) {
+							TableVideoMetadataRatings.set(file.getAbsolutePath(), new HashSet((ArrayList) metadataFromAPI.get("ratings")), -1);
+						}
+						TableVideoMetadataReleased.set(file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
 					}
 				} catch (IOException | SQLException ex) {
 					LOGGER.trace("Error in API parsing:", ex);

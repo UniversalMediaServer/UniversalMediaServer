@@ -595,11 +595,6 @@ public class DLNAMediaDatabase implements Runnable {
 					ResultSet rs = stmt.executeQuery();
 					PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
 					PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
-					PreparedStatement actors = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataActors.TABLE_NAME + " WHERE FILENAME = ?");
-					PreparedStatement awards = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataAwards.TABLE_NAME + " WHERE FILENAME = ?");
-					PreparedStatement directors = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataDirectors.TABLE_NAME + " WHERE FILENAME = ?");
-					PreparedStatement genres = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataGenres.TABLE_NAME + " WHERE FILENAME = ?");
-					PreparedStatement ratings = conn.prepareStatement("SELECT * FROM " + TableVideoMetadataRatings.TABLE_NAME + " WHERE FILENAME = ?");
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
@@ -690,41 +685,6 @@ public class DLNAMediaDatabase implements Runnable {
 								sub.setExternalFileOnly(externalFile);
 								sub.setSubCharacterSet(elements.getString("CHARSET"));
 								media.getSubtitleTracksList().add(sub);
-							}
-						}
-
-						awards.setString(1, name);
-						try (ResultSet elements = awards.executeQuery()) {
-							while (elements.next()) {
-								media.setAwards(elements.getString("AWARD"));
-							}
-						}
-
-						actors.setString(1, name);
-						try (ResultSet elements = actors.executeQuery()) {
-							while (elements.next()) {
-								media.addActor(elements.getString("ACTOR"));
-							}
-						}
-
-						directors.setString(1, name);
-						try (ResultSet elements = directors.executeQuery()) {
-							while (elements.next()) {
-								media.addDirector(elements.getString("DIRECTOR"));
-							}
-						}
-
-						genres.setString(1, name);
-						try (ResultSet elements = genres.executeQuery()) {
-							while (elements.next()) {
-								media.addGenre(elements.getString("GENRE"));
-							}
-						}
-
-						ratings.setString(1, name);
-						try (ResultSet elements = ratings.executeQuery()) {
-							while (elements.next()) {
-	//							media.addRating(elements.getString("RATING"));
 							}
 						}
 					}
