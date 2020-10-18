@@ -279,11 +279,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 				 * Display folders as thumbnails instead of down the left side if:
 				 * - The parent is TV Shows, or
 				 * - This is a filtered metadata folder within TV shows, or
-				 * - This is Recommendations with TV shows
+				 * - This is Recommendations
 				 */
 				if (
 					resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-					resource.getParent().getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations"))
+					resource.getParent().getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) ||
+					(
+						resource.getParent().getParent() != null &&
+						resource.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+					)
 				) {
 					isDisplayFoldersAsThumbnails = true;
 				}
@@ -421,7 +425,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 			// Check whether this resource is expected to contain folders that display as big thumbnails
 			if (
 				folder.getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-				folder.getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations"))
+				folder.getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) ||
+				(
+					folder.getParent() != null &&
+					folder.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+				)
 			) {
 				for (DLNAResource resource : resources) {
 					if (resource instanceof MediaLibraryFolder) {
