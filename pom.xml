@@ -250,7 +250,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>[0.4, 0.5)</version>
+			<version>0.4.13</version>
 		</dependency>
 
 		<!--
@@ -3383,7 +3383,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,14.999.999]</version>
+											<version>[1.8.0-51,15.999.999]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -3492,9 +3492,9 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="net.pms.PMS"
 										>
-											<runtime dir="${runtime}"/>
-											<!-- the following line can be used to force the use of JRE if the jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-14.jre/Contents/Home"/> -->
+											<!-- <runtime dir="${runtime}"/> -->
+											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
+											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
@@ -3513,7 +3513,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-osx-java-8</id>
+								<id>make-jar-with-dependencies-macos</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3582,7 +3582,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,14.999.999]</version>
+											<version>[1.8.0-51,15.999.999]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -3690,9 +3690,9 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="net.pms.PMS"
 										>
-											<runtime dir="${runtime}"/>
-											<!-- the following line can be used to force the use of JRE if the jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-14.jre/Contents/Home"/> -->
+											<!-- <runtime dir="${runtime}"/> -->
+											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
+											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
