@@ -667,59 +667,90 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @return first writable folder in the following order:
 	 * <p>
-	 *     1. (On Linux only) path to {@code /var/log/ums/%USERNAME%/}.
+	 *     1. Path to desktop folder ({@code ~/Desktop/UMS/log} on Linux, {@code %USERPROFILE%/Desktop/UMS/log} on Windows and
+	 *     {@code ~/Desktop/UMS/log} on Mac).
 	 * </p>
 	 * <p>
-	 *     2. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
+	 *     2. (On Linux only) path to {@code /var/log/ums/%USERNAME%/}.
+	 * </p>
+	 * <p>
+	 *     3. Path to profile folder ({@code ~/.config/UMS/} on Linux, {@code %ALLUSERSPROFILE%\UMS} on Windows and
 	 *     {@code ~/Library/Application Support/UMS/} on Mac).
 	 * </p>
 	 * <p>
-	 *     3. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
+	 *     4. Path to user-defined temporary folder specified by {@code temp_directory} parameter in UMS.conf.
 	 * </p>
 	 * <p>
-	 *     4. Path to system temporary folder.
+	 *     5. Path to system temporary folder.
 	 * </p>
 	 * <p>
-	 *     5. Path to current working directory.
+	 *     6. Path to current working directory.
 	 * </p>
 	 */
 	public synchronized String getDefaultLogFileFolder() {
-		if (defaultLogFileDir == null) {
-			if (Platform.isLinux()) {
+		if (defaultLogFileDir != null) {
+			return defaultLogFileDir;
+		} else {
+			// Log to desktop if it is writable.
+			final File desktopLogDirectory = new File(
+					System.getProperty("user.home") +
+							File.separator + "Desktop" +
+							File.separator + "UMS" +
+							File.separator + "log"
+					);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("getDefaultLogFileFolder: Trying \"{}\"", desktopLogDirectory.getAbsolutePath());
+			}
+			if (!desktopLogDirectory.exists()) {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
+					LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", desktopLogDirectory.getAbsolutePath());
 				}
-				final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
-				if (!logDirectory.exists()) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
-					}
-					try {
-						FileUtils.forceMkdir(logDirectory);
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", logDirectory.getAbsolutePath());
-						}
-					} catch (IOException e) {
-						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
-					}
-				}
-				defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
-			}
-
-			if (defaultLogFileDir == null) {
-				// Log to profile directory if it is writable.
-				final File profileDirectory = new File(PROFILE_DIRECTORY);
-				defaultLogFileDir = verifyLogFolder(profileDirectory, "temporary folder");
-			}
-
-			if (defaultLogFileDir == null) {
-				// Try user-defined temporary folder or fall back to system temporary folder.
 				try {
-					defaultLogFileDir = verifyLogFolder(getTempFolder(), "working folder");
+					FileUtils.forceMkdir(desktopLogDirectory);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", desktopLogDirectory.getAbsolutePath());
+					}
 				} catch (IOException e) {
-					LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
-					defaultLogFileDir = "";
+					LOGGER.debug("Could not create \"{}\": {}", desktopLogDirectory.getAbsolutePath(), e.getMessage());
 				}
+			}
+			defaultLogFileDir = verifyLogFolder(desktopLogDirectory, Platform.isLinux() ? "var folder" : "profile folder");
+		}
+
+		if (defaultLogFileDir == null && Platform.isLinux()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
+			}
+			final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
+			if (!logDirectory.exists()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
+				}
+				try {
+					FileUtils.forceMkdir(logDirectory);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", logDirectory.getAbsolutePath());
+					}
+				} catch (IOException e) {
+					LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
+				}
+			}
+			defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
+		}
+
+		if (defaultLogFileDir == null) {
+			// Log to profile directory if it is writable.
+			final File profileDirectory = new File(PROFILE_DIRECTORY);
+			defaultLogFileDir = verifyLogFolder(profileDirectory, "temporary folder");
+		}
+
+		if (defaultLogFileDir == null) {
+			// Try user-defined temporary folder or fall back to system temporary folder.
+			try {
+				defaultLogFileDir = verifyLogFolder(getTempFolder(), "working folder");
+			} catch (IOException e) {
+				LOGGER.error("Could not determine default logfile folder, falling back to working directory: {}", e.getMessage());
+				defaultLogFileDir = "";
 			}
 		}
 
