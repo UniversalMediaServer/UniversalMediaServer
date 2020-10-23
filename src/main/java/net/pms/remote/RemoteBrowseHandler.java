@@ -287,6 +287,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 					(
 						resource.getParent().getParent() != null &&
 						resource.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+					) ||
+					(
+						resource.getParent().getParent() != null &&
+						resource.getParent().getParent().getParent() != null &&
+						resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByInformation"))
 					)
 				) {
 					isDisplayFoldersAsThumbnails = true;
@@ -429,6 +434,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 				(
 					folder.getParent() != null &&
 					folder.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+				) ||
+				(
+					folder.getParent() != null &&
+					folder.getParent().getParent() != null &&
+					folder.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByInformation"))
 				)
 			) {
 				for (DLNAResource resource : resources) {
