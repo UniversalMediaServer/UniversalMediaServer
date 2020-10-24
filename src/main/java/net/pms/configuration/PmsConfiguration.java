@@ -655,15 +655,18 @@ public class PmsConfiguration extends RendererConfiguration {
 					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
 				}
 			}
+
 			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Default logfile folder set to: {}", folder.getAbsolutePath());
 				}
+
 				return folder.getAbsolutePath();
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.trace("getDefaultLogFileFolder: \"{}\" not found, falling back to {} for logging: {}", folder.getAbsolutePath(), fallbackTo, e.getMessage());
 		}
+
 		return null;
 	}
 
@@ -692,11 +695,13 @@ public class PmsConfiguration extends RendererConfiguration {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
 				}
+
 				final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
 				if (!logDirectory.exists()) {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
 					}
+
 					try {
 						FileUtils.forceMkdir(logDirectory);
 						if (LOGGER.isTraceEnabled()) {
@@ -706,6 +711,7 @@ public class PmsConfiguration extends RendererConfiguration {
 						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
 					}
 				}
+
 				defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
 			}
 
@@ -734,6 +740,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (FileUtil.isValidFileName(s)) {
 			return s;
 		}
+
 		return "debug.log";
 	}
 
@@ -752,13 +759,16 @@ public class PmsConfiguration extends RendererConfiguration {
 							File.separator + "Desktop" +
 							File.separator + "UMS-log"
 			);
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("getDefaultLogFileFolder: Trying \"{}\"", zippedLogDir.getAbsolutePath());
 			}
+
 			if (!zippedLogDir.exists()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", zippedLogDir.getAbsolutePath());
 				}
+
 				try {
 					FileUtils.forceMkdir(zippedLogDir);
 					if (LOGGER.isTraceEnabled()) {
@@ -768,6 +778,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					LOGGER.debug("Could not create \"{}\": {}", zippedLogDir.getAbsolutePath(), e.getMessage());
 				}
 			}
+
 			defaultZippedLogFileDir = verifyLogFolder(zippedLogDir, "UMS log file path");
 		}
 
@@ -820,6 +831,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
 			getString(player.getExecutableTypeKey(), null),
 			player.getProgramInfo().getDefault()
@@ -842,9 +854,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		if (executableType == null) {
 			throw new IllegalArgumentException("executableType cannot be null");
 		}
+
 		String key = player.getExecutableTypeKey();
 		if (key != null) {
 			String currentValue = configuration.getString(key);
@@ -852,10 +866,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (newValue.equals(currentValue)) {
 				return false;
 			}
+
 			configuration.setProperty(key, newValue);
 			player.determineCurrentExecutableType(executableType);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -874,6 +890,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (playerId == null) {
 			return null;
 		}
+
 		return getPlayerCustomPath(PlayerFactory.getPlayer(playerId, false, false));
 	}
 
@@ -928,14 +945,17 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		if (isBlank(player.getConfigurablePathKey())) {
 			throw new IllegalStateException(
 				"Can't set custom executable path for player " + player + "because it has no configurable path key"
 			);
 		}
+
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		return ((ConfigurableProgramPaths) programPaths).setCustomProgramPathConfiguration(
 			path,
 			player.getConfigurablePathKey()
@@ -996,9 +1016,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getMPlayerPaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getMPlayerPaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -1012,6 +1034,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomMPlayerPath(customPath);
 	}
 
@@ -1045,9 +1068,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getTsMuxeRNewPaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getTsMuxeRNewPaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -1062,6 +1087,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomTsMuxeRNewPath(customPath);
 	}
 
@@ -1087,9 +1113,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getFLACPaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getFLACPaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -1103,6 +1131,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomFlacPath(customPath);
 	}
 
@@ -1128,9 +1157,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getInterFramePaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getInterFramePaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -1145,6 +1176,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
 	}
 
@@ -1211,6 +1243,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (isAppendProfileName()) {
 			return String.format("%s [%s]", getString(KEY_SERVER_NAME, PMS.NAME), getProfileName());
 		}
+
 		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
 	/**
@@ -1254,6 +1287,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (log && locale == null) {
 				LOGGER.error("Invalid or unsupported language tag \"{}\", defaulting to OS language.", languageCode);
 			}
+
 		} else if (log) {
 			LOGGER.info("Language not specified, defaulting to OS language.");
 		}
@@ -1268,6 +1302,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (locale == null) {
 			locale = Locale.forLanguageTag("en-US"); // Default
 		}
+
 		return locale;
 	}
 
@@ -2016,6 +2051,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if ("0".equals(maximumBitrate)) {
 			maximumBitrate = "1000";
 		}
+
 		return maximumBitrate;
 	}
 
@@ -2055,10 +2091,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value.isEmpty()) {
 			value = "None";
 		}
+
 		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
 			configuration.setProperty(KEY_SELECTED_RENDERERS, value);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -2071,11 +2109,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value == null) {
 			return setSelectedRenderers("");
 		}
+
 		List<String> currentValue = getStringList(KEY_SELECTED_RENDERERS, null);
 		if (currentValue == null || value.size() != currentValue.size() || !value.containsAll(currentValue)) {
 			setStringList(KEY_SELECTED_RENDERERS, value);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -2124,6 +2164,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (nbcores < 1) {
 			nbcores = 1;
 		}
+
 		return getInt(KEY_NUMBER_OF_CPU_CORES, nbcores);
 	}
 
@@ -2199,6 +2240,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				} else {
 					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
 				}
+
 			} catch (IOException e) {
 				if (!FileUtil.isAdmin()) {
 					try {
@@ -2208,6 +2250,7 @@ public class PmsConfiguration extends RendererConfiguration {
 							Messages.getString("Dialog.PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);
+
 					} catch (NullPointerException e2) {
 						// This happens on the initial program load, ignore it
 					}
@@ -2622,6 +2665,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value.trim().length() == 0) {
 			value = "0";
 		}
+
 		configuration.setProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH, value);
 	}
 
@@ -2633,6 +2677,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value.trim().length() == 0) {
 			value = "0";
 		}
+
 		configuration.setProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT, value);
 	}
 
@@ -2643,12 +2688,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (enabledEnginesBuilt) {
 			return;
 		}
+
 		enabledEnginesLock.writeLock().lock();
 		try {
 			// Not a bug, using double checked locking
 			if (enabledEnginesBuilt) {
 				return;
 			}
+
 			String engines = configuration.getString(KEY_ENGINES);
 			enabledEngines = stringToPlayerIdSet(engines);
 			if (isBlank(engines)) {
@@ -2689,6 +2736,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (id == null) {
 			throw new NullPointerException("id cannot be null");
 		}
+
 		buildEnabledEngines();
 		enabledEnginesLock.readLock().lock();
 		try {
@@ -2795,11 +2843,13 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (enginesPriorityBuilt) {
 				return;
 			}
+
 			String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
 			enginesPriority = stringToPlayerIdSet(enginesPriorityString);
 			if (isBlank(enginesPriorityString)) {
 				configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 			}
+
 			enginesPriorityBuilt = true;
 		} finally {
 			enginesPriorityLock.writeLock().unlock();
@@ -2866,6 +2916,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new NullPointerException("player cannot be null");
 		}
+
 		return getEnginePriority(player.id());
 	}
 
@@ -2883,6 +2934,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		setEnginePriorityAbove(player.id(), abovePlayer == null ? null : abovePlayer.id());
 	}
 
@@ -2922,6 +2974,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		} finally {
 			enginesPriorityLock.writeLock().unlock();
 		}
+
 		PlayerFactory.sortPlayers();
 	}
 
@@ -2938,6 +2991,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		setEnginePriorityBelow(player.id(), belowPlayer == null ? null : belowPlayer.id());
 	}
 
@@ -2971,6 +3025,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					newPosition = enginesPriority.size();
 				}
 			}
+
 			enginesPriority.add(newPosition, id);
 			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 		} finally {
@@ -2996,10 +3051,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			output.addAll(StandardPlayerId.ALL);
 			return output;
 		}
+
 		input = input.trim().toLowerCase(Locale.ROOT);
 		if ("none".equals(input)) {
 			return output;
 		}
+
 		for (String s : StringUtils.split(input, LIST_SEPARATOR)) {
 			PlayerId playerId = StandardPlayerId.toPlayerID(s);
 			if (playerId != null) {
@@ -3008,6 +3065,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				LOGGER.warn("Unknown transcoding engine \"{}\"", s);
 			}
 		}
+
 		return output;
 	}
 
@@ -3072,6 +3130,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (isSharedFoldersEmpty()) {
 				setSharedFoldersToDefault();
 			}
+
 			readSharedFolders();
 			return new ArrayList<>(sharedFolders);
 		}
@@ -3086,10 +3145,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (isSharedFoldersEmpty()) {
 				setSharedFoldersToDefault();
 			}
+
 			if (!monitoredFoldersRead) {
 				monitoredFolders = getFolders(KEY_FOLDERS_MONITORED);
 				monitoredFoldersRead = true;
 			}
+
 			return new ArrayList<>(monitoredFolders);
 		}
 	}
@@ -3104,6 +3165,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				ignoredFolders = getFolders(KEY_FOLDERS_IGNORED);
 				ignoredFoldersRead = true;
 			}
+
 			return ignoredFolders;
 		}
 	}
@@ -3120,6 +3182,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
 				return folders;
 			}
+
 			String[] foldersArray = ignoredFolderNamesString.trim().split("\\s*,\\s*");
 			ignoredFolderNames = new ArrayList<>();
 
@@ -3156,6 +3219,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (foldersString == null || foldersString.length() == 0) {
 			return folders;
 		}
+
 		String[] foldersArray = foldersString.trim().split("\\s*,\\s*");
 
 		for (String folder : foldersArray) {
@@ -3237,6 +3301,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					sharedFolders = new ArrayList<>();
 					sharedFoldersRead = true;
 				}
+
 				if (!monitoredFoldersRead || !monitoredFolders.isEmpty()) {
 					configuration.setProperty(KEY_FOLDERS_MONITORED, "");
 					monitoredFolders = new ArrayList<>();
@@ -3258,6 +3323,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				if (folderPath.contains(listSeparator)) {
 					folderPath = folderPath.replace(listSeparator, "&comma;");
 				}
+
 				Path folder = Paths.get(folderPath);
 				tmpSharedfolders.add(folder);
 				if ((boolean) rowVector.get(1)) {
@@ -3274,6 +3340,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				sharedFolders = tmpSharedfolders;
 				sharedFoldersRead = true;
 			}
+
 			if (!monitoredFoldersRead || !monitoredFolders.equals(tmpMonitoredFolders)) {
 				configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(tmpMonitoredFolders, LIST_SEPARATOR));
 				monitoredFolders = tmpMonitoredFolders;
@@ -3322,11 +3389,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (subtitlesInfoLevel != null) {
 			return subtitlesInfoLevel;
 		}
+
 		// Check the old parameter for backwards compatibility
 		Boolean value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
 		if (value != null) {
 			return value.booleanValue() ? SubtitlesInfoLevel.NONE : SubtitlesInfoLevel.FULL;
 		}
+
 		return SubtitlesInfoLevel.BASIC; // Default
 	}
 
@@ -3464,10 +3533,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (kv.length < 2) {
 				continue;
 			}
+
 			if (kv[0].equals(path)) {
 				return Integer.parseInt(kv[1]);
 			}
 		}
+
 		return -1;
 	}
 
@@ -3477,10 +3548,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (StringUtils.isEmpty(raw)) {
 			return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 		}
+
 		if (Platform.isWindows()) {
 			// windows is crap
 			raw = raw.toLowerCase();
 		}
+
 		String[] paths = raw.split(" ");
 
 		while (path != null && (cnt++ < 100)) {
@@ -3488,6 +3561,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (Platform.isWindows()) {
 				key = key.toLowerCase();
 			}
+
 			try {
 				int ret = findPathSort(paths, key);
 				if (ret != -1) {
@@ -3496,8 +3570,10 @@ public class PmsConfiguration extends RendererConfiguration {
 			} catch (NumberFormatException e) {
 				// just ignore
 			}
+
 			path = path.getParentFile();
 		}
+
 		return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 	}
 
@@ -3645,6 +3721,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value == null) {
 			throw new NullPointerException("value cannot be null");
 		}
+
 		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
 		Services.sleepManager().setMode(value);
 	}
@@ -3783,6 +3860,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				LOGGER.trace("", e);
 			}
 		}
+
 		return new SubtitleColor(0xFF, 0xFF, 0xFF);
 	}
 
@@ -4193,6 +4271,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				writer.write("# channels.xxx=name,secret");
 				writer.newLine();
 			}
+
 			// Save the path if we got here
 			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
@@ -4208,6 +4287,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (path != null && !path.trim().isEmpty()) {
 			return new File(path);
 		}
+
 		return new File(getProfileDirectory(), DEFAULT_CREDENTIALS_FILENAME);
 	}
 
@@ -4217,6 +4297,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// this is silly, ignore
 			tmp = 10000;
 		}
+
 		return tmp;
 	}
 
@@ -4226,6 +4307,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			configuration.clearProperty(KEY_ATZ_LIMIT);
 			return;
 		}
+
 		configuration.setProperty(KEY_ATZ_LIMIT, val);
 	}
 
@@ -4353,6 +4435,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (i < 1 || i > 65535) {
 			return 514;
 		}
+
 		return i;
 	}
 
@@ -4478,9 +4561,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (percent > 97) {
 			percent = 97;
 		}
+
 		if (percent < 10) {
 			percent = 10;
 		}
+
 		return (percent / 100.0);
 	}
 
@@ -4548,6 +4633,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (tag == null) {
 			return getBoolean(KEY_NO_FOLDERS, false);
 		}
+
 		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
 		return getBoolean(x, false);
 	}
@@ -4561,6 +4647,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!path.exists()) {
 			path.mkdirs();
 		}
+
 		return path;
 	}
 
@@ -4617,6 +4704,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// get all bitrates from renderers
 			RendererConfiguration.calculateAllSpeeds();
 		}
+
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
 	}
 
@@ -4635,10 +4723,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			key = KEY_WEB_CONT_AUDIO;
 			def = true;
 		}
+	
 		if (f.isImage()) {
 			key = KEY_WEB_CONT_IMAGE;
 			def = false;
 		}
+
 		return getBoolean(key, def);
 	}
 
@@ -4647,9 +4737,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (f.isAudio()) {
 			key = KEY_WEB_LOOP_AUDIO;
 		}
+
 		if (f.isImage()) {
 			key = KEY_WEB_LOOP_IMAGE;
 		}
+
 		return getBoolean(key, false);
 	}
 
@@ -4719,6 +4811,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// ensure we go a legal value
 			cs = CodeEnter.DIGITS;
 		}
+
 		return cs;
 	}
 
@@ -4737,6 +4830,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// ensure that this path exists
 			new File(path).mkdirs();
 		}
+
 		return path;
 	}
 
