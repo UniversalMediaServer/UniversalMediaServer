@@ -591,52 +591,75 @@ public class RemoteUtil {
 			}
 
 			HashMap<String, Object> row = i.next();
-			if (row.get("AWARD") != null) {
+			if (StringUtils.isNotBlank((String) row.get("AWARD"))) {
 				awards = (String) row.get("AWARD");
 			}
-			if (row.get("COUNTRY") != null && "{}".equals(country) && countryFolder != null) {
+			if (StringUtils.isNotBlank((String) row.get("COUNTRY")) && "{}".equals(country) && countryFolder != null) {
 				String countryValue = (String) row.get("COUNTRY");
 				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
 				UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
-				DLNAResource filteredCountryFolder = countriesChildren.get(0);
+				if (countriesChildren.isEmpty()) {
+					country = "{ }";
+				} else {
+					DLNAResource filteredCountryFolder = countriesChildren.get(0);
 
-				String countryId = filteredCountryFolder.getId();
-				String countryIdForWeb = URLEncoder.encode(countryId, "UTF-8");
+					String countryId = filteredCountryFolder.getId();
+					String countryIdForWeb = URLEncoder.encode(countryId, "UTF-8");
 
-				country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryValue) + "\" }";
+					country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryValue) + "\" }";
+				}
 			}
-			if (row.get("DIRECTOR") != null && "{}".equals(director) && directorFolder != null) {
+			if (StringUtils.isNotBlank((String) row.get("DIRECTOR")) && "{}".equals(director) && directorFolder != null) {
 				String directorValue = (String) row.get("DIRECTOR");
 				List<DLNAResource> directorsChildren = directorFolder.getDLNAResources(directorFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), directorValue);
 				UMSUtils.filterResourcesByName(directorsChildren, directorValue, true, true);
-				DLNAResource filteredDirectorFolder = directorsChildren.get(0);
+				if (directorsChildren.isEmpty()) {
+					/**
+					 * This is usually caused by TV episodes that have a director saved
+					 * that is not the director of the TV series. One possible fix for
+					 * that is to populate the TV series data with the episode data in
+					 * that case, which would mean we need to support multiple directors
+					 * as we do for actors and genres.
+					 *
+					 * For now we stop the code from erroring by ignoring the mismatch.
+					 *
+					 * @todo do the above fix, and the same fix for other similar folders.
+					 */
+					director = "{ }";
+				} else {
+					DLNAResource filteredDirectorFolder = directorsChildren.get(0);
 
-				String directorId = filteredDirectorFolder.getId();
-				String directorIdForWeb = URLEncoder.encode(directorId, "UTF-8");
+					String directorId = filteredDirectorFolder.getId();
+					String directorIdForWeb = URLEncoder.encode(directorId, "UTF-8");
 
-				director = "{ id: \"" + directorIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(directorValue) + "\" }";
+					director = "{ id: \"" + directorIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(directorValue) + "\" }";
+				}
 			}
-			if (row.get("IMDBID") != null) {
+			if (StringUtils.isNotBlank((String) row.get("IMDBID"))) {
 				imdbID = (String) row.get("IMDBID");
 			}
-			if (row.get("PLOT") != null) {
+			if (StringUtils.isNotBlank((String) row.get("PLOT"))) {
 				plot = (String) row.get("PLOT");
 			}
-			if (row.get("POSTER") != null) {
+			if (StringUtils.isNotBlank((String) row.get("POSTER"))) {
 				poster = (String) row.get("POSTER");
 			}
-			if (row.get("RATING") != null && "{}".equals(rated) && ratedFolder != null) {
+			if (StringUtils.isNotBlank((String) row.get("RATING")) && "{}".equals(rated) && ratedFolder != null) {
 				String ratedValue = (String) row.get("RATING");
 				List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
 				UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
-				DLNAResource filteredRatedFolder = ratedChildren.get(0);
+				if (ratedChildren.isEmpty()) {
+					rated = "{ }";
+				} else {
+					DLNAResource filteredRatedFolder = ratedChildren.get(0);
 
-				String ratedId = filteredRatedFolder.getId();
-				String ratedIdForWeb = URLEncoder.encode(ratedId, "UTF-8");
+					String ratedId = filteredRatedFolder.getId();
+					String ratedIdForWeb = URLEncoder.encode(ratedId, "UTF-8");
 
-				rated = "{ id: \"" + ratedIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(ratedValue) + "\" }";
+					rated = "{ id: \"" + ratedIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(ratedValue) + "\" }";
+				}
 			}
-			if (row.get("RATINGVALUE") != null && row.get("RATINGSOURCE") != null) {
+			if (StringUtils.isNotBlank((String) row.get("RATINGVALUE")) && StringUtils.isNotBlank((String) row.get("RATINGSOURCE"))) {
 				HashMap<String, String> ratingToInsert = new HashMap();
 				ratingToInsert.put("source", (String) row.get("RATINGSOURCE"));
 				ratingToInsert.put("value", (String) row.get("RATINGVALUE"));
@@ -644,7 +667,7 @@ public class RemoteUtil {
 					ratings.add(ratingToInsert);
 				}
 			}
-			if (row.get("STARTYEAR") != null) {
+			if (StringUtils.isNotBlank((String) row.get("STARTYEAR"))) {
 				startYear = (String) row.get("STARTYEAR");
 			}
 			if (row.get("TOTALSEASONS") != null) {
@@ -652,7 +675,7 @@ public class RemoteUtil {
 			}
 
 			// These are for records that can have multiple results
-			if (row.get("ACTOR") != null && actorsFolder != null) {
+			if (StringUtils.isNotBlank((String) row.get("ACTOR")) && actorsFolder != null) {
 				String actor = (String) row.get("ACTOR");
 				String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(actor) + "\"";
 				if (!actors.contains(namePartOfJSObject)) {
@@ -673,7 +696,7 @@ public class RemoteUtil {
 					}
 				}
 			}
-			if (row.get("GENRE") != null && genresFolder != null) {
+			if (StringUtils.isNotBlank((String) row.get("GENRE")) && genresFolder != null) {
 				String genre = (String) row.get("GENRE");
 				String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(genre) + "\"";
 				if (!genres.contains(namePartOfJSObject)) {
