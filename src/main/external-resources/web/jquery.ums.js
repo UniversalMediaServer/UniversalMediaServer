@@ -452,8 +452,8 @@ function populateMetadataDisplayFromGlobalVars() {
 	if (country && country.id) {
 		$('.country').html('<strong>' + countryTranslation + ':</strong> <a href="/browse/' + country.id + '" class="badge ' + badgeClass + '">' + country.name + '</a>');
 	}
-	if (directors) {
-		$('.directors').html('<strong>' + directorsTranslation + ':</strong> ' + directors);
+	if (director && director.id) {
+		$('.director').html('<strong>' + directorTranslation + ':</strong> <a href="/browse/' + director.id + '" class="badge ' + badgeClass + '">' + director.name + '</a>');
 	}
 	if (imdbID) {
 		$('h1').append(' <a href="https://www.imdb.com/title/' + imdbID + '/"><i class=\"fab fa-imdb\"></i></a>');

@@ -490,7 +490,7 @@ LOGGER.info("2firstSql: " + firstSql);
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Directors"),
+					Messages.getString("VirtualFolder.Director"),
 					directorsSqls.toArray(new String[0]),
 					filteredExpectedOutputsWithPrependedTexts
 				));
@@ -564,7 +564,7 @@ LOGGER.info("2firstSql: " + firstSql);
 									sqls2[i] = sqls2[i].replace("WHERE " + TableVideoMetadataCountries.TABLE_NAME + ".COUNTRY = '${" + i + "}'", "WHERE " + TableVideoMetadataCountries.TABLE_NAME + ".FILENAME IS NULL");
 								}
 								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("VirtualFolder.Directors"))) {
+							} else if (resource.getName().equals(Messages.getString("VirtualFolder.Director"))) {
 								for (int i = 0; i < sqls2.length; i++) {
 									sqls2[i] = sqls2[i].replace("WHERE " + TableVideoMetadataDirectors.TABLE_NAME + ".DIRECTOR = '${" + i + "}'", "WHERE " + TableVideoMetadataDirectors.TABLE_NAME + ".FILENAME IS NULL");
 								}

@@ -529,7 +529,7 @@ public class RemoteUtil {
 		String startYear = "";
 		String awards = "";
 		String country = "{}";
-		String directors = "";
+		String director = "{}";
 		HashSet<String> genres = new HashSet();
 		String imdbID = "";
 		String rated = "{}";
@@ -541,6 +541,7 @@ public class RemoteUtil {
 
 		DLNAResource actorsFolder = null;
 		DLNAResource countryFolder = null;
+		DLNAResource directorFolder = null;
 		DLNAResource genresFolder = null;
 		DLNAResource ratedFolder = null;
 
@@ -577,6 +578,8 @@ public class RemoteUtil {
 						actorsFolder = filterByInformationChild;
 					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Country"))) {
 						countryFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Director"))) {
+						directorFolder = filterByInformationChild;
 					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Genres"))) {
 						genresFolder = filterByInformationChild;
 					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Rated"))) {
@@ -591,7 +594,7 @@ public class RemoteUtil {
 			if (row.get("AWARD") != null) {
 				awards = (String) row.get("AWARD");
 			}
-			if (row.get("COUNTRY") != null && StringUtils.isBlank(country) && countryFolder != null) {
+			if (row.get("COUNTRY") != null && "{}".equals(country) && countryFolder != null) {
 				String countryValue = (String) row.get("COUNTRY");
 				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
 				UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
@@ -602,8 +605,16 @@ public class RemoteUtil {
 
 				country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryValue) + "\" }";
 			}
-			if (row.get("DIRECTOR") != null) {
-				directors = (String) row.get("DIRECTOR");
+			if (row.get("DIRECTOR") != null && "{}".equals(director) && directorFolder != null) {
+				String directorValue = (String) row.get("DIRECTOR");
+				List<DLNAResource> directorsChildren = directorFolder.getDLNAResources(directorFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), directorValue);
+				UMSUtils.filterResourcesByName(directorsChildren, directorValue, true, true);
+				DLNAResource filteredDirectorFolder = directorsChildren.get(0);
+
+				String directorId = filteredDirectorFolder.getId();
+				String directorIdForWeb = URLEncoder.encode(directorId, "UTF-8");
+
+				director = "{ id: \"" + directorIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(directorValue) + "\" }";
 			}
 			if (row.get("IMDBID") != null) {
 				imdbID = (String) row.get("IMDBID");
@@ -694,8 +705,8 @@ public class RemoteUtil {
 		javascriptVarsScript += "var awardsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Awards", t) + "\";";
 		javascriptVarsScript += "var country = " + country + ";";
 		javascriptVarsScript += "var countryTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Country", t) + "\";";
-		javascriptVarsScript += "var directors = \"" + StringEscapeUtils.escapeEcmaScript(directors) + "\";";
-		javascriptVarsScript += "var directorsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Directors", t) + "\";";
+		javascriptVarsScript += "var director = " + director + ";";
+		javascriptVarsScript += "var directorTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Director", t) + "\";";
 		javascriptVarsScript += "var imdbID = \"" + StringEscapeUtils.escapeEcmaScript(imdbID) + "\";";
 		javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
 		javascriptVarsScript += "var plotTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Plot", t) + "\";";
