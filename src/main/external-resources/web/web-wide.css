@@ -45,5 +45,6 @@ div#FoldersContainer div {
 }
 
 #VideoContainer {
+	float: left;
 	width: calc(50% - 25px);
 }

@@ -66,9 +66,9 @@
 						{{^isVideo}}
 						<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
 						{{/isVideo}}
-						<{{mediaType}} id="player" class="video-js vjs-default-skin {{^isVideo}}full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
+						<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-big-play-centered{{^isVideo}} full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
 							   data-setup='{ "html5" : { "nativeTextTracks" : true } }'
-							   poster="/thumb/{{id1}}" data-setup="{}">
+							   poster="/thumb/{{id1}}">
 
 							<source src="/media/{{id1}}" type="{{mime}}">
 						{{#sub}}
@@ -110,7 +110,7 @@
 							{{^isVideo}}
 							<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
 							{{/isVideo}}
-							<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-fill {{^isVideo}}full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
+							<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-fluid vjs-big-play-centered{{^isVideo}} full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
 								   data-setup='{ "html5" : { "nativeTextTracks" : true } }'
 								   poster="/thumb/{{id1}}" data-setup="{}">
 

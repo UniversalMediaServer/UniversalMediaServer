@@ -758,21 +758,7 @@ ul#Media .caption:hover {
 	border: none;
 	outline: none;
 }
-/*
-* VIDEOJS CSS REWRITE, TODO: REVIEW THIS IN ALL BROWSERS
-*/
-.video-js .vjs-big-play-button {
-	margin: 0 auto;
-	font-size: 5em !important;
-	top: 31% !important;
-	left: 0 !important;
-	height: 3em !important;
-	line-height: 3em !important;
-	-webkit-border-radius: 3em !important;
-	-moz-border-radius: 3em !important;
-	border-radius: 3em !important;
-	position: relative !important;
-}
+
 /********OVERLAY********/
 #trigger-overlay{
 	border: 0;

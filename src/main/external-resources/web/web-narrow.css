@@ -33,17 +33,20 @@ ul#Media,
 
 .mediaInfo {
 	margin: 0 20px 0 0;
-	display: flex;
 }
 
-#VideoContainer {
-	float: none;
+.browsePage .mediaInfo {
+	display: flex;
 }
 
 .mediaInfoText {
 	padding: 2px 20px
 }
 
-.videoPage .mediaInfoText {
+.browsePage .mediaInfoText {
 	margin-top: 60px;
+}
+
+.videoPage .mediaInfoText {
+	margin-top: 20px;
 }

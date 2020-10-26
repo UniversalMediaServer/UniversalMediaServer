@@ -75,11 +75,6 @@ body#ContentPage.browsePage {
 	display: block;
 }
 
-#VideoContainer {
-	float: left;
-	height: 480px;
-}
-
 /* Menu */
 
 #Logo {
