@@ -528,7 +528,7 @@ public class RemoteUtil {
 		HashSet<String> actors = new HashSet();
 		String startYear = "";
 		String awards = "";
-		String country = "";
+		String country = "{}";
 		String directors = "";
 		HashSet<String> genres = new HashSet();
 		String imdbID = "";
