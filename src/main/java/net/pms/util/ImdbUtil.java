@@ -32,10 +32,26 @@ public class ImdbUtil {
 	private static final String FILENAME_IMDB_ID = "_imdb([^_]+)_";
 	private static final Pattern NFO_IMDB_ID = Pattern.compile("imdb\\.[^\\/]+\\/title\\/tt(\\d+)", Pattern.CASE_INSENSITIVE);
 
+	/**
+	 * Extracts the OpenSubtitle file hash from the filename if the file has
+	 * "{@code FILENAME_HASH}" in it.
+	 *
+	 * @param file the {@link Path} of the file whose filename to extract from.
+	 * @return The extracted OpenSubtitle file hash or {@code null}.
+	 */
 	public static String extractOSHash(Path file) {
 		return extractFromFileName(file, FILENAME_HASH);
 	}
 
+	/**
+	 * Extracts the IMDb ID from the filename if the file has
+	 * "{@code FILENAME_IMDB_ID}" in it.
+	 *
+	 * @param file the {@link Path} of the file whose IMDb ID to extract from.
+	 * @param scanNfo true to try to extract the IMDb ID from the NFO file when failed
+	 * to extract it file name
+	 * @return The extracted IMDb ID or {@code null}.
+	 */
 	public static String extractImdbId(Path file, boolean scanNfo) {
 		String imdbId = extractFromFileName(file, FILENAME_IMDB_ID);
 		if (isNotBlank(imdbId)) {
@@ -44,6 +60,13 @@ public class ImdbUtil {
 		return scanNfo ? extractImdbIdFromNfo(file) : null;
 	}
 
+	/**
+	 * Extracts the OpenSubtitle file hash or the IMDb ID from the filename.
+	 *
+	 * @param file the {@link Path} of the file whose IMDb ID to extract from.
+	 * @param regex the parameter to find
+	 * @return The extracted OpenSubtitle file hash or the IMDb ID or {@code null}.
+	 */
 	private static String extractFromFileName(Path file, String regex) {
 		if (file == null || file.getFileName() == null || regex == null) {
 			return null;
@@ -58,6 +81,12 @@ public class ImdbUtil {
 		return null;
 	}
 
+	/**
+	 * Extracts the IMDb ID from the associated NFO file if exists.
+	 *
+	 * @param file the {@link Path} of the file whose IMDb ID to extract from.
+	 * @return The extracted IMDb ID or {@code null}.
+	 */
 	private static String extractImdbIdFromNfo(Path file) {
 		if (file == null) {
 			return null;
