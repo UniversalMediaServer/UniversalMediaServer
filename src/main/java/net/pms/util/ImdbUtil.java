@@ -3,7 +3,6 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -18,14 +17,14 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
 import net.pms.io.WinUtils;
 
 /**
- * This is a utility class for IMDB related operations.
+ * This is a utility class for IMDb related operations.
  */
 public class ImdbUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImdbUtil.class);
@@ -33,18 +32,6 @@ public class ImdbUtil {
 	private static final String FILENAME_IMDB_ID = "_imdb([^_]+)_";
 	private static final Pattern NFO_IMDB_ID = Pattern.compile("imdb\\.[^\\/]+\\/title\\/tt(\\d+)", Pattern.CASE_INSENSITIVE);
 
-	/**
-	 * Not to be instantiated.
-	private ImdbUtil() {
-	}
-
-	/**
-	 * Extracts the OpenSubtitle file hash from the filename if the file has "
-	 * {@code _os<hash>_}" in it.
-	 *
-	 * @param file the {@link File} whose filename to extract from.
-	 * @return The extracted OpenSubtitle file hash or {@code null}.
-	 */
 	public static String extractOSHash(Path file) {
 		return extractFromFileName(file, FILENAME_HASH);
 	}
@@ -99,9 +86,9 @@ public class ImdbUtil {
 						if (isBlank(entryName)) {
 							continue;
 						}
-						double score = StringUtils.getJaroWinklerDistance(nfoFileName, entryName);
+						double score = new JaroWinklerSimilarity().apply(nfoFileName, entryName);
 						if (score >= 0.85) {
-							candidates.put(entry, Double.valueOf(score));
+							candidates.put(entry, score);
 						}
 					}
 					if (!candidates.isEmpty()) {
