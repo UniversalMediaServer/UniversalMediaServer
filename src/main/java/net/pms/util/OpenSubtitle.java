@@ -76,6 +76,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,6 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import org.apache.commons.text.similarity.JaroWinklerDistance;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
@@ -1277,7 +1277,7 @@ public class OpenSubtitle {
 			if (isBlank(prettifier.getName()) || isBlank(guess.getTitle())) {
 				continue;
 			}
-			score += new JaroWinklerDistance().apply(
+			score += new JaroWinklerSimilarity().apply(
 				prettifier.getName().toLowerCase(locale),
 				guess.getTitle().toLowerCase(locale)
 			);
@@ -3705,7 +3705,7 @@ public class OpenSubtitle {
 					if (isNotBlank(subFileNameWithoutExtension)) {
 						// 0.6 and below gives a score of 0, 1.0 give a score of 40.
 						tmpScore += 40d * 2.5 * Math.max(
-							new JaroWinklerDistance().apply(
+							new JaroWinklerSimilarity().apply(
 								prettifier.getFileNameWithoutExtension().toLowerCase(locale),
 								subFileNameWithoutExtension.toLowerCase(Locale.ENGLISH)
 							) - 0.6,
@@ -3716,13 +3716,13 @@ public class OpenSubtitle {
 				if (isNotBlank(prettifier.getName()) && (isNotBlank(movieName) || isNotBlank(movieNameEng))) {
 					double nameScore = isBlank(movieName) ?
 						0.0 :
-						new JaroWinklerDistance().apply(
+						new JaroWinklerSimilarity().apply(
 							prettifier.getName().toLowerCase(locale),
 							movieName.toLowerCase(locale)
 						);
 					nameScore = Math.max(nameScore, isBlank(movieNameEng) ?
 						0.0 :
-						new JaroWinklerDistance().apply(
+						new JaroWinklerSimilarity().apply(
 							prettifier.getName().toLowerCase(Locale.ENGLISH),
 							movieNameEng.toLowerCase(Locale.ENGLISH)
 						)
