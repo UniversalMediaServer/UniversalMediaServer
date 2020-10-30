@@ -109,7 +109,7 @@ public class RequestV2 extends HTTPResource {
 	private final static String CRLF = "\r\n";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
-	private final static int BUFFER_SIZE = 8 * 1024;
+	private static final int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -217,11 +217,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
-	 * Rewritten version of the {@link Request} class.
+	 * This class will construct and transmit a proper HTTP response to a given HTTP request.Rewritten version of the {@link Request} class.
 	 * @param method The {@link String} that defines the HTTP method to be used.
-	 * @param uri The {@link HttpMethod} containing instructions for PMS. It contains a command,
-	 *            a unique resource id and a resource name, all separated by slashes.
+	 * @param uri
 	 */
 	public RequestV2(HttpMethod method, String uri) {
 		this.method = method;
@@ -517,7 +515,6 @@ public class RequestV2 extends HTTPResource {
 								!configuration.isDisableSubtitles() &&
 								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia(), dlna)
 							) {
-
 								String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 								if (isNotBlank(subtitleHttpHeader)  && (dlna.getPlayer() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 									// Device allows a custom subtitle HTTP header; construct it
@@ -532,12 +529,12 @@ public class RequestV2 extends HTTPResource {
 										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 										output.headers().set(subtitleHttpHeader, subtitleUrl);
-									} else {
-										LOGGER.trace(
-											"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
-											subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
-											);
-									}
+								} else {
+									LOGGER.trace(
+										"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+										subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
+										);
+								}
 							} else {
 								ArrayList<String> reasons = new ArrayList<>();
 								if (dlna.getMedia() == null) {

@@ -53,7 +53,6 @@ import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.TableTVSeries;
 import net.pms.database.Tables;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAMediaDatabase;
@@ -83,7 +82,6 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.h2.tools.ConvertTraceFile;
@@ -861,7 +859,7 @@ public class PMS {
 	 */
 	@Nonnull
 	public static PMS get() {
-		// XXX when DMS is run as an application, the instance is initialized via the createInstance call in main().
+		// XXX when we run as an application, the instance is initialized via the createInstance call in main().
 		// However, plugin tests may need access to a DMS instance without going
 		// to the trouble of launching the DMS application, so we provide a fallback
 		// initialization here. Either way, createInstance() should only be called once (see below)

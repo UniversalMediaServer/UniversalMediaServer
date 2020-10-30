@@ -408,7 +408,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>3.17.2</version>
+			<version>3.18.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -467,7 +467,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>67.1</version>
+			<version>68.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -536,7 +536,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.3.0</version>
+			<version>5.3.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -1011,7 +1011,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.1.3</version>
+				<version>4.1.4</version>
 			</plugin>
 
 			<!-- Checkstyle report -->
