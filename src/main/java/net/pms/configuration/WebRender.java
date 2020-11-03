@@ -474,7 +474,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case TIFF:
 				return browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
 			case WEBP:
-				return browser == CHROME || browser == CHROMIUM || browser == OPERA;
+				return browser == FIREFOX || browser == CHROME || browser == CHROMIUM || browser == OPERA;
 			default:
 				return false;
 		}

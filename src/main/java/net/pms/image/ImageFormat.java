@@ -136,6 +136,7 @@ public enum ImageFormat {
 			case Tiff:
 				return ImageFormat.TIFF;
 			case Riff:
+			case WebP:
 				return ImageFormat.WEBP;
 			case Unknown:
 			default:

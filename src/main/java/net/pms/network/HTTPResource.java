@@ -107,6 +107,7 @@ public class HTTPResource {
 	public static final String WMV_TYPEMIME = "video/x-ms-wmv";
 	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
+	public static final String WEBP_TYPEMIME = "video/webp";
 	public HTTPResource() { }
 
 	/**

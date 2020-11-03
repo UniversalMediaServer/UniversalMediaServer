@@ -24,7 +24,6 @@ import net.pms.io.ProcessWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
 public class RemoteRawHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRawHandler.class);
 	private RemoteWeb parent;

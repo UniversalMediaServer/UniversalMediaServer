@@ -1333,7 +1333,7 @@ public class ImagesUtil {
 			throw new UnknownFormatException("Unable to read image format", e);
 		}
 
-		if (inputResult.bufferedImage == null || inputResult.imageFormat == null) { // ImageIO doesn't support the image format
+		if (inputResult.bufferedImage == null) { // ImageIO doesn't support the image format
 			throw new UnknownFormatException("Failed to transform image because the source format is unknown");
 		}
 
@@ -1347,6 +1347,10 @@ public class ImagesUtil {
 		if (outputProfile == null && dlnaCompliant) {
 			// Override output format to one valid for DLNA, defaulting to PNG
 			// if the source image has alpha and JPEG if not.
+			if (outputFormat == null) {
+				outputFormat = ImageFormat.PNG;
+			}
+
 			switch (outputFormat) {
 				case GIF:
 					if (dlnaThumbnail) {
@@ -1842,6 +1846,7 @@ public class ImagesUtil {
 					metadata = RafMetadataReader.readMetadata(inputStream);
 					break;
 				case Riff:
+				case WebP:
 					metadata = WebpMetadataReader.readMetadata(inputStream);
 					break;
 				case Tiff:

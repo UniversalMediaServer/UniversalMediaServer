@@ -328,6 +328,11 @@
 			<version>${twelvemonkeys-imageio-version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.sejda.imageio</groupId>
+			<artifactId>webp-imageio</artifactId>
+			<version>0.1.6</version>
+		</dependency>
+		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
 			<version>2.15.0</version>
