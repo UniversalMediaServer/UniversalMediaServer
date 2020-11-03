@@ -212,6 +212,8 @@ public enum ImageFormat {
         		result = ImageFormat.TIFF;
         	} else if (formatName.contains("WBMP")) {
         		result = ImageFormat.WBMP;
+        	} else if (formatName.contains("WEBP")) {
+        		result = ImageFormat.WEBP;
         	}
         }
         return result;

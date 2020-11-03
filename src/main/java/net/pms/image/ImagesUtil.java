@@ -1347,10 +1347,6 @@ public class ImagesUtil {
 		if (outputProfile == null && dlnaCompliant) {
 			// Override output format to one valid for DLNA, defaulting to PNG
 			// if the source image has alpha and JPEG if not.
-			if (outputFormat == null) {
-				outputFormat = ImageFormat.PNG;
-			}
-
 			switch (outputFormat) {
 				case GIF:
 					if (dlnaThumbnail) {
