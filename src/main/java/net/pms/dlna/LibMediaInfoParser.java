@@ -14,7 +14,6 @@ import net.pms.dlna.MediaInfo.StreamType;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
-import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.FileUtil;
@@ -1539,7 +1538,6 @@ public class LibMediaInfoParser {
 			appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Image, idx, "Format_Profile"), true, true);
 			appendStringNextColumn(streamColumns, "Width", MI.Get(StreamType.Image, idx, "Width"), false, true);
 			appendStringNextColumn(streamColumns, "Height", MI.Get(StreamType.Image, idx, "Height"), false, true);
-
 		}
 
 		public void logSubtitleTrack(int idx, boolean videoSubtitle) {

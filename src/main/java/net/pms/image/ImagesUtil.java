@@ -1333,7 +1333,7 @@ public class ImagesUtil {
 			throw new UnknownFormatException("Unable to read image format", e);
 		}
 
-		if (inputResult.bufferedImage == null) { // ImageIO doesn't support the image format
+		if (inputResult.bufferedImage == null || inputResult.imageFormat == null) { // ImageIO doesn't support the image format
 			throw new UnknownFormatException("Failed to transform image because the source format is unknown");
 		}
 
