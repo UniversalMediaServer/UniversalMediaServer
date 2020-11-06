@@ -93,6 +93,9 @@ public enum ImageFormat {
 
 	public static final int TAG_DNG_VERSION = 0xC612;
 
+	/**
+	 * @return The image format for the given imageProfile.
+	 */
 	public static ImageFormat toImageFormat(DLNAImageProfile imageProfile) {
 		if (imageProfile == null) {
 			return null;
@@ -100,6 +103,9 @@ public enum ImageFormat {
 		return imageProfile.getFormat();
 	}
 
+	/**
+	 * @return The image format for the given image file type.
+	 */
 	public static ImageFormat toImageFormat(FileType fileType) {
 		if (fileType == null) {
 			return null;
