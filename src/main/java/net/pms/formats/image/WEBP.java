@@ -19,7 +19,13 @@
  */
 package net.pms.formats.image;
 
-
+/**
+ * A representation of the WebP file format.
+ *
+ * @since 9.8.2
+ * 
+ * @author valib
+ */
 public class WEBP extends ImageBase {
 
 	/**
