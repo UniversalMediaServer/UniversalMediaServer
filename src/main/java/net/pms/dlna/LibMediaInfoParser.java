@@ -344,6 +344,7 @@ public class LibMediaInfoParser {
 					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
 					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
 				}
+
 				if (parseLogger != null) {
 					parseLogger.logImageColumns(0);
 				}

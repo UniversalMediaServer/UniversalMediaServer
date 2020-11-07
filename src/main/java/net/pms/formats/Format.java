@@ -104,6 +104,7 @@ public abstract class Format implements Cloneable {
 		WAV,
 		WBMP,
 		WEB,
+		WEBP,
 		WEBVTT,
 		WMA,
 		WV,
@@ -207,6 +208,9 @@ public abstract class Format implements Cloneable {
 
 	public abstract boolean transcodable();
 
+	/**
+	 * Returns the default MIME for the given media type.
+	 */
 	public String mimeType() {
 		return HTTPResource.getDefaultMimeType(type);
 	}

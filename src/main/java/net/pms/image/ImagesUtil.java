@@ -1842,6 +1842,7 @@ public class ImagesUtil {
 					metadata = RafMetadataReader.readMetadata(inputStream);
 					break;
 				case Riff:
+				case WebP:
 					metadata = WebpMetadataReader.readMetadata(inputStream);
 					break;
 				case Tiff:
