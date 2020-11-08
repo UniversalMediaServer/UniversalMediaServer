@@ -1,4 +1,5 @@
-9.8.2 - 2020-11-??
+9.8.2 - 2020-11-08
+
 	General:
 		Improved filename prettifying for XviD and x265 videos
 		Improved support for WebP images
@@ -21,7 +22,7 @@
 		Romanian (100%)
 		Serbian (Cyrillic) (86%)
 	Dependencies:
-		Bump AdoptOpenJDK from 14.0.2 to 15+36
+		Bump AdoptOpenJDK from 14.0.2 to 15.0.1+9
 		Bump assertj-core from 3.17.1 to 3.18.0
 		Bump commons-io from 2.7 to 2.8.0
 		Bump commons-lang3 from 3.7 to 3.9
