@@ -18,7 +18,6 @@
  */
 package net.pms.dlna;
 
-import com.google.gson.internal.LinkedTreeMap;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
@@ -29,7 +28,6 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.AudioAsVideo;
