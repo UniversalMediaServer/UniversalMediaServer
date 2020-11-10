@@ -1,6 +1,6 @@
 package net.pms.network.message;
 
-import javax.xml.bind.annotation.*;
+import jakarta.xml.bind.annotation.*;
 
 /**
  * Represents payload of `ContentDirectory:1#Browse` request.
