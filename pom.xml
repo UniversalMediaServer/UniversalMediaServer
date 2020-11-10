@@ -554,16 +554,15 @@
 			Those dependencies could be removed as soon as we drop support for Java 8,
 			and add "-add-modules java.xml.bind" as a app command line argument
 		-->
-
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>3.0.0</version>
-		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
 			<version>2.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
@@ -575,7 +574,6 @@
 			<artifactId>jaxb-impl</artifactId>
 			<version>3.0.0-M5</version>
 		</dependency>
-
 		<!-- end of JAXB dependencies -->
 	</dependencies>
 	<build>
