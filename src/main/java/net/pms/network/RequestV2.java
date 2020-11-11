@@ -18,10 +18,10 @@
  */
 package net.pms.network;
 
-import static net.pms.util.StringUtil.convertStringToTime;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,18 +48,36 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.dlna.DLNAImageInputStream;
+import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaOnDemandSubtitle;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.FileTranscodeVirtualFolder;
+import net.pms.dlna.MediaType;
+import net.pms.dlna.Range;
+import net.pms.dlna.RealFile;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.message.BrowseRequest;
+import net.pms.network.message.BrowseSearchRequest;
 import net.pms.network.message.SamsungBookmark;
+import net.pms.network.message.SearchRequest;
+import net.pms.service.Services;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -78,26 +96,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Unmarshaller;
-import jakarta.xml.soap.MessageFactory;
-import jakarta.xml.soap.SOAPMessage;
-import net.pms.dlna.DLNAImageInputStream;
-import net.pms.dlna.DLNAImageProfile;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaOnDemandSubtitle;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.dlna.FileTranscodeVirtualFolder;
-import net.pms.dlna.MediaType;
-import net.pms.dlna.Range;
-import net.pms.dlna.RealFile;
-import net.pms.image.BufferedImageFilterChain;
-import net.pms.network.message.BrowseRequest;
-import net.pms.network.message.BrowseSearchRequest;
-import net.pms.network.message.SearchRequest;
-import net.pms.service.Services;
 
 /**
  * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
@@ -186,7 +184,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	public void setTimeRangeStartString(String str) {
-		setTimeRangeStart(convertStringToTime(str));
+		setTimeRangeStart(StringUtil.convertStringToTime(str));
 	}
 
 	public void setTimeRangeEnd(Double rangeEnd) {
@@ -194,7 +192,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	public void setTimeRangeEndString(String str) {
-		setTimeRangeEnd(convertStringToTime(str));
+		setTimeRangeEnd(StringUtil.convertStringToTime(str));
 	}
 
 	/**
