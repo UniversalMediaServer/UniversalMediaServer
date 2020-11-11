@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>9.8.2-SNAPSHOT</version>
+	<version>9.8.3-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>9.8.2</project.version.short>
+		<project.version.short>9.8.3</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -81,7 +81,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>118</binary-revision>
+		<binary-revision>119</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
