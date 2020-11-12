@@ -116,6 +116,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.7.0</junit5.version>
+		<com.sun.xml.bind-version>3.0.0-M5</com.sun.xml.bind-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -567,12 +568,12 @@
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-core</artifactId>
-			<version>3.0.0-M5</version>
+			<version>${com.sun.xml.bind-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>3.0.0-M5</version>
+			<version>${com.sun.xml.bind-version}</version>
 		</dependency>
 		<!-- end of JAXB dependencies -->
 	</dependencies>
