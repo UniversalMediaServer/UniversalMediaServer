@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>9.8.2-SNAPSHOT</version>
+	<version>9.8.3-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>9.8.2</project.version.short>
+		<project.version.short>9.8.3</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -413,7 +413,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>3.18.0</version>
+			<version>3.18.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -541,7 +541,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.3.4</version>
+			<version>5.3.5</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
