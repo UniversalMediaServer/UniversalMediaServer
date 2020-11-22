@@ -107,7 +107,13 @@ public class HTTPResource {
 	public static final String WMV_TYPEMIME = "video/x-ms-wmv";
 	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
-	public HTTPResource() { }
+	public static final String WEBP_TYPEMIME = "image/webp";
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	public HTTPResource() {
+	}
 
 	/**
 	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers

@@ -175,7 +175,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public static int getBrowser(String userAgent) {
 		String ua = userAgent.toLowerCase();
 		return
-			ua.contains("edge")          ? EDGE :
+			ua.contains("edg")           ? EDGE :
 			ua.contains("chrome")        ? CHROME :
 			(ua.contains("msie") ||
 			ua.contains("trident"))      ? MSIE :
@@ -474,7 +474,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case TIFF:
 				return browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
 			case WEBP:
-				return browser == CHROME || browser == CHROMIUM || browser == OPERA;
+				return browser == EDGE || browser == FIREFOX || browser == CHROME || browser == CHROMIUM || browser == OPERA;
 			default:
 				return false;
 		}

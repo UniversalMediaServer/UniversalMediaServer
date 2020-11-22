@@ -1436,6 +1436,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.WEBA:
 					mimeType = HTTPResource.AUDIO_WEBM_TYPEMIME;
 					break;
+				case FormatConfiguration.WEBP:
+					mimeType = HTTPResource.WEBP_TYPEMIME;
+					break;
 				case FormatConfiguration.WMA:
 				case FormatConfiguration.WMA10:
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
