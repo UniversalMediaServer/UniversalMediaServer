@@ -1088,7 +1088,8 @@ public class MEncoderVideo extends Player {
 				(
 					!isDVD ||
 					configuration.isMencoderRemuxMPEG2()
-				) && params.getAid() != null &&
+				) &&
+				params.getAid() != null &&
 				params.getAid().isDTS() &&
 				!avisynth() &&
 				params.getMediaRenderer().isDTSPlayable() &&
@@ -1098,10 +1099,10 @@ public class MEncoderVideo extends Player {
 				(
 					!isDVD ||
 					configuration.isMencoderRemuxMPEG2()
-				)
+				) &&
 				// Disable LPCM transcoding for MP4 container with non-H.264 video as workaround for MEncoder's A/V sync bug
-				&& !(media.getContainer().equals("mp4") && !media.isH264())
-				&& params.getAid() != null &&
+				!(media.getContainer().equals("mp4") && !media.isH264())  && 
+				params.getAid() != null &&
 				(
 					(params.getAid().isDTS() && params.getAid().getAudioProperties().getNumberOfChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug
 					params.getAid().isLossless() ||
@@ -1119,7 +1120,8 @@ public class MEncoderVideo extends Player {
 							params.getAid().isMpegAudio()
 						)
 					)
-				) && params.getMediaRenderer().isLPCMPlayable() &&
+				) && 
+				params.getMediaRenderer().isLPCMPlayable() &&
 				!combinedCustomOptions.contains("acodec=");
 		}
 
@@ -2427,7 +2429,7 @@ public class MEncoderVideo extends Player {
 					 * Override with tsmuxer.meta setting
 					 */
 					String timeshift = "";
-					if (mencoderAC3RemuxAudioDelayBug) {
+					if (params.getAid() != null && mencoderAC3RemuxAudioDelayBug) {
 						timeshift = "timeshift=" + params.getAid().getAudioProperties().getAudioDelay() + "ms, ";
 					}
 
