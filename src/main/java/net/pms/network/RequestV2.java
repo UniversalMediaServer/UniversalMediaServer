@@ -247,8 +247,8 @@ public class RequestV2 extends HTTPResource {
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
 	 * @param event The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
-	 * @param close Set to true to close the channel after sending the response. By default the
-	 * 			channel is not closed after sending.
+	 * @param isCloseChannelAfterSending whether to close the channel after sending the response. By
+	 *                                   default the channel is not closed after sending.
 	 * @param startStopListenerDelegate The {@link StartStopListenerDelegate} object that is used
 	 * 			to notify plugins that the {@link DLNAResource} is about to start playing.
 	 * @return The {@link ChannelFuture} object via which the response was sent.
@@ -257,7 +257,7 @@ public class RequestV2 extends HTTPResource {
 	public ChannelFuture answer(
 		HttpResponse output,
 		MessageEvent event,
-		final boolean close,
+		final boolean isCloseChannelAfterSending,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
@@ -416,8 +416,7 @@ public class RequestV2 extends HTTPResource {
 						// Send the response headers to the client.
 						ChannelFuture future = event.getChannel().write(output);
 
-						if (close) {
-							// Close the channel after the response is sent.
+						if (isCloseChannelAfterSending) {
 							future.addListener(ChannelFutureListener.CLOSE);
 						}
 
@@ -686,8 +685,7 @@ public class RequestV2 extends HTTPResource {
 			// Send the response to the client.
 			future = event.getChannel().write(output);
 
-			if (close) {
-				// Close the channel after the response is sent.
+			if (isCloseChannelAfterSending) {
 				future.addListener(ChannelFutureListener.CLOSE);
 			}
 		} else if (inputStream != null) {
@@ -725,31 +723,28 @@ public class RequestV2 extends HTTPResource {
 
 				// Add a listener to clean up after sending the entire response body.
 				final InputStream finalInputStream = inputStream;
-				chunkWriteFuture.addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future) {
-						try {
-							finalInputStream.close();
-						} catch (IOException e) {
-							LOGGER.error("Caught exception", e);
-						}
-
-						// Always close the channel after the response is sent because of
-						// a freeze at the end of video when the channel is not closed.
-						future.getChannel().close();
-						startStopListenerDelegate.stop();
+				chunkWriteFuture.addListener((ChannelFuture future1) -> {
+					LOGGER.debug("Closing channel and inputStream");
+					try {
+						finalInputStream.close();
+					} catch (IOException e) {
+						LOGGER.error("Caught exception", e);
 					}
+					// Always close the channel after the response is sent because of
+					// a freeze at the end of video when the channel is not closed.
+					future1.getChannel().close();
+					startStopListenerDelegate.stop();
 				});
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.
+				LOGGER.debug("Closing channel and inputStream for HEAD method");
 				try {
 					inputStream.close();
 				} catch (IOException ioe) {
 					LOGGER.error("Caught exception", ioe);
 				}
 
-				if (close) {
-					// Close the channel after the response is sent
+				if (isCloseChannelAfterSending) {
 					future.addListener(ChannelFutureListener.CLOSE);
 				}
 
@@ -763,8 +758,7 @@ public class RequestV2 extends HTTPResource {
 			// Send the response headers to the client.
 			future = event.getChannel().write(output);
 
-			if (close) {
-				// Close the channel after the response is sent.
+			if (isCloseChannelAfterSending) {
 				future.addListener(ChannelFutureListener.CLOSE);
 			}
 		}

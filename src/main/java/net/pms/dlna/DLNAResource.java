@@ -2906,79 +2906,75 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Plugin implementation. When this item is going to stop playing, it will notify all the StartStopListener
-	 * objects available.
+	 * Plugin implementation. When this item is going to stop playing, it
+	 * will notify all the StartStopListener objects available.
 	 *
+	 * @param rendererId
+	 * @param incomingRenderer
 	 * @see StartStopListener
 	 */
 	public void stopPlaying(final String rendererId, final RendererConfiguration incomingRenderer) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		Runnable defer = new Runnable() {
-			@Override
-			public void run() {
-				long start = startTime;
-				try {
-					Thread.sleep(STOP_PLAYING_DELAY);
-				} catch (InterruptedException e) {
-					LOGGER.error("stopPlaying sleep interrupted", e);
+		Runnable defer = () -> {
+			long start = startTime;
+			try {
+				Thread.sleep(STOP_PLAYING_DELAY);
+			} catch (InterruptedException e) {
+				LOGGER.error("stopPlaying sleep interrupted", e);
+			}
+
+			synchronized (requestIdToRefcount) {
+				final Integer refCount = requestIdToRefcount.get(requestId);
+				assert refCount != null;
+				assert refCount > 0;
+				requestIdToRefcount.put(requestId, refCount - 1);
+				if (start != startTime) {
+					return;
 				}
 
-				synchronized (requestIdToRefcount) {
-					final Integer refCount = requestIdToRefcount.get(requestId);
-					assert refCount != null;
-					assert refCount > 0;
-					requestIdToRefcount.put(requestId, refCount - 1);
-					if (start != startTime) {
-						return;
-					}
-
-					Runnable r = new Runnable() {
-						@Override
-						public void run() {
-							if (refCount == 1) {
-								requestIdToRefcount.put(requestId, 0);
-								InetAddress rendererIp;
-								try {
-									rendererIp = InetAddress.getByName(rendererId);
-									RendererConfiguration renderer;
-									if (incomingRenderer == null) {
-										renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-									} else {
-										renderer = incomingRenderer;
-									}
-
-									String rendererName = "unknown renderer";
-									try {
-										// Reset only if another item hasn't already begun playing
-										if (renderer.getPlayingRes() == self) {
-											renderer.setPlayingRes(null);
-										}
-										rendererName = renderer.getRendererName();
-									} catch (NullPointerException e) { }
-
-									if (!quietPlay()) {
-										LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
-										LOGGER.debug(
-											"The full filename of which is \"{}\" and the address of the renderer is {}",
-											getSystemName(),
-											rendererId
-										);
-									}
-								} catch (UnknownHostException ex) {
-									LOGGER.debug("" + ex);
-								}
-
-								internalStop();
+				Runnable r = () -> {
+					if (refCount == 1) {
+						requestIdToRefcount.put(requestId, 0);
+						InetAddress rendererIp;
+						try {
+							rendererIp = InetAddress.getByName(rendererId);
+							RendererConfiguration renderer;
+							if (incomingRenderer == null) {
+								renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							} else {
+								renderer = incomingRenderer;
 							}
-						}
-					};
 
-					new Thread(r, "StopPlaying Event").start();
-				}
-				if (media_subtitle instanceof DLNAMediaOpenSubtitle) {
-					((DLNAMediaOpenSubtitle) media_subtitle).deleteLiveSubtitlesFile();
-				}
+							String rendererName = "unknown renderer";
+							try {
+								// Reset only if another item hasn't already begun playing
+								if (renderer.getPlayingRes() == self) {
+									renderer.setPlayingRes(null);
+								}
+								rendererName = renderer.getRendererName();
+							} catch (NullPointerException e) { }
+
+							if (!quietPlay()) {
+								LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
+								LOGGER.debug(
+									"The full filename of which is \"{}\" and the address of the renderer is {}",
+									getSystemName(),
+									rendererId
+								);
+							}
+						} catch (UnknownHostException ex) {
+							LOGGER.debug("" + ex);
+						}
+
+						internalStop();
+					}
+				};
+
+				new Thread(r, "StopPlaying Event").start();
+			}
+			if (media_subtitle instanceof DLNAMediaOpenSubtitle) {
+				((DLNAMediaOpenSubtitle) media_subtitle).deleteLiveSubtitlesFile();
 			}
 		};
 
