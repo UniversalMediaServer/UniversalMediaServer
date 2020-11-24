@@ -732,12 +732,12 @@ public class RequestV2 extends HTTPResource {
 					try {
 						finalInputStream.close();
 					} catch (IOException e) {
-						LOGGER.error("Caught exception", e);
+						LOGGER.error("Caught exception while closing finalInputStream", e);
 					}
 					// Always close the channel after the response is sent because of
 					// a freeze at the end of video when the channel is not closed.
 					future1.getChannel().close();
-//					startStopListenerDelegate.stop();
+					startStopListenerDelegate.stop();
 				});
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.
@@ -745,7 +745,7 @@ public class RequestV2 extends HTTPResource {
 				try {
 					inputStream.close();
 				} catch (IOException ioe) {
-					LOGGER.error("Caught exception", ioe);
+					LOGGER.error("Caught exception while closing inputStream", ioe);
 				}
 
 				if (isCloseChannelAfterSending) {
