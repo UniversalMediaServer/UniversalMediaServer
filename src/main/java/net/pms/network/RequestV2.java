@@ -725,6 +725,10 @@ public class RequestV2 extends HTTPResource {
 				final InputStream finalInputStream = inputStream;
 				chunkWriteFuture.addListener((ChannelFuture future1) -> {
 					LOGGER.debug("Closing channel and inputStream");
+					LOGGER.debug("method is " + method);
+					LOGGER.debug("HEAD is " + HEAD);
+					LOGGER.debug("DLNAMediaInfo.ENDFILE_POS is " + DLNAMediaInfo.ENDFILE_POS);
+					LOGGER.debug("lowRange is " + lowRange);
 					try {
 						finalInputStream.close();
 					} catch (IOException e) {
@@ -733,7 +737,7 @@ public class RequestV2 extends HTTPResource {
 					// Always close the channel after the response is sent because of
 					// a freeze at the end of video when the channel is not closed.
 					future1.getChannel().close();
-					startStopListenerDelegate.stop();
+//					startStopListenerDelegate.stop();
 				});
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.
