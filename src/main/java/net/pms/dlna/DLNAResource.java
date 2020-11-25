@@ -2889,7 +2889,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								renderer.setPlayingRes(self);
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
-							if (!quietPlay()) {
+							if (isLogPlayEvents()) {
 								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 							}
@@ -2958,7 +2958,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										rendererName = renderer.getRendererName();
 									} catch (NullPointerException e) { }
 
-									if (!quietPlay()) {
+									if (isLogPlayEvents()) {
 										LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
 										LOGGER.debug(
 											"The full filename of which is \"{}\" and the address of the renderer is {}",
@@ -4900,8 +4900,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	public boolean quietPlay() {
-		return false;
+	/**
+	 * @return whether the play events (like "Started playing" and "Stopped
+	 * playing" will be logged.
+	 */
+	public boolean isLogPlayEvents() {
+		return true;
 	}
 
 	public long getStartTime() {
