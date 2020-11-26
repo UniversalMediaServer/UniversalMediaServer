@@ -198,9 +198,7 @@ public class FormatConfiguration {
 		private String mimeType;
 		private String videoCodec;
 		private String supportLine;
-		// List of embedded subs supported by renderer defined in the Supported line in the renderer.conf
 		private String supportedEmbeddedSubtitlesFormats;
-		// List of external subs supported by renderer defined in the Supported line in the renderer.conf
 		private String supportedExternalSubtitlesFormats;
 
 		SupportSpec() {
