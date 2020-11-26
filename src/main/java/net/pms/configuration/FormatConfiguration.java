@@ -198,10 +198,10 @@ public class FormatConfiguration {
 		private String mimeType;
 		private String videoCodec;
 		private String supportLine;
-		/** List of embedded subs supported by renderer defined in the Supported line in the renderer.conf */
-		private String embeddedSubs;
-		/** List of external subs supported by renderer defined in the Supported line in the renderer.conf */
-		private String externalSubs;
+		// List of embedded subs supported by renderer defined in the Supported line in the renderer.conf
+		private String supportedEmbeddedSubtitlesFormats;
+		// List of external subs supported by renderer defined in the Supported line in the renderer.conf
+		private String supportedExternalSubtitlesFormats;
 
 		SupportSpec() {
 			this.mimeType = MIMETYPE_AUTO;
@@ -464,12 +464,12 @@ public class FormatConfiguration {
 
 			if (subsFormat != null) {
 				if (isExternalSubs) {
-					if (externalSubs != null && !subsFormat.matches(externalSubs)) { 
+					if (supportedExternalSubtitlesFormats == null || !subsFormat.matches(supportedExternalSubtitlesFormats)) {
 						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
 				} else {
-					if (embeddedSubs != null && !subsFormat.matches(embeddedSubs)) {
+					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
@@ -797,9 +797,9 @@ public class FormatConfiguration {
 			} else if (token.startsWith("b:")) {
 				supportSpec.maxBitrate = token.substring(2).trim();
 			} else if (token.startsWith("si:")) {
-				supportSpec.embeddedSubs = token.substring(3).trim();
+				supportSpec.supportedEmbeddedSubtitlesFormats = token.substring(3).trim();
 			} else if (token.startsWith("se:")) {
-				supportSpec.externalSubs = token.substring(3).trim();
+				supportSpec.supportedExternalSubtitlesFormats = token.substring(3).trim();
 			} else if (token.startsWith("fps:")) {
 				supportSpec.maxFramerate = token.substring(4).trim();
 			} else if (token.contains(":")) {
