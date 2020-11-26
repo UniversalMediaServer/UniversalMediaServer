@@ -76,11 +76,11 @@ jobs:
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
           sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/20.08/libmediainfo0v5_20.08-1_amd64.xUbuntu_18.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/20.09/libmediainfo0v5_20.09-1_amd64.xUbuntu_18.04.deb
           sudo dpkg -i libmediainfo0v5_20.08-1_amd64.xUbuntu_18.04.deb
           mvn verify -B -V -P testing
 
-  linux-trusty:
+  linux-xenial:
     runs-on: ubuntu-16.04
     strategy:
       matrix:
@@ -102,11 +102,11 @@ jobs:
       - name: Install dependencies from Maven
         run: mvn external:install
 
-      - name: Run tests ( Ubuntu Trusty, Java ${{ matrix.java }} )
+      - name: Run tests ( Ubuntu Xenial, Java ${{ matrix.java }} )
         run: |
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
           sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/20.08/libmediainfo0v5_20.08-1_amd64.xUbuntu_16.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/20.09/libmediainfo0v5_20.09-1_amd64.xUbuntu_16.04.deb
           sudo dpkg -i libmediainfo0v5_20.08-1_amd64.xUbuntu_16.04.deb
           mvn verify -B -V -P testing
