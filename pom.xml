@@ -81,7 +81,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>119</binary-revision>
+		<binary-revision>120</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -116,7 +116,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.7.0</junit5.version>
-		<com.sun.xml.bind-version>3.0.0-M5</com.sun.xml.bind-version>
+		<com.sun.xml.bind-version>3.0.0</com.sun.xml.bind-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
