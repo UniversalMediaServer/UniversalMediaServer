@@ -5207,7 +5207,6 @@ public class OpenSubtitle {
 					title = titleFromFilename;
 				}
 				String titleSimplified = FileUtil.getSimplifiedShowName(title);
-				LOGGER.info("Title: " + title);
 
 				media.setMovieOrShowName(title);
 				media.setSimplifiedMovieOrShowName(titleSimplified);
