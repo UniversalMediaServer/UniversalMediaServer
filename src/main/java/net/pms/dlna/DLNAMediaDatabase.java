@@ -1151,18 +1151,18 @@ public class DLNAMediaDatabase implements Runnable {
 	 * Updates an existing row with information either extracted from the filename
 	 * or from our API.
 	 *
-	 * @param name the full path of the media.
+	 * @param path the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param media the {@link DLNAMediaInfo} row to update.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public void insertVideoMetadata(String name, long modified, DLNAMediaInfo media) throws SQLException {
-		if (StringUtils.isBlank(name)) {
-			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", name);
+	public void insertVideoMetadata(String path, long modified, DLNAMediaInfo media) throws SQLException {
+		if (StringUtils.isBlank(path)) {
+			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;
 		}
 		if (media == null) {
-			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because there is no media information", name);
+			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because there is no media information", path);
 			return;
 		}
 
@@ -1178,7 +1178,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)) {
-				ps.setString(1, name);
+				ps.setString(1, path);
 				ps.setTimestamp(2, new Timestamp(modified));
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
@@ -1193,7 +1193,7 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
 						rs.updateRow();
 					} else {
-						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", name);
+						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
 						return;
 					}
 				}

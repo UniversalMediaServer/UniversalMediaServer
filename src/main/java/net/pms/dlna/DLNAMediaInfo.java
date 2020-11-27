@@ -1746,6 +1746,22 @@ public class DLNAMediaInfo implements Cloneable {
 			if (subtitleTracks != null && !subtitleTracks.isEmpty()) {
 				appendSubtitleTracks(result);
 			}
+			if (isNotBlank(getIMDbID())) {
+				result.append(", IMDb ID: ").append(getIMDbID());
+			}
+			if (isNotBlank(getYear())) {
+				result.append(", Year: ").append(getYear());
+			}
+			if (isNotBlank(getMovieOrShowName())) {
+				result.append(", Movie/TV series name: ").append(getMovieOrShowName());
+			}
+			if (isTVEpisode()) {
+				result.append(", TV season: ").append(getTVSeason());
+				result.append(", TV episode number: ").append(getTVEpisodeNumber());
+				if (isNotBlank(getVideoTrackTitleFromMetadata())) {
+					result.append(", TV episode name: ").append(getTVEpisodeName());
+				}
+			}
 		} else if (getAudioTrackCount() > 0) {
 			result.append(", Bitrate: ").append(getBitrate());
 			result.append(", Duration: ").append(getDurationString());
