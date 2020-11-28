@@ -169,26 +169,6 @@ public class DLNAMediaInfo implements Cloneable {
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
 
-	private boolean externalSubsExist = false;
-
-	public void setExternalSubsExist(boolean exist) {
-		this.externalSubsExist = exist;
-	}
-
-	public boolean isExternalSubsExist() {
-		return externalSubsExist;
-	}
-
-	private boolean externalSubsParsed = false;
-
-	public void setExternalSubsParsed(boolean parsed) {
-		this.externalSubsParsed = parsed;
-	}
-
-	public boolean isExternalSubsParsed() {
-		return externalSubsParsed;
-	}
-
 	private String muxingMode;
 	private String muxingModeAudio;
 	private String container;
@@ -504,20 +484,17 @@ public class DLNAMediaInfo implements Cloneable {
 		synchronized (parsingLock) {
 			parsing = true;
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-					synchronized (ffmpeg_failureLock) {
-						ffmpeg_failure = true;
-					}
-				} catch (InterruptedException e) { }
-
-				pw.stopProcess();
-				synchronized (parsingLock) {
-					parsing = false;
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+				synchronized (ffmpeg_failureLock) {
+					ffmpeg_failure = true;
 				}
+			} catch (InterruptedException e) { }
+			
+			pw.stopProcess();
+			synchronized (parsingLock) {
+				parsing = false;
 			}
 		};
 
@@ -573,17 +550,14 @@ public class DLNAMediaInfo implements Cloneable {
 		synchronized (parsingLock) {
 			parsing = true;
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) { }
-
-				pw.stopProcess();
-				synchronized (parsingLock) {
-					parsing = false;
-				}
+		Runnable r = () -> {
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) { }
+			
+			pw.stopProcess();
+			synchronized (parsingLock) {
+				parsing = false;
 			}
 		};
 
