@@ -4014,6 +4014,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 */
 		DLNAMediaSubtitle matchedSub = null;
 		boolean useExternal = deviceSpecificConfiguration.isAutoloadExternalSubtitles();
+		boolean forceExternal = deviceSpecificConfiguration.isForceExternalSubtitles();
 		String audioSubLanguages = deviceSpecificConfiguration.getAudioSubLanguages();
 		if (isBlank(audioLanguage) || isBlank(audioSubLanguages)) {
 			// Not enough information to do a full audio/subtitles combination search, only use the preferred subtitles
@@ -4024,7 +4025,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
 			for (DLNAMediaSubtitle subtitles : media.getSubtitleTracksList()) {
 				if (subtitles.isExternal()) {
-					if (useExternal) {
+					if (forceExternal) {
+						LOGGER.trace("Forcing external subtitles: {}", subtitles);
+						return subtitles;
+					} else if (useExternal) {
 						candidates.add(subtitles);
 					}
 				} else {
@@ -4063,7 +4067,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if ("*".equals(audio) || DLNAMediaLang.UND.equals(audio) || Iso639.isCodesMatching(audio, audioLanguage)) {
 						boolean anyLanguage = "*".equals(sub) || DLNAMediaLang.UND.equals(sub);
 						if ("off".equals(sub)) {
-							if (deviceSpecificConfiguration.isForceExternalSubtitles()) {
+							if (forceExternal) {
 								// Ignore the "off" language for external subtitles if force external subtitles is enabled
 								ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
 								for (DLNAMediaSubtitle subtitles : media.getSubtitleTracksList()) {
@@ -4106,6 +4110,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										candidates.add(subtitles);
 										LOGGER.trace("Adding internal subtitles candidate: {}", subtitles);
 									} else if (useExternal) {
+										if (forceExternal) {
+											LOGGER.trace("Forcing external subtitles: {}", subtitles);
+											return subtitles;
+										}
 										candidates.add(subtitles);
 										LOGGER.trace("Adding external subtitles candidate: {}", subtitles);
 									} else {

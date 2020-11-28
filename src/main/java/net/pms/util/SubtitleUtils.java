@@ -1112,7 +1112,7 @@ public class SubtitleUtils {
 	 *            candidates of which to find the one with the highest priority.
 	 * @param renderer the {@link RendererConfiguration} to use to get the
 	 *            configures subtitles language priorities.
-	 * @param returnNotPriorized if {@code true} a {@link DLNAMediaSubtitle}
+	 * @param returnNotPrioritized if {@code true} a {@link DLNAMediaSubtitle}
 	 *            will be returned even if no match to the configured subtitles
 	 *            languages priorities is found.
 	 * @return The candidate with the highest priority or {@code null}.
@@ -1120,7 +1120,7 @@ public class SubtitleUtils {
 	public static DLNAMediaSubtitle findPrioritizedSubtitles(
 		Collection<DLNAMediaSubtitle> candidates,
 		RendererConfiguration renderer,
-		boolean returnNotPriorized
+		boolean returnNotPrioritized
 	) {
 		if (candidates == null || candidates.isEmpty()) {
 			return null;
@@ -1134,35 +1134,31 @@ public class SubtitleUtils {
 		}
 
 		LOGGER.trace("Looking for subtitles with the highest priority from {}", StringUtils.join(languagePriorities, ", "));
-		ArrayList<DLNAMediaSubtitle> candidatesList = new ArrayList<DLNAMediaSubtitle>(candidates);
-		Collections.sort(candidatesList, new Comparator<DLNAMediaSubtitle>() {
-
-			@Override
-			public int compare(DLNAMediaSubtitle o1, DLNAMediaSubtitle o2) {
-				if (isBlank(o1.getLang()) || isBlank(o2.getLang())) {
-					if (isNotBlank(o1.getLang()) || isNotBlank(o2.getLang())) {
-						return isBlank(o1.getLang()) ? 1 : -1;
-					}
-				} else if (!Iso639.isCodesMatching(o1.getLang(), o2.getLang())) {
-					int o1Priority = getPriorityIndex(languagePriorities, o1.getLang());
-					int o2Priority = getPriorityIndex(languagePriorities, o2.getLang());
-					if (o1Priority != o2Priority) {
-						return o1Priority - o2Priority;
-					}
+		ArrayList<DLNAMediaSubtitle> candidatesList = new ArrayList<>(candidates);
+		Collections.sort(candidatesList, (DLNAMediaSubtitle o1, DLNAMediaSubtitle o2) -> {
+			if (isBlank(o1.getLang()) || isBlank(o2.getLang())) {
+				if (isNotBlank(o1.getLang()) || isNotBlank(o2.getLang())) {
+					return isBlank(o1.getLang()) ? 1 : -1;
 				}
-				if (o1.isExternal() == o2.isExternal()) {
-					return 0;
+			} else if (!Iso639.isCodesMatching(o1.getLang(), o2.getLang())) {
+				int o1Priority = getPriorityIndex(languagePriorities, o1.getLang());
+				int o2Priority = getPriorityIndex(languagePriorities, o2.getLang());
+				if (o1Priority != o2Priority) {
+					return o1Priority - o2Priority;
 				}
-				return o1.isExternal() ? -1 : 1;
 			}
+			if (o1.isExternal() == o2.isExternal()) {
+				return 0;
+			}
+			return o1.isExternal() ? -1 : 1;
 		});
 		DLNAMediaSubtitle result = candidatesList.get(0);
 		int priority = getPriorityIndex(languagePriorities, result.getLang());
 		if (priority == languagePriorities.size()) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("No prioritized subtitles language found, returning: {}", returnNotPriorized ? result : "null");
+				LOGGER.trace("No prioritized subtitles language found, returning: {}", returnNotPrioritized ? result : "null");
 			}
-			return returnNotPriorized ? result : null;
+			return returnNotPrioritized ? result : null;
 		}
 		LOGGER.trace("Returning subtitles with priority {}: {}", result);
 		return result;
