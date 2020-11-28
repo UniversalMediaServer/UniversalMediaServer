@@ -2099,7 +2099,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="1">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
-		// Use device-specific DMS conf, if any
+		// Use device-specific configuration, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
@@ -4171,7 +4171,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (!candidates.isEmpty()) {
 				matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, true);
 				LOGGER.trace(
-					"Using external subtitles track that did not match language preferences for \"{}\": {}",
+					"Forcing external subtitles track that did not match language preferences for \"{}\": {}",
 					getName(),
 					matchedSub
 				);
