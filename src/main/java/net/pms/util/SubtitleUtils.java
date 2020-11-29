@@ -925,6 +925,7 @@ public class SubtitleUtils {
 		}
 
 		if (folders.isEmpty()) {
+			LOGGER.trace("There are no folders to search for subtitles for {}", file.getName());
 			return;
 		}
 
@@ -933,15 +934,18 @@ public class SubtitleUtils {
 		boolean cleaned = false;
 		List<File> folderSubtitles = new ArrayList<>();
 		for (File folder : folders) {
+			LOGGER.trace("Searching in {}", folder.getName());
 			CacheFolder cacheFolder = null;
 			synchronized (folderCache) {
 				// Clean cache for expired entries and fetch or insert the entry for the folder under examination
 				if (cleaned) {
+					LOGGER.trace("Cleaned true for {}", folder.getName());
 					if (forceRefresh) {
 						folderCache.remove(folder);
 					}
 					cacheFolder = folderCache.get(folder);
 				} else {
+					LOGGER.trace("Cleaned false for {}", folder.getName());
 					long earliestBirth = System.currentTimeMillis() - FOLDER_CACHE_EXPIRATION_TIME;
 					for (Iterator<Entry<File, CacheFolder>> iterator = folderCache.entrySet().iterator(); iterator.hasNext();) {
 						Entry<File, CacheFolder> entry = iterator.next();
@@ -958,6 +962,7 @@ public class SubtitleUtils {
 					cleaned = true;
 				}
 				if (cacheFolder == null) {
+					LOGGER.trace("Cachefolder was null for {}", folder.getName());
 					cacheFolder = new CacheFolder();
 					folderCache.put(folder, cacheFolder);
 				}
@@ -966,46 +971,70 @@ public class SubtitleUtils {
 			// Populate the CacheFolder if it isn't already and get the files
 			synchronized (cacheFolder) {
 				if (!cacheFolder.isPopulated()) {
+					LOGGER.trace("Cachefolder not populated {}", folder.getName());
 					List<File> folderSubtitlesList = new ArrayList<>();
 					String[] folderContent = folder.list();
 					if (folderContent != null && folderContent.length > 0) {
+						LOGGER.trace("folderContent has stuff for {}", folder.getName());
 						for (String fileNameEntry : folderContent) {
+							LOGGER.trace("Searching fileNameEntry for {}", fileNameEntry);
 							File fileEntry = subFolder.equals(folder) ? isSubtitlesFolder(folder, fileNameEntry) : null;
 							if (fileEntry != null) {
+								LOGGER.trace("fileEntry for {}", fileEntry);
 								// Subtitles subfolder
 								String[] subsFolderContent = fileEntry.list();
 								if (subsFolderContent != null && subsFolderContent.length > 0) {
+									LOGGER.trace("subsFileNameEntry for {}", Arrays.toString(subsFolderContent));
 									for (String subsFileNameEntry : subsFolderContent) {
+										LOGGER.trace("Searching subsFileNameEntry for {}", subsFileNameEntry);
 										File subsFileEntry = new File(fileEntry, subsFileNameEntry);
+										LOGGER.trace("subsFileEntry is {}", subsFileEntry);
 										if (
 											isSubtitlesFile(subsFileEntry, supportedFileExtensions) &&
 											subsFileEntry.isFile() &&
 											!subsFileEntry.isHidden()
 										) {
+											LOGGER.trace("adding subsFileEntry {}", subsFileEntry);
 											folderSubtitlesList.add(subsFileEntry);
+										} else {
+											LOGGER.trace("NOT adding subsFileEntry {}", subsFileEntry);
+											LOGGER.trace("isSubtitlesFile {}", isSubtitlesFile(subsFileEntry, supportedFileExtensions));
+											LOGGER.trace("subsFileEntry.isFile() {}", subsFileEntry.isFile());
+											LOGGER.trace("!subsFileEntry.isHidden() {}", !subsFileEntry.isHidden());
 										}
 									}
 								}
 								continue;
 							}
 							fileEntry = new File(folder, fileNameEntry);
+							LOGGER.trace("fileEntry is {}", fileEntry);
 							if (
 								isSubtitlesFile(fileEntry, supportedFileExtensions) &&
 								fileEntry.isFile() &&
 								!fileEntry.isHidden()
 							) {
+								LOGGER.trace("adding fileEntry {}", fileEntry);
 								folderSubtitlesList.add(fileEntry);
+							} else {
+								LOGGER.trace("NOT adding subsFileEntry {}", fileEntry);
+								LOGGER.trace("isSubtitlesFile {}", isSubtitlesFile(fileEntry, supportedFileExtensions));
+								LOGGER.trace("subsFileEntry.isFile() {}", fileEntry.isFile());
+								LOGGER.trace("!subsFileEntry.isHidden() {}", !fileEntry.isHidden());
 							}
 						}
 					}
 					cacheFolder.setItems(folderSubtitlesList);
 					folderSubtitles.addAll(folderSubtitlesList);
+					LOGGER.trace("cacheFolder is {}", cacheFolder);
+					LOGGER.trace("folderSubtitles is {}", folderSubtitles);
 				} else {
+					LOGGER.trace("Cachefolder already populated {}", folder.getName());
 					folderSubtitles.addAll(Arrays.asList(cacheFolder.getItems()));
 				}
 			}
 		}
 
+		LOGGER.trace("Finding already parsed subtitles for {}", file.getName());
 		// Find already parsed subtitles
 		HashSet<File> existingSubtitles = new HashSet<>();
 		for (DLNAMediaSubtitle subtitle : media.getSubtitleTracksList()) {
@@ -1014,27 +1043,35 @@ public class SubtitleUtils {
 			}
 		}
 
+		LOGGER.trace("Parsing subtitles that are not in the existing list for {}", file.getName());
 		// Parse subtitles that are not in the existing list
 		String baseFileName = FileUtil.getFileNameWithoutExtension(file.getName()).toLowerCase(Locale.ROOT);
 		for (File subtitlesFile : folderSubtitles) {
+			LOGGER.trace("Looping through folderSubtitles, on {}", subtitlesFile);
 			if (existingSubtitles.contains(subtitlesFile)) {
+				LOGGER.trace("Already contains {}", subtitlesFile);
 				continue;
 			}
 
 			String subtitlesName = subtitlesFile.getName();
 			String subtitlesNameLower = subtitlesName.toLowerCase(Locale.ROOT);
 			if (subtitlesNameLower.startsWith(baseFileName)) {
+				LOGGER.trace("subtitlesNameLower.startsWith(baseFileName) {}", subtitlesNameLower.startsWith(baseFileName));
 				List<String> suffixParts = Arrays.asList(
 					FileUtil.getFileNameWithoutExtension(subtitlesNameLower).replace(baseFileName, "").split("[\\s\\.-]+")
 				);
 				registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
 			} else if (isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null) {
+				LOGGER.trace("isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null {}", isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null);
 				// Subtitles subfolder that doesn't start with video file name
 				List<String> suffixParts = Arrays.asList(
 					FileUtil.getFileNameWithoutExtension(subtitlesNameLower).split("[\\s\\.-]+")
 				);
+				LOGGER.trace("suffixParts {}", suffixParts);
 				for (String suffixPart : suffixParts) {
+					LOGGER.trace("suffixPart {}", suffixPart);
 					if (Iso639.isValid(suffixPart)) {
+						LOGGER.trace("Iso639.isValid(suffixPart) {}", Iso639.isValid(suffixPart));
 						registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
 						break;
 					}
