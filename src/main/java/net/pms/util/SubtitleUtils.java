@@ -906,7 +906,7 @@ public class SubtitleUtils {
 			return;
 		}
 
-		LOGGER.trace("Registering external subtitles {}", file.getName());
+		LOGGER.trace("Registering external subtitles for {}", file.getName());
 
 		ArrayList<File> folders = new ArrayList<>();
 		if (subFolder.isDirectory()) {
@@ -1067,7 +1067,7 @@ public class SubtitleUtils {
 	 * @param suffixParts 
 	 */
 	private static void registerExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
-		LOGGER.trace("Registering external subtitles file {}", subtitlesFile.getName());
+		LOGGER.trace("Registering external subtitles file for {}", subtitlesFile.getName());
 		DLNAMediaSubtitle subtitles = new DLNAMediaSubtitle();
 		subtitles.setType(SubtitleType.valueOfFileExtension(
 			FileUtil.getExtension(subtitlesFile.getPath(), LetterCase.LOWER, Locale.ROOT)
