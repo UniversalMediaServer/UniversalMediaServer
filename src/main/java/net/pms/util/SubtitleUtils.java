@@ -443,7 +443,7 @@ public class SubtitleUtils {
 
 		if (params.getSid().isEmbedded()) {
 			cmdList.add("-map");
-			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.getSid())));
+			cmdList.add("0:s:" + (media.getSubtitlesTracks().indexOf(params.getSid())));
 		}
 
 		try {
@@ -883,7 +883,7 @@ public class SubtitleUtils {
 	 *            subtitles instead of relying on cached information (if it
 	 *            exists).
 	 */
-	public static void registerExternalSubtitles(File file, DLNAMediaInfo media, boolean forceRefresh) {
+	public static void searchAndAttachExternalSubtitles(File file, DLNAMediaInfo media, boolean forceRefresh) {
 		if (file == null || media == null) {
 			return;
 		}
@@ -906,7 +906,7 @@ public class SubtitleUtils {
 			return;
 		}
 
-		LOGGER.trace("Registering external subtitles for {}", file.getName());
+		LOGGER.trace("Searching for external subtitles for {}", file.getName());
 
 		ArrayList<File> folders = new ArrayList<>();
 		if (subFolder.isDirectory()) {
@@ -1037,7 +1037,7 @@ public class SubtitleUtils {
 		LOGGER.trace("Finding already parsed subtitles for {}", file.getName());
 		// Find already parsed subtitles
 		HashSet<File> existingSubtitles = new HashSet<>();
-		for (DLNAMediaSubtitle subtitle : media.getSubtitleTracksList()) {
+		for (DLNAMediaSubtitle subtitle : media.getSubtitlesTracks()) {
 			if (!(subtitle instanceof DLNAMediaOnDemandSubtitle) && subtitle.getExternalFile() != null) {
 				existingSubtitles.add(subtitle.getExternalFile());
 			}
@@ -1060,7 +1060,7 @@ public class SubtitleUtils {
 				List<String> suffixParts = Arrays.asList(
 					FileUtil.getFileNameWithoutExtension(subtitlesNameLower).replace(baseFileName, "").split("[\\s\\.-]+")
 				);
-				registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+				attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
 			} else if (isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null) {
 				LOGGER.trace("isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null {}", isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null);
 				// Subtitles subfolder that doesn't start with video file name
@@ -1072,7 +1072,7 @@ public class SubtitleUtils {
 					LOGGER.trace("suffixPart {}", suffixPart);
 					if (Iso639.isValid(suffixPart)) {
 						LOGGER.trace("Iso639.isValid(suffixPart) {}", Iso639.isValid(suffixPart));
-						registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+						attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
 						break;
 					}
 				}
@@ -1080,7 +1080,7 @@ public class SubtitleUtils {
 		}
 
 		// Remove no longer existing external subtitles
-		for (Iterator<DLNAMediaSubtitle> iterator = media.getSubtitleTracksList().iterator(); iterator.hasNext();) {
+		for (Iterator<DLNAMediaSubtitle> iterator = media.getSubtitlesTracks().iterator(); iterator.hasNext();) {
 			DLNAMediaSubtitle subtitles = iterator.next();
 			if (
 				subtitles.isExternal() &&
@@ -1101,10 +1101,11 @@ public class SubtitleUtils {
 	 * @see DLNAMediaInfo#getSubtitleTracksList
 	 * @param subtitlesFile
 	 * @param media
-	 * @param suffixParts 
+	 * @param suffixParts contains potential language identifiers, e.g. en
+	 *                    or eng.
 	 */
-	private static void registerExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
-		LOGGER.trace("Registering external subtitles file for {}", subtitlesFile.getName());
+	private static void attachExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
+		LOGGER.trace("Attaching external subtitles file for {}", subtitlesFile.getName());
 		DLNAMediaSubtitle subtitles = new DLNAMediaSubtitle();
 		subtitles.setType(SubtitleType.valueOfFileExtension(
 			FileUtil.getExtension(subtitlesFile.getPath(), LetterCase.LOWER, Locale.ROOT)
@@ -1135,7 +1136,7 @@ public class SubtitleUtils {
 			if (subtitles.getLang() == null) {
 				subtitles.setLang(DLNAMediaLang.UND);
 			}
-			media.getSubtitleTracksList().add(subtitles);
+			media.addSubtitlesTrack(subtitles);
 			LOGGER.trace("Added external subtitles file {} to the media {}", subtitlesFile.getName(), media.toString());
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("File not found during external subtitles scan: {}", e.getMessage());

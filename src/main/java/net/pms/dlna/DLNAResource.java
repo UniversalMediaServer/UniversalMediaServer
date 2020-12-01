@@ -3802,7 +3802,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return false;
 		}
 
-		List<DLNAMediaSubtitle> subtitlesList = media.getSubtitleTracksList();
+		List<DLNAMediaSubtitle> subtitlesList = media.getSubtitlesTracks();
 		if (subtitlesList != null) {
 			for (DLNAMediaSubtitle subtitles : subtitlesList) {
 				if (subtitles.isEmbedded()) {
@@ -3853,7 +3853,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			if (!configuration.isDisableSubtitles() && configuration.isAutoloadExternalSubtitles()) {
-				SubtitleUtils.registerExternalSubtitles(file, media, forceRefresh);
+				SubtitleUtils.searchAndAttachExternalSubtitles(file, media, forceRefresh);
 				// update the database if enabled
 				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
@@ -3881,7 +3881,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			List<DLNAMediaSubtitle> subtitlesList = media.getSubtitleTracksList();
+			List<DLNAMediaSubtitle> subtitlesList = media.getSubtitlesTracks();
 			if (subtitlesList != null) {
 				hasSubtitles = !subtitlesList.isEmpty();
 				for (DLNAMediaSubtitle subtitles : subtitlesList) {
@@ -3916,7 +3916,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return;
 			}
 
-			List<DLNAMediaSubtitle> subtitlesList = media.getSubtitleTracksList();
+			List<DLNAMediaSubtitle> subtitlesList = media.getSubtitlesTracks();
 			hasSubtitles = !subtitlesList.isEmpty();
 			for (DLNAMediaSubtitle subtitles : subtitlesList) {
 				if (subtitles.isExternal()) {
@@ -4023,7 +4023,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				getName()
 			);
 			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
-			for (DLNAMediaSubtitle subtitles : media.getSubtitleTracksList()) {
+			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 				if (subtitles.isExternal()) {
 					if (forceExternal) {
 						LOGGER.trace("Forcing external subtitles: {}", subtitles);
@@ -4070,7 +4070,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (forceExternal) {
 								// Ignore the "off" language for external subtitles if force external subtitles is enabled
 								ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
-								for (DLNAMediaSubtitle subtitles : media.getSubtitleTracksList()) {
+								for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 									if (subtitles.isExternal()) {
 										candidates.add(subtitles);
 									}
@@ -4104,7 +4104,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						} else {
 							ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
-							for (DLNAMediaSubtitle subtitles : media.getSubtitleTracksList()) {
+							for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 								if (anyLanguage || subtitles.matchCode(sub)) {
 									if (!subtitles.isExternal()) {
 										candidates.add(subtitles);
@@ -4151,7 +4151,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 */
 		if (deviceSpecificConfiguration.isForceExternalSubtitles()) {
 			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
-			for (DLNAMediaSubtitle subtitles : media.getSubtitleTracksList()) {
+			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 				if (subtitles.isExternal()) {
 					candidates.add(subtitles);
 					LOGGER.trace("Adding external subtitles candidate without language match: {}", subtitles);
@@ -4184,7 +4184,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				isBlank(forcedLanguage) ||
 				"*".equals(forcedLanguage) ||
 				DLNAMediaLang.UND.equals(forcedLanguage);
-			for (DLNAMediaSubtitle subtitles : media.getSubtitleTracksList()) {
+			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 				if (!useExternal && subtitles.isExternal()) {
 					continue;
 				}
