@@ -4032,7 +4032,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.trace("Searching for subtitles without considering audio language for \"{}\"", getName());
 			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
 			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
-				candidates.add(subtitles);
+				if (subtitles.isExternal()) {
+					if (useExternal) {
+						candidates.add(subtitles);
+					}
+				} else {
+					candidates.add(subtitles);
+				}
 			}
 			if (!candidates.isEmpty()) {
 				matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, false);
