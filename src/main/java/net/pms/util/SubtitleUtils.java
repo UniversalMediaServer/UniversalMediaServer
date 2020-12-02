@@ -443,7 +443,7 @@ public class SubtitleUtils {
 
 		if (params.getSid().isEmbedded()) {
 			cmdList.add("-map");
-			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.getSid())));
+			cmdList.add("0:s:" + (media.getSubtitlesTracks().indexOf(params.getSid())));
 		}
 
 		try {
@@ -883,7 +883,7 @@ public class SubtitleUtils {
 	 *            subtitles instead of relying on cached information (if it
 	 *            exists).
 	 */
-	public static void registerExternalSubtitles(File file, DLNAMediaInfo media, boolean forceRefresh) {
+	public static void searchAndAttachExternalSubtitles(File file, DLNAMediaInfo media, boolean forceRefresh) {
 		if (file == null || media == null) {
 			return;
 		}
@@ -906,6 +906,8 @@ public class SubtitleUtils {
 			return;
 		}
 
+		LOGGER.trace("Searching for external subtitles for {}", file.getName());
+
 		ArrayList<File> folders = new ArrayList<>();
 		if (subFolder.isDirectory()) {
 			folders.add(subFolder);
@@ -923,10 +925,11 @@ public class SubtitleUtils {
 		}
 
 		if (folders.isEmpty()) {
+			LOGGER.trace("There are no folders to search for subtitles for {}", file.getName());
 			return;
 		}
 
-		final Set<String> supported = SubtitleType.getSupportedFileExtensions();
+		final Set<String> supportedFileExtensions = SubtitleType.getSupportedFileExtensions();
 
 		boolean cleaned = false;
 		List<File> folderSubtitles = new ArrayList<>();
@@ -976,7 +979,7 @@ public class SubtitleUtils {
 									for (String subsFileNameEntry : subsFolderContent) {
 										File subsFileEntry = new File(fileEntry, subsFileNameEntry);
 										if (
-											isSubtitlesFile(subsFileEntry, supported) &&
+											isSubtitlesFile(subsFileEntry, supportedFileExtensions) &&
 											subsFileEntry.isFile() &&
 											!subsFileEntry.isHidden()
 										) {
@@ -988,7 +991,7 @@ public class SubtitleUtils {
 							}
 							fileEntry = new File(folder, fileNameEntry);
 							if (
-								isSubtitlesFile(fileEntry, supported) &&
+								isSubtitlesFile(fileEntry, supportedFileExtensions) &&
 								fileEntry.isFile() &&
 								!fileEntry.isHidden()
 							) {
@@ -1006,13 +1009,13 @@ public class SubtitleUtils {
 
 		// Find already parsed subtitles
 		HashSet<File> existingSubtitles = new HashSet<>();
-		for (DLNAMediaSubtitle subtitle : media.getSubtitleTracksList()) {
+		for (DLNAMediaSubtitle subtitle : media.getSubtitlesTracks()) {
 			if (!(subtitle instanceof DLNAMediaOnDemandSubtitle) && subtitle.getExternalFile() != null) {
 				existingSubtitles.add(subtitle.getExternalFile());
 			}
 		}
 
-		// Parse subtitles
+		// Parse subtitles that are not in the existing list
 		String baseFileName = FileUtil.getFileNameWithoutExtension(file.getName()).toLowerCase(Locale.ROOT);
 		for (File subtitlesFile : folderSubtitles) {
 			if (existingSubtitles.contains(subtitlesFile)) {
@@ -1025,7 +1028,7 @@ public class SubtitleUtils {
 				List<String> suffixParts = Arrays.asList(
 					FileUtil.getFileNameWithoutExtension(subtitlesNameLower).replace(baseFileName, "").split("[\\s\\.-]+")
 				);
-				registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+				attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
 			} else if (isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null) {
 				// Subtitles subfolder that doesn't start with video file name
 				List<String> suffixParts = Arrays.asList(
@@ -1033,7 +1036,7 @@ public class SubtitleUtils {
 				);
 				for (String suffixPart : suffixParts) {
 					if (Iso639.isValid(suffixPart)) {
-						registerExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+						attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
 						break;
 					}
 				}
@@ -1041,22 +1044,37 @@ public class SubtitleUtils {
 		}
 
 		// Remove no longer existing external subtitles
-		for (Iterator<DLNAMediaSubtitle> iterator = media.getSubtitleTracksList().iterator(); iterator.hasNext();) {
+		for (Iterator<DLNAMediaSubtitle> iterator = media.getSubtitlesTracks().iterator(); iterator.hasNext();) {
 			DLNAMediaSubtitle subtitles = iterator.next();
 			if (
 				subtitles.isExternal() &&
 				!(subtitles instanceof DLNAMediaOnDemandSubtitle) &&
-				!folderSubtitles.contains(subtitles.getExternalFile())) {
-					iterator.remove();
+				!folderSubtitles.contains(subtitles.getExternalFile())
+			) {
+				iterator.remove();
 			}
 		}
 	}
 
-	private static void registerExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
+	/**
+	 * Creates a new instance of DLNAMediaSubtitle, populates it based on
+	 * the incoming subtitlesFile, and attaches it to the incoming
+	 * DLNAMediaInfo so it appears on the subtitles tracks list for that
+	 * media.
+	 *
+	 * @see DLNAMediaInfo#getSubtitleTracksList
+	 * @param subtitlesFile
+	 * @param media
+	 * @param suffixParts contains potential language identifiers, e.g. en
+	 *                    or eng.
+	 */
+	private static void attachExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
+		LOGGER.trace("Attaching external subtitles file for {}", subtitlesFile.getName());
 		DLNAMediaSubtitle subtitles = new DLNAMediaSubtitle();
 		subtitles.setType(SubtitleType.valueOfFileExtension(
 			FileUtil.getExtension(subtitlesFile.getPath(), LetterCase.LOWER, Locale.ROOT)
 		));
+
 		String language = null;
 		if (suffixParts != null && !suffixParts.isEmpty()) {
 			ArrayList<String> modifiableSuffixParts = new ArrayList<>(suffixParts);
@@ -1073,6 +1091,7 @@ public class SubtitleUtils {
 				subtitles.setSubtitlesTrackTitleFromMetadata(StringUtils.join(modifiableSuffixParts, '-'));
 			}
 		}
+
 		try {
 			if (isNotBlank(language)) {
 				subtitles.setLang(language);
@@ -1081,7 +1100,8 @@ public class SubtitleUtils {
 			if (subtitles.getLang() == null) {
 				subtitles.setLang(DLNAMediaLang.UND);
 			}
-			media.getSubtitleTracksList().add(subtitles);
+			media.addSubtitlesTrack(subtitles);
+			LOGGER.trace("Added external subtitles file {} to the media {}", subtitlesFile.getName(), media.toString());
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("File not found during external subtitles scan: {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -1112,7 +1132,7 @@ public class SubtitleUtils {
 	 *            candidates of which to find the one with the highest priority.
 	 * @param renderer the {@link RendererConfiguration} to use to get the
 	 *            configures subtitles language priorities.
-	 * @param returnNotPriorized if {@code true} a {@link DLNAMediaSubtitle}
+	 * @param returnNotPrioritized if {@code true} a {@link DLNAMediaSubtitle}
 	 *            will be returned even if no match to the configured subtitles
 	 *            languages priorities is found.
 	 * @return The candidate with the highest priority or {@code null}.
@@ -1120,7 +1140,7 @@ public class SubtitleUtils {
 	public static DLNAMediaSubtitle findPrioritizedSubtitles(
 		Collection<DLNAMediaSubtitle> candidates,
 		RendererConfiguration renderer,
-		boolean returnNotPriorized
+		boolean returnNotPrioritized
 	) {
 		if (candidates == null || candidates.isEmpty()) {
 			return null;
@@ -1134,35 +1154,31 @@ public class SubtitleUtils {
 		}
 
 		LOGGER.trace("Looking for subtitles with the highest priority from {}", StringUtils.join(languagePriorities, ", "));
-		ArrayList<DLNAMediaSubtitle> candidatesList = new ArrayList<DLNAMediaSubtitle>(candidates);
-		Collections.sort(candidatesList, new Comparator<DLNAMediaSubtitle>() {
-
-			@Override
-			public int compare(DLNAMediaSubtitle o1, DLNAMediaSubtitle o2) {
-				if (isBlank(o1.getLang()) || isBlank(o2.getLang())) {
-					if (isNotBlank(o1.getLang()) || isNotBlank(o2.getLang())) {
-						return isBlank(o1.getLang()) ? 1 : -1;
-					}
-				} else if (!Iso639.isCodesMatching(o1.getLang(), o2.getLang())) {
-					int o1Priority = getPriorityIndex(languagePriorities, o1.getLang());
-					int o2Priority = getPriorityIndex(languagePriorities, o2.getLang());
-					if (o1Priority != o2Priority) {
-						return o1Priority - o2Priority;
-					}
+		ArrayList<DLNAMediaSubtitle> candidatesList = new ArrayList<>(candidates);
+		Collections.sort(candidatesList, (DLNAMediaSubtitle o1, DLNAMediaSubtitle o2) -> {
+			if (isBlank(o1.getLang()) || isBlank(o2.getLang())) {
+				if (isNotBlank(o1.getLang()) || isNotBlank(o2.getLang())) {
+					return isBlank(o1.getLang()) ? 1 : -1;
 				}
-				if (o1.isExternal() == o2.isExternal()) {
-					return 0;
+			} else if (!Iso639.isCodesMatching(o1.getLang(), o2.getLang())) {
+				int o1Priority = getPriorityIndex(languagePriorities, o1.getLang());
+				int o2Priority = getPriorityIndex(languagePriorities, o2.getLang());
+				if (o1Priority != o2Priority) {
+					return o1Priority - o2Priority;
 				}
-				return o1.isExternal() ? -1 : 1;
 			}
+			if (o1.isExternal() == o2.isExternal()) {
+				return 0;
+			}
+			return o1.isExternal() ? -1 : 1;
 		});
 		DLNAMediaSubtitle result = candidatesList.get(0);
 		int priority = getPriorityIndex(languagePriorities, result.getLang());
 		if (priority == languagePriorities.size()) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("No prioritized subtitles language found, returning: {}", returnNotPriorized ? result : "null");
+				LOGGER.trace("No prioritized subtitles language found, returning: {}", returnNotPrioritized ? result : "null");
 			}
-			return returnNotPriorized ? result : null;
+			return returnNotPrioritized ? result : null;
 		}
 		LOGGER.trace("Returning subtitles with priority {}: {}", result);
 		return result;

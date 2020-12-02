@@ -169,26 +169,6 @@ public class DLNAMediaInfo implements Cloneable {
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
 
-	private boolean externalSubsExist = false;
-
-	public void setExternalSubsExist(boolean exist) {
-		this.externalSubsExist = exist;
-	}
-
-	public boolean isExternalSubsExist() {
-		return externalSubsExist;
-	}
-
-	private boolean externalSubsParsed = false;
-
-	public void setExternalSubsParsed(boolean parsed) {
-		this.externalSubsParsed = parsed;
-	}
-
-	public boolean isExternalSubsParsed() {
-		return externalSubsParsed;
-	}
-
 	private String muxingMode;
 	private String muxingModeAudio;
 	private String container;
@@ -504,20 +484,17 @@ public class DLNAMediaInfo implements Cloneable {
 		synchronized (parsingLock) {
 			parsing = true;
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-					synchronized (ffmpeg_failureLock) {
-						ffmpeg_failure = true;
-					}
-				} catch (InterruptedException e) { }
-
-				pw.stopProcess();
-				synchronized (parsingLock) {
-					parsing = false;
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+				synchronized (ffmpeg_failureLock) {
+					ffmpeg_failure = true;
 				}
+			} catch (InterruptedException e) { }
+			
+			pw.stopProcess();
+			synchronized (parsingLock) {
+				parsing = false;
 			}
 		};
 
@@ -573,17 +550,14 @@ public class DLNAMediaInfo implements Cloneable {
 		synchronized (parsingLock) {
 			parsing = true;
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) { }
-
-				pw.stopProcess();
-				synchronized (parsingLock) {
-					parsing = false;
-				}
+		Runnable r = () -> {
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) { }
+			
+			pw.stopProcess();
+			synchronized (parsingLock) {
+				parsing = false;
 			}
 		};
 
@@ -1972,14 +1946,14 @@ public class DLNAMediaInfo implements Cloneable {
 	@Override
 	protected DLNAMediaInfo clone() throws CloneNotSupportedException {
 		DLNAMediaInfo mediaCloned = (DLNAMediaInfo) super.clone();
-		mediaCloned.setAudioTracks(new ArrayList<DLNAMediaAudio>());
+		mediaCloned.setAudioTracks(new ArrayList<>());
 		for (DLNAMediaAudio audio : audioTracks) {
 			mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
 		}
 
-		mediaCloned.setSubtitleTracks(new ArrayList<DLNAMediaSubtitle>());
+		mediaCloned.setSubtitlesTracks(new ArrayList<>());
 		for (DLNAMediaSubtitle sub : subtitleTracks) {
-			mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
+			mediaCloned.addSubtitlesTrack((DLNAMediaSubtitle) sub.clone());
 		}
 
 		return mediaCloned;
@@ -2618,17 +2592,23 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the subtitleTracks
 	 * @since 1.60.0
 	 */
-	// TODO (breaking change): rename to getSubtitleTracks
-	public List<DLNAMediaSubtitle> getSubtitleTracksList() {
+	synchronized public List<DLNAMediaSubtitle> getSubtitlesTracks() {
 		return subtitleTracks;
 	}
 
 	/**
-	 * @param subtitleTracks the subtitleTracks to set
+	 * @param subtitlesTracks the subtitlesTracks to set
 	 * @since 1.60.0
 	 */
-	public void setSubtitleTracks(List<DLNAMediaSubtitle> subtitleTracks) {
-		this.subtitleTracks = subtitleTracks;
+	synchronized public void setSubtitlesTracks(List<DLNAMediaSubtitle> subtitlesTracks) {
+		this.subtitleTracks = subtitlesTracks;
+	}
+
+	/**
+	 * @param subtitlesTrack the subtitleTrack to add
+	 */
+	synchronized public void addSubtitlesTrack(DLNAMediaSubtitle subtitlesTrack) {
+		this.subtitleTracks.add(subtitlesTrack);
 	}
 
 	/**

@@ -201,7 +201,7 @@ public class RealFile extends MapFile {
 							setMedia(media);
 							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
 								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
-								getMedia().getSubtitleTracksList().clear();
+								getMedia().setSubtitlesTracks(new ArrayList<>());
 								resetSubtitlesStatus();
 							}
 
