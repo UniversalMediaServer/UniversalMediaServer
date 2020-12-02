@@ -4016,34 +4016,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean useExternal = deviceSpecificConfiguration.isAutoloadExternalSubtitles();
 		boolean forceExternal = deviceSpecificConfiguration.isForceExternalSubtitles();
 		String audioSubLanguages = deviceSpecificConfiguration.getAudioSubLanguages();
+
+		if (forceExternal) {
+			matchedSub = getHighestPriorityExternalSubtitles(renderer);
+			if (matchedSub == null) {
+				LOGGER.trace("No external subtitles candidates were found to force for \"{}\"", getName());
+			} else {
+				LOGGER.trace("Forcing external subtitles track for \"{}\": {}", getName(), matchedSub);
+				return matchedSub;
+			}
+		}
+
 		if (isBlank(audioLanguage) || isBlank(audioSubLanguages)) {
 			// Not enough information to do a full audio/subtitles combination search, only use the preferred subtitles
-			LOGGER.trace(
-				"Searching for subtitles without considering audio language for \"{}\"",
-				getName()
-			);
+			LOGGER.trace("Searching for subtitles without considering audio language for \"{}\"", getName());
 			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
 			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
-				if (subtitles.isExternal()) {
-					if (forceExternal) {
-						LOGGER.trace("Forcing external subtitles: {}", subtitles);
-						return subtitles;
-					} else if (useExternal) {
-						candidates.add(subtitles);
-					}
-				} else {
-					candidates.add(subtitles);
-				}
+				candidates.add(subtitles);
 			}
 			if (!candidates.isEmpty()) {
 				matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, false);
 				if (matchedSub != null) {
-					LOGGER.trace(
-						"Matched {} subtitles track for \"{}\" with unknown audio language: {}",
-						matchedSub.isExternal() ? "external" : "internal",
-						getName(),
-						matchedSub
-					);
+					LOGGER.trace("Matched {} subtitles track for \"{}\" with unknown audio language: {}", matchedSub.isExternal() ? "external" : "internal", getName(), matchedSub);
 					return matchedSub;
 				}
 			}
@@ -4056,83 +4050,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (commaPos > -1) {
 					String audio = pair.substring(0, commaPos).trim();
 					String sub = pair.substring(commaPos + 1).trim();
-					LOGGER.trace(
-						"Searching for a match for audio language \"{}\" with audio \"{}\" and subtitles \"{}\" for \"{}\"",
-						audioLanguage,
-						audio,
-						sub,
-						getName()
-					);
+					LOGGER.trace("Searching for a match for audio language \"{}\" with audio \"{}\" and subtitles \"{}\" for \"{}\"", audioLanguage, audio, sub, getName());
 
 					if ("*".equals(audio) || DLNAMediaLang.UND.equals(audio) || Iso639.isCodesMatching(audio, audioLanguage)) {
 						boolean anyLanguage = "*".equals(sub) || DLNAMediaLang.UND.equals(sub);
 						if ("off".equals(sub)) {
-							if (forceExternal) {
-								// Ignore the "off" language for external subtitles if force external subtitles is enabled
-								ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
-								for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
-									if (subtitles.isExternal()) {
-										candidates.add(subtitles);
-									}
-								}
-
-								// If external subtitles were found, let findPrioritizedSubtitles return the right one
-								if (candidates.isEmpty()) {
-									LOGGER.trace(
-										"Disabling subtitles because we matched \"off\" and no external" +
-										"subtitles candidates were found, returning null for \"{}\"",
-										getName()
-									);
-								} else {
-									matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, true);
-									LOGGER.trace(
-										"Ignoring the \"off\" language because external " +
-										"subtitles are enforced, returning: {} for \"{}\"",
-										matchedSub,
-										getName()
-									);
-								}
-
-								// Return either the matched external subtitles, or null if there was no external match
-								return matchedSub;
-							} else {
-								LOGGER.trace(
-									"Not looking for non-forced subtitles since they are \"off\" for audio language \"{}\"",
-									audio
-								);
-								break;
-							}
+							LOGGER.trace("Not looking for non-forced subtitles since they are \"off\" for audio language \"{}\"", audio);
+							break;
 						} else {
 							ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
 							for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 								if (anyLanguage || subtitles.matchCode(sub)) {
-									if (!subtitles.isExternal()) {
+									if (subtitles.isEmbedded()) {
 										candidates.add(subtitles);
 										LOGGER.trace("Adding internal subtitles candidate: {}", subtitles);
 									} else if (useExternal) {
-										if (forceExternal) {
-											LOGGER.trace("Forcing external subtitles: {}", subtitles);
-											return subtitles;
-										}
 										candidates.add(subtitles);
 										LOGGER.trace("Adding external subtitles candidate: {}", subtitles);
 									} else {
-										LOGGER.trace(
-											"Ignoring external subtitles because auto loading of external subtitles is disabled: {}",
-											subtitles
-										);
+										LOGGER.trace("Ignoring external subtitles because auto loading of external subtitles is disabled: {}", subtitles);
 									}
 								}
 							}
 							if (!candidates.isEmpty()) {
 								matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, !anyLanguage);
 								if (matchedSub != null) {
-									LOGGER.trace(
-										"Matched {} subtitles track for \"{}\": {}",
-										matchedSub.isExternal() ? "external" : "internal",
-										getName(),
-										matchedSub
-									);
+									LOGGER.trace("Matched {} subtitles track for \"{}\": {}", matchedSub.isExternal() ? "external" : "internal", getName(), matchedSub);
 									return matchedSub;
 								}
 							}
@@ -4141,30 +4084,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else {
 					LOGGER.warn("Ignoring invalid audio/subtitle language configuration \"{}\"", pair);
 				}
-			}
-		}
-
-		/*
-		 * Check for external subtitles that were skipped in the above code block
-		 * because they didn't match language preferences, if there wasn't already
-		 * a match and the user settings specify it.
-		 */
-		if (deviceSpecificConfiguration.isForceExternalSubtitles()) {
-			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
-			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
-				if (subtitles.isExternal()) {
-					candidates.add(subtitles);
-					LOGGER.trace("Adding external subtitles candidate without language match: {}", subtitles);
-				}
-			}
-			if (!candidates.isEmpty()) {
-				matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, true);
-				LOGGER.trace(
-					"Forcing external subtitles track that did not match language preferences for \"{}\": {}",
-					getName(),
-					matchedSub
-				);
-				return matchedSub;
 			}
 		}
 
@@ -4200,12 +4119,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							)
 						) {
 							candidates.add(subtitles);
-							LOGGER.trace(
-								"Adding {} forced subtitles candidate that matched tag \"{}\": {}",
-								subtitles.isExternal() ? "external" : "internal",
-								forcedTag,
-								subtitles
-							);
+							LOGGER.trace("Adding {} forced subtitles candidate that matched tag \"{}\": {}", subtitles.isExternal() ? "external" : "internal", forcedTag, subtitles);
 						}
 					}
 				}
@@ -4213,12 +4127,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (!candidates.isEmpty()) {
 				matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, false);
 				if (matchedSub != null) {
-					LOGGER.trace(
-						"Using forced {} subtitles track for \"{}\": {}",
-						matchedSub.isExternal() ? "external" : "internal",
-						getName(),
-						matchedSub
-					);
+					LOGGER.trace("Using forced {} subtitles track for \"{}\": {}", matchedSub.isExternal() ? "external" : "internal", getName(), matchedSub);
 					return matchedSub;
 				}
 			}
@@ -4226,6 +4135,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		LOGGER.trace("Found no matching subtitle for \"{}\"", getName());
 		return null;
+	}
+
+	private DLNAMediaSubtitle getHighestPriorityExternalSubtitles(RendererConfiguration renderer) {
+		DLNAMediaSubtitle matchedSub = null;
+
+		ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
+		for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
+			if (subtitles.isExternal()) {
+				candidates.add(subtitles);
+			}
+		}
+
+		// If external subtitles were found, let findPrioritizedSubtitles return the right one
+		if (!candidates.isEmpty()) {
+			matchedSub = SubtitleUtils.findPrioritizedSubtitles(candidates, renderer, true);
+		}
+
+		// Return either the matched external subtitles, or null if there was no external match
+		return matchedSub;
 	}
 
 	/**
