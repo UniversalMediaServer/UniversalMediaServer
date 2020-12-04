@@ -2416,4 +2416,34 @@ public class FileUtil {
 	public static boolean isDirectory(String filename) {
 		return FileUtil.getExtension(filename) == null;
 	}
+
+	 /**
+	 * Check if the {@code file} is a symbolic link.
+	 *
+	 * @param file the file to check
+	 * @return {@code true} if the file is a symbolic link
+	 * {@code false} otherwise.
+	 */
+	public static boolean isSymbolicLink(File file) {
+		return Files.isSymbolicLink(file.toPath());
+	}
+
+	 /**
+	 * Return the file from the real path of the provided {@code file}
+	 * that is a symbolic link. 
+	 *
+	 * @param file the symbolic link file 
+	 * @return a File from the <em>real</em> path of the symbolic link file
+	 */
+        public static File getRealFile(File file) {
+            Path target = file.toPath();
+            while (Files.isSymbolicLink(target)) {
+                try {
+                    target = target.toRealPath();
+                } catch (IOException ex) {
+                    return target.toFile();
+                }
+            }
+            return target.toFile();
+        }
 }

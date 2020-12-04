@@ -37,20 +37,33 @@ public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	public RealFile(File file) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, String name) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		getConf().setName(name);
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, boolean isEpisodeWithinSeasonFolder) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
+	}
+        
+	 /**
+	 * Add the file to MapFileConfiguration->Files.
+	 *
+	 * @param file The file to add.
+	 */
+        private void addFileToConfFiles(File file) {
+		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
+                    getConf().getFiles().add(FileUtil.getRealFile(file));
+		} else {
+                    getConf().getFiles().add(file);
+		}
 	}
 
 	@Override
