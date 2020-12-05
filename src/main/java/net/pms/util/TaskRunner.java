@@ -33,10 +33,10 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TaskRunner {
-	final static Logger LOGGER = LoggerFactory.getLogger(TaskRunner.class);
-	
+	static final Logger LOGGER = LoggerFactory.getLogger(TaskRunner.class);
+
 	private static TaskRunner instance;
-	
+
 	public static synchronized TaskRunner getInstance() {
 		if (instance == null) {
 			instance = new TaskRunner();
@@ -44,7 +44,7 @@ public class TaskRunner {
 
 		return instance;
 	}
-	
+
 	private final ExecutorService executors = Executors.newCachedThreadPool(new ThreadFactory() {
 		int counter = 0;
 
@@ -55,18 +55,18 @@ public class TaskRunner {
 			return t;
 		}
 	});
-	
+
 	private final Map<String, Integer> counters = new HashMap<>();
 	private final Map<String, Lock> uniquenessLock = new HashMap<> ();
-	
+
 	public void submit(Runnable runnable) {
 		executors.execute(runnable);
 	}
-	
+
 	public <X> Future<X> submit(Callable<X> call) {
 		return executors.submit(call);
 	}
-	
+
 	/**
 	 * Submit a named task for later execution.
 	 *
@@ -76,7 +76,7 @@ public class TaskRunner {
 	public void submitNamed(final String name, final Runnable runnable) {
 		submitNamed(name, false, runnable);
 	}
-	
+
 	/**
 	 * Submit a named task for later execution. If singletonTask is set to true, checked that tasks with the same name is not concurrently running.
 	 * @param name
@@ -116,9 +116,9 @@ public class TaskRunner {
 		});
 		
 	}
-	
+
 	protected Lock getLock(String name) {
-		synchronized(uniquenessLock) {
+		synchronized (uniquenessLock) {
 			Lock lk = uniquenessLock.get(name);
 
 			if (lk == null) {
@@ -129,16 +129,16 @@ public class TaskRunner {
 			return lk;
 		}
 	}
-	
+
 	protected int getAndIncr(String name) {
-		synchronized(counters) {
+		synchronized (counters) {
 			Integer val = counters.get(name);
 			int newVal = (val == null) ? 0 : val + 1;
 			counters.put(name, newVal);
 			return newVal;
 		}
 	}
-	
+
 	public void shutdown() {
 		executors.shutdown();
 	}

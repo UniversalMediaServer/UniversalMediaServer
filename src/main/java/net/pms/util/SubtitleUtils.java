@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,11 +62,11 @@ import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
-	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
-	private static final long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
-	private static final char[] SUBTITLES_UPPER_CASE;
-	private static final char[] SUBTITLES_LOWER_CASE;
-	private static final File ALTERNATIVE_SUBTITLES_FOLDER;
+	private final static Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+	private final static long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
+	private final static char[] SUBTITLES_UPPER_CASE;
+	private final static char[] SUBTITLES_LOWER_CASE;
+	private final static File ALTERNATIVE_SUBTITLES_FOLDER;
 
 	static {
 		String subtitles = "Subtitles";
