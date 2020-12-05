@@ -85,6 +85,7 @@ Checkstyle configuration for Universal Media Server.
 		<module name="WhitespaceAfter"/>
 		<module name="WhitespaceAround">
 			<property name="allowEmptyCatches" value="true" />
+			<property name="allowEmptyConstructors" value="true" />
 		</module>
 		<module name="ModifierOrder">
 			<property name="severity" value="warning"/>

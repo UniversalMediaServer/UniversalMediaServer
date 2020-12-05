@@ -42,12 +42,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UMSUtils {
-	private static final Collator collator;
+	private static final Collator COLLATOR;
 	private static final Logger LOGGER = LoggerFactory.getLogger(UMSUtils.class);
 
 	static {
-		collator = Collator.getInstance();
-		collator.setStrength(Collator.PRIMARY);
+		COLLATOR = Collator.getInstance();
+		COLLATOR.setStrength(Collator.PRIMARY);
 	}
 
 	public static void postSearch(List<DLNAResource> files, String searchCriteria) {
@@ -114,7 +114,7 @@ public class UMSUtils {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
 						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
 
-						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
+						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
@@ -156,7 +156,7 @@ public class UMSUtils {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
 						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
 
-						return collator.compare(filename1ToSort, filename2ToSort);
+						return COLLATOR.compare(filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
@@ -181,7 +181,7 @@ public class UMSUtils {
 						String filename1ToSort = FileUtil.renameForSorting(s1);
 						String filename2ToSort = FileUtil.renameForSorting(s2);
 
-						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
+						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
@@ -207,7 +207,7 @@ public class UMSUtils {
 						String filename1ToSort = FileUtil.renameForSorting(s1);
 						String filename2ToSort = FileUtil.renameForSorting(s2);
 
-						return collator.compare(filename1ToSort, filename2ToSort);
+						return COLLATOR.compare(filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
