@@ -321,6 +321,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 						case HTTPResource.WEBM_TYPEMIME:
 							ffWebmCmd(cmdList);
 							break;
+					default:
+						break;
 					}
 				}
 				if (isLowBitrate()) {

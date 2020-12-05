@@ -878,7 +878,7 @@ public class PMS {
 		return instance;
 	}
 
-	private synchronized static void createInstance() {
+	private static synchronized void createInstance() {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
 
@@ -894,7 +894,7 @@ public class PMS {
 		}
 	}
 
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
 		File profilePath = null;

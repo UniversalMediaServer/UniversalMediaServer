@@ -92,7 +92,7 @@ public class DVDISOTitle extends DLNAResource {
 			}
 		}
 
-		String cmd[];
+		String[] cmd;
 		if (generateThumbnails) {
 			String outFolder = "jpeg:outdir=mplayer_thumbs:subdirs=\"" + this.hashCode() + "\"";
 			cmd = new String[] {

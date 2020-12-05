@@ -47,8 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DownloadPlugins {
-	private final static String PLUGIN_LIST_URL = "https://www.universalmediaserver.com/plugins/list.php";
-	private final static String PLUGIN_TEST_FILE = "plugin_inst.tst";
+	private static final String PLUGIN_LIST_URL = "https://www.universalmediaserver.com/plugins/list.php";
+	private static final String PLUGIN_TEST_FILE = "plugin_inst.tst";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugins.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
@@ -305,7 +305,7 @@ public class DownloadPlugins {
 					continue;
 				}
 				int count;
-				byte data[] = new byte[4096];
+				byte[] data = new byte[4096];
 				FileOutputStream fos = new FileOutputStream(dst);
 				try (BufferedOutputStream dest = new BufferedOutputStream(fos, 4096)) {
 					while ((count = zis.read(data, 0, 4096)) != -1) {

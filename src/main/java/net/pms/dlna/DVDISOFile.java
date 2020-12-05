@@ -95,8 +95,8 @@ public class DVDISOFile extends VirtualFolder {
 
 	@Override
 	protected void resolveOnce() {
-		double titles[] = new double[100];
-		String cmd[] = new String[]{
+		double[] titles = new double[100];
+		String[] cmd = new String[]{
 			configuration.getMPlayerPath(),
 			"-identify",
 			"-endpos",

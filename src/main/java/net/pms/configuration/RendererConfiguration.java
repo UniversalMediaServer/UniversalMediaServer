@@ -1868,8 +1868,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return maximumBitrateTotal;
 		}
 
-		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
+		int[] defaultMaxBitrates = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
+		int[] rendererMaxBitrates = new int[2];
 
 		String maxVideoBitrate = getMaxVideoBitrate();
 		if (StringUtils.isNotEmpty(maxVideoBitrate)) {
@@ -1926,8 +1926,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The FFmpeg format.
 	 */
 	public String convertMencoderSettingToFFmpegFormat(String mpegSettings) {
-		String mpegSettingsArray[] = mpegSettings.split(":");
-		String pairArray[];
+		String[] mpegSettingsArray = mpegSettings.split(":");
+		String[] pairArray;
 		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
@@ -2637,7 +2637,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	};
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
-		int bitrates[] = new int[2];
+		int[] bitrates = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
@@ -2802,6 +2802,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			switch (mode.trim().toLowerCase()) {
 				case "false":    return BLOCK;
 				case "postpone": return POSTPONE;
+			default:
+				break;
 			}
 		}
 		return ALLOW;
@@ -2812,6 +2814,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			case BLOCK:    return "blocked";
 			case POSTPONE: return "postponed";
 			case NONE:     return "unknown";
+		default:
+			break;
 		}
 		return "allowed";
 	}

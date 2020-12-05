@@ -509,7 +509,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
 		File file = media.getFile();
-		String args[] = new String[14];
+		String[] args = new String[14];
 		args[0] = configuration.getMPlayerPath();
 		args[1] = "-ss";
 		if (resume) {
@@ -1417,6 +1417,8 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.WMA10:
 					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
 					break;
+			default:
+				break;
 			}
 		}
 
@@ -1522,7 +1524,7 @@ public class DLNAMediaInfo implements Cloneable {
 							container.equals("mp4")
 						)
 					) { // Containers without h264_annexB
-						byte headers[][] = getAnnexBFrameHeader(f);
+						byte[][] headers = getAnnexBFrameHeader(f);
 						synchronized (ffmpeg_annexb_failureLock) {
 							if (ffmpeg_annexb_failure) {
 								LOGGER.info("Error parsing information from the file: " + f.getFilename());
@@ -1537,7 +1539,7 @@ public class DLNAMediaInfo implements Cloneable {
 									if (h264_annexB[2] == 1) {
 										skip = 4;
 									}
-									byte header[] = new byte[h264_annexB.length - skip];
+									byte[] header = new byte[h264_annexB.length - skip];
 									System.arraycopy(h264_annexB, skip, header, 0, header.length);
 
 									avcLevelLock.readLock().lock();
@@ -1910,7 +1912,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 
-		byte data[] = pw.getOutputByteArray().toByteArray();
+		byte[] data = pw.getOutputByteArray().toByteArray();
 		returnData[0] = data;
 		int kf = 0;
 
@@ -1935,7 +1937,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		if (found) {
-			byte header[] = new byte[kf - st];
+			byte[] header = new byte[kf - st];
 			System.arraycopy(data, st, header, 0, kf - st);
 			returnData[1] = header;
 		}
@@ -2592,7 +2594,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the subtitleTracks
 	 * @since 1.60.0
 	 */
-	synchronized public List<DLNAMediaSubtitle> getSubtitlesTracks() {
+	public synchronized List<DLNAMediaSubtitle> getSubtitlesTracks() {
 		return subtitleTracks;
 	}
 
@@ -2600,14 +2602,14 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param subtitlesTracks the subtitlesTracks to set
 	 * @since 1.60.0
 	 */
-	synchronized public void setSubtitlesTracks(List<DLNAMediaSubtitle> subtitlesTracks) {
+	public synchronized void setSubtitlesTracks(List<DLNAMediaSubtitle> subtitlesTracks) {
 		this.subtitleTracks = subtitlesTracks;
 	}
 
 	/**
 	 * @param subtitlesTrack the subtitleTrack to add
 	 */
-	synchronized public void addSubtitlesTrack(DLNAMediaSubtitle subtitlesTrack) {
+	public synchronized void addSubtitlesTrack(DLNAMediaSubtitle subtitlesTrack) {
 		this.subtitleTracks.add(subtitlesTrack);
 	}
 
@@ -2846,6 +2848,8 @@ public class DLNAMediaInfo implements Cloneable {
 			case "side by side (left eye first)":
 			case "side by side (right eye first)":
 				return true;
+		default:
+			break;
 		}
 
 		return false;
@@ -2957,6 +2961,8 @@ public class DLNAMediaInfo implements Cloneable {
 				return Mode3D.AYBC;
 			case "aybd":
 				return Mode3D.AYBD;
+		default:
+			break;
 		}
 
 		return null;

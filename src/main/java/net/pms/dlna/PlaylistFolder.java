@@ -249,6 +249,8 @@ public class PlaylistFolder extends DLNAResource {
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
 				case "ups":
 					return new Playlist(name, uri);
+			default:
+				break;
 			}
 		}
 		return null;
