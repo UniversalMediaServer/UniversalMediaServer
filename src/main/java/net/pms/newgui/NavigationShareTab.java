@@ -71,7 +71,7 @@ public class NavigationShareTab {
 	private JCheckBox episodeTitles;
 	private JCheckBox resume;
 	private JCheckBox isScanSharedFoldersOnStartup;
-        private JCheckBox useSymlinksTargetFile;
+	private JCheckBox useSymlinksTargetFile;
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
@@ -134,7 +134,7 @@ public class NavigationShareTab {
 		+ "3dlu,"                         //
 		+ "p,"                            //
 		+ "3dlu,"                         //
-                + "p,"                            //
+		+ "p,"                            //
 		+ "3dlu,"                         //
 		+ "p,"                            //
 		+ "9dlu,"                         //
@@ -217,7 +217,7 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),             FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
 
-                        builder.add(GuiUtil.getPreferredSizeComponent(useSymlinksTargetFile),     FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(useSymlinksTargetFile),        FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1, 31   ), colSpec, orientation));
 			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 31, 3), colSpec, orientation));
@@ -501,8 +501,8 @@ public class NavigationShareTab {
 			}
 		});
 
-                // Use target file for symlinks
-                useSymlinksTargetFile = new JCheckBox(Messages.getString("FoldTab.useSymlinksTargetFile"), configuration.isUseSymlinksTargetFile());
+		// Use target file for symlinks
+		useSymlinksTargetFile = new JCheckBox(Messages.getString("FoldTab.useSymlinksTargetFile"), configuration.isUseSymlinksTargetFile());
 		useSymlinksTargetFile.setToolTipText(Messages.getString("FoldTab.useSymlinksTargetFileToolTip"));
 		useSymlinksTargetFile.setContentAreaFilled(false);
 		useSymlinksTargetFile.addItemListener(new ItemListener() {

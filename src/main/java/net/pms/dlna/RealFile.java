@@ -52,17 +52,17 @@ public class RealFile extends MapFile {
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
 	}
-        
-	 /**
+
+	/**
 	 * Add the file to MapFileConfiguration->Files.
 	 *
 	 * @param file The file to add.
 	 */
-        private void addFileToConfFiles(File file) {
+	private void addFileToConfFiles(File file) {
 		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
-                    getConf().getFiles().add(FileUtil.getRealFile(file));
+			getConf().getFiles().add(FileUtil.getRealFile(file));
 		} else {
-                    getConf().getFiles().add(file);
+			getConf().getFiles().add(file);
 		}
 	}
 

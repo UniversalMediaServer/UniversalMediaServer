@@ -193,7 +193,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
-        protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
+	protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
 	
@@ -3790,7 +3790,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setUseSymlinksTargetFile(final boolean value) {
 		this.configuration.setProperty(PmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, value);
 	}
-        
+
 	/**
 	 * Whether to show the "Media Library" folder on the renderer.
 	 *
