@@ -5,11 +5,11 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 
 /**
- * Utility class for Windows
+ * Utility class for Windows.
  */
 public class WindowsUtil {
 	/**
-	 * Private constructor to avoid instantiating this class
+	 * Private constructor to avoid instantiating this class.
 	 */
 	private WindowsUtil() {}
 
