@@ -51,7 +51,7 @@ public class DownloadPlugins {
 	private static final String PLUGIN_TEST_FILE = "plugin_inst.tst";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugins.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private String id;
 	private String name;
@@ -69,7 +69,7 @@ public class DownloadPlugins {
 	public static ArrayList<DownloadPlugins> downloadList() {
 		ArrayList<DownloadPlugins> res = new ArrayList<>();
 
-		if (!configuration.getExternalNetwork()) {
+		if (!CONFIGURATION.getExternalNetwork()) {
 			// Do not try to get the plugin list if there is no
 			// external network.
 			return res;
@@ -81,11 +81,11 @@ public class DownloadPlugins {
 			connection.setConnectTimeout(5000);
 			connection.setReadTimeout(5000);
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			parse_list(res, in, false);
-			File test = new File(configuration.getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
+			parseList(res, in, false);
+			File test = new File(CONFIGURATION.getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
 			if (test.exists()) {
 				in = new BufferedReader(new InputStreamReader(new FileInputStream(test)));
-				parse_list(res, in, true);
+				parseList(res, in, true);
 			}
 		} catch (IOException e) {
 		}
@@ -100,7 +100,7 @@ public class DownloadPlugins {
 		}
 	}
 
-	private static void parse_list(ArrayList<DownloadPlugins> res, BufferedReader in, boolean test) throws IOException {
+	private static void parseList(ArrayList<DownloadPlugins> res, BufferedReader in, boolean test) throws IOException {
 		String str;
 		DownloadPlugins plugin = new DownloadPlugins(test);
 		while ((str = in.readLine()) != null) {
@@ -127,10 +127,6 @@ public class DownloadPlugins {
 			if (keyval[0].equalsIgnoreCase("name")) {
 				plugin.name = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("rating")) {
-				// Rating is temporarily switched off
-				// plugin.rating = keyval[1];
-			}
 			if (keyval[0].equalsIgnoreCase("desc")) {
 				plugin.desc = keyval[1];
 			}
@@ -143,16 +139,13 @@ public class DownloadPlugins {
 			if (keyval[0].equalsIgnoreCase("version")) {
 				plugin.version = keyval[1];
 			}
-			if (keyval[0].equalsIgnoreCase("type")) {
-				// Deprecated
-			}
 			if (keyval[0].equalsIgnoreCase("require")) {
 				plugin.old = false;
 				String[] minVer = keyval[1].split("\\.");
 				String[] myVer = PMS.getVersion().split("\\.");
 				int max = Math.max(myVer.length, minVer.length);
 				for (int i = 0; i < max; i++) {
-					int my,min;
+					int my, min;
 					// If the versions are of different length
 					// say that the part of "wrong" length is 0
 					my = getInt(((i > myVer.length) ? "0" : myVer[i]));
@@ -378,14 +371,14 @@ public class DownloadPlugins {
 
 		// Everything after the "," is what we're supposed to run
 		// First make note of jars we got
-		File[] oldJar = new File(configuration.getPluginDirectory()).listFiles();
+		File[] oldJar = new File(CONFIGURATION.getPluginDirectory()).listFiles();
 
 		// Before we start external installers better save the config
-		configuration.save();
+		CONFIGURATION.save();
 		ProcessBuilder pb = new ProcessBuilder(args.substring(pos + 1));
 		pb.redirectErrorStream(true);
 		Map<String, String> env = pb.environment();
-		env.put("PROFILE_PATH", configuration.getProfilePath());
+		env.put("PROFILE_PATH", CONFIGURATION.getProfilePath());
 		env.put("UMS_VERSION", PMS.getVersion());
 
 		LOGGER.debug("running '" + args + "'");
@@ -395,10 +388,10 @@ public class DownloadPlugins {
 		while (output.hasNextLine()) {
 			LOGGER.debug("[" + args + "] " + output.nextLine());
 		}
-		configuration.reload();
+		CONFIGURATION.reload();
 		pid.waitFor();
 
-		File[] newJar = new File(configuration.getPluginDirectory()).listFiles();
+		File[] newJar = new File(CONFIGURATION.getPluginDirectory()).listFiles();
 		for (File f : newJar) {
 			if (!f.getAbsolutePath().endsWith(".jar")) {
 				// skip non jar files
@@ -447,8 +440,8 @@ public class DownloadPlugins {
 		if (cmd.equalsIgnoreCase("conf")) {
 			String[] tmp = args.split(",", 2);
 			tmp = tmp[1].split("=");
-			configuration.setCustomProperty(tmp[1], tmp[2]);
-			configuration.save();
+			CONFIGURATION.setCustomProperty(tmp[1], tmp[2]);
+			CONFIGURATION.save();
 			return true;
 		}
 
@@ -491,7 +484,7 @@ public class DownloadPlugins {
 				}
 
 				String[] tmp = str.split(",", 3);
-				String dir = configuration.getPluginDirectory();
+				String dir = CONFIGURATION.getPluginDirectory();
 				String filename = "";
 
 				if (command(tmp[0], str)) {
