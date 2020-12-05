@@ -598,7 +598,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 		}
 
-		((PropertiesConfiguration)configuration).setPath(PROFILE_PATH);
+		((PropertiesConfiguration) configuration).setPath(PROFILE_PATH);
 
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = new ConfigurableProgramPaths(configuration);
