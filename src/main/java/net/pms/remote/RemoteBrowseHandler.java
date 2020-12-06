@@ -4,6 +4,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -240,6 +241,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		mustacheVars.put("recentlyPlayed", "");
 		mustacheVars.put("recentlyPlayedLink", "");
 		mustacheVars.put("hasRecentlyPlayed", false);
+		mustacheVars.put("inProgress", "");
+		mustacheVars.put("inProgressLink", "");
+		mustacheVars.put("hasInProgress", false);
 		mustacheVars.put("recentlyAdded", "");
 		mustacheVars.put("recentlyAddedLink", "");
 		mustacheVars.put("hasRecentlyAdded", false);
@@ -301,83 +305,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 					boolean isSkipThisFolder = false;
 
 					// Populate the front page
-					if (id.equals("0")) {
-						if (configuration.isShowRecentlyPlayedFolder() && resource.getName().equals(Messages.getString("VirtualFolder.1"))) {
-							ArrayList<HashMap<String, String>> recentlyPlayedItemsHTML = new ArrayList<>();
-							int i = 0;
-							List<DLNAResource> recentlyPlayedResources = root.getDLNAResources(resource.getId(), true, 0, 7, root.getDefaultRenderer());
-							for (DLNAResource recentlyPlayedResource : recentlyPlayedResources) {
-								String recentlyPlayedResourceId = recentlyPlayedResource.getResourceId();
-								String recentlyPlayedResourceidForWeb = URLEncoder.encode(recentlyPlayedResourceId, "UTF-8");
-								String recentlyPlayedResourcethumb = "/thumb/" + recentlyPlayedResourceidForWeb;
-								String recentlyPlayedResourcename = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
+					if (id.equals("0") && resource.getName().equals(Messages.getString("PMS.MediaLibrary"))) {
+						List<DLNAResource> mediaLibraryChildren = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
+						UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
+						DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
-								// Skip the Clear and #--TRANSCODE--# entries
-								if (
-									recentlyPlayedResourcename.equals(Messages.getString("TracesTab.3")) ||
-									recentlyPlayedResourcename.equals(Messages.getString("TranscodeVirtualFolder.0"))
-								) {
-									continue;
-								}
-
-								recentlyPlayedItemsHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedResourceidForWeb, recentlyPlayedResourcename, recentlyPlayedResourcethumb, t));
-
-								if (i == 0) {
-									mustacheVars.put("hasRecentlyPlayed", true);
-									StringBuilder recentlyPlayedLink = new StringBuilder();
-									recentlyPlayedLink.append("<a href=\"/browse/").append(idForWeb);
-									recentlyPlayedLink.append("\" title=\"").append(name).append("\">");
-									recentlyPlayedLink.append(name).append(":");
-									recentlyPlayedLink.append("</a>");
-									mustacheVars.put("recentlyPlayedLink", recentlyPlayedLink.toString());
-								}
-								i++;
-							}
-							mustacheVars.put("recentlyPlayed", recentlyPlayedItemsHTML);
-							isSkipThisFolder = true;
-						}
-						if (resource.getName().equals(Messages.getString("PMS.MediaLibrary"))) {
-							ArrayList<HashMap<String, String>> recentlyAddedVideosHTML = new ArrayList<>();
-							int i = 0;
-							List<DLNAResource> mediaLibraryChildren = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
-							UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
-							DLNAResource videoFolder = mediaLibraryChildren.get(0);
-
-							List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("MediaLibrary.RecentlyAdded"));
-							UMSUtils.filterResourcesByName(videoFolderChildren, Messages.getString("MediaLibrary.RecentlyAdded"), true, true);
-							DLNAResource recentlyAddedFolder = videoFolderChildren.get(0);
-
-							List<DLNAResource> recentlyAddedVideos = root.getDLNAResources(recentlyAddedFolder.getId(), true, 0, 6, root.getDefaultRenderer());
-
-							for (DLNAResource recentlyAddedResource : recentlyAddedVideos) {
-								String recentlyAddedId = recentlyAddedResource.getResourceId();
-								String recentlyAddedIdForWeb = URLEncoder.encode(recentlyAddedId, "UTF-8");
-								String recentlyAddedThumb = "/thumb/" + recentlyAddedIdForWeb;
-								String recentlyAddedName = StringEscapeUtils.escapeHtml4(recentlyAddedResource.resumeName());
-
-								// Skip the #--TRANSCODE--# entry
-								if (
-									recentlyAddedName.equals(Messages.getString("TranscodeVirtualFolder.0"))
-								) {
-									continue;
-								}
-
-								recentlyAddedVideosHTML.add(getMediaHTML(recentlyAddedResource, recentlyAddedIdForWeb, recentlyAddedName, recentlyAddedThumb, t));
-								i++;
-								if (i == 1) {
-									mustacheVars.put("hasRecentlyAdded", true);
-									StringBuilder recentlyAddedLink = new StringBuilder();
-									String recentlyAddedFolderId = recentlyAddedFolder.getResourceId();
-									String recentlyAddedFolderidForWeb = URLEncoder.encode(recentlyAddedFolderId, "UTF-8");
-									recentlyAddedLink.append("<a href=\"/browse/").append(recentlyAddedFolderidForWeb);
-									recentlyAddedLink.append("\" title=\"").append(Messages.getString("Web.RecentlyAddedVideos")).append("\">");
-									recentlyAddedLink.append(Messages.getString("Web.RecentlyAddedVideos")).append(":");
-									recentlyAddedLink.append("</a>");
-									mustacheVars.put("recentlyAddedLink", recentlyAddedLink.toString());
-								}
-							}
-							mustacheVars.put("recentlyAdded", recentlyAddedVideosHTML);
-						}
+						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAddedLink", "recentlyAdded", t);
+						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.RecentlyPlayed", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayedLink", "recentlyPlayed", t);
+						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgressLink", "inProgress", t);
+						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayedLink", "mostPlayed", t);
 					}
 
 					if (!isSkipThisFolder) {
@@ -486,5 +422,52 @@ public class RemoteBrowseHandler implements HttpHandler {
 			LOGGER.error("Unexpected error in RemoteBrowseHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	private void addMediaLibraryFolderToFrontPage(
+		HashMap<String, Object> mustacheVars,
+		DLNAResource videoFolder,
+		RootFolder root,
+		String folderNameKey,
+		String headingKey,
+		String hasFolderVarName,
+		String linkVarName,
+		String childrenVarName,
+		HttpExchange t
+	) throws IOException {
+		int i = 0;
+		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString(folderNameKey));
+		UMSUtils.filterResourcesByName(videoFolderChildren, Messages.getString(folderNameKey), true, true);
+		DLNAResource recentlyPlayedFolder = videoFolderChildren.get(0);
+
+		ArrayList<HashMap<String, String>> recentlyPlayedVideosHTML = new ArrayList<>();
+		List<DLNAResource> recentlyPlayedVideos = root.getDLNAResources(recentlyPlayedFolder.getId(), true, 0, 6, root.getDefaultRenderer());
+
+		for (DLNAResource recentlyPlayedResource : recentlyPlayedVideos) {
+			String recentlyPlayedId = recentlyPlayedResource.getResourceId();
+			String recentlyPlayedIdForWeb = URLEncoder.encode(recentlyPlayedId, "UTF-8");
+			String recentlyPlayedThumb = "/thumb/" + recentlyPlayedIdForWeb;
+			String recentlyPlayedName = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
+
+			// Skip the #--TRANSCODE--# entry
+			if (recentlyPlayedName.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
+				continue;
+			}
+
+			recentlyPlayedVideosHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedIdForWeb, recentlyPlayedName, recentlyPlayedThumb, t));
+			i++;
+
+			if (i == 1) {
+				mustacheVars.put(hasFolderVarName, true);
+				StringBuilder recentlyPlayedLink = new StringBuilder();
+				String recentlyPlayedFolderId = recentlyPlayedFolder.getResourceId();
+				String recentlyPlayedFolderidForWeb = URLEncoder.encode(recentlyPlayedFolderId, "UTF-8");
+				recentlyPlayedLink.append("<a href=\"/browse/").append(recentlyPlayedFolderidForWeb).append("\">");
+				recentlyPlayedLink.append(Messages.getString(headingKey)).append(":");
+				recentlyPlayedLink.append("</a>");
+				mustacheVars.put(linkVarName, recentlyPlayedLink.toString());
+			}
+		}
+		mustacheVars.put(childrenVarName, recentlyPlayedVideosHTML);
 	}
 }
