@@ -226,7 +226,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param pmsConf
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
-		synchronized(loadRendererConfigurationsLock) {
+		synchronized (loadRendererConfigurationsLock) {
 			_pmsConfiguration = pmsConf;
 			enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
 

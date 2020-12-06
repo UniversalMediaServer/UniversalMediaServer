@@ -13,11 +13,6 @@ Checkstyle configuration for Universal Media Server.
 	<property name="fileExtensions" value="java, xml"/>
 	<module name="SuppressWarningsFilter" />
 	<module name="SeverityMatchFilter" />
-	<module name="LineLength">
-		<property name="severity" value="warning"/>
-		<property name="max" value="140"/>
-		<property name="tabWidth" value="4"/>
-	</module>
 	<module name="TreeWalker">
 		<property name="tabWidth" value="4"/>
 		<module name="RegexpSinglelineJava">
@@ -65,6 +60,7 @@ Checkstyle configuration for Universal Media Server.
 			<property name="processJavadoc" value="false"/>
 		</module>
 		<module name="MethodLength">
+			<property name="severity" value="warning"/>
 			<property name="max" value="300"/>
 		</module>
 		<module name="ParameterNumber">
@@ -84,8 +80,8 @@ Checkstyle configuration for Universal Media Server.
 		<module name="TypecastParenPad"/>
 		<module name="WhitespaceAfter"/>
 		<module name="WhitespaceAround">
-			<property name="allowEmptyCatches" value="true" />
-			<property name="allowEmptyConstructors" value="true" />
+			<property name="allowEmptyCatches" value="true"/>
+			<property name="allowEmptyConstructors" value="true"/>
 		</module>
 		<module name="ModifierOrder">
 			<property name="severity" value="warning"/>
@@ -126,6 +122,7 @@ Checkstyle configuration for Universal Media Server.
 		</module>
 		<module name="InterfaceIsType"/>
 		<module name="VisibilityModifier">
+			<property name="severity" value="warning"/>
 			<property name="protectedAllowed" value="true"/>
 			<property name="allowPublicImmutableFields" value="true"/>
 		</module>

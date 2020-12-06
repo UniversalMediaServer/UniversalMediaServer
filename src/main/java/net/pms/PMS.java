@@ -183,7 +183,7 @@ public class PMS {
 	 * it's holding is not. Any looping/iterating of this <code>List</code>
 	 * MUST be enclosed in:
 	 * S<pre><code>
-	 * synchronized(getFoundRenderers()) {
+	 * synchronized (getFoundRenderers()) {
 	 *      ..code..
 	 * }
 	 * </code></pre>

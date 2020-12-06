@@ -49,7 +49,7 @@ public class UPNPControl {
 	// Logger ids to write messages to the logs.
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPControl.class);
 
-	public static final DeviceType[] mediaRendererTypes = new DeviceType[] {
+	public static final DeviceType[] mediaRendererTypes = new DeviceType[]{
 		new UDADeviceType("MediaRenderer", 1),
 		// Older Sony Blurays provide only 'Basic' service
 		new UDADeviceType("Basic", 1)
@@ -81,7 +81,7 @@ public class UPNPControl {
 
 		public T get(String uuid, String id) {
 			if (!containsKey(uuid)) {
-				put(uuid, new HashMap<String, T>());
+				put(uuid, new HashMap<>());
 			}
 			HashMap<String, T> m = get(uuid);
 			if (!m.containsKey(id)) {
@@ -242,7 +242,7 @@ public class UPNPControl {
 
 	/**
 	 * Get the registered device root or embedded with the requested UUID
-	 * 
+	 *
 	 * @param uuid the UUID of the device to be checked.
 	 * @return the device registered in the UpnpService.Registry, null otherwise
 	 */
@@ -293,13 +293,13 @@ public class UPNPControl {
 	 * e.g. gateways, routers, printers etc.
 	 */
 	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<RemoteDevice>();
-	
+
 	/**
 	 * Add device to the list of ignored devices when not exists on the list.
-	 * 
+	 *
 	 * @param device The device to add to the list.
 	 */
-	static void addIgnoredDeviceToList (RemoteDevice device) {
+	static void addIgnoredDeviceToList(RemoteDevice device) {
 		if (!ignoredDevices.contains(device)) {
 			ignoredDevices.add(device);
 			LOGGER.trace("This device was added to the list of ignored devices.");
@@ -307,7 +307,7 @@ public class UPNPControl {
 			LOGGER.trace("This device is in the list of ignored devices so not be added.");
 		}
 	}
-	
+
 	public void init() {
 		try {
 			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
@@ -426,8 +426,8 @@ public class UPNPControl {
 	}
 
 	public static URL getURL(Device d) {
-		return d instanceof RemoteDevice ? ((RemoteDevice) d).getIdentity().getDescriptorURL() :
-			d.getDetails().getBaseURL();
+		return d instanceof RemoteDevice ? ((RemoteDevice) d).getIdentity().getDescriptorURL()
+			: d.getDetails().getBaseURL();
 	}
 
 	public static List<String> getServiceNames(Device d) {
@@ -496,7 +496,8 @@ public class UPNPControl {
 		}
 		try {
 			url = icon != null ? new URL(base, icon.getUri().toString()).toString() : null;
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 		LOGGER.debug("Device icon: " + url);
 		return url;
 	}
@@ -583,8 +584,8 @@ public class UPNPControl {
 
 	/**
 	 * Returns the first device regardless of type at the given address, if any
-	 * 
-	 * @param socket address of the checked remote device. 
+	 *
+	 * @param socket address of the checked remote device.
 	 */
 	public static Device getAnyDevice(InetAddress socket) {
 		if (upnpService != null) {
@@ -594,7 +595,8 @@ public class UPNPControl {
 					if (devsocket.equals(socket)) {
 						return d;
 					}
-				} catch (Exception e) {}
+				} catch (Exception e) {
+				}
 			}
 		}
 		return null;
@@ -602,8 +604,8 @@ public class UPNPControl {
 
 	/**
 	 * Returns the first renderer at the given address, if any.
-	 * 
-	 * @param socket address of the checked remote device. 
+	 *
+	 * @param socket address of the checked remote device.
 	 */
 	public static Device getDevice(InetAddress socket) {
 		if (upnpService != null) {
@@ -614,7 +616,8 @@ public class UPNPControl {
 						if (devsocket.equals(socket)) {
 							return d;
 						}
-					} catch (Exception e) {}
+					} catch (Exception e) {
+					}
 				}
 			}
 		}
@@ -667,28 +670,28 @@ public class UPNPControl {
 
 		@Override
 		public void established(GENASubscription sub) {
-			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() +
-				" on " + getFriendlyName(uuid));
+			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId()
+				+ " on " + getFriendlyName(uuid));
 		}
 
 		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex, String defaultMsg) {
-			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
-				" on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
+			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId()
+				+ " on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
 		}
 
 		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex) {
-			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
-				" on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
+			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId()
+				+ " on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
 		}
 
 		@Override
 		public void ended(GENASubscription sub, CancelReason reason, UpnpResponse response) {
 			// Reason should be null, or it didn't end regularly
 			if (reason != null) {
-				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
-					" on " + uuid + ": " + reason);
+				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId()
+					+ " on " + uuid + ": " + reason);
 			}
 			rendererMap.mark(uuid, RENEW, true);
 		}

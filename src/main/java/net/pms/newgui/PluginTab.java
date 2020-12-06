@@ -102,7 +102,7 @@ public class PluginTab {
 		/* An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) credTable.getCellRenderer(0,0);
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) credTable.getCellRenderer(0, 0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
 		credTable.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		credTable.setFillsViewportHeight(true);

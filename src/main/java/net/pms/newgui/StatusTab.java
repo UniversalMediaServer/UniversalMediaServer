@@ -58,14 +58,13 @@ import org.slf4j.LoggerFactory;
 
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
-	private static final Color memColor = new Color(119, 119, 119, 128);
-	private static final Color bufColor = new Color(75, 140, 181, 128);
+	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
+	private static final Color BUF_COLOR = new Color(75, 140, 181, 128);
 
 	public static class RendererItem implements ActionListener {
 		public ImagePanel icon;
 		public JLabel label;
 		public GuiUtil.MarqueeLabel playingLabel;
-//		public GuiUtil.ScrollLabel playingLabel;
 		public GuiUtil.FixedPanel playing;
 		public JLabel time;
 		public JFrame frame;
@@ -79,7 +78,6 @@ public class StatusTab {
 			icon.enableRollover();
 			label = new JLabel(renderer.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
-//			playingLabel = new GuiUtil.ScrollLabel(" ");
 			playingLabel.setForeground(Color.gray);
 			int h = (int) playingLabel.getSize().getHeight();
 			playing = new GuiUtil.FixedPanel(0, h);
@@ -92,7 +90,7 @@ public class StatusTab {
 			if (renderer.getAddress() != null) {
 				rendererProgressBar.setString(renderer.getAddress().getHostAddress());
 			}
-			rendererProgressBar.setForeground(bufColor);
+			rendererProgressBar.setForeground(BUF_COLOR);
 		}
 
 		@Override
@@ -245,7 +243,7 @@ public class StatusTab {
 	public void updateCurrentBitrate() {
 		long total = 0;
 		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized(foundRenderers) {
+		synchronized (foundRenderers) {
 			for (RendererConfiguration r : foundRenderers) {
 				total += r.getBuffer();
 			}
@@ -266,16 +264,16 @@ public class StatusTab {
 		FormLayout layout = new FormLayout(colSpec,
 			//                          1     2          3            4     5
 			//                   //////////////////////////////////////////////////
-			  "p,"               // Detected Media Renderers --------------------//  1
-			+ "9dlu,"            //                                              //
-			+ "fill:p:grow,"     //                 <renderers>                  //  3
-			+ "3dlu,"            //                                              //
-			+ "p,"               // ---------------------------------------------//  5
-			+ "10dlu,"           //           |                       |          //
-			+ "[10pt,p],"        // Connected |  Memory Usage         |<bitrate> //  7
-			+ "1dlu,"            //           |                       |          //
-			+ "[30pt,p],"        //  <icon>   |  <statusbar>          |          //  9
-			+ "3dlu,"            //           |                       |          //
+			"p," +               // Detected Media Renderers --------------------//  1
+			"9dlu," +            //                                              //
+			"fill:p:grow," +     //                 <renderers>                  //  3
+			"3dlu," +            //                                              //
+			"p," +               // ---------------------------------------------//  5
+			"10dlu," +           //           |                       |          //
+			"[10pt,p]," +        // Connected |  Memory Usage         |<bitrate> //  7
+			"1dlu," +            //           |                       |          //
+			"[30pt,p]," +        //  <icon>   |  <statusbar>          |          //  9
+			"3dlu,"              //           |                       |          //
 			                     //////////////////////////////////////////////////
 		);
 
@@ -317,8 +315,8 @@ public class StatusTab {
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
 		memBarUI.setActiveLabel("{}", Color.white, 0);
 		memBarUI.setActiveLabel("{}", Color.red, 90);
-		memBarUI.addSegment("", memColor);
-		memBarUI.addSegment("", bufColor);
+		memBarUI.addSegment("", MEM_COLOR);
+		memBarUI.addSegment("", BUF_COLOR);
 		memBarUI.setTickMarks(getTickMarks(), "{}");
 		memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
 		memoryProgressBar.setStringPainted(true);
@@ -532,25 +530,19 @@ public class StatusTab {
 			}
 		}
 		final long buffer = buf;
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
-			}
+		SwingUtilities.invokeLater(() -> {
+			memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
 		});
 	}
 
 	private void startMemoryUpdater() {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				for(;;) {
-					updateMemoryUsage();
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						return;
-					}
+		Runnable r = () -> {
+			for (;;) {
+				updateMemoryUsage();
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					return;
 				}
 			}
 		};
