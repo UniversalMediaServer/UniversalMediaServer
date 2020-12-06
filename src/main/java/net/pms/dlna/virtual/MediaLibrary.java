@@ -97,18 +97,14 @@ public class MediaLibrary extends VirtualFolder {
 			new String[]{ "SELECT * FROM FILES WHERE TYPE = 4 ORDER BY FILES.MODIFIED DESC LIMIT 100" },
 			new int[]{ MediaLibraryFolder.FILES_NOSORT }
 		);
-		if (configuration.isShowRecentlyPlayedFolder()) {
-			MediaLibraryFolder recentlyPlayedVideos = new MediaLibraryFolder(
-				Messages.getString("VirtualFolder.1"), sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAYED IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAYED DESC LIMIT 100",
-				MediaLibraryFolder.FILES_NOSORT
-			);
-		}
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.InProgress"), sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAYED IS NOT NULL" + unwatchedCondition + " ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAYED DESC LIMIT 100",
+			Messages.getString("MediaLibrary.InProgress"),
+			sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL" + unwatchedCondition + " ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mostPlayedVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.MostPlayed"), sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAYED IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".PLAYCOUNT DESC LIMIT 100",
+			Messages.getString("MediaLibrary.MostPlayed"),
+			sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".PLAYCOUNT DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
@@ -155,7 +151,14 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(movies3DFolder);
 			vfVideo.addChild(unsortedFolder);
 			vfVideo.addChild(recentlyAddedVideos);
-			vfVideo.addChild(recentlyPlayedVideos);
+			if (configuration.isShowRecentlyPlayedFolder()) {
+				MediaLibraryFolder recentlyPlayedVideos = new MediaLibraryFolder(
+					Messages.getString("VirtualFolder.1"),
+					sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
+					MediaLibraryFolder.FILES_NOSORT
+				);
+				vfVideo.addChild(recentlyPlayedVideos);
+			}
 			vfVideo.addChild(inProgressVideos);
 			vfVideo.addChild(mostPlayedVideos);
 			vfVideo.addChild(allVideosFolder);

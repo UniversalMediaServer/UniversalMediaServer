@@ -167,7 +167,7 @@ public final class TableFilesStatus extends Tables {
 					playCount++;
 
 					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-					result.updateTimestamp("DATELASTPLAYED", new Timestamp(System.currentTimeMillis()));
+					result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
 					result.updateInt("PLAYCOUNT", playCount);
 
 					if (isCreatingNewRecord) {

@@ -4,7 +4,6 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +36,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 	public RemoteBrowseHandler(RemoteWeb parent) {
 		this.parent = parent;
 	}
+
+	private final HashMap<String, Object> mustacheVars = new HashMap<>();
 
 	/**
 	 * @param resource
@@ -156,8 +157,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 
 		boolean hasFile = false;
-
-		HashMap<String, Object> mustacheVars = new HashMap<>();
 
 		ArrayList<String> breadcrumbs = new ArrayList<>();
 		ArrayList<String> folders = new ArrayList<>();
@@ -310,10 +309,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 						UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
 						DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
-						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAddedLink", "recentlyAdded", t);
-						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.RecentlyPlayed", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayedLink", "recentlyPlayed", t);
-						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgressLink", "inProgress", t);
-						addMediaLibraryFolderToFrontPage(mustacheVars, videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayedLink", "mostPlayed", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAddedLink", "recentlyAdded", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayedLink", "recentlyPlayed", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgressLink", "inProgress", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayedLink", "mostPlayed", t);
 					}
 
 					if (!isSkipThisFolder) {
@@ -425,7 +424,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 	}
 
 	private void addMediaLibraryFolderToFrontPage(
-		HashMap<String, Object> mustacheVars,
 		DLNAResource videoFolder,
 		RootFolder root,
 		String folderNameKey,
@@ -438,6 +436,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 		int i = 0;
 		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString(folderNameKey));
 		UMSUtils.filterResourcesByName(videoFolderChildren, Messages.getString(folderNameKey), true, true);
+		if (videoFolderChildren.isEmpty()) {
+			LOGGER.trace("The videoFolderChildren folder was empty after filtering for " + Messages.getString(folderNameKey));
+			return;
+		}
 		DLNAResource recentlyPlayedFolder = videoFolderChildren.get(0);
 
 		ArrayList<HashMap<String, String>> recentlyPlayedVideosHTML = new ArrayList<>();
