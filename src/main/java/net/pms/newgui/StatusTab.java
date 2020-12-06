@@ -28,6 +28,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -75,7 +76,7 @@ public class StatusTab {
 		private JPanel _panel = null;
 
 		public RendererItem(RendererConfiguration renderer) {
-			icon = addRendererIcon(renderer.getRendererIcon());
+			icon = addRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays());
 			icon.enableRollover();
 			label = new JLabel(renderer.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
@@ -426,7 +427,7 @@ public class StatusTab {
 			@Override
 			public void run() {
 				if (renderer.gui != null) {
-					renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
+					renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
 					renderer.gui.label.setText(renderer.getRendererName());
 					// Update the popup panel if it's been opened
 					if (renderer.gui.panel != null) {
@@ -437,9 +438,36 @@ public class StatusTab {
 		});
 	}
 
-	public static ImagePanel addRendererIcon(String icon) {
-		BufferedImage bi = getRendererIcon(icon);
+	public static ImagePanel addRendererIcon(String icon, String overlays) {
+		BufferedImage bi = getRendererIcon(icon, overlays);
 		return bi != null ? new ImagePanel(bi) : null;
+	}
+
+	public static BufferedImage getRendererIcon(String icon, String overlays) {
+		BufferedImage bi = getRendererIcon(icon);
+		if (bi != null && StringUtils.isNotBlank(overlays)) {
+			Graphics g = bi.getGraphics();
+			g.setColor(Color.DARK_GRAY);
+			for (String overlay : overlays.split("[\u007c]")){
+				String text = null;
+				int x, y, size;
+				if (overlay.contains("@"))
+				{
+					text = overlay.substring(0, overlay.indexOf("@"));
+					String[] values = overlay.substring(overlay.indexOf("@") + 1).split(",");
+					if (values.length == 3)
+					{
+						x=Integer.parseInt(values[0]);
+						y=Integer.parseInt(values[1]);
+						size=Integer.parseInt(values[2]);
+						g.setFont(new Font("Courier", Font.BOLD, size));
+						g.drawString(text, x, y);
+					}
+				}
+			}
+			g.dispose();
+		}
+		return bi;
 	}
 
 	public static BufferedImage getRendererIcon(String icon) {

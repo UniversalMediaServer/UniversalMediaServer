@@ -159,6 +159,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String PUSH_METADATA = "PushMetadata";
 	protected static final String REMOVE_TAGS_FROM_SRT_SUBS = "RemoveTagsFromSRTSubtitles";
 	protected static final String RENDERER_ICON = "RendererIcon";
+	protected static final String RENDERER_ICON_OVERLAYS = "RendererIconOverlays";
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	protected static final String SEEK_BY_TIME = "SeekByTime";
@@ -1666,6 +1667,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
 		}
 		return deviceIcon == null ? icon : deviceIcon;
+	}
+
+	/**
+	 * Returns the the text/s that is displayed on the renderer icon
+	 * as defined in the renderer configurations. Default value is "".
+	 *
+	 * @return The renderer text.
+	 */
+	public String getRendererIconOverlays() {
+		return getString(RENDERER_ICON_OVERLAYS, "");
 	}
 
 	/**
