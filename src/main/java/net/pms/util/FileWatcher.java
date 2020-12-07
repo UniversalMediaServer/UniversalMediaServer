@@ -99,13 +99,14 @@ public class FileWatcher {
 			String match;
 			String globChar;
 			final String[] globCharsToEscape = {  
-					"[",
-					"]",
-					"{",
-					"}",
-					"?",
-					"*",
-					"," };
+				"[",
+				"]",
+				"{",
+				"}",
+				"?",
+				"*",
+				","
+			};
 
 			if (fspec.startsWith("glob:") || fspec.startsWith("regex:")) {
 				match = fspec; //assume fspec is valid glob or regex pattern, not just a file path
