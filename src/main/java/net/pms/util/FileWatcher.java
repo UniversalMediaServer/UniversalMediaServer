@@ -97,26 +97,11 @@ public class FileWatcher {
 
 		public void init(Path dir) {
 			String match;
-			String globChar;
-			final String[] globCharsToEscape = {  
-				"[",
-				"]",
-				"{",
-				"}",
-				"?",
-				"*",
-				","
-			};
-
 			if (fspec.startsWith("glob:") || fspec.startsWith("regex:")) {
 				match = fspec; //assume fspec is valid glob or regex pattern, not just a file path
 			} else { // Default to glob pattern if no prefix. fspec is a file path with double-backslashes
-				match = "glob:" + fspec;
-				// escape glob chars that could occur in a file path and would be interpreted as pattern in getPathMatcher()
-				for (int i = 0; i < globCharsToEscape.length; i++) {
-					globChar = globCharsToEscape[i];
-					match = match.replace(globChar, "\\" + globChar);
-				}
+				// escape chars that could occur in a file path and would be interpreted as pattern in getPathMatcher()
+				match = "glob:" + StringUtil.luceneEscape(fspec);;
 			}
 			matcher = dir.getFileSystem().getPathMatcher(match);
 		}
