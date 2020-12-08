@@ -2359,6 +2359,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								addAttribute(sb, "size", media.getSize());
 							}
 						}
+						
 					} else {
 						addAttribute(sb, "size", length());
 					}
@@ -2405,8 +2406,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				sb.append(getFileURL()).append(transcodedExtension);
 				closeTag(sb, "res");
 			}
+			
+            // DESC Metadata support: add ability for control point to identify song by MusicBrainz TrackID
+			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
+	            openTag(sb, "desc");
+	            addAttribute(sb, "id", "2");
+	            addAttribute(sb, "nameSpace", "http://ums/tags"); // TODO add real namespace  
+	            addAttribute(sb, "type", "ums-tags");
+	            endTag(sb);
+	            addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidRecord());
+	            closeTag(sb, "desc");
+			}			    
 		}
-
+		
 		if (subsAreValidForStreaming) {
 			String subsURL = getSubsURL(media_subtitle);
 			if (mediaRenderer.useClosedCaption()) {
