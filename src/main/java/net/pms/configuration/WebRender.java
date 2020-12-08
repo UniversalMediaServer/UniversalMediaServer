@@ -558,7 +558,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getPushData() {
-		String json = "";
+		String json = "{}";
 		if (push.size() > 0) {
 			json = gson.toJson(push);
 			push.clear();

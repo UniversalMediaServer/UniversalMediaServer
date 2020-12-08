@@ -236,7 +236,7 @@ public class RemoteWeb {
 			}
 
 			if (!create || (root != null)) {
-				t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+				t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/;SameSite=Strict");
 				return root;
 			}
 
@@ -259,7 +259,7 @@ public class RemoteWeb {
 			//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 			root.discoverChildren();
 			cookie = UUID.randomUUID().toString();
-			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/;SameSite=Strict");
 			roots.put(cookie, root);
 		}
 		return root;
@@ -640,7 +640,7 @@ public class RemoteWeb {
 				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
 				String json = renderer.getPushData();
-				RemoteUtil.respond(t, json, 200, "text");
+				RemoteUtil.respond(t, json, 200, "application/json");
 			} catch (IOException e) {
 				throw e;
 			} catch (Exception e) {
