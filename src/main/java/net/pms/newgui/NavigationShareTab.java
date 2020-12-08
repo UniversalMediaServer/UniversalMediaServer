@@ -69,6 +69,7 @@ public class NavigationShareTab {
 	private JCheckBox episodeTitles;
 	private JCheckBox resume;
 	private JCheckBox isScanSharedFoldersOnStartup;
+	private JCheckBox useSymlinksTargetFile;
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
@@ -94,37 +95,39 @@ public class NavigationShareTab {
 	private static final String PANEL_COL_SPEC = "left:pref,          3dlu,                pref, 3dlu,                       pref, 3dlu,               pref, 3dlu, pref, 3dlu, pref, default:grow";
 	private static final String PANEL_ROW_SPEC =
 		//                                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		"p," +                            // Thumbnails
-		"3dlu," +                         //
-		"p," +                            //                      Generate thumbnails         Thumbnail seeking position:         [seeking position]               Image thumbnails
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"9dlu," +                         //
-		"p," +                            // File sorting
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"9dlu," +                         //
-		"p," +                            // Virtual folders
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"3dlu," +                         //
-		"p," +                            //
-		"9dlu," +                         //
-		"fill:default:grow";              // Shared folders
+		"p,"                              // Thumbnails
+		+ "3dlu,"                         //
+		+ "p,"                            //                      Generate thumbnails         Thumbnail seeking position:         [seeking position]               Image thumbnails
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "9dlu,"                         //
+		+ "p,"                            // File sorting
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "9dlu,"                         //
+		+ "p,"                            // Virtual folders
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "3dlu,"                         //
+		+ "p,"                            //
+		+ "9dlu,"                         //
+		+ "fill:default:grow";            // Shared folders
 
 	public JComponent build() {
 		// Apply the orientation for the locale
@@ -203,10 +206,12 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),             FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1, 29   ), colSpec, orientation));
-			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 29, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy (7, 29   ), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy (9, 29   ), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(useSymlinksTargetFile),        FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+
+			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1, 31   ), colSpec, orientation));
+			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 31, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy (7, 31   ), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy (9, 31   ), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
@@ -473,6 +478,17 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setHideEmptyFolders((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		// Use target file for symlinks
+		useSymlinksTargetFile = new JCheckBox(Messages.getString("FoldTab.useSymlinksTargetFile"), configuration.isUseSymlinksTargetFile());
+		useSymlinksTargetFile.setToolTipText(Messages.getString("FoldTab.useSymlinksTargetFileToolTip"));
+		useSymlinksTargetFile.setContentAreaFilled(false);
+		useSymlinksTargetFile.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setUseSymlinksTargetFile((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
