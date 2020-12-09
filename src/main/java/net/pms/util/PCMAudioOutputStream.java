@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class PCMAudioOutputStream extends FlowParserOutputStream {
+
 	protected int nbchannels;
 	protected int sampleFrequency;
 	protected int bitsperSample;
 	protected int blocksize;
 	protected byte payload[];
-	protected boolean wavMode; // WAVEform (RIFF) output mode not used at the moment
+	protected boolean wavMode; // WAVEform (RIFF) output mode not used at the
+								 // moment
 	protected boolean headerSent;
 
 	public PCMAudioOutputStream(OutputStream source, int nbchannels, int sampleFrequency, int bitsperSample) {
@@ -64,9 +66,9 @@ public class PCMAudioOutputStream extends FlowParserOutputStream {
 			payload[3] = (byte) (16 * (bitsperSample - 12));
 		} else {
 			// http://fr.wikipedia.org/wiki/WAVEform_audio_format#En-t.C3.AAte_de_fichier_WAV
-			int BytePerBloc = nbchannels * bitsperSample / 8;
-			int BytePerSec = sampleFrequency * BytePerBloc;
-			payload = new byte [44];
+			int bytePerBloc = nbchannels * bitsperSample / 8;
+			int bytePerSec = sampleFrequency * bytePerBloc;
+			payload = new byte[44];
 			payload[0] = 82; // "RIFF"
 			payload[1] = 73;
 			payload[2] = 70;
@@ -82,12 +84,12 @@ public class PCMAudioOutputStream extends FlowParserOutputStream {
 			payload[16] = 16; // BlocSize
 			payload[20] = 1; // AudioFormat: 1 = PCM
 			payload[22] = (byte) nbchannels; // Nb channels
-			payload[25] = (byte)(sampleFrequency & 0xff); // frequency
-			payload[24] = (byte)((sampleFrequency >> 8) & 0xff);
-			payload[30] = (byte)(BytePerSec & 0xff); // BytePerSec
-			payload[29] = (byte)((BytePerSec >> 8) & 0xff);
-			payload[32] = (byte)(BytePerBloc & 0xff); //BytePerBloc
-			payload[34] = (byte)(bitsperSample & 0xff); // bits per sample
+			payload[25] = (byte) (sampleFrequency & 0xff); // frequency
+			payload[24] = (byte) ((sampleFrequency >> 8) & 0xff);
+			payload[30] = (byte) (bytePerSec & 0xff); // BytePerSec
+			payload[29] = (byte) ((bytePerSec >> 8) & 0xff);
+			payload[32] = (byte) (bytePerBloc & 0xff); // BytePerBloc
+			payload[34] = (byte) (bitsperSample & 0xff); // bits per sample
 			payload[36] = 100; // "data"
 			payload[37] = 97;
 			payload[38] = 116;

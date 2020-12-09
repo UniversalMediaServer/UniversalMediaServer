@@ -1,20 +1,19 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2011  G.Zsombor
+ * PS3 Media Server, for streaming any medias to your PS3. Copyright (C) 2011
+ * G.Zsombor
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -27,12 +26,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Background task executor and scheduler with a dynamic thread pool, where the threads are daemons.
+ * Background task executor and scheduler with a dynamic thread pool, where the
+ * threads are daemons.
  *
  * @author zsombor
  *
  */
 public class TaskRunner {
+
 	static final Logger LOGGER = LoggerFactory.getLogger(TaskRunner.class);
 
 	private static TaskRunner instance;
@@ -46,6 +47,7 @@ public class TaskRunner {
 	}
 
 	private final ExecutorService executors = Executors.newCachedThreadPool(new ThreadFactory() {
+
 		int counter = 0;
 
 		@Override
@@ -57,7 +59,7 @@ public class TaskRunner {
 	});
 
 	private final Map<String, Integer> counters = new HashMap<>();
-	private final Map<String, Lock> uniquenessLock = new HashMap<> ();
+	private final Map<String, Lock> uniquenessLock = new HashMap<>();
 
 	public void submit(Runnable runnable) {
 		executors.execute(runnable);
@@ -78,13 +80,16 @@ public class TaskRunner {
 	}
 
 	/**
-	 * Submit a named task for later execution. If singletonTask is set to true, checked that tasks with the same name is not concurrently running.
+	 * Submit a named task for later execution. If singletonTask is set to true,
+	 * checked that tasks with the same name is not concurrently running.
+	 * 
 	 * @param name
 	 * @param runnable
 	 * @param singletonTask
 	 */
 	public void submitNamed(final String name, final boolean singletonTask, final Runnable runnable) {
 		submit(new Runnable() {
+
 			@Override
 			public void run() {
 				String prevName = Thread.currentThread().getName();
@@ -114,7 +119,7 @@ public class TaskRunner {
 				}
 			}
 		});
-		
+
 	}
 
 	protected Lock getLock(String name) {
@@ -154,9 +159,11 @@ public class TaskRunner {
 	/**
 	 * @param timeout
 	 * @param unit
-	 * @return true if this executor terminated and false if the timeout elapsed before termination.
+	 * @return true if this executor terminated and false if the timeout elapsed
+	 *         before termination.
 	 * @throws InterruptedException
-	 * @see java.util.concurrent.ExecutorService#awaitTermination(long, java.util.concurrent.TimeUnit)
+	 * @see java.util.concurrent.ExecutorService#awaitTermination(long,
+	 *      java.util.concurrent.TimeUnit)
 	 */
 	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
 		return executors.awaitTermination(timeout, unit);

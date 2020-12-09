@@ -1,21 +1,20 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 package net.pms.util;
@@ -44,12 +43,15 @@ import org.slf4j.LoggerFactory;
 // see https://code.google.com/p/ps3mediaserver/issues/detail?id=680
 // for background/issues/discussion related to this class
 public class ProcessUtil {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessUtil.class);
 
-	// how long to wait in milliseconds until a kill -TERM on Unix has been deemed to fail
+	// how long to wait in milliseconds until a kill -TERM on Unix has been
+	// deemed to fail
 	private static final int TERM_TIMEOUT = 10000;
 
-	// how long to wait in milliseconds until a kill -ALRM on Unix has been deemed to fail
+	// how long to wait in milliseconds until a kill -ALRM on Unix has been
+	// deemed to fail
 	private static final int ALRM_TIMEOUT = 2000;
 
 	// work around a Java bug
@@ -93,24 +95,20 @@ public class ProcessUtil {
 	 *
 	 * call chain (innermost last):
 	 *
-	 *     WaitBufferedInputStream.close
-	 *     BufferedOutputFile.detachInputStream
-	 *     ProcessWrapperImpl.stopProcess
-	 *     ProcessUtil.destroy
-	 *     ProcessUtil.kill
+	 * WaitBufferedInputStream.close BufferedOutputFile.detachInputStream
+	 * ProcessWrapperImpl.stopProcess ProcessUtil.destroy ProcessUtil.kill
 	 *
-	 * my best guess is that the process's stdout/stderr streams
-	 * aren't being/haven't been fully/promptly consumed.
-	 * From the abovelinked article:
+	 * my best guess is that the process's stdout/stderr streams aren't
+	 * being/haven't been fully/promptly consumed. From the abovelinked article:
 	 *
-	 *     The Java 6 API clearly states that failure to promptly
-	 *     “read the output stream of the subprocess may cause the subprocess
-	 *     to block, and even deadlock.
+	 * The Java 6 API clearly states that failure to promptly “read the output
+	 * stream of the subprocess may cause the subprocess to block, and even
+	 * deadlock.
 	 *
-	 * This is corroborated by the fact that destroy() works fine if the
-	 * process is allowed to run to completion:
+	 * This is corroborated by the fact that destroy() works fine if the process
+	 * is allowed to run to completion:
 	 *
-	 *     https://code.google.com/p/ps3mediaserver/issues/detail?id=680#c11
+	 * https://code.google.com/p/ps3mediaserver/issues/detail?id=680#c11
 	 */
 	// send a Unix process the specified signal
 	public static boolean kill(Integer pid, int signal) {
@@ -142,6 +140,7 @@ public class ProcessUtil {
 			if (pid != null) { // Unix only
 				LOGGER.trace("Killing the Unix process: " + pid);
 				Runnable r = new Runnable() {
+
 					@Override
 					public void run() {
 						try {
@@ -151,12 +150,16 @@ public class ProcessUtil {
 
 						try {
 							p.exitValue();
-						} catch (IllegalThreadStateException itse) { // still running: nuke it
-							// kill -14 (ALRM) works (for MEncoder) and is less dangerous than kill -9
+						} catch (IllegalThreadStateException itse) { // still
+																	 // running:
+																	 // nuke it
+							// kill -14 (ALRM) works (for MEncoder) and is less
+							// dangerous than kill -9
 							// so try that first
 							if (!kill(pid, 14)) {
 								try {
-									// This is a last resort, so let's not be too eager
+									// This is a last resort, so let's not be
+									// too eager
 									Thread.sleep(ALRM_TIMEOUT);
 								} catch (InterruptedException ie) {
 								}
@@ -264,7 +267,8 @@ public class ProcessUtil {
 					modifiedArgument = argument;
 				}
 
-				// Wrap arguments with spaces in double quotes to make them runnable if copy-pasted
+				// Wrap arguments with spaces in double quotes to make them
+				// runnable if copy-pasted
 				if (modifiedArgument.contains(" ")) {
 					sb.append("\"").append(modifiedArgument).append("\"");
 				} else {
@@ -279,16 +283,17 @@ public class ProcessUtil {
 
 	// Reboot UMS same as now
 	public static void reboot() {
-		reboot((ArrayList<String>)null, null, null);
+		reboot((ArrayList<String>) null, null, null);
 	}
 
 	// Reboot UMS same as now, adding these options
-	public static void reboot(String... UMSOptions) {
-		reboot(null, null, null, UMSOptions);
+	public static void reboot(String... umsoptions) {
+		reboot(null, null, null, umsoptions);
 	}
 
-	// Shutdown UMS and either reboot or run the given command (e.g. a script to restart UMS)
-	public static void reboot(ArrayList<String> cmd, Map<String,String> env, String startdir, String... UMSOptions) {
+	// Shutdown UMS and either reboot or run the given command (e.g. a script to
+	// restart UMS)
+	public static void reboot(ArrayList<String> cmd, Map<String, String> env, String startdir, String... UMSOptions) {
 		final ArrayList<String> reboot;
 		String macAppPath = null;
 		if (Platform.isMac()) {
@@ -351,8 +356,9 @@ public class ProcessUtil {
 	}
 
 	// Reconstruct the command that started this jvm, including all options.
-	// See http://stackoverflow.com/questions/4159802/how-can-i-restart-a-java-application
-	//     http://stackoverflow.com/questions/1518213/read-java-jvm-startup-parameters-eg-xmx
+	// See
+	// http://stackoverflow.com/questions/4159802/how-can-i-restart-a-java-application
+	// http://stackoverflow.com/questions/1518213/read-java-jvm-startup-parameters-eg-xmx
 	public static ArrayList<String> getUMSCommand() {
 		ArrayList<String> reboot = new ArrayList<>();
 		File jvmPath = new File(System.getProperty("java.home"));
@@ -363,11 +369,8 @@ public class ProcessUtil {
 			jvmExecutable = new File(jvmPath, jvmExecutableName);
 		}
 		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
-			LOGGER.error(
-				"Can´t find Java executable \"{}\", falling back to pathless execution using \"{}\"",
-				jvmExecutable.getAbsolutePath(),
-				jvmExecutableName
-			);
+			LOGGER.error("Can´t find Java executable \"{}\", falling back to pathless execution using \"{}\"",
+				jvmExecutable.getAbsolutePath(), jvmExecutableName);
 			reboot.add(jvmExecutableName);
 		} else {
 			reboot.add(StringUtil.quoteArg(jvmExecutable.getAbsolutePath()));
@@ -378,7 +381,8 @@ public class ProcessUtil {
 		reboot.add("-cp");
 		reboot.add(ManagementFactory.getRuntimeMXBean().getClassPath());
 		// Could also use generic main discovery instead:
-		// see http://stackoverflow.com/questions/41894/0-program-name-in-java-discover-main-class
+		// see
+		// http://stackoverflow.com/questions/41894/0-program-name-in-java-discover-main-class
 		reboot.add(PMS.class.getName());
 		return reboot;
 	}

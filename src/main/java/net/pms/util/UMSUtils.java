@@ -1,21 +1,20 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -42,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UMSUtils {
+
 	private static final Collator COLLATOR;
 	private static final Logger LOGGER = LoggerFactory.getLogger(UMSUtils.class);
 
@@ -71,7 +71,8 @@ public class UMSUtils {
 					if (audio.getAlbum() != null) {
 						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
-					//TODO maciekberry: check whether it makes sense to use Album Artist
+					// TODO maciekberry: check whether it makes sense to use
+					// Album Artist
 					if (audio.getArtist() != null) {
 						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
 					}
@@ -88,13 +89,13 @@ public class UMSUtils {
 	}
 
 	// Sort constants
-	public static final int SORT_LOC_SENS =  0;
-	public static final int SORT_MOD_NEW =   1;
-	public static final int SORT_MOD_OLD =   2;
+	public static final int SORT_LOC_SENS = 0;
+	public static final int SORT_MOD_NEW = 1;
+	public static final int SORT_MOD_OLD = 2;
 	public static final int SORT_INS_ASCII = 3;
-	public static final int SORT_LOC_NAT =   4;
-	public static final int SORT_RANDOM =    5;
-	public static final int SORT_NO_SORT =   6;
+	public static final int SORT_LOC_NAT = 4;
+	public static final int SORT_RANDOM = 5;
+	public static final int SORT_NO_SORT = 6;
 
 	/**
 	 * Sorts a list of files using a custom method.
@@ -109,6 +110,7 @@ public class UMSUtils {
 				break;
 			case SORT_LOC_NAT: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
@@ -120,6 +122,7 @@ public class UMSUtils {
 				break;
 			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
@@ -131,6 +134,7 @@ public class UMSUtils {
 				break;
 			case SORT_MOD_OLD: // Sort by modified date, oldest first
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
@@ -139,6 +143,7 @@ public class UMSUtils {
 				break;
 			case SORT_MOD_NEW: // Sort by modified date, newest first
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f2.lastModified()).compareTo(f1.lastModified());
@@ -151,6 +156,7 @@ public class UMSUtils {
 			case SORT_LOC_SENS: // Same as default
 			default: // Locale-sensitive A-Z
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
@@ -167,7 +173,7 @@ public class UMSUtils {
 	 * Sorts a list of strings using a custom method.
 	 *
 	 * @param inputStrings
-	 * @param method 
+	 * @param method
 	 * @see #sort(java.util.List, int)
 	 */
 	public static void sort(ArrayList<String> inputStrings, int method) {
@@ -176,8 +182,9 @@ public class UMSUtils {
 				break;
 			case SORT_LOC_NAT: // Locale-sensitive natural sort
 				Collections.sort(inputStrings, new Comparator<String>() {
+
 					@Override
-					public int compare(String s1, String s2){
+					public int compare(String s1, String s2) {
 						String filename1ToSort = FileUtil.renameForSorting(s1);
 						String filename2ToSort = FileUtil.renameForSorting(s2);
 
@@ -187,6 +194,7 @@ public class UMSUtils {
 				break;
 			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
 				Collections.sort(inputStrings, new Comparator<String>() {
+
 					@Override
 					public int compare(String s1, String s2) {
 						String filename1ToSort = FileUtil.renameForSorting(s1);
@@ -202,6 +210,7 @@ public class UMSUtils {
 			case SORT_LOC_SENS: // Same as default
 			default: // Locale-sensitive A-Z
 				Collections.sort(inputStrings, new Comparator<String>() {
+
 					@Override
 					public int compare(String s1, String s2) {
 						String filename1ToSort = FileUtil.renameForSorting(s1);
@@ -255,6 +264,7 @@ public class UMSUtils {
 	 * Bitwise constants relating to playlist management.
 	 */
 	public interface IOListModes {
+
 		public static final int PERMANENT = 1;
 		public static final int AUTOSAVE = 2;
 		public static final int AUTOREMOVE = 4;
@@ -264,6 +274,7 @@ public class UMSUtils {
 	 * A DLNAResource list with built-in file i/o.
 	 */
 	public static class IOList extends ArrayList<DLNAResource> implements IOListModes {
+
 		private static final long serialVersionUID = 8042924548275374060L;
 		private File file;
 		private int mode;
@@ -366,18 +377,8 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (
-								sub.getLang() != null &&
-								(
-									(
-										sub.isExternal() &&
-										sub.getExternalFile() != null
-									) || (
-										sub.isEmbedded() &&
-										sub.getId() != -1
-									)
-								)
-							) {
+							if (sub.getLang() != null
+								&& ((sub.isExternal() && sub.getExternalFile() != null) || (sub.isEmbedded() && sub.getId() != -1))) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(',');
@@ -543,14 +544,16 @@ public class UMSUtils {
 		}
 
 		public static DLNAResource resolveCreateMethod(ExternalListener l, String arg) {
-			// FIXME: this effectively imposes an undeclared interface, better to declare it explicitly
+			// FIXME: this effectively imposes an undeclared interface, better
+			// to declare it explicitly
 			Method create;
 			try {
 				Class<?> clazz = l.getClass();
 				create = clazz.getDeclaredMethod("create", String.class);
 				return (DLNAResource) create.invoke(l, arg);
 				// Ignore all errors
-			} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+			} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException
+				| InvocationTargetException e) {
 				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
 			}
 			return null;
@@ -558,22 +561,27 @@ public class UMSUtils {
 	}
 
 	/**
-	 * Check available GPU decoding acceleration methods possibly used by FFmpeg.
+	 * Check available GPU decoding acceleration methods possibly used by
+	 * FFmpeg.
 	 *
-	 * @param configuration in which the available GPU acceleration methods will be stored
+	 * @param configuration in which the available GPU acceleration methods will
+	 *            be stored
 	 * @throws ConfigurationException
 	 */
 	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.setWaitBeforeStart(0);
 		outputParams.setLog(true);
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(new String[]{configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels"}, false, outputParams, true, false);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(
+			new String[] { configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels" }, false, outputParams, true, false);
 		Runnable r = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
 					Thread.sleep(10000);
-				} catch (InterruptedException e) { }
+				} catch (InterruptedException e) {
+				}
 
 				pw.stopProcess();
 			}
@@ -592,7 +600,7 @@ public class UMSUtils {
 				if (line.equals("Hardware acceleration methods:")) {
 					continue;
 				} else {
-					// fix duplicating GPU acceleration methods reported in 
+					// fix duplicating GPU acceleration methods reported in
 					// https://github.com/UniversalMediaServer/UniversalMediaServer/issues/1592
 					if (!availableMethods.contains(line)) {
 						availableMethods.add(line);
@@ -621,7 +629,7 @@ public class UMSUtils {
 			return false;
 		}
 
-		// Sort and compare the two lists          
+		// Sort and compare the two lists
 		Collections.sort(a);
 		Collections.sort(b);
 
