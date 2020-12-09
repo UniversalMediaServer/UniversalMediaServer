@@ -61,7 +61,7 @@ public class GeneralTab {
 	private JTextField port;
 	private JTextField serverName;
 	private JComboBox<String> networkinterfacesCBX;
-	private JTextField ip_filter;
+	private JTextField ipFilter;
 	public JTextField maxbitrate;
 	private JCheckBox adaptBitrate;
 	private JComboBox<String> renderers;
@@ -111,7 +111,7 @@ public class GeneralTab {
 		builder.addLabel(Messages.getString("GeneralTab.14"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 		JPanel languagePanel = new JPanel();
-		languagePanel.setLayout(new BoxLayout(languagePanel,BoxLayout.LINE_AXIS));
+		languagePanel.setLayout(new BoxLayout(languagePanel, BoxLayout.LINE_AXIS));
 		currentLanguage.setEnabled(false);
 		currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
 		languagePanel.add(currentLanguage);
@@ -386,11 +386,11 @@ public class GeneralTab {
 				}
 			});
 
-			ip_filter = new JTextField(configuration.getIpFilter());
-			ip_filter.addKeyListener(new KeyAdapter() {
+			ipFilter = new JTextField(configuration.getIpFilter());
+			ipFilter.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
-					configuration.setIpFilter(ip_filter.getText());
+					configuration.setIpFilter(ipFilter.getText());
 				}
 			});
 
@@ -428,7 +428,7 @@ public class GeneralTab {
 			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			builder.add(ipFilter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
@@ -684,20 +684,20 @@ public class GeneralTab {
 		});
 	}
 
-	private void sortRendererConfigurationsByName(ArrayList<RendererConfiguration> rendererConfigurations){
-		Collections.sort(rendererConfigurations , new Comparator<RendererConfiguration>() {
+	private void sortRendererConfigurationsByName(ArrayList<RendererConfiguration> rendererConfigurations) {
+		Collections.sort(rendererConfigurations, new Comparator<RendererConfiguration>() {
 
 			@Override
 			public int compare(RendererConfiguration o1, RendererConfiguration o2) {
-				if(o1 == null && o2 == null){
+				if (o1 == null && o2 == null){
 					return 0;
 				}
 
-				if(o1 == null) {
+				if (o1 == null) {
 					return 1;
 				}
 
-				if(o2 == null) {
+				if (o2 == null) {
 					return -1;
 				}
 

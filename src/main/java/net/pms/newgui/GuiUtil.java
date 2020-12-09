@@ -302,15 +302,15 @@ public final class GuiUtil {
 			// Draw the segments
 			for (Segment s : segments) {
 				if (s.val > 0) {
-					int seg_w = (int) (s.val * unit);
+					int segmentWidth = (int) (s.val * unit);
 					g2.setColor(s.color);
-					g2.drawLine(x, (h / 2) + b.top, x + seg_w, (h / 2) + b.top);
+					g2.drawLine(x, (h / 2) + b.top, x + segmentWidth, (h / 2) + b.top);
 					// Draw the segment string, if any
 					if (progressBar.isStringPainted() && StringUtils.isNotBlank(s.label)) {
 						progressBar.setString(s.label);
-						paintString(g, x, b.top, seg_w, h, seg_w, b);
+						paintString(g, x, b.top, segmentWidth, h, segmentWidth, b);
 					}
-					x += seg_w;
+					x += segmentWidth;
 				}
 			}
 			// Draw the main label, if any

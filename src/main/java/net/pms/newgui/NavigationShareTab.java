@@ -208,10 +208,10 @@ public class NavigationShareTab {
 
 			builder.add(GuiUtil.getPreferredSizeComponent(useSymlinksTargetFile),        FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1, 31), colSpec, orientation));
+			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
 			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 31, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy (7, 31), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy (9, 31), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy(7, 31), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy(9, 31), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
