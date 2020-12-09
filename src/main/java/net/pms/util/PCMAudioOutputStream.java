@@ -9,9 +9,9 @@ public class PCMAudioOutputStream extends FlowParserOutputStream {
 	protected int sampleFrequency;
 	protected int bitsperSample;
 	protected int blocksize;
-	protected byte payload[];
+	protected byte[] payload;
 	protected boolean wavMode; // WAVEform (RIFF) output mode not used at the
-								 // moment
+								// moment
 	protected boolean headerSent;
 
 	public PCMAudioOutputStream(OutputStream source, int nbchannels, int sampleFrequency, int bitsperSample) {

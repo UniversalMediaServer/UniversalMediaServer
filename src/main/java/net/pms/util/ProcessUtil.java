@@ -238,7 +238,7 @@ public class ProcessUtil {
 	}
 
 	public static String run(String... cmd) {
-		int[] zeroExpected = { 0 };
+		int[] zeroExpected = {0};
 		return run(zeroExpected, cmd);
 	}
 

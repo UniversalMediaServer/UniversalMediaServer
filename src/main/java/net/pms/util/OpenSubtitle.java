@@ -112,19 +112,13 @@ public class OpenSubtitle {
 	private static final ReentrantReadWriteLock TOKEN_LOCK = new ReentrantReadWriteLock();
 	private static Token token = null;
 
-	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0, // Minimum
-																							 // number
-																							 // of
-																							 // threads
-																							 // in
-																							 // pool
+	// Minimum number of threads in pool
+	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0, 
 		5, // Maximum number of threads in pool
 		30, // Number of seconds before an idle thread is terminated
-		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), // The queue
-																 // holding the
-																 // tasks
-																 // waiting to
-																 // be processed
+
+		// The queue holding the tasks waiting to be processed
+		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), 
 		new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
 
@@ -266,8 +260,8 @@ public class OpenSubtitle {
 		HTTPResponseCode responseCode = HTTPResponseCode.typeOf(connection.getResponseCode());
 		do {
 			if (responseCode == null) {
-				throw new OpenSubtitlesException("OpenSubtitles replied with an unknown response code: " + connection.getResponseCode()
-					+ " " + connection.getResponseMessage());
+				throw new OpenSubtitlesException("OpenSubtitles replied with an unknown response code: " +
+					connection.getResponseCode() + " " + connection.getResponseMessage());
 			}
 			if (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR) {
 				remaining--;
@@ -282,8 +276,8 @@ public class OpenSubtitle {
 			}
 		} while (remaining >= 0 && (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR));
 		if (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR) {
-			throw new OpenSubtitlesException("OpenSubtitles gave up getting a response from " + connection.getURL().getHost() + " after "
-				+ retries + " attempts (Response code " + responseCode + ")");
+			throw new OpenSubtitlesException("OpenSubtitles gave up getting a response from " +
+				connection.getURL().getHost() + " after " + retries + " attempts (Response code " + responseCode + ")");
 		}
 		return connection.getInputStream();
 	}
@@ -361,9 +355,9 @@ public class OpenSubtitle {
 
 			// Parse reply
 			params = null;
-			try (InputStream reply = LOGGER.isTraceEnabled()
-				? new LoggableInputStream(sendXMLStream(connection, 5, 500), StandardCharsets.UTF_8)
-				: sendXMLStream(connection, 5, 500)) {
+			try (InputStream reply = LOGGER.isTraceEnabled() ?
+				new LoggableInputStream(sendXMLStream(connection, 5, 500), StandardCharsets.UTF_8) :
+					sendXMLStream(connection, 5, 500)) {
 				LOGGER.trace("Parsing OpenSubtitles login response");
 				XMLStreamReader reader = null;
 				try {
@@ -759,8 +753,9 @@ public class OpenSubtitle {
 			}
 
 			// Send request
-			try (OutputStream out = LOGGER.isTraceEnabled() ? new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8)
-				: connection.getOutputStream()) {
+			try (OutputStream out = LOGGER.isTraceEnabled() ?
+				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
+					connection.getOutputStream()) {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "SearchSubtitles", params);
 				writer.flush();
@@ -778,8 +773,9 @@ public class OpenSubtitle {
 
 			// Parse reply
 			params = null;
-			try (InputStream reply = LOGGER.isTraceEnabled() ? new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8)
-				: sendXMLStream(connection)) {
+			try (InputStream reply = LOGGER.isTraceEnabled() ?
+				new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
+					sendXMLStream(connection)) {
 				LOGGER.trace("Parsing OpenSubtitles search by {} response", logDescription);
 				XMLStreamReader reader = null;
 				try {
@@ -960,8 +956,9 @@ public class OpenSubtitle {
 			params.add(new ValueArray(queryArray));
 
 			// Send request
-			try (OutputStream out = LOGGER.isTraceEnabled() ? new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8)
-				: connection.getOutputStream()) {
+			try (OutputStream out = LOGGER.isTraceEnabled() ?
+				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
+					connection.getOutputStream()) {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "CheckMovieHash2", params);
 				writer.flush();
@@ -980,8 +977,9 @@ public class OpenSubtitle {
 
 			// Parse reply
 			params = null;
-			try (InputStream reply = LOGGER.isTraceEnabled() ? new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8)
-				: sendXMLStream(connection)) {
+			try (InputStream reply = LOGGER.isTraceEnabled() ?
+				new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
+					sendXMLStream(connection)) {
 				LOGGER.trace("Parsing OpenSubtitles CheckMovieHash2 response");
 				XMLStreamReader reader = null;
 				try {
@@ -1106,9 +1104,7 @@ public class OpenSubtitle {
 				continue;
 			}
 			score += new JaroWinklerSimilarity().apply(prettifier.getName().toLowerCase(locale), guess.getTitle().toLowerCase(locale));
-			if (score < MIN_IMDB_GUESS_JW_DISTANCE) { // TODO: (Nad)
-														 // Parameterize
-														 // threshold...?
+			if (score < MIN_IMDB_GUESS_JW_DISTANCE) { // TODO: (Nad) Parameterize threshold...?
 				LOGGER.trace("OpenSubtitles: Excluding IMDB guess because the similarity ({}) is under the threshold ({}): {}", score,
 					MIN_IMDB_GUESS_JW_DISTANCE, guess);
 				continue;
@@ -1608,17 +1604,18 @@ public class OpenSubtitle {
 		String req = null;
 		TOKEN_LOCK.readLock().lock();
 		try {
-			req = "<methodCall>\n" + "<methodName>SearchSubtitles</methodName>\n" + "<params>\n" + "<param>\n" + "<value>" + "<string>"
-				+ token + "</string>" + "</value>\n" + "</param>\n" + "<param>\n" + "<value>\n" + "<array>\n" + "<data>\n" + "<value>"
-				+ "<struct>" + "<member>" + "<name>sublanguageid</name>" + "<value>" + "<string>" + lang + "</string>" + "</value>"
-				+ "</member>" + hashStr + imdbStr + qStr + "\n" + "</struct>" + "</value>" + "</data>\n" + "</array>\n" + "</value>\n"
-				+ "</param>" + "</params>\n" + "</methodCall>\n";
+			req = "<methodCall>\n" + "<methodName>SearchSubtitles</methodName>\n" + "<params>\n" + "<param>\n" + "<value>" +
+				"<string>" + token + "</string>" + "</value>\n" + "</param>\n" + "<param>\n" + "<value>\n" + "<array>\n" +
+				"<data>\n" + "<value>" + "<struct>" + "<member>" + "<name>sublanguageid</name>" + "<value>" + "<string>" +
+				lang + "</string>" + "</value>" + "</member>" + hashStr + imdbStr + qStr + "\n" + "</struct>" + "</value>" +
+				"</data>\n" + "</array>\n" + "</value>\n" + "</param>" + "</params>\n" + "</methodCall>\n";
 		} finally {
 			TOKEN_LOCK.readLock().unlock();
 		}
-		Pattern re = Pattern.compile(".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "MovieName</name>.*?<string>([^<]+)</string>.*?"
-			+ "SeriesSeason</name>.*?<string>([^<]+)</string>.*?" + "SeriesEpisode</name>.*?<string>([^<]+)</string>.*?"
-			+ "MovieYear</name>.*?<string>([^<]+)</string>.*?", Pattern.DOTALL);
+		Pattern re = Pattern.compile(".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" +
+			"MovieName</name>.*?<string>([^<]+)</string>.*?" + "SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
+			"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?" + "MovieYear</name>.*?<string>([^<]+)</string>.*?",
+			Pattern.DOTALL);
 		String page = postPage(url.openConnection(), req);
 		Matcher m = re.matcher(page);
 		if (m.find()) {
@@ -2077,8 +2074,8 @@ public class OpenSubtitle {
 			Member<? extends Value<?>, ?> rank = dataStruct.get("UserRank");
 			Member<? extends Value<?>, ?> preferences = dataStruct.get("UserPreferedLanguages");
 			Member<? extends Value<?>, ?> vip = dataStruct.get("isVIP");
-			boolean isVIP = vip != null && vip.getValue() != null && !"0".equals(vip.getValue().toString())
-				&& !"false".equals(vip.getValue().toString().toLowerCase(Locale.ROOT));
+			boolean isVIP = vip != null && vip.getValue() != null && !"0".equals(vip.getValue().toString()) &&
+				!"false".equals(vip.getValue().toString().toLowerCase(Locale.ROOT));
 			Member<? extends Value<?>, ?> contentLocation = dataStruct.get("Content-Location");
 
 			String urlString = contentLocation == null || contentLocation.getValue() == null ? null : contentLocation.getValue().toString();
@@ -3264,8 +3261,8 @@ public class OpenSubtitle {
 					// 0.5 and below gives a score of 0, 1 give a score of 30
 					tmpScore += 30d * 2 * Math.max(nameScore - 0.5, 0);
 				}
-				if (seriesEpisode > 0 && seriesEpisode == prettifier.getEpisode()
-					&& ((seriesSeason < 1 && prettifier.getSeason() < 1) || seriesSeason == prettifier.getSeason())) {
+				if (seriesEpisode > 0 && seriesEpisode == prettifier.getEpisode() &&
+					((seriesSeason < 1 && prettifier.getSeason() < 1) || seriesSeason == prettifier.getSeason())) {
 					tmpScore += 30d;
 				}
 				if (movieYear > 0 && movieYear == prettifier.getYear()) {
@@ -4350,9 +4347,9 @@ public class OpenSubtitle {
 
 						// Proceed if the years match, or if there is no year
 						// then try the movie/show name.
-						if ((StringUtils.isNotBlank(yearFromFilename) && yearFromFilename.equals(metadataFromOpenSubtitles[5])
-							&& StringUtils.isNotEmpty(titleFromFilename))
-							|| (StringUtils.isBlank(yearFromFilename) && StringUtils.isNotEmpty(titleFromFilename))) {
+						if ((StringUtils.isNotBlank(yearFromFilename) && yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
+								StringUtils.isNotEmpty(titleFromFilename)) || (StringUtils.isBlank(yearFromFilename) &&
+								StringUtils.isNotEmpty(titleFromFilename))) {
 							/**
 							 * Finally, sometimes OpenSubtitles returns the
 							 * incorrect season or episode number, so we
@@ -4361,15 +4358,17 @@ public class OpenSubtitle {
 							 * numbers are from the filename, or we do and they
 							 * match with our results from OpenSubtitles.
 							 */
-							if ((StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvSeasonFromOpenSubtitles)
-								&& tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles)
-								&& StringUtils.isNotBlank(tvEpisodeNumberFromFilename)
-								&& StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles)
-								&& tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles))
-								|| (StringUtils.isBlank(tvSeasonFromFilename) && StringUtils.isBlank(tvEpisodeNumberFromFilename))) {
-								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
-								titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
-								if (overTheTopLogging) {
+							if ((StringUtils.isNotBlank(tvSeasonFromFilename) &&
+									StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
+									tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) && 
+									StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+									StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
+									tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)) ||
+									(StringUtils.isBlank(tvSeasonFromFilename) && StringUtils.isBlank(tvEpisodeNumberFromFilename)))
+								{
+									titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+									titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+									if (overTheTopLogging) {
 									LOGGER.trace("titleFromDatabase: " + titleFromDatabase);
 									LOGGER.trace("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
 								}
@@ -4380,8 +4379,9 @@ public class OpenSubtitle {
 								 * OpenSubtitles, continue to see if we want to
 								 * change that to make them all consistent.
 								 */
-								if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase)
-									&& titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)) {
+								if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase) &&
+									titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified))
+								{
 									// Replace our close-but-not-exact title in
 									// the database with the title from
 									// OpenSubtitles.

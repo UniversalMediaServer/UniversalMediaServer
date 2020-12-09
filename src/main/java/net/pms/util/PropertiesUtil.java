@@ -50,7 +50,7 @@ public class PropertiesUtil {
 	 * the file "src/test/resources/project.properties" is used, whereas in
 	 * other phases, the file "src/main/resources/project.properties" (e.g. when
 	 * packaging the final build) will be used.
-	 * 
+	 *
 	 * @return The properties object.
 	 */
 	public static PmsProperties getProjectProperties() {
