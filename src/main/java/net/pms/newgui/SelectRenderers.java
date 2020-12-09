@@ -47,7 +47,7 @@ public class SelectRenderers extends JPanel {
 	private CheckTreeManager checkTreeManager;
 	private JTree SrvTree;
 	private SearchableMutableTreeNode allRenderers;
-	private static final String allRenderersTreeName = configuration.ALL_RENDERERS;
+	private static final String allRenderersTreeName = configuration.allRenderers;
 	private boolean init = false;
 
 	public SelectRenderers() {
@@ -67,7 +67,7 @@ public class SelectRenderers extends JPanel {
 				// Find or create group or single name renderer
 				SearchableMutableTreeNode node = null;
 				try {
-					 node = allRenderers.findChild(match.group(1));
+					node = allRenderers.findChild(match.group(1));
 				} catch (IllegalChildException e) {}
 
 				if (node == null) {
@@ -88,7 +88,6 @@ public class SelectRenderers extends JPanel {
 						node.add(subNode);
 					}
 				}
-
 			} else {
 				LOGGER.warn("Can't parse renderer name \"{}\"", renderer);
 			}
@@ -131,7 +130,6 @@ public class SelectRenderers extends JPanel {
 					if (node != null) {
 						selectedRenderersPath.add(new TreePath(node.getPath()));
 					}
-
 				}
 				checkTreeManager.getSelectionModel().setSelectionPaths(selectedRenderersPath.toArray(new TreePath[selectedRenderersPath.size()]));
 			} else {
@@ -156,7 +154,6 @@ public class SelectRenderers extends JPanel {
 				if (configuration.setSelectedRenderers("")) {
 					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
 				}
-
 			} else if (
 				selected.length == 1 && selected[0].getLastPathComponent() instanceof SearchableMutableTreeNode &&
 				((SearchableMutableTreeNode) selected[0].getLastPathComponent()).getNodeName().equals(allRenderers.getNodeName())
@@ -164,7 +161,6 @@ public class SelectRenderers extends JPanel {
 				if (configuration.setSelectedRenderers(allRenderersTreeName)) {
 					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
 				}
-
 			} else {
 				List<String> selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
@@ -185,7 +181,6 @@ public class SelectRenderers extends JPanel {
 						if (!rendererName.isEmpty()) {
 							selectedRenderers.add(rendererName);
 						}
-
 					} else {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());
 					}

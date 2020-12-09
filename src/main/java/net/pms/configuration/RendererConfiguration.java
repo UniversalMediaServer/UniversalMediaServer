@@ -50,15 +50,15 @@ import org.slf4j.LoggerFactory;
 public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
-	protected static final ArrayList<String> allRenderersNames = new ArrayList<>();
-	protected static PmsConfiguration _pmsConfiguration = PMS.getConfiguration();
+	protected static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
+	protected static PmsConfiguration PMS_CONFIGURATION = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
-	protected static final Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
+	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
 
 	protected RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
-	protected PmsConfiguration pmsConfiguration = _pmsConfiguration;
+	protected PmsConfiguration pmsConfiguration = PMS_CONFIGURATION;
 	protected ConfigurationReader configurationReader;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
@@ -227,7 +227,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		synchronized (loadRendererConfigurationsLock) {
-			_pmsConfiguration = pmsConf;
+			PMS_CONFIGURATION = pmsConf;
 			enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
 
 			try {
@@ -252,13 +252,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							RendererConfiguration r = new RendererConfiguration(f);
 							r.rank = rank++;
 							String rendererName = r.getConfName();
-							allRenderersNames.add(rendererName);
+							ALL_RENDERERS_NAMES.add(rendererName);
 							String renderersGroup = null;
 							if (rendererName.indexOf(' ') > 0) {
 								renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 							}
 
-							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
+							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.allRenderers)) {
 								enabledRendererConfs.add(r);
 							} else {
 								LOGGER.debug("Ignored \"{}\" configuration", rendererName);
@@ -289,7 +289,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				}
 			}
 		}
-		Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
+		Collections.sort(ALL_RENDERERS_NAMES, String.CASE_INSENSITIVE_ORDER);
 		DeviceConfiguration.loadDeviceConfigurations(pmsConf);
 	}
 
@@ -378,7 +378,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
 		// We need to check both UPnP and http sides to ensure a complete list
 		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
-		renderers.addAll(addressAssociation.values());
+		renderers.addAll(ADDRESS_ASSOCIATION.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
 		return renderers;
@@ -514,7 +514,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
-		RendererConfiguration prev = addressAssociation.put(sa, this);
+		RendererConfiguration prev = ADDRESS_ASSOCIATION.put(sa, this);
 		if (prev != null) {
 			// We've displaced a previous renderer at this address, so
 			// check  if it's a ghost instance that should be deleted.
@@ -538,7 +538,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void calculateAllSpeeds() {
-		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			InetAddress sa = entry.getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
@@ -551,7 +551,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		RendererConfiguration r = addressAssociation.get(sa);
+		RendererConfiguration r = ADDRESS_ASSOCIATION.get(sa);
 		if (r != null) {
 			LOGGER.trace("Matched media renderer \"{}\" based on address {}", r.getRendererName(), sa.getHostAddress());
 		}
@@ -574,7 +574,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		RendererConfiguration r = null;
 		RendererConfiguration ref = getRendererConfigurationByHeaders(sortedHeaders);
 		if (ref != null) {
-			boolean isNew = !addressAssociation.containsKey(ia);
+			boolean isNew = !ADDRESS_ASSOCIATION.containsKey(ia);
 			r = resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace(
@@ -589,7 +589,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
-		if (_pmsConfiguration.isRendererForceDefault()) {
+		if (PMS_CONFIGURATION.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
@@ -651,9 +651,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			ref = getDefaultConf();
 		}
 		try {
-			if (addressAssociation.containsKey(ia)) {
+			if (ADDRESS_ASSOCIATION.containsKey(ia)) {
 				// Already seen, finish configuration if required
-				r = (DeviceConfiguration) addressAssociation.get(ia);
+				r = (DeviceConfiguration) ADDRESS_ASSOCIATION.get(ia);
 				boolean higher = ref != null && ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
 				if (!r.loaded || higher) {
 					LOGGER.debug("Finishing configuration for {}", r);
@@ -918,7 +918,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
 		configurationReader = new ConfigurationReader(configuration, false);
-		pmsConfiguration = _pmsConfiguration;
+		pmsConfiguration = PMS_CONFIGURATION;
 
 		player = null;
 		buffer = 0;
@@ -1533,7 +1533,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Has address.
 	 */
 	public boolean hasAssociatedAddress() {
-		return addressAssociation.values().contains(this);
+		return ADDRESS_ASSOCIATION.values().contains(this);
 	}
 
 	/**
@@ -1551,7 +1551,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		// Otherwise check the address association
-		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == this) {
 				return entry.getKey();
 			}
@@ -1617,8 +1617,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					PMS.get().getFoundRenderers().remove(r);
 					UPNPHelper.getInstance().removeRenderer(r);
 					InetAddress ia = r.getAddress();
-					if (addressAssociation.get(ia) == r) {
-						addressAssociation.remove(ia);
+					if (ADDRESS_ASSOCIATION.get(ia) == r) {
+						ADDRESS_ASSOCIATION.remove(ia);
 					}
 					// TODO: actually delete rootfolder, etc.
 				}
@@ -2308,7 +2308,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
-		return allRenderersNames;
+		return ALL_RENDERERS_NAMES;
 	}
 
 	public int getTranscodedVideoAudioSampleRate() {
@@ -2515,7 +2515,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public String calculatedSpeed() throws InterruptedException, ExecutionException {
 		String max = getString(MAX_VIDEO_BITRATE, "");
-		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey());
 				if (speed != null) {

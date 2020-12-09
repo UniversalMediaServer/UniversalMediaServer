@@ -174,7 +174,7 @@ public class FormatConfiguration {
 	/** Used as a "video codec" when sequences of raw, uncompressed YUV is used as a video stream in AVI, MP4 or MOV files */
 	public static final String YUV = "yuv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
-	public static final String und = "und";
+	public static final String UND = "und";
 
 	private static class SupportSpec {
 		private int iMaxBitrate = Integer.MAX_VALUE;
@@ -357,7 +357,6 @@ public class FormatConfiguration {
 			} else {
 				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA());
 			}
-			
 		}
 
 		/**
@@ -366,13 +365,13 @@ public class FormatConfiguration {
 		 * or 0, its value is skipped for making the match. If any of the
 		 * non-null parameters does not match, false is returned. For example,
 		 * assume a configuration that contains only the following line:
-		 * 
+		 *
 		 * <blockquote><pre>
 		 * 	Supported = f:mp4 n:2 se:SUBRIP
 		 *
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = true
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, null,     true)  = false 
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false 
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, null,     true)  = false
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false
 		 * match("wav", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", false) = false
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "sub",    true)  = false
@@ -472,7 +471,6 @@ public class FormatConfiguration {
 						return false;
 					}
 				}
-				
 			}
 
 			if (extras != null && miExtras != null) {
