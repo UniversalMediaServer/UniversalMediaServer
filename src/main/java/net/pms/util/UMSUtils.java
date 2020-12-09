@@ -377,8 +377,8 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null
-								&& ((sub.isExternal() && sub.getExternalFile() != null) || (sub.isEmbedded() && sub.getId() != -1))) {
+							if (sub.getLang() != null &&
+								((sub.isExternal() && sub.getExternalFile() != null) || (sub.isEmbedded() && sub.getId() != -1))) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(',');
@@ -552,8 +552,8 @@ public class UMSUtils {
 				create = clazz.getDeclaredMethod("create", String.class);
 				return (DLNAResource) create.invoke(l, arg);
 				// Ignore all errors
-			} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException
-				| InvocationTargetException e) {
+			} catch (SecurityException | NoSuchMethodException | IllegalArgumentException |
+				IllegalAccessException | InvocationTargetException e) {
 				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
 			}
 			return null;
@@ -573,7 +573,7 @@ public class UMSUtils {
 		outputParams.setWaitBeforeStart(0);
 		outputParams.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(
-			new String[] { configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels" }, false, outputParams, true, false);
+			new String[] {configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = new Runnable() {
 
 			@Override

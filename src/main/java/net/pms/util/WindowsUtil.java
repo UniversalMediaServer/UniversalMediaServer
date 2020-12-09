@@ -20,7 +20,7 @@ public class WindowsUtil {
 	 */
 	public static boolean isUmsServiceInstalled() {
 		String[] commands = new String[] {"sc", "query", "\"Universal Media Server\""};
-		int[] expectedExitCodes = { 0, 1060 };
+		int[] expectedExitCodes = {0, 1060};
 		String response = ProcessUtil.run(expectedExitCodes, commands);
 		return response.contains("TYPE");
 	}
@@ -34,7 +34,7 @@ public class WindowsUtil {
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public static boolean installWin32Service() {
-		String cmdArray[] = new String[] {"win32/service/wrapper.exe", "-i", "wrapper.conf"};
+		String[] cmdArray = new String[] {"win32/service/wrapper.exe", "-i", "wrapper.conf"};
 		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, true, new OutputParams(PMS.getConfiguration()));
 		pwinstall.runInSameThread();
 		return pwinstall.isSuccess();
@@ -50,7 +50,7 @@ public class WindowsUtil {
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public static boolean uninstallWin32Service() {
-		String cmdArray[] = new String[] {"win32/service/wrapper.exe", "-r", "wrapper.conf"};
+		String[] cmdArray = new String[] {"win32/service/wrapper.exe", "-r", "wrapper.conf"};
 		OutputParams output = new OutputParams(PMS.getConfiguration());
 		output.setNoExitCheck(true);
 		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, true, output);

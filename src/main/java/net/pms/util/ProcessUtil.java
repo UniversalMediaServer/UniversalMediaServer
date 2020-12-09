@@ -150,9 +150,7 @@ public class ProcessUtil {
 
 						try {
 							p.exitValue();
-						} catch (IllegalThreadStateException itse) { // still
-																	 // running:
-																	 // nuke it
+						} catch (IllegalThreadStateException itse) { // still running: nuke it
 							// kill -14 (ALRM) works (for MEncoder) and is less
 							// dangerous than kill -9
 							// so try that first
@@ -293,7 +291,7 @@ public class ProcessUtil {
 
 	// Shutdown UMS and either reboot or run the given command (e.g. a script to
 	// restart UMS)
-	public static void reboot(ArrayList<String> cmd, Map<String, String> env, String startdir, String... UMSOptions) {
+	public static void reboot(ArrayList<String> cmd, Map<String, String> env, String startdir, String... umsOptions) {
 		final ArrayList<String> reboot;
 		String macAppPath = null;
 		if (Platform.isMac()) {
@@ -312,15 +310,15 @@ public class ProcessUtil {
 			reboot.add("-n");
 			reboot.add("-a");
 			reboot.add(macAppPath);
-			if (UMSOptions.length > 0) {
+			if (umsOptions.length > 0) {
 				reboot.add("--args");
 			}
 		} else {
 			reboot = getUMSCommand();
 		}
 
-		if (UMSOptions.length > 0) {
-			reboot.addAll(Arrays.asList(UMSOptions));
+		if (umsOptions.length > 0) {
+			reboot.addAll(Arrays.asList(umsOptions));
 		}
 		if (cmd == null) {
 			// We're doing a straight reboot

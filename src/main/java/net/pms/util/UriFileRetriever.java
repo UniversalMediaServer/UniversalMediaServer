@@ -76,8 +76,8 @@ public class UriFileRetriever {
 	 * @param uri The URI of the external server file.
 	 * @param file The path to store downloaded file.
 	 * @param callback The calling class which will be informed about the
-	 * progress of the file download.
-	 * 
+	 *            progress of the file download.
+	 *
 	 * @throws Exception
 	 */
 	public void getFile(URI uri, File file, UriRetrieverCallback callback) throws Exception {

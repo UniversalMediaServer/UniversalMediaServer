@@ -66,7 +66,7 @@ public final class Version implements Comparable<Version> {
 
 	/**
 	 * Returns true if this version equals the supplied object, false otherwise
-	 * 
+	 *
 	 * @param other object to be compared with this version
 	 * @return true if this version is equal to the supplied object, false
 	 *         otherwise
@@ -83,7 +83,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns true if this version is less than the supplied version, false
 	 * otherwise
-	 * 
+	 *
 	 * @param other version to be compared with this version
 	 * @return true if this version is less than the supplied version, false
 	 *         otherwise
@@ -95,7 +95,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns true if this version is less than or equal to the supplied
 	 * version, false otherwise
-	 * 
+	 *
 	 * @param other version to be compared with this version2yy
 	 * @return true if this version is less than or equal to the supplied
 	 *         version, false otherwise
@@ -107,7 +107,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns true if this version is greater than the supplied version, false
 	 * otherwise
-	 * 
+	 *
 	 * @param other version to be compared with this version2yy
 	 * @return true if this version is greater than the supplied version, false
 	 *         otherwise
@@ -119,7 +119,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns true if this version is greater than or equal to the supplied
 	 * version, false otherwise
-	 * 
+	 *
 	 * @param other version to be compared with this version2yy
 	 * @return true if this version is greater than or equal to the supplied
 	 *         version,false otherwise
@@ -132,7 +132,7 @@ public final class Version implements Comparable<Version> {
 	 * Compares an initial (current) version and a target version of PMS and
 	 * returns true if the initial version can be updated to the target version.
 	 * See src/main/external-resources/update/README for the criteria.
-	 * 
+	 *
 	 * @param vFrom The initial version
 	 * @param vTo The target version
 	 * @return <code>true</code> if the current version can safely be updated,
@@ -145,7 +145,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns the first integer element of this version string, or 0 if a first
 	 * integer was not defined or could not be parsed
-	 * 
+	 *
 	 * @return the major number
 	 */
 	public int getMajor() {
@@ -159,7 +159,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns the second integer element of this version string, or 0 if a
 	 * second integer was not defined or could not be parsed
-	 * 
+	 *
 	 * @return the minor number
 	 */
 	public int getMinor() {
@@ -173,7 +173,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns the third integer element of this version string, or 0 if a third
 	 * integer was not defined or could not be parsed
-	 * 
+	 *
 	 * @return the revision number
 	 */
 	public int getRevision() {
@@ -187,7 +187,7 @@ public final class Version implements Comparable<Version> {
 	/**
 	 * Returns the fourth integer element of this version string, or 0 if a
 	 * fourth integer was not defined or could not be parsed
-	 * 
+	 *
 	 * @return the build number
 	 */
 	public int getBuild() {

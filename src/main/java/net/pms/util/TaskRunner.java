@@ -82,7 +82,7 @@ public class TaskRunner {
 	/**
 	 * Submit a named task for later execution. If singletonTask is set to true,
 	 * checked that tasks with the same name is not concurrently running.
-	 * 
+	 *
 	 * @param name
 	 * @param runnable
 	 * @param singletonTask
