@@ -69,9 +69,9 @@ public class StatusTab {
 		public JLabel time;
 		public JFrame frame;
 		public GuiUtil.SmoothProgressBar rendererProgressBar;
-		public RendererPanel panel;
+		public RendererPanel rendererPanel;
 		public String name = " ";
-		private JPanel _panel = null;
+		private JPanel panel = null;
 
 		public RendererItem(RendererConfiguration renderer) {
 			icon = addRendererIcon(renderer.getRendererIcon());
@@ -110,7 +110,7 @@ public class StatusTab {
 			parent.add(getPanel());
 			parent.validate();
 			// Maximize the playing label width
-			int w = _panel.getWidth() - _panel.getInsets().left - _panel.getInsets().right;
+			int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
 			playing.setSize(w, (int) playingLabel.getSize().getHeight());
 			playingLabel.setMaxWidth(w);
 		}
@@ -122,8 +122,8 @@ public class StatusTab {
 					frame.dispose();
 					frame = null;
 				}
-				Container parent = _panel.getParent();
-				parent.remove(_panel);
+				Container parent = panel.getParent();
+				parent.remove(panel);
 				parent.revalidate();
 				parent.repaint();
 			} catch (Exception e) {
@@ -131,7 +131,7 @@ public class StatusTab {
 		}
 
 		public JPanel getPanel() {
-			if (_panel == null) {
+			if (panel == null) {
 				PanelBuilder b = new PanelBuilder(new FormLayout(
 					"center:pref",
 					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
@@ -143,9 +143,9 @@ public class StatusTab {
 				b.add(rendererProgressBar, cc.xy(1, 5));
 				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
 				b.add(time, cc.xy(1, 9));
-				_panel = b.getPanel();
+				panel = b.getPanel();
 			}
-			return _panel;
+			return panel;
 		}
 	}
 
@@ -175,7 +175,7 @@ public class StatusTab {
 	 * Shows a simple visual status of the server.
 	 *
 	 * @todo choose better icons for these
-	 * @param configuration 
+	 * @param configuration
 	 */
 	StatusTab(PmsConfiguration configuration) {
 		// Build Animations
@@ -274,7 +274,7 @@ public class StatusTab {
 			"1dlu," +            //           |                       |          //
 			"[30pt,p]," +        //  <icon>   |  <statusbar>          |          //  9
 			"3dlu,"              //           |                       |          //
-			                     //////////////////////////////////////////////////
+			//                   //////////////////////////////////////////////////
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -296,7 +296,7 @@ public class StatusTab {
 			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 260));
-		rsp.getHorizontalScrollBar().setLocation(0,250);
+		rsp.getHorizontalScrollBar().setLocation(0, 250);
 
 		builder.add(rsp, cc.xyw(1, 3, 5));
 
@@ -401,9 +401,9 @@ public class StatusTab {
 							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
 							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
 							r.frame = new JFrame();
-							r.panel = new RendererPanel(renderer);
-							r.frame.add(r.panel);
-							r.panel.update();
+							r.rendererPanel = new RendererPanel(renderer);
+							r.frame.add(r.rendererPanel);
+							r.rendererPanel.update();
 							r.frame.setResizable(false);
 							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
 							r.frame.setLocationRelativeTo(top);
@@ -427,8 +427,8 @@ public class StatusTab {
 					renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
 					renderer.gui.label.setText(renderer.getRendererName());
 					// Update the popup panel if it's been opened
-					if (renderer.gui.panel != null) {
-						renderer.gui.panel.update();
+					if (renderer.gui.rendererPanel != null) {
+						renderer.gui.rendererPanel.update();
 					}
 				}
 			}

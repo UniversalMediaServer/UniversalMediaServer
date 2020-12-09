@@ -72,13 +72,12 @@ public class SmartScroller implements AdjustmentListener {
 	 * positioned as data is added. Valid values are START and END
 	 */
 	public SmartScroller(JScrollPane scrollPane, int scrollDirection, int viewportPosition) {
-		if (scrollDirection != HORIZONTAL
-			&& scrollDirection != VERTICAL) {
-			throw new IllegalArgumentException("invalid scroll direction specified");
+		if (scrollDirection != HORIZONTAL &&
+			scrollDirection != VERTICAL) {
+				throw new IllegalArgumentException("invalid scroll direction specified");
 		}
 
-		if (viewportPosition != START
-			&& viewportPosition != END) {
+		if (viewportPosition != START && viewportPosition != END) {
 			throw new IllegalArgumentException("invalid viewport position specified");
 		}
 
@@ -117,8 +116,8 @@ public class SmartScroller implements AdjustmentListener {
 		//  The scroll bar listModel contains information needed to determine
 		//  whether the viewport should be repositioned or not.
 
-		JScrollBar scrollBar = (JScrollBar) e.getSource();
-		BoundedRangeModel listModel = scrollBar.getModel();
+		JScrollBar scroll = (JScrollBar) e.getSource();
+		BoundedRangeModel listModel = scroll.getModel();
 		int value = listModel.getValue();
 		int extent = listModel.getExtent();
 		int maximum = listModel.getMaximum();
@@ -140,18 +139,18 @@ public class SmartScroller implements AdjustmentListener {
 		//  (ie. valueChanged will be false on a program scroll)
 		if (adjustScrollBar && viewportPosition == END) {
 			// Scroll the viewport to the end.
-			scrollBar.removeAdjustmentListener(this);
+			scroll.removeAdjustmentListener(this);
 			value = maximum - extent;
-			scrollBar.setValue(value);
-			scrollBar.addAdjustmentListener(this);
+			scroll.setValue(value);
+			scroll.addAdjustmentListener(this);
 		}
 
 		if (adjustScrollBar && viewportPosition == START) {
 			// Keep the viewport at the same relative viewportPosition
-			scrollBar.removeAdjustmentListener(this);
+			scroll.removeAdjustmentListener(this);
 			value = value + maximum - previousMaximum;
-			scrollBar.setValue(value);
-			scrollBar.addAdjustmentListener(this);
+			scroll.setValue(value);
+			scroll.addAdjustmentListener(this);
 		}
 
 		previousValue = value;

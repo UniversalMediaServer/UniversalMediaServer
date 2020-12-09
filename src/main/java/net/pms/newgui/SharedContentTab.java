@@ -239,7 +239,7 @@ public class SharedContentTab {
 		/* An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) sharedFolders.getCellRenderer(0,0);
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) sharedFolders.getCellRenderer(0, 0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
 		sharedFolders.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		sharedFolders.setIntercellSpacing(new Dimension(8, 2));
@@ -307,13 +307,13 @@ public class SharedContentTab {
 				if (sharedFolders.isRowSelected(i)) {
 					Object  value1 = sharedFolders.getValueAt(i, 0);
 					boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
-					
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 0), i    , 0);
-					sharedFolders.setValueAt(value1                            , i + 1, 0);
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 1), i    , 1);
-					sharedFolders.setValueAt(value2                            , i + 1, 1);
+
+					sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 0), i, 0);
+					sharedFolders.setValueAt(value1, i + 1, 0);
+					sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 1), i, 1);
+					sharedFolders.setValueAt(value2, i + 1, 1);
 					sharedFolders.changeSelection(i + 1, 1, false, false);
-					
+
 					break;
 				}
 			}
@@ -326,15 +326,15 @@ public class SharedContentTab {
 				if (sharedFolders.isRowSelected(i)) {
 					Object  value1 = sharedFolders.getValueAt(i, 0);
 					boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
-					
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 0), i    , 0);
-					sharedFolders.setValueAt(value1                            , i - 1, 0);
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 1), i    , 1);
-					sharedFolders.setValueAt(value2                            , i - 1, 1);
+
+					sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 0), i, 0);
+					sharedFolders.setValueAt(value1, i - 1, 0);
+					sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 1), i, 1);
+					sharedFolders.setValueAt(value2, i - 1, 1);
 					sharedFolders.changeSelection(i - 1, 1, false, false);
-					
+
 					break;
-					
+
 				}
 			}
 		});
@@ -346,7 +346,7 @@ public class SharedContentTab {
 		SCAN_BUTTON.addActionListener((ActionEvent e) -> {
 			if (configuration.getUseCache()) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
-				
+
 				if (database != null) {
 					if (database.isScanLibraryRunning()) {
 						int option = JOptionPane.showConfirmDialog(
@@ -440,25 +440,25 @@ public class SharedContentTab {
 		but.addActionListener((ActionEvent e) -> {
 			JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 			newEntryType.setEditable(false);
-			
+
 			JTextField newEntryFolders = new JTextField(25);
 			newEntryFolders.setText("Web,");
-			
+
 			JTextField newEntrySource = new JTextField(50);
-			
+
 			JPanel addNewWebContentPanel = new JPanel();
-			
+
 			JLabel labelType = new JLabel(Messages.getString("SharedContentTab.TypeColon"));
 			JLabel labelFolders = new JLabel(Messages.getString("SharedContentTab.FoldersColon"));
 			JLabel labelSource = new JLabel(Messages.getString("SharedContentTab.SourceURLColon"));
-			
+
 			labelType.setLabelFor(newEntryType);
 			labelFolders.setLabelFor(newEntryFolders);
 			labelSource.setLabelFor(newEntrySource);
-			
+
 			GroupLayout layout = new GroupLayout(addNewWebContentPanel);
 			addNewWebContentPanel.setLayout(layout);
-			
+
 			layout.setHorizontalGroup(
 				layout
 					.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -479,7 +479,7 @@ public class SharedContentTab {
 							.addContainerGap()
 					)
 			);
-			
+
 			layout.setVerticalGroup(
 				layout
 					.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -498,7 +498,7 @@ public class SharedContentTab {
 							.addContainerGap()
 					)
 			);
-			
+
 			int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 			if (result == JOptionPane.OK_OPTION) {
 				((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
@@ -526,15 +526,15 @@ public class SharedContentTab {
 					Object type   = webContentList.getValueAt(i, 0);
 					Object folder = webContentList.getValueAt(i, 1);
 					Object source = webContentList.getValueAt(i, 2);
-					
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 0), i    , 0);
-					webContentList.setValueAt(type                               , i + 1, 0);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 1), i    , 1);
-					webContentList.setValueAt(folder                             , i + 1, 1);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 2), i    , 2);
-					webContentList.setValueAt(source                             , i + 1, 2);
+
+					webContentList.setValueAt(webContentList.getValueAt(i + 1, 0), i, 0);
+					webContentList.setValueAt(type, i + 1, 0);
+					webContentList.setValueAt(webContentList.getValueAt(i + 1, 1), i, 1);
+					webContentList.setValueAt(folder, i + 1, 1);
+					webContentList.setValueAt(webContentList.getValueAt(i + 1, 2), i, 2);
+					webContentList.setValueAt(source, i + 1, 2);
 					webContentList.changeSelection(i + 1, 1, false, false);
-					
+
 					break;
 				}
 			}
@@ -549,15 +549,15 @@ public class SharedContentTab {
 					Object type   = webContentList.getValueAt(i, 0);
 					Object folder = webContentList.getValueAt(i, 1);
 					Object source = webContentList.getValueAt(i, 2);
-					
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 0), i,     0);
-					webContentList.setValueAt(type                               , i - 1, 0);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 1), i,     1);
-					webContentList.setValueAt(folder                             , i - 1, 1);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 2), i,     2);
-					webContentList.setValueAt(source                             , i - 1, 2);
+
+					webContentList.setValueAt(webContentList.getValueAt(i - 1, 0), i, 0);
+					webContentList.setValueAt(type, i - 1, 0);
+					webContentList.setValueAt(webContentList.getValueAt(i - 1, 1), i, 1);
+					webContentList.setValueAt(folder, i - 1, 1);
+					webContentList.setValueAt(webContentList.getValueAt(i - 1, 2), i, 2);
+					webContentList.setValueAt(source, i - 1, 2);
 					webContentList.changeSelection(i - 1, 1, false, false);
-					
+
 					break;
 				}
 			}
@@ -728,7 +728,7 @@ public class SharedContentTab {
 
 				GroupLayout layout = new GroupLayout(addNewWebContentPanel);
 				addNewWebContentPanel.setLayout(layout);
-		
+
 				layout.setHorizontalGroup(
 					layout
 						.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -749,7 +749,7 @@ public class SharedContentTab {
 								.addContainerGap()
 					)
 				);
-		
+
 				layout.setVerticalGroup(
 					layout
 						.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -768,7 +768,7 @@ public class SharedContentTab {
 								.addContainerGap()
 						)
 				);
-		
+
 				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
 					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 0);

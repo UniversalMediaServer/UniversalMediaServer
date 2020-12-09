@@ -62,7 +62,6 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.PlayerFactory;
-import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
@@ -790,13 +789,13 @@ public class PMS {
 
 					server = new HTTPServer(configuration.getServerPort());
 					server.start();
-					
+
 					// re-create the multicast socked because may happened the change of the used interface
 					UPNPHelper.getInstance().createMulticastSocket();
 					UPNPHelper.sendAlive();
 					frame.setReloadable(false);
 				} catch (IOException e) {
-					LOGGER.error("error during restart :" +e.getMessage(), e);
+					LOGGER.error("error during restart :" + e.getMessage(), e);
 				}
 			}
 		});
@@ -873,7 +872,7 @@ public class PMS {
 
 	@Nonnull
 	public static PMS getNewInstance() {
-		instance=null;
+		instance = null;
 		createInstance();
 		return instance;
 	}
@@ -1246,11 +1245,11 @@ public class PMS {
 			if (logFile.exists()) {
 				File newFile = new File(newLogFileName);
 				if (!logFile.renameTo(newFile)) {
-					LOGGER.warn("Could not rename \"{}\" to \"{}\"",fullLogFileName,newLogFileName);
+					LOGGER.warn("Could not rename \"{}\" to \"{}\"", fullLogFileName, newLogFileName);
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}",fullLogFileName,newLogFileName,e);
+			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}", fullLogFileName, newLogFileName, e);
 		}
 	}
 
@@ -1269,7 +1268,7 @@ public class PMS {
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
-		} catch ( IOException e) {
+		} catch (IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
 
@@ -1277,7 +1276,7 @@ public class PMS {
 			dumpPid();
 		} catch (FileNotFoundException e) {
 			LOGGER.error(
-				"Failed to write PID file: "+ e.getMessage() +
+				"Failed to write PID file: " + e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
 			);
 		} catch (IOException e) {
@@ -1325,7 +1324,7 @@ public class PMS {
 		// check first and last, update since taskkill changed
 		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
 		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
-			  		  tmp[tmp.length - 2].contains("universal media server");
+						tmp[tmp.length - 2].contains("universal media server");
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
@@ -1333,7 +1332,7 @@ public class PMS {
 		return configuration.getDataFile("pms.pid");
 	}
 
-	private static void killProc() throws AccessControlException, IOException{
+	private static void killProc() throws AccessControlException, IOException {
 		ProcessBuilder pb = null;
 		String pid;
 		String pidFile = pidFile();
@@ -1650,14 +1649,13 @@ public class PMS {
 				} catch (Exception e) {
 					LOGGER.debug("Can't create chromecast mgr");
 				}
-			}
-			else {
+			} else {
 				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
 			}
 		}
 	}
 
-	private void startjmDNS() throws IOException{
+	private void startjmDNS() throws IOException {
 		if (jmDNS == null) {
 			jmDNS = JmDNS.create();
 		}
@@ -1712,7 +1710,7 @@ public class PMS {
 	private UmsKeysDb keysDb;
 
 	public static String getKey(String key) {
-		 return instance.keysDb.get(key);
+		return instance.keysDb.get(key);
 	}
 
 	public static void setKey(String key, String val) {

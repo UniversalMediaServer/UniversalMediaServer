@@ -80,7 +80,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		ArrayList<String> folders = new ArrayList<>();
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
-		
+
 		String backUri = "javascript:history.back()";
 		if (
 			!resources.isEmpty() &&

@@ -45,9 +45,9 @@ public class SelectRenderers extends JPanel {
 	private static PmsConfiguration configuration = PMS.getConfiguration();
 	private static List<String> selectedRenderers = configuration.getSelectedRenderers();
 	private CheckTreeManager checkTreeManager;
-	private JTree SrvTree;
+	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
-	private static final String allRenderersTreeName = configuration.allRenderers;
+	private static final String ALL_RENDERERS_TREE_NAME = configuration.allRenderers;
 	private boolean init = false;
 
 	public SelectRenderers() {
@@ -93,9 +93,9 @@ public class SelectRenderers extends JPanel {
 			}
 		}
 
-		SrvTree = new JTree(new DefaultTreeModel(allRenderers));
-		checkTreeManager = new CheckTreeManager(SrvTree);
-		checkPanel.add(new JScrollPane(SrvTree));
+		srvTree = new JTree(new DefaultTreeModel(allRenderers));
+		checkTreeManager = new CheckTreeManager(srvTree);
+		checkPanel.add(new JScrollPane(srvTree));
 		checkPanel.setSize(400, 500);
 	}
 
@@ -109,13 +109,13 @@ public class SelectRenderers extends JPanel {
 			init = true;
 		}
 
-		SrvTree.validate();
+		srvTree.validate();
 		// Refresh setting if modified
 		selectedRenderers = configuration.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
 		if (selectedRenderers.isEmpty() || (selectedRenderers.size() == 1 && selectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
-		} else if (selectedRenderers.size() == 1 && selectedRenderers.get(0).equals(allRenderersTreeName)) {
+		} else if (selectedRenderers.size() == 1 && selectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
 			checkTreeManager.getSelectionModel().setSelectionPath(root);
 		} else {
 			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode) {
@@ -158,7 +158,7 @@ public class SelectRenderers extends JPanel {
 				selected.length == 1 && selected[0].getLastPathComponent() instanceof SearchableMutableTreeNode &&
 				((SearchableMutableTreeNode) selected[0].getLastPathComponent()).getNodeName().equals(allRenderers.getNodeName())
 			) {
-				if (configuration.setSelectedRenderers(allRenderersTreeName)) {
+				if (configuration.setSelectedRenderers(ALL_RENDERERS_TREE_NAME)) {
 					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
 				}
 			} else {

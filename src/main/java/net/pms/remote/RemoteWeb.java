@@ -75,15 +75,15 @@ public class RemoteWeb {
 	private Map<String, RootFolder> roots;
 	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final int defaultPort = CONFIGURATION.getWebPort();
+	private static final int DEFAULT_PORT = CONFIGURATION.getWebPort();
 
 	public RemoteWeb() throws IOException {
-		this(defaultPort);
+		this(DEFAULT_PORT);
 	}
 
 	public RemoteWeb(int port) throws IOException {
 		if (port <= 0) {
-			port = defaultPort;
+			port = DEFAULT_PORT;
 		}
 
 		roots = new HashMap<>();
@@ -160,11 +160,11 @@ public class RemoteWeb {
 		trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 		trustManagerFactory.init(keyStore);
 
-		HttpsServer server = HttpsServer.create(address, 0);
+		HttpsServer httpsServer = HttpsServer.create(address, 0);
 		sslContext = SSLContext.getInstance("TLS");
 		sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
-		server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+		httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
 
 			@Override
 			public void configure(HttpsParameters params) {
@@ -184,7 +184,7 @@ public class RemoteWeb {
 				}
 			}
 		});
-		return server;
+		return httpsServer;
 	}
 
 	public String getTag(String user) {
@@ -403,8 +403,9 @@ public class RemoteWeb {
 
 				} else if (path.startsWith("/files/proxy")) {
 					String url = t.getRequestURI().getQuery();
-					if (url != null)
+					if (url != null) {
 						url = url.substring(2);
+					}
 
 					InputStream in = null;
 					CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
@@ -611,8 +612,9 @@ public class RemoteWeb {
 
 	public String getUrl() {
 		if (server != null) {
-			return (server instanceof HttpsServer ? "https://" : "http://") + PMS.get().getServer().getHost() + ":"
-				+ server.getAddress().getPort();
+			return (server instanceof HttpsServer ?
+					"https://" :
+					"http://") + PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 		}
 		return null;
 	}

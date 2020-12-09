@@ -42,7 +42,7 @@ public class Wizard {
 
 		// The current question number
 		int currentQuestionNumber = 1;
-		
+
 		String status = new StringBuilder()
 			.append(Messages.getString("Wizard.2"))
 			.append(" %d ")
@@ -83,7 +83,6 @@ public class Wizard {
 		} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
 			configuration.setMinimized(false);
 		}
-		
 
 		// Ask if their network is wired, etc.
 		int networkType = JOptionPane.showOptionDialog(
@@ -184,7 +183,7 @@ public class Wizard {
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
-					} else {
+					// } else {
 						// If the user cancels this option, the default directories will be used.
 					}
 				}
