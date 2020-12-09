@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
  * file-change notifications as opposed to directly polling or examining files.
- * 
+ *
  * @see https://docs.oracle.com/javase/tutorial/essential/io/examples/WatchDir.java
  */
 public class FileWatcher {
@@ -98,7 +98,7 @@ public class FileWatcher {
 		public void init(Path dir) {
 			String match;
 			String globChar;
-			final String[] globCharsToEscape = {  
+			final String[] globCharsToEscape = {
 				"[",
 				"]",
 				"{",
@@ -334,7 +334,7 @@ public class FileWatcher {
 								if (!Files.exists(filename)) {
 									isDir = FileUtil.isDirectory(filename.toString());
 								} else {
-									isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/); 
+									isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/);
 								}
 
 								// See if we're watching for this specific file

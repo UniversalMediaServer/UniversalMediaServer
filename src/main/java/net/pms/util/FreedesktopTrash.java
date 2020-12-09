@@ -47,7 +47,7 @@ public class FreedesktopTrash {
 	private static Object homeFolderLock = new Object();
 	private static final String INFO = "info";
 	private static final String FILES = "files";
-	private static final SecureRandom random = new SecureRandom();
+	private static final SecureRandom RANDOM = new SecureRandom();
 
 	private static String generateRandomFileName(String fileName) {
 		if (fileName.contains("/") || fileName.contains("\\")) {
@@ -65,7 +65,7 @@ public class FreedesktopTrash {
 			suffix = "";
 		}
 
-		long n = random.nextLong();
+		long n = RANDOM.nextLong();
 		n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n);
 		String newName = prefix + Long.toString(n) + suffix;
 		return newName;
@@ -226,7 +226,7 @@ public class FreedesktopTrash {
 			throw new NullPointerException("path cannot be null");
 		}
 
-		final int LIMIT = 10;
+		final int limit = 10;
 		path = path.toAbsolutePath();
 		FilePermissions pathPermissions = new FilePermissions(path);
 		if (!pathPermissions.isReadable() || !pathPermissions.isWritable()) {
@@ -254,7 +254,7 @@ public class FreedesktopTrash {
 		String fileName = infoFile != null ? infoFile.toString() : "";
 		int count = 0;
 		boolean created = false;
-		while (!created && count < LIMIT) {
+		while (!created && count < limit) {
 			infoFile = infoFolder.resolve(fileName + ".trashinfo");
 			try {
 				Files.write(infoFile, infoContent, Charset.defaultCharset(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);

@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class InfoDb implements DbHandler {
 	public static class InfoDbData {
 		public String imdb;
-		public String ep_name;
+		public String epName;
 		public String year;
 		public String season;
 		public String episode;
@@ -71,12 +71,12 @@ public class InfoDb implements DbHandler {
 		new Thread(r).start();
 	}
 
-	public void moveInfo(File old_file, File new_file) {
+	public void moveInfo(File oldFile, File newFile) {
 		synchronized (db) {
-			InfoDbData data = get(old_file);
+			InfoDbData data = get(oldFile);
 			if (data != null) {
-				db.removeNoSync(old_file.getAbsolutePath());
-				db.addNoSync(new_file.getAbsolutePath(), data);
+				db.removeNoSync(oldFile.getAbsolutePath());
+				db.addNoSync(newFile.getAbsolutePath(), data);
 				db.sync();
 			}
 		}
@@ -101,7 +101,7 @@ public class InfoDb implements DbHandler {
 	public Object create(String[] args, int off) {
 		InfoDbData data = new InfoDbData();
 		data.imdb = FileDb.safeGetArg(args, off);
-		data.ep_name = FileDb.safeGetArg(args, off + 1);
+		data.epName = FileDb.safeGetArg(args, off + 1);
 		data.title = FileDb.safeGetArg(args, off + 2);
 		data.season = FileDb.safeGetArg(args, off + 3);
 		data.episode = FileDb.safeGetArg(args, off + 4);
@@ -115,7 +115,7 @@ public class InfoDb implements DbHandler {
 		InfoDbData data = (InfoDbData) obj;
 		return new String[]{
 			data.imdb,
-			data.ep_name,
+			data.epName,
 			data.title,
 			data.season,
 			data.episode,

@@ -275,11 +275,11 @@ public interface BasicPlayer extends ActionListener {
 
 		public Playlist.Item resolveURI(String uri, String metadata) {
 			if (uri != null) {
-				Playlist.Item item;
+				Playlist.Item item = playlist.get(uri);
 				if (metadata != null && metadata.startsWith("<DIDL")) {
 					// If it looks real assume it's valid
 					return new Playlist.Item(uri, null, metadata);
-				} else if ((item = playlist.get(uri)) != null) {
+				} else if (item != null) {
 					// We've played it before
 					return item;
 				} else {
@@ -419,7 +419,7 @@ public interface BasicPlayer extends ActionListener {
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
-						while(PMS.get().getServer().getHost() == null) {
+						while (PMS.get().getServer().getHost() == null) {
 							try {
 								Thread.sleep(1000);
 							} catch (InterruptedException e) {
@@ -574,7 +574,7 @@ public interface BasicPlayer extends ActionListener {
 			public static class Item {
 				private static final Logger LOGGER = LoggerFactory.getLogger(Item.class);
 				public String name, uri, metadata;
-				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
+				static final Matcher DC_TITLE = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
 
 				public Item(String uri, String name, String metadata) {
 					this.uri = uri;
@@ -586,8 +586,8 @@ public interface BasicPlayer extends ActionListener {
 				public String toString() {
 					if (StringUtils.isBlank(name)) {
 						try {
-							name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
-								dctitle.group(1) :
+							name = (!StringUtils.isEmpty(metadata) && DC_TITLE.reset(unescape(metadata)).find()) ?
+								DC_TITLE.group(1) :
 								new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
 						} catch (UnsupportedEncodingException e) {
 							LOGGER.error("URL decoding error ", e);
@@ -600,7 +600,7 @@ public interface BasicPlayer extends ActionListener {
 				public boolean equals(Object other) {
 					return other == null ? false :
 						other == this ? true :
-						other instanceof Item ? ((Item)other).uri.equals(uri) :
+						other instanceof Item ? ((Item) other).uri.equals(uri) :
 						other.toString().equals(uri);
 				}
 
