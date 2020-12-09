@@ -142,10 +142,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 					// Yes doing getClass.getname is REALLY BAD, but this
 					// is to make legacy plugins utilize this function as well
 					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
-					   .append(txt).append("');\" title=\"").append(name).append("\">");
+						.append(txt).append("');\" title=\"").append(name).append("\">");
 				} else {
 					sb.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
-					  .append("','").append(txt).append("');\" title=\"").append(name).append("\">");
+						.append("','").append(txt).append("');\" title=\"").append(name).append("\">");
 				}
 				sb.append("<span>").append(name).append("</span>");
 				sb.append("</a>");
@@ -162,17 +162,17 @@ public class RemoteBrowseHandler implements HttpHandler {
 							.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
 					} else {
 						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
-						   .append(RemoteUtil.getMsgString("Web.2", t))
-						   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
+							.append(RemoteUtil.getMsgString("Web.2", t))
+							.append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 					}
 					if (resource.getParent() instanceof Playlist) {
 						sb.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 							.append(idForWeb).append("', true);return false;\" title=\"")
-						    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
+							.append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
 					} else {
 						sb.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
 							.append(idForWeb).append("', false);return false;\" title=\"")
-						    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
+							.append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
 					}
 				} else {
 					// ensure that we got a string

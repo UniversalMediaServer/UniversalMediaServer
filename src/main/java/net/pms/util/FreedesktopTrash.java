@@ -142,12 +142,12 @@ public class FreedesktopTrash {
 		} catch (InvalidFileSystemException e) {
 			throw new InvalidFileSystemException("Invalid file system for file: " + path.toAbsolutePath(), e);
 		}
-		Path homeFolder = getHomeFolder();
+		Path folder = getHomeFolder();
 		Path trashFolder;
-		if (homeFolder != null) {
+		if (folder != null) {
 			UnixMountPoint homeMountPoint = null;
 			try {
-				homeMountPoint = FileUtil.getMountPoint(homeFolder);
+				homeMountPoint = FileUtil.getMountPoint(folder);
 			} catch (InvalidFileSystemException e) {
 				LOGGER.trace(e.getMessage(), e);
 				// homeMountPoint == null is ok, fails on .equals()
@@ -155,10 +155,10 @@ public class FreedesktopTrash {
 			if (pathMountPoint.equals(homeMountPoint)) {
 				// The file is on the same partition as the home folder,
 				// use home folder Trash
-				trashFolder = Paths.get(homeFolder.toString(), ".Trash");
+				trashFolder = Paths.get(folder.toString(), ".Trash");
 				if (!Files.exists(trashFolder)) {
 					// This is outside specification but follows convention
-					trashFolder = Paths.get(homeFolder.toString(), ".local/share/Trash");
+					trashFolder = Paths.get(folder.toString(), ".local/share/Trash");
 				}
 				if (verifyTrashFolder(trashFolder, true)) {
 					return trashFolder;

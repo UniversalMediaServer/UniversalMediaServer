@@ -232,7 +232,7 @@ public class RemotePlayHandler implements HttpHandler {
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
-				((WebRender.WebPlayer)renderer.getPlayer()).setData(json);
+				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
 			}  else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
 				// sanity
@@ -242,18 +242,18 @@ public class RemotePlayHandler implements HttpHandler {
 				String op = tmp[tmp.length - 2];
 				String id = tmp[tmp.length - 1];
 				DLNAResource r = PMS.getGlobalRepo().get(id);
-	 			if (r != null) {
+				if (r != null) {
 					RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 					if (root == null) {
 						LOGGER.debug("root not found");
 						throw new IOException("Unknown root");
 					}
 					WebRender renderer = (WebRender) root.getDefaultRenderer();
-	 				if (op.equals("add")) {
-	 					PMS.get().getDynamicPls().add(r);
+					if (op.equals("add")) {
+						PMS.get().getDynamicPls().add(r);
 						renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
 					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
-						((Playlist)r.getParent()).remove(r);
+						((Playlist) r.getParent()).remove(r);
 						renderer.notify(renderer.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
 					}
 				}

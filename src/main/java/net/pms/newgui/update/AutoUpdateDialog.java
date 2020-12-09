@@ -192,7 +192,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 					okButton.setVisible(false);
 				}
 
-				return "<html>" + String.format(Messages.getString("AutoUpdate.VersionXIsAvailable"), autoUpdater.serverProperties.getLatestVersion()) + permissionsReminder + "</html>";
+				return "<html>" + String.format(Messages.getString("AutoUpdate.VersionXIsAvailable"), autoUpdater.SERVER_PROPERTIES.getLatestVersion()) + permissionsReminder + "</html>";
 			default:
 				return Messages.getString("AutoUpdate.8");
 		}

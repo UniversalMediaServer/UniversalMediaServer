@@ -31,7 +31,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private final String serverUrl;
 	private final UriFileRetriever uriRetriever = new UriFileRetriever();
-	public static final AutoUpdaterServerProperties serverProperties = new AutoUpdaterServerProperties();
+	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 	private final Version currentVersion;
 	private Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
@@ -69,7 +69,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			long unixTime = System.currentTimeMillis() / 1000L;
 			byte[] propertiesAsData = uriRetriever.get(serverUrl + "?cacheBuster=" + unixTime);
 			synchronized (stateLock) {
-				serverProperties.loadFrom(propertiesAsData);
+				SERVER_PROPERTIES.loadFrom(propertiesAsData);
 				setState(isUpdateAvailable() ? State.UPDATE_AVAILABLE : State.NO_UPDATE_AVAILABLE);
 			}
 		} catch (IOException e) {
@@ -142,7 +142,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void assertUpdateIsAvailable() throws UpdateException {
 		synchronized (stateLock) {
-			if (!serverProperties.isStateValid()) {
+			if (!SERVER_PROPERTIES.isStateValid()) {
 				throw new UpdateException("Server error. Try again later.");
 			}
 
@@ -181,7 +181,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	public boolean isUpdateAvailable() {
-		return Version.isPmsUpdatable(currentVersion, serverProperties.getLatestVersion());
+		return Version.isPmsUpdatable(currentVersion, SERVER_PROPERTIES.getLatestVersion());
 	}
 
 	private static String getTargetFilename() {
@@ -199,7 +199,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	private void downloadUpdate() throws UpdateException {
-		String downloadUrl = serverProperties.getDownloadUrl();
+		String downloadUrl = SERVER_PROPERTIES.getDownloadUrl();
 
 		File target = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 
