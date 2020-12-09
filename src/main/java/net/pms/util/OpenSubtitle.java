@@ -439,8 +439,7 @@ public class OpenSubtitle {
 
 	private static boolean checkStatus(Params params) {
 		if (params == null || params.isEmpty() || !(params.get(0).getValue() instanceof Struct) ||
-			((Struct) params.get(0).getValue()).get("status") == null)
-		{
+							((Struct) params.get(0).getValue()).get("status") == null) {
 			LOGGER.error("OpenSubtitles response has no status, aborting");
 			return false;
 		}
@@ -1223,9 +1222,8 @@ public class OpenSubtitle {
 
 			// Send request
 			try (OutputStream out = LOGGER.isTraceEnabled() ?
-				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
-				connection.getOutputStream())
-			{
+						new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
+							connection.getOutputStream()) {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "GuessMovieFromString", params);
 				writer.flush();
@@ -1243,9 +1241,8 @@ public class OpenSubtitle {
 			// Parse reply
 			params = null;
 			try (InputStream reply = LOGGER.isTraceEnabled() ?
-				new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
-				sendXMLStream(connection))
-			{
+						new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
+							sendXMLStream(connection)) {
 				LOGGER.trace("Parsing OpenSubtitles GuessMovieFromString response");
 				XMLStreamReader reader = null;
 				try {
@@ -1282,11 +1279,10 @@ public class OpenSubtitle {
 			if (movieGuess != null) {
 				VideoClassification classification;
 				if (movieGuess.getGuessIt() != null && movieGuess.getGuessIt().getType() != null &&
-					movieGuess.getGuessIt().getType() != prettifier.getClassification())
-				{
+				movieGuess.getGuessIt().getType() != prettifier.getClassification()) {
 					classification = movieGuess.getGuessIt().getType();
 					LOGGER.debug("OpenSubtitles guessed that \"{}\" is a {} while we guessed a {}. Using {}", fileName,
-						movieGuess.getGuessIt().getType(), prettifier.getClassification(), classification);
+					movieGuess.getGuessIt().getType(), prettifier.getClassification(), classification);
 				} else {
 					classification = prettifier.getClassification();
 				}
@@ -1346,8 +1342,8 @@ public class OpenSubtitle {
 			return "Not logging huge XML document with a length of " + loggableString.length() + " characters";
 		}
 		if (loggableString.length() > 20000) {
-			return "Not prettifying XML document with a length of " + loggableString.length() + ", unprettified XML document: "
-				+ loggableString;
+			return "Not prettifying XML document with a length of " + loggableString.length() +
+				", unprettified XML document: " + loggableString;
 		}
 		try {
 			return StringUtil.prettifyXML(loggableString, StandardCharsets.UTF_8, 2);
@@ -4365,16 +4361,15 @@ public class OpenSubtitle {
 							 * match with our results from OpenSubtitles.
 							 */
 							if ((StringUtils.isNotBlank(tvSeasonFromFilename) &&
-									StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
-									tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) && 
-									StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
-									StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
-									tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)) ||
-									(StringUtils.isBlank(tvSeasonFromFilename) && StringUtils.isBlank(tvEpisodeNumberFromFilename)))
-								{
-									titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
-									titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
-									if (overTheTopLogging) {
+							StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
+							tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
+							StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+							StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
+							tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)) ||
+							(StringUtils.isBlank(tvSeasonFromFilename) && StringUtils.isBlank(tvEpisodeNumberFromFilename))) {
+								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+								titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+								if (overTheTopLogging) {
 									LOGGER.trace("titleFromDatabase: " + titleFromDatabase);
 									LOGGER.trace("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
 								}

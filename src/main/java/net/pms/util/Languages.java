@@ -95,45 +95,46 @@ public final class Languages {
 	 * {@link #languageTagToUMSLanguageTag(String)} must be updated
 	 * correspondingly.
 	 */
-	private static final String[] UMS_BCP47_CODES = { "af",      // Afrikaans
-			"ar",      // Arabic
-			"bn",      // Bengali (Bangladesh)
-			"pt-BR",   // Brazilian Portuguese
-			"bg",      // Bulgarian
-			"ca",      // Catalan, Valencian
-			"zh-Hans", // Chinese, Han (Simplified variant)
-			"zh-Hant", // Chinese, Han (Traditional variant)
-			"hr",      // Croatian
-			"cs",      // Czech
-			"da",      // Danish
-			"nl",      // Dutch, Flemish
-			"en-GB",   // English, United Kingdom
-			"en-US",   // English, United States
-			"fi",      // Finnish
-			"fr",      // French
-			"de",      // German
-			"el",      // Greek, Modern
-			"iw",      // Hebrew (Java prefers the deprecated "iw" to "he")
-			"hu",      // Hungarian
-			"is",      // Icelandic
-			"it",      // Italian
-			"ja",      // Japanese
-			"ko",      // Korean
-			"no",      // Norwegian
-			"fa",      // Persian (Farsi)
-			"pl",      // Polish
-			"pt",      // Portuguese
-			"ro",      // Romanian, Moldavian, Moldovan
-			"ru",      // Russian
-			"sr",      // Serbian (Cyrillic)
-			"sk",      // Slovak
-			"sl",      // Slovenian
-			"es",      // Spanish, Castilian
-			"sv",      // Swedish
-			"th",      // Thai
-			"tr",      // Turkish
-			"uk",      // Ukrainian
-			"vi",      // Vietnamese
+	private static final String[] UMS_BCP47_CODES = {
+		"af",      // Afrikaans
+		"ar",      // Arabic
+		"bn",      // Bengali (Bangladesh)
+		"pt-BR",   // Brazilian Portuguese
+		"bg",      // Bulgarian
+		"ca",      // Catalan, Valencian
+		"zh-Hans", // Chinese, Han (Simplified variant)
+		"zh-Hant", // Chinese, Han (Traditional variant)
+		"hr",      // Croatian
+		"cs",      // Czech
+		"da",      // Danish
+		"nl",      // Dutch, Flemish
+		"en-GB",   // English, United Kingdom
+		"en-US",   // English, United States
+		"fi",      // Finnish
+		"fr",      // French
+		"de",      // German
+		"el",      // Greek, Modern
+		"iw",      // Hebrew (Java prefers the deprecated "iw" to "he")
+		"hu",      // Hungarian
+		"is",      // Icelandic
+		"it",      // Italian
+		"ja",      // Japanese
+		"ko",      // Korean
+		"no",      // Norwegian
+		"fa",      // Persian (Farsi)
+		"pl",      // Polish
+		"pt",      // Portuguese
+		"ro",      // Romanian, Moldavian, Moldovan
+		"ru",      // Russian
+		"sr",      // Serbian (Cyrillic)
+		"sk",      // Slovak
+		"sl",      // Slovenian
+		"es",      // Spanish, Castilian
+		"sv",      // Swedish
+		"th",      // Thai
+		"tr",      // Turkish
+		"uk",      // Ukrainian
+		"vi",      // Vietnamese
 	};
 
 	/**
@@ -477,20 +478,20 @@ public final class Languages {
 	 * recommended/default choice. English languages is always recommended, as
 	 * there's no way for us to calculate coverage for them since only the
 	 * strings that deviate from US-English is translated.
-	 * 
+	 *
 	 * @param language the {@link LanguageEntry} to evaluate
 	 * @return The result
 	 */
 	private static boolean isRecommended(LanguageEntry language) {
-		return language.tag.startsWith("en") || language.coveragePercent >= RECOMMENDED_TRANSLATE_PCT
-			|| language.approvedPercent >= RECOMMENDED_APPROVED_PCT;
+		return language.tag.startsWith("en") || language.coveragePercent >= RECOMMENDED_TRANSLATE_PCT ||
+			language.approvedPercent >= RECOMMENDED_APPROVED_PCT;
 	}
 
 	/**
 	 * Returns whether the given {@link TranslationStatistics} qualifies for
 	 * being recommended/default choice. English languages cannot be evaluated
 	 * by this method and should always be considered recommended.
-	 * 
+	 *
 	 * @param languageStatistics the {@link TranslationStatistics} to evaluate
 	 * @return The result
 	 */
@@ -608,9 +609,10 @@ public final class Languages {
 			// Put related language(s) close to top
 			List<LanguageEntry> relatedLanguages = new ArrayList<>();
 			for (LanguageEntry entry : sortedLanguages) {
-				if (entry != baseLanguage && entry != preferredLanguage
-					&& (!preferredLocale.getCountry().isEmpty() && preferredLocale.getCountry().equals(entry.locale.getCountry())
-						|| !preferredLocale.getLanguage().isEmpty() && preferredLocale.getLanguage().equals(entry.locale.getLanguage()))) {
+				if (entry != baseLanguage && entry != preferredLanguage &&
+					(!preferredLocale.getCountry().isEmpty() && preferredLocale.getCountry().equals(entry.locale.getCountry()) ||
+					!preferredLocale.getLanguage().isEmpty() && preferredLocale.getLanguage().equals(entry.locale.getLanguage()))) {
+
 					relatedLanguages.add(entry);
 				}
 			}
@@ -629,7 +631,7 @@ public final class Languages {
 	 * <p>
 	 * <strong>The returned {@link HashMap} is never <code>null</code> and must
 	 * always be synchronized on itself during read or write</strong>
-	 * 
+	 *
 	 * @return The resulting {@link HashMap}
 	 */
 	public static HashMap<String, TranslationStatistics> getTranslationsStatistics() {
@@ -644,7 +646,7 @@ public final class Languages {
 	 * doesn't qualify it as being recommended/default choice. English languages
 	 * are always considered recommended since we can't calculate their
 	 * coverage.
-	 * 
+	 *
 	 * @param languageTag The language tag in IEFT BCP 47 format.
 	 * @return <code>True</code> if a warning should be given for that language
 	 */
