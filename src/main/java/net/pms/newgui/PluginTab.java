@@ -160,7 +160,7 @@ public class PluginTab {
 					);
 
 					if (n == JOptionPane.YES_OPTION) {
-						for (int i=0; i < rows.length; i++) {
+						for (int i = 0; i < rows.length; i++) {
 							String key = (String) credTable.getValueAt(rows[i], 0);
 							if (StringUtils.isNotEmpty((String) credTable.getValueAt(rows[i], 1))) {
 								key = key + "." + (String) credTable.getValueAt(rows[i], 1);
@@ -332,13 +332,13 @@ public class PluginTab {
 		}
 	}
 
-	private static void prepareTable(JTable table,String[] cols) {
+	private static void prepareTable(JTable table, String[] cols) {
 		JTableHeader hdr = table.getTableHeader();
 		TableColumnModel tcm = hdr.getColumnModel();
 
 		for (int i = 0; i < cols.length; i++) {
 			TableColumn tc = tcm.getColumn(i);
-			tc.setHeaderValue( cols[i] );
+			tc.setHeaderValue(cols[i]);
 		}
 
 		hdr.repaint();
@@ -422,17 +422,17 @@ public class PluginTab {
 			}
 
 			for (String val1 : usrPwd) {
-				tableModel.insertRow(i , (Object[]) null);
-				table.setValueAt(ownerTag[0], i , 0);
+				tableModel.insertRow(i, (Object[]) null);
+				table.setValueAt(ownerTag[0], i, 0);
 				if (ownerTag.length > 1) {
-					table.setValueAt(ownerTag[1], i , 1);
+					table.setValueAt(ownerTag[1], i, 1);
 				}
 				String[] tmp = val1.split(",", 2);
 				if (tmp.length > 0) {
-					table.setValueAt(tmp[0], i , 2);
+					table.setValueAt(tmp[0], i, 2);
 				}
 				if (tmp.length > 1) {
-					table.setValueAt(tmp[1], i , 3);
+					table.setValueAt(tmp[1], i, 3);
 				}
 
 				i++;
@@ -441,7 +441,7 @@ public class PluginTab {
 		tableModel.fireTableDataChanged();
 	}
 
-	private void addEditDialog(final JTable table,int row) {
+	private void addEditDialog(final JTable table, int row) {
 		JPanel panel = new JPanel();
 		GridLayout layout = new GridLayout(0, 2);
 		panel.setLayout(layout);
@@ -554,7 +554,7 @@ public class PluginTab {
 			int col
 		) {
 			Component c = super.getTableCellRendererComponent(tab, obj, isSelected, hasFocus, row, col);
-			JLabel l = (JLabel)c;
+			JLabel l = (JLabel) c;
 
 			if (StringUtils.isNotEmpty(l.getText())) {
 				l.setText("**************");

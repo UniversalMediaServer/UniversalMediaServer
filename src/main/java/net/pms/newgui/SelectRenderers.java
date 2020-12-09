@@ -43,7 +43,7 @@ public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
 	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static List<String> selectedRenderers = configuration.getSelectedRenderers();
+	private static List<String> savedSelectedRenderers = configuration.getSelectedRenderers();
 	private CheckTreeManager checkTreeManager;
 	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
@@ -111,18 +111,18 @@ public class SelectRenderers extends JPanel {
 
 		srvTree.validate();
 		// Refresh setting if modified
-		selectedRenderers = configuration.getSelectedRenderers();
+		savedSelectedRenderers = configuration.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
-		if (selectedRenderers.isEmpty() || (selectedRenderers.size() == 1 && selectedRenderers.get(0) == null)) {
+		if (savedSelectedRenderers.isEmpty() || (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
-		} else if (selectedRenderers.size() == 1 && selectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
+		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
 			checkTreeManager.getSelectionModel().setSelectionPath(root);
 		} else {
 			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode) {
 				SearchableMutableTreeNode rootNode = (SearchableMutableTreeNode) root.getLastPathComponent();
 				SearchableMutableTreeNode node = null;
-				List<TreePath> selectedRenderersPath = new ArrayList<>(selectedRenderers.size());
-				for (String selectedRenderer : selectedRenderers) {
+				List<TreePath> selectedRenderersPath = new ArrayList<>(savedSelectedRenderers.size());
+				for (String selectedRenderer : savedSelectedRenderers) {
 					try {
 						node = rootNode.findInBranch(selectedRenderer, true);
 					} catch (IllegalChildException e) {}

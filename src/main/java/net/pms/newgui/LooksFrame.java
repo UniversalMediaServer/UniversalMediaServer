@@ -128,7 +128,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public void setViewLevel(ViewLevel viewLevel) {
-		if (viewLevel != ViewLevel.UNKNOWN){
+		if (viewLevel != ViewLevel.UNKNOWN) {
 			this.viewLevel = viewLevel;
 			tt.applyViewLevel();
 		}
@@ -325,64 +325,64 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			}
 		};
 
-		Object MenuFont = dialogPlain12;
-		Object FixedControlFont = monospacedPlain12;
-		Object ControlFont = dialogPlain12;
-		Object MessageFont = dialogPlain12;
-		Object WindowFont = dialogBold12;
-		Object ToolTipFont = sansSerifPlain12;
-		Object IconFont = ControlFont;
+		Object menuFont = dialogPlain12;
+		Object fixedControlFont = monospacedPlain12;
+		Object controlFont = dialogPlain12;
+		Object messageFont = dialogPlain12;
+		Object windowFont = dialogBold12;
+		Object toolTipFont = sansSerifPlain12;
+		Object iconFont = controlFont;
 
 		// Override our fonts with a unicode font for languages with special characters
 		final String language = configuration.getLanguageTag();
 		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
 			// http://propedit.sourceforge.jp/propertieseditor.jnlp
-			MenuFont = sansSerifPlain12;
-			FixedControlFont = sansSerifPlain12;
-			ControlFont = sansSerifPlain12;
-			MessageFont = sansSerifPlain12;
-			WindowFont = sansSerifPlain12;
-			IconFont = sansSerifPlain12;
+			menuFont = sansSerifPlain12;
+			fixedControlFont = sansSerifPlain12;
+			controlFont = sansSerifPlain12;
+			messageFont = sansSerifPlain12;
+			windowFont = sansSerifPlain12;
+			iconFont = sansSerifPlain12;
 		}
 
-		UIManager.put("Button.font", ControlFont);
-		UIManager.put("CheckBox.font", ControlFont);
-		UIManager.put("CheckBoxMenuItem.font", MenuFont);
-		UIManager.put("ComboBox.font", ControlFont);
-		UIManager.put("EditorPane.font", ControlFont);
-		UIManager.put("FileChooser.listFont", IconFont);
-		UIManager.put("FormattedTextField.font", ControlFont);
-		UIManager.put("InternalFrame.titleFont", WindowFont);
-		UIManager.put("Label.font", ControlFont);
-		UIManager.put("List.font", ControlFont);
-		UIManager.put("PopupMenu.font", MenuFont);
-		UIManager.put("Menu.font", MenuFont);
-		UIManager.put("MenuBar.font", MenuFont);
-		UIManager.put("MenuItem.font", MenuFont);
-		UIManager.put("MenuItem.acceleratorFont", MenuFont);
-		UIManager.put("RadioButton.font", ControlFont);
-		UIManager.put("RadioButtonMenuItem.font", MenuFont);
-		UIManager.put("OptionPane.font", MessageFont);
-		UIManager.put("OptionPane.messageFont", MessageFont);
-		UIManager.put("OptionPane.buttonFont", MessageFont);
-		UIManager.put("Panel.font", ControlFont);
-		UIManager.put("PasswordField.font", ControlFont);
-		UIManager.put("ProgressBar.font", ControlFont);
-		UIManager.put("ScrollPane.font", ControlFont);
-		UIManager.put("Slider.font", ControlFont);
-		UIManager.put("Spinner.font", ControlFont);
-		UIManager.put("TabbedPane.font", ControlFont);
-		UIManager.put("Table.font", ControlFont);
-		UIManager.put("TableHeader.font", ControlFont);
-		UIManager.put("TextArea.font", FixedControlFont);
-		UIManager.put("TextField.font", ControlFont);
-		UIManager.put("TextPane.font", ControlFont);
-		UIManager.put("TitledBorder.font", ControlFont);
-		UIManager.put("ToggleButton.font", ControlFont);
-		UIManager.put("ToolBar.font", MenuFont);
-		UIManager.put("ToolTip.font", ToolTipFont);
-		UIManager.put("Tree.font", ControlFont);
-		UIManager.put("Viewport.font", ControlFont);
+		UIManager.put("Button.font", controlFont);
+		UIManager.put("CheckBox.font", controlFont);
+		UIManager.put("CheckBoxMenuItem.font", menuFont);
+		UIManager.put("ComboBox.font", controlFont);
+		UIManager.put("EditorPane.font", controlFont);
+		UIManager.put("FileChooser.listFont", iconFont);
+		UIManager.put("FormattedTextField.font", controlFont);
+		UIManager.put("InternalFrame.titleFont", windowFont);
+		UIManager.put("Label.font", controlFont);
+		UIManager.put("List.font", controlFont);
+		UIManager.put("PopupMenu.font", menuFont);
+		UIManager.put("Menu.font", menuFont);
+		UIManager.put("MenuBar.font", menuFont);
+		UIManager.put("MenuItem.font", menuFont);
+		UIManager.put("MenuItem.acceleratorFont", menuFont);
+		UIManager.put("RadioButton.font", controlFont);
+		UIManager.put("RadioButtonMenuItem.font", menuFont);
+		UIManager.put("OptionPane.font", messageFont);
+		UIManager.put("OptionPane.messageFont", messageFont);
+		UIManager.put("OptionPane.buttonFont", messageFont);
+		UIManager.put("Panel.font", controlFont);
+		UIManager.put("PasswordField.font", controlFont);
+		UIManager.put("ProgressBar.font", controlFont);
+		UIManager.put("ScrollPane.font", controlFont);
+		UIManager.put("Slider.font", controlFont);
+		UIManager.put("Spinner.font", controlFont);
+		UIManager.put("TabbedPane.font", controlFont);
+		UIManager.put("Table.font", controlFont);
+		UIManager.put("TableHeader.font", controlFont);
+		UIManager.put("TextArea.font", fixedControlFont);
+		UIManager.put("TextField.font", controlFont);
+		UIManager.put("TextPane.font", controlFont);
+		UIManager.put("TitledBorder.font", controlFont);
+		UIManager.put("ToggleButton.font", controlFont);
+		UIManager.put("ToolBar.font", menuFont);
+		UIManager.put("ToolTip.font", toolTipFont);
+		UIManager.put("Tree.font", controlFont);
+		UIManager.put("Viewport.font", controlFont);
 
 		setTitle("Test");
 		setIconImage(readImageIcon("icon-32.png").getImage());
@@ -443,7 +443,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			addWindowListener(new WindowAdapter() {
 				public void windowClosing(WindowEvent e) {
 					setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-					setExtendedState(JFrame.ICONIFIED); 
+					setExtendedState(JFrame.ICONIFIED);
 				}
 			});
 		}
@@ -504,8 +504,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 							LOGGER.trace("", se);
 							error = Messages.getString("LooksFrame.URIError");
 						}
-					}
-					else {
+					} else {
 						error = Messages.getString("LooksFrame.URIError");
 					}
 					if (error != null) {
@@ -549,7 +548,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		// Apply the orientation to the toolbar and all components in it
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		toolBar.applyComponentOrientation(orientation);
-		toolBar.setBorder(new EmptyBorder(new Insets(8,0,0,0)));
+		toolBar.setBorder(new EmptyBorder(new Insets(8, 0, 0, 0)));
 
 		panel.add(toolBar, BorderLayout.NORTH);
 		panel.add(buildMain(), BorderLayout.CENTER);
