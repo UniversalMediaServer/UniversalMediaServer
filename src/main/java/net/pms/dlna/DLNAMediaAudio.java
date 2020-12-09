@@ -668,24 +668,24 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		this.album = album;
 	}
 
-    /**
-     * Sets the name of the main artist of the album of the audio track. 
-     * This field is often used for the compilation type albums or "featuring..." songs.
-     *
-     * @param artist The album artist name to set.
-     */
-    public void setMbidRecord(String mbid_record) {
-        this.mbid_record = mbid_record;
-    }
+	/**
+	 * Sets the name of the main artist of the album of the audio track. 
+	 * This field is often used for the compilation type albums or "featuring..." songs.
+	 *
+	 * @param artist The album artist name to set.
+	 */
+	public void setMbidRecord(String mbid_record) {
+	    this.mbid_record = mbid_record;
+	}
 
-    /**
-     * Returns the name of the main artist of the album of the audio track.
-     *
-     * @return The album artist name.
-     */
-    public String getMbidRecord() {
-        return this.mbid_record;
-    }
+	/**
+	 * Returns the name of the main artist of the album of the audio track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidRecord() {
+	    return this.mbid_record;
+	}
 
     /**
 	 * Returns the name of the artist performing the audio track.

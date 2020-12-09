@@ -378,7 +378,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("CREATE TABLE AUDIOTRACKS (");
 				sb.append("  ID                INT              NOT NULL");
 				sb.append(", FILEID            BIGINT           NOT NULL");
-                sb.append(", MBID_RECORD       UUID");
+				sb.append(", MBID_RECORD       UUID");
 				sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", NRAUDIOCHANNELS   NUMERIC");
@@ -664,7 +664,7 @@ public class DLNAMediaDatabase implements Runnable {
 								audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
 								audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
 								audio.setBitRate(elements.getInt("BITRATE"));
-                                audio.setMbidRecord(elements.getString("MBID_RECORD"));
+								audio.setMbidRecord(elements.getString("MBID_RECORD"));
 								media.getAudioTracksList().add(audio);
 							}
 						}
@@ -808,7 +808,7 @@ public class DLNAMediaDatabase implements Runnable {
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
 					if (rs.next()) {
-                        rs.updateString("MBID_RECORD", left(trimToEmpty(audioTrack.getMbidRecord()), SIZE_MAX));                          
+					    rs.updateString("MBID_RECORD", left(trimToEmpty(audioTrack.getMbidRecord()), SIZE_MAX));                          
 						rs.updateString("LANG", left(audioTrack.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(audioTrack.getAudioTrackTitleFromMetadata(), SIZE_MAX));
 						rs.updateInt("NRAUDIOCHANNELS", audioTrack.getAudioProperties().getNumberOfChannels());
@@ -862,7 +862,7 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setInt(16, audioTrack.getAudioProperties().getAudioDelay());
 						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
 						insertStatement.setInt(18, audioTrack.getBitRate());
-                        insertStatement.setString(19, audioTrack.getMbidRecord());
+						insertStatement.setString(19, audioTrack.getMbidRecord());
 						insertStatement.executeUpdate();
 					}
 				}
