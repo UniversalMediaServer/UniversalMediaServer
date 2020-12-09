@@ -18,10 +18,6 @@
  */
 package net.pms.util;
 
-import java.awt.color.ColorSpace;
-import java.awt.image.BufferedImage;
-import java.awt.image.DirectColorModel;
-import java.awt.image.IndexColorModel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -193,16 +189,16 @@ public enum BufferedImageType {
 	 */
 	TYPE_BYTE_INDEXED(13);
 
-	private static final Map<Integer, BufferedImageType> map = new HashMap<>();
+	private static final Map<Integer, BufferedImageType> MAP = new HashMap<>();
 
 	static {
 		for (BufferedImageType bufferedImageType : BufferedImageType.values()) {
-			map.put(bufferedImageType.typeId, bufferedImageType);
+			MAP.put(bufferedImageType.typeId, bufferedImageType);
 		}
 	}
 
 	public static BufferedImageType toBufferedImageType(int typeId) {
-		return map.get(typeId);
+		return MAP.get(typeId);
 	}
 
 	private final int typeId;
