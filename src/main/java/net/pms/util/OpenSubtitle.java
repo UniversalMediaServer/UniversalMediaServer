@@ -113,13 +113,13 @@ public class OpenSubtitle {
 	private static Token token = null;
 
 	// Minimum number of threads in pool
-	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0, 
+	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0,
 		5, // Maximum number of threads in pool
 		30, // Number of seconds before an idle thread is terminated
 
 		// The queue holding the tasks waiting to be processed
-		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), 
-		new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
+		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+			new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
 
 	static {
@@ -340,8 +340,9 @@ public class OpenSubtitle {
 			params.add(new ValueString(UA));
 
 			// Send request
-			try (OutputStream out = LOGGER.isTraceEnabled() ? new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8)
-				: connection.getOutputStream()) {
+			try (OutputStream out = LOGGER.isTraceEnabled() ?
+					new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
+					connection.getOutputStream()) {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "LogIn", params);
 				writer.flush();
@@ -437,8 +438,9 @@ public class OpenSubtitle {
 	}
 
 	private static boolean checkStatus(Params params) {
-		if (params == null || params.isEmpty() || !(params.get(0).getValue() instanceof Struct)
-			|| ((Struct) params.get(0).getValue()).get("status") == null) {
+		if (params == null || params.isEmpty() || !(params.get(0).getValue() instanceof Struct) ||
+			((Struct) params.get(0).getValue()).get("status") == null)
+		{
 			LOGGER.error("OpenSubtitles response has no status, aborting");
 			return false;
 		}
@@ -1220,8 +1222,10 @@ public class OpenSubtitle {
 			params.add(new ValueArray(array));
 
 			// Send request
-			try (OutputStream out = LOGGER.isTraceEnabled() ? new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8)
-				: connection.getOutputStream()) {
+			try (OutputStream out = LOGGER.isTraceEnabled() ?
+				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
+				connection.getOutputStream())
+			{
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "GuessMovieFromString", params);
 				writer.flush();
@@ -1238,8 +1242,10 @@ public class OpenSubtitle {
 
 			// Parse reply
 			params = null;
-			try (InputStream reply = LOGGER.isTraceEnabled() ? new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8)
-				: sendXMLStream(connection)) {
+			try (InputStream reply = LOGGER.isTraceEnabled() ?
+				new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
+				sendXMLStream(connection))
+			{
 				LOGGER.trace("Parsing OpenSubtitles GuessMovieFromString response");
 				XMLStreamReader reader = null;
 				try {
@@ -1275,8 +1281,9 @@ public class OpenSubtitle {
 			MovieGuess movieGuess = guesses.get(fileName);
 			if (movieGuess != null) {
 				VideoClassification classification;
-				if (movieGuess.getGuessIt() != null && movieGuess.getGuessIt().getType() != null
-					&& movieGuess.getGuessIt().getType() != prettifier.getClassification()) {
+				if (movieGuess.getGuessIt() != null && movieGuess.getGuessIt().getType() != null &&
+					movieGuess.getGuessIt().getType() != prettifier.getClassification())
+				{
 					classification = movieGuess.getGuessIt().getType();
 					LOGGER.debug("OpenSubtitles guessed that \"{}\" is a {} while we guessed a {}. Using {}", fileName,
 						movieGuess.getGuessIt().getType(), prettifier.getClassification(), classification);
@@ -1591,8 +1598,8 @@ public class OpenSubtitle {
 		String imdbStr = "";
 		String qStr = "";
 		if (!StringUtils.isEmpty(hash)) {
-			hashStr = "<member>" + "<name>moviehash</name>" + "<value>" + "<string>" + hash + "</string>" + "</value>" + "</member>\n"
-				+ "<member>" + "<name>moviebytesize</name>" + "<value>" + "<double>" + size + "</double>" + "</value>" + "</member>\n";
+			hashStr = "<member>" + "<name>moviehash</name>" + "<value>" + "<string>" + hash + "</string>" + "</value>" + "</member>\n" +
+				"<member>" + "<name>moviebytesize</name>" + "<value>" + "<double>" + size + "</double>" + "</value>" + "</member>\n";
 		} else if (!StringUtils.isEmpty(imdb)) {
 			imdbStr = "<member>" + "<name>imdbid</name>" + "<value>" + "<string>" + imdb + "</string>" + "</value>" + "</member>\n";
 		} else if (!StringUtils.isEmpty(query)) {
@@ -1638,7 +1645,7 @@ public class OpenSubtitle {
 				episodeName = "";
 			}
 
-			return new String[] { ImdbUtil.ensureTT(m.group(1).trim()), episodeName, StringEscapeUtils.unescapeHtml4(name),
+			return new String[] {ImdbUtil.ensureTT(m.group(1).trim()), episodeName, StringEscapeUtils.unescapeHtml4(name),
 					m.group(3).trim(), // Season number
 					m.group(4).trim(), // Episode number
 					m.group(5).trim()  // Year
@@ -3246,18 +3253,17 @@ public class OpenSubtitle {
 					if (isNotBlank(subFileNameWithoutExtension)) {
 						// 0.6 and below gives a score of 0, 1.0 give a score of
 						// 40.
-						tmpScore += 40d * 2.5
-							* Math.max(new JaroWinklerSimilarity().apply(prettifier.getFileNameWithoutExtension().toLowerCase(locale),
+						tmpScore += 40d * 2.5 *
+								Math.max(new JaroWinklerSimilarity().apply(prettifier.getFileNameWithoutExtension().toLowerCase(locale),
 								subFileNameWithoutExtension.toLowerCase(Locale.ENGLISH)) - 0.6, 0);
 					}
 				}
 				if (isNotBlank(prettifier.getName()) && (isNotBlank(movieName) || isNotBlank(movieNameEng))) {
-					double nameScore = isBlank(movieName) ? 0.0
-						: new JaroWinklerSimilarity().apply(prettifier.getName().toLowerCase(locale), movieName.toLowerCase(locale));
-					nameScore = Math.max(nameScore,
-						isBlank(movieNameEng) ? 0.0
-							: new JaroWinklerSimilarity().apply(prettifier.getName().toLowerCase(Locale.ENGLISH),
-								movieNameEng.toLowerCase(Locale.ENGLISH)));
+					double nameScore = isBlank(movieName) ? 0.0 :
+						new JaroWinklerSimilarity().apply(prettifier.getName().toLowerCase(locale), movieName.toLowerCase(locale));
+					nameScore = Math.max(nameScore, isBlank(movieNameEng) ? 0.0 :
+							new JaroWinklerSimilarity().apply(prettifier.getName().toLowerCase(Locale.ENGLISH),
+							movieNameEng.toLowerCase(Locale.ENGLISH)));
 					// 0.5 and below gives a score of 0, 1 give a score of 30
 					tmpScore += 30d * 2 * Math.max(nameScore - 0.5, 0);
 				}
@@ -4380,11 +4386,9 @@ public class OpenSubtitle {
 								 * change that to make them all consistent.
 								 */
 								if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase) &&
-									titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified))
-								{
+										titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)) {
 									// Replace our close-but-not-exact title in
-									// the database with the title from
-									// OpenSubtitles.
+									// the database with the title from OpenSubtitles.
 									PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
 								}
 
