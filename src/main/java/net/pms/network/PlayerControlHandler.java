@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class PlayerControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private int port;
 	private String protocol;
@@ -53,10 +53,10 @@ public class PlayerControlHandler implements HttpHandler {
 		protocol = server instanceof HttpsServer ? "https://" : "http://";
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
-		String basepath = configuration.getWebPath().getPath();
-		bumpjs = new File(FilenameUtils.concat(basepath, configuration.getBumpJS("bump/bump.js")));
-		skindir = new File(FilenameUtils.concat(basepath, configuration.getBumpSkinDir("bump/skin")));
-		bumpAddress = configuration.getBumpAddress();
+		String basepath = CONFIGURATION.getWebPath().getPath();
+		bumpjs = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpJS("bump/bump.js")));
+		skindir = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpSkinDir("bump/skin")));
+		bumpAddress = CONFIGURATION.getBumpAddress();
 		defaultRenderer = null;
 	}
 

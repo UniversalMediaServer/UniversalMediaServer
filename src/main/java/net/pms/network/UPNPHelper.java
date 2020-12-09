@@ -94,7 +94,7 @@ public class UPNPHelper extends UPNPControl {
 	// The alive thread.
 	private static Thread aliveThread;
 
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final UPNPHelper instance = new UPNPHelper();
 	private static PlayerControlHandler httpControlHandler;
@@ -117,7 +117,7 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	public void init() {
-		if (configuration.isUpnpEnabled()) {
+		if (CONFIGURATION.isUpnpEnabled()) {
 			super.init();
 		}
 		getHttpControlHandler();
@@ -127,7 +127,7 @@ public class UPNPHelper extends UPNPControl {
 		if (
 			httpControlHandler == null &&
 			PMS.get().getWebServer() != null &&
-			!"false".equals(configuration.getBumpAddress().toLowerCase())
+			!"false".equals(CONFIGURATION.getBumpAddress().toLowerCase())
 		) {
 			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
 			LOGGER.debug("Attached http player control handler to web server");
@@ -280,9 +280,9 @@ public class UPNPHelper extends UPNPControl {
 		// XXX this should not be configurable because it breaks the standard
 		MulticastSocket ssdpSocket = null;
 		try {
-			ssdpSocket = new MulticastSocket(configuration.getUpnpPort());
+			ssdpSocket = new MulticastSocket(CONFIGURATION.getUpnpPort());
 		} catch (IOException e) {
-			LOGGER.error("Unable to bind multicast socket to port: " + configuration.getUpnpPort()
+			LOGGER.error("Unable to bind multicast socket to port: " + CONFIGURATION.getUpnpPort()
 			+ ", which means that UMS will not automatically appear on your renderer! "
 			+ "This usually means that another program occupies the port. Please "
 			+ "stop the UMS and the other program to free up the port and start the UMS again.");
@@ -388,7 +388,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	private final static int ALIVE_DELAY = configuration.getAliveDelay() != 0 ? configuration.getAliveDelay() : 30000;
+	private final static int ALIVE_DELAY = CONFIGURATION.getAliveDelay() != 0 ? CONFIGURATION.getAliveDelay() : 30000;
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
@@ -442,7 +442,7 @@ public class UPNPHelper extends UPNPControl {
 							// Is the request from our own server, i.e. self-originating?
 							boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
 
-							if (configuration.getIpFiltering().allowed(address) && !isSelf && isNotIgnoredDevice(s)) {
+							if (CONFIGURATION.getIpFiltering().allowed(address) && !isSelf && isNotIgnoredDevice(s)) {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = receivePacket.getPort();
 								if (!redundant) {
@@ -606,7 +606,7 @@ public class UPNPHelper extends UPNPControl {
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
 			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
-			RendererConfiguration ref = configuration.isRendererForceDefault() ?
+			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ?
 				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 
 			if (r != null && ! r.isUpnpAllowed()) {

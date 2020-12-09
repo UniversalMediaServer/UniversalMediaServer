@@ -62,7 +62,7 @@ public class ExternalFactory {
 	 * For logging messages.
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExternalFactory.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	/**
 	 * List of external listener class instances.
@@ -329,7 +329,7 @@ public class ExternalFactory {
 
 	private static void purgeFiles() {
 		File purge = new File("purge");
-		String action = configuration.getPluginPurgeAction();
+		String action = CONFIGURATION.getPluginPurgeAction();
 
 		if (action.equalsIgnoreCase("none")) {
 			if (!purge.delete()) {
@@ -375,7 +375,7 @@ public class ExternalFactory {
 	public static void lookup() {
 		// Start by purging files
 		purgeFiles();
-		File pluginsFolder = new File(configuration.getPluginDirectory());
+		File pluginsFolder = new File(CONFIGURATION.getPluginDirectory());
 		LOGGER.info("Searching for plugins in " + pluginsFolder.getAbsolutePath());
 
 		try {

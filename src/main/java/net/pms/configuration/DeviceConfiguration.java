@@ -184,7 +184,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			for (File f : files) {
 				if (f.getName().endsWith(".conf")) {
 					loadDeviceFile(f, createPropertiesConfiguration());
-					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), reloader));
+					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), RELOADER));
 				}
 			}
 		}

@@ -59,7 +59,7 @@ import net.pms.newgui.SharedContentTab;
  */
 public class DLNAMediaDatabase implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaDatabase.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock(true);
 
@@ -122,9 +122,9 @@ public class DLNAMediaDatabase implements Runnable {
 	 */
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
-		File profileDirectory = new File(configuration.getProfileDirectory());
-		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
-		boolean logDB = configuration.getDatabaseLogging();
+		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
+		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
+		boolean logDB = CONFIGURATION.getDatabaseLogging();
 		url = Constants.START_URL + dbDir + File.separator + dbName + (logDB ? ";TRACE_LEVEL_FILE=3" : "");
 		LOGGER.debug("Using database URL: {}", url);
 		LOGGER.info("Using database located at: \"{}\"", dbDir);
@@ -219,7 +219,7 @@ public class DLNAMediaDatabase implements Runnable {
 					}
 					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 					PMS.get().getRootFolder(null).stopScan();
-					configuration.setUseCache(false);
+					CONFIGURATION.setUseCache(false);
 					return;
 				}
 			} else {
@@ -1446,7 +1446,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps = conn.prepareStatement("SELECT FILENAME, MODIFIED, ID FROM FILES", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 				rs = ps.executeQuery();
 
-				List<Path> sharedFolders = configuration.getSharedFolders();
+				List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
 				boolean isFileStillShared = false;
 
 				while (rs.next()) {

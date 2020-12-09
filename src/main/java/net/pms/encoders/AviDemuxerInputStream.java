@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class AviDemuxerInputStream extends InputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviDemuxerInputStream.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private Process process;
 	private InputStream stream;
@@ -96,7 +96,7 @@ public class AviDemuxerInputStream extends InputStream {
 			public void run() {
 				try {
 					TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, false);
-					File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
+					File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 					try (PrintWriter pw = new PrintWriter(f)) {
 						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 						String videoType = "V_MPEG-2";

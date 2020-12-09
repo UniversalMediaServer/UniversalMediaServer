@@ -73,7 +73,7 @@ public class RemoteWeb {
 	private SSLContext sslContext;
 	private Map<String, RootFolder> roots;
 	private RemoteUtil.ResourceManager resources;
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int defaultPort = configuration.getWebPort();
 
 	public RemoteWeb() throws IOException {

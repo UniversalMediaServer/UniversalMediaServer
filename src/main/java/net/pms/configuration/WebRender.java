@@ -70,7 +70,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private boolean isTouchDevice = false;
 	private String subLang;
 	private Gson gson;
-	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats = {
 		new GIF(),
@@ -104,11 +104,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		port = 0;
 		ua = "";
 		fileless = true;
-		String userFmt = pmsconfiguration.getWebTranscode();
+		String userFmt = CONFIGURATION.getWebTranscode();
 		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
 		startStop = null;
 		subLang = "";
-		if (pmsConfiguration.useWebControl()) {
+		if (CONFIGURATION.useWebControl()) {
 			controls = BasicPlayer.PLAYCONTROL|BasicPlayer.VOLUMECONTROL;
 		}
 		gson = new Gson();
@@ -208,7 +208,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getRendererName() {
-		return (pmsconfiguration.isWebAuthenticate() ? user + "@" : "") + getBrowserName(browser);
+		return (CONFIGURATION.isWebAuthenticate() ? user + "@" : "") + getBrowserName(browser);
 	}
 
 	@Override

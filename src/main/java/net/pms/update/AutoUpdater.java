@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	public static enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
