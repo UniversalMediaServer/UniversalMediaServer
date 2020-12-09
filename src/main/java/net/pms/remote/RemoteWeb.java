@@ -74,7 +74,7 @@ public class RemoteWeb {
 	private Map<String, RootFolder> roots;
 	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final int defaultPort = configuration.getWebPort();
+	private static final int defaultPort = CONFIGURATION.getWebPort();
 
 	public RemoteWeb() throws IOException {
 		this(defaultPort);
@@ -92,9 +92,9 @@ public class RemoteWeb {
 			@Override
 			public RemoteUtil.ResourceManager run() {
 				return new RemoteUtil.ResourceManager(
-					"file:" + configuration.getProfileDirectory() + "/web/",
-					"jar:file:" + configuration.getProfileDirectory() + "/web.zip!/",
-					"file:" + configuration.getWebPath() + "/"
+					"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
+					"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
+					"file:" + CONFIGURATION.getWebPath() + "/"
 				);
 			}
 		});
@@ -105,7 +105,7 @@ public class RemoteWeb {
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
 		// Initialize the HTTP(S) server
-		if (configuration.getWebHttps()) {
+		if (CONFIGURATION.getWebHttps()) {
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
@@ -126,7 +126,7 @@ public class RemoteWeb {
 		}
 
 		if (server != null) {
-			int threads = configuration.getWebThreads();
+			int threads = CONFIGURATION.getWebThreads();
 
 			// Add context handlers
 			addCtx("/", new RemoteStartHandler(this));
@@ -153,7 +153,7 @@ public class RemoteWeb {
 		keyStore = KeyStore.getInstance("JKS");
 		try (
 			FileInputStream fis = new FileInputStream(
-				FileUtil.appendPathSeparator(configuration.getProfileDirectory()) + "UMS.jks"
+				FileUtil.appendPathSeparator(CONFIGURATION.getProfileDirectory()) + "UMS.jks"
 			)
 		) {
 			keyStore.load(fis, password);
@@ -247,16 +247,15 @@ public class RemoteWeb {
 				render.setRootFolder(root);
 				render.associateIP(t.getRemoteAddress().getAddress());
 				render.associatePort(t.getRemoteAddress().getPort());
-				if (configuration.useWebSubLang()) {
+				if (CONFIGURATION.useWebSubLang()) {
 					render.setSubLang(StringUtils.join(RemoteUtil.getLangs(t), ","));
 				}
-//				render.setUA(t.getRequestHeaders().getFirst("User-agent"));
 				render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
 			} catch (ConfigurationException e) {
 				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			}
-			//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
+
 			root.discoverChildren();
 			cookie = UUID.randomUUID().toString();
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/;SameSite=Strict");
@@ -272,8 +271,8 @@ public class RemoteWeb {
 
 	private void addCtx(String path, HttpHandler h) {
 		HttpContext ctx = server.createContext(path, h);
-		if (configuration.isWebAuthenticate()) {
-			ctx.setAuthenticator(new BasicAuthenticator(configuration.getServerName()) {
+		if (CONFIGURATION.isWebAuthenticate()) {
+			ctx.setAuthenticator(new BasicAuthenticator(CONFIGURATION.getServerName()) {
 				@Override
 				public boolean checkCredentials(String user, String pwd) {
 					LOGGER.debug("authenticate " + user);
@@ -321,7 +320,7 @@ public class RemoteWeb {
 					throw new IOException("Bad id");
 				}
 				DLNAThumbnailInputStream in;
-				if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
+				if (!CONFIGURATION.isShowCodeThumbs() && !r.isCodeValid(r)) {
 					// we shouldn't show the thumbs for coded objects
 					// unless the code is entered
 					in = r.getGenericThumbnailInputStream(null);
@@ -520,7 +519,7 @@ public class RemoteWeb {
 				}
 
 				HashMap<String, Object> vars = new HashMap<>();
-				vars.put("serverName", configuration.getServerDisplayName());
+				vars.put("serverName", CONFIGURATION.getServerDisplayName());
 
 				try {
 					Template template = parent.getResources().getTemplate("start.html");
@@ -571,7 +570,7 @@ public class RemoteWeb {
 
 				HashMap<String, Object> vars = new HashMap<>();
 				vars.put("logs", getLogs(true));
-				if (configuration.getUseCache()) {
+				if (CONFIGURATION.getUseCache()) {
 					vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
 				}
 

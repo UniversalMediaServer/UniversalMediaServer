@@ -131,7 +131,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void launchExe() throws UpdateException {
 		try {
-			File exe = new File(configuration.getProfileDirectory(), getTargetFilename());
+			File exe = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 			Desktop desktop = Desktop.getDesktop();
 			desktop.open(exe);
 		} catch (Exception e) {
@@ -201,7 +201,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private void downloadUpdate() throws UpdateException {
 		String downloadUrl = serverProperties.getDownloadUrl();
 
-		File target = new File(configuration.getProfileDirectory(), getTargetFilename());
+		File target = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 
 		try {
 			uriRetriever.getFile(new URI(downloadUrl), target, this);
