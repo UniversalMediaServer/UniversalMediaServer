@@ -60,20 +60,24 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 	}
 
 	/**
-	 * Creates a new <code>JSpinner with the specified model.  The
+	 * Creates a new <code>JSpinner</code> with the specified model. The
 	 * {@link #createEditor(SpinnerModel)} method is used to create an editor
 	 * that is suitable for the model.
 	 *
-	 * &#64;param model
-	 *            the model (<code>null</code> not permitted).
+	 * @param model the model (<code>null</code> not permitted).
 	 *
 	 * @throws NullPointerException if <code>model</code> is <code>null</code>.
 	 */
 	public CustomJSpinner(@Nonnull SpinnerModel model, boolean enterMoveFocus) {
 		super(model);
 		if (model instanceof SpinnerIntModel) {
-			this.addMouseWheelListener(new MouseWheelRoll(this, ((SpinnerIntModel) model).getMinimum(),
-				((SpinnerIntModel) model).getMaximum(), ((SpinnerIntModel) model).getStepSize()));
+			this.addMouseWheelListener(
+				new MouseWheelRoll(
+					this,
+					((SpinnerIntModel) model).getMinimum(),
+					((SpinnerIntModel) model).getMaximum(),
+					((SpinnerIntModel) model).getStepSize())
+				);
 		}
 
 		if (enterMoveFocus) {
@@ -198,7 +202,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 		 * @exception IllegalArgumentException if the spinners model is not an
 		 *                instance of <code>SpinnerIntModel</code>
 		 *
-		 * @see #getTextField
+		 * @see getTextField
 		 * @see SpinnerIntModel
 		 * @see java.text.DecimalFormat
 		 */
@@ -258,8 +262,8 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 		 * Return our spinner ancestor's <code>SpinnerIntModel</code>.
 		 *
 		 * @return <code>getSpinner().getModel()</code>
-		 * @see #getSpinner
-		 * @see #getTextField
+		 * @see getSpinner
+		 * @see getTextField
 		 */
 		public SpinnerIntModel getModel() {
 			return (SpinnerIntModel) (getSpinner().getModel());
