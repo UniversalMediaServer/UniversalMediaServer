@@ -29,9 +29,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * boolean getLargerValue, Integer defaultValue, Integer minimumValue)
  */
 public enum AudioAttribute {
-	CHANNELS_NUMBER (set("Channel(s)"), true, true, 2, 1),
-	DELAY (set("Video_Delay"), false, false, 0, null),
-	SAMPLE_FREQUENCY (set("SamplingRate"), true, true, 48000, 1);
+	CHANNELS_NUMBER(set("Channel(s)"), true, true, 2, 1),
+	DELAY(set("Video_Delay"), false, false, 0, null),
+	SAMPLE_FREQUENCY(set("SamplingRate"), true, true, 48000, 1);
 
 	private final Set<String> libMediaInfoKeys;
 	private final boolean multipleValuesPossible;
@@ -39,17 +39,17 @@ public enum AudioAttribute {
 	private final Integer defaultValue;
 	private final Integer minimumValue;
 
-	private static final Pattern libMediaInfoKeyPattern = Pattern.compile("^\\s*(\\S+)\\s*:");
-	private final static Map<String, AudioAttribute> libMediaInfoKeyToAudioAttributeMap;
+	private static final Pattern LIB_MEDIAINFO_KEY_PATTERN = Pattern.compile("^\\s*(\\S+)\\s*:");
+	private final static Map<String, AudioAttribute> LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP;
 	private static Set<String> set(String... args) {
 		return new HashSet<>(Arrays.asList(args));
 	}
 
 	static {
-		libMediaInfoKeyToAudioAttributeMap = new HashMap<>();
+		LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP = new HashMap<>();
 		for (AudioAttribute audioAttribute : values()) {
 			for (String libMediaInfoKey : audioAttribute.libMediaInfoKeys) {
-				libMediaInfoKeyToAudioAttributeMap.put(libMediaInfoKey.toLowerCase(), audioAttribute);
+				LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP.put(libMediaInfoKey.toLowerCase(), audioAttribute);
 			}
 		}
 	}
@@ -68,10 +68,10 @@ public enum AudioAttribute {
 			throw new IllegalArgumentException("Empty keyValuePair passed in.");
 		}
 
-		Matcher keyMatcher = libMediaInfoKeyPattern.matcher(keyValuePair);
+		Matcher keyMatcher = LIB_MEDIAINFO_KEY_PATTERN.matcher(keyValuePair);
 		if (keyMatcher.find()) {
 			String key = keyMatcher.group(1);
-			AudioAttribute audioAttribute = libMediaInfoKeyToAudioAttributeMap.get(key.toLowerCase());
+			AudioAttribute audioAttribute = LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP.get(key.toLowerCase());
 			if (audioAttribute == null) {
 				throw new IllegalArgumentException("Can't find AudioAttribute for key '" + key + "'.");
 			} else {

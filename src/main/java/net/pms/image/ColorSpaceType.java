@@ -153,16 +153,16 @@ public enum ColorSpaceType {
 	 */
 	TYPE_FCLR(25);
 
-	private static final Map<Integer, ColorSpaceType> map = new HashMap<>();
+	private static final Map<Integer, ColorSpaceType> MAP = new HashMap<>();
 
 	static {
 		for (ColorSpaceType colorSpaceType : ColorSpaceType.values()) {
-			map.put(colorSpaceType.typeId, colorSpaceType);
+			MAP.put(colorSpaceType.typeId, colorSpaceType);
 		}
 	}
 
 	public static ColorSpaceType toColorSpaceType(int typeId) {
-		return map.get(typeId);
+		return MAP.get(typeId);
 	}
 
 	private final int typeId;

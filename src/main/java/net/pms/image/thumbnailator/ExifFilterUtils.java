@@ -34,26 +34,20 @@ public final class ExifFilterUtils {
 
 		if (orientation == Orientation.TOP_RIGHT) {
 			filters.add(Flip.HORIZONTAL);
-		}
-		else if (orientation == Orientation.BOTTOM_RIGHT) {
+		} else if (orientation == Orientation.BOTTOM_RIGHT) {
 			filters.add(Rotation.ROTATE_180_DEGREES);
-		}
-		else if (orientation == Orientation.BOTTOM_LEFT) {
+		} else if (orientation == Orientation.BOTTOM_LEFT) {
 			filters.add(Rotation.ROTATE_180_DEGREES);
 			filters.add(Flip.HORIZONTAL);
-		}
-		else if (orientation == Orientation.LEFT_TOP) {
+		} else if (orientation == Orientation.LEFT_TOP) {
 			filters.add(Rotation.RIGHT_90_DEGREES);
 			filters.add(Flip.HORIZONTAL);
-		}
-		else if (orientation == Orientation.RIGHT_TOP) {
+		} else if (orientation == Orientation.RIGHT_TOP) {
 			filters.add(Rotation.RIGHT_90_DEGREES);
-		}
-		else if (orientation == Orientation.RIGHT_BOTTOM) {
+		} else if (orientation == Orientation.RIGHT_BOTTOM) {
 			filters.add(Rotation.LEFT_90_DEGREES);
 			filters.add(Flip.HORIZONTAL);
-		}
-		else if (orientation == Orientation.LEFT_BOTTOM) {
+		} else if (orientation == Orientation.LEFT_BOTTOM) {
 			filters.add(Rotation.LEFT_90_DEGREES);
 		}
 
