@@ -991,7 +991,7 @@ public class FFMpegVideo extends Player {
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
-			} else if (params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding() && !"16:9".equals(media.getAspectRatioContainer())) {
+			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
@@ -1031,7 +1031,7 @@ public class FFMpegVideo extends Player {
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
-			} else if (params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding() && !"16:9".equals(media.getAspectRatioContainer())) {
+			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
