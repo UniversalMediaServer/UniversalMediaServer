@@ -471,10 +471,9 @@ public class ExternalFactory {
 			if (Modifier.isStatic(postInstall.getModifiers())) {
 				postInstall.invoke((Object[]) null, (Object[]) null);
 			}
-		}
-
-		// Ignore all errors
-		catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException |
+			IllegalAccessException | InvocationTargetException e) {
+			// Ignore all errors
 		}
 	}
 
@@ -496,7 +495,7 @@ public class ExternalFactory {
 				postInstall(clazz);
 				LOGGER.debug("do inst of " + clazz.getSimpleName());
 				instance = (ExternalListener) clazz.getDeclaredConstructor().newInstance();
-				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
+				doUpdate(update, instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				LOGGER.error("Error instantiating plugin", e);
@@ -536,7 +535,7 @@ public class ExternalFactory {
 					res.args = null;
 				}
 				if (res.url != null || res.precoder != null || res.args != null) {
-					LOGGER.debug(((ExternalListener)resolver).name() + " resolver:" +
+					LOGGER.debug(((ExternalListener) resolver).name() + " resolver:" +
 						(res.url == null ? "" : " url=" + res.url) +
 						(res.precoder == null ? "" : " precoder=" + res.precoder) +
 						(res.args == null ? "" : " args=" + res.args));
