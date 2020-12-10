@@ -882,40 +882,31 @@ public class MEncoderVideo extends Player {
 		if (!configuration.isMencoderMuxWhenCompatible()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the user setting is disabled");
-		}
-		if (deferToTsmuxer == true && configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+		} else if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the transcode folder.");
-		}
-		if (deferToTsmuxer == true && !params.getMediaRenderer().isMuxH264MpegTS()) {
+		} else if (!params.getMediaRenderer().isMuxH264MpegTS()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
-		}
-		if (deferToTsmuxer == true && params.getSid() != null) {
+		} else if (params.getSid() != null) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
-		}
-		if (deferToTsmuxer == true && isDVD) {
+		} else if (isDVD) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "this is a DVD track.");
-		}
-		if (deferToTsmuxer == true && avisynth()) {
+		} else if (avisynth()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
-		}
-		if (deferToTsmuxer == true && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
+		} else if (params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
-		}
-		if (deferToTsmuxer == true && !media.isMuxable(params.getMediaRenderer())) {
+		} else if (!media.isMuxable(params.getMediaRenderer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the video stream is not muxable to this renderer");
-		}
-		if (deferToTsmuxer == true && intOCW > 0 && intOCH > 0) {
+		} else if (intOCW > 0 && intOCH > 0) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we need to transcode to apply overscan compensation.");
-		}
-		if (deferToTsmuxer == true && !aspectRatiosMatch) {
+		} else if (!aspectRatiosMatch) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
 		}
