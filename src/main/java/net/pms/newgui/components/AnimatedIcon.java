@@ -548,7 +548,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 		AnimatedIconFrame[] result = new AnimatedIconFrame[returnToFirst ? 2 * (lastIdx - firstIdx) : lastIdx - firstIdx + 1];
 
 		int idx = firstIdx;
-		for (int i = 0;i <= lastIdx - firstIdx; i++) {
+		for (int i = 0; i <= lastIdx - firstIdx; i++) {
 			Icon icon = LooksFrame.readImageIcon(String.format(resourceNamePattern, idx));
 			if (icon == null) {
 				throw new IllegalArgumentException(String.format(

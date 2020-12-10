@@ -689,7 +689,7 @@ public class GeneralTab {
 
 			@Override
 			public int compare(RendererConfiguration o1, RendererConfiguration o2) {
-				if (o1 == null && o2 == null){
+				if (o1 == null && o2 == null) {
 					return 0;
 				}
 
