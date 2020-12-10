@@ -56,7 +56,7 @@ public class UPNPControl {
 	};
 
 	private static UpnpService upnpService;
-	private static UpnpHeaders UMSHeaders;
+	private static UpnpHeaders umsHeaders;
 	private static DocumentBuilder db;
 
 	public static final int ACTIVE = 0;
@@ -73,10 +73,10 @@ public class UPNPControl {
 	public static class DeviceMap<T extends Renderer> extends HashMap<String, HashMap<String, T>> {
 		private static final long serialVersionUID = 1510675619549915489L;
 
-		private Class<T> TClass;
+		private Class<T> tClass;
 
 		public DeviceMap(Class<T> t) {
-			TClass = t;
+			tClass = t;
 		}
 
 		public T get(String uuid, String id) {
@@ -86,7 +86,7 @@ public class UPNPControl {
 			HashMap<String, T> m = get(uuid);
 			if (!m.containsKey(id)) {
 				try {
-					T newitem = TClass.getDeclaredConstructor().newInstance();
+					T newitem = tClass.getDeclaredConstructor().newInstance();
 					newitem.uuid = uuid;
 					m.put(id, newitem);
 				} catch (Exception e) {
@@ -311,13 +311,13 @@ public class UPNPControl {
 	public void init() {
 		try {
 			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
-			UMSHeaders = new UpnpHeaders();
-			UMSHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
+			umsHeaders = new UpnpHeaders();
+			umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 
 			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
 				@Override
 				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
-					return UMSHeaders;
+					return umsHeaders;
 				}
 
 				@Override
@@ -426,8 +426,8 @@ public class UPNPControl {
 	}
 
 	public static URL getURL(Device d) {
-		return d instanceof RemoteDevice ? ((RemoteDevice) d).getIdentity().getDescriptorURL()
-			: d.getDetails().getBaseURL();
+		return d instanceof RemoteDevice ? ((RemoteDevice) d).getIdentity().getDescriptorURL() : 
+			d.getDetails().getBaseURL();
 	}
 
 	public static List<String> getServiceNames(Device d) {
@@ -450,22 +450,28 @@ public class UPNPControl {
 		details.put("address", getURL(d).getHost());
 		details.put("udn", getUUID(d));
 		Object detail;
-		if ((detail = man.getManufacturer()) != null) {
+		detail = man.getManufacturer();
+		if (detail != null) {
 			details.put("manufacturer", (String) detail);
 		}
-		if ((detail = model.getModelName()) != null) {
+		detail = model.getModelName();
+		if (detail != null) {
 			details.put("modelName", (String) detail);
 		}
-		if ((detail = model.getModelNumber()) != null) {
+		detail = model.getModelNumber();
+		if (detail != null) {
 			details.put("modelNumber", (String) detail);
 		}
-		if ((detail = model.getModelDescription()) != null) {
+		detail = model.getModelDescription();
+		if (detail != null) {
 			details.put("modelDescription", (String) detail);
 		}
-		if ((detail = man.getManufacturerURI()) != null) {
+		detail = man.getManufacturerURI();
+		if (detail != null) {
 			details.put("manufacturerURL", detail.toString());
 		}
-		if ((detail = model.getModelURI()) != null) {
+		detail = model.getModelURI();
+		if (detail != null) {
 			details.put("modelURL", detail.toString());
 		}
 		return details;
@@ -670,28 +676,28 @@ public class UPNPControl {
 
 		@Override
 		public void established(GENASubscription sub) {
-			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId()
-				+ " on " + getFriendlyName(uuid));
+			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() +
+				" on " + getFriendlyName(uuid));
 		}
 
 		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex, String defaultMsg) {
-			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId()
-				+ " on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
+			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
+				" on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
 		}
 
 		@Override
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex) {
-			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId()
-				+ " on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
+			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
+				" on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
 		}
 
 		@Override
 		public void ended(GENASubscription sub, CancelReason reason, UpnpResponse response) {
 			// Reason should be null, or it didn't end regularly
 			if (reason != null) {
-				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId()
-					+ " on " + uuid + ": " + reason);
+				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
+					" on " + uuid + ": " + reason);
 			}
 			rendererMap.mark(uuid, RENEW, true);
 		}
@@ -909,7 +915,7 @@ public class UPNPControl {
 		send(dev, instanceID, "AVTransport", "SetPlayMode", "NewPlayMode", mode);
 	}
 
-	public static String X_DLNA_GetBytePositionInfo(Device dev, String instanceID, String trackSize) {
+	public static String xDlnaGetBytePositionInfo(Device dev, String instanceID, String trackSize) {
 		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "X_DLNA_GetBytePositionInfo", "TrackSize", trackSize);
 		if (invocation == null) {
 			return null;

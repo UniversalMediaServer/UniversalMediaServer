@@ -1888,15 +1888,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
 				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWMV_OrgPN(media, mediaRenderer, player == null);
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, mediaRenderer, player == null);
 				}
 			} else {
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
 				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWMV_OrgPN(media, mediaRenderer, player == null);
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, mediaRenderer, player == null);
 				} else if (mime.equals(MPEG_TYPEMIME)) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_PS_OrgPN(localizationValue);
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegPsOrgPN(localizationValue);
 
 					// If player is not null, we are not streaming it
 					if (player != null) {
@@ -1985,30 +1985,30 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (isOutputtingMPEGTS) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, false);
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
 							if (
 								mediaRenderer.isTranscodeToH264() &&
 								!VideoLanVideoStreaming.ID.equals(player.id())
 							) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, false);
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
 							}
 						}
 					} else if (media != null) {
 						// In this block, we are streaming the file
 						if (media.isMpegTS()) {
 							if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
 							} else {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
 							}
 						}
 					}
 				} else if (media != null && mime.equals(MPEGTS_TYPEMIME)) {
 					// patters - on Sony BDP m2ts clips aren't listed without this
 					if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
 					} else {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMPEG_TS_MPEG2_OrgPN(localizationValue, media, mediaRenderer, player == null);
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
 					}
 				} else if (media != null && mime.equals(MP4_TYPEMIME)) {
 					if (
@@ -2025,7 +2025,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else if (media != null && mime.equals(MATROSKA_TYPEMIME)) {
 					if (player == null && media.isH264()) {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMKV_H264_OrgPN(localizationValue, media, mediaRenderer, player == null);
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMkvH264OrgPN(localizationValue, media, mediaRenderer, player == null);
 					}
 				} else if (media != null && mime.equals(ASF_TYPEMIME)) {
 					if (player == null && media.getCodecV().equals("vc1") && media.getFirstAudioTrack().isWMA()) {

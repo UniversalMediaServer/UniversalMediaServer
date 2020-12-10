@@ -231,8 +231,7 @@ public class HTTPServer implements Runnable {
 				if (!ignore) {
 					if (count == Integer.MAX_VALUE) {
 						count = 1;
-					} else
-					{
+					} else {
 						count++;
 					}
 					RequestHandler request = new RequestHandler(socket);

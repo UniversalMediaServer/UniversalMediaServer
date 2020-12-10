@@ -228,10 +228,10 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public String getBumpJS() {
 		RemoteUtil.ResourceManager resources = parent.getResources();
-		return resources.read("bump/bump.js")
-			+ "\nvar bumpskin = function() {\n"
-			+ resources.read("bump/skin/skin.js")
-			+ "\n}";
+		return resources.read("bump/bump.js") +
+			"\nvar bumpskin = function() {\n" +
+			resources.read("bump/skin/skin.js") +
+			"\n}";
 	}
 
 	public static Map<String, String> parseQuery(HttpExchange x) {
@@ -251,8 +251,8 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public static String translate(String uri) {
-		return uri.startsWith("/play/")
-			? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
+		return uri.startsWith("/play/") ?
+			(PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
 	@SuppressWarnings("unused")
