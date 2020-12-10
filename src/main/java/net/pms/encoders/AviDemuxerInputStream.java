@@ -122,9 +122,9 @@ public class AviDemuxerInputStream extends InputStream {
 					}
 
 					PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
-					ProcessWrapper pipe_process = tsPipe.getPipeProcess();
-					attachedProcesses.add(pipe_process);
-					pipe_process.runInNewThread();
+					ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
+					attachedProcesses.add(pipeProcess);
+					pipeProcess.runInNewThread();
 					tsPipe.deleteLater();
 
 					String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
@@ -406,11 +406,11 @@ public class AviDemuxerInputStream extends InputStream {
 			case 2:
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8);
 			case 3:
-				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8)
-					| ((buffer[2] & 0xff) << 16);
+				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
+					((buffer[2] & 0xff) << 16);
 			case 4:
-				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8)
-					| ((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
+				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
+					((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
 			default:
 				throw new IOException("Illegal Read quantity");
 		}
@@ -421,8 +421,8 @@ public class AviDemuxerInputStream extends InputStream {
 	}
 
 	public static int str2ulong(byte[] data, int i) {
-		return (data[i] & 0xff) | ((data[i + 1] & 0xff) << 8)
-			| ((data[i + 2] & 0xff) << 16) | ((data[i + 3] & 0xff) << 24);
+		return (data[i] & 0xff) | ((data[i + 1] & 0xff) << 8) |
+			((data[i + 2] & 0xff) << 16) | ((data[i + 3] & 0xff) << 24);
 	}
 
 	public static int str2ushort(byte[] data, int i) {
