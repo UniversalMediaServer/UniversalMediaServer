@@ -52,7 +52,8 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	@SuppressWarnings({
 		"checkstyle:ConstantName",
 		"checkstyle:MethodName",
-		"checkstyle:ParameterName"
+		"checkstyle:ParameterName",
+		"checkstyle:TypeName"
 	})
 	public interface Kernel32 extends StdCallLibrary {
 		Kernel32 INSTANCE = Native.load("kernel32",

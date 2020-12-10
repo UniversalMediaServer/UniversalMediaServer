@@ -504,7 +504,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			// control bits
 			((buffer[m2] & 0x08) == 0x08) &&
 			((buffer[m0] & 31) == 0) &&
-			 // of interest
+			// of interest
 			!((buffer[m3] & 128) == 128) && // not drop frm
 			!((buffer[m0] & 16) == 16) // not broken
 			) {

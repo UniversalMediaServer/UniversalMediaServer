@@ -263,6 +263,7 @@ public class UMSUtils {
 	/**
 	 * Bitwise constants relating to playlist management.
 	 */
+	@SuppressWarnings("checkstyle:InterfaceIsType")
 	public interface IOListModes {
 
 		public static final int PERMANENT = 1;
