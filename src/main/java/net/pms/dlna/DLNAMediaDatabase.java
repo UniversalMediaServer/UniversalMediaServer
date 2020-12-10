@@ -379,6 +379,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("  ID                INT              NOT NULL");
 				sb.append(", FILEID            BIGINT           NOT NULL");
 				sb.append(", MBID_RECORD       UUID");
+				sb.append(", MBID_TRACK        UUID");
 				sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
 				sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", NRAUDIOCHANNELS   NUMERIC");
@@ -665,6 +666,7 @@ public class DLNAMediaDatabase implements Runnable {
 								audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
 								audio.setBitRate(elements.getInt("BITRATE"));
 								audio.setMbidRecord(elements.getString("MBID_RECORD"));
+								audio.setMbidTrack(elements.getString("MBID_TRACK"));
 								media.getAudioTracksList().add(audio);
 							}
 						}
@@ -783,13 +785,13 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
-			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD";
+			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK";
 
 		TABLE_LOCK.writeLock().lock();
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
-					"FILEID, ID, MBID_RECORD, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
+					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
 					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, " +
 					"DELAY, MUXINGMODE, BITRATE " +
 				"FROM AUDIOTRACKS " +
@@ -807,8 +809,9 @@ public class DLNAMediaDatabase implements Runnable {
 				updateStatment.setLong(1, fileId);
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
-					if (rs.next()) {
+					if (rs.next()) {						
 					    rs.updateString("MBID_RECORD", left(trimToEmpty(audioTrack.getMbidRecord()), SIZE_MAX));                          
+					    rs.updateString("MBID_TRACK", left(trimToEmpty(audioTrack.getMbidTrack()), SIZE_MAX));                          
 						rs.updateString("LANG", left(audioTrack.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(audioTrack.getAudioTrackTitleFromMetadata(), SIZE_MAX));
 						rs.updateInt("NRAUDIOCHANNELS", audioTrack.getAudioProperties().getNumberOfChannels());
@@ -863,6 +866,7 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
 						insertStatement.setInt(18, audioTrack.getBitRate());
 						insertStatement.setString(19, audioTrack.getMbidRecord());
+						insertStatement.setString(19, audioTrack.getMbidTrack());
 						insertStatement.executeUpdate();
 					}
 				}

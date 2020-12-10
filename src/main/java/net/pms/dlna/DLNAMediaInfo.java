@@ -730,6 +730,7 @@ public class DLNAMediaInfo implements Cloneable {
 								audio.setArtist(t.getFirst(FieldKey.ARTIST));
 								audio.setSongname(t.getFirst(FieldKey.TITLE));
 								audio.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
+								audio.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
 								String y = t.getFirst(FieldKey.YEAR);
 
 								try {

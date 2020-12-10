@@ -2413,7 +2413,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			    addAttribute(sb, "nameSpace", "http://ums/tags"); // TODO add real namespace  
 			    addAttribute(sb, "type", "ums-tags");
 			    endTag(sb);
-			    addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidRecord());
+			    addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
+			    addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
 			    closeTag(sb, "desc");
 			}		    
 		}
