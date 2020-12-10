@@ -49,7 +49,7 @@ public class UPNPControl {
 	// Logger ids to write messages to the logs.
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPControl.class);
 
-	public static final DeviceType[] mediaRendererTypes = new DeviceType[]{
+	public static final DeviceType[] MEDIA_RENDERER_TYPES = new DeviceType[]{
 		new UDADeviceType("MediaRenderer", 1),
 		// Older Sony Blurays provide only 'Basic' service
 		new UDADeviceType("Basic", 1)
@@ -363,7 +363,7 @@ public class UPNPControl {
 			};
 
 			upnpService = new UpnpServiceImpl(sc, rl);
-			for (DeviceType t : mediaRendererTypes) {
+			for (DeviceType t : MEDIA_RENDERER_TYPES) {
 				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 			}
 
@@ -387,7 +387,7 @@ public class UPNPControl {
 
 	public static boolean isMediaRenderer(Device d) {
 		String t = d.getType().getType();
-		for (DeviceType r : mediaRendererTypes) {
+		for (DeviceType r : MEDIA_RENDERER_TYPES) {
 			if (r.getType().equals(t)) {
 				return true;
 			}
@@ -426,7 +426,7 @@ public class UPNPControl {
 	}
 
 	public static URL getURL(Device d) {
-		return d instanceof RemoteDevice ? ((RemoteDevice) d).getIdentity().getDescriptorURL() : 
+		return d instanceof RemoteDevice ? ((RemoteDevice) d).getIdentity().getDescriptorURL() :
 			d.getDetails().getBaseURL();
 	}
 
@@ -615,7 +615,7 @@ public class UPNPControl {
 	 */
 	public static Device getDevice(InetAddress socket) {
 		if (upnpService != null) {
-			for (DeviceType r : mediaRendererTypes) {
+			for (DeviceType r : MEDIA_RENDERER_TYPES) {
 				for (Device d : upnpService.getRegistry().getDevices(r)) {
 					try {
 						InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());

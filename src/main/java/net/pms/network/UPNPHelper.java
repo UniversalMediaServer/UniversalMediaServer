@@ -595,8 +595,8 @@ public class UPNPHelper extends UPNPControl {
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
 			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
-			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ? null
-				: RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ? null :
+				RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 
 			if (r != null && !r.isUpnpAllowed()) {
 				LOGGER.debug("Upnp service is {} for \"{}\"", r.getUpnpModeString(), r);
@@ -614,8 +614,8 @@ public class UPNPHelper extends UPNPControl {
 
 			if (!distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || !r.loaded)) {
 				// Already seen by the http server
-				if (ref != null && !ref.getUpnpDetailsString().equals(r.getUpnpDetailsString())
-					&& ref.getLoadingPriority() >= r.getLoadingPriority()) {
+				if (ref != null && !ref.getUpnpDetailsString().equals(r.getUpnpDetailsString())&&
+					ref.getLoadingPriority() >= r.getLoadingPriority()) {
 					// The upnp-matched reference conf is different from the
 					// previous
 					// http-matched conf and has equal or higher priority, so
