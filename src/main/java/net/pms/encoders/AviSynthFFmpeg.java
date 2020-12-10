@@ -100,7 +100,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(filename, subTrack, -1, -1, null, null, _configuration);
+		return getAVSScript(filename, subTrack, -1, -1, null, null, CONFIGURATION);
 	}
 
 	/*

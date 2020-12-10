@@ -65,7 +65,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	protected static final ReentrantReadWriteLock filtersLock = new ReentrantReadWriteLock();
 
 	static {
-		readWebFilters(_configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
+		readWebFilters(CONFIGURATION.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 	}
 
 	/**

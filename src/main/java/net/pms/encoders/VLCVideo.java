@@ -290,7 +290,7 @@ public class VLCVideo extends Player {
 	}
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
-		int bitrates[] = new int[2];
+		int[] bitrates = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
@@ -321,8 +321,8 @@ public class VLCVideo extends Player {
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 
-		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
+		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int[] rendererMaxBitrates = new int[2];
 
 		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
@@ -472,11 +472,11 @@ public class VLCVideo extends Player {
 		CodecConfig config = genConfig(params.getMediaRenderer());
 
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
-		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
+		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
-		pipe_process.runInNewThread();
+		pipeProcess.runInNewThread();
 		tsPipe.deleteLater();
 
 		params.getInputPipes()[0] = tsPipe;
@@ -642,7 +642,7 @@ public class VLCVideo extends Player {
 		cmdList.toArray(cmdArray);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(pipe_process);
+		pw.attachProcess(pipeProcess);
 
 		// TODO: Why is this here?
 		try {
