@@ -43,5 +43,5 @@ public abstract class ImagePlayer extends Player {
 	 *            results in.
 	 * @param file the {@link File} to parse.
 	 */
-    public abstract void parse(DLNAMediaInfo media, File file);
+	public abstract void parse(DLNAMediaInfo media, File file);
 }

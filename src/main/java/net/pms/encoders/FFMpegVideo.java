@@ -183,7 +183,7 @@ public class FFMpegVideo extends Player {
 
 		boolean override = true;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride)renderer;
+			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride) renderer;
 			override = or.addSubtitles();
 		}
 
@@ -487,8 +487,8 @@ public class FFMpegVideo extends Player {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
 
-		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
+		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int[] rendererMaxBitrates = new int[2];
 
 		if (StringUtils.isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
@@ -753,7 +753,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
-		int bitrates[] = new int[2];
+		int[] bitrates = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
@@ -839,7 +839,7 @@ public class FFMpegVideo extends Player {
 		boolean avisynth = avisynth();
 		if (params.getTimeSeek() > 0) {
 			params.setWaitBeforeStart(1);
-		} else if (renderer.isTranscodeFastStart()){
+		} else if (renderer.isTranscodeFastStart()) {
 			params.manageFastStart();
 		} else {
 			params.setWaitBeforeStart(2500);
@@ -1168,7 +1168,7 @@ public class FFMpegVideo extends Player {
 				}
 
 				if (
-					!customFFmpegOptions.contains("-ar ") && 
+					!customFFmpegOptions.contains("-ar ") &&
 					params.getAid() != null &&
 					params.getAid().getSampleRate() != params.getMediaRenderer().getTranscodedVideoAudioSampleRate()
 				) {
@@ -1180,7 +1180,7 @@ public class FFMpegVideo extends Player {
 				// The parameters of http://forum.minimserver.com/showthread.php?tid=4181&pid=27185 are used.
 				if (
 					!customFFmpegOptions.contains("--resampler") &&
-					params.getAid() != null && 
+					params.getAid() != null &&
 					params.getAid().getSampleRate() != params.getMediaRenderer().getTranscodedVideoAudioSampleRate() &&
 					configuration.isFFmpegSoX()
 				) {
@@ -1234,15 +1234,15 @@ public class FFMpegVideo extends Player {
 		setOutputParsing(dlna, pw, false);
 
 		if (!dtsRemux) {
-			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
 			/**
 			 * It can take a long time for Windows to create a named pipe (and
 			 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
 			 * the current thread.
 			 */
-			mkfifo_process.runInSameThread();
-			pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
+			mkfifoProcess.runInSameThread();
+			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
 			// Give the mkfifo process a little time
 			try {
@@ -1255,7 +1255,7 @@ public class FFMpegVideo extends Player {
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
 			File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
-			String cmd[] = new String[]{ ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe() };
+			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
 
 			PipeIPCProcess ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
@@ -1271,9 +1271,9 @@ public class FFMpegVideo extends Player {
 
 			ProcessWrapperImpl ffVideo = new ProcessWrapperImpl(cmdArrayDts, ffparams);
 
-			ProcessWrapper ff_video_pipe_process = ffVideoPipe.getPipeProcess();
-			pw.attachProcess(ff_video_pipe_process);
-			ff_video_pipe_process.runInNewThread();
+			ProcessWrapper ffVideoPipeProcess = ffVideoPipe.getPipeProcess();
+			pw.attachProcess(ffVideoPipeProcess);
+			ffVideoPipeProcess.runInNewThread();
 			ffVideoPipe.deleteLater();
 
 			pw.attachProcess(ffVideo);
@@ -1369,9 +1369,9 @@ public class FFMpegVideo extends Player {
 				pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
 			}
 
-			ProcessWrapper pipe_process = pipe.getPipeProcess();
-			pw.attachProcess(pipe_process);
-			pipe_process.runInNewThread();
+			ProcessWrapper pipeProcess = pipe.getPipeProcess();
+			pw.attachProcess(pipeProcess);
+			pipeProcess.runInNewThread();
 
 			try {
 				wait(50);
@@ -1381,9 +1381,9 @@ public class FFMpegVideo extends Player {
 			pipe.deleteLater();
 			params.getInputPipes()[0] = pipe;
 
-			ProcessWrapper ff_pipe_process = ffAudioPipe.getPipeProcess();
-			pw.attachProcess(ff_pipe_process);
-			ff_pipe_process.runInNewThread();
+			ProcessWrapper ffPipeProcess = ffAudioPipe.getPipeProcess();
+			pw.attachProcess(ffPipeProcess);
+			ffPipeProcess.runInNewThread();
 
 			try {
 				wait(50);
@@ -1413,8 +1413,8 @@ public class FFMpegVideo extends Player {
 	private JCheckBox fc;
 	private JCheckBox deferToMEncoderForSubtitles;
 	private JCheckBox isFFmpegSoX;
-	private JComboBox<String> FFmpegGPUDecodingAccelerationMethod;
-	private JComboBox<String> FFmpegGPUDecodingAccelerationThreadNumber;
+	private JComboBox<String> fFmpegGPUDecodingAccelerationMethod;
+	private JComboBox<String> fFmpegGPUDecodingAccelerationThreadNumber;
 
 	@Override
 	public JComponent config() {
@@ -1488,15 +1488,15 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(1, 11));
-		
+
 		builder.add(new JLabel(Messages.getString("FFmpeg.GPUDecodingAccelerationMethod")), cc.xy(1, 13));
-		
+
 		String[] keys = configuration.getFFmpegAvailableGPUDecodingAccelerationMethods();
 
-		FFmpegGPUDecodingAccelerationMethod = new JComboBox<>(keys);
-		FFmpegGPUDecodingAccelerationMethod.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationMethod());
-		FFmpegGPUDecodingAccelerationMethod.setToolTipText(Messages.getString("FFmpeg.GPUDecodingAccelerationMethodTooltip"));
-		FFmpegGPUDecodingAccelerationMethod.addItemListener(new ItemListener() {
+		fFmpegGPUDecodingAccelerationMethod = new JComboBox<>(keys);
+		fFmpegGPUDecodingAccelerationMethod.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationMethod());
+		fFmpegGPUDecodingAccelerationMethod.setToolTipText(Messages.getString("FFmpeg.GPUDecodingAccelerationMethodTooltip"));
+		fFmpegGPUDecodingAccelerationMethod.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -1504,24 +1504,24 @@ public class FFMpegVideo extends Player {
 				}
 			}
 		});
-		FFmpegGPUDecodingAccelerationMethod.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUDecodingAccelerationMethod), cc.xy(3, 13));
+		fFmpegGPUDecodingAccelerationMethod.setEditable(true);
+		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationMethod), cc.xy(3, 13));
 
 		builder.addLabel(Messages.getString("FFmpeg.GPUDecodingThreadCount"), cc.xy(1, 15));
 		String[] threads = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
 
-		FFmpegGPUDecodingAccelerationThreadNumber = new JComboBox<>(threads);
-		FFmpegGPUDecodingAccelerationThreadNumber.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationThreadNumber());
-		FFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("FFmpeg.GPUDecodingThreadCountTooltip"));
+		fFmpegGPUDecodingAccelerationThreadNumber = new JComboBox<>(threads);
+		fFmpegGPUDecodingAccelerationThreadNumber.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationThreadNumber());
+		fFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("FFmpeg.GPUDecodingThreadCountTooltip"));
 
-		FFmpegGPUDecodingAccelerationThreadNumber.addItemListener(new ItemListener() {
+		fFmpegGPUDecodingAccelerationThreadNumber.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setFFmpegGPUDecodingAccelerationThreadNumber((String) e.getItem());
 			}
 		});
-		FFmpegGPUDecodingAccelerationThreadNumber.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(FFmpegGPUDecodingAccelerationThreadNumber), cc.xy(3, 15));
+		fFmpegGPUDecodingAccelerationThreadNumber.setEditable(true);
+		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationThreadNumber), cc.xy(3, 15));
 
 		return builder.getPanel();
 	}
