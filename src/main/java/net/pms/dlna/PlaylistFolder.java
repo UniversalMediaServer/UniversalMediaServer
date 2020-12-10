@@ -100,6 +100,37 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	@Override
+	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException
+	{
+		File thumbnailImage = null;
+		if (!isweb) {
+			 thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".png");
+			 if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				 thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".jpg");
+			 }
+			 if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				 thumbnailImage = new File(FilenameUtils.getFullPath(uri) + "folder.png");
+			 }
+			 if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				 thumbnailImage = new File(FilenameUtils.getFullPath(uri) + "folder.jpg");
+			 }
+			 if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				 return super.getThumbnailInputStream();
+			 }
+			 DLNAThumbnailInputStream result = null;
+			 try {
+				 LOGGER.debug("PlaylistFolder albumart path : " + thumbnailImage.getAbsolutePath());
+				 result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumbnailImage));
+			 } catch (IOException e) {
+				 LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
+				 LOGGER.trace("", e);
+			 }
+			 return result != null ? result : super.getThumbnailInputStream();
+		}
+		return null;
+	}	
+
+	@Override
 	protected void resolveOnce() {
 		ArrayList<Entry> entries = new ArrayList<>();
 		boolean m3u = false;
