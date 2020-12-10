@@ -584,13 +584,13 @@ public class PMS {
 		frame.setConnectionState(ConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.INSTANCE.isAviSynthAvailable() && BasicSystemUtils.INSTANCE.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
+		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.instance.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(BasicSystemUtils.instance.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(BasicSystemUtils.instance.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -600,7 +600,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.INSTANCE.isKerioFirewall()) {
+		if (BasicSystemUtils.instance.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 

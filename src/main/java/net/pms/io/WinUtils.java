@@ -47,6 +47,11 @@ import org.slf4j.LoggerFactory;
 public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 
+	@SuppressWarnings({
+		"checkstyle:ConstantName",
+		"checkstyle:MethodName",
+		"checkstyle:ParameterName"
+	})
 	public interface Kernel32 extends Library {
 		Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);

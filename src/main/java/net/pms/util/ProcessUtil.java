@@ -200,7 +200,7 @@ public class ProcessUtil {
 	 * @return The resulting non-Unicode file path.
 	 */
 	public static String getShortFileNameIfWideChars(String name) {
-		return BasicSystemUtils.INSTANCE.getShortPathNameW(name);
+		return BasicSystemUtils.instance.getShortPathNameW(name);
 	}
 
 	// Run cmd and return combined stdout/stderr

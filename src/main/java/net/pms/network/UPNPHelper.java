@@ -614,7 +614,7 @@ public class UPNPHelper extends UPNPControl {
 
 			if (!distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || !r.loaded)) {
 				// Already seen by the http server
-				if (ref != null && !ref.getUpnpDetailsString().equals(r.getUpnpDetailsString())&&
+				if (ref != null && !ref.getUpnpDetailsString().equals(r.getUpnpDetailsString()) &&
 					ref.getLoadingPriority() >= r.getLoadingPriority()) {
 					// The upnp-matched reference conf is different from the
 					// previous

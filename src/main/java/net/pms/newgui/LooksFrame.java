@@ -463,7 +463,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setExtendedState(JFrame.ICONIFIED);
 		}
 
-		BasicSystemUtils.INSTANCE.addSystemTray(this);
+		BasicSystemUtils.instance.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {

@@ -93,7 +93,7 @@ public class CodecUtil {
 		String font = null;
 		if (Platform.isWindows()) {
 			// get Windows Arial
-			String winDir = BasicSystemUtils.INSTANCE.getWindowsDirectory();
+			String winDir = BasicSystemUtils.instance.getWindowsDirectory();
 			if (winDir != null) {
 				File winDirFile = new File(winDir);
 				if (winDirFile.exists()) {

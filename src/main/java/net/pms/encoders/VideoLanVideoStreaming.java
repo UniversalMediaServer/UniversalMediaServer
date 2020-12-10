@@ -245,8 +245,8 @@ public class VideoLanVideoStreaming extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.INSTANCE.getVlcPath())) {
-				result.version(BasicSystemUtils.INSTANCE.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
+				result.version(BasicSystemUtils.instance.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

@@ -493,10 +493,10 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (BasicSystemUtils.INSTANCE.getVlcVersion() != null) {
+		if (BasicSystemUtils.instance.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (BasicSystemUtils.INSTANCE.getVlcVersion().compareTo(requiredVersion) > 0) {
+			if (BasicSystemUtils.instance.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
@@ -504,7 +504,7 @@ public class VLCVideo extends Player {
 			} else if (!configuration.isGPUAcceleration()) {
 				LOGGER.debug(
 					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
-					BasicSystemUtils.INSTANCE.getVlcVersion()
+					BasicSystemUtils.instance.getVlcVersion()
 				);
 			}
 		}
@@ -731,8 +731,8 @@ public class VLCVideo extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.INSTANCE.getVlcPath())) {
-				result.version(BasicSystemUtils.INSTANCE.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
+				result.version(BasicSystemUtils.instance.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

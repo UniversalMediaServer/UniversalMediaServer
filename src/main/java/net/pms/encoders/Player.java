@@ -863,7 +863,7 @@ public abstract class Player {
 					return true;
 				}
 
-				if (!BasicSystemUtils.INSTANCE.isAviSynthAvailable()) {
+				if (!BasicSystemUtils.instance.isAviSynthAvailable()) {
 					LOGGER.debug(
 						"Transcoding engine {} ({}) is unavailable since AviSynth couldn't be found",
 						this,
