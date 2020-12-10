@@ -95,7 +95,7 @@ public class TIFFInfo extends ExifInfo {
 		PhotometricInterpretation photometricInterpretation,
 		ExifOrientation exifOrientation,
 		ExifOrientation originalExifOrientation,
-		Integer ExifVersion,
+		Integer exifVersion,
 		ExifCompression exifCompression,
 		ExifColorSpace exifColorSpace,
 		boolean hasExifThumbnail
@@ -113,7 +113,7 @@ public class TIFFInfo extends ExifInfo {
 			photometricInterpretation,
 			exifOrientation,
 			originalExifOrientation,
-			ExifVersion,
+			exifVersion,
 			exifCompression,
 			exifColorSpace,
 			hasExifThumbnail

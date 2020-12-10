@@ -149,11 +149,11 @@ public class BMPInfo extends ImageInfo {
 				Integer bitsPerPixel = ((BmpHeaderDirectory) directory).getInteger(BmpHeaderDirectory.TAG_BITS_PER_PIXEL);
 
 				if (compression != null && headerSize != null && bitsPerPixel != null) {
-					CompressionType compressionType =
+					CompressionType compressionTypeTemp =
 						CompressionType.typeOf(compression.intValue(), headerSize.intValue());
-					((BMPParseInfo) parsedInfo).compressionType = compressionType;
+					((BMPParseInfo) parsedInfo).compressionType = compressionTypeTemp;
 					if (parsedInfo.bitDepth != null) {
-						switch (compressionType) {
+						switch (compressionTypeTemp) {
 							case BIT_FIELDS:
 							case HUFFMAN_1D:
 							case NONE:

@@ -229,12 +229,12 @@ public class JPEGInfo extends ExifInfo {
 					JPEGSubsamplingNotation.calculateJPEGSubsampling((JpegDirectory) directory);
 			} else if (directory instanceof JfifDirectory) {
 				if (((JfifDirectory) directory).containsTag(JfifDirectory.TAG_VERSION)) {
-					 Integer i = ((JfifDirectory) directory).getInteger(JfifDirectory.TAG_VERSION);
-					 if (i != null) {
-						 ((JPEGParseInfo) parsedInfo).jfifVersion = i;
-					 }
+					Integer i = ((JfifDirectory) directory).getInteger(JfifDirectory.TAG_VERSION);
+					if (i != null) {
+						((JPEGParseInfo) parsedInfo).jfifVersion = i;
+					}
 				}
-			} else if (directory instanceof HuffmanTablesDirectory){
+			} else if (directory instanceof HuffmanTablesDirectory) {
 				((JPEGParseInfo) parsedInfo).isTypicalHuffman =
 					Boolean.valueOf(((HuffmanTablesDirectory) directory).isTypical());
 			}

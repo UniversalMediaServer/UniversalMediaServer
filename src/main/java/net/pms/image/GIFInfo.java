@@ -157,9 +157,9 @@ public class GIFInfo extends ImageInfo {
 					}
 				}
 			} else if (directory instanceof GifControlDirectory) {
-				boolean hasTransparency = ((GifControlDirectory) directory).isTransparent();
-				((GIFParseInfo) parsedInfo).hasTransparency = hasTransparency;
-				if (hasTransparency) {
+				boolean isTransparent = ((GifControlDirectory) directory).isTransparent();
+				((GIFParseInfo) parsedInfo).hasTransparency = isTransparent;
+				if (isTransparent) {
 					if (parsedInfo.numComponents == null) {
 						throw new ParseException(
 							"Invalid GIF image - Graphic Control Extension block encountered before the Header block"
