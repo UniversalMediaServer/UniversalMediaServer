@@ -856,9 +856,8 @@ public class UPNPHelper extends UPNPControl {
 		int uuidPosition = request.indexOf(UUID);
 		if (uuidPosition != -1) {
 			String temp = request.substring(uuidPosition);
-			temp = temp.substring(0, temp.indexOf(CRLF)); // get only the line
-															 // of message
-															 // containing UUID
+			// get only the line of message containing UUID
+			temp = temp.substring(0, temp.indexOf(CRLF));
 			if (temp.indexOf(':') == temp.lastIndexOf(':')) {
 				uuid = temp; // there are no additional informations in the line
 			} else {
