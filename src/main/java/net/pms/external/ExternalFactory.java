@@ -265,7 +265,7 @@ public class ExternalFactory {
 
 		externalListenerClasses.remove(clazz1);
 		ExternalListener remove = null;
-		for (ExternalListener list : externalListeners ) {
+		for (ExternalListener list : externalListeners) {
 			if (list.getClass().equals(clazz1)) {
 				remove = list;
 				break;
@@ -295,7 +295,7 @@ public class ExternalFactory {
 			File f = url2file(url);
 			File f1 = url2file(newUrl);
 
-			if (f1 == null || f ==null) {
+			if (f1 == null || f == null) {
 				continue;
 			}
 
@@ -310,7 +310,7 @@ public class ExternalFactory {
 
 		try {
 			f = new File(url.toURI());
-		} catch(URISyntaxException e) {
+		} catch (URISyntaxException e) {
 			f = new File(url.getPath());
 		}
 
@@ -348,7 +348,7 @@ public class ExternalFactory {
 					if (!f.delete()) {
 						LOGGER.error("Could not delete file: \"{}\"", f.getAbsolutePath());
 					}
-				} else if(action.equalsIgnoreCase("backup")) {
+				} else if (action.equalsIgnoreCase("backup")) {
 					FileUtils.moveFileToDirectory(f, new File("backup"), true);
 					if (!f.delete()) {
 						LOGGER.error("Could not delete file: \"{}\"", f.getAbsolutePath());

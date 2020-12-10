@@ -35,7 +35,7 @@ public class ICO extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "ico", "cur" };
+		return new String[] {"ico", "cur"};
 	}
 
 	@Override

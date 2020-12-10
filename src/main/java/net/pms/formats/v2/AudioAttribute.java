@@ -55,7 +55,7 @@ public enum AudioAttribute {
 	}
 
 	private AudioAttribute(Set<String> libMediaInfoKeys, boolean multipleValuesPossible,
-						   boolean getLargerValue, Integer defaultValue, Integer minimumValue) {
+							boolean getLargerValue, Integer defaultValue, Integer minimumValue) {
 		this.libMediaInfoKeys = libMediaInfoKeys;
 		this.multipleValuesPossible = multipleValuesPossible;
 		this.getLargerValue = getLargerValue;

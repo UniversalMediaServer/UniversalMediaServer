@@ -35,7 +35,7 @@ public class PNM extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "pbm", "pgm", "ppm", "pnm" };
+		return new String[] {"pbm", "pgm", "ppm", "pnm"};
 	}
 
 	@Override

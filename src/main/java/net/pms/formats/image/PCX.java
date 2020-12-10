@@ -35,7 +35,7 @@ public class PCX extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "pcx", "dcx" };
+		return new String[] {"pcx", "dcx"};
 	}
 
 	@Override

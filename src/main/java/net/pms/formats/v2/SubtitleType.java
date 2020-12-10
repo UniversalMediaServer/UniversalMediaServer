@@ -28,10 +28,10 @@ import static org.apache.commons.lang3.StringUtils.trim;
  *
  * @since 1.60.0
  */
+@SuppressWarnings("checkstyle:MethodParamPad")
 public enum SubtitleType {
 	// MediaInfo database of codec signatures https://github.com/MediaArea/MediaInfoLib/blob/master/Source/Resource/Text/DataBase/Codec.csv
 
-	@SuppressWarnings("checkstyle:MethodParamPad")
 	//     int index, String description,        String shortName, List<String> fileExtensions, List<String> libMediaInfoCodecs,                         Category category
 	UNKNOWN     (0,  "Generic",                     "Unknown",     list(),             list(),                                                           Category.UNDEF),
 	SUBRIP      (1,  "SubRip",                      "SubRip",      list("srt"),        list("S_TEXT/UTF8", "S_UTF8", "Subrip"),                          Category.TEXT),

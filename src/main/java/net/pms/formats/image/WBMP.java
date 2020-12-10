@@ -35,7 +35,7 @@ public class WBMP extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "wbmp" };
+		return new String[] {"wbmp"};
 	}
 
 	@Override
