@@ -909,28 +909,19 @@ public class MEncoderVideo extends Player {
 		} else if (!aspectRatiosMatch) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
-		}
-		if (
-			deferToTsmuxer == true &&
-			!params.getMediaRenderer().isPS3() &&
-			media.isWebDl(filename, params)
-		) {
+		} else if (!params.getMediaRenderer().isPS3() && media.isWebDl(filename, params)) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
-		}
-		if (deferToTsmuxer == true && "bt.601".equals(media.getMatrixCoefficients())) {
+		} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
-		}
-		if (deferToTsmuxer == true && (params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
+		} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
-		}
-		if (deferToTsmuxer == true && !params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+		} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
-		}
-		if (deferToTsmuxer && !PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
+		} else if (!PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
 			deferToTsmuxer = false;
 			LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
 		}

@@ -287,7 +287,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){
+				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()) {
 					gpu = ", GPU=true";
 				}
 

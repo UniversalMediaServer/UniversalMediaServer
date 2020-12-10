@@ -1572,7 +1572,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	// matches 'Duration: 00:17:17.00' but not 'Duration: N/A'
-	static final Matcher reDuration = Pattern.compile("Duration:\\s+([\\d:.]+),").matcher("");
+	static final Matcher RE_DURATION = Pattern.compile("Duration:\\s+([\\d:.]+),").matcher("");
 
 	/**
 	 * Set up a filter to parse ffmpeg's stderr output for info
@@ -1585,8 +1585,8 @@ public class FFMpegVideo extends Player {
 				OutputTextLogger ffParser = new OutputTextLogger(null) {
 					@Override
 					public boolean filter(String line) {
-						if (reDuration.reset(line).find()) {
-							String d = reDuration.group(1);
+						if (RE_DURATION.reset(line).find()) {
+							String d = RE_DURATION.group(1);
 							LOGGER.trace("[{}] setting duration: {}", ID, d);
 							dlna.getMedia().setDuration(StringUtil.convertStringToTime(d));
 							return false; // done, stop filtering

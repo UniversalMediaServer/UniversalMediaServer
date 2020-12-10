@@ -170,7 +170,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()){
+				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()) {
 					gpu = ", GPU=true";
 				}
 
