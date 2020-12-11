@@ -88,7 +88,7 @@ public final class TableMusicBrainzReleases extends Tables {
 
 	private static String constructTagWhere(final CoverArtArchiveTagInfo tagInfo, final boolean includeAll) {
 		StringBuilder where = new StringBuilder(" WHERE ");
-		final String AND = " AND ";
+		final String and = " AND ";
 		boolean added = false;
 
 		if (includeAll || StringUtil.hasValue(tagInfo.album)) {
@@ -97,14 +97,14 @@ public final class TableMusicBrainzReleases extends Tables {
 		}
 		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("ARTIST_ID").append(sqlNullIfBlank(tagInfo.artistId, true, false));
 			added = true;
 		}
 		if (includeAll || (!StringUtil.hasValue(tagInfo.artistId) && StringUtil.hasValue(tagInfo.artist))) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("ARTIST").append(sqlNullIfBlank(tagInfo.artist, true, false));
 			added = true;
@@ -121,10 +121,10 @@ public final class TableMusicBrainzReleases extends Tables {
 			)
 		) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
-			 where.append("TRACK_ID").append(sqlNullIfBlank(tagInfo.trackId, true, false));
-			 added = true;
+			where.append("TRACK_ID").append(sqlNullIfBlank(tagInfo.trackId, true, false));
+			added = true;
 		}
 		if (
 			includeAll || (
@@ -139,7 +139,7 @@ public final class TableMusicBrainzReleases extends Tables {
 			)
 		) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("TITLE").append(sqlNullIfBlank(tagInfo.title, true, false));
 			added = true;
@@ -147,7 +147,7 @@ public final class TableMusicBrainzReleases extends Tables {
 
 		if (StringUtil.hasValue(tagInfo.year)) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
 		}
@@ -172,9 +172,9 @@ public final class TableMusicBrainzReleases extends Tables {
 			}
 
 			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)){
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)){
+				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
 						if (StringUtil.hasValue(mBID) || !StringUtil.hasValue(result.getString("MBID"))) {
 							if (trace) {
@@ -340,7 +340,7 @@ public final class TableMusicBrainzReleases extends Tables {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
-			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:

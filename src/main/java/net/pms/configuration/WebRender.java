@@ -502,7 +502,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	 * libvorbis transcodes very slowly, so we scale the video down to
 	 * speed it up.
 	 *
-	 * @return 
+	 * @return
 	 */
 	@Override
 	public String getFFmpegVideoFilterOverride() {
@@ -640,7 +640,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 		@Override
 		public int getControls() {
-			return renderer.pmsConfiguration.useWebControl() ? PLAYCONTROL|VOLUMECONTROL : 0;
+			return renderer.pmsConfiguration.useWebControl() ? PLAYCONTROL | VOLUMECONTROL : 0;
 		}
 
 		@Override
@@ -676,7 +676,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
 			alert();
 			if (state.playback == STOPPED) {
-				((WebRender)renderer).stop();
+				((WebRender) renderer).stop();
 			}
 		}
 	}
