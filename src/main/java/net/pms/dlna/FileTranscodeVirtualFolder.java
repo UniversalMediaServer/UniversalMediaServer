@@ -142,9 +142,8 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			return;
 		}
 
-		int chapterInterval = configuration.isChapterSupport()
-			? configuration.getChapterInterval()
-			: -1;
+		int chapterInterval = configuration.isChapterSupport()?
+			configuration.getChapterInterval() : -1;
 
 		if ((chapterInterval > 0) && isSeekable(dlna)) {
 			// don't add a chapter folder if the duration of the video
@@ -305,7 +304,6 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 						entries.add(copy);
 					}
 
-					
 				}
 			}
 
@@ -316,11 +314,10 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			for (DLNAResource dlna : entries) {
 				LOGGER.trace(
 					"Adding {}: audio: {}, subtitle: {}, player: {}",
-					new Object[]{
 					dlna.getName(),
 					dlna.getMediaAudio(),
 					dlna.getMediaSubtitle(),
-					(dlna.getPlayer() != null ? dlna.getPlayer().name() : null),});
+					dlna.getPlayer() != null ? dlna.getPlayer().name() : null);
 
 				addChildInternal(dlna);
 				addChapterFolder(dlna);

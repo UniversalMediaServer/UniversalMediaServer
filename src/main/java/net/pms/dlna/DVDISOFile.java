@@ -136,14 +136,14 @@ public class DVDISOFile extends VirtualFolder {
 					double duration = Double.parseDouble(line.substring(line.lastIndexOf("LENGTH=") + 7));
 					titles[rank] = duration;
 				} else if (line.startsWith("ID_DVD_VOLUME_ID")) {
-					String volumeId = line.substring(line.lastIndexOf("_ID=") + 4).trim();
+					String volumeID = line.substring(line.lastIndexOf("_ID=") + 4).trim();
 					if (configuration.isPrettifyFilenames()) {
-						volumeId = volumeId.replaceAll("_", " ");
-						if (isNotBlank(volumeId) && volumeId.equals(volumeId.toUpperCase(PMS.getLocale()))) {
-							volumeId = WordUtils.capitalize(volumeId.toLowerCase(PMS.getLocale()));
+						volumeID = volumeID.replaceAll("_", " ");
+						if (isNotBlank(volumeID) && volumeID.equals(volumeID.toUpperCase(PMS.getLocale()))) {
+							volumeID = WordUtils.capitalize(volumeID.toLowerCase(PMS.getLocale()));
 						}
 					}
-					this.volumeId = volumeId;
+					this.volumeId = volumeID;
 				}
 			}
 		}
