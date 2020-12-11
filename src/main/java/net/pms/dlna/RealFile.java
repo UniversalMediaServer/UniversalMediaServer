@@ -71,7 +71,7 @@ public class RealFile extends MapFile {
 		} else {
 			getConf().getFiles().add(file);
 		}
-
+	}
 
 	@Override
 	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse

@@ -246,6 +246,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		mustacheVars.put("recentlyAdded", "");
 		mustacheVars.put("recentlyAddedLink", "");
 		mustacheVars.put("hasRecentlyAdded", false);
+		mustacheVars.put("mostPlayed", "");
+		mustacheVars.put("mostPlayedLink", "");
+		mustacheVars.put("hasMostPlayed", false);
 
 		// Generate innerHtml snippets for folders and media items
 		for (DLNAResource resource : resources) {
