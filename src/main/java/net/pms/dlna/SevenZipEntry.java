@@ -149,7 +149,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
-					} 
+					}
 				}
 			}
 		};
