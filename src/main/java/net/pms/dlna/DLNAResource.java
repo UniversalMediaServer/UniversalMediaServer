@@ -1035,7 +1035,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
-			return Temp.get(objectId, renderer);
+			return TEMP.get(objectId, renderer);
 		}
 
 		// Now strip off the filename
@@ -1079,7 +1079,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
-			List<DLNAResource> items = Temp.asList(objectId);
+			List<DLNAResource> items = TEMP.asList(objectId);
 			return items != null ? items : resources;
 		}
 
@@ -2131,13 +2131,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			openTag(sb, "container");
 		}
 
-		String id = getResourceId();
+		String resourceId = getResourceId();
 		if (xbox360) {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
-			id += "$";
+			resourceId += "$";
 		}
 
-		addAttribute(sb, "id", id);
+		addAttribute(sb, "id", resourceId);
 		if (isFolder) {
 			if (!isDiscovered() && childrenNumber() == 0) {
 				//  When a folder has not been scanned for resources, it will automatically have zero children.
@@ -2151,13 +2151,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		id = getParentId();
+		resourceId = getParentId();
 		if (xbox360 && getFakeParentId() == null) {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual folder ids.
-			id += "$";
+			resourceId += "$";
 		}
 
-		addAttribute(sb, "parentID", id);
+		addAttribute(sb, "parentID", resourceId);
 		addAttribute(sb, "restricted", "1");
 		endTag(sb);
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
@@ -2192,7 +2192,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			"dc:title",
 			encodeXML(mediaRenderer.getDcTitle(title, getDisplayNameSuffix(mediaRenderer, configurationSpecificToRenderer), this))
 		);
-		
+
 		if (mediaRenderer.isSamsung() && this instanceof RealFile) {
 			addBookmark(sb, mediaRenderer.getDcTitle(title, getDisplayNameSuffix(mediaRenderer, configurationSpecificToRenderer), this));
 		}
@@ -2352,7 +2352,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								int finalSize = (int) (media.getDurationInSeconds() * transcodeFrequency * 2 * transcodeNumberOfChannels);
 								LOGGER.trace("Calculated transcoded size for {}: {}", getSystemName(), finalSize);
 								addAttribute(sb, "size", finalSize);
-							} else if (media.getSize() > 0){
+							} else if (media.getSize() > 0) {
 								LOGGER.trace("Could not calculate transcoded size for {}, using file size: {}", getSystemName(), media.getSize());
 								addAttribute(sb, "size", media.getSize());
 							}
@@ -2414,7 +2414,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				sb.append(subsURL);
 				closeTag(sb, "sec:CaptionInfoEx");
 				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
-			} else if (mediaRenderer.offerSubtitlesAsResource()){
+			} else if (mediaRenderer.offerSubtitlesAsResource()) {
 				openTag(sb, "res");
 				String subtitlesFormat = mediaSubtitle.getType().getExtension();
 				if (StringUtils.isBlank(subtitlesFormat)) {
@@ -2491,8 +2491,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		return sb.toString();
 	}
-	
-	private void addBookmark(StringBuilder sb, String title){
+
+	private void addBookmark(StringBuilder sb, String title) {
 		try {
 			File file = new File(getFileName());
 			String path = file.getCanonicalPath();
@@ -2501,9 +2501,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 					sb,
 					"sec:dcmInfo",
-					encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d",title,bookmark))
+					encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, bookmark))
 				);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			LOGGER.error("Cannot set bookmark tag for " + title, e);
 		}
 	}
@@ -2534,7 +2534,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 */
 
 		ImageInfo imageInfo = media.getImageInfo();
-		ImageInfo thumbnailImageInfo = this.thumbnailImageInfo != null ?
+		ImageInfo thumbnailImageInf = this.thumbnailImageInfo != null ?
 			this.thumbnailImageInfo :
 			getMedia() != null && getMedia().getThumb() != null ?
 				getMedia().getThumb().getImageInfo() :
@@ -2550,9 +2550,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		List<DLNAImageResElement> resElements = new ArrayList<>();
 
 		// Always offer JPEG_TN as per DLNA standard
-		resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_TN, thumbnailImageInfo != null ? thumbnailImageInfo : imageInfo, true));
+		resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_TN, thumbnailImageInf != null ? thumbnailImageInf : imageInfo, true));
 		if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_TN, renderer)) {
-			resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_TN, thumbnailImageInfo != null ? thumbnailImageInfo : imageInfo, true));
+			resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_TN, thumbnailImageInf != null ? thumbnailImageInf : imageInfo, true));
 		}
 		if (imageInfo != null) {
 			if (
@@ -2565,39 +2565,39 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					DLNAImageProfile.createJPEG_RES_H_V(imageInfo.getWidth(), imageInfo.getHeight());
 				resElements.add(new DLNAImageResElement(
 					exactResolution, imageInfo,
-					exactResolution.useThumbnailSource(imageInfo, thumbnailImageInfo)
+					exactResolution.useThumbnailSource(imageInfo, thumbnailImageInf)
 				));
 			}
 			// Always offer JPEG_SM for images as per DLNA standard
 			resElements.add(new DLNAImageResElement(
 				DLNAImageProfile.JPEG_SM, imageInfo,
-				DLNAImageProfile.JPEG_SM.useThumbnailSource(imageInfo, thumbnailImageInfo)
+				DLNAImageProfile.JPEG_SM.useThumbnailSource(imageInfo, thumbnailImageInf)
 			));
 			if (!DLNAImageProfile.PNG_TN.isResolutionCorrect(imageInfo)) {
 				if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_LRG, renderer)) {
 					resElements.add(new DLNAImageResElement(
 						DLNAImageProfile.PNG_LRG, imageInfo,
-						DLNAImageProfile.PNG_LRG.useThumbnailSource(imageInfo, thumbnailImageInfo)
+						DLNAImageProfile.PNG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)
 					));
 				}
 				if (includeGIF) {
 					resElements.add(new DLNAImageResElement(
 						DLNAImageProfile.GIF_LRG, imageInfo,
-						DLNAImageProfile.GIF_LRG.useThumbnailSource(imageInfo, thumbnailImageInfo)
+						DLNAImageProfile.GIF_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)
 					));
 				}
 				if (!DLNAImageProfile.JPEG_SM.isResolutionCorrect(imageInfo)) {
 					if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_MED, renderer)) {
 						resElements.add(new DLNAImageResElement(
 							DLNAImageProfile.JPEG_MED, imageInfo,
-							DLNAImageProfile.JPEG_MED.useThumbnailSource(imageInfo, thumbnailImageInfo)
+							DLNAImageProfile.JPEG_MED.useThumbnailSource(imageInfo, thumbnailImageInf)
 						));
 					}
 					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
 						if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
 							resElements.add(new DLNAImageResElement(
 								DLNAImageProfile.JPEG_LRG, imageInfo,
-								DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInfo)
+								DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)
 							));
 						}
 					}
@@ -3045,17 +3045,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
 
 		// shagrath: small fix, regression on chapters
-		boolean timeseek_auto = false;
+		boolean timeseekAuto = false;
 		// Ditlew - WDTV Live
 		// Ditlew - We convert byteoffset to timeoffset here. This needs the stream to be CBR!
-		int cbr_video_bitrate = mediarenderer.getCBRVideoBitrate();
+		int cbrVideoBitrate = mediarenderer.getCBRVideoBitrate();
 		long low = range.isByteRange() && range.isStartOffsetAvailable() ? range.asByteRange().getStart() : 0;
 		long high = range.isByteRange() && range.isEndLimitAvailable() ? range.asByteRange().getEnd() : -1;
 		Range.Time timeRange = range.createTimeRange();
-		if (player != null && low > 0 && cbr_video_bitrate > 0) {
-			int used_bit_rated = (int) ((cbr_video_bitrate + 256) * 1024 / (double) 8 * 1.04); // 1.04 = container overhead
-			if (low > used_bit_rated) {
-				timeRange.setStart(low / (double) (used_bit_rated));
+		if (player != null && low > 0 && cbrVideoBitrate > 0) {
+			int usedBitRated = (int) ((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04); // 1.04 = container overhead
+			if (low > usedBitRated) {
+				timeRange.setStart(low / (double) (usedBitRated));
 				low = 0;
 
 				// WDTV Live - if set to TS it asks multiple times and ends by
@@ -3065,11 +3065,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				// Should we rewind a little (in case our overhead isn't accurate enough)
-				int rewind_secs = mediarenderer.getByteToTimeseekRewindSeconds();
-				timeRange.rewindStart(rewind_secs);
+				int rewindSecs = mediarenderer.getByteToTimeseekRewindSeconds();
+				timeRange.rewindStart(rewindSecs);
 
 				// shagrath:
-				timeseek_auto = true;
+				timeseekAuto = true;
 			}
 		}
 
@@ -3101,7 +3101,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return wrap(fis, high, low);
 			}
 
-			 InputStream fis = getInputStream();
+			InputStream fis = getInputStream();
 
 			if (fis != null) {
 				if (low > 0) {
@@ -3127,7 +3127,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		timeRange.limit(getSplitRange());
 		params.setTimeSeek(timeRange.getStartOrZero());
 		params.setTimeEnd(timeRange.getEndOrZero());
-		params.setShiftScr(timeseek_auto);
+		params.setShiftScr(timeseekAuto);
 		if (this instanceof IPushOutput) {
 			params.setStdIn((IPushOutput) this);
 		}
@@ -3368,8 +3368,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			// A jar resource
-			InputStream is;
-			if ((is = getResourceInputStream(thumb)) != null) {
+			InputStream is = getResourceInputStream(thumb);
+			if (is != null) {
 				return DLNAThumbnailInputStream.toThumbnailInputStream(is);
 			}
 
@@ -4624,8 +4624,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		DLNAResource resource = isweb ?
 			type == Format.VIDEO ? new WebVideoStream(name, uri, null) :
 			type == Format.AUDIO ? new WebAudioStream(name, uri, null) :
-			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null
-			:
+			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null :
 			new RealFile(new File(uri));
 		if (resource != null && format == null && !isweb) {
 			resource.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
@@ -4633,7 +4632,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		LOGGER.debug(resource == null ?
 			("Could not auto-match " + uri) :
-			("Created auto-matched container: "+ resource));
+			("Created auto-matched container: " + resource));
 		return resource;
 	}
 
@@ -4689,7 +4688,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		public DLNAResource get(String objectId, RendererConfiguration r) {
 			int index = getIndex(objectId, r);
 			DLNAResource d = index > -1 ? getChildren().get(index) : null;
-			if (d != null && r != null && ! r.equals(d.getDefaultRenderer())) {
+			if (d != null && r != null && !r.equals(d.getDefaultRenderer())) {
 				d.updateRendering(r);
 			}
 
@@ -4714,7 +4713,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// A temp folder for non-xmb items
-	public static final UnattachedFolder Temp = new UnattachedFolder("Temp");
+	public static final UnattachedFolder TEMP = new UnattachedFolder("Temp");
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {
@@ -4738,8 +4737,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String objectId = parseObjectId(uri);
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {
-				int index = Temp.indexOf(objectId);
-				return index > -1 ? Temp.getChildren().get(index) : Temp.recreate(objectId, name, renderer);
+				int index = TEMP.indexOf(objectId);
+				return index > -1 ? TEMP.getChildren().get(index) : TEMP.recreate(objectId, name, renderer);
 			}
 			if (renderer == null) {
 				renderer = RendererConfiguration.getDefaultConf();
@@ -4747,7 +4746,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			return PMS.get().getRootFolder(renderer).getDLNAResource(objectId, renderer);
 		}
-		return Temp.add(uri, name, renderer);
+		return TEMP.add(uri, name, renderer);
 	}
 
 	// Returns the uri if it's ours and exists or else the url of new Temp item (or null)
@@ -4756,7 +4755,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Check existence
 			return PMS.getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO: attempt repair
 		}
-		DLNAResource d = Temp.add(uri, name, r);
+		DLNAResource d = TEMP.add(uri, name, r);
 		if (d != null) {
 			return d.getURL("", true);
 		}
@@ -4884,7 +4883,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Populates the media Title, Year, Edition, TVSeason, TVEpisodeNumber and TVEpisodeName
 	 * parsed from the media file name and if enabled insert them to the database.
 	 *
-	 * @param file 
+	 * @param file
 	 */
 	private void setMetadataFromFileName(File file) {
 		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());

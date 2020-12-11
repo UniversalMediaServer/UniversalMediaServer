@@ -29,7 +29,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
-import static net.pms.dlna.DLNAResource.Temp;
+import static net.pms.dlna.DLNAResource.TEMP;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -708,7 +708,7 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static void play(DLNAResource d, DeviceConfiguration r) {
-		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
+		DLNAResource d1 = d.getParent() == null ? TEMP.add(d) : d;
 		if (d1 != null) {
 			Device dev = getDevice(r.getUUID());
 			String id = r.getInstanceID();
