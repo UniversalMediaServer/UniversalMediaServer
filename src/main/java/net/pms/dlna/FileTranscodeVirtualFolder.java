@@ -206,7 +206,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				// Transcode folder of live subtitles folder
 				subtitlesTracks = Collections.singletonList(getMediaSubtitle());
 			} else {
-				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitleTracksList());
+				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitlesTracks());
 			}
 
 			// If there is a single audio track, set that as audio track

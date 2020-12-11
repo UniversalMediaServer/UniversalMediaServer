@@ -157,7 +157,7 @@ public class LibMediaInfoParser {
 							MI.Get(video, i, "CodecID"),
 							currentSubTrack.getType()
 						));
-						currentSubTrack.setId(media.getSubtitleTracksList().size());
+						currentSubTrack.setId(media.getSubtitlesTracks().size());
 						addSub(currentSubTrack, media);
 					} else {
 						setFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format"), file);
@@ -387,7 +387,7 @@ public class LibMediaInfoParser {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 							currentSubTrack.setId(getSpecificID(value));
 						} else {
-							currentSubTrack.setId(media.getSubtitleTracksList().size());
+							currentSubTrack.setId(media.getSubtitlesTracks().size());
 						}
 					}
 
@@ -530,7 +530,7 @@ public class LibMediaInfoParser {
 			currentSubTrack.setLang(DLNAMediaLang.UND);
 		}
 
-		media.getSubtitleTracksList().add(currentSubTrack);
+		media.addSubtitlesTrack(currentSubTrack);
 	}
 
 	/**

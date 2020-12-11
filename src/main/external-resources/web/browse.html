@@ -9,15 +9,15 @@
 			}
 			// ensure the browser info cookie is set
 			if ((' ' + document.cookie).indexOf(' UMSINFO=') == -1) {
-				document.cookie = 'UMSINFO=platform=' + navigator.platform + '&width=' + screen.width + '&height=' + screen.height + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)) + ';Path=/';
+				document.cookie = 'UMSINFO=platform=' + navigator.platform + '&width=' + screen.width + '&height=' + screen.height + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)) + ';Path=/;SameSite=Strict';
 			}
 		</script>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1"> 
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
 		<script src="/files/jquery.min.js"></script>
+		<script src="/files/js.cookie.min.js"></script>
 		<script src="/files/jquery.ums.js"></script>
-		<script src="/files/js.cookie-2.1.0.min.js"></script>
 		<script src="/bump/bump.js"></script>
 		<!-- New webUI -->
 		<script src="/files/util/bootstrap.min.js"></script>
