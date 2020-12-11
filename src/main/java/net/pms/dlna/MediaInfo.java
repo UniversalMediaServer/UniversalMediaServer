@@ -37,8 +37,10 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({
 	"checkstyle:ConstantName",
+	"checkstyle:MemberName",
 	"checkstyle:MethodName",
-	"checkstyle:ParameterName"
+	"checkstyle:ParameterName",
+	"checkstyle:TypeName",
 })
 public class MediaInfo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfo.class);
