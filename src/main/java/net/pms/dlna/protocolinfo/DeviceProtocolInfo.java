@@ -23,9 +23,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -80,7 +78,7 @@ public class DeviceProtocolInfo implements Serializable {
 	 * escaping rules into account.
 	 */
 	public static final String COMMA_SPLIT_REGEX = "\\s*(?:(?<!\\\\),|(?<!\\\\)\\\\\\\\,)\\s*";
-	
+
 	/**
 	 * A {@link CharSequenceTranslator} for unescaping individual
 	 * {@code GetProtocolInfo} elements.

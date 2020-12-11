@@ -35,6 +35,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings({
+	"checkstyle:ConstantName",
+	"checkstyle:MethodName",
+	"checkstyle:ParameterName"
+})
 public class MediaInfo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfo.class);
 	static String libraryName;

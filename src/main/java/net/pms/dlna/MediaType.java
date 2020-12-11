@@ -57,12 +57,9 @@ public enum MediaType {
 	 * @return The {@link MediaType} corresponding to the integer value or
 	 *         {@code null} if invalid.
 	 */
-	public static MediaType typeOf(int value)
-	{
-		for (MediaType mediaType : MediaType.values())
-		{
-			if (mediaType.value == value)
-			{
+	public static MediaType typeOf(int value) {
+		for (MediaType mediaType : MediaType.values()) {
+			if (mediaType.value == value) {
 				return mediaType;
 			}
 		}
@@ -77,8 +74,7 @@ public enum MediaType {
 	}
 
 	@Override
-	public String toString()
-	{
-		return "Media type " + this.name() + " ("+ value + ")";
+	public String toString() {
+		return "Media type " + this.name() + " (" + value + ")";
 	}
 }

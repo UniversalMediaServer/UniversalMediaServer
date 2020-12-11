@@ -47,8 +47,8 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		if (resource.getParent() == this) {
 			res1 = resource; // best guess
 			for (DLNAResource r : list) {
-				if (r.getName().equals(resource.getName())
-					&& r.getSystemName().equals(resource.getSystemName())) {
+				if (r.getName().equals(resource.getName()) &&
+						r.getSystemName().equals(resource.getSystemName())) {
 					res1 = r;
 					break;
 				}
@@ -95,7 +95,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		if (list.size() > 0) {
 			final Playlist self = this;
 			// Save
-			if (! isMode(AUTOSAVE)) {
+			if (!isMode(AUTOSAVE)) {
 				addChild(new VirtualVideoAction(Messages.getString("LooksFrame.9"), true) {
 					@Override
 					public boolean enable() {
@@ -134,7 +134,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		}
 		getChildren().clear();
 		setDiscovered(false);
-		if (list.size() < 1 && ! isMode(PERMANENT)) {
+		if (list.size() < 1 && !isMode(PERMANENT)) {
 			// Self-delete if empty
 			getParent().getChildren().remove(this);
 		}
