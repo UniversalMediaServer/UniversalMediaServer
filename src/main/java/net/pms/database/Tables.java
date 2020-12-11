@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
  */
 public class Tables {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tables.class);
-	private static final Object checkTablesLock = new Object();
-	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
+	private static final Object CHECK_TABLES_LOCK = new Object();
+	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static boolean tablesChecked = false;
-	private static final String EscapeCharacter = "\\";
+	private static final String ESCAPE_CHARACTER = "\\";
 
 	// No instantiation
 	protected Tables() {
@@ -57,12 +57,12 @@ public class Tables {
 	 * @throws SQLException
 	 */
 	public static final void checkTables() throws SQLException {
-		synchronized (checkTablesLock) {
+		synchronized (CHECK_TABLES_LOCK) {
 			if (tablesChecked) {
 				LOGGER.debug("Database tables have already been checked, aborting check");
 			} else {
 				LOGGER.debug("Starting check of database tables");
-				try (Connection connection = database.getConnection()) {
+				try (Connection connection = DATABASE.getConnection()) {
 					if (!tableExists(connection, "TABLES")) {
 						createTablesTable(connection);
 					}
@@ -94,8 +94,8 @@ public class Tables {
 
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-                 "WHERE TABLE_SCHEMA = ? "+
-                 "AND  TABLE_NAME = ?"
+			"WHERE TABLE_SCHEMA = ? " +
+			"AND  TABLE_NAME = ?"
 		)) {
 			statement.setString(1, tableSchema);
 			statement.setString(2, tableName);
@@ -291,8 +291,8 @@ public class Tables {
 	 */
 	public static final String sqlLikeEscape(final String s) {
 		return s == null ? null : s.
-			replace(EscapeCharacter, EscapeCharacter + EscapeCharacter).
-			replace("%", EscapeCharacter + "%").
-			replace("_", EscapeCharacter + "_");
+			replace(ESCAPE_CHARACTER, ESCAPE_CHARACTER + ESCAPE_CHARACTER).
+			replace("%", ESCAPE_CHARACTER + "%").
+			replace("_", ESCAPE_CHARACTER + "_");
 	}
 }

@@ -29,7 +29,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.util.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
 import net.pms.util.StringUtil;
-import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -44,13 +43,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  */
 public final class TableMusicBrainzReleases extends Tables {
 	/**
-	 * tableLock is used to synchronize database access on table level.
+	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
 	 * described as experimental. This lock therefore used in addition to SQL
 	 * transaction locks. All access to this table must be guarded with this
 	 * lock. The lock allows parallel reads.
 	 */
-	private static final ReadWriteLock tableLock = new ReentrantReadWriteLock();
+	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableMusicBrainzReleases.class);
 	private static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASES";
 
@@ -166,13 +165,13 @@ public final class TableMusicBrainzReleases extends Tables {
 	public static void writeMBID(final String mBID, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
 
-			tableLock.writeLock().lock();
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)){
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)){
@@ -236,7 +235,7 @@ public final class TableMusicBrainzReleases extends Tables {
 					connection.commit();
 				}
 			} finally {
-				tableLock.writeLock().unlock();
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -261,14 +260,14 @@ public final class TableMusicBrainzReleases extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 		MusicBrainzReleasesResult result;
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\"", query);
 			}
 
-			tableLock.readLock().lock();
+			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
@@ -278,7 +277,7 @@ public final class TableMusicBrainzReleases extends Tables {
 					}
 				}
 			} finally {
-				tableLock.readLock().unlock();
+				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error while looking up Music Brainz ID for \"{}\": {}", tagInfo, e.getMessage());
@@ -297,7 +296,7 @@ public final class TableMusicBrainzReleases extends Tables {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		tableLock.writeLock().lock();
+		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = getTableVersion(connection, TABLE_NAME);
@@ -308,7 +307,7 @@ public final class TableMusicBrainzReleases extends Tables {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}
@@ -323,7 +322,7 @@ public final class TableMusicBrainzReleases extends Tables {
 				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
-			tableLock.writeLock().unlock();
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -339,7 +338,7 @@ public final class TableMusicBrainzReleases extends Tables {
 	 */
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
-		tableLock.writeLock().lock();
+		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion;version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
@@ -369,7 +368,7 @@ public final class TableMusicBrainzReleases extends Tables {
 			}
 			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} finally {
-			tableLock.writeLock().unlock();
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
