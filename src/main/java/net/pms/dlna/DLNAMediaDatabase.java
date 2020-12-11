@@ -91,25 +91,25 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int latestVersion = 23;
 
 	// Database column sizes
-	private final int SIZE_CODECV = 32;
-	private final int SIZE_FRAMERATE = 32;
-	private final int SIZE_AVC_LEVEL = 3;
-	private final int SIZE_CONTAINER = 32;
-	private final int SIZE_IMDBID = 16;
-	private final int SIZE_MATRIX_COEFFICIENTS = 16;
-	private final int SIZE_MUXINGMODE = 32;
-	private final int SIZE_FRAMERATE_MODE = 16;
-	private final int SIZE_LANG = 3;
-	private final int SIZE_SAMPLEFREQ = 16;
-	private final int SIZE_CODECA = 32;
-	private final int SIZE_GENRE = 64;
-	private final int SIZE_YEAR = 4;
-	private final int SIZE_TVSEASON = 4;
-	private final int SIZE_TVEPISODENUMBER = 8;
-	private final int SIZE_EXTERNALFILE = 1000;
+	private final int sizeCodecV = 32;
+	private final int sizeFramerate = 32;
+	private final int sizeAvcLevel = 3;
+	private final int sizeContainer = 32;
+	private final int sizeImbid = 16;
+	private final int sizeMatrixCoefficients = 16;
+	private final int sizeMuxingMode = 32;
+	private final int sizeFramerateMode = 16;
+	private final int sizeLang = 3;
+	private final int sizeSampleFreq = 16;
+	private final int sizeCodecA = 32;
+	private final int sizeGenre = 64;
+	private final int sizeYear = 4;
+	private final int sizeTvSeason = 4;
+	private final int sizeTvEpisodeNumber = 8;
+	private final int sizeExternalFile = 1000;
 
 	// Generic constant for the maximum string size: 255 chars
-	private final int SIZE_MAX = 255;
+	private final int sizeMax = 255;
 
 	/**
 	 * Initializes the database connection pool for the current profile.
@@ -322,36 +322,36 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", WIDTH                   INT");
 				sb.append(", HEIGHT                  INT");
 				sb.append(", SIZE                    NUMERIC");
-				sb.append(", CODECV                  VARCHAR2(").append(SIZE_CODECV).append(')');
-				sb.append(", FRAMERATE               VARCHAR2(").append(SIZE_FRAMERATE).append(')');
-				sb.append(", ASPECTRATIODVD          VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", CODECV                  VARCHAR2(").append(sizeCodecV).append(')');
+				sb.append(", FRAMERATE               VARCHAR2(").append(sizeFramerate).append(')');
+				sb.append(", ASPECTRATIODVD          VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(sizeMax).append(')');
 				sb.append(", REFRAMES                TINYINT");
-				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
+				sb.append(", AVCLEVEL                VARCHAR2(").append(sizeAvcLevel).append(')');
 				sb.append(", IMAGEINFO               OTHER");
-				sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
-				sb.append(", MUXINGMODE              VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
-				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(')');
-				sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
-				sb.append(", TITLECONTAINER          VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", TITLEVIDEOTRACK         VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", CONTAINER               VARCHAR2(").append(sizeContainer).append(')');
+				sb.append(", MUXINGMODE              VARCHAR2(").append(sizeMuxingMode).append(')');
+				sb.append(", FRAMERATEMODE           VARCHAR2(").append(sizeFramerateMode).append(')');
+				sb.append(", STEREOSCOPY             VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(sizeMatrixCoefficients).append(')');
+				sb.append(", TITLECONTAINER          VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", TITLEVIDEOTRACK         VARCHAR2(").append(sizeMax).append(')');
 				sb.append(", VIDEOTRACKCOUNT         INT");
 				sb.append(", IMAGECOUNT              INT");
 				sb.append(", BITDEPTH                INT");
-				sb.append(", PIXELASPECTRATIO        VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", PIXELASPECTRATIO        VARCHAR2(").append(sizeMax).append(')');
 				sb.append(", SCANTYPE                OTHER");
 				sb.append(", SCANORDER               OTHER");
-				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
-				sb.append(", YEAR                    VARCHAR2(").append(SIZE_YEAR).append(')');
-				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
-				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
-				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", IMDBID                  VARCHAR2(").append(sizeImbid).append(')');
+				sb.append(", YEAR                    VARCHAR2(").append(sizeYear).append(')');
+				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", TVSEASON                VARCHAR2(").append(sizeTvSeason).append(')');
+				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(sizeTvEpisodeNumber).append(')');
+				sb.append(", TVEPISODENAME           VARCHAR2(").append(sizeMax).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
-				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(")");
+				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(sizeMax).append(")");
 				sb.append(")");
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
@@ -359,21 +359,21 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("CREATE TABLE AUDIOTRACKS (");
 				sb.append("  ID                INT              NOT NULL");
 				sb.append(", FILEID            BIGINT           NOT NULL");
-				sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
-				sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", LANG              VARCHAR2(").append(sizeLang).append(')');
+				sb.append(", TITLE             VARCHAR2(").append(sizeMax).append(')');
 				sb.append(", NRAUDIOCHANNELS   NUMERIC");
-				sb.append(", SAMPLEFREQ        VARCHAR2(").append(SIZE_SAMPLEFREQ).append(')');
-				sb.append(", CODECA            VARCHAR2(").append(SIZE_CODECA).append(')');
+				sb.append(", SAMPLEFREQ        VARCHAR2(").append(sizeSampleFreq).append(')');
+				sb.append(", CODECA            VARCHAR2(").append(sizeCodecA).append(')');
 				sb.append(", BITSPERSAMPLE     INT");
-				sb.append(", ALBUM             VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ARTIST            VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ALBUMARTIST       VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", SONGNAME          VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
+				sb.append(", ALBUM             VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", ARTIST            VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", ALBUMARTIST       VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", SONGNAME          VARCHAR2(").append(sizeMax).append(')');
+				sb.append(", GENRE             VARCHAR2(").append(sizeGenre).append(')');
 				sb.append(", YEAR              INT");
 				sb.append(", TRACK             INT");
 				sb.append(", DELAY             INT");
-				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
+				sb.append(", MUXINGMODE        VARCHAR2(").append(sizeMuxingMode).append(')');
 				sb.append(", BITRATE           INT");
 				sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 				sb.append(", FOREIGN KEY(FILEID)");
@@ -386,11 +386,11 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append("CREATE TABLE SUBTRACKS (");
 				sb.append("  ID       INT              NOT NULL");
 				sb.append(", FILEID   BIGINT           NOT NULL");
-				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
-				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", LANG     VARCHAR2(").append(sizeLang).append(')');
+				sb.append(", TITLE    VARCHAR2(").append(sizeMax).append(')');
 				sb.append(", TYPE     INT");
-				sb.append(", EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL default ''");
-				sb.append(", CHARSET VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", EXTERNALFILE VARCHAR2(").append(sizeExternalFile).append(") NOT NULL default ''");
+				sb.append(", CHARSET VARCHAR2(").append(sizeMax).append(')');
 				sb.append(", constraint PKSUB primary key (FILEID, ID, EXTERNALFILE)");
 				sb.append(", FOREIGN KEY(FILEID)");
 				sb.append("    REFERENCES FILES(ID)");
@@ -568,7 +568,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try (
 				PreparedStatement stmt = conn.prepareStatement(
 					"SELECT * FROM FILES LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON FILES.THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
-					"WHERE FILENAME = ? AND FILES.MODIFIED = ? " + 
+					"WHERE FILENAME = ? AND FILES.MODIFIED = ? " +
 					"LIMIT 1"
 				);
 			) {
@@ -697,7 +697,7 @@ public class DLNAMediaDatabase implements Runnable {
 		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {
 			return;
 		}
-		
+
 		String columns = "FILEID, ID, LANG, TITLE, TYPE, EXTERNALFILE, CHARSET ";
 
 		TABLE_LOCK.writeLock().lock();
@@ -726,29 +726,29 @@ public class DLNAMediaDatabase implements Runnable {
 				}
 				try (ResultSet rs = updateStatement.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("LANG", left(subtitleTrack.getLang(), SIZE_LANG));
-						rs.updateString("TITLE", left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
+						rs.updateString("LANG", left(subtitleTrack.getLang(), sizeLang));
+						rs.updateString("TITLE", left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), sizeMax));
 						rs.updateInt("TYPE", subtitleTrack.getType().getStableIndex());
 						if (subtitleTrack.getExternalFile() != null) {
-							rs.updateString("EXTERNALFILE", left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
+							rs.updateString("EXTERNALFILE", left(subtitleTrack.getExternalFile().getPath(), sizeExternalFile));
 						} else {
 							rs.updateString("EXTERNALFILE", "");
 						}
-						rs.updateString("CHARSET", left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
+						rs.updateString("CHARSET", left(subtitleTrack.getSubCharacterSet(), sizeMax));
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
 						insertStatement.setLong(1, fileId);
 						insertStatement.setInt(2, subtitleTrack.getId());
-						insertStatement.setString(3, left(subtitleTrack.getLang(), SIZE_LANG));
-						insertStatement.setString(4, left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
+						insertStatement.setString(3, left(subtitleTrack.getLang(), sizeLang));
+						insertStatement.setString(4, left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), sizeMax));
 						insertStatement.setInt(5, subtitleTrack.getType().getStableIndex());
 						if (subtitleTrack.getExternalFile() != null) {
-							insertStatement.setString(6, left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
+							insertStatement.setString(6, left(subtitleTrack.getExternalFile().getPath(), sizeExternalFile));
 						} else {
 							insertStatement.setString(6, "");
 						}
-						insertStatement.setString(7, left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
+						insertStatement.setString(7, left(subtitleTrack.getSubCharacterSet(), sizeMax));
 						insertStatement.executeUpdate();
 					}
 				}
@@ -789,58 +789,58 @@ public class DLNAMediaDatabase implements Runnable {
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("LANG", left(audioTrack.getLang(), SIZE_LANG));
-						rs.updateString("TITLE", left(audioTrack.getAudioTrackTitleFromMetadata(), SIZE_MAX));
+						rs.updateString("LANG", left(audioTrack.getLang(), sizeLang));
+						rs.updateString("TITLE", left(audioTrack.getAudioTrackTitleFromMetadata(), sizeMax));
 						rs.updateInt("NRAUDIOCHANNELS", audioTrack.getAudioProperties().getNumberOfChannels());
-						rs.updateString("SAMPLEFREQ", left(audioTrack.getSampleFrequency(), SIZE_SAMPLEFREQ));
-						rs.updateString("CODECA", left(audioTrack.getCodecA(), SIZE_CODECA));
+						rs.updateString("SAMPLEFREQ", left(audioTrack.getSampleFrequency(), sizeSampleFreq));
+						rs.updateString("CODECA", left(audioTrack.getCodecA(), sizeCodecA));
 						rs.updateInt("BITSPERSAMPLE", audioTrack.getBitsperSample());
-						rs.updateString("ALBUM", left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
-						rs.updateString("ARTIST", left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
+						rs.updateString("ALBUM", left(trimToEmpty(audioTrack.getAlbum()), sizeMax));
+						rs.updateString("ARTIST", left(trimToEmpty(audioTrack.getArtist()), sizeMax));
 
 						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
-						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
+						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), sizeMax);
 						if (albumartist.isEmpty()) {
 							rs.updateNull("ALBUMARTIST");
 						} else {
 							rs.updateString("ALBUMARTIST", albumartist);
 						}
 
-						rs.updateString("SONGNAME", left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
-						rs.updateString("GENRE", left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
+						rs.updateString("SONGNAME", left(trimToEmpty(audioTrack.getSongname()), sizeMax));
+						rs.updateString("GENRE", left(trimToEmpty(audioTrack.getGenre()), sizeGenre));
 						rs.updateInt("YEAR", audioTrack.getYear());
 						rs.updateInt("TRACK", audioTrack.getTrack());
 						rs.updateInt("DELAY", audioTrack.getAudioProperties().getAudioDelay());
-						rs.updateString("MUXINGMODE", left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
+						rs.updateString("MUXINGMODE", left(trimToEmpty(audioTrack.getMuxingModeAudio()), sizeMuxingMode));
 						rs.updateInt("BITRATE", audioTrack.getBitRate());
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
 						insertStatement.setLong(1, fileId);
 						insertStatement.setInt(2, audioTrack.getId());
-						insertStatement.setString(3, left(audioTrack.getLang(), SIZE_LANG));
-						insertStatement.setString(4, left(audioTrack.getAudioTrackTitleFromMetadata(), SIZE_MAX));
+						insertStatement.setString(3, left(audioTrack.getLang(), sizeLang));
+						insertStatement.setString(4, left(audioTrack.getAudioTrackTitleFromMetadata(), sizeMax));
 						insertStatement.setInt(5, audioTrack.getAudioProperties().getNumberOfChannels());
-						insertStatement.setString(6, left(audioTrack.getSampleFrequency(), SIZE_SAMPLEFREQ));
-						insertStatement.setString(7, left(audioTrack.getCodecA(), SIZE_CODECA));
+						insertStatement.setString(6, left(audioTrack.getSampleFrequency(), sizeSampleFreq));
+						insertStatement.setString(7, left(audioTrack.getCodecA(), sizeCodecA));
 						insertStatement.setInt(8, audioTrack.getBitsperSample());
-						insertStatement.setString(9, left(trimToEmpty(audioTrack.getAlbum()), SIZE_MAX));
-						insertStatement.setString(10, left(trimToEmpty(audioTrack.getArtist()), SIZE_MAX));
+						insertStatement.setString(9, left(trimToEmpty(audioTrack.getAlbum()), sizeMax));
+						insertStatement.setString(10, left(trimToEmpty(audioTrack.getArtist()), sizeMax));
 
 						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
-						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), SIZE_MAX);
+						String albumartist = left(trimToEmpty(audioTrack.getAlbumArtist()), sizeMax);
 						if (albumartist.isEmpty()) {
 							insertStatement.setNull(11, Types.VARCHAR);
 						} else {
 							insertStatement.setString(11, albumartist);
 						}
 
-						insertStatement.setString(12, left(trimToEmpty(audioTrack.getSongname()), SIZE_MAX));
-						insertStatement.setString(13, left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
+						insertStatement.setString(12, left(trimToEmpty(audioTrack.getSongname()), sizeMax));
+						insertStatement.setString(13, left(trimToEmpty(audioTrack.getGenre()), sizeGenre));
 						insertStatement.setInt(14, audioTrack.getYear());
 						insertStatement.setInt(15, audioTrack.getTrack());
 						insertStatement.setInt(16, audioTrack.getAudioProperties().getAudioDelay());
-						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
+						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), sizeMuxingMode));
 						insertStatement.setInt(18, audioTrack.getBitRate());
 						insertStatement.executeUpdate();
 					}
@@ -925,41 +925,41 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateInt("WIDTH", media.getWidth());
 							rs.updateInt("HEIGHT", media.getHeight());
 							rs.updateLong("SIZE", media.getSize());
-							rs.updateString("CODECV", left(media.getCodecV(), SIZE_CODECV));
-							rs.updateString("FRAMERATE", left(media.getFrameRate(), SIZE_FRAMERATE));
-							rs.updateString("ASPECTRATIODVD", left(media.getAspectRatioDvdIso(), SIZE_MAX));
-							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_MAX));
-							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_MAX));
+							rs.updateString("CODECV", left(media.getCodecV(), sizeCodecV));
+							rs.updateString("FRAMERATE", left(media.getFrameRate(), sizeFramerate));
+							rs.updateString("ASPECTRATIODVD", left(media.getAspectRatioDvdIso(), sizeMax));
+							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), sizeMax));
+							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), sizeMax));
 							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
-							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), sizeAvcLevel));
 							updateSerialized(rs, media.getImageInfo(), "IMAGEINFO");
 							if (media.getImageInfo() != null) {
 								rs.updateObject("IMAGEINFO", media.getImageInfo());
 							} else {
 								rs.updateNull("IMAGEINFO");
 							}
-							rs.updateString("CONTAINER", left(media.getContainer(), SIZE_CONTAINER));
-							rs.updateString("MUXINGMODE", left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-							rs.updateString("FRAMERATEMODE", left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
-							rs.updateString("STEREOSCOPY", left(media.getStereoscopy(), SIZE_MAX));
-							rs.updateString("MATRIXCOEFFICIENTS", left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-							rs.updateString("TITLECONTAINER", left(media.getFileTitleFromMetadata(), SIZE_MAX));
-							rs.updateString("TITLEVIDEOTRACK", left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
+							rs.updateString("CONTAINER", left(media.getContainer(), sizeContainer));
+							rs.updateString("MUXINGMODE", left(media.getMuxingModeAudio(), sizeMuxingMode));
+							rs.updateString("FRAMERATEMODE", left(media.getFrameRateMode(), sizeFramerateMode));
+							rs.updateString("STEREOSCOPY", left(media.getStereoscopy(), sizeMax));
+							rs.updateString("MATRIXCOEFFICIENTS", left(media.getMatrixCoefficients(), sizeMatrixCoefficients));
+							rs.updateString("TITLECONTAINER", left(media.getFileTitleFromMetadata(), sizeMax));
+							rs.updateString("TITLEVIDEOTRACK", left(media.getVideoTrackTitleFromMetadata(), sizeMax));
 							rs.updateInt("VIDEOTRACKCOUNT", media.getVideoTrackCount());
 							rs.updateInt("IMAGECOUNT", media.getImageCount());
 							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
-							rs.updateString("PIXELASPECTRATIO", left(media.getPixelAspectRatio(), SIZE_MAX));
+							rs.updateString("PIXELASPECTRATIO", left(media.getPixelAspectRatio(), sizeMax));
 							updateSerialized(rs, media.getScanType(), "SCANTYPE");
 							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
-							rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
-							rs.updateString("YEAR", left(media.getYear(), SIZE_YEAR));
-							rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MAX));
-							rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-							rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
-							rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
+							rs.updateString("IMDBID", left(media.getIMDbID(), sizeImbid));
+							rs.updateString("YEAR", left(media.getYear(), sizeYear));
+							rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), sizeMax));
+							rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), sizeMax));
+							rs.updateString("TVSEASON", left(media.getTVSeason(), sizeTvSeason));
+							rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), sizeTvEpisodeNumber));
+							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), sizeMax));
 							rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
-							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
+							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), sizeMax));
 						}
 						rs.updateRow();
 					}
@@ -1007,40 +1007,40 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setInt(++databaseColumnIterator, media.getWidth());
 						ps.setInt(++databaseColumnIterator, media.getHeight());
 						ps.setLong(++databaseColumnIterator, media.getSize());
-						ps.setString(++databaseColumnIterator, left(media.getCodecV(), SIZE_CODECV));
-						ps.setString(++databaseColumnIterator, left(media.getFrameRate(), SIZE_FRAMERATE));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getCodecV(), sizeCodecV));
+						ps.setString(++databaseColumnIterator, left(media.getFrameRate(), sizeFramerate));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), sizeMax));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), sizeMax));
+						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), sizeMax));
 						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
-						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), sizeAvcLevel));
 						if (media.getImageInfo() != null) {
 							ps.setObject(++databaseColumnIterator, media.getImageInfo());
 						} else {
 							ps.setNull(++databaseColumnIterator, Types.OTHER);
 						}
-						ps.setString(++databaseColumnIterator, left(media.getContainer(), SIZE_CONTAINER));
-						ps.setString(++databaseColumnIterator, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-						ps.setString(++databaseColumnIterator, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
-						ps.setString(++databaseColumnIterator, left(media.getStereoscopy(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-						ps.setString(++databaseColumnIterator, left(media.getFileTitleFromMetadata(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getContainer(), sizeContainer));
+						ps.setString(++databaseColumnIterator, left(media.getMuxingModeAudio(), sizeMuxingMode));
+						ps.setString(++databaseColumnIterator, left(media.getFrameRateMode(), sizeFramerateMode));
+						ps.setString(++databaseColumnIterator, left(media.getStereoscopy(), sizeMax));
+						ps.setString(++databaseColumnIterator, left(media.getMatrixCoefficients(), sizeMatrixCoefficients));
+						ps.setString(++databaseColumnIterator, left(media.getFileTitleFromMetadata(), sizeMax));
+						ps.setString(++databaseColumnIterator, left(media.getVideoTrackTitleFromMetadata(), sizeMax));
 						ps.setInt(++databaseColumnIterator, media.getVideoTrackCount());
 						ps.setInt(++databaseColumnIterator, media.getImageCount());
 						ps.setInt(++databaseColumnIterator, media.getVideoBitDepth());
-						ps.setString(++databaseColumnIterator, left(media.getPixelAspectRatio(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getPixelAspectRatio(), sizeMax));
 						insertSerialized(ps, media.getScanType(), ++databaseColumnIterator);
 						insertSerialized(ps, media.getScanOrder(), ++databaseColumnIterator);
-						ps.setString(++databaseColumnIterator, left(media.getIMDbID(), SIZE_IMDBID));
-						ps.setString(++databaseColumnIterator, left(media.getYear(), SIZE_YEAR));
-						ps.setString(++databaseColumnIterator, left(media.getMovieOrShowName(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getTVSeason(), SIZE_TVSEASON));
-						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeName(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getIMDbID(), sizeImbid));
+						ps.setString(++databaseColumnIterator, left(media.getYear(), sizeYear));
+						ps.setString(++databaseColumnIterator, left(media.getMovieOrShowName(), sizeMax));
+						ps.setString(++databaseColumnIterator, left(media.getSimplifiedMovieOrShowName(), sizeMax));
+						ps.setString(++databaseColumnIterator, left(media.getTVSeason(), sizeTvSeason));
+						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeNumber(), sizeTvEpisodeNumber));
+						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeName(), sizeMax));
 						ps.setBoolean(++databaseColumnIterator, media.isTVEpisode());
-						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), sizeMax));
 					} else {
 						ps.setString(++databaseColumnIterator, null);
 						ps.setInt(++databaseColumnIterator, 0);
@@ -1151,15 +1151,15 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setTimestamp(2, new Timestamp(modified));
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
-						rs.updateString("YEAR", left(media.getYear(), SIZE_YEAR));
-						rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MAX));
-						rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-						rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
-						rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-						rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
+						rs.updateString("IMDBID", left(media.getIMDbID(), sizeImbid));
+						rs.updateString("YEAR", left(media.getYear(), sizeYear));
+						rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), sizeMax));
+						rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), sizeMax));
+						rs.updateString("TVSEASON", left(media.getTVSeason(), sizeTvSeason));
+						rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), sizeTvEpisodeNumber));
+						rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), sizeMax));
 						rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
-						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
+						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), sizeMax));
 						rs.updateRow();
 					} else {
 						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store data from OpenSubtitles", name);
@@ -1181,7 +1181,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 */
 	public void updateMovieOrShowName(String oldName, String newName) {
 		try {
-			updateRowsInFilesTable(oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
+			updateRowsInFilesTable(oldName, newName, "MOVIEORSHOWNAME", sizeMax, true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",
@@ -1610,21 +1610,21 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * Returns the VALUES {@link String} for the SQL request.
-	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p> 
-	 * The number of the "?" is calculated from the columns and not need to be hardcoded which 
+	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p>
+	 * The number of the "?" is calculated from the columns and not need to be hardcoded which
 	 * often causes mistakes when columns are deleted or added.<p>
 	 * Possible implementation:
 	 * <blockquote><pre>
 	 * String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS";
 	 * PreparedStatement insertStatement = connection.prepareStatement(
-	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" + 
+	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" +
 	 *    createDefaultValueForInsertStatement(columns)
 	 * );
 	 * </pre></blockquote><p
-	 * 
+	 *
 	 * @param columns the SQL parameters string
 	 * @return The " VALUES (?,?,?, ...)" string
-	 * 
+	 *
 	 */
 	private String createDefaultValueForInsertStatement(String columns) {
 		int count = CharMatcher.is(',').countIn(columns);
