@@ -689,7 +689,8 @@ public class DLNAMediaDatabase implements Runnable {
 								sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("TYPE")));
 								sub.setExternalFileOnly(externalFile);
 								sub.setSubCharacterSet(elements.getString("CHARSET"));
-								media.getSubtitleTracksList().add(sub);
+								LOGGER.trace("Adding external subtitles from the database for {}: {}", name, fileName);
+								media.addSubtitlesTrack(sub);
 							}
 						}
 					}
@@ -737,7 +738,7 @@ public class DLNAMediaDatabase implements Runnable {
 				createDefaultValueForInsertStatement(columns)
 			);
 		) {
-			for (DLNAMediaSubtitle subtitleTrack : media.getSubtitleTracksList()) {
+			for (DLNAMediaSubtitle subtitleTrack : media.getSubtitlesTracks()) {
 				updateStatement.setLong(1, fileId);
 				updateStatement.setInt(2, subtitleTrack.getId());
 				if (subtitleTrack.getExternalFile() != null) {

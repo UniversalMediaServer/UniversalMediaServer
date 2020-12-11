@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 9;
+	private static final int TABLE_VERSION = 10;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -128,6 +128,62 @@ public final class TableFilesStatus extends Tables {
 			LOGGER.error(
 				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
 				isFullyPlayed,
+				fullPathToFile,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Sets the last played date and increments the play count.
+	 *
+	 * @param fullPathToFile
+	 */
+	public static void setLastPlayed(final String fullPathToFile) {
+		boolean trace = LOGGER.isTraceEnabled();
+		String query;
+
+		try (Connection connection = database.getConnection()) {
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+			if (trace) {
+				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
+			}
+
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				connection.setAutoCommit(false);
+				try (ResultSet result = statement.executeQuery(query)) {
+					int playCount = 0;
+					boolean isCreatingNewRecord = false;
+
+					if (result.next()) {
+						playCount = result.getInt("PLAYCOUNT");
+					} else {
+						isCreatingNewRecord = true;
+						result.moveToInsertRow();
+						result.updateString("FILENAME", fullPathToFile);
+					}
+					playCount++;
+
+					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
+					result.updateInt("PLAYCOUNT", playCount);
+
+					if (isCreatingNewRecord) {
+						result.insertRow();
+					} else {
+						result.updateRow();
+					}
+				} finally {
+					connection.commit();
+				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while writing last played date to " + TABLE_NAME + " for \"{}\": {}",
 				fullPathToFile,
 				e.getMessage()
 			);
@@ -447,6 +503,13 @@ public final class TableFilesStatus extends Tables {
 						}
 						version = 9;
 						break;
+					case 9:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
+						}
+						version = 10;
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
@@ -473,6 +536,8 @@ public final class TableFilesStatus extends Tables {
 					"MODIFIED      DATETIME, " +
 					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
 					"BOOKMARK      INTEGER DEFAULT 0" +
+					"DATELASTPLAY  DATETIME, " +
+					"PLAYCOUNT     INTEGER DEFAULT 0, " +
 				")"
 			);
 

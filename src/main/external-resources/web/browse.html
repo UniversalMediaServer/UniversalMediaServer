@@ -9,15 +9,15 @@
 			}
 			// ensure the browser info cookie is set
 			if ((' ' + document.cookie).indexOf(' UMSINFO=') == -1) {
-				document.cookie = 'UMSINFO=platform=' + navigator.platform + '&width=' + screen.width + '&height=' + screen.height + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)) + ';Path=/';
+				document.cookie = 'UMSINFO=platform=' + navigator.platform + '&width=' + screen.width + '&height=' + screen.height + '&isTouchDevice=' + (window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window)) + ';Path=/;SameSite=Strict';
 			}
 		</script>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1"> 
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
 		<script src="/files/jquery.min.js"></script>
+		<script src="/files/js.cookie.min.js"></script>
 		<script src="/files/jquery.ums.js"></script>
-		<script src="/files/js.cookie-2.1.0.min.js"></script>
 		<script src="/bump/bump.js"></script>
 		<!-- New webUI -->
 		<script src="/files/util/bootstrap.min.js"></script>
@@ -143,20 +143,6 @@
 						{{/media}}
 					</ul>
 				{{/hasFile}}
-				{{#hasRecentlyPlayed}}
-					<h3>{{recentlyPlayedLink}}</h3>
-					<ul id="Media" class="nav nav-sidebar media-single-row">
-						{{#recentlyPlayed}}
-							<li class="column">
-								{{thumb}}
-								<div class="box-meta row">
-									<div class="col-xs-9 col-sm-9 col-lg-10 clearPadding">{{caption}}</div>
-									<div class="expand-bump col-xs-3 col-sm-3 col-lg-2">{{bump}}</div>
-								</div>
-							</li>
-						{{/recentlyPlayed}}
-					</ul>
-				{{/hasRecentlyPlayed}}
 				{{#hasRecentlyAdded}}
 					<h3>{{recentlyAddedLink}}</h3>
 					<ul id="Media" class="nav nav-sidebar media-single-row">
@@ -171,6 +157,48 @@
 						{{/recentlyAdded}}
 					</ul>
 				{{/hasRecentlyAdded}}
+				{{#hasInProgress}}
+					<h3>{{inProgressLink}}</h3>
+					<ul id="Media" class="nav nav-sidebar media-single-row">
+						{{#inProgress}}
+							<li class="column">
+								{{thumb}}
+								<div class="box-meta row">
+									<div class="col-xs-9 col-sm-9 col-lg-10 clearPadding">{{caption}}</div>
+									<div class="expand-bump col-xs-3 col-sm-3 col-lg-2">{{bump}}</div>
+								</div>
+							</li>
+						{{/inProgress}}
+					</ul>
+				{{/hasInProgress}}
+				{{#hasMostPlayed}}
+					<h3>{{mostPlayedLink}}</h3>
+					<ul id="Media" class="nav nav-sidebar media-single-row">
+						{{#mostPlayed}}
+							<li class="column">
+								{{thumb}}
+								<div class="box-meta row">
+									<div class="col-xs-9 col-sm-9 col-lg-10 clearPadding">{{caption}}</div>
+									<div class="expand-bump col-xs-3 col-sm-3 col-lg-2">{{bump}}</div>
+								</div>
+							</li>
+						{{/mostPlayed}}
+					</ul>
+				{{/hasMostPlayed}}
+				{{#hasRecentlyPlayed}}
+					<h3>{{recentlyPlayedLink}}</h3>
+					<ul id="Media" class="nav nav-sidebar media-single-row">
+						{{#recentlyPlayed}}
+							<li class="column">
+								{{thumb}}
+								<div class="box-meta row">
+									<div class="col-xs-9 col-sm-9 col-lg-10 clearPadding">{{caption}}</div>
+									<div class="expand-bump col-xs-3 col-sm-3 col-lg-2">{{bump}}</div>
+								</div>
+							</li>
+						{{/recentlyPlayed}}
+					</ul>
+				{{/hasRecentlyPlayed}}
 			</div>
 		</div>
 		<!-- open/close -->
