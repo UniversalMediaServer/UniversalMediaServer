@@ -51,14 +51,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
-	protected static PmsConfiguration PMS_CONFIGURATION = PMS.getConfiguration();
+	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
 
 	protected RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
-	protected PmsConfiguration pmsConfiguration = PMS_CONFIGURATION;
+	protected PmsConfiguration pmsConfiguration = pmsConfigurationStatic;
 	protected ConfigurationReader configurationReader;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
@@ -227,7 +227,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
-			PMS_CONFIGURATION = pmsConf;
+			pmsConfigurationStatic = pmsConf;
 			enabledRendererConfs = new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR);
 
 			try {
@@ -589,7 +589,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
-		if (PMS_CONFIGURATION.isRendererForceDefault()) {
+		if (pmsConfigurationStatic.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
@@ -915,7 +915,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
 		configurationReader = new ConfigurationReader(configuration, false);
-		pmsConfiguration = PMS_CONFIGURATION;
+		pmsConfiguration = pmsConfigurationStatic;
 
 		player = null;
 		buffer = 0;

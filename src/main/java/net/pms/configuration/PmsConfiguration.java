@@ -51,7 +51,6 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.newgui.SharedContentTab.SharedFoldersTableModel;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
@@ -4159,7 +4158,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getSearchDepth() {
 		int ret = (getBoolean(KEY_SEARCH_RECURSE, true) ? 100 : 2);
-	   	return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
+		return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
 	}
 
 	public void reload() {
@@ -4336,7 +4335,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getDataDir() + File.separator + str;
 	}
 
-	private final String KEY_URL_RES_ORDER = "url_resolve_order";
+	private static final String KEY_URL_RES_ORDER = "url_resolve_order";
 
 	public String[] getURLResolveOrder() {
 		return getString(KEY_URL_RES_ORDER, "").split(",");
