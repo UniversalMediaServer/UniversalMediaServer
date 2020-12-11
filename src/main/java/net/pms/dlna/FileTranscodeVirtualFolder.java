@@ -142,7 +142,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			return;
 		}
 
-		int chapterInterval = configuration.isChapterSupport()?
+		int chapterInterval = configuration.isChapterSupport() ?
 			configuration.getChapterInterval() : -1;
 
 		if ((chapterInterval > 0) && isSeekable(dlna)) {
