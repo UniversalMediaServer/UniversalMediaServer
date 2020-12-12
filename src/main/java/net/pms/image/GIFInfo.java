@@ -9,11 +9,9 @@ import com.drew.metadata.gif.GifControlDirectory;
 import com.drew.metadata.gif.GifHeaderDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class GIFInfo extends ImageInfo {
-
 	protected final String formatVersion;
 	protected final boolean hasTransparency;
 
