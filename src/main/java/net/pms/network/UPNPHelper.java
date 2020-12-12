@@ -122,8 +122,11 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static PlayerControlHandler getHttpControlHandler() {
-		if (httpControlHandler == null && PMS.get().getWebServer() != null &&
-			!"false".equals(CONFIGURATION.getBumpAddress().toLowerCase())) {
+		if (
+			httpControlHandler == null &&
+			PMS.get().getWebServer() != null &&
+			!"false".equals(configuration.getBumpAddress().toLowerCase())
+		) {
 			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
 			LOGGER.debug("Attached http player control handler to web server");
 		}
@@ -535,8 +538,13 @@ public class UPNPHelper extends UPNPControl {
 		sb.append("NTS: ").append(message).append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("LOCATION: http://").append(PMS.get().getServer().getHost()).append(':').append(PMS.get().getServer().getPort())
-				.append("/description/fetch").append(CRLF);
+			sb
+				.append("LOCATION: http://")
+				.append(PMS.get().getServer().getHost())
+				.append(':')
+				.append(PMS.get().getServer().getPort())
+				.append("/description/fetch")
+				.append(CRLF);
 		}
 
 		sb.append("USN: ").append(PMS.get().usn());
@@ -622,12 +630,16 @@ public class UPNPHelper extends UPNPControl {
 
 			if (!distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || !r.loaded)) {
 				// Already seen by the http server
-				if (ref != null && !ref.getUpnpDetailsString().equals(r.getUpnpDetailsString()) &&
-					ref.getLoadingPriority() >= r.getLoadingPriority()) {
-					// The upnp-matched reference conf is different from the
-					// previous
-					// http-matched conf and has equal or higher priority, so
-					// update.
+				if (
+					ref != null &&
+					!ref.getUpnpDetailsString().equals(r.getUpnpDetailsString()) &&
+					ref.getLoadingPriority() >= r.getLoadingPriority()
+				) {
+					/*
+					 * The upnp-matched reference conf is different from the
+					 * previous http-matched conf and has equal or higher
+					 * priority, so update.
+					 */
 					LOGGER.debug("Switching to preferred renderer: " + ref);
 					r.inherit(ref);
 				}
@@ -727,7 +739,6 @@ public class UPNPHelper extends UPNPControl {
 
 	// A logical player to manage upnp playback
 	public static class Player extends BasicPlayer.Logical {
-
 		protected Device dev;
 		protected String uuid;
 		protected String instanceID;
@@ -804,7 +815,9 @@ public class UPNPHelper extends UPNPControl {
 
 		public void refresh() {
 			String s = data.get("TransportState");
-			state.playback = "STOPPED".equals(s) ? STOPPED : "PLAYING".equals(s) ? PLAYING : "PAUSED_PLAYBACK".equals(s) ? PAUSED : -1;
+			state.playback = "STOPPED".equals(s) ? STOPPED :
+				"PLAYING".equals(s) ? PLAYING :
+				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
 			state.mute = !"0".equals(data.get("Mute"));
 			s = data.get("Volume");
 			state.volume = s == null ? 0 : (Integer.parseInt(s) * 100 / maxVol);

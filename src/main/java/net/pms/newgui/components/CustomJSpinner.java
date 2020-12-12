@@ -76,8 +76,9 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 					this,
 					((SpinnerIntModel) model).getMinimum(),
 					((SpinnerIntModel) model).getMaximum(),
-					((SpinnerIntModel) model).getStepSize())
-				);
+					((SpinnerIntModel) model).getStepSize()
+				)
+			);
 		}
 
 		if (enterMoveFocus) {

@@ -65,7 +65,6 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
 public class RemoteWeb {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteWeb.class);
 	private KeyStore keyStore;
 	private KeyManagerFactory keyManagerFactory;

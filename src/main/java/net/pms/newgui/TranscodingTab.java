@@ -181,11 +181,12 @@ public class TranscodingTab {
 		if (
 			path == null ||
 			!(path.getLastPathComponent() instanceof TreeNodeSettings) ||
-			((TreeNodeSettings) path.getLastPathComponent()).getPlayer() == null) {
-				arrowDownButton.setEnabled(false);
-				arrowUpButton.setEnabled(false);
-				toggleButton.setIconName(ToggleButtonState.Unknown.getIconName());
-				toggleButton.setEnabled(false);
+			((TreeNodeSettings) path.getLastPathComponent()).getPlayer() == null
+		) {
+			arrowDownButton.setEnabled(false);
+			arrowUpButton.setEnabled(false);
+			toggleButton.setIconName(ToggleButtonState.Unknown.getIconName());
+			toggleButton.setEnabled(false);
 		} else {
 			TreeNodeSettings node = (TreeNodeSettings) path.getLastPathComponent();
 			DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
@@ -287,10 +288,11 @@ public class TranscodingTab {
 				if (
 					path != null &&
 					path.getLastPathComponent() instanceof TreeNodeSettings &&
-					((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null) {
-						((TreeNodeSettings) path.getLastPathComponent()).getPlayer().toggleEnabled(true);
-						tree.updateUI();
-						setButtonsState();
+					((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null
+				) {
+					((TreeNodeSettings) path.getLastPathComponent()).getPlayer().toggleEnabled(true);
+					tree.updateUI();
+					setButtonsState();
 				}
 			}
 		});
