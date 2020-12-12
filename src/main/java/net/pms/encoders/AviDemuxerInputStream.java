@@ -64,8 +64,12 @@ public class AviDemuxerInputStream extends InputStream {
 		this.params = params;
 
 		aOut = params.getOutputPipes()[1].getOutputStream();
-		if (params.isNoVideoEncode() && params.getForceType() != null && params.getForceType().equals("V_MPEG4/ISO/AVC") &&
-			params.getHeader() != null) {
+		if (
+			params.isNoVideoEncode() &&
+			params.getForceType() != null &&
+			params.getForceType().equals("V_MPEG4/ISO/AVC") &&
+			params.getHeader() != null
+		) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
@@ -143,7 +147,6 @@ public class AviDemuxerInputStream extends InputStream {
 
 		Runnable r2 = () -> {
 			try {
-				// Thread.sleep(500);
 				parseHeader();
 			} catch (IOException e) {
 				LOGGER.debug("Parsing error", e);

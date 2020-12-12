@@ -72,11 +72,19 @@ public class UPNPHelper extends UPNPControl {
 	// The Constant BYEBYE.
 	private static final String BYEBYE = "ssdp:byebye";
 
-	private static final String[] NT_LIST = {"upnp:rootdevice", "urn:schemas-upnp-org:device:MediaServer:1",
-			"urn:schemas-upnp-org:service:ContentDirectory:1", "urn:schemas-upnp-org:service:ConnectionManager:1", PMS.get().usn(),
-			"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"};
+	private static final String[] NT_LIST = {
+		"upnp:rootdevice",
+		"urn:schemas-upnp-org:device:MediaServer:1",
+		"urn:schemas-upnp-org:service:ContentDirectory:1",
+		"urn:schemas-upnp-org:service:ConnectionManager:1",
+		PMS.get().usn(),
+		"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"
+	};
 
-	private static final String[] ST_LIST = {"urn:schemas-upnp-org:device:MediaRenderer:1", "urn:schemas-upnp-org:device:Basic:1"};
+	private static final String[] ST_LIST = {
+		"urn:schemas-upnp-org:device:MediaRenderer:1",
+		"urn:schemas-upnp-org:device:Basic:1"
+	};
 
 	// The listener.
 	private static Thread listenerThread;

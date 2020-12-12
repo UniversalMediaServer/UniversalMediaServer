@@ -47,8 +47,10 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 		if (resource.getParent() == this) {
 			res1 = resource; // best guess
 			for (DLNAResource r : list) {
-				if (r.getName().equals(resource.getName()) &&
-						r.getSystemName().equals(resource.getSystemName())) {
+				if (
+					r.getName().equals(resource.getName()) &&
+					r.getSystemName().equals(resource.getSystemName())
+				) {
 					res1 = r;
 					break;
 				}
