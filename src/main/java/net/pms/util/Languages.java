@@ -142,7 +142,8 @@ public final class Languages {
 	 * {@link #sortedLanguages}
 	 */
 	private static HashMap<String, TranslationStatistics> translationsStatistics = new HashMap<>(
-		(int) Math.round(UMS_BCP47_CODES.length * 1.34));
+		(int) Math.round(UMS_BCP47_CODES.length * 1.34)
+	);
 	private static Locale lastpreferredLocale = null;
 	private static List<LanguageEntry> sortedLanguages = new ArrayList<>();
 
