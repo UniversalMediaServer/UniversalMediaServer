@@ -64,8 +64,8 @@ public class AviDemuxerInputStream extends InputStream {
 		this.params = params;
 
 		aOut = params.getOutputPipes()[1].getOutputStream();
-		if (params.isNoVideoEncode() && params.getForceType() != null && params.getForceType().equals("V_MPEG4/ISO/AVC")
-			&& params.getHeader() != null) {
+		if (params.isNoVideoEncode() && params.getForceType() != null && params.getForceType().equals("V_MPEG4/ISO/AVC") &&
+			params.getHeader() != null) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
@@ -113,8 +113,8 @@ public class AviDemuxerInputStream extends InputStream {
 						audioType = "A_AC3";
 					}
 
-					pw.println(videoType + ", \"" + params.getOutputPipes()[0].getOutputPipe() + "\", " + fps
-						+ "level=4.1, insertSEI, contSPS, track=1");
+					pw.println(videoType + ", \"" + params.getOutputPipes()[0].getOutputPipe() + "\", " + fps +
+						"level=4.1, insertSEI, contSPS, track=1");
 					pw.println(audioType + ", \"" + params.getOutputPipes()[1].getOutputPipe() + "\", track=2");
 				}
 
@@ -124,7 +124,7 @@ public class AviDemuxerInputStream extends InputStream {
 				pipeProcess.runInNewThread();
 				tsPipe.deleteLater();
 
-				String[] cmd = new String[] { ts.getExecutable(), f.getAbsolutePath(), tsPipe.getInputPipe() };
+				String[] cmd = new String[] {ts.getExecutable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
 				ProcessBuilder pb = new ProcessBuilder(cmd);
 				pb.redirectErrorStream(true);
 				process = pb.start();
