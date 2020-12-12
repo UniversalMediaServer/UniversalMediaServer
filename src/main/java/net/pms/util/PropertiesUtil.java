@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PropertiesUtil {
-
 	/**
 	 * Logs messages to all different channels.
 	 */

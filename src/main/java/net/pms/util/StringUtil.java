@@ -53,7 +53,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class StringUtil {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
