@@ -294,7 +294,6 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 		return buf;
 	}
 
-
 	/**
 	 * @return A {@link DLNAImage} sharing the the underlying buffer.
 	 * @throws DLNAProfileException If the image isn't compliant.
@@ -317,14 +316,12 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this image.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
-
 
 	/**
 	 * @return The {@link ImageFormat} for this image.

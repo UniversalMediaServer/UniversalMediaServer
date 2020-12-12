@@ -40,6 +40,7 @@ public class CueFolder extends DLNAResource {
 	public File getPlaylistfile() {
 		return playlistfile;
 	}
+
 	private boolean valid = true;
 
 	public CueFolder(File f) {

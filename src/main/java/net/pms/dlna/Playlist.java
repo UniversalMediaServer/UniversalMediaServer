@@ -14,7 +14,8 @@ import org.slf4j.LoggerFactory;
 public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
 	protected UMSUtils.IOList list;
-	protected int maxSize, mode;
+	protected int maxSize;
+	protected int mode;
 
 	public Playlist(String name) {
 		this(name, null, 0, AUTOSAVE);

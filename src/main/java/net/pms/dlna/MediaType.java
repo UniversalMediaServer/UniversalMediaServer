@@ -19,7 +19,6 @@
  */
 package net.pms.dlna;
 
-
 /**
  * Defines the media types.
  *

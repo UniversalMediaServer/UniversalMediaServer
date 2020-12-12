@@ -208,9 +208,7 @@ public class DeviceProtocolInfo implements Serializable {
 		}
 	}
 
-
 	// Standard java.util.Collection methods.
-
 
 	/**
 	 * Returns the number of elements of the given
@@ -713,9 +711,7 @@ public class DeviceProtocolInfo implements Serializable {
 		return result;
 	}
 
-
 	// imageProfileSet "java.util.Collection methods" getters
-
 
 	/**
 	 * Returns the number of {@link DLNAImageProfile} elements. If this contains
@@ -784,7 +780,6 @@ public class DeviceProtocolInfo implements Serializable {
 			setsLock.readLock().unlock();
 		}
 	}
-
 
 	/**
 	 * Returns {@code true} if this contains all the {@link DLNAImageProfile} instances in the
@@ -881,9 +876,7 @@ public class DeviceProtocolInfo implements Serializable {
 		return sb.toString();
 	}
 
-
 	// Static methods
-
 
 	/**
 	 * Escapes {@code protocolInfo} strings for use in {@code GetProtocolInfo}

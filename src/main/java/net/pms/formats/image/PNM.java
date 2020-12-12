@@ -19,9 +19,7 @@
  */
 package net.pms.formats.image;
 
-
 public class PNM extends ImageBase {
-
 	/**
 	 * {@inheritDoc}
 	 */

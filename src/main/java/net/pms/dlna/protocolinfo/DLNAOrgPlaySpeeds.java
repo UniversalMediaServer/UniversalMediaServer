@@ -95,7 +95,6 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 		hashCode = calculateHashCode();
 	}
 
-
 	/**
 	 * @return The unmodifiable {@link Set} or {@link Rational} play speeds for
 	 *         this {@link DLNAOrgPlaySpeeds} instance.

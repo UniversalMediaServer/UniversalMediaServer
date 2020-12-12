@@ -35,7 +35,6 @@ import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import com.sun.jna.Platform;
 
-
 /**
  * This class keeps track of paths to external programs on Windows.
  *

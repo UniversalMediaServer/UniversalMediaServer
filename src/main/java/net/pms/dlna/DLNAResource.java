@@ -876,7 +876,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return resolvedPlayer;
 	}
 
-
 	/**
 	 * Set the mimetype for this resource according to the given renderer's
 	 * supported preferences, if any.
@@ -4737,6 +4736,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		Player p;
 		DLNAMediaSubtitle s;
 		String m;
+
 		Rendering(DLNAResource d) {
 			r = d.getDefaultRenderer();
 			p = d.getPlayer();

@@ -6,9 +6,7 @@ import net.pms.formats.Format;
 import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
 
-
 public abstract class ImagePlayer extends Player {
-
 	@Override
 	public int type() {
 		return Format.IMAGE;

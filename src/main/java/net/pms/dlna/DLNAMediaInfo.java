@@ -2290,6 +2290,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String getAspectRatioDvdIso() {
 		return aspectRatioDvdIso;
 	}
+
 	/**
 	 * @param aspectRatio the aspect to set
 	 * @since 1.50.0

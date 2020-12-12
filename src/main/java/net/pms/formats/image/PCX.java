@@ -19,7 +19,6 @@
  */
 package net.pms.formats.image;
 
-
 public class PCX extends ImageBase {
 
 	/**

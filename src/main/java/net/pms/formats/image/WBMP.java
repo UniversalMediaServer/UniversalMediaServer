@@ -19,9 +19,7 @@
  */
 package net.pms.formats.image;
 
-
 public class WBMP extends ImageBase {
-
 	/**
 	 * {@inheritDoc}
 	 */

@@ -1180,12 +1180,11 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-
 		// Set up the process
 		PipeProcess pipe = null;
 
 		if (!dtsRemux) {
-//			cmdList.add("pipe:");
+			// cmdList.add("pipe:");
 
 			// basename of the named pipe:
 			String fifoName = String.format(
@@ -1541,8 +1540,6 @@ public class FFMpegVideo extends Player {
 		}
 		return cmdList;
 	}
-
-
 
 	/**
 	 * Collapse the multiple internal ways of saying "subtitles are disabled" into a single method

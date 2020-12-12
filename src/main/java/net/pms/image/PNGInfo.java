@@ -9,9 +9,7 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.png.PngDirectory;
 
-
 public class PNGInfo extends ImageInfo {
-
 	private static final long serialVersionUID = 1L;
 	protected final int colorType;
 	protected final InterlaceMethod interlaceMethod;

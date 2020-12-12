@@ -726,6 +726,7 @@ public class TsMuxeRVideo extends Player {
 	public int type() {
 		return Format.VIDEO;
 	}
+
 	private JCheckBox tsmuxerforcefps;
 	private JCheckBox muxallaudiotracks;
 
@@ -741,7 +742,6 @@ public class TsMuxeRVideo extends Player {
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
-
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);

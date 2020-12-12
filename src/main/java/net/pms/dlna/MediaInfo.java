@@ -248,7 +248,6 @@ public class MediaInfo {
 		}
 	}
 
-
 	/**
 	 * An enum representing the C++ enum {@code fileoptions_t} defined in
 	 * {@code MediaInfoDLL.h}, "File opening options".

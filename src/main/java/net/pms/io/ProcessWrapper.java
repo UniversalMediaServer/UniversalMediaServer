@@ -62,6 +62,8 @@ public interface ProcessWrapper {
 	public void runInSameThread();
 
 	public void stopProcess();
+
 	public boolean isReadyToStop();
+
 	public void setReadyToStop(boolean nullable);
 }

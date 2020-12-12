@@ -41,13 +41,11 @@ import net.pms.formats.FormatFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * This utility class handles {@link Player} creation and keeps a registry over
  * instances.
  */
 public final class PlayerFactory {
-
 	/**
 	 * Logger used for all logging.
 	 */

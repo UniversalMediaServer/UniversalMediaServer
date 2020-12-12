@@ -8,11 +8,9 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.bmp.BmpHeaderDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class BMPInfo extends ImageInfo {
-
 	protected final CompressionType compressionType;
 
 	/**
@@ -253,7 +251,6 @@ public class BMPInfo extends ImageInfo {
 		CMYK_RLE8,
 		CMYK_RLE4,
 		UNKNOWN;
-
 
 		@Override
 		public String toString() {

@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import net.pms.image.BufferedImageFilter.BufferedImageFilterResult;
 
-
 /**
  * This class is a special {@link List} implementation that can only hold
  * {@link BufferedImageFilter} elements. It can be used to group several
@@ -36,7 +35,6 @@ import net.pms.image.BufferedImageFilter.BufferedImageFilterResult;
  * @author Nadahar
  */
 public class BufferedImageFilterChain extends ArrayList<BufferedImageFilter> {
-
 	private static final long serialVersionUID = 1L;
 
 	/**

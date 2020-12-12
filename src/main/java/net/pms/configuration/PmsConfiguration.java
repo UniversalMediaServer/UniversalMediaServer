@@ -1246,6 +1246,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
+
 	/**
 	 * The name of the server.
 	 *

@@ -157,7 +157,6 @@ public class PanasonicDmpProfiles implements Serializable {
 
 	// Standard java.util.Collection methods
 
-
 	/**
 	 * Returns the number of elements of type {@link PanasonicDmpProfileType} in
 	 * {@code deviceProtocolInfo}. If this contains more than
@@ -209,7 +208,6 @@ public class PanasonicDmpProfiles implements Serializable {
 		return deviceProtocolInfo.toArray(PANASONIC_DMP);
 	}
 
-
 	/**
 	 * Returns {@code true} if the {@link Set} of type
 	 * {@link PanasonicDmpProfileType} in {@code deviceProtocolInfo} contains
@@ -225,7 +223,6 @@ public class PanasonicDmpProfiles implements Serializable {
 	public boolean containsAll(Collection<ProtocolInfo> collection) {
 		return deviceProtocolInfo.containsAll(PANASONIC_DMP, collection);
 	}
-
 
 	/**
 	 * Removes all elements from the {@link Set} of type
@@ -353,9 +350,7 @@ public class PanasonicDmpProfiles implements Serializable {
 		return deviceProtocolInfo.toString(PANASONIC_DMP, debug);
 	}
 
-
 	// Static methods
-
 
 	/**
 	 * Creates a {@link DeviPanasonicDmpProfiles} instance for {@code renderer}

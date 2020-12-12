@@ -15,11 +15,9 @@ import com.drew.metadata.jpeg.JpegComponent;
 import com.drew.metadata.jpeg.JpegDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class JPEGInfo extends ExifInfo {
-
 	protected final Map<Integer, JpegComponent> components;
 	protected final Integer jfifVersion;
 	protected final CompressionType compressionType;
@@ -241,7 +239,6 @@ public class JPEGInfo extends ExifInfo {
 		}
 	}
 
-
 	/**
 	 * @return The {@link Map} of {@link JpegComponent}s.
 	 */
@@ -261,7 +258,6 @@ public class JPEGInfo extends ExifInfo {
 		return components.get(componentIndex);
 	}
 
-
 	/**
 	 * @return The JFIF version multiplied with 100 or {@link ImageInfo#UNKNOWN}
 	 *         if unknown.
@@ -269,7 +265,6 @@ public class JPEGInfo extends ExifInfo {
 	public int getJFIFVersion() {
 		return jfifVersion != null ? jfifVersion.intValue() : UNKNOWN;
 	}
-
 
 	/**
 	 * @return The {@link CompressionType}.

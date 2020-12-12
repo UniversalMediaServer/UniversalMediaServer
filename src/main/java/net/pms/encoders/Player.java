@@ -73,7 +73,9 @@ public abstract class Player {
 	protected final ExternalProgramInfo programInfo;
 
 	public abstract int purpose();
+
 	public abstract JComponent config();
+
 	public abstract PlayerId id();
 
 	/**
@@ -81,7 +83,9 @@ public abstract class Player {
 	 *         executable path.
 	 */
 	public abstract String getConfigurablePathKey();
+
 	public abstract String name();
+
 	public abstract int type();
 
 	/**
@@ -120,7 +124,6 @@ public abstract class Player {
 	 */
 	@GuardedBy("enabledLock")
 	protected boolean enabled = false;
-
 
 	/**
 	 * Abstract constructor that sets the final {@code programInfo} variable.

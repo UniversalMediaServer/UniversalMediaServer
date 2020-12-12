@@ -1576,5 +1576,5 @@ public class RootFolder extends DLNAResource {
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
-	};
+	}
 }

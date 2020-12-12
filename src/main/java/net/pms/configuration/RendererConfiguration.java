@@ -66,7 +66,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected List<String> identifiers = null;
 
 	public StatusTab.RendererItem gui;
-	public boolean loaded, fileless = false;
+	public boolean loaded = false;
+	public boolean fileless = false;
 	protected BasicPlayer player;
 
 	public static final File NOFILE = new File("NOFILE");
@@ -95,7 +96,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected Map<String, String> dLNAPN;
 
 	// TextWrap parameters
-	protected int lineWidth, lineHeight, indent;
+	protected int lineWidth;
+	protected int lineHeight;
+	protected int indent;
 	protected String inset, dots;
 
 	// property values

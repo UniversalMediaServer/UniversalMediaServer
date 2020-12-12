@@ -58,7 +58,6 @@ public class DVDISOTitle extends DLNAResource {
 		"^subtitle \\( sid \\): (?<StreamNumber>\\d+) language: (?<Language>\\w*)$"
 	);
 
-
 	private File file;
 	private int title;
 	private long length;

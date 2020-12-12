@@ -537,14 +537,12 @@ public class Image implements Serializable {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this image.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
-
 
 	/**
 	 * @return The {@link ImageFormat} for this image.

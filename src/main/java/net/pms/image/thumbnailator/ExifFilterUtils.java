@@ -15,6 +15,7 @@ import net.coobird.thumbnailator.util.exif.Orientation;
  * class can be removed.
  */
 public final class ExifFilterUtils {
+
 	/**
 	 * This class should not be instantiated.
 	 */

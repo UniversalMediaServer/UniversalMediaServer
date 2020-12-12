@@ -15,11 +15,9 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public abstract class ExifInfo extends ImageInfo {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExifInfo.class);
 
 	protected final PhotometricInterpretation photometricInterpretation;

@@ -19,7 +19,6 @@
  */
 package net.pms.formats.image;
 
-
 public class ICO extends ImageBase {
 
 	/**

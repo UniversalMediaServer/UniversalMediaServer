@@ -16,6 +16,7 @@ Checkstyle configuration for Universal Media Server.
 	<module name="TreeWalker">
 		<property name="tabWidth" value="4"/>
 		<module name="EmptyLineSeparator">
+			<property name="severity" value="warning"/>
 			<property name="allowNoEmptyLineBetweenFields" value="true"/>
 			<property name="allowMultipleEmptyLines" value="false"/>
 			<property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>

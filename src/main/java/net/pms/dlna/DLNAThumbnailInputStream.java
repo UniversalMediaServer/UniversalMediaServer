@@ -261,14 +261,12 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this thumbnail.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
-
 
 	/**
 	 * @return The {@link ImageFormat} for this thumbnail.

@@ -186,7 +186,6 @@ public class GIFInfo extends ImageInfo {
 		);
 	}
 
-
 	/**
 	 * @return The format version {@link String} from the start of the GIF
 	 *         header.

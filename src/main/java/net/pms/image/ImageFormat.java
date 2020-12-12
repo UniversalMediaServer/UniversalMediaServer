@@ -39,7 +39,6 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.image.ExifInfo.ExifCompression;
 
-
 /**
  * Defines the different image format supported by the ImageIO parser
  * with the currently installed plugins plus the special value {@code SOURCE}.
