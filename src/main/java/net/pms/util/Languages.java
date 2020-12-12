@@ -148,7 +148,6 @@ public final class Languages {
 
 	@SuppressWarnings("unused")
 	private static class TranslationStatistics {
-
 		public String name;
 		public int phrases;
 		public int phrasesApproved;
@@ -164,7 +163,6 @@ public final class Languages {
 	 * Note: this class has a natural ordering that is inconsistent with equals.
 	 */
 	private static class LanguageEntry implements Comparable<LanguageEntry> {
-
 		public String tag;
 		public String name;
 		public Locale locale = null;
@@ -243,7 +241,6 @@ public final class Languages {
 	}
 
 	private static class LanguageEntryCoverageComparator implements Comparator<LanguageEntry>, Serializable {
-
 		private static final long serialVersionUID = 1974719326731763265L;
 
 		@Override
