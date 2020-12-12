@@ -17,6 +17,7 @@ Checkstyle configuration for Universal Media Server.
 		<property name="tabWidth" value="4"/>
 		<module name="EmptyLineSeparator">
 			<property name="allowMultipleEmptyLines" value="false"/>
+			<property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
 		</module>
 		<module name="RegexpSinglelineJava">
 			<property name="format" value="^\t*(?! \*) "/>
