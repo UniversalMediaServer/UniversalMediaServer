@@ -11,13 +11,13 @@ Checkstyle configuration for Universal Media Server.
 -->
 <module name="Checker">
 	<property name="fileExtensions" value="java, xml"/>
-	<module name="EmptyLineSeparator">
-		<property name="allowMultipleEmptyLines" value="false"/>
-	</module>
 	<module name="SuppressWarningsFilter" />
 	<module name="SeverityMatchFilter" />
 	<module name="TreeWalker">
 		<property name="tabWidth" value="4"/>
+		<module name="EmptyLineSeparator">
+			<property name="allowMultipleEmptyLines" value="false"/>
+		</module>
 		<module name="RegexpSinglelineJava">
 			<property name="format" value="^\t*(?! \*) "/>
 			<property name="message" value="Indent must use tab characters"/>
