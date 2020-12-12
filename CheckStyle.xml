@@ -11,6 +11,9 @@ Checkstyle configuration for Universal Media Server.
 -->
 <module name="Checker">
 	<property name="fileExtensions" value="java, xml"/>
+	<module name="EmptyLineSeparator">
+		<property name="allowMultipleEmptyLines" value="false"/>
+	</module>
 	<module name="SuppressWarningsFilter" />
 	<module name="SeverityMatchFilter" />
 	<module name="TreeWalker">
