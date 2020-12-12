@@ -763,40 +763,38 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main DMS window or via
-	 * an action item.
+	 * Restarts the server. The trigger is either a button on the main DMS
+	 * window or via an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
 	public void reset() {
-		TaskRunner.getInstance().submitNamed("restart", true, new Runnable() {
-			@Override
-			public void run() {
-				try {
-					LOGGER.trace("Waiting 1 second...");
-					UPNPHelper.sendByeBye();
-					if (server != null) {
-						server.stop();
-					}
-					server = null;
-					RendererConfiguration.loadRendererConfigurations(configuration);
-
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						LOGGER.trace("Caught exception", e);
-					}
-
-					server = new HTTPServer(configuration.getServerPort());
-					server.start();
-
-					// re-create the multicast socked because may happened the change of the used interface
-					UPNPHelper.getInstance().createMulticastSocket();
-					UPNPHelper.sendAlive();
-					frame.setReloadable(false);
-				} catch (IOException e) {
-					LOGGER.error("error during restart :" + e.getMessage(), e);
+		TaskRunner.getInstance().submitNamed("restart", true, () -> {
+			try {
+				LOGGER.trace("Waiting 1 second...");
+				UPNPHelper.sendByeBye();
+				if (server != null) {
+					server.stop();
 				}
+				server = null;
+				RendererConfiguration.loadRendererConfigurations(configuration);
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					LOGGER.trace("Caught exception", e);
+				}
+
+				server = new HTTPServer(configuration.getServerPort());
+				server.start();
+
+				// re-create the multicast socked because may happened the
+				// change of the used interface
+				UPNPHelper.getInstance().createMulticastSocket();
+				UPNPHelper.sendAlive();
+				frame.setReloadable(false);
+			} catch (IOException e) {
+				LOGGER.error("error during restart :" + e.getMessage(), e);
 			}
 		});
 	}

@@ -101,11 +101,8 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	}
 
 	private void update() {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				updateOnGuiThread();
-			}
+		SwingUtilities.invokeLater(() -> {
+			updateOnGuiThread();
 		});
 	}
 

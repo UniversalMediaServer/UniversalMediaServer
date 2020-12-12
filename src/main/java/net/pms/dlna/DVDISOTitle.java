@@ -131,16 +131,14 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e) {
-				}
-				pw.stopProcess();
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
 			}
+			pw.stopProcess();
 		};
+
 		Thread failsafe = new Thread(r, "DVD ISO Title Failsafe");
 		failsafe.start();
 		pw.runInSameThread();

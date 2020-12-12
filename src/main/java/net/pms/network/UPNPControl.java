@@ -197,23 +197,21 @@ public class UPNPControl {
 
 		public void monitor() {
 			final Device d = getDevice(uuid);
-			monitor = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					String id = data.get("InstanceID");
-					while (active && !"STOPPED".equals(data.get("TransportState"))) {
-						sleep(1000);
-//						if (DEBUG) LOGGER.debug("InstanceID: " + id);
-						for (ActionArgumentValue o : getPositionInfo(d, id)) {
-							data.put(o.getArgument().getName(), o.toString());
-//							if (DEBUG) LOGGER.debug(o.getArgument().getName() + ": " + o.toString());
-						}
-						alert();
+			monitor = new Thread(() -> {
+				String id = data.get("InstanceID");
+				while (active && !"STOPPED".equals(data.get("TransportState"))) {
+					sleep(1000);
+					// if (DEBUG) LOGGER.debug("InstanceID: " + id);
+					for (ActionArgumentValue o : getPositionInfo(d, id)) {
+						data.put(o.getArgument().getName(), o.toString());
+						// if (DEBUG) LOGGER.debug(o.getArgument().getName() +
+						// ": " + o.toString());
 					}
-					if (!active) {
-						data.put("TransportState", "STOPPED");
-						alert();
-					}
+					alert();
+				}
+				if (!active) {
+					data.put("TransportState", "STOPPED");
+					alert();
 				}
 			}, "UPNP-" + d.getDetails().getFriendlyName());
 			monitor.start();
@@ -374,13 +372,10 @@ public class UPNPControl {
 	}
 
 	public void shutdown() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				if (upnpService != null) {
-					LOGGER.debug("Stopping UPNP Services...");
-					upnpService.shutdown();
-				}
+		new Thread(() -> {
+			if (upnpService != null) {
+				LOGGER.debug("Stopping UPNP Services...");
+				upnpService.shutdown();
 			}
 		}).start();
 	}

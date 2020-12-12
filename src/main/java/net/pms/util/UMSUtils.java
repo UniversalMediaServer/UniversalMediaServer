@@ -575,17 +575,13 @@ public class UMSUtils {
 		outputParams.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(
 			new String[] {configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels"}, false, outputParams, true, false);
-		Runnable r = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e) {
-				}
-
-				pw.stopProcess();
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
 			}
+
+			pw.stopProcess();
 		};
 
 		Thread failsafe = new Thread(r, "Get GPU acceleration methods used by FFmpeg");

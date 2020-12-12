@@ -225,11 +225,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		uri = (JTextField) uris.getEditor().getEditorComponent();
 		uri.addFocusListener(new java.awt.event.FocusAdapter() {
 			public void focusGained(java.awt.event.FocusEvent evt) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						uri.select(0, 0);
-					}
+				SwingUtilities.invokeLater(() -> {
+					uri.select(0, 0);
 				});
 			}
 		});
@@ -365,11 +362,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	@Override
 	public void actionPerformed(final ActionEvent e) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				refresh(((BasicPlayer) e.getSource()).getState());
-			}
+		SwingUtilities.invokeLater(() -> {
+			refresh(((BasicPlayer) e.getSource()).getState());
 		});
 	}
 

@@ -392,27 +392,26 @@ public class StatusTab {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						if (r.frame == null) {
-							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
-							// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
-							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
-							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
-							r.frame = new JFrame();
-							r.rendererPanel = new RendererPanel(renderer);
-							r.frame.add(r.rendererPanel);
-							r.rendererPanel.update();
-							r.frame.setResizable(false);
-							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
-							r.frame.setLocationRelativeTo(top);
-							r.frame.setVisible(true);
-						} else {
-							r.frame.setExtendedState(JFrame.NORMAL);
-							r.frame.setVisible(true);
-							r.frame.toFront();
-						}
+				SwingUtilities.invokeLater(() -> {
+					if (r.frame == null) {
+						JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+						// We're using JFrame instead of JDialog here so as to
+						// have a minimize button. Since the player panel
+						// is intrinsically a freestanding module this approach
+						// seems valid to me but some frown on it: see
+						// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
+						r.frame = new JFrame();
+						r.rendererPanel = new RendererPanel(renderer);
+						r.frame.add(r.rendererPanel);
+						r.rendererPanel.update();
+						r.frame.setResizable(false);
+						r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+						r.frame.setLocationRelativeTo(top);
+						r.frame.setVisible(true);
+					} else {
+						r.frame.setExtendedState(JFrame.NORMAL);
+						r.frame.setVisible(true);
+						r.frame.toFront();
 					}
 				});
 			}
@@ -420,16 +419,13 @@ public class StatusTab {
 	}
 
 	public static void updateRenderer(final RendererConfiguration renderer) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				if (renderer.gui != null) {
-					renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
-					renderer.gui.label.setText(renderer.getRendererName());
-					// Update the popup panel if it's been opened
-					if (renderer.gui.rendererPanel != null) {
-						renderer.gui.rendererPanel.update();
-					}
+		SwingUtilities.invokeLater(() -> {
+			if (renderer.gui != null) {
+				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
+				renderer.gui.label.setText(renderer.getRendererName());
+				// Update the popup panel if it's been opened
+				if (renderer.gui.rendererPanel != null) {
+					renderer.gui.rendererPanel.update();
 				}
 			}
 		});

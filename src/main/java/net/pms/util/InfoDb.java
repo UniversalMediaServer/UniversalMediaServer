@@ -62,11 +62,8 @@ public class InfoDb implements DbHandler {
 				return;
 			}
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				askAndInsert(f, formattedName);
-			}
+		Runnable r = () -> {
+			askAndInsert(f, formattedName);
 		};
 		new Thread(r).start();
 	}
@@ -152,41 +149,38 @@ public class InfoDb implements DbHandler {
 
 		// update this first to make redo() return false for other
 		PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				synchronized (db) {
-					// this whole iterator stuff is to avoid
-					// CMEs
-					Iterator<Entry<String, Object>> it = db.iterator();
-					boolean sync = false;
-					while (it.hasNext()) {
-						Map.Entry<String, Object> kv = it.next();
-						String key = kv.getKey();
+		Runnable r = () -> {
+			synchronized (db) {
+				// this whole iterator stuff is to avoid
+				// CMEs
+				Iterator<Entry<String, Object>> it = db.iterator();
+				boolean sync = false;
+				while (it.hasNext()) {
+					Map.Entry<String, Object> kv = it.next();
+					String key = kv.getKey();
 
-						// nonNull -> no need to ask again
-						if (!db.isNull(kv.getValue())) {
-							continue;
-						}
-						File f = new File(key);
-						String name = f.getName();
-						try {
-							String[] tmp = OpenSubtitle.getInfo(f, name);
-							// if we still get nothing from opensubs
-							// we don't fiddle with the db
-							if (tmp != null) {
-								kv.setValue(create(tmp, 0));
-								sync = true;
-							}
-						} catch (Exception e) {
-							LOGGER.error("Exception in redoNulls: {}", e.getMessage());
-							LOGGER.trace("", e);
-						}
+					// nonNull -> no need to ask again
+					if (!db.isNull(kv.getValue())) {
+						continue;
 					}
-					if (sync) {
-						// we need a manual sync here
-						db.sync();
+					File f = new File(key);
+					String name = f.getName();
+					try {
+						String[] tmp = OpenSubtitle.getInfo(f, name);
+						// if we still get nothing from opensubs
+						// we don't fiddle with the db
+						if (tmp != null) {
+							kv.setValue(create(tmp, 0));
+							sync = true;
+						}
+					} catch (Exception e) {
+						LOGGER.error("Exception in redoNulls: {}", e.getMessage());
+						LOGGER.trace("", e);
 					}
+				}
+				if (sync) {
+					// we need a manual sync here
+					db.sync();
 				}
 			}
 		};

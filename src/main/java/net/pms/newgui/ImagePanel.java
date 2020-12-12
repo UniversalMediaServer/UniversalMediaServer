@@ -152,11 +152,8 @@ public class ImagePanel extends JButton {
 	public void setGrey(boolean b) {
 		if (isGrey != b) {
 			isGrey = b;
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					repaint();
-				}
+			SwingUtilities.invokeLater(() -> {
+				repaint();
 			});
 		}
 	}

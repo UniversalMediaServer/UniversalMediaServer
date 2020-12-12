@@ -657,12 +657,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void append(final String msg) {
-		SwingUtilities.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				tt.append(msg);
-			}
+		SwingUtilities.invokeLater(() -> {
+			tt.append(msg);
 		});
 	}
 
@@ -673,12 +669,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void setConnectionState(final ConnectionState connectionState) {
-		SwingUtilities.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				st.setConnectionState(connectionState);
-			}
+		SwingUtilities.invokeLater(() -> {
+			st.setConnectionState(connectionState);
 		});
 	}
 
@@ -699,21 +691,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 */
 	@Override
 	public void setReloadable(final boolean required) {
-		SwingUtilities.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				if (required) {
-					if (reload.getIcon() == restartIcon) {
-						restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
-						reload.setToolTipText(Messages.getString("LooksFrame.13"));
-					}
-				} else {
-					reload.setEnabled(true);
-					if (restartRequredIcon == reload.getIcon()) {
-						reload.setToolTipText(Messages.getString("LooksFrame.28"));
-						restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
-					}
+		SwingUtilities.invokeLater(() -> {
+			if (required) {
+				if (reload.getIcon() == restartIcon) {
+					restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
+					reload.setToolTipText(Messages.getString("LooksFrame.13"));
+				}
+			} else {
+				reload.setEnabled(true);
+				if (restartRequredIcon == reload.getIcon()) {
+					reload.setToolTipText(Messages.getString("LooksFrame.28"));
+					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}
 		});

@@ -189,21 +189,18 @@ public class GlobalIdRepo {
 
 	private void startIdCleanup() {
 		idCleanupQueue = new ReferenceQueue<>();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					try {
-						// Once an underlying DLNAResource is ready for garbage
-						// collection, its weak reference will pop out here
-						WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
-						if (ref.id > 0) {
-							// Delete the associated id from our repo list
-							LOGGER.debug("deleting invalid id {}", ref.id);
-							delete(indexOf(ref.id));
-						}
-					} catch (InterruptedException e) {
+		new Thread(() -> {
+			while (true) {
+				try {
+					// Once an underlying DLNAResource is ready for garbage
+					// collection, its weak reference will pop out here
+					WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
+					if (ref.id > 0) {
+						// Delete the associated id from our repo list
+						LOGGER.debug("deleting invalid id {}", ref.id);
+						delete(indexOf(ref.id));
 					}
+				} catch (InterruptedException e) {
 				}
 			}
 		}, "GlobalId cleanup").start();

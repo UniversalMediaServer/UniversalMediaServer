@@ -416,27 +416,25 @@ public interface BasicPlayer extends ActionListener {
 					continue;
 				}
 				final String folder = tmp[1];
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						while (PMS.get().getServer().getHost() == null) {
-							try {
-								Thread.sleep(1000);
-							} catch (InterruptedException e) {
-								return;
-							}
-						}
-						RealFile f = new RealFile(new File(folder));
-						f.discoverChildren();
-						f.analyzeChildren(-1);
-						player.addAll(-1, f.getChildren(), -1);
-						// add a short delay here since player.add uses swing.invokelater
+				Runnable r = () -> {
+					while (PMS.get().getServer().getHost() == null) {
 						try {
 							Thread.sleep(1000);
-						} catch (Exception e) {
+						} catch (InterruptedException e) {
+							return;
 						}
-						player.pressPlay(null, null);
 					}
+					RealFile f = new RealFile(new File(folder));
+					f.discoverChildren();
+					f.analyzeChildren(-1);
+					player.addAll(-1, f.getChildren(), -1);
+					// add a short delay here since player.add uses
+					// swing.invokelater
+					try {
+						Thread.sleep(1000);
+					} catch (Exception e) {
+					}
+					player.pressPlay(null, null);
 				};
 				new Thread(r).start();
 			}
@@ -515,17 +513,14 @@ public interface BasicPlayer extends ActionListener {
 			public void add(final int index, final String uri, final String name, final String metadata, final boolean select) {
 				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							Item item = resolve(uri);
-							if (item == null) {
-								item = new Item(uri, name, metadata);
-								insertElementAt(item, index > -1 ? index : getSize());
-							}
-							if (select) {
-								setSelectedItem(item);
-							}
+					SwingUtilities.invokeLater(() -> {
+						Item item = resolve(uri);
+						if (item == null) {
+							item = new Item(uri, name, metadata);
+							insertElementAt(item, index > -1 ? index : getSize());
+						}
+						if (select) {
+							setSelectedItem(item);
 						}
 					});
 				}
@@ -534,13 +529,10 @@ public interface BasicPlayer extends ActionListener {
 			public void remove(final String uri) {
 				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							Item item = resolve(uri);
-							if (item != null) {
-								removeElement(item);
-							}
+					SwingUtilities.invokeLater(() -> {
+						Item item = resolve(uri);
+						if (item != null) {
+							removeElement(item);
 						}
 					});
 				}

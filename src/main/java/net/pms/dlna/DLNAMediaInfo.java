@@ -1891,17 +1891,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params);
 
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(3000);
-					synchronized (ffmpegAnnexbFailureLock) {
-						ffmpegAnnexbFailure = true;
-					}
-				} catch (InterruptedException e) { }
-				pw.stopProcess();
-			}
+		Runnable r = () -> {
+			try {
+				Thread.sleep(3000);
+				synchronized (ffmpegAnnexbFailureLock) {
+					ffmpegAnnexbFailure = true;
+				}
+			} catch (InterruptedException e) { }
+			pw.stopProcess();
 		};
 
 		Thread failsafe = new Thread(r, "FFMpeg AnnexB Frame Header Failsafe");

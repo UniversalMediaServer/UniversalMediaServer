@@ -81,20 +81,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 
-	/**
-	 * The name displayed on the renderer. Cached the first time getDisplayName(RendererConfiguration) is called.
-	 */
-	private String displayName;
-
-	/**
-	 * The name displayed on the renderer. If this is null, displayName is used.
-	 */
-	private String displayNameOverride;
-
-	/**
-	 * The suffix added to the name. Contains additional info about audio and subtitles.
-	 */
-	private String nameSuffix = "";
 	private int specificType;
 	private String id;
 	private String pathId;
@@ -2870,34 +2856,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			requestIdToRefcount.put(requestId, refCount + 1);
 			if (refCount == 0) {
 				final DLNAResource self = this;
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						InetAddress rendererIp;
-						try {
-							rendererIp = InetAddress.getByName(rendererId);
-							RendererConfiguration renderer;
-							if (incomingRenderer == null) {
-								renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-							} else {
-								renderer = incomingRenderer;
-							}
-
-							String rendererName = "unknown renderer";
-							try {
-								renderer.setPlayingRes(self);
-								rendererName = renderer.getRendererName().replaceAll("\n", "");
-							} catch (NullPointerException e) { }
-							if (isLogPlayEvents()) {
-								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
-								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
-							}
-						} catch (UnknownHostException ex) {
-							LOGGER.debug("" + ex);
+				Runnable r = () -> {
+					InetAddress rendererIp;
+					try {
+						rendererIp = InetAddress.getByName(rendererId);
+						RendererConfiguration renderer;
+						if (incomingRenderer == null) {
+							renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+						} else {
+							renderer = incomingRenderer;
 						}
 
-						startTime = System.currentTimeMillis();
+						String rendererName = "unknown renderer";
+						try {
+							renderer.setPlayingRes(self);
+							rendererName = renderer.getRendererName().replaceAll("\n", "");
+						} catch (NullPointerException e) { }
+						if (isLogPlayEvents()) {
+							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+						}
+					} catch (UnknownHostException ex) {
+						LOGGER.debug("" + ex);
 					}
+
+					startTime = System.currentTimeMillis();
 				};
 
 				new Thread(r, "StartPlaying Event").start();
@@ -2914,71 +2897,64 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId, final RendererConfiguration incomingRenderer) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		Runnable defer = new Runnable() {
-			@Override
-			public void run() {
-				long start = startTime;
-				try {
-					Thread.sleep(STOP_PLAYING_DELAY);
-				} catch (InterruptedException e) {
-					LOGGER.error("stopPlaying sleep interrupted", e);
+		Runnable defer = () -> {
+			long start = startTime;
+			try {
+				Thread.sleep(STOP_PLAYING_DELAY);
+			} catch (InterruptedException e) {
+				LOGGER.error("stopPlaying sleep interrupted", e);
+			}
+
+			synchronized (requestIdToRefcount) {
+				final Integer refCount = requestIdToRefcount.get(requestId);
+				assert refCount != null;
+				assert refCount > 0;
+				requestIdToRefcount.put(requestId, refCount - 1);
+				if (start != startTime) {
+					return;
 				}
 
-				synchronized (requestIdToRefcount) {
-					final Integer refCount = requestIdToRefcount.get(requestId);
-					assert refCount != null;
-					assert refCount > 0;
-					requestIdToRefcount.put(requestId, refCount - 1);
-					if (start != startTime) {
-						return;
-					}
-
-					Runnable r = new Runnable() {
-						@Override
-						public void run() {
-							if (refCount == 1) {
-								requestIdToRefcount.put(requestId, 0);
-								InetAddress rendererIp;
-								try {
-									rendererIp = InetAddress.getByName(rendererId);
-									RendererConfiguration renderer;
-									if (incomingRenderer == null) {
-										renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-									} else {
-										renderer = incomingRenderer;
-									}
-
-									String rendererName = "unknown renderer";
-									try {
-										// Reset only if another item hasn't already begun playing
-										if (renderer.getPlayingRes() == self) {
-											renderer.setPlayingRes(null);
-										}
-										rendererName = renderer.getRendererName();
-									} catch (NullPointerException e) { }
-
-									if (isLogPlayEvents()) {
-										LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
-										LOGGER.debug(
-											"The full filename of which is \"{}\" and the address of the renderer is {}",
-											getSystemName(),
-											rendererId
-										);
-									}
-								} catch (UnknownHostException ex) {
-									LOGGER.debug("" + ex);
-								}
-
-								internalStop();
+				Runnable r = () -> {
+					if (refCount == 1) {
+						requestIdToRefcount.put(requestId, 0);
+						InetAddress rendererIp;
+						try {
+							rendererIp = InetAddress.getByName(rendererId);
+							RendererConfiguration renderer;
+							if (incomingRenderer == null) {
+								renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							} else {
+								renderer = incomingRenderer;
 							}
-						}
-					};
 
-					new Thread(r, "StopPlaying Event").start();
-				}
-				if (mediaSubtitle instanceof DLNAMediaOpenSubtitle) {
-					((DLNAMediaOpenSubtitle) mediaSubtitle).deleteLiveSubtitlesFile();
-				}
+							String rendererName = "unknown renderer";
+							try {
+								// Reset only if another item hasn't already
+								// begun playing
+								if (renderer.getPlayingRes() == self) {
+									renderer.setPlayingRes(null);
+								}
+								rendererName = renderer.getRendererName();
+							} catch (NullPointerException e) {
+							}
+
+							if (isLogPlayEvents()) {
+								LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
+								LOGGER.debug("The full filename of which is \"{}\" and the address of the renderer is {}", getSystemName(),
+									rendererId);
+							}
+						} catch (UnknownHostException ex) {
+							LOGGER.debug("" + ex);
+						}
+
+						internalStop();
+					}
+				};
+
+				new Thread(r, "StopPlaying Event").start();
+			}
+			if (mediaSubtitle instanceof DLNAMediaOpenSubtitle) {
+				((DLNAMediaOpenSubtitle) mediaSubtitle).deleteLiveSubtitlesFile();
 			}
 		};
 
@@ -3176,11 +3152,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Time seek request => stop running transcode process and start a new one
 			LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
 			params.setMinBufferSize(1);
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					externalProcess.stopProcess();
-				}
+			Runnable r = () -> {
+				externalProcess.stopProcess();
 			};
 
 			new Thread(r, "External Process Stopper").start();
@@ -3222,12 +3195,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// this cleans up lingering MEncoder web video transcode processes that hang
 		// instead of exiting
 		if (is == null && !externalProcess.isDestroyed()) {
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					LOGGER.error("External input stream instance is null... stopping process");
-					externalProcess.stopProcess();
-				}
+			Runnable r = () -> {
+				LOGGER.error("External input stream instance is null... stopping process");
+				externalProcess.stopProcess();
 			};
 
 			new Thread(r, "Hanging External Process Stopper").start();

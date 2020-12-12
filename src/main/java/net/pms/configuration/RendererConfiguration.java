@@ -2715,36 +2715,33 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
 				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
 			}
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					state.playback = PLAYING;
-					while (res == renderer.getPlayingRes()) {
-						long elapsed;
-						if ((long) res.getLastStartPosition() == 0) {
-							elapsed = System.currentTimeMillis() - res.getStartTime();
-						} else {
-							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
-							elapsed += (long) (res.getLastStartPosition() * 1000);
-						}
+			Runnable r = () -> {
+				state.playback = PLAYING;
+				while (res == renderer.getPlayingRes()) {
+					long elapsed;
+					if ((long) res.getLastStartPosition() == 0) {
+						elapsed = System.currentTimeMillis() - res.getStartTime();
+					} else {
+						elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
+						elapsed += (long) (res.getLastStartPosition() * 1000);
+					}
 
-						if (duration == 0 || elapsed < duration + 500) {
-							// Position is valid as far as we can tell
-							state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
-						} else {
-							// Position is invalid, blink instead
-							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
-						}
-						alert();
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-						}
+					if (duration == 0 || elapsed < duration + 500) {
+						// Position is valid as far as we can tell
+						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
+					} else {
+						// Position is invalid, blink instead
+						state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 					}
-					// Reset only if another item hasn't already begun playing
-					if (renderer.getPlayingRes() == null) {
-						reset();
+					alert();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
 					}
+				}
+				// Reset only if another item hasn't already begun playing
+				if (renderer.getPlayingRes() == null) {
+					reset();
 				}
 			};
 			new Thread(r).start();
