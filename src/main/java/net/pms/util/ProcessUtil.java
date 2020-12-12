@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 // see https://code.google.com/p/ps3mediaserver/issues/detail?id=680
 // for background/issues/discussion related to this class
 public class ProcessUtil {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessUtil.class);
 
 	// how long to wait in milliseconds until a kill -TERM on Unix has been

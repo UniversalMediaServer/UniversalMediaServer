@@ -4,14 +4,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class PCMAudioOutputStream extends FlowParserOutputStream {
-
 	protected int nbchannels;
 	protected int sampleFrequency;
 	protected int bitsperSample;
 	protected int blocksize;
 	protected byte[] payload;
-	protected boolean wavMode; // WAVEform (RIFF) output mode not used at the
-								// moment
+	protected boolean wavMode; // WAVEform (RIFF) output mode not used
 	protected boolean headerSent;
 
 	public PCMAudioOutputStream(OutputStream source, int nbchannels, int sampleFrequency, int bitsperSample) {

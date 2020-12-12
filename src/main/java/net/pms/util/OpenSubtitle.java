@@ -123,7 +123,6 @@ public class OpenSubtitle {
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
-
 			@Override
 			public void run() {
 				BACKGROUND_EXECUTOR.shutdownNow();
@@ -1078,7 +1077,8 @@ public class OpenSubtitle {
 			params = null;
 			try (InputStream reply = LOGGER.isTraceEnabled() ?
 				new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
-					sendXMLStream(connection)) {
+				sendXMLStream(connection)
+			) {
 				LOGGER.trace("Parsing OpenSubtitles CheckMovieHash2 response");
 				XMLStreamReader reader = null;
 				try {
@@ -1346,9 +1346,9 @@ public class OpenSubtitle {
 
 			// Send request
 			try (OutputStream out = LOGGER.isTraceEnabled() ?
-						new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
-							connection.getOutputStream()
-				) {
+				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
+				connection.getOutputStream()
+			) {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "GuessMovieFromString", params);
 				writer.flush();
@@ -1366,9 +1366,9 @@ public class OpenSubtitle {
 			// Parse reply
 			params = null;
 			try (InputStream reply = LOGGER.isTraceEnabled() ?
-						new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
-							sendXMLStream(connection)
-				) {
+				new LoggableInputStream(sendXMLStream(connection), StandardCharsets.UTF_8) :
+				sendXMLStream(connection)
+			) {
 				LOGGER.trace("Parsing OpenSubtitles GuessMovieFromString response");
 				XMLStreamReader reader = null;
 				try {
@@ -2679,7 +2679,6 @@ public class OpenSubtitle {
 	 * A class representing an OpenSubtitles {@code GuessIt} structure.
 	 */
 	public static class GuessIt {
-
 		private final MimeType mimeType;
 		private final String videoCodec;
 		private final String container;
@@ -2955,7 +2954,6 @@ public class OpenSubtitle {
 	 * A class representing an OpenSubtitles {@code BestGuess} structure.
 	 */
 	public static class BestGuess extends GuessItem {
-
 		private final String reason;
 
 		/**
@@ -3048,7 +3046,6 @@ public class OpenSubtitle {
 	 * @author Nadahar
 	 */
 	public static class MovieGuess {
-
 		private final GuessIt guessIt;
 		private final Map<String, GuessFromString> guessesFromString;
 		private final Map<String, GuessItem> imdbSuggestions;
@@ -3226,9 +3223,13 @@ public class OpenSubtitle {
 			member = guessStruct.get("BestGuess");
 			if (member != null && member.getValue() instanceof Struct) {
 				Struct bestGuessStruct = (Struct) member.getValue();
-				bestGuess = new BestGuess(Member.getString(bestGuessStruct, "MovieName"), Member.getString(bestGuessStruct, "MovieYear"),
-					Member.getString(bestGuessStruct, "MovieKind"), Member.getString(bestGuessStruct, "IDMovieIMDB"),
-					Member.getString(bestGuessStruct, "Reason"));
+				bestGuess = new BestGuess(
+					Member.getString(bestGuessStruct, "MovieName"),
+					Member.getString(bestGuessStruct, "MovieYear"),
+					Member.getString(bestGuessStruct, "MovieKind"),
+					Member.getString(bestGuessStruct, "IDMovieIMDB"),
+					Member.getString(bestGuessStruct, "Reason")
+				);
 			} else {
 				bestGuess = null;
 			}
@@ -3273,8 +3274,17 @@ public class OpenSubtitle {
 		 * @param seriesSeason the season number or {@code -1} if it doesn't
 		 *            apply.
 		 */
-		public CheckMovieHashItem(String videoClassification, int subCount, int seenCount, String imdbId, String movieYear,
-			String movieHash, int seriesEpisode, String movieName, int seriesSeason) {
+		public CheckMovieHashItem(
+			String videoClassification,
+			int subCount,
+			int seenCount,
+			String imdbId,
+			String movieYear,
+			String movieHash,
+			int seriesEpisode,
+			String movieName,
+			int seriesSeason
+		) {
 			super(movieName, movieYear, videoClassification, imdbId);
 			this.subCount = subCount;
 			this.seenCount = seenCount;
@@ -3298,8 +3308,17 @@ public class OpenSubtitle {
 		 * @param seriesSeason the season number or {@code -1} if it doesn't
 		 *            apply.
 		 */
-		public CheckMovieHashItem(VideoClassification videoClassification, int subCount, int seenCount, String imdbId, String movieYear,
-			String movieHash, int seriesEpisode, String movieName, int seriesSeason) {
+		public CheckMovieHashItem(
+			VideoClassification videoClassification,
+			int subCount,
+			int seenCount,
+			String imdbId,
+			String movieYear,
+			String movieHash,
+			int seriesEpisode,
+			String movieName,
+			int seriesSeason
+		) {
 			super(movieName, movieYear, videoClassification, imdbId);
 			this.subCount = subCount;
 			this.seenCount = seenCount;
@@ -3425,7 +3444,6 @@ public class OpenSubtitle {
 	 * @author Nadahar
 	 */
 	public static class SubtitleItem {
-
 		private final String matchedBy;
 		private final String idSubtitleFile;
 		private final String subFileName;
@@ -4153,7 +4171,6 @@ public class OpenSubtitle {
 	 * sorting sorts the "best" guesses first.
 	 */
 	public static class GuessCandidate implements Comparable<GuessCandidate> {
-
 		private final double score;
 		private final GuessItem guessItem;
 
