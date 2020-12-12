@@ -400,7 +400,6 @@ public class UPNPHelper extends UPNPControl {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static void listen() throws IOException {
-
 		Runnable rAlive = () -> {
 			while (true) {
 				sleep(ALIVE_DELAY);
