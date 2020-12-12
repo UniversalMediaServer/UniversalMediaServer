@@ -91,12 +91,14 @@ public class RemoteWeb {
 
 			@Override
 			public RemoteUtil.ResourceManager run() {
-				return new RemoteUtil.ResourceManager("file:" + CONFIGURATION.getProfileDirectory() + "/web/",
-					"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/", "file:" + CONFIGURATION.getWebPath() + "/");
+				return new RemoteUtil.ResourceManager(
+					"file:" + configuration.getProfileDirectory() + "/web/",
+					"jar:file:" + configuration.getProfileDirectory() + "/web.zip!/",
+					"file:" + configuration.getWebPath() + "/"
+				);
 			}
 		});
 
-		// readCred();
 
 		// Setup the socket address
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
@@ -109,9 +111,11 @@ public class RemoteWeb {
 				LOGGER.error("Failed to start WEB interface on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
-					LOGGER.info("To enable HTTPS please generate a self-signed keystore file " +
+					LOGGER.info(
+						"To enable HTTPS please generate a self-signed keystore file " +
 						"called \"UMS.jks\" with password \"umsums\" using the java " +
-						"'keytool' commandline utility, and place it in the profile folder");
+						"'keytool' commandline utility, and place it in the profile folder"
+					);
 				}
 			} catch (GeneralSecurityException e) {
 				LOGGER.error("Failed to start WEB interface on HTTPS due to a security error: {}", e.getMessage());
@@ -188,7 +192,6 @@ public class RemoteWeb {
 
 	public String getTag(String user) {
 		String tag = PMS.getCredTag("web", user);
-		// tags.get(user);
 		if (tag == null) {
 			return user;
 		}
@@ -268,13 +271,10 @@ public class RemoteWeb {
 		HttpContext ctx = server.createContext(path, h);
 		if (CONFIGURATION.isWebAuthenticate()) {
 			ctx.setAuthenticator(new BasicAuthenticator(CONFIGURATION.getServerName()) {
-
 				@Override
 				public boolean checkCredentials(String user, String pwd) {
 					LOGGER.debug("authenticate " + user);
 					return PMS.verifyCred("web", PMS.getCredTag("web", user), user, pwd);
-					// return pwd.equals(users.get(user));
-					// return true;
 				}
 			});
 		}
@@ -285,7 +285,6 @@ public class RemoteWeb {
 	}
 
 	static class RemoteThumbHandler implements HttpHandler {
-
 		private RemoteWeb parent;
 
 		public RemoteThumbHandler(RemoteWeb parent) {
@@ -352,7 +351,6 @@ public class RemoteWeb {
 	}
 
 	static class RemoteFileHandler implements HttpHandler {
-
 		private RemoteWeb parent;
 
 		public RemoteFileHandler(RemoteWeb parent) {
@@ -370,8 +368,11 @@ public class RemoteWeb {
 				int status = 200;
 
 				if (path.contains("crossdomain.xml")) {
-					response = "<?xml version=\"1.0\"?>" + "<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
-								"<cross-domain-policy>" + "<allow-access-from domain=\"*\" />" + "</cross-domain-policy>";
+					response = "<?xml version=\"1.0\"?>" +
+						"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
+						"<cross-domain-policy>" +
+						"<allow-access-from domain=\"*\" />" +
+						"</cross-domain-policy>";
 					mime = "text/xml";
 
 				} else if (path.startsWith("/files/log/")) {
@@ -493,7 +494,6 @@ public class RemoteWeb {
 	}
 
 	static class RemoteStartHandler implements HttpHandler {
-
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
@@ -541,7 +541,6 @@ public class RemoteWeb {
 	}
 
 	static class RemoteDocHandler implements HttpHandler {
-
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDocHandler.class);
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
@@ -619,7 +618,6 @@ public class RemoteWeb {
 	}
 
 	static class RemotePollHandler implements HttpHandler {
-
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
