@@ -436,8 +436,16 @@ public class StringUtil {
 	 * @return {@code true} if the two {@link String}s are equal according to
 	 *         the rules set by the parameters, {@code false} otherwise.
 	 */
-	public static boolean isEqual(String first, String second, boolean blankIsNull, boolean trim, boolean ignoreCase, Locale locale,
-		boolean shortest, int minLength) {
+	public static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean trim,
+		boolean ignoreCase,
+		Locale locale,
+		boolean shortest,
+		int minLength
+	) {
 		return isEqual(first, second, blankIsNull, trim, ignoreCase, locale, shortest, minLength, -1, -1);
 	}
 
@@ -531,8 +539,15 @@ public class StringUtil {
 	 *             positive and outside the bounds of {@code first} or
 	 *             {@code second}.
 	 */
-	public static boolean isEqual(String first, String second, boolean blankIsNull, boolean ignoreCase, Locale locale, int fromIdx,
-		int toIdx) {
+	public static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean ignoreCase,
+		Locale locale,
+		int fromIdx,
+		int toIdx
+	) {
 		return isEqual(first, second, blankIsNull, false, ignoreCase, locale, false, 0, fromIdx, toIdx);
 	}
 
@@ -576,8 +591,18 @@ public class StringUtil {
 	 *             positive and outside the bounds of {@code first} or
 	 *             {@code second}.
 	 */
-	protected static boolean isEqual(String first, String second, boolean blankIsNull, boolean trim, boolean ignoreCase, Locale locale,
-		boolean shortest, int minLength, int fromIdx, int toIdx) {
+	protected static boolean isEqual(
+		String first,
+		String second,
+		boolean blankIsNull,
+		boolean trim,
+		boolean ignoreCase,
+		Locale locale,
+		boolean shortest,
+		int minLength,
+		int fromIdx,
+		int toIdx
+	) {
 		if ((trim || shortest) && (fromIdx >= 0 || toIdx >= 0)) {
 			throw new IllegalArgumentException("trim or shortest and index range can't be used together");
 		}
@@ -855,8 +880,11 @@ public class StringUtil {
 	 * @throws XPathExpressionException If a parsing error occurs.
 	 * @throws TransformerException If a parsing error occurs.
 	 */
-	public static String prettifyXML(String xml, Charset charset, int indentWidth)
-		throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
+	public static String prettifyXML(
+		String xml,
+		Charset charset,
+		int indentWidth
+	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
 		if (isBlank(xml)) {
 			return "";
 		}
