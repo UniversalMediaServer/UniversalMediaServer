@@ -125,7 +125,7 @@ public class UPNPHelper extends UPNPControl {
 		if (
 			httpControlHandler == null &&
 			PMS.get().getWebServer() != null &&
-			!"false".equals(configuration.getBumpAddress().toLowerCase())
+			!"false".equals(CONFIGURATION.getBumpAddress().toLowerCase())
 		) {
 			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
 			LOGGER.debug("Attached http player control handler to web server");

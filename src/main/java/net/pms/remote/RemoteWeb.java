@@ -92,9 +92,9 @@ public class RemoteWeb {
 			@Override
 			public RemoteUtil.ResourceManager run() {
 				return new RemoteUtil.ResourceManager(
-					"file:" + configuration.getProfileDirectory() + "/web/",
-					"jar:file:" + configuration.getProfileDirectory() + "/web.zip!/",
-					"file:" + configuration.getWebPath() + "/"
+					"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
+					"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
+					"file:" + CONFIGURATION.getWebPath() + "/"
 				);
 			}
 		});
