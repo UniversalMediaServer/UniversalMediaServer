@@ -62,7 +62,6 @@ import org.slf4j.LoggerFactory;
  * @author Nadahar
  */
 public final class Languages {
-
 	/**
 	 * Not to be instantiated.
 	 */
@@ -340,8 +339,12 @@ public final class Languages {
 	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	private static void populateTranslationsStatistics() {
 		if (translationsStatistics.size() < 1) {
-			try (BufferedReader reader = new BufferedReader(
-				new InputStreamReader(Languages.class.getResourceAsStream("/resources/languages.properties"), StandardCharsets.UTF_8))) {
+			try (
+				BufferedReader reader = new BufferedReader(new InputStreamReader(
+					Languages.class.getResourceAsStream("/resources/languages.properties"),
+					StandardCharsets.UTF_8
+				))
+			) {
 				Pattern pattern = Pattern.compile("^\\s*(?!#)\\b([^\\.=][^=]+[^\\.=])=(.*[^\\s])\\s*$");
 				String line;
 				while ((line = reader.readLine()) != null) {
@@ -609,10 +612,14 @@ public final class Languages {
 			// Put related language(s) close to top
 			List<LanguageEntry> relatedLanguages = new ArrayList<>();
 			for (LanguageEntry entry : sortedLanguages) {
-				if (entry != baseLanguage && entry != preferredLanguage &&
-					(!preferredLocale.getCountry().isEmpty() && preferredLocale.getCountry().equals(entry.locale.getCountry()) ||
-					!preferredLocale.getLanguage().isEmpty() && preferredLocale.getLanguage().equals(entry.locale.getLanguage()))) {
-
+				if (
+					entry != baseLanguage &&
+					entry != preferredLanguage &&
+					(!preferredLocale.getCountry().isEmpty() &&
+					preferredLocale.getCountry().equals(entry.locale.getCountry()) ||
+					!preferredLocale.getLanguage().isEmpty() &&
+					preferredLocale.getLanguage().equals(entry.locale.getLanguage()))
+				) {
 					relatedLanguages.add(entry);
 				}
 			}

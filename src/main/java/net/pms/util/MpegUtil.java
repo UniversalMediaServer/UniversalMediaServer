@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class MpegUtil {
-
 	public static int getDurationFromMpeg(File f) throws IOException {
 		try (RandomAccessFile raf = new RandomAccessFile(f, "r")) {
 			if (raf.length() >= 500000) {

@@ -91,7 +91,6 @@ import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
 
 public class OpenSubtitle {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
@@ -260,8 +259,11 @@ public class OpenSubtitle {
 		HTTPResponseCode responseCode = HTTPResponseCode.typeOf(connection.getResponseCode());
 		do {
 			if (responseCode == null) {
-				throw new OpenSubtitlesException("OpenSubtitles replied with an unknown response code: " +
-					connection.getResponseCode() + " " + connection.getResponseMessage());
+				throw new OpenSubtitlesException(
+					"OpenSubtitles replied with an unknown response code: " +
+					connection.getResponseCode() + " " +
+					connection.getResponseMessage()
+				);
 			}
 			if (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR) {
 				remaining--;
@@ -276,8 +278,11 @@ public class OpenSubtitle {
 			}
 		} while (remaining >= 0 && (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR));
 		if (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR) {
-			throw new OpenSubtitlesException("OpenSubtitles gave up getting a response from " +
-				connection.getURL().getHost() + " after " + retries + " attempts (Response code " + responseCode + ")");
+			throw new OpenSubtitlesException(
+				"OpenSubtitles gave up getting a response from " +
+				connection.getURL().getHost() + " after " +
+				retries + " attempts (Response code " + responseCode + ")"
+			);
 		}
 		return connection.getInputStream();
 	}
@@ -342,7 +347,8 @@ public class OpenSubtitle {
 			// Send request
 			try (OutputStream out = LOGGER.isTraceEnabled() ?
 					new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
-					connection.getOutputStream()) {
+					connection.getOutputStream()
+			) {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "LogIn", params);
 				writer.flush();
@@ -358,7 +364,8 @@ public class OpenSubtitle {
 			params = null;
 			try (InputStream reply = LOGGER.isTraceEnabled() ?
 				new LoggableInputStream(sendXMLStream(connection, 5, 500), StandardCharsets.UTF_8) :
-					sendXMLStream(connection, 5, 500)) {
+					sendXMLStream(connection, 5, 500)
+			) {
 				LOGGER.trace("Parsing OpenSubtitles login response");
 				XMLStreamReader reader = null;
 				try {
@@ -438,8 +445,12 @@ public class OpenSubtitle {
 	}
 
 	private static boolean checkStatus(Params params) {
-		if (params == null || params.isEmpty() || !(params.get(0).getValue() instanceof Struct) ||
-							((Struct) params.get(0).getValue()).get("status") == null) {
+		if (
+			params == null ||
+			params.isEmpty() ||
+			!(params.get(0).getValue() instanceof Struct) ||
+			((Struct) params.get(0).getValue()).get("status") == null
+		) {
 			LOGGER.error("OpenSubtitles response has no status, aborting");
 			return false;
 		}
@@ -462,8 +473,11 @@ public class OpenSubtitle {
 		return true;
 	}
 
-	private static ArrayList<SubtitleItem> parseSubtitles(Array dataArray, FileNamePrettifier prettifier, DLNAMediaInfo media)
-		throws OpenSubtitlesException {
+	private static ArrayList<SubtitleItem> parseSubtitles(
+		Array dataArray,
+		FileNamePrettifier prettifier,
+		DLNAMediaInfo media
+	) throws OpenSubtitlesException {
 		ArrayList<SubtitleItem> result = new ArrayList<>();
 		if (dataArray == null) {
 			return result;
@@ -522,10 +536,17 @@ public class OpenSubtitle {
 				if (struct.isEmpty()) {
 					continue;
 				}
-				CheckMovieHashItem item = new CheckMovieHashItem(Member.getString(struct, "MovieKind"), Member.getInt(struct, "SubCount"),
-					Member.getInt(struct, "SeenCount"), Member.getString(struct, "MovieImdbID"), Member.getString(struct, "MovieYear"),
-					Member.getString(struct, "MovieHash"), Member.getInt(struct, "SeriesEpisode"), Member.getString(struct, "MovieName"),
-					Member.getInt(struct, "SeriesSeason"));
+				CheckMovieHashItem item = new CheckMovieHashItem(
+					Member.getString(struct, "MovieKind"),
+					Member.getInt(struct, "SubCount"),
+					Member.getInt(struct, "SeenCount"),
+					Member.getString(struct, "MovieImdbID"),
+					Member.getString(struct, "MovieYear"),
+					Member.getString(struct, "MovieHash"),
+					Member.getInt(struct, "SeriesEpisode"),
+					Member.getString(struct, "MovieName"),
+					Member.getInt(struct, "SeriesSeason")
+				);
 				items.add(item);
 			}
 			if (!items.isEmpty()) {
