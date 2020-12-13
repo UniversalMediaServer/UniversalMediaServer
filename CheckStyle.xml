@@ -20,7 +20,6 @@ Checkstyle configuration for Universal Media Server.
 			<property name="allowNoEmptyLineBetweenFields" value="true"/>
 			<property name="allowMultipleEmptyLines" value="false"/>
 			<property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
-			<property name="tokens" value="IMPORT,STATIC_IMPORT,CLASS_DEF,INTERFACE_DEF,ENUM_DEF,STATIC_INIT,INSTANCE_INIT,METHOD_DEF,CTOR_DEF,VARIABLE_DEF,RECORD_DEF"/>
 		</module>
 		<module name="RegexpSinglelineJava">
 			<property name="format" value="^\t*(?! \*) "/>
