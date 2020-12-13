@@ -816,7 +816,7 @@ public class UPNPHelper extends UPNPControl {
 			String s = data.get("TransportState");
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
-				"PAUSED_PLAYBACK".equals(s) ? PAUSED: -1;
+				"PAUSED_PLAYBACK".equals(s) ? PAUSED : -1;
 			state.mute = !"0".equals(data.get("Mute"));
 			s = data.get("Volume");
 			state.volume = s == null ? 0 : (Integer.parseInt(s) * 100 / maxVol);
