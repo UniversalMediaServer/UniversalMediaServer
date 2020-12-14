@@ -12,7 +12,8 @@ public class GlobalIdRepo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalIdRepo.class);
 
 	// Global ids start at 1, since id 0 is reserved as a pseudonym for 'renderer root'
-	private int curGlobalId = 1, deletionsCount = 0;
+	private int curGlobalId = 1;
+	private int deletionsCount = 0;
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private final ArrayList<ID> ids = new ArrayList<>();
 
@@ -175,6 +176,7 @@ public class GlobalIdRepo {
 
 	class WeakDLNARef extends WeakReference<DLNAResource> {
 		int id;
+
 		WeakDLNARef(DLNAResource dlnaResource, int id) {
 			super(dlnaResource, idCleanupQueue);
 			this.id = id;
@@ -189,21 +191,18 @@ public class GlobalIdRepo {
 
 	private void startIdCleanup() {
 		idCleanupQueue = new ReferenceQueue<>();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					try {
-						// Once an underlying DLNAResource is ready for garbage
-						// collection, its weak reference will pop out here
-						WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
-						if (ref.id > 0) {
-							// Delete the associated id from our repo list
-							LOGGER.debug("deleting invalid id {}", ref.id);
-							delete(indexOf(ref.id));
-						}
-					} catch (InterruptedException e) {
+		new Thread(() -> {
+			while (true) {
+				try {
+					// Once an underlying DLNAResource is ready for garbage
+					// collection, its weak reference will pop out here
+					WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
+					if (ref.id > 0) {
+						// Delete the associated id from our repo list
+						LOGGER.debug("deleting invalid id {}", ref.id);
+						delete(indexOf(ref.id));
 					}
+				} catch (InterruptedException e) {
 				}
 			}
 		}, "GlobalId cleanup").start();

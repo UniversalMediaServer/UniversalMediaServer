@@ -45,15 +45,15 @@ public class CoverSupplier {
 	 */
 	public static final CoverSupplier COVER_ART_ARCHIVE = new CoverSupplier(COVER_ART_ARCHIVE_INT, "Cover Art Archive");
 
-	public final int CoverSupplierInt;
-	public final String CoverSupplierStr;
+	public final int coverSupplierInt;
+	public final String coverSupplierStr;
 
 	/**
 	 * Instantiate a {@link CoverSupplier} object.
 	 */
-	private CoverSupplier(int CoverSupplierInt, String CoverSupplierStr) {
-		this.CoverSupplierInt = CoverSupplierInt;
-		this.CoverSupplierStr = CoverSupplierStr;
+	private CoverSupplier(int coverSupplierInt, String coverSupplierStr) {
+		this.coverSupplierInt = coverSupplierInt;
+		this.coverSupplierStr = coverSupplierStr;
 	}
 
 	/**
@@ -61,14 +61,14 @@ public class CoverSupplier {
 	 */
 	@Override
 	public String toString() {
-		return CoverSupplierStr;
+		return coverSupplierStr;
 	}
 
 	/**
 	 * Returns the integer representation of this {@link CoverSupplier}.
 	 */
 	public int toInt() {
-		return CoverSupplierInt;
+		return coverSupplierInt;
 	}
 
 	/**
@@ -77,13 +77,13 @@ public class CoverSupplier {
 	 * @return This {@link CoverSupplier}'s {@link Integer} mapping.
 	 */
 	public Integer toInteger() {
-		switch (CoverSupplierInt) {
+		switch (coverSupplierInt) {
 			case NONE_INT:
 				return NONE_INTEGER;
 			case COVER_ART_ARCHIVE_INT:
 				return COVER_ART_ARCHIVE_INTEGER;
 			default:
-				throw new IllegalStateException("CoverSupplier " + CoverSupplierStr + ", " + CoverSupplierInt + " is unknown.");
+				throw new IllegalStateException("CoverSupplier " + coverSupplierStr + ", " + coverSupplierInt + " is unknown.");
 		}
 	}
 
@@ -144,8 +144,8 @@ public class CoverSupplier {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + CoverSupplierInt;
-		result = prime * result + ((CoverSupplierStr == null) ? 0 : CoverSupplierStr.hashCode());
+		result = prime * result + coverSupplierInt;
+		result = prime * result + ((coverSupplierStr == null) ? 0 : coverSupplierStr.hashCode());
 		return result;
 	}
 
@@ -161,14 +161,14 @@ public class CoverSupplier {
 			return false;
 		}
 		CoverSupplier other = (CoverSupplier) obj;
-		if (CoverSupplierInt != other.CoverSupplierInt) {
+		if (coverSupplierInt != other.coverSupplierInt) {
 			return false;
 		}
-		if (CoverSupplierStr == null) {
-			if (other.CoverSupplierStr != null) {
+		if (coverSupplierStr == null) {
+			if (other.coverSupplierStr != null) {
 				return false;
 			}
-		} else if (!CoverSupplierStr.equals(other.CoverSupplierStr)) {
+		} else if (!coverSupplierStr.equals(other.coverSupplierStr)) {
 			return false;
 		}
 		return true;

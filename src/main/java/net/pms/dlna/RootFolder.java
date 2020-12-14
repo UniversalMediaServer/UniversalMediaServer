@@ -133,7 +133,7 @@ public class RootFolder extends DLNAResource {
 			recentlyPlayed = new Playlist(Messages.getString("VirtualFolder.1"),
 				PMS.getConfiguration().getDataFile("UMS.last"),
 				PMS.getConfiguration().getInt("last_play_limit", 250),
-				Playlist.PERMANENT|Playlist.AUTOSAVE);
+				Playlist.PERMANENT | Playlist.AUTOSAVE);
 			addChild(recentlyPlayed, true, isAddGlobally);
 		}
 
@@ -198,7 +198,7 @@ public class RootFolder extends DLNAResource {
 
 		loadWebConf();
 
-		switch(Platform.getOSType()) {
+		switch (Platform.getOSType()) {
 			case Platform.MAC:
 				if (configuration.isShowIphotoLibrary()) {
 					DLNAResource iPhotoRes = getiPhotoFolder();
@@ -294,7 +294,7 @@ public class RootFolder extends DLNAResource {
 
 					scan(child);
 					child.getChildren().clear();
-				} else if (!running){
+				} else if (!running) {
 					break;
 				}
 			}
@@ -357,7 +357,7 @@ public class RootFolder extends DLNAResource {
 		return null;
 	}
 
-	private static final Object defaultFoldersLock = new Object();
+	private static final Object DEFAULT_FOLDERS_LOCK = new Object();
 	@GuardedBy("defaultFoldersLock")
 	private static List<Path> defaultFolders = null;
 
@@ -370,12 +370,12 @@ public class RootFolder extends DLNAResource {
 	 */
 	@Nonnull
 	public static List<Path> getDefaultFolders() {
-		synchronized (defaultFoldersLock) {
+		synchronized (DEFAULT_FOLDERS_LOCK) {
 			if (defaultFolders == null) {
 				// Lazy initialization
 				defaultFolders = new ArrayList<Path>();
 				if (Platform.isWindows()) {
-					Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
+					Double version = BasicSystemUtils.instance.getWindowsVersion();
 					if (version != null && version >= 6d) {
 						ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
 							KnownFolders.FOLDERID_Music,
@@ -490,7 +490,7 @@ public class RootFolder extends DLNAResource {
 		File webConf = new File(webConfPath);
 		if (webConf.exists() && configuration.getExternalNetwork()) {
 			parseWebConf(webConf);
-			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
+			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
 		}
 		setLastModified(1);
 	}
@@ -918,8 +918,10 @@ public class RootFolder extends DLNAResource {
 			Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 				// we want the 2nd line
-				if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
-					line = line.trim(); // remove extra spaces
+				String line1 = in.readLine();
+				String line2 = in.readLine();
+				if (line1 != null && line2 != null) {
+					line = line2.trim(); // remove extra spaces
 					line = line.substring(1, line.length() - 1); // remove quotes and spaces
 					URI tURI = new URI(line);
 					iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
@@ -932,9 +934,9 @@ public class RootFolder extends DLNAResource {
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 				location = null;
 				while ((line = in.readLine()) != null) {
-					final String LOOK_FOR = "REG_SZ";
-					if (line.contains(LOOK_FOR)) {
-						location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+					final String lookFor = "REG_SZ";
+					if (line.contains(lookFor)) {
+						location = line.substring(line.indexOf(lookFor) + lookFor.length()).trim();
 					}
 				}
 			}
@@ -976,50 +978,50 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac() || Platform.isWindows()) {
 			Map<String, Object> iTunesLib;
-			List<?> Playlists;
-			Map<?, ?> Playlist;
-			Map<?, ?> Tracks;
+			List<?> playlists;
+			Map<?, ?> playlist;
+			Map<?, ?> tracks;
 			Map<?, ?> track;
-			List<?> PlaylistTracks;
+			List<?> playlistTracks;
 
 			try {
 				String iTunesFile = getiTunesFile();
 
 				if (iTunesFile != null && (new File(iTunesFile)).exists()) {
 					iTunesLib = Plist.load(URLDecoder.decode(iTunesFile, System.getProperty("file.encoding"))); // loads the (nested) properties.
-					Tracks = (Map<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
-					Playlists = (List<?>) iTunesLib.get("Playlists"); // the list of Playlists
+					tracks = (Map<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
+					playlists = (List<?>) iTunesLib.get("Playlists"); // the list of Playlists
 					res = new VirtualFolder("iTunes Library", null);
 
 					VirtualFolder playlistsFolder = null;
 
-					for (Object item : Playlists) {
-						Playlist = (Map<?, ?>) item;
+					for (Object item : playlists) {
+						playlist = (Map<?, ?>) item;
 
-						if (Playlist.containsKey("Visible") && Playlist.get("Visible").equals(Boolean.FALSE)) {
+						if (playlist.containsKey("Visible") && playlist.get("Visible").equals(Boolean.FALSE)) {
 							continue;
 						}
 
-						if (Playlist.containsKey("Music") && Playlist.get("Music").equals(Boolean.TRUE)) {
+						if (playlist.containsKey("Music") && playlist.get("Music").equals(Boolean.TRUE)) {
 							// Create virtual folders for artists, albums and genres
 
-							VirtualFolder musicFolder = new VirtualFolder(Playlist.get("Name").toString(), null);
+							VirtualFolder musicFolder = new VirtualFolder(playlist.get("Name").toString(), null);
 							res.addChild(musicFolder);
 
 							VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("FoldTab.50"), null);
 							VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("FoldTab.51"), null);
 							VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("FoldTab.52"), null);
 							VirtualFolder virtualFolderAllTracks = new VirtualFolder(Messages.getString("PMS.11"), null);
-							PlaylistTracks = (List<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
+							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
 							String artistName;
 							String albumName;
 							String genreName;
 
-							if (PlaylistTracks != null) {
-								for (Object t : PlaylistTracks) {
+							if (playlistTracks != null) {
+								for (Object t : playlistTracks) {
 									Map<?, ?> td = (Map<?, ?>) t;
-									track = (Map<?, ?>) Tracks.get(td.get("Track ID").toString());
+									track = (Map<?, ?>) tracks.get(td.get("Track ID").toString());
 
 									if (
 										track != null &&
@@ -1074,76 +1076,70 @@ public class RootFolder extends DLNAResource {
 										RealFile file = new RealFile(refFile, name);
 
 										// Put the track into the artist's album folder and the artist's "All tracks" folder
-										{
-											VirtualFolder individualArtistFolder = null;
-											VirtualFolder individualArtistAllTracksFolder;
-											VirtualFolder individualArtistAlbumFolder = null;
+										VirtualFolder individualArtistFolder = null;
+										VirtualFolder individualArtistAllTracksFolder;
+										VirtualFolder individualArtistAlbumFolder = null;
 
-											for (DLNAResource artist : virtualFolderArtists.getChildren()) {
-												if (areNamesEqual(artist.getName(), artistName)) {
-													individualArtistFolder = (VirtualFolder) artist;
-													for (DLNAResource album : individualArtistFolder.getChildren()) {
-														if (areNamesEqual(album.getName(), albumName)) {
-															individualArtistAlbumFolder = (VirtualFolder) album;
-														}
+										for (DLNAResource artist : virtualFolderArtists.getChildren()) {
+											if (areNamesEqual(artist.getName(), artistName)) {
+												individualArtistFolder = (VirtualFolder) artist;
+												for (DLNAResource album : individualArtistFolder.getChildren()) {
+													if (areNamesEqual(album.getName(), albumName)) {
+														individualArtistAlbumFolder = (VirtualFolder) album;
 													}
-													break;
 												}
+												break;
 											}
-
-											if (individualArtistFolder == null) {
-												individualArtistFolder = new VirtualFolder(artistName, null);
-												virtualFolderArtists.addChild(individualArtistFolder);
-												individualArtistAllTracksFolder = new VirtualFolder(Messages.getString("PMS.11"), null);
-												individualArtistFolder.addChild(individualArtistAllTracksFolder);
-											} else {
-												individualArtistAllTracksFolder = (VirtualFolder) individualArtistFolder.getChildren().get(0);
-											}
-
-											if (individualArtistAlbumFolder == null) {
-												individualArtistAlbumFolder = new VirtualFolder(albumName, null);
-												individualArtistFolder.addChild(individualArtistAlbumFolder);
-											}
-
-											individualArtistAlbumFolder.addChild(file.clone());
-											individualArtistAllTracksFolder.addChild(file);
 										}
+
+										if (individualArtistFolder == null) {
+											individualArtistFolder = new VirtualFolder(artistName, null);
+											virtualFolderArtists.addChild(individualArtistFolder);
+											individualArtistAllTracksFolder = new VirtualFolder(Messages.getString("PMS.11"), null);
+											individualArtistFolder.addChild(individualArtistAllTracksFolder);
+										} else {
+											individualArtistAllTracksFolder = (VirtualFolder) individualArtistFolder.getChildren().get(0);
+										}
+
+										if (individualArtistAlbumFolder == null) {
+											individualArtistAlbumFolder = new VirtualFolder(albumName, null);
+											individualArtistFolder.addChild(individualArtistAlbumFolder);
+										}
+
+										individualArtistAlbumFolder.addChild(file.clone());
+										individualArtistAllTracksFolder.addChild(file);
 
 										// Put the track into its album folder
-										{
-											if (!isCompilation) {
-												albumName += " - " + artistName;
-											}
-
-											VirtualFolder individualAlbumFolder = null;
-											for (DLNAResource album : virtualFolderAlbums.getChildren()) {
-												if (areNamesEqual(album.getName(), albumName)) {
-													individualAlbumFolder = (VirtualFolder) album;
-													break;
-												}
-											}
-											if (individualAlbumFolder == null) {
-												individualAlbumFolder = new VirtualFolder(albumName, null);
-												virtualFolderAlbums.addChild(individualAlbumFolder);
-											}
-											individualAlbumFolder.addChild(file.clone());
+										if (!isCompilation) {
+											albumName += " - " + artistName;
 										}
+
+										VirtualFolder individualAlbumFolder = null;
+										for (DLNAResource album : virtualFolderAlbums.getChildren()) {
+											if (areNamesEqual(album.getName(), albumName)) {
+												individualAlbumFolder = (VirtualFolder) album;
+												break;
+											}
+										}
+										if (individualAlbumFolder == null) {
+											individualAlbumFolder = new VirtualFolder(albumName, null);
+											virtualFolderAlbums.addChild(individualAlbumFolder);
+										}
+										individualAlbumFolder.addChild(file.clone());
 
 										// Put the track into its genre folder
-										{
-											VirtualFolder individualGenreFolder = null;
-											for (DLNAResource genre : virtualFolderGenres.getChildren()) {
-												if (areNamesEqual(genre.getName(), genreName)) {
-													individualGenreFolder = (VirtualFolder) genre;
-													break;
-												}
+										VirtualFolder individualGenreFolder = null;
+										for (DLNAResource genre : virtualFolderGenres.getChildren()) {
+											if (areNamesEqual(genre.getName(), genreName)) {
+												individualGenreFolder = (VirtualFolder) genre;
+												break;
 											}
-											if (individualGenreFolder == null) {
-												individualGenreFolder = new VirtualFolder(genreName, null);
-												virtualFolderGenres.addChild(individualGenreFolder);
-											}
-											individualGenreFolder.addChild(file.clone());
 										}
+										if (individualGenreFolder == null) {
+											individualGenreFolder = new VirtualFolder(genreName, null);
+											virtualFolderGenres.addChild(individualGenreFolder);
+										}
+										individualGenreFolder.addChild(file.clone());
 
 										// Put the track into the global "All tracks" folder
 										virtualFolderAllTracks.addChild(file.clone());
@@ -1185,13 +1181,13 @@ public class RootFolder extends DLNAResource {
 							});
 						} else {
 							// Add all playlists
-							VirtualFolder pf = new VirtualFolder(Playlist.get("Name").toString(), null);
-							PlaylistTracks = (List<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
+							VirtualFolder pf = new VirtualFolder(playlist.get("Name").toString(), null);
+							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
-							if (PlaylistTracks != null) {
-								for (Object t : PlaylistTracks) {
+							if (playlistTracks != null) {
+								for (Object t : playlistTracks) {
 									Map<?, ?> td = (Map<?, ?>) t;
-									track = (Map<?, ?>) Tracks.get(td.get("Track ID").toString());
+									track = (Map<?, ?>) tracks.get(td.get("Track ID").toString());
 
 									if (
 										track != null &&
@@ -1213,7 +1209,7 @@ public class RootFolder extends DLNAResource {
 								}
 							}
 
-							int kind = Playlist.containsKey("Distinguished Kind") ? ((Number) Playlist.get("Distinguished Kind")).intValue() : -1;
+							int kind = playlist.containsKey("Distinguished Kind") ? ((Number) playlist.get("Distinguished Kind")).intValue() : -1;
 							if (kind >= 0 && kind != 17 && kind != 19 && kind != 20) {
 								// System folder, but not voice memos (17) and purchased items (19 & 20)
 								res.addChild(pf);
@@ -1500,7 +1496,7 @@ public class RootFolder extends DLNAResource {
 
 	public final static int RELOAD_WEB_CONF = 1;
 
-	public static final FileWatcher.Listener rootWatcher = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener ROOT_WATCHER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			RootFolder r = (RootFolder) watch.getItem();
@@ -1580,5 +1576,5 @@ public class RootFolder extends DLNAResource {
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
-	};
+	}
 }

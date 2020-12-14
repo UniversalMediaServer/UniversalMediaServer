@@ -33,6 +33,6 @@ public class TXT extends SubtitleBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "txt" };
+		return new String[] {"txt"};
 	}
 }

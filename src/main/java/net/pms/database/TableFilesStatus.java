@@ -77,7 +77,7 @@ public final class TableFilesStatus extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
@@ -148,7 +148,7 @@ public final class TableFilesStatus extends Tables {
 		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
 		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
@@ -188,7 +188,7 @@ public final class TableFilesStatus extends Tables {
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
 	public static void remove(final String filename, boolean useLike) {
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
@@ -213,7 +213,7 @@ public final class TableFilesStatus extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 		Boolean result = null;
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
 			if (trace) {
@@ -241,10 +241,10 @@ public final class TableFilesStatus extends Tables {
 	public static int getBookmark(final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 		int result = 0;
-		
-		try (Connection connection = database.getConnection()) {
+
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			
+
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
@@ -269,7 +269,7 @@ public final class TableFilesStatus extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
@@ -327,7 +327,7 @@ public final class TableFilesStatus extends Tables {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}
@@ -361,7 +361,7 @@ public final class TableFilesStatus extends Tables {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
-			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:

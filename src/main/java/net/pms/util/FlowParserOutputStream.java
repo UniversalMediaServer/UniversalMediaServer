@@ -106,10 +106,10 @@ public abstract class FlowParserOutputStream extends OutputStream {
 		}
 	}
 
-	protected void writePayload(byte payload[]) throws IOException {
+	protected void writePayload(byte[] payload) throws IOException {
 		out.write(payload, 0, payload.length);
 	}
-	private byte zerobuffer[];
+	private byte[] zerobuffer;
 
 	protected void padWithZeros(int numberOfZeros) throws IOException {
 		if (numberOfZeros > 0) {
@@ -117,7 +117,7 @@ public abstract class FlowParserOutputStream extends OutputStream {
 		}
 	}
 
-	protected abstract void analyzeBuffer(byte data[], int off, int len);
+	protected abstract void analyzeBuffer(byte[] data, int off, int len);
 
 	protected abstract void beforeChunkSend() throws IOException;
 

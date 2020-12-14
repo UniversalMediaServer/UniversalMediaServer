@@ -59,7 +59,7 @@ import net.pms.newgui.SharedContentTab;
  */
 public class DLNAMediaDatabase implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaDatabase.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock(true);
 
@@ -88,28 +88,28 @@ public class DLNAMediaDatabase implements Runnable {
 	 *       inserted/updated
 	 * - 23: Store aspect ratios as strings again
 	 */
-	private final int latestVersion = 23;
+	private static final int LATEST_VERSION = 23;
 
 	// Database column sizes
-	private final int SIZE_CODECV = 32;
-	private final int SIZE_FRAMERATE = 32;
-	private final int SIZE_AVC_LEVEL = 3;
-	private final int SIZE_CONTAINER = 32;
-	private final int SIZE_IMDBID = 16;
-	private final int SIZE_MATRIX_COEFFICIENTS = 16;
-	private final int SIZE_MUXINGMODE = 32;
-	private final int SIZE_FRAMERATE_MODE = 16;
-	private final int SIZE_LANG = 3;
-	private final int SIZE_SAMPLEFREQ = 16;
-	private final int SIZE_CODECA = 32;
-	private final int SIZE_GENRE = 64;
-	private final int SIZE_YEAR = 4;
-	private final int SIZE_TVSEASON = 4;
-	private final int SIZE_TVEPISODENUMBER = 8;
-	private final int SIZE_EXTERNALFILE = 1000;
+	private static final int SIZE_CODECV = 32;
+	private static final int SIZE_FRAMERATE = 32;
+	private static final int SIZE_AVCLEVEL = 3;
+	private static final int SIZE_CONTAINER = 32;
+	private static final int SIZE_IMDBID = 16;
+	private static final int SIZE_MATRIX_COEFFICIENTS = 16;
+	private static final int SIZE_MUXINGMODE = 32;
+	private static final int SIZE_FRAMERATEMODE = 16;
+	private static final int SIZE_LANG = 3;
+	private static final int SIZE_SAMPLEFREQ = 16;
+	private static final int SIZE_CODECA = 32;
+	private static final int SIZE_GENRE = 64;
+	private static final int SIZE_YEAR = 4;
+	private static final int SIZE_TVSEASON = 4;
+	private static final int SIZE_TVEPISODENUMBER = 8;
+	private static final int SIZE_EXTERNALFILE = 1000;
 
 	// Generic constant for the maximum string size: 255 chars
-	private final int SIZE_MAX = 255;
+	private static final int SIZE_MAX = 255;
 
 	/**
 	 * Initializes the database connection pool for the current profile.
@@ -122,9 +122,9 @@ public class DLNAMediaDatabase implements Runnable {
 	 */
 	public DLNAMediaDatabase(String name) {
 		dbName = name;
-		File profileDirectory = new File(configuration.getProfileDirectory());
-		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? configuration.getProfileDirectory() : null, "database").getAbsolutePath();
-		boolean logDB = configuration.getDatabaseLogging();
+		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
+		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
+		boolean logDB = CONFIGURATION.getDatabaseLogging();
 		url = Constants.START_URL + dbDir + File.separator + dbName + (logDB ? ";TRACE_LEVEL_FILE=3" : "");
 		LOGGER.debug("Using database URL: {}", url);
 		LOGGER.info("Using database located at: \"{}\"", dbDir);
@@ -219,7 +219,7 @@ public class DLNAMediaDatabase implements Runnable {
 					}
 					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 					PMS.get().getRootFolder(null).stopScan();
-					configuration.setUseCache(false);
+					CONFIGURATION.setUseCache(false);
 					return;
 				}
 			} else {
@@ -285,7 +285,7 @@ public class DLNAMediaDatabase implements Runnable {
 		 * dumb way for now until we have better ways to keep the database
 		 * smaller.
 		 */
-		if (currentVersion != -1 && latestVersion != currentVersion) {
+		if (currentVersion != -1 && LATEST_VERSION != currentVersion) {
 			force = true;
 		}
 
@@ -328,11 +328,11 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", REFRAMES                TINYINT");
-				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(')');
+				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVCLEVEL).append(')');
 				sb.append(", IMAGEINFO               OTHER");
 				sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
 				sb.append(", MUXINGMODE              VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
-				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(')');
+				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATEMODE).append(')');
 				sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
 				sb.append(", TITLECONTAINER          VARCHAR2(").append(SIZE_MAX).append(')');
@@ -401,7 +401,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
-				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
+				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + LATEST_VERSION + "')");
 
 				LOGGER.trace("Creating index IDX_FILE");
 				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_FILE ON FILES(FILENAME, MODIFIED)");
@@ -470,7 +470,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 		} else {
 			LOGGER.debug("Database file count: " + dbCount);
-			LOGGER.debug("Database version: " + latestVersion);
+			LOGGER.debug("Database version: " + LATEST_VERSION);
 		}
 	}
 
@@ -568,7 +568,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try (
 				PreparedStatement stmt = conn.prepareStatement(
 					"SELECT * FROM FILES LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON FILES.THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
-					"WHERE FILENAME = ? AND FILES.MODIFIED = ? " + 
+					"WHERE FILENAME = ? AND FILES.MODIFIED = ? " +
 					"LIMIT 1"
 				);
 			) {
@@ -697,7 +697,7 @@ public class DLNAMediaDatabase implements Runnable {
 		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {
 			return;
 		}
-		
+
 		String columns = "FILEID, ID, LANG, TITLE, TYPE, EXTERNALFILE, CHARSET ";
 
 		TABLE_LOCK.writeLock().lock();
@@ -931,7 +931,7 @@ public class DLNAMediaDatabase implements Runnable {
 							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_MAX));
 							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_MAX));
 							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
-							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVCLEVEL));
 							updateSerialized(rs, media.getImageInfo(), "IMAGEINFO");
 							if (media.getImageInfo() != null) {
 								rs.updateObject("IMAGEINFO", media.getImageInfo());
@@ -940,7 +940,7 @@ public class DLNAMediaDatabase implements Runnable {
 							}
 							rs.updateString("CONTAINER", left(media.getContainer(), SIZE_CONTAINER));
 							rs.updateString("MUXINGMODE", left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-							rs.updateString("FRAMERATEMODE", left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
+							rs.updateString("FRAMERATEMODE", left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
 							rs.updateString("STEREOSCOPY", left(media.getStereoscopy(), SIZE_MAX));
 							rs.updateString("MATRIXCOEFFICIENTS", left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
 							rs.updateString("TITLECONTAINER", left(media.getFileTitleFromMetadata(), SIZE_MAX));
@@ -1013,7 +1013,7 @@ public class DLNAMediaDatabase implements Runnable {
 						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_MAX));
 						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_MAX));
 						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
-						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVCLEVEL));
 						if (media.getImageInfo() != null) {
 							ps.setObject(++databaseColumnIterator, media.getImageInfo());
 						} else {
@@ -1021,7 +1021,7 @@ public class DLNAMediaDatabase implements Runnable {
 						}
 						ps.setString(++databaseColumnIterator, left(media.getContainer(), SIZE_CONTAINER));
 						ps.setString(++databaseColumnIterator, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-						ps.setString(++databaseColumnIterator, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
+						ps.setString(++databaseColumnIterator, left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
 						ps.setString(++databaseColumnIterator, left(media.getStereoscopy(), SIZE_MAX));
 						ps.setString(++databaseColumnIterator, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
 						ps.setString(++databaseColumnIterator, left(media.getFileTitleFromMetadata(), SIZE_MAX));
@@ -1446,7 +1446,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps = conn.prepareStatement("SELECT FILENAME, MODIFIED, ID FROM FILES", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 				rs = ps.executeQuery();
 
-				List<Path> sharedFolders = configuration.getSharedFolders();
+				List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
 				boolean isFileStillShared = false;
 
 				while (rs.next()) {
@@ -1610,21 +1610,21 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * Returns the VALUES {@link String} for the SQL request.
-	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p> 
-	 * The number of the "?" is calculated from the columns and not need to be hardcoded which 
+	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p>
+	 * The number of the "?" is calculated from the columns and not need to be hardcoded which
 	 * often causes mistakes when columns are deleted or added.<p>
 	 * Possible implementation:
 	 * <blockquote><pre>
 	 * String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS";
 	 * PreparedStatement insertStatement = connection.prepareStatement(
-	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" + 
+	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" +
 	 *    createDefaultValueForInsertStatement(columns)
 	 * );
 	 * </pre></blockquote><p
-	 * 
+	 *
 	 * @param columns the SQL parameters string
 	 * @return The " VALUES (?,?,?, ...)" string
-	 * 
+	 *
 	 */
 	private String createDefaultValueForInsertStatement(String columns) {
 		int count = CharMatcher.is(',').countIn(columns);

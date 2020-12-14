@@ -245,7 +245,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
-			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
+			byte[] data = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ChannelBuffer content = nettyRequest.getContent();
 			content.readBytes(data);
 			String textContent = new String(data, StandardCharsets.UTF_8);
@@ -253,7 +253,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			if (LOGGER.isTraceEnabled()) {
 				logMessageReceived(event, textContent, renderer);
 			}
-		} else if (LOGGER.isTraceEnabled() ){
+		} else if (LOGGER.isTraceEnabled()) {
 			logMessageReceived(event, null, renderer);
 		}
 
@@ -424,7 +424,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		if (cause != null) {
 			if (cause.getClass().equals(IOException.class)) {
 				LOGGER.debug("Connection error: " + cause);
-				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate)ctx.getAttachment();
+				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate) ctx.getAttachment();
 				if (startStopListenerDelegate != null) {
 					LOGGER.debug("Premature end, stopping...");
 					startStopListenerDelegate.stop();

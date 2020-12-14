@@ -42,21 +42,21 @@ public class OutputParams {
 	private PipeProcess[] outputpipes = new PipeProcess[2];
 	private DLNAMediaAudio aid;
 	private DLNAMediaSubtitle sid;
-	private int secondread_minsize;
+	private int secondReadMinSize;
 	private int outputByteArrayStreamBufferSize;
 	private boolean noexitcheck;
 	private boolean log;
 	private boolean lossyaudio;
 	private boolean losslessaudio;
-	private boolean no_videoencode;
+	private boolean noVideoEncode;
 	private String forceFps;
 	private String forceType;
 	private RendererConfiguration mediaRenderer;
 	private boolean hidebuffer;
-	private byte header[];
+	private byte[] header;
 	private IPushOutput stdin;
 	private boolean avidemux;
-	private boolean shift_scr;
+	private boolean shiftScr;
 	private boolean cleanup;
 
 	public OutputParams(PmsConfiguration configuration) {
@@ -93,34 +93,34 @@ public class OutputParams {
 	@Override
 	public String toString() {
 		return "OutputParams [aid=" + getAid() +
-			", avidemux=" + isAvidemux() + 
-			", cleanup=" + isCleanup() + 
-			", forceFps=" + getForceFps()+ 
-			", forceType=" + getForceType() + 
-			", fromFrame=" + getFromFrame() + 
-			", header=" + Arrays.toString(getHeader()) + 
-			", hidebuffer=" + isHideBuffer() + 
-			", input_pipes=" + Arrays.toString(getInputPipes()) + 
-			", log=" + isLog() + 
-			", losslessaudio=" + isLosslessAudio() + 
-			", lossyaudio=" + isLossyAudio() + 
-			", maxBufferSize=" + getMaxBufferSize()	+ 
-			", mediaRenderer=" + getMediaRenderer() + 
-			", minBufferSize=" + getMinBufferSize() + 
-			", minFileSize=" + getMinFileSize()	+ 
-			", no_videoencode=" + isNoVideoEncode() + 
-			", outputByteArrayStreamBufferSize= " + getOutputByteArrayStreamBufferSize() + 
-			", noexitcheck=" + isNoExitCheck() + 
-			", output_pipes=" + Arrays.toString(getOutputPipes()) + 
-			", secondread_minsize="	+ getSecondReadMinSize() + 
-			", shift_scr=" + isShiftSscr() + 
-			", sid=" + getSid() + 
-			", stdin=" + getStdIn() + 
-			", timeend=" + getTimeEnd() + 
-			", timeseek=" + getTimeSeek() + 
-			", toFrame=" + getToFrame() + 
-			", waitbeforestart=" + getWaitBeforeStart()	+ 
-			", workDir=" + getWorkDir() + 
+			", avidemux=" + isAvidemux() +
+			", cleanup=" + isCleanup() +
+			", forceFps=" + getForceFps() +
+			", forceType=" + getForceType() +
+			", fromFrame=" + getFromFrame() +
+			", header=" + Arrays.toString(getHeader()) +
+			", hidebuffer=" + isHideBuffer() +
+			", input_pipes=" + Arrays.toString(getInputPipes()) +
+			", log=" + isLog() +
+			", losslessaudio=" + isLosslessAudio() +
+			", lossyaudio=" + isLossyAudio() +
+			", maxBufferSize=" + getMaxBufferSize()	+
+			", mediaRenderer=" + getMediaRenderer() +
+			", minBufferSize=" + getMinBufferSize() +
+			", minFileSize=" + getMinFileSize()	+
+			", no_videoencode=" + isNoVideoEncode() +
+			", outputByteArrayStreamBufferSize= " + getOutputByteArrayStreamBufferSize() +
+			", noexitcheck=" + isNoExitCheck() +
+			", output_pipes=" + Arrays.toString(getOutputPipes()) +
+			", secondread_minsize="	+ getSecondReadMinSize() +
+			", shift_scr=" + isShiftSscr() +
+			", sid=" + getSid() +
+			", stdin=" + getStdIn() +
+			", timeend=" + getTimeEnd() +
+			", timeseek=" + getTimeSeek() +
+			", toFrame=" + getToFrame() +
+			", waitbeforestart=" + getWaitBeforeStart()	+
+			", workDir=" + getWorkDir() +
 			", env=" + getEnv() + "]";
 	}
 
@@ -245,11 +245,11 @@ public class OutputParams {
 	}
 
 	public int getSecondReadMinSize() {
-		return secondread_minsize;
+		return secondReadMinSize;
 	}
 
-	public void setSecondReadMinSize(int secondread_minsize) {
-		this.secondread_minsize = secondread_minsize;
+	public void setSecondReadMinSize(int secondReadMinSize) {
+		this.secondReadMinSize = secondReadMinSize;
 	}
 
 	public boolean isLog() {
@@ -285,11 +285,11 @@ public class OutputParams {
 	}
 
 	public boolean isNoVideoEncode() {
-		return no_videoencode;
+		return noVideoEncode;
 	}
 
-	public void setNoVideoEncode(boolean no_videoencode) {
-		this.no_videoencode = no_videoencode;
+	public void setNoVideoEncode(boolean noVideoEncode) {
+		this.noVideoEncode = noVideoEncode;
 	}
 
 	public String getForceFps() {
@@ -320,7 +320,7 @@ public class OutputParams {
 		return header;
 	}
 
-	public void setHeader(byte header[]) {
+	public void setHeader(byte[] header) {
 		this.header = header;
 	}
 
@@ -349,11 +349,11 @@ public class OutputParams {
 	}
 
 	public boolean isShiftSscr() {
-		return shift_scr;
+		return shiftScr;
 	}
 
-	public void setShiftScr(boolean shift_scr) {
-		this.shift_scr = shift_scr;
+	public void setShiftScr(boolean shiftScr) {
+		this.shiftScr = shiftScr;
 	}
 
 	public boolean isCleanup() {

@@ -22,8 +22,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES_NOSORT = 5;
 	public static final int TEXTS_NOSORT = 6;
 	public static final int EPISODES = 7;
-	private String sqls[];
-	private int expectedOutputs[];
+	private String[] sqls;
+	private int[] expectedOutputs;
 	private DLNAMediaDatabase database;
 	private String displayNameOverride;
 	private ArrayList<String> populatedVirtualFoldersListFromDb;
@@ -33,7 +33,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
 	}
 
-	public MediaLibraryFolder(String name, String sql[], int expectedOutput[]) {
+	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput) {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
@@ -44,7 +44,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this(name, new String[]{sql}, new int[]{expectedOutput}, nameToDisplay);
 	}
 
-	public MediaLibraryFolder(String name, String sql[], int expectedOutput[], String nameToDisplay) {
+	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput, String nameToDisplay) {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
@@ -183,13 +183,13 @@ public class MediaLibraryFolder extends VirtualFolder {
 			if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT || expectedOutput == SEASONS) {
 				String nameToDisplay = null;
 
-				// Don't prepend "Season" text to years 
+				// Don't prepend "Season" text to years
 				if (expectedOutput == SEASONS && virtualFolderName.length() != 4) {
 					nameToDisplay = Messages.getString("VirtualFolder.6") + " " + virtualFolderName;
 				}
 
-				String sqls2[] = new String[sqls.length - 1];
-				int expectedOutputs2[] = new int[expectedOutputs.length - 1];
+				String[] sqls2 = new String[sqls.length - 1];
+				int[] expectedOutputs2 = new int[expectedOutputs.length - 1];
 				System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 				System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
 				addChild(new MediaLibraryFolder(virtualFolderName, sqls2, expectedOutputs2, nameToDisplay));

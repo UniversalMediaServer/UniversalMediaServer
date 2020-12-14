@@ -33,6 +33,6 @@ public class MicroDVD extends SubtitleBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "sub" };
+		return new String[] {"sub"};
 	}
 }

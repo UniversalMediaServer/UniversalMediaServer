@@ -368,10 +368,10 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 *             new {@link ProcessWrapperConsumer} instance.
 	 * @throws IllegalAccessException If an access error occurs during creating
 	 *             of the new {@link ProcessWrapperConsumer} instance.
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
+	 * @throws SecurityException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalArgumentException
 	 */
 	public SimpleProcessWrapper(Class<C> consumer) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		this.consumer = consumer.getDeclaredConstructor().newInstance();

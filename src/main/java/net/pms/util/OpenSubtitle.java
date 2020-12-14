@@ -1,21 +1,20 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 package net.pms.util;
@@ -112,20 +111,21 @@ public class OpenSubtitle {
 	private static final ReentrantReadWriteLock TOKEN_LOCK = new ReentrantReadWriteLock();
 	private static Token token = null;
 
-	private static final ThreadPoolExecutor backgroundExecutor = new ThreadPoolExecutor(
-		0, // Minimum number of threads in pool
+	// Minimum number of threads in pool
+	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0,
 		5, // Maximum number of threads in pool
 		30, // Number of seconds before an idle thread is terminated
-		TimeUnit.SECONDS,
-		new LinkedBlockingQueue<Runnable>(), // The queue holding the tasks waiting to be processed
-		new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
+
+		// The queue holding the tasks waiting to be processed
+		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+			new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
 			@Override
 			public void run() {
-				backgroundExecutor.shutdownNow();
+				BACKGROUND_EXECUTOR.shutdownNow();
 			}
 		});
 	}
@@ -199,7 +199,7 @@ public class OpenSubtitle {
 		connection.setRequestProperty("Content-Length", "" + query.length());
 		connection.setConnectTimeout(5000);
 		((HttpURLConnection) connection).setRequestMethod("POST");
-		//LOGGER.debug("opensub query "+query);
+		// LOGGER.debug("opensub query "+query);
 		// open up the output stream of the connection
 		if (!StringUtils.isEmpty(query)) {
 			try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
@@ -217,7 +217,7 @@ public class OpenSubtitle {
 			}
 		}
 
-		//LOGGER.debug("opensubs result page "+page.toString());
+		// LOGGER.debug("opensubs result page "+page.toString());
 		return page.toString();
 	}
 
@@ -253,11 +253,7 @@ public class OpenSubtitle {
 	 * @return The {@link InputStream} with the response.
 	 * @throws IOException If an error occurs during the operation.
 	 */
-	private static InputStream sendXMLStream(
-		HttpURLConnection connection,
-		int retries,
-		long retrySleepMS
-	) throws IOException {
+	private static InputStream sendXMLStream(HttpURLConnection connection, int retries, long retrySleepMS) throws IOException {
 		int remaining = retries;
 		HTTPResponseCode responseCode = HTTPResponseCode.typeOf(connection.getResponseCode());
 		do {
@@ -268,38 +264,24 @@ public class OpenSubtitle {
 					connection.getResponseMessage()
 				);
 			}
-			if (
-				responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE ||
-				responseCode == HTTPResponseCode.ORIGIN_ERROR
-			) {
+			if (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR) {
 				remaining--;
 				try {
 					Thread.sleep(retrySleepMS);
 				} catch (InterruptedException e) {
-					LOGGER.debug(
-						"OpenSubtitles was interrupted while waiting to retry a request to {}",
-						connection.getURL().getHost()
-					);
+					LOGGER.debug("OpenSubtitles was interrupted while waiting to retry a request to {}", connection.getURL().getHost());
 					throw new OpenSubtitlesException("Interrupted while waiting to retry", e);
 				}
 			} else {
 				HTTPResponseCode.handleResponseCode(responseCode);
 			}
-		} while (
-			remaining >= 0 &&
-			(
-				responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE ||
-				responseCode == HTTPResponseCode.ORIGIN_ERROR
-			)
-		);
-		if (
-			responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE ||
-			responseCode == HTTPResponseCode.ORIGIN_ERROR
-		) {
+		} while (remaining >= 0 && (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR));
+		if (responseCode == HTTPResponseCode.SERVICE_UNAVAILABLE || responseCode == HTTPResponseCode.ORIGIN_ERROR) {
 			throw new OpenSubtitlesException(
 				"OpenSubtitles gave up getting a response from " +
 				connection.getURL().getHost() + " after " +
-				retries + " attempts (Response code " + responseCode + ")");
+				retries + " attempts (Response code " + responseCode + ")"
+			);
 		}
 		return connection.getInputStream();
 	}
@@ -309,10 +291,12 @@ public class OpenSubtitle {
 	 * users might get a different API address in response, which will be
 	 * reflected in the {@link URL} returned by this method.
 	 * <p>
-	 * <b>All access to {@link #token} must be protected by {@link #TOKEN_LOCK}</b>.
+	 * <b>All access to {@link #token} must be protected by
+	 * {@link #TOKEN_LOCK}</b>.
 	 *
 	 * @param url The API {@link URL} to use for login.
-	 * @return The URL to use if the login was a success, {@code null} otherwise.
+	 * @return The URL to use if the login was a success, {@code null}
+	 *         otherwise.
 	 */
 	private static URL login() {
 		TOKEN_LOCK.writeLock().lock();
@@ -361,8 +345,8 @@ public class OpenSubtitle {
 
 			// Send request
 			try (OutputStream out = LOGGER.isTraceEnabled() ?
-				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
-				connection.getOutputStream()
+					new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
+					connection.getOutputStream()
 			) {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "LogIn", params);
@@ -379,7 +363,7 @@ public class OpenSubtitle {
 			params = null;
 			try (InputStream reply = LOGGER.isTraceEnabled() ?
 				new LoggableInputStream(sendXMLStream(connection, 5, 500), StandardCharsets.UTF_8) :
-				sendXMLStream(connection, 5, 500)
+					sendXMLStream(connection, 5, 500)
 			) {
 				LOGGER.trace("Parsing OpenSubtitles login response");
 				XMLStreamReader reader = null;
@@ -401,10 +385,7 @@ public class OpenSubtitle {
 				token = Token.createInvalidToken();
 				return null;
 			}
-			if (
-				params.size() != 1 ||
-				!(params.get(0).getValue() instanceof Struct)
-			) {
+			if (params.size() != 1 || !(params.get(0).getValue() instanceof Struct)) {
 				LOGGER.error("Unexpected reply from OpenSubtitles:\n{}", params);
 				token = Token.createInvalidToken();
 				return null;
@@ -444,7 +425,8 @@ public class OpenSubtitle {
 			}
 			if (LOGGER.isDebugEnabled()) {
 				if (token.getUser() != null) {
-					//XXX If log anonymization is ever implemented, hide the nickname.
+					// XXX If log anonymization is ever implemented, hide the
+					// nickname.
 					LOGGER.debug("Successfully logged in to OpenSubtitles as {}", token.getUser().getUserNickName());
 				} else {
 					LOGGER.debug("Successfully logged in to OpenSubtitles anonymously");
@@ -590,10 +572,7 @@ public class OpenSubtitle {
 		}
 		URL url = login();
 		if (url == null) {
-			LOGGER.error(
-				"Couldn't find any live subtitles for {} since OpenSubtitles login failed",
-				resource.getName()
-			);
+			LOGGER.error("Couldn't find any live subtitles for {} since OpenSubtitles login failed", resource.getName());
 			return new ArrayList<>();
 		}
 
@@ -666,11 +645,7 @@ public class OpenSubtitle {
 					toLogString(result, 2)
 				);
 			} else {
-				LOGGER.info(
-					"Found {} OpenSubtitles subtitles for \"{}\"",
-					result.size(),
-					resource.getName()
-				);
+				LOGGER.info("Found {} OpenSubtitles subtitles for \"{}\"", result.size(), resource.getName());
 			}
 		} else {
 			LOGGER.info("Couldn't find any OpenSubtitles subtitles for \"{}\"", resource.getName());
@@ -829,10 +804,7 @@ public class OpenSubtitle {
 				writeMethod(writer, "SearchSubtitles", params);
 				writer.flush();
 				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace(
-						"Querying OpenSubtitles for subtitles for \"{}\" using {}:\n{}",
-						resource.getName(),
-						logDescription,
+					LOGGER.trace("Querying OpenSubtitles for subtitles for \"{}\" using {}:\n{}", resource.getName(), logDescription,
 						toLogString((LoggableOutputStream) out));
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug(
@@ -843,11 +815,7 @@ public class OpenSubtitle {
 					);
 				}
 			} catch (XMLStreamException | FactoryConfigurationError e) {
-				LOGGER.error(
-					"An error occurred while generating OpenSubtitles search by {} request: {}",
-					logDescription,
-					e.getMessage()
-				);
+				LOGGER.error("An error occurred while generating OpenSubtitles search by {} request: {}", logDescription, e.getMessage());
 				LOGGER.trace("", e);
 			}
 
@@ -878,20 +846,13 @@ public class OpenSubtitle {
 
 			// Handle status code
 			if (!checkStatus(params)) {
-				LOGGER.error(
-					"OpenSubtitles search using {} \"{}\" was aborted because of an error",
-					logDescription,
-					logSearchTerm
-				);
+				LOGGER.error("OpenSubtitles search using {} \"{}\" was aborted because of an error", logDescription, logSearchTerm);
 				return new ArrayList<>();
 			}
 
 			// Parse subtitles
 			Member<?, ?> dataMember = ((Struct) params.get(0).getValue()).get("data");
-			if (
-				dataMember == null ||
-				!(dataMember.getValue() instanceof Array)
-			) {
+			if (dataMember == null || !(dataMember.getValue() instanceof Array)) {
 				// No data
 				return new ArrayList<>();
 			}
@@ -943,23 +904,15 @@ public class OpenSubtitle {
 	 * @return The {@code IMDB ID} if one can be determined, {@code null}
 	 *         otherwise.
 	 */
-	protected static String findImdbIdByFileHash(
-		DLNAResource resource,
-		String fileHash,
-		long fileSize,
-		FileNamePrettifier prettifier
-	) {
+	protected static String findImdbIdByFileHash(DLNAResource resource, String fileHash, long fileSize, FileNamePrettifier prettifier) {
 		if (resource == null || isBlank(fileHash)) {
 			return null;
 		}
-		LOGGER.trace(
-			"Querying OpenSubtitles for IMDB ID for \"{}\" using file hash \"{}\".",
-			resource.getName(),
-			fileHash
-		);
+		LOGGER.trace("Querying OpenSubtitles for IMDB ID for \"{}\" using file hash \"{}\".", resource.getName(), fileHash);
 		String result;
 
-		// Try first using searchSubtitles because we can use file size for better accuracy
+		// Try first using searchSubtitles because we can use file size for
+		// better accuracy
 		Struct queryStruct = new Struct();
 		queryStruct.put(new MemberString("moviehash", fileHash));
 		queryStruct.put(new MemberString("moviebytesize", Long.toString(fileSize)));
@@ -984,7 +937,8 @@ public class OpenSubtitle {
 			}
 		}
 
-		// Use the less accurate checkMovieHash2 if no subtitles are registered for the file hash
+		// Use the less accurate checkMovieHash2 if no subtitles are registered
+		// for the file hash
 		Map<String, List<CheckMovieHashItem>> results = checkMovieHash2(fileHash);
 		List<CheckMovieHashItem> items = results.isEmpty() ? null : results.get(fileHash);
 		if (items == null || items.isEmpty()) {
@@ -1029,11 +983,7 @@ public class OpenSubtitle {
 			for (GuessCandidate candidate : candidates) {
 				sb.append("  ").append(candidate).append("\n");
 			}
-			LOGGER.trace(
-				"OpenSubtitles: findImdbIdByHash() candidates for \"{}\":\n{}",
-				resource.getName(),
-				sb.toString()
-			);
+			LOGGER.trace("OpenSubtitles: findImdbIdByHash() candidates for \"{}\":\n{}", resource.getName(), sb.toString());
 		}
 		result = candidates.get(0).getGuessItem().getImdbId();
 		LOGGER.debug(
@@ -1140,10 +1090,7 @@ public class OpenSubtitle {
 					}
 				}
 				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace(
-						"Received OpenSubtitles CheckMovieHash2 response:\n{}",
-						toLogString((LoggableInputStream) reply)
-					);
+					LOGGER.trace("Received OpenSubtitles CheckMovieHash2 response:\n{}", toLogString((LoggableInputStream) reply));
 				}
 			}
 
@@ -1155,10 +1102,7 @@ public class OpenSubtitle {
 
 			// Parse subtitles
 			Member<?, ?> dataMember = ((Struct) params.get(0).getValue()).get("data");
-			if (
-				dataMember == null ||
-				!(dataMember.getValue() instanceof Struct)
-			) {
+			if (dataMember == null || !(dataMember.getValue() instanceof Struct)) {
 				// No data
 				return new HashMap<>();
 			}
@@ -1271,17 +1215,15 @@ public class OpenSubtitle {
 		VideoClassification classification,
 		Locale locale
 	) {
-		// The score calculation isn't extensively tested and might need to be tweaked
-		for (GuessItem guess : guesses) { //TODO: (Nad) Guess Scoring
+		// The score calculation isn't extensively tested and might need to be
+		// tweaked
+		for (GuessItem guess : guesses) { // TODO: (Nad) Guess Scoring
 			double score = 0.0;
 			if (isBlank(prettifier.getName()) || isBlank(guess.getTitle())) {
 				continue;
 			}
-			score += new JaroWinklerSimilarity().apply(
-				prettifier.getName().toLowerCase(locale),
-				guess.getTitle().toLowerCase(locale)
-			);
-			if (score < MIN_IMDB_GUESS_JW_DISTANCE) { //TODO: (Nad) Parameterize threshold...?
+			score += new JaroWinklerSimilarity().apply(prettifier.getName().toLowerCase(locale), guess.getTitle().toLowerCase(locale));
+			if (score < MIN_IMDB_GUESS_JW_DISTANCE) { // TODO: (Nad) Parameterize threshold...?
 				LOGGER.trace(
 					"OpenSubtitles: Excluding IMDB guess because the similarity ({}) is under the threshold ({}): {}",
 					score,
@@ -1300,10 +1242,7 @@ public class OpenSubtitle {
 				score += 0.5;
 				if (classification == VideoClassification.SERIES && guess instanceof CheckMovieHashItem) {
 					CheckMovieHashItem item = (CheckMovieHashItem) guess;
-					if (
-						item.getSeriesSeason() == prettifier.getSeason() &&
-						item.getSeriesEpisode() == prettifier.getEpisode()
-					) {
+					if (item.getSeriesSeason() == prettifier.getSeason() && item.getSeriesEpisode() == prettifier.getEpisode()) {
 						score += 0.3;
 					}
 				}
@@ -1322,10 +1261,7 @@ public class OpenSubtitle {
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return The IMDB ID or {@code null}.
 	 */
-	public static String guessImdbIdByFileName(
-		DLNAResource resource,
-		FileNamePrettifier prettifier
-	) {
+	public static String guessImdbIdByFileName(DLNAResource resource, FileNamePrettifier prettifier) {
 		return guessImdbIdByFileName(resource, null, prettifier);
 	}
 
@@ -1336,10 +1272,7 @@ public class OpenSubtitle {
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return The IMDB ID or {@code null}.
 	 */
-	public static String guessImdbIdByFileName(
-		String fileName,
-		FileNamePrettifier prettifier
-	) {
+	public static String guessImdbIdByFileName(String fileName, FileNamePrettifier prettifier) {
 		return guessImdbIdByFileName(null, fileName, prettifier);
 	}
 
@@ -1355,11 +1288,7 @@ public class OpenSubtitle {
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return The IMDB ID or {@code null}.
 	 */
-	protected static String guessImdbIdByFileName(
-		DLNAResource resource,
-		String fileName,
-		FileNamePrettifier prettifier
-	) {
+	protected static String guessImdbIdByFileName(DLNAResource resource, String fileName, FileNamePrettifier prettifier) {
 		if (resource == null && isBlank(fileName)) {
 			return null;
 		}
@@ -1425,21 +1354,12 @@ public class OpenSubtitle {
 				writer.flush();
 
 				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace(
-						"Querying OpenSubtitles for IMDB ID for \"{}\":\n{}",
-						fileName,
-						toLogString((LoggableOutputStream) out));
+					LOGGER.trace("Querying OpenSubtitles for IMDB ID for \"{}\":\n{}", fileName, toLogString((LoggableOutputStream) out));
 				} else if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug(
-						"Querying OpenSubtitles for IMDB ID for \"{}\"",
-						fileName
-					);
+					LOGGER.debug("Querying OpenSubtitles for IMDB ID for \"{}\"", fileName);
 				}
 			} catch (XMLStreamException | FactoryConfigurationError e) {
-				LOGGER.error(
-					"An error occurred while generating OpenSubtitles GuessMovieFromString request: {}",
-					e.getMessage()
-				);
+				LOGGER.error("An error occurred while generating OpenSubtitles GuessMovieFromString request: {}", e.getMessage());
 				LOGGER.trace("", e);
 			}
 
@@ -1460,10 +1380,7 @@ public class OpenSubtitle {
 					}
 				}
 				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace(
-						"Received OpenSubtitles GuessMovieFromString response:\n{}",
-						toLogString((LoggableInputStream) reply)
-					);
+					LOGGER.trace("Received OpenSubtitles GuessMovieFromString response:\n{}", toLogString((LoggableInputStream) reply));
 				}
 			}
 
@@ -1474,10 +1391,7 @@ public class OpenSubtitle {
 
 			// Parse suggestions
 			Member<?, ?> dataMember = ((Struct) params.get(0).getValue()).get("data");
-			if (
-				dataMember == null ||
-				!(dataMember.getValue() instanceof Struct)
-			) {
+			if (dataMember == null || !(dataMember.getValue() instanceof Struct)) {
 				// No data
 				return null;
 			}
@@ -1573,11 +1487,8 @@ public class OpenSubtitle {
 			return "Not logging huge XML document with a length of " + loggableString.length() + " characters";
 		}
 		if (loggableString.length() > 20000) {
-			return
-				"Not prettifying XML document with a length of " +
-				loggableString.length() +
-				", unprettified XML document: " +
-				loggableString;
+			return "Not prettifying XML document with a length of " + loggableString.length() +
+				", unprettified XML document: " + loggableString;
 		}
 		try {
 			return StringUtil.prettifyXML(loggableString, StandardCharsets.UTF_8, 2);
@@ -1712,10 +1623,7 @@ public class OpenSubtitle {
 		String languageCode = primaryLanguageCode.trim().toLowerCase(Locale.ROOT);
 		for (SubtitleItem item : subtitleItems) {
 			String itemLangaugeCode = item.getLanguageCode();
-			if (
-				isNotBlank(itemLangaugeCode) &&
-				languageCode.equals(itemLangaugeCode.trim().toLowerCase(Locale.ROOT))
-			) {
+			if (isNotBlank(itemLangaugeCode) && languageCode.equals(itemLangaugeCode.trim().toLowerCase(Locale.ROOT))) {
 				return true;
 			}
 		}
@@ -1805,17 +1713,18 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Attempt to return information from IMDb about the file based on information
-	 * from the filename; either the hash, the IMDb ID or the filename itself.
+	 * Attempt to return information from IMDb about the file based on
+	 * information from the filename; either the hash, the IMDb ID or the
+	 * filename itself.
 	 *
-	 * @param hash  the video hash
-	 * @param size  the byte-size to be used with the hash
-	 * @param imdb  the IMDb ID
+	 * @param hash the video hash
+	 * @param size the byte-size to be used with the hash
+	 * @param imdb the IMDb ID
 	 * @param query the string to search IMDb for
 	 *
-	 * @return a string array including the IMDb ID, episode title, season number,
-	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDb.
+	 * @return a string array including the IMDb ID, episode title, season
+	 *         number, episode number relative to the season, and the show name,
+	 *         or null if we couldn't find it on IMDb.
 	 *
 	 * @throws IOException
 	 */
@@ -1923,8 +1832,8 @@ public class OpenSubtitle {
 			}
 
 			/**
-			 * Sometimes if OpenSubtitles doesn't have an episode title they call it
-			 * something like "Episode #1.4", so discard that.
+			 * Sometimes if OpenSubtitles doesn't have an episode title they
+			 * call it something like "Episode #1.4", so discard that.
 			 */
 			episodeName = StringEscapeUtils.unescapeHtml4(episodeName);
 			if (episodeName.startsWith("Episode #")) {
@@ -1962,9 +1871,9 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Downloads the subtitles from the specified {@link URI} to the
-	 * specified {@link Path}. It the specified {@link Path} is {@code null}
-	 * a temporary filename is used.
+	 * Downloads the subtitles from the specified {@link URI} to the specified
+	 * {@link Path}. It the specified {@link Path} is {@code null} a temporary
+	 * filename is used.
 	 *
 	 * @param url the {@link URL} from which to download.
 	 * @param output the {@link Path} for the target file.
@@ -1983,10 +1892,7 @@ public class OpenSubtitle {
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
 		InputStream in = connection.getInputStream();
-		try (
-			GZIPInputStream gzipInputStream = new GZIPInputStream(in);
-			OutputStream out = Files.newOutputStream(output);
-		) {
+		try (GZIPInputStream gzipInputStream = new GZIPInputStream(in); OutputStream out = Files.newOutputStream(output);) {
 			byte[] buf = new byte[4096];
 			int len;
 			while ((len = gzipInputStream.read(buf)) > 0) {
@@ -1997,27 +1903,26 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Adds a field to the specified {@link StringBuilder} using the
-	 * specified parameters. This is a convenience method for building
-	 * {@link #toString()} values.
+	 * Adds a field to the specified {@link StringBuilder} using the specified
+	 * parameters. This is a convenience method for building {@link #toString()}
+	 * values.
 	 *
 	 * @param first {@code true} if this is the first field and shouldn't be
 	 *            prefixed with "{@code , }", {@code false} otherwise.
 	 * @param sb the {@link StringBuilder} to add to.
 	 * @param fieldName the name of the field.
 	 * @param value the value of the field.
-	 * @param quote {@code true} if the field's value should be quoted in
-	 *            double quotes, {@code false} otherwise.
+	 * @param quote {@code true} if the field's value should be quoted in double
+	 *            quotes, {@code false} otherwise.
 	 * @param addBlank {@code true} it the field should be added even if
-	 *            {@code value} is {@code null} or if
-	 *            {@code value.toString()} is blank, {@code false}
-	 *            otherwise.
+	 *            {@code value} is {@code null} or if {@code value.toString()}
+	 *            is blank, {@code false} otherwise.
 	 * @param addZero {@code true} if the field should be added if
-	 *            {@code value.toString()} is "{@code 0}" or if
-	 *            {@code value} implements {@link Number} and its numerical
-	 *            value is zero, {@code false} otherwise.
-	 * @return {@code true} if the field was added to the
-	 *         {@link StringBuilder}, {@code false} otherwise.
+	 *            {@code value.toString()} is "{@code 0}" or if {@code value}
+	 *            implements {@link Number} and its numerical value is zero,
+	 *            {@code false} otherwise.
+	 * @return {@code true} if the field was added to the {@link StringBuilder},
+	 *         {@code false} otherwise.
 	 */
 	protected static boolean addFieldToStringBuilder(
 		boolean first,
@@ -2121,10 +2026,7 @@ public class OpenSubtitle {
 		 *         {@code false} otherwise.
 		 */
 		public boolean isValid() {
-			return
-				isNotBlank(value) &&
-				defaultUrl != null &&
-				System.currentTimeMillis() - tokenBirth < TOKEN_EXPIRATION_TIME + 60000;
+			return isNotBlank(value) && defaultUrl != null && System.currentTimeMillis() - tokenBirth < TOKEN_EXPIRATION_TIME + 60000;
 		}
 
 		/**
@@ -2402,9 +2304,7 @@ public class OpenSubtitle {
 				!"false".equals(vip.getValue().toString().toLowerCase(Locale.ROOT));
 			Member<? extends Value<?>, ?> contentLocation = dataStruct.get("Content-Location");
 
-			String urlString = contentLocation == null || contentLocation.getValue() == null ?
-				null :
-				contentLocation.getValue().toString();
+			String urlString = contentLocation == null || contentLocation.getValue() == null ? null : contentLocation.getValue().toString();
 			URI url = null;
 			if (urlString != null && isNotBlank(urlString)) {
 				try {
@@ -2452,12 +2352,7 @@ public class OpenSubtitle {
 		 * @param videoClassification the {@link VideoClassification}.
 		 * @param imdbId the IMDB ID.
 		 */
-		public GuessItem(
-			String movieName,
-			String movieYear,
-			VideoClassification videoClassification,
-			String imdbId
-		) {
+		public GuessItem(String movieName, String movieYear, VideoClassification videoClassification, String imdbId) {
 			this.title = movieName;
 			this.year = movieYear;
 			this.videoClassification = videoClassification;
@@ -2634,8 +2529,7 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * A class representing an OpenSubtitles {@code GuessFromString}
-	 * structure.
+	 * A class representing an OpenSubtitles {@code GuessFromString} structure.
 	 */
 	public static class GuessFromString extends GuessItem {
 		private final int score;
@@ -2649,13 +2543,7 @@ public class OpenSubtitle {
 		 * @param imdbId the IMDB ID.
 		 * @param score the score.
 		 */
-		public GuessFromString(
-			String movieName,
-			String movieYear,
-			String videoClassification,
-			String imdbId,
-			String score
-		) {
+		public GuessFromString(String movieName, String movieYear, String videoClassification, String imdbId, String score) {
 			super(movieName, movieYear, videoClassification, imdbId);
 			int tmpScore;
 			try {
@@ -2675,13 +2563,7 @@ public class OpenSubtitle {
 		 * @param imdbId the IMDB ID.
 		 * @param score the score.
 		 */
-		public GuessFromString(
-			String movieName,
-			String movieYear,
-			VideoClassification videoClassification,
-			String imdbId,
-			int score
-		) {
+		public GuessFromString(String movieName, String movieYear, VideoClassification videoClassification, String imdbId, int score) {
 			super(movieName, movieYear, videoClassification, imdbId);
 			this.score = score;
 		}
@@ -3083,13 +2965,7 @@ public class OpenSubtitle {
 		 * @param imdbId the IMDB ID.
 		 * @param reason the reason for being considered the best guess.
 		 */
-		public BestGuess(
-			String movieName,
-			String movieYear,
-			String videoClassification,
-			String imdbId,
-			String reason
-		) {
+		public BestGuess(String movieName, String movieYear, String videoClassification, String imdbId, String reason) {
 			super(movieName, movieYear, videoClassification, imdbId);
 			this.reason = reason;
 		}
@@ -3103,13 +2979,7 @@ public class OpenSubtitle {
 		 * @param imdbId the IMDB ID.
 		 * @param reason the reason for being considered the best guess.
 		 */
-		public BestGuess(
-			String movieName,
-			String movieYear,
-			VideoClassification videoClassification,
-			String imdbId,
-			String reason
-		) {
+		public BestGuess(String movieName, String movieYear, VideoClassification videoClassification, String imdbId, String reason) {
 			super(movieName, movieYear, videoClassification, imdbId);
 			this.reason = reason;
 		}
@@ -3137,7 +3007,6 @@ public class OpenSubtitle {
 			sb.append("]");
 			return sb.toString();
 		}
-
 
 		@Override
 		public int hashCode() {
@@ -3219,14 +3088,12 @@ public class OpenSubtitle {
 			return Collections.unmodifiableMap(guessesFromString);
 		}
 
-
 		/**
 		 * @return The {@link Map} of IMDB suggestions.
 		 */
 		public Map<String, GuessItem> getImdbSuggestions() {
 			return Collections.unmodifiableMap(imdbSuggestions);
 		}
-
 
 		/**
 		 * @return The {@link BestGuess} or {@code null}.
@@ -3866,7 +3733,6 @@ public class OpenSubtitle {
 			return subRating;
 		}
 
-
 		/**
 		 * @return The subtitles download count.
 		 */
@@ -3880,7 +3746,6 @@ public class OpenSubtitle {
 		public String getMovieFPS() {
 			return movieFPS;
 		}
-
 
 		/**
 		 * @return The IMDB ID.
@@ -4220,11 +4085,7 @@ public class OpenSubtitle {
 		 * @param media the {@link DLNAMediaInfo} instance for the video.
 		 * @return The resulting {@link SubtitleItem} or {@code null}.
 		 */
-		public static SubtitleItem createFromStruct(
-			Struct subtitlesStruct,
-			FileNamePrettifier prettifier,
-			DLNAMediaInfo media
-		) {
+		public static SubtitleItem createFromStruct(Struct subtitlesStruct, FileNamePrettifier prettifier, DLNAMediaInfo media) {
 			if (subtitlesStruct == null) {
 				return null;
 			}
@@ -4421,13 +4282,19 @@ public class OpenSubtitle {
 		/** Successful: OK */
 		OK(200, false),
 
-		/** Error: Too many requests (<a href="http://forum.opensubtitles.org/viewtopic.php?f=8&t=16072">more information</a>) */
+		/**
+		 * Error: Too many requests (<a href=
+		 * "http://forum.opensubtitles.org/viewtopic.php?f=8&t=16072">more
+		 * information</a>)
+		 */
 		TOO_MANY_REQUESTS(429, true),
 
 		/** Server Error: Service Unavailable */
 		SERVICE_UNAVAILABLE(503, true),
 
-		/** Origin Error: Unclear cause, seems to occur during heavy server load */
+		/**
+		 * Origin Error: Unclear cause, seems to occur during heavy server load
+		 */
 		ORIGIN_ERROR(520, true);
 
 		private final int responseCode;
@@ -4687,12 +4554,12 @@ public class OpenSubtitle {
 		}
 
 		/**
-		 * Converts an integer status code to a {@link StatusCode}
-		 * instance if possible.
+		 * Converts an integer status code to a {@link StatusCode} instance if
+		 * possible.
 		 *
 		 * @param statusCode the integer status code to convert.
-		 * @return The corresponding {@link StatusCode} instance
-		 *         or {@code null} if no match was found.
+		 * @return The corresponding {@link StatusCode} instance or {@code null}
+		 *         if no match was found.
 		 */
 		public static StatusCode typeOf(int statusCode) {
 			if (statusCode < 200 || statusCode > 599) {
@@ -4795,145 +4662,130 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Enhances existing metadata attached to this media by querying OpenSubtitles.
+	 * Enhances existing metadata attached to this media by querying
+	 * OpenSubtitles.
 	 *
 	 * @param file
-	 * @param media 
+	 * @param media
 	 */
 	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
 		final boolean overTheTopLogging = false;
 		if (!PMS.get().getDatabase().isOpenSubtitlesMetadataExists(file.getAbsolutePath(), file.lastModified())) {
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					String[] metadataFromOpenSubtitles;
-					try {
-						metadataFromOpenSubtitles = getInfo(file, file.getName());
+			Runnable r = () -> {
+				String[] metadataFromOpenSubtitles;
+				try {
+					metadataFromOpenSubtitles = getInfo(file, file.getName());
 
-						if (metadataFromOpenSubtitles == null) {
-							LOGGER.trace("Failed lookup for " + file.getName());
-							return;
-						}
+					if (metadataFromOpenSubtitles == null) {
+						LOGGER.trace("Failed lookup for " + file.getName());
+						return;
+					}
 
-						String titleFromFilename           = media.getMovieOrShowName();
-						String yearFromFilename            = media.getYear();
-						String tvSeasonFromFilename        = media.getTVSeason();
-						String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
+					String titleFromFilename = media.getMovieOrShowName();
+					String yearFromFilename = media.getYear();
+					String tvSeasonFromFilename = media.getTVSeason();
+					String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
 
-						String titleFromDatabase;
-						String titleFromDatabaseSimplified;
-						String titleFromOpenSubtitlesSimplified;
+					String titleFromDatabase;
+					String titleFromDatabaseSimplified;
+					String titleFromOpenSubtitlesSimplified;
 
-						String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
-						titleFromOpenSubtitlesSimplified = FileUtil.getSimplifiedShowName(titleFromOpenSubtitles);
-						String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
-						String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
-						if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
-							tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
-						}
+					String titleFromOpenSubtitles = metadataFromOpenSubtitles[2];
+					titleFromOpenSubtitlesSimplified = FileUtil.getSimplifiedShowName(titleFromOpenSubtitles);
+					String tvSeasonFromOpenSubtitles = metadataFromOpenSubtitles[3];
+					String tvEpisodeNumberFromOpenSubtitles = metadataFromOpenSubtitles[4];
+					if (tvEpisodeNumberFromOpenSubtitles.length() == 1) {
+						tvEpisodeNumberFromOpenSubtitles = "0" + tvEpisodeNumberFromOpenSubtitles;
+					}
 
+					/**
+					 * We have data from OpenSubtitles, but before storing it in
+					 * our database we validate it against the data extracted
+					 * from the filename. This is because sometimes
+					 * OpenSubtitles reports incorrect data.
+					 */
+					if (overTheTopLogging) {
+						LOGGER.trace("Found " + file.getName() + " : " + titleFromOpenSubtitles);
+					}
+
+					// Proceed if the years match, or if there is no year
+					// then try the movie/show name.
+					if ((StringUtils.isNotBlank(yearFromFilename) && yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
+						StringUtils.isNotEmpty(titleFromFilename)) ||
+						(StringUtils.isBlank(yearFromFilename) && StringUtils.isNotEmpty(titleFromFilename))) {
 						/**
-						 * We have data from OpenSubtitles, but before storing it in our database we
-						 * validate it against the data extracted from the filename.
-						 * This is because sometimes OpenSubtitles reports incorrect data.
+						 * Finally, sometimes OpenSubtitles returns the
+						 * incorrect season or episode number, so we validate
+						 * those as well. This check will pass if either we
+						 * don't know what the season and episode numbers are
+						 * from the filename, or we do and they match with our
+						 * results from OpenSubtitles.
 						 */
-						if (overTheTopLogging) {
-							LOGGER.trace("Found " + file.getName() + " : " + titleFromOpenSubtitles);
-						}
+						if ((StringUtils.isNotBlank(tvSeasonFromFilename) && StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
+							tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) && StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
+							StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
+							tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)) ||
+							(StringUtils.isBlank(tvSeasonFromFilename) && StringUtils.isBlank(tvEpisodeNumberFromFilename))) {
+							titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
+							titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+							if (overTheTopLogging) {
+								LOGGER.trace("titleFromDatabase: " + titleFromDatabase);
+								LOGGER.trace("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+							}
 
-						// Proceed if the years match, or if there is no year then try the movie/show name.
-						if (
-							(
-								StringUtils.isNotBlank(yearFromFilename) &&
-								yearFromFilename.equals(metadataFromOpenSubtitles[5]) &&
-								StringUtils.isNotEmpty(titleFromFilename)
-							) || (
-								StringUtils.isBlank(yearFromFilename) &&
-								StringUtils.isNotEmpty(titleFromFilename)
-							)
-						) {
 							/**
-							 * Finally, sometimes OpenSubtitles returns the incorrect season or episode
-							 * number, so we validate those as well.
-							 * This check will pass if either we don't know what the season and episode
-							 * numbers are from the filename, or we do and they match with our results
-							 * from OpenSubtitles.
+							 * If there is a title from the database and it is
+							 * not exactly the same as the one from
+							 * OpenSubtitles, continue to see if we want to
+							 * change that to make them all consistent.
 							 */
-							if (
-								(
-									StringUtils.isNotBlank(tvSeasonFromFilename) &&
-									StringUtils.isNotBlank(tvSeasonFromOpenSubtitles) &&
-									tvSeasonFromFilename.equals(tvSeasonFromOpenSubtitles) &&
-									StringUtils.isNotBlank(tvEpisodeNumberFromFilename) &&
-									StringUtils.isNotBlank(tvEpisodeNumberFromOpenSubtitles) &&
-									tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromOpenSubtitles)
-								) || (
-									StringUtils.isBlank(tvSeasonFromFilename) &&
-									StringUtils.isBlank(tvEpisodeNumberFromFilename)
-								)
-							) {
-								titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromOpenSubtitles);
-								titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+							if (!"".equals(titleFromDatabase) && !titleFromOpenSubtitles.equals(titleFromDatabase) &&
+								titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)) {
+								// Replace our close-but-not-exact title in
+								// the database with the title from
+								// OpenSubtitles.
+								PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
+							}
+
+							media.setIMDbID(metadataFromOpenSubtitles[0]);
+							media.setMovieOrShowName(titleFromOpenSubtitles);
+							media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
+							media.setYear(metadataFromOpenSubtitles[5]);
+
+							// If the filename has indicated this is a TV
+							// episode
+							if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
+								media.setTVSeason(tvSeasonFromOpenSubtitles);
+								media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
+								if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
+									media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
+								}
+
 								if (overTheTopLogging) {
-									LOGGER.trace("titleFromDatabase: " + titleFromDatabase);
-									LOGGER.trace("titleFromOpenSubtitles: " + titleFromOpenSubtitles);
+									LOGGER.trace("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
 								}
 
-								/**
-								 * If there is a title from the database and it is not exactly the same as the
-								 * one from OpenSubtitles, continue to see if we want to change that to make
-								 * them all consistent.
-								 */
-								if (
-									!"".equals(titleFromDatabase) &&
-									!titleFromOpenSubtitles.equals(titleFromDatabase) &&
-									titleFromOpenSubtitlesSimplified.equals(titleFromDatabaseSimplified)
-								) {
-									// Replace our close-but-not-exact title in the database with the title from OpenSubtitles.
-									PMS.get().getDatabase().updateMovieOrShowName(titleFromDatabase, titleFromOpenSubtitles);
-								}
+								media.setIsTVEpisode(true);
+							}
 
-								media.setIMDbID(metadataFromOpenSubtitles[0]);
-								media.setMovieOrShowName(titleFromOpenSubtitles);
-								media.setSimplifiedMovieOrShowName(titleFromOpenSubtitlesSimplified);
-								media.setYear(metadataFromOpenSubtitles[5]);
-
-								// If the filename has indicated this is a TV episode
-								if (StringUtils.isNotBlank(tvSeasonFromFilename)) {
-									media.setTVSeason(tvSeasonFromOpenSubtitles);
-									media.setTVEpisodeNumber(tvEpisodeNumberFromOpenSubtitles);
-									if (StringUtils.isNotBlank(metadataFromOpenSubtitles[1])) {
-										media.setTVEpisodeName(metadataFromOpenSubtitles[1]);
-									}
-
-									if (overTheTopLogging) {
-										LOGGER.trace("Setting is TV episode true for " + Arrays.toString(metadataFromOpenSubtitles));
-									}
-
-									media.setIsTVEpisode(true);
-								}
-
-								if (PMS.get().getConfiguration().getUseCache()) {
-									try {
-										PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
-									} catch (SQLException e) {
-										LOGGER.error(
-											"Could not update the database with information from OpenSubtitles for \"{}\": {}",
-											file.getAbsolutePath(),
-											e.getMessage()
-										);
-										LOGGER.trace("", e);
-									}
+							if (PMS.get().getConfiguration().getUseCache()) {
+								try {
+									PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+								} catch (SQLException e) {
+									LOGGER.error("Could not update the database with information from OpenSubtitles for \"{}\": {}",
+										file.getAbsolutePath(), e.getMessage());
+									LOGGER.trace("", e);
 								}
 							}
 						}
-					} catch (IOException ex) {
-						// This will happen regularly so just log it in trace mode
-						LOGGER.trace("Error in OpenSubtitles parsing:", ex);
 					}
+				} catch (IOException ex) {
+					// This will happen regularly so just log it in trace
+					// mode
+					LOGGER.trace("Error in OpenSubtitles parsing:", ex);
 				}
 			};
-			backgroundExecutor.execute(r);
+			BACKGROUND_EXECUTOR.execute(r);
 		} else {
 			if (overTheTopLogging) {
 				LOGGER.trace("Metadata already exists for {}", file.getName());
@@ -4942,11 +4794,13 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * A {@link ThreadFactory} that creates threads for the OpenSubtitles background workers
+	 * A {@link ThreadFactory} that creates threads for the OpenSubtitles
+	 * background workers
 	 */
 	static class OpenSubtitlesBackgroundWorkerThreadFactory implements ThreadFactory {
-        private final ThreadGroup group;
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
 
 		OpenSubtitlesBackgroundWorkerThreadFactory() {
 			group = new ThreadGroup("OpenSubtitles background workers group");

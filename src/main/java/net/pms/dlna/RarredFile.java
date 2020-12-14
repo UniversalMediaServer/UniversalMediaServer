@@ -40,7 +40,7 @@ public class RarredFile extends DLNAResource {
 		setLastModified(f.lastModified());
 
 		try {
-			rarFile = new Archive(new FileVolumeManager(f),null, null);
+			rarFile = new Archive(new FileVolumeManager(f), null, null);
 			List<FileHeader> headers = rarFile.getFileHeaders();
 
 			for (FileHeader fh : headers) {

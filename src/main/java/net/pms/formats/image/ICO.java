@@ -19,7 +19,6 @@
  */
 package net.pms.formats.image;
 
-
 public class ICO extends ImageBase {
 
 	/**
@@ -35,7 +34,7 @@ public class ICO extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "ico", "cur" };
+		return new String[] {"ico", "cur"};
 	}
 
 	@Override

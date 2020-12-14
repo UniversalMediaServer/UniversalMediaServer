@@ -1,7 +1,6 @@
 package net.pms.image;
 
 import java.io.IOException;
-import javax.imageio.ImageIO;
 
 /**
  * This is simply a checked wrapper for {@link RuntimeException}s thrown by

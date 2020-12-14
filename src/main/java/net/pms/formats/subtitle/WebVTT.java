@@ -33,6 +33,6 @@ public class WebVTT extends SubtitleBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "vtt" };
+		return new String[] {"vtt"};
 	}
 }

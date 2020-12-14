@@ -32,7 +32,7 @@ public class PNG extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "png" };
+		return new String[] {"png"};
 	}
 
 	@Override

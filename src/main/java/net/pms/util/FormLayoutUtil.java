@@ -29,7 +29,7 @@ import java.awt.Insets;
  * specifications, arrays of column specifications and encoded column specs.
  * This can be used to flip the FormLayout from the default left-to-right
  * definition to right-to-left.
- * 
+ *
  * Based on the jgoodies ComponenOrientationExample tutorial code.
  */
 public class FormLayoutUtil {
@@ -38,7 +38,7 @@ public class FormLayoutUtil {
 	 * Flips the default alignment of the given column specification and returns
 	 * a new column specification object with the flipped alignment and the same
 	 * size and growing behavior as the original.
-	 * 
+	 *
 	 * @param spec
 	 *            the original column specification
 	 * @return the column specification with flipped default alignment
@@ -60,7 +60,7 @@ public class FormLayoutUtil {
 	/**
 	 * Returns an array of column specifications that is built from the given
 	 * array by flipping each column spec and reversing their order.
-	 * 
+	 *
 	 * @param original
 	 *            the original array of column specifications
 	 * @return an array of flipped column specs in reversed order
@@ -79,7 +79,7 @@ public class FormLayoutUtil {
 	 * Returns an array of column specifications that is built from the given
 	 * encoded column specifications by flipping each column spec and reversing
 	 * their order.
-	 * 
+	 *
 	 * @param encodedColumnSpecs
 	 *            the original comma-separated encoded column specifications
 	 * @return an array of flipped column specs in reversed order
@@ -93,7 +93,7 @@ public class FormLayoutUtil {
 	 * Returns an array of column specifications that is built from the given
 	 * encoded column specifications by flipping each column spec and reversing
 	 * their order.
-	 * 
+	 *
 	 * @param encodedColumnSpecs
 	 *            the original comma-separated encoded column specifications
 	 * @return an array of flipped column specs in reversed order
@@ -102,7 +102,7 @@ public class FormLayoutUtil {
 		StringBuilder result = new StringBuilder();
 		String separator = "";
 		ColumnSpec[] flippedSpecs = flipped(ColumnSpec.decodeSpecs(encodedColumnSpecs));
-		
+
 		for (ColumnSpec spec : flippedSpecs) {
 			result.append(separator);
 			result.append(spec.encode());
@@ -116,7 +116,7 @@ public class FormLayoutUtil {
 	 * Creates and returns a horizontally flipped clone of the given cell
 	 * constraints object. Flips the horizontal alignment and the left and right
 	 * insets.
-	 * 
+	 *
 	 * @param cc
 	 *            the original cell constraints object
 	 * @return the flipped cell constraints with flipped horizontal alignment,
@@ -148,7 +148,7 @@ public class FormLayoutUtil {
 	 * count. Flips the horizontal alignment and the left and right insets. And
 	 * swaps the left and right cell positions according to the specified column
 	 * count.
-	 * 
+	 *
 	 * @param cc
 	 *            the original cell constraints object
 	 * @param columnCount
@@ -169,7 +169,7 @@ public class FormLayoutUtil {
 	 * orientation. The column specification is provided in left-to-right
 	 * format. When the orientation is left-to-right, the string is returned as
 	 * is. Otherwise the string is reworked to represent right-to-left.
-	 * 
+	 *
 	 * @param leftToRightColSpec
 	 *            The column specification for a left-to-right orientation.
 	 * @param orientation
@@ -189,7 +189,7 @@ public class FormLayoutUtil {
 	 * and orientation. This means that when the orientation is left-to-right,
 	 * the cell constraints are returned as is. When it is right-to-left, the
 	 * cell constraints are flipped horizontally.
-	 * 
+	 *
 	 * @param cc
 	 *            The cell constraints defined in left-to-right format.
 	 * @param colSpec
