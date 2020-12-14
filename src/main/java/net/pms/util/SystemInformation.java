@@ -76,8 +76,10 @@ public class SystemInformation extends Thread {
 			LOGGER.trace("", e);
 		}
 
-		sb.append("JVM: ").append(System.getProperty("java.vm.name")).append(" ").append(System.getProperty("java.version")).append(" (")
-			.append(System.getProperty("sun.arch.data.model")).append("-bit) by ").append(System.getProperty("java.vendor"));
+		sb.append("JVM: ").append(System.getProperty("java.vm.name")).append(" ")
+			.append(System.getProperty("java.version")).append(" (")
+			.append(System.getProperty("sun.arch.data.model")).append("-bit) by ")
+			.append(System.getProperty("java.vendor"));
 		result.add(sb.toString());
 		sb.setLength(0);
 		sb.append("OS: ");
@@ -162,8 +164,14 @@ public class SystemInformation extends Thread {
 		for (String s : getSystemInfo()) {
 			systemInfo.append("  ").append(s).append("\n");
 		}
-		((ch.qos.logback.classic.Logger) LOGGER).log(null, SystemInformation.class.getName(), locationAwareLogLevel, systemInfo.toString(),
-			null, null);
+		((ch.qos.logback.classic.Logger) LOGGER).log(
+			null,
+			SystemInformation.class.getName(),
+			locationAwareLogLevel,
+			systemInfo.toString(),
+			null,
+			null
+		);
 	}
 
 	/**

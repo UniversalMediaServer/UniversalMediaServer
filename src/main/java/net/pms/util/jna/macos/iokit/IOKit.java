@@ -257,8 +257,9 @@ public interface IOKit extends Library {
 	 * @since OS X 10.7
 	 */
 	KernReturnT IOPMAssertionCreateWithDescription(CFStringRef assertionType, CFStringRef name, CFStringRef details,
-		CFStringRef humanReadableReason, CFStringRef localizationBundlePath, double timeout, CFStringRef timeoutAction,
-		IntByReference assertionID);
+		CFStringRef humanReadableReason, CFStringRef localizationBundlePath, double timeout,
+		CFStringRef timeoutAction, IntByReference assertionID
+	);
 
 	/**
 	 * Creates an IOPMAssertion with more flexibility than
@@ -563,8 +564,12 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.6
 	 */
-	KernReturnT IOPMAssertionCreateWithName(CFStringRef assertionType, int assertionLevel, CFStringRef assertionName,
-		IntByReference assertionID);
+	KernReturnT IOPMAssertionCreateWithName(
+		CFStringRef assertionType,
+		int assertionLevel,
+		CFStringRef assertionName,
+		IntByReference assertionID
+	);
 
 	/**
 	 * Specifies an outer bound, in seconds, that this assertion should be
@@ -1713,8 +1718,12 @@ public interface IOKit extends Library {
 	 * @param options no options are currently defined.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IORegistryEntryCreateCFProperties(IORegistryEntryT entry, CFMutableDictionaryRefByReference properties,
-		CFAllocatorRef allocator, int options);
+	KernReturnT IORegistryEntryCreateCFProperties(
+		IORegistryEntryT entry,
+		CFMutableDictionaryRefByReference properties,
+		CFAllocatorRef allocator,
+		int options
+	);
 
 	/**
 	 * Create a CF representation of a registry entry's property.
@@ -1769,8 +1778,13 @@ public interface IOKit extends Library {
 	 *         returned the caller on success. The caller should release with
 	 *         {@link CoreFoundation#CFRelease}.
 	 */
-	CFTypeRef IORegistryEntrySearchCFProperty(IORegistryEntryT entry, IONameT plane, CFStringRef key, CFAllocatorRef allocator,
-		int options);
+	CFTypeRef IORegistryEntrySearchCFProperty(
+		IORegistryEntryT entry,
+		IONameT plane,
+		CFStringRef key,
+		CFAllocatorRef allocator,
+		int options
+	);
 
 	/**
 	 * Set CF container based properties in a registry entry.
