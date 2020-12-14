@@ -60,8 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
-
-	private final static PmsConfiguration CONFIGUTATION = PMS.getConfiguration();
+	private final static PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private final static Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private final static long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
 	private final static char[] SUBTITLES_UPPER_CASE;
@@ -180,7 +179,7 @@ public class SubtitleUtils {
 	 */
 	public static File applyCodepageConversion(File fileToConvert, File outputSubs) throws IOException {
 		String line;
-		String cp = CONFIGUTATION.getSubtitlesCodepage();
+		String cp = CONFIGURATION.getSubtitlesCodepage();
 		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp);
 
 		try (
@@ -588,7 +587,7 @@ public class SubtitleUtils {
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
 		}
 
-		int depth3D = CONFIGUTATION.getDepth3D();
+		int depth3D = CONFIGURATION.getDepth3D();
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
 		try (
 			BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), subsFileCharset));
@@ -610,16 +609,16 @@ public class SubtitleUtils {
 			String fontScaleX = "1";
 			String fontScaleY = "1";
 			if (isOU) {
-				fontScaleX = Double.toString(100 * Double.parseDouble(CONFIGUTATION.getAssScale()));
-				fontScaleY = Double.toString((100 * Double.parseDouble(CONFIGUTATION.getAssScale())) / 2);
+				fontScaleX = Double.toString(100 * Double.parseDouble(CONFIGURATION.getAssScale()));
+				fontScaleY = Double.toString((100 * Double.parseDouble(CONFIGURATION.getAssScale())) / 2);
 			} else if (isSBS) {
-				fontScaleX = Double.toString((100 * Double.parseDouble(CONFIGUTATION.getAssScale())) / 2);
-				fontScaleY = Double.toString(100 * Double.parseDouble(CONFIGUTATION.getAssScale()));
+				fontScaleX = Double.toString((100 * Double.parseDouble(CONFIGURATION.getAssScale())) / 2);
+				fontScaleY = Double.toString(100 * Double.parseDouble(CONFIGURATION.getAssScale()));
 			}
 
-			String primaryColour = CONFIGUTATION.getSubsColor().getASSv4StylesHexValue();
-			String outline = CONFIGUTATION.getAssOutline();
-			String shadow = CONFIGUTATION.getAssShadow();
+			String primaryColour = CONFIGURATION.getSubsColor().getASSv4StylesHexValue();
+			String outline = CONFIGURATION.getAssOutline();
+			String shadow = CONFIGURATION.getAssShadow();
 			outputString.append("Style: Default,Arial,").append("15").append(',').append(primaryColour)
 				.append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScaleX).append(',').append(fontScaleY).append(",0,0,1,")
 				.append(outline).append(',').append(shadow);
@@ -701,7 +700,7 @@ public class SubtitleUtils {
 	}
 
 	public static void deleteSubs() {
-		FileUtils.deleteQuietly(new File(CONFIGUTATION.getDataFile(SUB_DIR)));
+		FileUtils.deleteQuietly(new File(CONFIGURATION.getDataFile(SUB_DIR)));
 	}
 
 	/**
