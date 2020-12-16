@@ -820,7 +820,7 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
 						insertStatement.setInt(18, audioTrack.getBitRate());
 						insertStatement.setString(19, audioTrack.getMbidRecord());
-						insertStatement.setString(19, audioTrack.getMbidTrack());
+						insertStatement.setString(20, audioTrack.getMbidTrack());
 						insertStatement.executeUpdate();
 					}
 				}
