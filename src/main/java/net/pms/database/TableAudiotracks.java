@@ -53,10 +53,7 @@ public class TableAudiotracks extends Tables{
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
 						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
-							"\" before starting UMS"
+							"Database table \"" + TABLE_NAME + "\" is from a newer version of UMS."
 						);
 					}
 				} else {
