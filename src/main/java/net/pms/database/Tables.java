@@ -92,7 +92,7 @@ public class Tables {
 					TableVideoMetadataRated.checkTable(connection);
 					TableVideoMetadataRatings.checkTable(connection);
 					TableVideoMetadataReleased.checkTable(connection);
-					
+
 					// Audio Metadata
 					TableAudiotracks.checkTable(connection);
 				}
