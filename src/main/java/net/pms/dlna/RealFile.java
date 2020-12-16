@@ -60,6 +60,16 @@ public class RealFile extends MapFile {
 		setIsEpisodeWithinTVSeriesFolder(isEpisodeWithinTVSeriesFolder);
 	}
 
+	public RealFile(File file, MapFile mapFile) {
+		getConf().getFiles().add(file);
+		setLastModified(file.lastModified());
+		if (file.isFile()) {
+			setParent(mapFile);
+			resolveFormat();
+			resolve();
+		}
+	}
+
 	/**
 	 * Add the file to MapFileConfiguration->Files.
 	 *

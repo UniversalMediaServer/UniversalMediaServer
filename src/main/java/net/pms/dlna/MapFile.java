@@ -253,7 +253,7 @@ public class MapFile extends DLNAResource {
 						LOGGER.debug("Ignoring {} because it is in the ignored folders list", f.getName());
 					} else {
 						// Otherwise add the file
-						RealFile rf = new RealFile(f);
+						RealFile rf = new RealFile(f, this);
 						if (rf.length() == 0  && !rf.isFolder()) {
 							LOGGER.debug("Ignoring {} because it seems corrupted when the length of the file is 0", f.getName());
 							return;
