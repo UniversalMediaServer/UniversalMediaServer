@@ -14,6 +14,7 @@ public class MediaLibrary extends VirtualFolder {
 	public MediaLibraryFolder getAllFolder() {
 		return allFolder;
 	}
+
 	private MediaLibraryFolder albumFolder;
 	private MediaLibraryFolder artistFolder;
 	private MediaLibraryFolder genreFolder;
@@ -94,8 +95,8 @@ public class MediaLibrary extends VirtualFolder {
 		);
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
 			Messages.getString("MediaLibrary.RecentlyAdded"),
-			new String[]{ "SELECT * FROM FILES WHERE TYPE = 4 ORDER BY FILES.MODIFIED DESC LIMIT 100" },
-			new int[]{ MediaLibraryFolder.FILES_NOSORT }
+			new String[]{"SELECT * FROM FILES WHERE TYPE = 4 ORDER BY FILES.MODIFIED DESC LIMIT 100"},
+			new int[]{MediaLibraryFolder.FILES_NOSORT}
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(
 			Messages.getString("MediaLibrary.InProgress"),

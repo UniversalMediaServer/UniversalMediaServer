@@ -1,7 +1,7 @@
 package net.pms.io;
 
 public class StreamModifier {
-	private byte header[];
+	private byte[] header;
 	private boolean h264AnnexB;
 	private boolean pcm;
 	private int nbChannels;

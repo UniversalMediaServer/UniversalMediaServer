@@ -167,7 +167,7 @@ public class RealFile extends MapFile {
 			File file = getFile();
 			if (file.getName().trim().isEmpty()) {
 				if (Platform.isWindows()) {
-					name = BasicSystemUtils.INSTANCE.getDiskLabel(file);
+					name = BasicSystemUtils.instance.getDiskLabel(file);
 				}
 				if (name != null && name.length() > 0) {
 					name = file.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";

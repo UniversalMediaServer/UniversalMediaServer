@@ -33,6 +33,6 @@ public class TTA extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "tta" };
+		return new String[] {"tta"};
 	}
 }

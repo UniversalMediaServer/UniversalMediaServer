@@ -44,6 +44,6 @@ public class CustomJComboBox<E> extends JComboBox<E> {
 	}
 
 	public CustomJComboBox(Vector<E> items) {
-	    super(items);
+		super(items);
 	}
 }

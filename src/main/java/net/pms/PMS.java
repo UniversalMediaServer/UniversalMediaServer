@@ -62,7 +62,6 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.PlayerFactory;
-import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
@@ -182,7 +181,7 @@ public class PMS {
 	 * it's holding is not. Any looping/iterating of this <code>List</code>
 	 * MUST be enclosed in:
 	 * S<pre><code>
-	 * synchronized(getFoundRenderers()) {
+	 * synchronized (getFoundRenderers()) {
 	 *      ..code..
 	 * }
 	 * </code></pre>
@@ -584,13 +583,13 @@ public class PMS {
 		frame.setConnectionState(ConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.INSTANCE.isAviSynthAvailable() && BasicSystemUtils.INSTANCE.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
+		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.instance.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(BasicSystemUtils.instance.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(BasicSystemUtils.instance.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -600,7 +599,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.INSTANCE.isKerioFirewall()) {
+		if (BasicSystemUtils.instance.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
@@ -763,40 +762,38 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main DMS window or via
-	 * an action item.
+	 * Restarts the server. The trigger is either a button on the main DMS
+	 * window or via an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
 	public void reset() {
-		TaskRunner.getInstance().submitNamed("restart", true, new Runnable() {
-			@Override
-			public void run() {
-				try {
-					LOGGER.trace("Waiting 1 second...");
-					UPNPHelper.sendByeBye();
-					if (server != null) {
-						server.stop();
-					}
-					server = null;
-					RendererConfiguration.loadRendererConfigurations(configuration);
-
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						LOGGER.trace("Caught exception", e);
-					}
-
-					server = new HTTPServer(configuration.getServerPort());
-					server.start();
-					
-					// re-create the multicast socked because may happened the change of the used interface
-					UPNPHelper.getInstance().createMulticastSocket();
-					UPNPHelper.sendAlive();
-					frame.setReloadable(false);
-				} catch (IOException e) {
-					LOGGER.error("error during restart :" +e.getMessage(), e);
+		TaskRunner.getInstance().submitNamed("restart", true, () -> {
+			try {
+				LOGGER.trace("Waiting 1 second...");
+				UPNPHelper.sendByeBye();
+				if (server != null) {
+					server.stop();
 				}
+				server = null;
+				RendererConfiguration.loadRendererConfigurations(configuration);
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					LOGGER.trace("Caught exception", e);
+				}
+
+				server = new HTTPServer(configuration.getServerPort());
+				server.start();
+
+				// re-create the multicast socked because may happened the
+				// change of the used interface
+				UPNPHelper.getInstance().createMulticastSocket();
+				UPNPHelper.sendAlive();
+				frame.setReloadable(false);
+			} catch (IOException e) {
+				LOGGER.error("error during restart :" + e.getMessage(), e);
 			}
 		});
 	}
@@ -872,12 +869,12 @@ public class PMS {
 
 	@Nonnull
 	public static PMS getNewInstance() {
-		instance=null;
+		instance = null;
 		createInstance();
 		return instance;
 	}
 
-	private synchronized static void createInstance() {
+	private static synchronized void createInstance() {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
 
@@ -893,7 +890,7 @@ public class PMS {
 		}
 	}
 
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
 		File profilePath = null;
@@ -1221,11 +1218,11 @@ public class PMS {
 			if (logFile.exists()) {
 				File newFile = new File(newLogFileName);
 				if (!logFile.renameTo(newFile)) {
-					LOGGER.warn("Could not rename \"{}\" to \"{}\"",fullLogFileName,newLogFileName);
+					LOGGER.warn("Could not rename \"{}\" to \"{}\"", fullLogFileName, newLogFileName);
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}",fullLogFileName,newLogFileName,e);
+			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}", fullLogFileName, newLogFileName, e);
 		}
 	}
 
@@ -1244,7 +1241,7 @@ public class PMS {
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
-		} catch ( IOException e) {
+		} catch (IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
 
@@ -1252,7 +1249,7 @@ public class PMS {
 			dumpPid();
 		} catch (FileNotFoundException e) {
 			LOGGER.error(
-				"Failed to write PID file: "+ e.getMessage() +
+				"Failed to write PID file: " + e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
 			);
 		} catch (IOException e) {
@@ -1300,7 +1297,7 @@ public class PMS {
 		// check first and last, update since taskkill changed
 		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
 		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
-			  		  tmp[tmp.length - 2].contains("universal media server");
+						tmp[tmp.length - 2].contains("universal media server");
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
@@ -1308,7 +1305,7 @@ public class PMS {
 		return configuration.getDataFile("pms.pid");
 	}
 
-	private static void killProc() throws AccessControlException, IOException{
+	private static void killProc() throws AccessControlException, IOException {
 		ProcessBuilder pb = null;
 		String pid;
 		String pidFile = pidFile();
@@ -1620,14 +1617,13 @@ public class PMS {
 				} catch (Exception e) {
 					LOGGER.debug("Can't create chromecast mgr");
 				}
-			}
-			else {
+			} else {
 				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
 			}
 		}
 	}
 
-	private void startjmDNS() throws IOException{
+	private void startjmDNS() throws IOException {
 		if (jmDNS == null) {
 			jmDNS = JmDNS.create();
 		}
@@ -1682,7 +1678,7 @@ public class PMS {
 	private UmsKeysDb keysDb;
 
 	public static String getKey(String key) {
-		 return instance.keysDb.get(key);
+		return instance.keysDb.get(key);
 	}
 
 	public static void setKey(String key, String val) {

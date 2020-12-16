@@ -22,7 +22,6 @@ package net.pms.dlna;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-
 /**
  * An abstract class that is the parent of all on-demand subtitles resources
  * that might not be available locally until fetched from its source.

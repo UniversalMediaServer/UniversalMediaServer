@@ -70,7 +70,7 @@ public class RemoteRawHandler implements HttpHandler {
 					root.getDefaultRenderer().getMimeType(dlna);
 
 				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : dlna.length();
-				range = new Range.Byte(0l, len);
+				range = new Range.Byte(0L, len);
 				if (supported) {
 					in = dlna.getInputStream();
 				} else {

@@ -272,7 +272,7 @@ public class Request extends HTTPResource {
 		this.output = output;
 		List<String> responseHeader = new ArrayList<>();
 
-		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
+		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		if (lowRange != 0 || highRange != 0) {
 			appendToHeader(responseHeader, http10 ? HTTP_206_OK_10 : HTTP_206_OK);
 		} else {
@@ -495,7 +495,7 @@ public class Request extends HTTPResource {
 						LOGGER.error("There is no inputstream to return for " + name);
 					} else {
 						startStopListenerDelegate.start(dlna);
-						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(mediaRenderer, dlna)); 
+						appendToHeader(responseHeader, "Content-Type: " + getRendererMimeType(mediaRenderer, dlna));
 
 						MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
 						if (mediaType == MediaType.VIDEO) {
@@ -581,13 +581,13 @@ public class Request extends HTTPResource {
 							// Content-Length refers to the current chunk size here, though in chunked
 							// mode if the request is open-ended and totalsize is unknown we omit it.
 							if (chunked && requested < 0 && totalsize < 0) {
-								CLoverride = -1;
+								cLoverride = -1;
 							} else {
-								CLoverride = bytes;
+								cLoverride = bytes;
 							}
 						} else {
 							// Content-Length refers to the total remaining size of the stream here.
-							CLoverride = remaining;
+							cLoverride = remaining;
 						}
 
 						if (contentFeatures != null) {
@@ -626,7 +626,7 @@ public class Request extends HTTPResource {
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
 
 			if (argument.equals("description/fetch")) {
-				byte b[] = new byte[inputStream.available()];
+				byte[] b = new byte[inputStream.available()];
 				inputStream.read(b);
 				String s = new String(b, StandardCharsets.UTF_8);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
@@ -639,8 +639,8 @@ public class Request extends HTTPResource {
 				String friendlyName = configuration.getServerDisplayName();
 				if (xbox360) {
 					friendlyName += " : Windows Media Connect";
-					   s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-      			}
+					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
+				}
 
 				s = s.replace("Universal Media Server", StringEscapeUtils.escapeXml10(friendlyName));
 
@@ -812,11 +812,11 @@ public class Request extends HTTPResource {
 						if (xbox360 && containerID != null) {
 							uf.setFakeParentId(containerID);
 						}
-						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
-							|| uf.getPlayer().isPlayerCompatible(mediaRenderer))
+						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null ||
+							uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
 							// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-							 // all possible combination not only those supported by renderer because the renderer setting could be wrong.
-							|| files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
+							// all possible combination not only those supported by renderer because the renderer setting could be wrong.
+							files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
 								response.append(uf.getDidlString(mediaRenderer));
 						} else {
 							minus++;
@@ -953,7 +953,7 @@ public class Request extends HTTPResource {
 
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
-			byte responseData[] = response.toString().getBytes(StandardCharsets.UTF_8);
+			byte[] responseData = response.toString().getBytes(StandardCharsets.UTF_8);
 			appendToHeader(responseHeader, "Content-Length: " + responseData.length);
 			appendToHeader(responseHeader, "");
 			sendHeader(responseHeader);
@@ -966,13 +966,13 @@ public class Request extends HTTPResource {
 		} else if (inputStream != null) {
 			// There is an input stream to send as a response.
 
-			if (CLoverride > -2) {
+			if (cLoverride > -2) {
 				// Content-Length override has been set, send or omit as appropriate
-				if (CLoverride > -1 && CLoverride != DLNAMediaInfo.TRANS_SIZE) {
+				if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
 					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 					// as the PS3 will display a network error and request the last seconds of the
 					// transcoded video. Better to send no Content-Length at all.
-					appendToHeader(responseHeader, "Content-Length: " + CLoverride);
+					appendToHeader(responseHeader, "Content-Length: " + cLoverride);
 				}
 			} else {
 				int cl = inputStream.available();

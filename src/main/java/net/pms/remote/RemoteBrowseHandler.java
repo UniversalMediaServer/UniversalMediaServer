@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
 	private final RemoteWeb parent;
-	private final static PmsConfiguration configuration = PMS.getConfiguration();
+	private final static PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	public RemoteBrowseHandler(RemoteWeb parent) {
 		this.parent = parent;
@@ -66,18 +66,18 @@ public class RemoteBrowseHandler implements HttpHandler {
 					.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
 			} else {
 				bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
-				   .append(RemoteUtil.getMsgString("Web.2", t))
-				   .append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
+					.append(RemoteUtil.getMsgString("Web.2", t))
+					.append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
 			}
 
 			if (resource.getParent() instanceof Playlist) {
 				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 					.append(idForWeb).append("', true);return false;\" title=\"")
-				    .append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
+					.append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
 			} else {
 				bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
 					.append(idForWeb).append("', false);return false;\" title=\"")
-				    .append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
+					.append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
 			}
 		} else {
 			// ensure that we got a string
@@ -179,7 +179,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 					HashMap<String, String> item = new HashMap<>();
 					String faIcon;
-					switch(name) {
+					switch (name) {
 						case "Video":
 							faIcon = "fa-video";
 							break;
@@ -355,7 +355,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			MediaLibraryFolder folder = (MediaLibraryFolder) rootResource;
 			if (
 				folder.isTVSeries() &&
-				configuration.getUseCache()
+				CONFIGURATION.getUseCache()
 			) {
 				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, true, root);
 				if (apiMetadataAsJavaScriptVars != null) {
@@ -393,11 +393,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 			}
 		}
 
-		if (configuration.useWebControl()) {
+		if (CONFIGURATION.useWebControl()) {
 			mustacheVars.put("push", true);
 		}
 
-		mustacheVars.put("name", id.equals("0") ? configuration.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
+		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
 		mustacheVars.put("hasFile", hasFile);
 		mustacheVars.put("folders", folders);
 		mustacheVars.put("media", media);

@@ -621,10 +621,10 @@ public class MapFile extends DLNAResource {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public boolean isAddToMediaLibrary() {
 		return getConf().isAddToMediaLibrary();
 	}
-	
+
 }

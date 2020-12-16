@@ -16,15 +16,15 @@ public class CredMgr {
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CredMgr.class);
-	private HashMap<MultiKey,ArrayList<Credential>> credentials;
-	private HashMap<MultiKey,String> tags;
+	private HashMap<MultiKey, ArrayList<Credential>> credentials;
+	private HashMap<MultiKey, String> tags;
 	private File credFile;
 
 	public CredMgr(File f) {
 		credentials = new HashMap<>();
 		tags = new HashMap<>();
 		credFile = f;
-		FileWatcher.add(new FileWatcher.Watch(f.getPath(), reloader, this));
+		FileWatcher.add(new FileWatcher.Watch(f.getPath(), RELOADER, this));
 		try {
 			readFile();
 		} catch (IOException e) {
@@ -32,23 +32,23 @@ public class CredMgr {
 		}
 	}
 
-	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			try {
-				((CredMgr)watch.getItem()).readFile();
+				((CredMgr) watch.getItem()).readFile();
 			} catch (IOException e) {
 				LOGGER.debug("Error during credfile init " + e);
 			}
 		}
 	};
 
-	private void readFile() throws IOException{
+	private void readFile() throws IOException {
 		// clear all data first, if file is gone so are all creds
 		credentials.clear();
 		tags.clear();
 
-		if(!credFile.exists()) {
+		if (!credFile.exists()) {
 			return;
 		}
 
@@ -82,7 +82,7 @@ public class CredMgr {
 				val.username = s2[0];
 				val.password = s2[1];
 				ArrayList<Credential> old = credentials.get(key);
-				if(old == null) {
+				if (old == null) {
 					old = new ArrayList<>();
 				}
 				old.add(val);
@@ -119,11 +119,11 @@ public class CredMgr {
 	public boolean verify(String owner, String tag, String user, String pwd) {
 		MultiKey key = createKey(owner, tag);
 		ArrayList<Credential> list = credentials.get(key);
-		if(list == null) {
+		if (list == null) {
 			return false;
 		}
-		for(Credential c : list) {
-			if(user.equals(c.username)) {
+		for (Credential c : list) {
+			if (user.equals(c.username)) {
 				// found user compare pwd
 				return pwd.equals(c.password);
 			}

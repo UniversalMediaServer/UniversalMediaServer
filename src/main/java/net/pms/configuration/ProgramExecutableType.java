@@ -24,7 +24,6 @@ import java.util.Locale;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 
-
 /**
  * Defines executable types for external programs.
  *

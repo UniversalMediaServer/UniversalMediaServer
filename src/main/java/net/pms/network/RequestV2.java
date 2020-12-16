@@ -260,7 +260,7 @@ public class RequestV2 extends HTTPResource {
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
-		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
+		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
 		InputStream inputStream = null;
@@ -605,17 +605,17 @@ public class RequestV2 extends HTTPResource {
 							// Content-Length refers to the current chunk size here, though in chunked
 							// mode if the request is open-ended and totalsize is unknown we omit it.
 							if (chunked && requested < 0 && totalsize < 0) {
-								CLoverride = -1;
+								cLoverride = -1;
 							} else {
-								CLoverride = bytes;
+								cLoverride = bytes;
 							}
 						} else {
 							// Content-Length refers to the total remaining size of the stream here.
-							CLoverride = remaining;
+							cLoverride = remaining;
 						}
 
 						// Calculate the corresponding highRange (this is usually redundant).
-						highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
+						highRange = lowRange + cLoverride - (cLoverride > 0 ? 1 : 0);
 
 						if (contentFeatures != null) {
 							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
@@ -673,7 +673,7 @@ public class RequestV2 extends HTTPResource {
 		ChannelFuture future;
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
-			byte responseData[] = response.toString().getBytes(StandardCharsets.UTF_8);
+			byte[] responseData = response.toString().getBytes(StandardCharsets.UTF_8);
 			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
 
 			// HEAD requests only require headers to be set, no need to set contents.
@@ -693,13 +693,13 @@ public class RequestV2 extends HTTPResource {
 		} else if (inputStream != null) {
 			// There is an input stream to send as a response.
 
-			if (CLoverride > -2) {
+			if (cLoverride > -2) {
 				// Content-Length override has been set, send or omit as appropriate
-				if (CLoverride > -1 && CLoverride != DLNAMediaInfo.TRANS_SIZE) {
+				if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
 					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 					// as the PS3 will display a network error and request the last seconds of the
 					// transcoded video. Better to send no Content-Length at all.
-					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + CLoverride);
+					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + cLoverride);
 				}
 			} else {
 				int contentLength = inputStream.available();
@@ -825,7 +825,7 @@ public class RequestV2 extends HTTPResource {
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		InputStream iStream = getResourceInputStream((uri.equals("description/fetch") ? "PMS.xml" : uri));
 
-		byte b[] = new byte[iStream.available()];
+		byte[] b = new byte[iStream.available()];
 		iStream.read(b);
 		String s = new String(b, StandardCharsets.UTF_8);
 
@@ -850,9 +850,9 @@ public class RequestV2 extends HTTPResource {
 		} else {
 			if (mediaRenderer.isSamsung()) {
 				// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
-				result = result.replace("<serialNumber/>", "<serialNumber/>" + CRLF
-						+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
-						+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
+				result = result.replace("<serialNumber/>", "<serialNumber/>" + CRLF +
+						"<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF +
+						"<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
 			}
 		}
 
@@ -1170,12 +1170,10 @@ public class RequestV2 extends HTTPResource {
 
 				if (
 					uf.isCompatible(mediaRenderer) &&
-					(
-						uf.getPlayer() == null ||
-						uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
-						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-						files.get(0).getParent() instanceof FileTranscodeVirtualFolder
+					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
+					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
+					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
+					files.get(0).getParent() instanceof FileTranscodeVirtualFolder
 				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {

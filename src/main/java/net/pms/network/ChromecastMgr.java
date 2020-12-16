@@ -123,7 +123,7 @@ public class ChromecastMgr implements ServiceListener {
 		public BasicPlayer getPlayer() {
 			if (player == null) {
 				player = new ChromecastPlayer(this, chromeCast);
-				((ChromecastPlayer)player).startPoll();
+				((ChromecastPlayer) player).startPoll();
 			}
 			return player;
 		}
