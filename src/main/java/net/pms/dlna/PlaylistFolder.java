@@ -127,7 +127,7 @@ public class PlaylistFolder extends DLNAResource {
 			return result != null ? result : super.getThumbnailInputStream();
 		}
 		return null;
-	}	
+	}
 
 	@Override
 	protected void resolveOnce() {

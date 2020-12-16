@@ -2434,11 +2434,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (first != null && media != null && !media.isSecondaryFormatValid()) {
 			uclass = "dummy";
 		} else if (isFolder) {
-			  if (this instanceof PlaylistFolder) {
-		        uclass = "object.container.playlistContainer";
-			  } else {
+			if (this instanceof PlaylistFolder) {
+				uclass = "object.container.playlistContainer";
+			} else {
 				uclass = "object.container.storageFolder";
-			  }
+			}
 			if (xbox360 && getFakeParentId() != null) {
 				switch (getFakeParentId()) {
 					case "7":
