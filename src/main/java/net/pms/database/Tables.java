@@ -321,7 +321,7 @@ public class Tables {
 	 * @see https://stackoverflow.com/a/10213258/2049714
 	 * @param rs
 	 * @return
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	public static List<HashMap<String, Object>> convertResultSetToList(ResultSet rs) throws SQLException {
 		ResultSetMetaData md = rs.getMetaData();
@@ -342,7 +342,7 @@ public class Tables {
 	/**
 	 * @param rs
 	 * @return the rows of the first column of a result set
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	public static HashSet convertResultSetToHashSet(ResultSet rs) throws SQLException {
 		HashSet list = new HashSet();
@@ -358,7 +358,7 @@ public class Tables {
 	 * @see https://stackoverflow.com/a/10213258/2049714
 	 * @param rs
 	 * @return
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	public static HashMap<String, Object> convertSingleResultSetToList(ResultSet rs) throws SQLException {
 		ResultSetMetaData md = rs.getMetaData();

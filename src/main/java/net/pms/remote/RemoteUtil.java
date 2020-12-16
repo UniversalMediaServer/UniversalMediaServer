@@ -716,7 +716,7 @@ public class RemoteUtil {
 			}
 		}
 
-		if (hasAPIMetadata == false) {
+		if (!hasAPIMetadata) {
 			return null;
 		}
 
@@ -765,7 +765,7 @@ public class RemoteUtil {
 		}
 		ratingsArrayJavaScript += "];";
 		javascriptVarsScript += ratingsArrayJavaScript;
-		
+
 		return javascriptVarsScript;
 	}
 }

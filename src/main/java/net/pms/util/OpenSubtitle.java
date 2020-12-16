@@ -130,7 +130,7 @@ import net.pms.util.XMLRPCUtil.ValueStruct;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
@@ -163,7 +163,7 @@ public class OpenSubtitle {
 
 	private static Gson gson = new Gson();
 
-	private static final UriFileRetriever uriFileRetriever = new UriFileRetriever();
+	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
@@ -1896,7 +1896,7 @@ public class OpenSubtitle {
 	 */
 	private static String getInfoFromFilename(String title, boolean isSeries, String year) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
-		String endpoint = isSeries == true ? "seriestitle" : "title";
+		String endpoint = isSeries ? "seriestitle" : "title";
 
 		List getParameters = new ArrayList();
 		if (isNotBlank(title)) {
@@ -4791,15 +4791,15 @@ public class OpenSubtitle {
 				return (String) seriesMetadataFromDatabase.get("TITLE");
 			} else {
 				/*
-				 * This either means there is no entry in the TV Series table for this series, or 
+				 * This either means there is no entry in the TV Series table for this series, or
 				 * there is but it only contains filename info - not API yet.
 				 */
 				if (overTheTopLogging) {
 					LOGGER.trace("Metadata for TV series {} ({}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
 				}
-				
+
 				// Start by checking if we have already failed this lookup recently
-				if (TableFailedLookups.hasLookupFailedRecently(failedLookupKey) == true) {
+				if (TableFailedLookups.hasLookupFailedRecently(failedLookupKey)) {
 					return null;
 				}
 
@@ -4886,7 +4886,7 @@ public class OpenSubtitle {
 				// Set the poster as the thumbnail
 				if (seriesMetadataFromAPI.get("poster") != null) {
 					try {
-						byte[] image = uriFileRetriever.get((String) seriesMetadataFromAPI.get("poster"));
+						byte[] image = URI_FILE_RETRIEVER.get((String) seriesMetadataFromAPI.get("poster"));
 						TableThumbnails.setThumbnail(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
 					} catch (EOFException e) {
 						LOGGER.debug(
@@ -4950,7 +4950,7 @@ public class OpenSubtitle {
 			return;
 		}
 
-		if (TableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath()) == true) {
+		if (TableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath())) {
 			return;
 		}
 
@@ -5083,7 +5083,7 @@ public class OpenSubtitle {
 				// Set the poster as the thumbnail
 				if (metadataFromAPI.get("poster") != null) {
 					try {
-						byte[] image = uriFileRetriever.get((String) metadataFromAPI.get("poster"));
+						byte[] image = URI_FILE_RETRIEVER.get((String) metadataFromAPI.get("poster"));
 						media.setThumb(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false));
 					} catch (EOFException e) {
 						LOGGER.debug(
@@ -5122,7 +5122,7 @@ public class OpenSubtitle {
 					media.setIsTVEpisode(true);
 				}
 
-				if (configuration.getUseCache()) {
+				if (CONFIGURATION.getUseCache()) {
 					LOGGER.trace("setting metadata for " + file.getName());
 					PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 

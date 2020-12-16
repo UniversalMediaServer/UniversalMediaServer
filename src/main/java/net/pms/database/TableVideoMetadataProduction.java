@@ -146,9 +146,7 @@ public final class TableVideoMetadataProduction extends Tables {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
-					if (version < TABLE_VERSION) {
-//						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
+					if (version > TABLE_VERSION) {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +

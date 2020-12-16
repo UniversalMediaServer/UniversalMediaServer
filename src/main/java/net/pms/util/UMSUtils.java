@@ -55,7 +55,7 @@ public class UMSUtils {
 	 * not match or contain searchString.
 	 *
 	 * @param resources
-	 * @param searchString 
+	 * @param searchString
 	 * @param isExpectOneResult whether to only return one result
 	 * @param isExactMatch whether to only return exact matches
 	 */
