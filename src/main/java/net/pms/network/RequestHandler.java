@@ -257,7 +257,7 @@ public class RequestHandler implements Runnable {
 			}
 
 			if (receivedContentLength > 0) {
-				char buf[] = new char[receivedContentLength];
+				char[] buf = new char[receivedContentLength];
 				br.read(buf);
 				if (request != null) {
 					String textContent = new String(buf);
@@ -265,7 +265,7 @@ public class RequestHandler implements Runnable {
 					if (LOGGER.isTraceEnabled()) {
 						logMessageReceived(headerLines, textContent, socket.getRemoteSocketAddress(), renderer);
 					}
-				} else if (LOGGER.isTraceEnabled() ){
+				} else if (LOGGER.isTraceEnabled()) {
 					logMessageReceived(headerLines, null, socket.getRemoteSocketAddress(), renderer);
 				}
 			}

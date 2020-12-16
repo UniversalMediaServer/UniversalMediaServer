@@ -33,6 +33,6 @@ public class SAMI extends SubtitleBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "smi" };
+		return new String[] {"smi"};
 	}
 }

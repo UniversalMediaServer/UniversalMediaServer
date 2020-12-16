@@ -15,11 +15,9 @@ import com.drew.metadata.jpeg.JpegComponent;
 import com.drew.metadata.jpeg.JpegDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class JPEGInfo extends ExifInfo {
-
 	protected final Map<Integer, JpegComponent> components;
 	protected final Integer jfifVersion;
 	protected final CompressionType compressionType;
@@ -229,18 +227,17 @@ public class JPEGInfo extends ExifInfo {
 					JPEGSubsamplingNotation.calculateJPEGSubsampling((JpegDirectory) directory);
 			} else if (directory instanceof JfifDirectory) {
 				if (((JfifDirectory) directory).containsTag(JfifDirectory.TAG_VERSION)) {
-					 Integer i = ((JfifDirectory) directory).getInteger(JfifDirectory.TAG_VERSION);
-					 if (i != null) {
-						 ((JPEGParseInfo) parsedInfo).jfifVersion = i;
-					 }
+					Integer i = ((JfifDirectory) directory).getInteger(JfifDirectory.TAG_VERSION);
+					if (i != null) {
+						((JPEGParseInfo) parsedInfo).jfifVersion = i;
+					}
 				}
-			} else if (directory instanceof HuffmanTablesDirectory){
+			} else if (directory instanceof HuffmanTablesDirectory) {
 				((JPEGParseInfo) parsedInfo).isTypicalHuffman =
 					Boolean.valueOf(((HuffmanTablesDirectory) directory).isTypical());
 			}
 		}
 	}
-
 
 	/**
 	 * @return The {@link Map} of {@link JpegComponent}s.
@@ -261,7 +258,6 @@ public class JPEGInfo extends ExifInfo {
 		return components.get(componentIndex);
 	}
 
-
 	/**
 	 * @return The JFIF version multiplied with 100 or {@link ImageInfo#UNKNOWN}
 	 *         if unknown.
@@ -269,7 +265,6 @@ public class JPEGInfo extends ExifInfo {
 	public int getJFIFVersion() {
 		return jfifVersion != null ? jfifVersion.intValue() : UNKNOWN;
 	}
-
 
 	/**
 	 * @return The {@link CompressionType}.

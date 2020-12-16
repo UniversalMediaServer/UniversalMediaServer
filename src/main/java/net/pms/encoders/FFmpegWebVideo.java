@@ -62,21 +62,21 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	/**
 	 * Must be used to protect all access to {@link #excludes}, {@link #autoOptions} and {@link #replacements}
 	 */
-	protected static final ReentrantReadWriteLock filtersLock = new ReentrantReadWriteLock();
+	protected static final ReentrantReadWriteLock FILTERS_LOCK = new ReentrantReadWriteLock();
 
 	static {
-		readWebFilters(_configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
+		readWebFilters(CONFIGURATION.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 	}
 
 	/**
 	 * All access must be protected with {@link #filtersLock}
 	 */
-	protected static final PatternMap<Object> excludes = new PatternMap<>();
+	protected static final PatternMap<Object> EXCLUDES = new PatternMap<>();
 
 	/**
 	 * All access must be protected with {@link #filtersLock}
 	 */
-	protected static final PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+	protected static final PatternMap<ArrayList> AUTO_OPTIONS = new PatternMap<ArrayList>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
 		@Override
@@ -88,25 +88,25 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	/**
 	 * All access must be protected with {@link #filtersLock}
 	 */
-	protected static final PatternMap<String> replacements = new PatternMap<>();
+	protected static final PatternMap<String> REPLACEMENTS = new PatternMap<>();
 
 	protected static boolean readWebFilters(String filename) {
 		String line;
 		try {
 			LineIterator it = FileUtils.lineIterator(new File(filename));
-			filtersLock.writeLock().lock();
+			FILTERS_LOCK.writeLock().lock();
 			try {
 				PatternMap<?> filter = null;
 				while (it.hasNext()) {
 					line = it.nextLine().trim();
 					if (line.isEmpty() || line.startsWith("#")) {
-						// continue
+						continue;
 					} else if (line.equals("EXCLUDE")) {
-						filter = excludes;
+						filter = EXCLUDES;
 					} else if (line.equals("OPTIONS")) {
-						filter = autoOptions;
+						filter = AUTO_OPTIONS;
 					} else if (line.equals("REPLACE")) {
-						filter = replacements;
+						filter = REPLACEMENTS;
 					} else if (filter != null) {
 						String[] var = line.split(" \\| ", 2);
 						filter.add(var[0], var.length > 1 ? var[1] : null);
@@ -114,7 +114,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				}
 				return true;
 			} finally {
-				filtersLock.writeLock().unlock();
+				FILTERS_LOCK.writeLock().unlock();
 				it.close();
 			}
 		} catch (FileNotFoundException e) {
@@ -177,32 +177,32 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		// check if we have modifier for this url
-		filtersLock.readLock().lock();
+		FILTERS_LOCK.readLock().lock();
 		try {
-			String r = replacements.match(filename);
+			String r = REPLACEMENTS.match(filename);
 			if (r != null) {
-				filename = filename.replaceAll(r, replacements.get(r));
+				filename = filename.replaceAll(r, REPLACEMENTS.get(r));
 				LOGGER.debug("Modified url: {}", filename);
 			}
 		} finally {
-			filtersLock.readLock().unlock();
+			FILTERS_LOCK.readLock().unlock();
 		}
 
 		FFmpegOptions customOptions = new FFmpegOptions();
 
 		// Gather custom options from various sources in ascending priority:
 		// - automatic options
-		filtersLock.readLock().lock();
+		FILTERS_LOCK.readLock().lock();
 		try {
-			String match = autoOptions.match(filename);
+			String match = AUTO_OPTIONS.match(filename);
 			if (match != null) {
-				List<String> opts = autoOptions.get(match);
+				List<String> opts = AUTO_OPTIONS.get(match);
 				if (opts != null) {
 					customOptions.addAll(opts);
 				}
 			}
 		} finally {
-			filtersLock.readLock().unlock();
+			FILTERS_LOCK.readLock().unlock();
 		}
 		// - (http) header options
 		if (params.getHeader() != null && params.getHeader().length > 0) {
@@ -317,14 +317,14 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// This process wraps the command that creates the named pipe
 		PipeProcess pipe = new PipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
-		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+		ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
 		/**
 		 * It can take a long time for Windows to create a named pipe (and
 		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
 		 * the current thread.
 		 */
-		mkfifo_process.runInSameThread();
+		mkfifoProcess.runInSameThread();
 
 		params.getInputPipes()[0] = pipe;
 
@@ -338,7 +338,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		parseMediaInfo(filename, dlna, pw); // Better late than never
-		pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
+		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
 		// Give the mkfifo process a little time
 		try {
@@ -387,20 +387,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				);
 				return false;
 			}
-			filtersLock.readLock().lock();
+			FILTERS_LOCK.readLock().lock();
 			try {
-				if (excludes.match(url) == null) {
+				if (EXCLUDES.match(url) == null) {
 					return true;
 				}
 			} finally {
-				filtersLock.readLock().unlock();
+				FILTERS_LOCK.readLock().unlock();
 			}
 		}
 
 		return false;
 	}
 
-	static final Matcher endOfHeader = Pattern.compile("Press \\[q\\]|A-V:|At least|Invalid").matcher("");
+	static final Matcher END_OF_HEADER = Pattern.compile("Press \\[q\\]|A-V:|At least|Invalid").matcher("");
 
 	/**
 	 * Parse media info from ffmpeg headers during playback
@@ -416,7 +416,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		OutputTextLogger ffParser = new OutputTextLogger(null) {
 			@Override
 			public boolean filter(String line) {
-				if (endOfHeader.reset(line).find()) {
+				if (END_OF_HEADER.reset(line).find()) {
 					dlna.getMedia().parseFFmpegInfo(lines, input);
 					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMedia());
 					dlna.getParent().updateChild(dlna);
@@ -432,7 +432,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 }
 
 // A self-combining map of regexes that recompiles if modified
-class PatternMap<T> extends modAwareHashMap<String, T> {
+class PatternMap<T> extends ModAwareHashMap<String, T> {
 	private static final long serialVersionUID = 3096452459003158959L;
 	Matcher combo;
 	List<String> groupmap = new ArrayList<>();
@@ -477,7 +477,7 @@ class PatternMap<T> extends modAwareHashMap<String, T> {
 
 // A HashMap that reports whether it's been modified
 // (necessary because 'modCount' isn't accessible outside java.util)
-class modAwareHashMap<K, V> extends HashMap<K, V> {
+class ModAwareHashMap<K, V> extends HashMap<K, V> {
 	private static final long serialVersionUID = -5334451082377480129L;
 	public boolean modified = false;
 

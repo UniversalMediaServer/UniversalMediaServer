@@ -33,6 +33,6 @@ public class ADPCM extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "act" };
+		return new String[] {"act"};
 	}
 }

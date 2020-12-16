@@ -33,6 +33,6 @@ public class ADTS extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "aac" };
+		return new String[] {"aac"};
 	}
 }

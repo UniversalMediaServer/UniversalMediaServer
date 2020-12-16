@@ -28,7 +28,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdateDialog.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
 			if (instance == null) {
@@ -101,11 +101,8 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	}
 
 	private void update() {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				updateOnGuiThread();
-			}
+		SwingUtilities.invokeLater(() -> {
+			updateOnGuiThread();
 		});
 	}
 
@@ -173,7 +170,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 				// See if we have write permission in the program folder. We don't necessarily
 				// need admin rights here.
-				File file = new File(configuration.getProfileDirectory());
+				File file = new File(CONFIGURATION.getProfileDirectory());
 				try {
 					if (!FileUtil.getFilePermissions(file).isWritable()) {
 						permissionsReminder = Messages.getString("AutoUpdate.NoPermissions");
@@ -192,7 +189,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 					okButton.setVisible(false);
 				}
 
-				return "<html>" + String.format(Messages.getString("AutoUpdate.VersionXIsAvailable"), autoUpdater.serverProperties.getLatestVersion()) + permissionsReminder + "</html>";
+				return "<html>" + String.format(Messages.getString("AutoUpdate.VersionXIsAvailable"), autoUpdater.SERVER_PROPERTIES.getLatestVersion()) + permissionsReminder + "</html>";
 			default:
 				return Messages.getString("AutoUpdate.8");
 		}

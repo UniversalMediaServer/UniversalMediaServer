@@ -97,7 +97,7 @@ public class TextAreaFIFO extends JTextArea implements DocumentListener {
 	 * @param lines the new number of kept lines
 	 */
 	public void setMaxLines(int lines) {
-		lines = Math.min(Math.max(lines, PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN),PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		lines = Math.min(Math.max(lines, PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN), PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 		maxLines = lines;
 	}
 }

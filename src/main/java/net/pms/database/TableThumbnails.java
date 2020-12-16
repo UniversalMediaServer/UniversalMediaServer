@@ -85,7 +85,7 @@ public final class TableThumbnails extends Tables {
 		String selectQuery;
 		String md5Hash = DigestUtils.md5Hex(thumbnail.getBytes(false));
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			selectQuery = "SELECT ID FROM " + TABLE_NAME + " WHERE MD5 = " + sqlQuote(md5Hash) + " LIMIT 1";
 			LOGGER.trace("Searching for thumbnail in {} with \"{}\" before update", TABLE_NAME, selectQuery);
 
@@ -157,7 +157,7 @@ public final class TableThumbnails extends Tables {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}
@@ -191,7 +191,7 @@ public final class TableThumbnails extends Tables {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
-			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:

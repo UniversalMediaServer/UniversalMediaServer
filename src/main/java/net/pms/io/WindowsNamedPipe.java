@@ -49,6 +49,12 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	 */
 	private static final int BUFSIZE = 500000;
 
+	@SuppressWarnings({
+		"checkstyle:ConstantName",
+		"checkstyle:MethodName",
+		"checkstyle:ParameterName",
+		"checkstyle:TypeName"
+	})
 	public interface Kernel32 extends StdCallLibrary {
 		Kernel32 INSTANCE = Native.load("kernel32",
 			Kernel32.class
@@ -191,15 +197,9 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 				start();
 
 				if (forceReconnect) {
-					forced = new Thread(
-						new Runnable() {
-							@Override
-							public void run() {
-								b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
-							}
-						},
-						"Forced Reconnector"
-					);
+					forced = new Thread(() -> {
+						b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
+					}, "Forced Reconnector");
 
 					forced.start();
 				}

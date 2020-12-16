@@ -169,17 +169,14 @@ public class SpeedStats {
 			OutputParams op = new OutputParams(null);
 			op.setLog(true);
 			op.setMaxBufferSize(1);
-			SystemUtils sysUtil = BasicSystemUtils.INSTANCE;
+			SystemUtils sysUtil = BasicSystemUtils.instance;
 			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(3000);
-					} catch (InterruptedException e) {
-					}
-					pw.stopProcess();
+			Runnable r = () -> {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
 				}
+				pw.stopProcess();
 			};
 
 			Thread failsafe = new Thread(r, "SpeedStats Failsafe");

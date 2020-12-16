@@ -367,7 +367,6 @@ public class FileUtil {
 		return getExtension(file, null, null);
 	}
 
-	
 	/**
 	 * Returns the file extension from the specified {@link Path} or
 	 * {@code null} if it has no extension.
@@ -750,7 +749,7 @@ public class FileUtil {
 	 */
 	public static String[] getFileNameMetadata(String filename) {
 		if (filename == null) {
-			return new String[] { null, null, null, null, null, null };
+			return new String[] {null, null, null, null, null, null};
 		}
 
 		String formattedName;
@@ -765,7 +764,7 @@ public class FileUtil {
 		String tvEpisodeName   = null;
 		String tvEpisodeNumber = null;
 		String edition         = null;
-		
+
 		// This can contain editions and "Sample" for now
 		String extraInformation;
 
@@ -936,7 +935,7 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll(
-				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|"+
+				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|" +
 				"\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*",
 				""
 			);
@@ -1037,7 +1036,7 @@ public class FileUtil {
 			extraInformation = edition;
 		}
 
-		return new String[] { movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName };
+		return new String[] {movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName};
 	}
 
 	/**
@@ -2014,7 +2013,7 @@ public class FileUtil {
 			}
 
 			if (Platform.isWindows()) {
-				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
+				Double version = BasicSystemUtils.instance.getWindowsVersion();
 				if (version == null) {
 					LOGGER.error(
 						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
@@ -2156,10 +2155,10 @@ public class FileUtil {
 	public static boolean isUnixStickyBit(Path path) throws IOException, InvalidFileSystemException {
 		PosixFileAttributes attr = Files.readAttributes(path, PosixFileAttributes.class);
 		try {
-			Field st_modeField = attr.getClass().getDeclaredField("st_mode");
-			st_modeField.setAccessible(true);
-			int st_mode = st_modeField.getInt(attr);
-			return (st_mode & S_ISVTX) > 0;
+			Field stModeField = attr.getClass().getDeclaredField("st_mode");
+			stModeField.setAccessible(true);
+			int stMode = stModeField.getInt(attr);
+			return (stMode & S_ISVTX) > 0;
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			throw new InvalidFileSystemException("File is not on a Unix file system: " + e.getMessage(), e);
 		}
@@ -2419,7 +2418,7 @@ public class FileUtil {
 
 	/**
 	 * Check if the provided {@code filename} string can be a directory
-	 * by checking if the string contains extension. 
+	 * by checking if the string contains extension.
 	 *
 	 * @param filename the string represented the directory
 	 * @return {@code true} if the string doesn't contain the extension
@@ -2442,9 +2441,9 @@ public class FileUtil {
 
 	/**
 	 * Return the file from the real path of the provided {@code file}
-	 * that is a symbolic link. 
+	 * that is a symbolic link.
 	 *
-	 * @param file the symbolic link file 
+	 * @param file the symbolic link file
 	 * @return a File from the <em>real</em> path of the symbolic link file
 	 */
 	public static File getRealFile(File file) {

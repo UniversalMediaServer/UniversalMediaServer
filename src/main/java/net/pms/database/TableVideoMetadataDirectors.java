@@ -68,7 +68,7 @@ public final class TableVideoMetadataDirectors extends Tables {
 		}
 
 		TABLE_LOCK.writeLock().lock();
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			Iterator<String> i = directors.iterator();
 			while (i.hasNext()) {
 				String director = i.next();
@@ -117,7 +117,7 @@ public final class TableVideoMetadataDirectors extends Tables {
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
 	public static void remove(final String filename, boolean useLike) {
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
@@ -157,7 +157,7 @@ public final class TableVideoMetadataDirectors extends Tables {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}

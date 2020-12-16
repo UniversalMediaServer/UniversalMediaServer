@@ -63,20 +63,20 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		return success;
 	}
 
-	public ProcessWrapperImpl(String cmdArray[], OutputParams params) {
+	public ProcessWrapperImpl(String[] cmdArray, OutputParams params) {
 		this(cmdArray, params, false, false);
 	}
 
-	public ProcessWrapperImpl(String cmdArray[], boolean useByteArrayStdConsumer, OutputParams params) {
+	public ProcessWrapperImpl(String[] cmdArray, boolean useByteArrayStdConsumer, OutputParams params) {
 		this(cmdArray, useByteArrayStdConsumer, params, false, false);
 	}
 
-	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepOutput) {
+	public ProcessWrapperImpl(String[] cmdArray, OutputParams params, boolean keepOutput) {
 		this(cmdArray, false, params, keepOutput, keepOutput);
 	}
 
 	public ProcessWrapperImpl(
-		String cmdArray[],
+		String[] cmdArray,
 		boolean useByteArrayStdConsumer,
 		OutputParams params,
 		boolean keepOutput
@@ -84,12 +84,12 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this(cmdArray, useByteArrayStdConsumer, params, keepOutput, keepOutput);
 	}
 
-	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepStdout, boolean keepStderr) {
+	public ProcessWrapperImpl(String[] cmdArray, OutputParams params, boolean keepStdout, boolean keepStderr) {
 		this(cmdArray, false, params, keepStdout, keepStderr);
 	}
 
 	public ProcessWrapperImpl(
-		String cmdArray[],
+		String[] cmdArray,
 		boolean useByteArrayStdConsumer,
 		OutputParams params,
 		boolean keepStdout,
@@ -142,7 +142,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 
 			// Retrieve all environment variables of the process
-			Map<String,String> environment = pb.environment();
+			Map<String, String> environment = pb.environment();
 
 			// The variable params.env is initialized to null in the OutputParams
 			// constructor and never set to another value in PMS code. Plugins
@@ -152,15 +152,15 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 				String sysPathKey = Platform.isWindows() ? "Path" : "PATH";
 				// As is Map
-				String PATH = params.getEnv().containsKey("PATH") ? params.getEnv().get("PATH") :
+				String path = params.getEnv().containsKey("PATH") ? params.getEnv().get("PATH") :
 					params.getEnv().containsKey("path") ? params.getEnv().get("path") :
 					params.getEnv().containsKey("Path") ? params.getEnv().get("Path") : null;
-				if (PATH != null) {
-					PATH += (File.pathSeparator + environment.get(sysPathKey));
+				if (path != null) {
+					path += (File.pathSeparator + environment.get(sysPathKey));
 				}
 				environment.putAll(params.getEnv());
-				if (PATH != null) {
-					environment.put(sysPathKey, PATH);
+				if (path != null) {
+					environment.put(sysPathKey, path);
 				}
 			}
 
@@ -189,9 +189,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			PMS.get().currentProcesses.add(process);
 
 			if (stderrConsumer == null) {
-				stderrConsumer = keepStderr
-					? new OutputTextConsumer(process.getErrorStream(), true)
-					: new OutputTextLogger(process.getErrorStream());
+				stderrConsumer = keepStderr ?
+					new OutputTextConsumer(process.getErrorStream(), true) :
+					new OutputTextLogger(process.getErrorStream());
 			} else {
 				stderrConsumer.setInputStream(process.getErrorStream());
 			}
@@ -218,9 +218,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				bo.attachThread(this);
 				new OutputTextLogger(process.getInputStream()).start();
 			} else if (params.isLog()) {
-				stdoutConsumer = keepStdout
-					? new OutputTextConsumer(process.getInputStream(), true)
-					: new OutputTextLogger(process.getInputStream());
+				stdoutConsumer = keepStdout ?
+					new OutputTextConsumer(process.getInputStream(), true) :
+					new OutputTextLogger(process.getInputStream());
 			} else {
 				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
 				bo = stdoutConsumer.getBuffer();

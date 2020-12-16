@@ -32,6 +32,6 @@ public class WAV extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "wav", "wave" };
+		return new String[] {"wav", "wave"};
 	}
 }

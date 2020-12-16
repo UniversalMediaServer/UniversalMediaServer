@@ -93,10 +93,10 @@ public class PipeProcess {
 
 	public ProcessWrapper getPipeProcess() {
 		if (!Platform.isWindows()) {
-			OutputParams mkfifo_vid_params = new OutputParams(configuration);
-			mkfifo_vid_params.setMaxBufferSize(0.1);
-			mkfifo_vid_params.setLog(true);
-			String cmdArray[];
+			OutputParams mkfifoVidParams = new OutputParams(configuration);
+			mkfifoVidParams.setMaxBufferSize(0.1);
+			mkfifoVidParams.setLog(true);
+			String[] cmdArray;
 
 			if (Platform.isMac() || Platform.isFreeBSD() || Platform.isSolaris()) {
 				cmdArray = new String[] {"mkfifo", "-m", "777", linuxPipeName};
@@ -104,8 +104,8 @@ public class PipeProcess {
 				cmdArray = new String[] {"mkfifo", "--mode=777", linuxPipeName};
 			}
 
-			ProcessWrapperImpl mkfifo_vid_process = new ProcessWrapperImpl(cmdArray, mkfifo_vid_params);
-			return mkfifo_vid_process;
+			ProcessWrapperImpl mkfifoVidProcess = new ProcessWrapperImpl(cmdArray, mkfifoVidParams);
+			return mkfifoVidProcess;
 		}
 
 		return mk;

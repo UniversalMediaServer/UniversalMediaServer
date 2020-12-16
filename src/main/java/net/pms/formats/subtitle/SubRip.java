@@ -33,6 +33,6 @@ public class SubRip extends SubtitleBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "srt" };
+		return new String[] {"srt"};
 	}
 }

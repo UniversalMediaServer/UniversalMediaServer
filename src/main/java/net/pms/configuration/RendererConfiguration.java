@@ -50,15 +50,15 @@ import org.slf4j.LoggerFactory;
 public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
-	protected static final ArrayList<String> allRenderersNames = new ArrayList<>();
-	protected static PmsConfiguration _pmsConfiguration = PMS.getConfiguration();
+	protected static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
+	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
-	protected static final Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
+	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
 
 	protected RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
-	protected PmsConfiguration pmsConfiguration = _pmsConfiguration;
+	protected PmsConfiguration pmsConfiguration = pmsConfigurationStatic;
 	protected ConfigurationReader configurationReader;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
@@ -66,7 +66,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected List<String> identifiers = null;
 
 	public StatusTab.RendererItem gui;
-	public boolean loaded, fileless = false;
+	public boolean loaded = false;
+	public boolean fileless = false;
 	protected BasicPlayer player;
 
 	public static final File NOFILE = new File("NOFILE");
@@ -92,10 +93,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected Map<String, String> mimes;
 
 	protected Map<String, String> charMap;
-	protected Map<String, String> DLNAPN;
+	protected Map<String, String> dLNAPN;
 
 	// TextWrap parameters
-	protected int lineWidth, lineHeight, indent;
+	protected int lineWidth;
+	protected int lineHeight;
+	protected int indent;
 	protected String inset, dots;
 
 	// property values
@@ -116,8 +119,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	protected static final String AUDIO = "Audio";
 	protected static final String AUTO_PLAY_TMO = "AutoPlayTmo";
-	protected static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
-	protected static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
+	protected static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds";
+	protected static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate";
 	protected static final String CHARMAP = "CharMap";
 	protected static final String CHUNKED_TRANSFER = "ChunkedTransfer";
 	protected static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
@@ -165,7 +168,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
 	protected static final String SEND_FOLDER_THUMBNAILS = "SendFolderThumbnails";
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
-	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
+	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration";
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
 	protected static final String SIMULATE_MRR = "SimulateMRR";
 	protected static final String STREAM_EXT = "StreamExtensions";
@@ -218,7 +221,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * To avoid build problems, this is used to make sure that calls to
 	 * {@link #loadRendererConfigurations(PmsConfiguration)} is serialized.
 	 */
-	public static final Object loadRendererConfigurationsLock = new Object();
+	public static final Object LOAD_RENDERER_CONFIGURATIONS_LOCK = new Object();
 
 	/**
 	 * Load all renderer configuration files and set up the default renderer.
@@ -226,9 +229,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param pmsConf
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
-		synchronized(loadRendererConfigurationsLock) {
-			_pmsConfiguration = pmsConf;
-			enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
+		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
+			pmsConfigurationStatic = pmsConf;
+			enabledRendererConfs = new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR);
 
 			try {
 				defaultConf = new RendererConfiguration();
@@ -252,13 +255,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 							RendererConfiguration r = new RendererConfiguration(f);
 							r.rank = rank++;
 							String rendererName = r.getConfName();
-							allRenderersNames.add(rendererName);
+							ALL_RENDERERS_NAMES.add(rendererName);
 							String renderersGroup = null;
 							if (rendererName.indexOf(' ') > 0) {
 								renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 							}
 
-							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.ALL_RENDERERS)) {
+							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.allRenderers)) {
 								enabledRendererConfs.add(r);
 							} else {
 								LOGGER.debug("Ignored \"{}\" configuration", rendererName);
@@ -289,7 +292,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				}
 			}
 		}
-		Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
+		Collections.sort(ALL_RENDERERS_NAMES, String.CASE_INSENSITIVE_ORDER);
 		DeviceConfiguration.loadDeviceConfigurations(pmsConf);
 	}
 
@@ -378,7 +381,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
 		// We need to check both UPnP and http sides to ensure a complete list
 		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
-		renderers.addAll(addressAssociation.values());
+		renderers.addAll(ADDRESS_ASSOCIATION.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
 		return renderers;
@@ -514,7 +517,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
 
-		RendererConfiguration prev = addressAssociation.put(sa, this);
+		RendererConfiguration prev = ADDRESS_ASSOCIATION.put(sa, this);
 		if (prev != null) {
 			// We've displaced a previous renderer at this address, so
 			// check  if it's a ghost instance that should be deleted.
@@ -538,7 +541,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void calculateAllSpeeds() {
-		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			InetAddress sa = entry.getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
@@ -551,7 +554,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		RendererConfiguration r = addressAssociation.get(sa);
+		RendererConfiguration r = ADDRESS_ASSOCIATION.get(sa);
 		if (r != null) {
 			LOGGER.trace("Matched media renderer \"{}\" based on address {}", r.getRendererName(), sa.getHostAddress());
 		}
@@ -574,7 +577,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		RendererConfiguration r = null;
 		RendererConfiguration ref = getRendererConfigurationByHeaders(sortedHeaders);
 		if (ref != null) {
-			boolean isNew = !addressAssociation.containsKey(ia);
+			boolean isNew = !ADDRESS_ASSOCIATION.containsKey(ia);
 			r = resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace(
@@ -589,7 +592,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
-		if (_pmsConfiguration.isRendererForceDefault()) {
+		if (pmsConfigurationStatic.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
@@ -651,9 +654,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			ref = getDefaultConf();
 		}
 		try {
-			if (addressAssociation.containsKey(ia)) {
+			if (ADDRESS_ASSOCIATION.containsKey(ia)) {
 				// Already seen, finish configuration if required
-				r = (DeviceConfiguration) addressAssociation.get(ia);
+				r = (DeviceConfiguration) ADDRESS_ASSOCIATION.get(ia);
 				boolean higher = ref != null && ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
 				if (!r.loaded || higher) {
 					LOGGER.debug("Finishing configuration for {}", r);
@@ -807,7 +810,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					RendererConfiguration renderer = new RendererConfiguration(file);
 					enabledRendererConfs.add(renderer);
 					if (r instanceof DeviceConfiguration) {
-						((DeviceConfiguration)r).inherit(renderer);
+						((DeviceConfiguration) r).inherit(renderer);
 					}
 				} catch (ConfigurationException ce) {
 					LOGGER.debug("Error initializing renderer configuration: " + ce);
@@ -867,7 +870,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean isLG() {
 		return getConfName().toUpperCase().contains("LG ");
 	}
-	
+
 	/**
 	 * @return whether this renderer is an Samsung device
 	 */
@@ -875,17 +878,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getConfName().toUpperCase().contains("SAMSUNG");
 	}
 
-	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
 		return getInt(BYTE_TO_TIMESEEK_REWIND_SECONDS, 0);
 	}
 
-	// Ditlew
 	public int getCBRVideoBitrate() {
 		return getInt(CBR_VIDEO_BITRATE, 0);
 	}
 
-	// Ditlew
 	public boolean isShowDVDTitleDuration() {
 		return getBoolean(SHOW_DVD_TITLE_DURATION, false);
 	}
@@ -918,7 +918,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
 		configurationReader = new ConfigurationReader(configuration, false);
-		pmsConfiguration = _pmsConfiguration;
+		pmsConfiguration = pmsConfigurationStatic;
 
 		player = null;
 		buffer = 0;
@@ -964,7 +964,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			boolean addWatch = file != f;
 			file = f;
 			if (addWatch) {
-				FileWatcher.add(new FileWatcher.Watch(getFile().getPath(), reloader, this));
+				FileWatcher.add(new FileWatcher.Watch(getFile().getPath(), RELOADER, this));
 			}
 			return true;
 		}
@@ -992,12 +992,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			StringTokenizer st = new StringTokenizer(mimeTypes, "|");
 
 			while (st.hasMoreTokens()) {
-				String mime_change = st.nextToken().trim();
-				int equals = mime_change.indexOf('=');
+				String mimeChange = st.nextToken().trim();
+				int equals = mimeChange.indexOf('=');
 
 				if (equals > -1) {
-					String old = mime_change.substring(0, equals).trim().toLowerCase();
-					String nw = mime_change.substring(equals + 1).trim().toLowerCase();
+					String old = mimeChange.substring(0, equals).trim().toLowerCase();
+					String nw = mimeChange.substring(equals + 1).trim().toLowerCase();
 					mimes.put(old, nw);
 				}
 			}
@@ -1035,19 +1035,19 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 
-		DLNAPN = new HashMap<>();
-		String DLNAPNchanges = getString(DLNA_PN_CHANGES, "");
+		dLNAPN = new HashMap<>();
+		String dLNAPNchanges = getString(DLNA_PN_CHANGES, "");
 
-		if (StringUtils.isNotBlank(DLNAPNchanges)) {
-			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
-			StringTokenizer st = new StringTokenizer(DLNAPNchanges, "|");
+		if (StringUtils.isNotBlank(dLNAPNchanges)) {
+			LOGGER.trace("Config dLNAPNchanges: " + dLNAPNchanges);
+			StringTokenizer st = new StringTokenizer(dLNAPNchanges, "|");
 			while (st.hasMoreTokens()) {
-				String DLNAPN_change = st.nextToken().trim();
-				int equals = DLNAPN_change.indexOf('=');
+				String dLNAPNChange = st.nextToken().trim();
+				int equals = dLNAPNChange.indexOf('=');
 				if (equals > -1) {
-					String old = DLNAPN_change.substring(0, equals).trim().toUpperCase();
-					String nw = DLNAPN_change.substring(equals + 1).trim().toUpperCase();
-					DLNAPN.put(old, nw);
+					String old = dLNAPNChange.substring(0, equals).trim().toUpperCase();
+					String nw = dLNAPNChange.substring(equals + 1).trim().toUpperCase();
+					dLNAPN.put(old, nw);
 				}
 			}
 		}
@@ -1081,8 +1081,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public String getDLNAPN(String old) {
-		if (DLNAPN.containsKey(old)) {
-			return DLNAPN.get(old);
+		if (dLNAPN.containsKey(old)) {
+			return dLNAPN.get(old);
 		}
 
 		return old;
@@ -1533,7 +1533,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Has address.
 	 */
 	public boolean hasAssociatedAddress() {
-		return addressAssociation.values().contains(this);
+		return ADDRESS_ASSOCIATION.values().contains(this);
 	}
 
 	/**
@@ -1551,7 +1551,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		// Otherwise check the address association
-		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == this) {
 				return entry.getKey();
 			}
@@ -1609,7 +1609,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				// Make sure we haven't been reactivated while asleep
-				if (! r.isActive()) {
+				if (!r.isActive()) {
 					LOGGER.debug("Deleting renderer " + r);
 					if (r.gui != null) {
 						r.gui.delete();
@@ -1617,8 +1617,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					PMS.get().getFoundRenderers().remove(r);
 					UPNPHelper.getInstance().removeRenderer(r);
 					InetAddress ia = r.getAddress();
-					if (addressAssociation.get(ia) == r) {
-						addressAssociation.remove(ia);
+					if (ADDRESS_ASSOCIATION.get(ia) == r) {
+						ADDRESS_ASSOCIATION.remove(ia);
 					}
 					// TODO: actually delete rootfolder, etc.
 				}
@@ -1868,8 +1868,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return maximumBitrateTotal;
 		}
 
-		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
+		int[] defaultMaxBitrates = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
+		int[] rendererMaxBitrates = new int[2];
 
 		String maxVideoBitrate = getMaxVideoBitrate();
 		if (StringUtils.isNotEmpty(maxVideoBitrate)) {
@@ -1926,8 +1926,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The FFmpeg format.
 	 */
 	public String convertMencoderSettingToFFmpegFormat(String mpegSettings) {
-		String mpegSettingsArray[] = mpegSettings.split(":");
-		String pairArray[];
+		String[] mpegSettingsArray = mpegSettings.split(":");
+		String[] pairArray;
 		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
@@ -2167,7 +2167,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		} else {
 			mediaInfo = null;
 		}
-		
+
 		if (configuration == null) {
 			configuration = PMS.getConfiguration(this);
 		}
@@ -2308,7 +2308,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
-		return allRenderersNames;
+		return ALL_RENDERERS_NAMES;
 	}
 
 	public int getTranscodedVideoAudioSampleRate() {
@@ -2337,20 +2337,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		if (lineWidth > 0 && (name.length() + suffix.length()) > lineWidth) {
-			int suffix_len = dots.length() + suffix.length();
+			int suffixLength = dots.length() + suffix.length();
 			if (lineHeight == 1) {
-				len = lineWidth - suffix_len;
+				len = lineWidth - suffixLength;
 			} else {
 				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
 				String newline = "\n" + (dlna.isFolder() ? "" : inset);
-				name = name.substring(0, i + (i < name.length() && Character.isWhitespace(name.charAt(i)) ? 1 : 0))
-					+ WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
+				name = name.substring(0, i + (i < name.length() && Character.isWhitespace(name.charAt(i)) ? 1 : 0)) +
+					WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
 				len = lineWidth * lineHeight;
 				if (len != 0 && name.length() > len) {
 					len = name.substring(0, name.length() - lineWidth).lastIndexOf(newline) + newline.length();
 					name = name.substring(0, len) + name.substring(len, len + lineWidth).replace(newline, " ");
-					len += (lineWidth - suffix_len - i);
+					len += (lineWidth - suffixLength - i);
 				} else {
 					len = -1; // done
 				}
@@ -2515,7 +2515,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public String calculatedSpeed() throws InterruptedException, ExecutionException {
 		String max = getString(MAX_VIDEO_BITRATE, "");
-		for (Entry<InetAddress, RendererConfiguration> entry : addressAssociation.entrySet()) {
+		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey());
 				if (speed != null) {
@@ -2540,7 +2540,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * A case-insensitive string comparator
 	 */
-	public static final Comparator<String> CaseInsensitiveComparator = new Comparator<String>() {
+	public static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = new Comparator<String>() {
 		@Override
 		public int compare(String s1, String s2) {
 			return s1.compareToIgnoreCase(s2);
@@ -2556,7 +2556,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		String headers = null;
 
 		public SortedHeaderMap() {
-			super(CaseInsensitiveComparator);
+			super(CASE_INSENSITIVE_COMPARATOR);
 		}
 
 		public SortedHeaderMap(Collection<Map.Entry<String, String>> headers) {
@@ -2624,7 +2624,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * A loading priority comparator
 	 */
-	public static final Comparator<RendererConfiguration> rendererLoadingPriorityComparator = new Comparator<RendererConfiguration>() {
+	public static final Comparator<RendererConfiguration> RENDERER_LOADING_PRIORITY_COMPARATOR = new Comparator<RendererConfiguration>() {
 		@Override
 		public int compare(RendererConfiguration r1, RendererConfiguration r2) {
 			if (r1 == null || r2 == null) {
@@ -2637,7 +2637,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	};
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
-		int bitrates[] = new int[2];
+		int[] bitrates = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
@@ -2659,7 +2659,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Automatic reloading
 	 */
-	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			RendererConfiguration r = (RendererConfiguration) watch.getItem();
@@ -2718,46 +2718,43 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
 				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
 			}
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					state.playback = PLAYING;
-					while (res == renderer.getPlayingRes()) {
-						long elapsed;
-						if ((long) res.getLastStartPosition() == 0) {
-							elapsed = System.currentTimeMillis() - res.getStartTime();
-						} else {
-							elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
-							elapsed += (long) (res.getLastStartPosition() * 1000);
-						}
+			Runnable r = () -> {
+				state.playback = PLAYING;
+				while (res == renderer.getPlayingRes()) {
+					long elapsed;
+					if ((long) res.getLastStartPosition() == 0) {
+						elapsed = System.currentTimeMillis() - res.getStartTime();
+					} else {
+						elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
+						elapsed += (long) (res.getLastStartPosition() * 1000);
+					}
 
-						if (duration == 0 || elapsed < duration + 500) {
-							// Position is valid as far as we can tell
-							state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
-						} else {
-							// Position is invalid, blink instead
-							state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
-						}
-						alert();
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-						}
+					if (duration == 0 || elapsed < duration + 500) {
+						// Position is valid as far as we can tell
+						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
+					} else {
+						// Position is invalid, blink instead
+						state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 					}
-					// Reset only if another item hasn't already begun playing
-					if (renderer.getPlayingRes() == null) {
-						reset();
+					alert();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
 					}
+				}
+				// Reset only if another item hasn't already begun playing
+				if (renderer.getPlayingRes() == null) {
+					reset();
 				}
 			};
 			new Thread(r).start();
 		}
 	}
 
-	public final String INFO = "info";
-	public final String OK = "okay";
-	public final String WARN = "warn";
-	public final String ERR = "err";
+	public static final String INFO = "info";
+	public static final String OK = "okay";
+	public static final String WARN = "warn";
+	public static final String ERR = "err";
 
 	@SuppressWarnings("unused")
 	public void notify(String type, String msg) {
@@ -2802,6 +2799,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			switch (mode.trim().toLowerCase()) {
 				case "false":    return BLOCK;
 				case "postpone": return POSTPONE;
+			default:
+				break;
 			}
 		}
 		return ALLOW;
@@ -2812,6 +2811,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			case BLOCK:    return "blocked";
 			case POSTPONE: return "postponed";
 			case NONE:     return "unknown";
+		default:
+			break;
 		}
 		return "allowed";
 	}
