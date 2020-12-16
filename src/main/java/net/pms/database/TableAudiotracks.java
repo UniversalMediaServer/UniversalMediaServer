@@ -10,23 +10,22 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class is responsible for managing the Audiotracks releases table. It
- * does everything from creating, checking and upgrading the table to
- * performing lookups, updates and inserts. All operations involving this table
- * shall be done with this class.
+ * does everything from creating, checking and upgrading the table to performing
+ * lookups, updates and inserts. All operations involving this table shall be
+ * done with this class.
  */
 public class TableAudiotracks extends Tables {
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
-	
+
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
-	private static final int SIZE_MUXINGMODE = 32;	
+	private static final int SIZE_MUXINGMODE = 32;
 	private static final int SIZE_MAX = 255;
 	private static final int SIZE_SAMPLEFREQ = 16;
 	private static final int SIZE_CODECA = 32;
-	
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -35,7 +34,6 @@ public class TableAudiotracks extends Tables {
 	 */
 	private static final int TABLE_VERSION = 1;
 
-	
 	/**
 	 * Checks and creates or upgrades the table as needed.
 	 *
@@ -52,12 +50,10 @@ public class TableAudiotracks extends Tables {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME + "\" is from a newer version of UMS."
-						);
+						LOGGER.warn("Database table \"" + TABLE_NAME + "\" is from a newer version of UMS.");
 					}
 				} else {
-					// Moving sql from DLNAMediaDatabase to this class. 
+					// Moving sql from DLNAMediaDatabase to this class.
 					upgradeTable(connection, null);
 					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
@@ -69,7 +65,7 @@ public class TableAudiotracks extends Tables {
 			TABLE_LOCK.writeLock().unlock();
 		}
 	}
-	
+
 	private static void upgradeTable(Connection connection, Integer version) {
 		if (version == null) {
 			try (Statement statement = connection.createStatement()) {
@@ -123,9 +119,9 @@ public class TableAudiotracks extends Tables {
 			sb.append("    REFERENCES FILES(ID)");
 			sb.append("    ON DELETE CASCADE");
 			sb.append(')');
-			
+
 			statement.execute(sb.toString());
-			
+
 			LOGGER.trace("Creating index IDXARTIST");
 			executeUpdate(connection, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
 
@@ -142,7 +138,7 @@ public class TableAudiotracks extends Tables {
 			executeUpdate(connection, "CREATE INDEX IDXYEAR on AUDIOTRACKS (YEAR asc);");
 		}
 	}
-	
+
 	private static void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
 			try (Statement stmt = conn.createStatement()) {
