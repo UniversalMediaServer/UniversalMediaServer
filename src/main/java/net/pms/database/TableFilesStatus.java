@@ -535,7 +535,7 @@ public final class TableFilesStatus extends Tables {
 					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 					"MODIFIED      DATETIME, " +
 					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
-					"BOOKMARK      INTEGER DEFAULT 0" +
+					"BOOKMARK      INTEGER DEFAULT 0, " +
 					"DATELASTPLAY  DATETIME, " +
 					"PLAYCOUNT     INTEGER DEFAULT 0, " +
 				")"
