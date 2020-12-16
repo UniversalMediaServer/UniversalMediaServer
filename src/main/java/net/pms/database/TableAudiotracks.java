@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  * performing lookups, updates and inserts. All operations involving this table
  * shall be done with this class.
  */
-public class TableAudiotracks extends Tables{
+public class TableAudiotracks extends Tables {
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableAudiotracks.class);
