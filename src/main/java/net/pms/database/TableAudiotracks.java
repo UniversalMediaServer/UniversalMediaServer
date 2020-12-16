@@ -54,10 +54,8 @@ public class TableAudiotracks extends Tables{
 					} else if (version > TABLE_VERSION) {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
+							"\" is from a newer version of UMS. If you experience problems, "
+							+ "you could try to move, rename or delete database file.");
 					}
 				} else {
 					// Moving sql from DLNAMediaDatabase to this class. 
