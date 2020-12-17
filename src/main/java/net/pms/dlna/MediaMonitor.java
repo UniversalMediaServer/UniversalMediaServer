@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,8 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static final ReentrantReadWriteLock fullyPlayedEntriesLock = new ReentrantReadWriteLock();
-	private static final HashMap<String, Boolean> fullyPlayedEntries = new HashMap<>();
+	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
+	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -81,7 +80,6 @@ public class MediaMonitor extends VirtualFolder {
 					}
 				}
 			}
-			dumpFile(); //TODO: Remove this and delete the file when 7.0.0 beta is over
 		} catch (IOException e) {
 			LOGGER.error("Error reading monitor file \"{}\": {}", f.getAbsolutePath(), e.getMessage());
 			LOGGER.trace("", e);
@@ -110,15 +108,15 @@ public class MediaMonitor extends VirtualFolder {
 			Set<String> fullyPlayedPaths = null;
 			if (config.isHideEmptyFolders()) {
 				fullyPlayedPaths = new HashSet<>();
-				fullyPlayedEntriesLock.readLock().lock();
+				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 				try {
-					for (Entry<String, Boolean> entry : fullyPlayedEntries.entrySet()) {
+					for (Entry<String, Boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
 						if (entry.getValue()) {
 							fullyPlayedPaths.add(entry.getKey());
 						}
 					}
 				} finally {
-					fullyPlayedEntriesLock.readLock().unlock();
+					FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
 				}
 			}
 			for (File fileEntry : files) {
@@ -311,22 +309,22 @@ public class MediaMonitor extends VirtualFolder {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isFullyPlayed(String fullPathToFile) {
-		fullyPlayedEntriesLock.readLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 		Boolean fullyPlayed;
 		try {
-			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
 		} finally {
-			fullyPlayedEntriesLock.readLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
 		}
 		if (fullyPlayed != null) {
 			return fullyPlayed;
 		}
 
 		// The status isn't cached, add it
-		fullyPlayedEntriesLock.writeLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
 			// It could have been added between the locks, check again
-			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
 			if (fullyPlayed != null) {
 				return fullyPlayed;
 			}
@@ -336,10 +334,10 @@ public class MediaMonitor extends VirtualFolder {
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
-			fullyPlayedEntries.put(fullPathToFile, fullyPlayed);
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, fullyPlayed);
 			return fullyPlayed;
 		} finally {
-			fullyPlayedEntriesLock.writeLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -352,43 +350,12 @@ public class MediaMonitor extends VirtualFolder {
 	 *            played, {@code false} otherwise.
 	 */
 	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
-		fullyPlayedEntriesLock.writeLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
-			fullyPlayedEntries.put(fullPathToFile, isFullyPlayed);
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
 		} finally {
-			fullyPlayedEntriesLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Populates UMS.mon with a list of completely played media.
-	 *
-	 * @deprecated Should be removed when 7.0.0 is out of beta.
-	 * @throws IOException
-	 */
-	@Deprecated
-	private void dumpFile() throws IOException {
-		File f = monitorFile();
-		Date now = new Date();
-		try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8)) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("######\n");
-			sb.append("## NOTE!!!!!\n");
-			sb.append("## This file is auto generated\n");
-			sb.append("## Edit with EXTREME care\n");
-			sb.append("## Generated: ");
-			sb.append(now.toString());
-			sb.append("\n");
-//			for (String str : fullyPlayedEntries) {
-//				if (sb.indexOf(str) == -1) {
-//					sb.append("entry=");
-//					sb.append(str);
-//					sb.append("\n");
-//				}
-//			}
-			out.write(sb.toString());
-			out.flush();
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
 	}
 

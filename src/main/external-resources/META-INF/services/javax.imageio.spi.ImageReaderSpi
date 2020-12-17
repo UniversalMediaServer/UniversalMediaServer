@@ -13,3 +13,4 @@ com.twelvemonkeys.imageio.plugins.psd.PSDImageReaderSpi
 com.twelvemonkeys.imageio.plugins.sgi.SGIImageReaderSpi
 com.twelvemonkeys.imageio.plugins.tga.TGAImageReaderSpi
 com.twelvemonkeys.imageio.plugins.tiff.TIFFImageReaderSpi
+com.luciad.imageio.webp.WebPImageReaderSpi

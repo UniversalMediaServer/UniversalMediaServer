@@ -45,108 +45,108 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Asserts;
 
 /**
- * {@link org.apache.http.nio.protocol.HttpAsyncResponseConsumer} implementation that
- * streams content entity enclosed in an HTTP response directly into a file
+ * {@link org.apache.http.nio.protocol.HttpAsyncResponseConsumer} implementation
+ * that streams content entity enclosed in an HTTP response directly into a file
  * without an intermediate in-memory buffer.
  * <p>
  * This consumer can be useful for file downloads.
  *
- * 
+ *
  * @since 4.0
- * 
+ *
  * <p>
- * Original ZeroCopyConsumer modified by valib.
- * Updated the code and introduced {@code invokeCallback} to inform the calling
- * process about the progress of downloading the file.
+ * Original ZeroCopyConsumer modified by valib. Updated the code and introduced
+ * {@code invokeCallback} to inform the calling process about the progress of
+ * downloading the file.
  */
 public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncResponseConsumer<T> {
 
-    private final File file;
-    private final RandomAccessFile accessfile;
-    private UriRetrieverCallback callback;
-    private String uri;
+	private final File file;
+	private final RandomAccessFile accessfile;
+	private UriRetrieverCallback callback;
+	private String uri;
 
-    private HttpResponse response;
-    private ContentType contentType;
-    private Header contentEncoding;
-    private FileChannel fileChannel;
-    private long idx = -1;
-    private long fileSize;
+	private HttpResponse response;
+	private ContentType contentType;
+	private Header contentEncoding;
+	private FileChannel fileChannel;
+	private long idx = -1;
+	private long fileSize;
 
-    public ZeroCopyConsumerWithCallback(final File file, String uri, UriRetrieverCallback callback) throws FileNotFoundException {
-        super();
-        if (file == null) {
-            throw new IllegalArgumentException("File may nor be null");
-        }
-        this.file = file;
-        this.uri = uri;
-        this.callback = callback;
-        this.accessfile = new RandomAccessFile(this.file, "rw");
-    }
+	public ZeroCopyConsumerWithCallback(final File file, String uri, UriRetrieverCallback callback) throws FileNotFoundException {
+		super();
+		if (file == null) {
+			throw new IllegalArgumentException("File may nor be null");
+		}
+		this.file = file;
+		this.uri = uri;
+		this.callback = callback;
+		this.accessfile = new RandomAccessFile(this.file, "rw");
+	}
 
-    @Override
-    protected void onResponseReceived(final HttpResponse response) {
-        this.response = response;
-    }
+	@Override
+	protected void onResponseReceived(final HttpResponse response) {
+		this.response = response;
+	}
 
-    @Override
-    protected void onEntityEnclosed(
-            final HttpEntity entity, final ContentType contentType) throws IOException {
-        this.contentType = contentType;
-        this.contentEncoding = entity.getContentEncoding();
-        this.fileChannel = this.accessfile.getChannel();
-        this.fileSize = entity.getContentLength();
-        this.idx = 0;
-    }
+	@Override
+	protected void onEntityEnclosed(
+		final HttpEntity entity, final ContentType contentType) throws IOException {
+		this.contentType = contentType;
+		this.contentEncoding = entity.getContentEncoding();
+		this.fileChannel = this.accessfile.getChannel();
+		this.fileSize = entity.getContentLength();
+		this.idx = 0;
+	}
 
-    @Override
-    protected void onContentReceived(
-            final ContentDecoder decoder, final IOControl ioctrl) throws IOException {
-        Asserts.notNull(this.fileChannel, "File channel");
-        final long transferred;
-        if (decoder instanceof FileContentDecoder) {
-            transferred = ((FileContentDecoder)decoder).transfer(
-                    this.fileChannel, this.idx, Integer.MAX_VALUE);
-        } else {
-            transferred = this.fileChannel.transferFrom(
-                    new ContentDecoderChannel(decoder), this.idx, Integer.MAX_VALUE);
-        }
-        if (transferred > 0) {
-            this.idx += transferred;
-        }
-        if (decoder.isCompleted()) {
-            this.fileChannel.close();
-        }
+	@Override
+	protected void onContentReceived(
+		final ContentDecoder decoder, final IOControl ioctrl) throws IOException {
+		Asserts.notNull(this.fileChannel, "File channel");
+		final long transferred;
+		if (decoder instanceof FileContentDecoder) {
+			transferred = ((FileContentDecoder) decoder).transfer(
+				this.fileChannel, this.idx, Integer.MAX_VALUE);
+		} else {
+			transferred = this.fileChannel.transferFrom(
+				new ContentDecoderChannel(decoder), this.idx, Integer.MAX_VALUE);
+		}
+		if (transferred > 0) {
+			this.idx += transferred;
+		}
+		if (decoder.isCompleted()) {
+			this.fileChannel.close();
+		}
 
 		invokeCallback(this.uri, this.callback, (int) this.fileSize, (int) this.idx);
-    }
+	}
 
-    /**
-     * Invoked to process received file.
-     *
-     * @param response original response head.
-     * @param file file containing response content.
-     * @param contentType the cotnent type.
-     * @return result of the response processing
-     */
-    protected abstract T process(
-            HttpResponse response, File file, ContentType contentType) throws Exception;
+	/**
+	 * Invoked to process received file.
+	 *
+	 * @param response original response head.
+	 * @param file file containing response content.
+	 * @param contentType the cotnent type.
+	 * @return result of the response processing
+	 */
+	protected abstract T process(
+		HttpResponse response, File file, ContentType contentType) throws Exception;
 
-    @Override
-    protected T buildResult(final HttpContext context) throws Exception {
-        final FileEntity entity = new FileEntity(this.file, this.contentType);
-        entity.setContentEncoding(this.contentEncoding);
-        this.response.setEntity(entity);
-        return process(this.response, this.file, this.contentType);
-    }
+	@Override
+	protected T buildResult(final HttpContext context) throws Exception {
+		final FileEntity entity = new FileEntity(this.file, this.contentType);
+		entity.setContentEncoding(this.contentEncoding);
+		this.response.setEntity(entity);
+		return process(this.response, this.file, this.contentType);
+	}
 
-    @Override
-    protected void releaseResources() {
-        try {
-            this.accessfile.close();
-        } catch (final IOException ignore) {
-        }
-    }
+	@Override
+	protected void releaseResources() {
+		try {
+			this.accessfile.close();
+		} catch (final IOException ignore) {
+		}
+	}
 
 	static void invokeCallback(String uri, UriRetrieverCallback callback, int totalBytes, int bytesWritten) throws IOException {
 		try {

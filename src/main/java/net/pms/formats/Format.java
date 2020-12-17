@@ -25,7 +25,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
-import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,6 +104,7 @@ public abstract class Format implements Cloneable {
 		WAV,
 		WBMP,
 		WEB,
+		WEBP,
 		WEBVTT,
 		WMA,
 		WV,
@@ -161,14 +161,6 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * @deprecated Use {@link #getSupportedExtensions} instead.
-	 */
-	@Deprecated
-	public String[] getId() {
-		return getSupportedExtensions();
-	}
-
-	/**
 	 * Returns a list of file extensions to use to identify
 	 * a particular format e.g. "mp3" or "mpg". Extensions
 	 * are expected to be in lower case. The default value is
@@ -216,18 +208,11 @@ public abstract class Format implements Cloneable {
 
 	public abstract boolean transcodable();
 
+	/**
+	 * Returns the default MIME for the given media type.
+	 */
 	public String mimeType() {
 		return HTTPResource.getDefaultMimeType(type);
-	}
-
-	/**
-	 * Not in use, handled by {@link GenericIcons}
-	 *
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setIcon(String filename) {
-		icon = filename;
 	}
 
 	public String getIcon() {
@@ -301,11 +286,6 @@ public abstract class Format implements Cloneable {
 
 	public Format duplicate() {
 		return (Format) this.clone();
-	}
-
-	@Deprecated
-	public void parse(DLNAMediaInfo media, InputFile file, int type) {
-		parse(media, file, type, null);
 	}
 
 	/**

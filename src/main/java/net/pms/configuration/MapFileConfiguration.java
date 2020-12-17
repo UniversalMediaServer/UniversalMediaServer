@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
  */
 public class MapFileConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFileConfiguration.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private String name;
 	private List<MapFileConfiguration> children;
 	private List<File> files;
-	
+
 	private boolean addToMediaLibrary = true;
 
 	public String getName() {
@@ -57,11 +57,10 @@ public class MapFileConfiguration {
 	public void setFiles(List<File> f) {
 		files = f;
 	}
-	
+
 	public void setAddToMediaLibrary(boolean addToMediaLibrary) {
 		this.addToMediaLibrary = addToMediaLibrary;
 	}
-
 
 	public MapFileConfiguration() {
 		children = new ArrayList<>();
@@ -71,22 +70,22 @@ public class MapFileConfiguration {
 	public static List<MapFileConfiguration> parseVirtualFolders() {
 		String conf;
 
-		if (isNotBlank(configuration.getVirtualFoldersFile())) {
+		if (isNotBlank(CONFIGURATION.getVirtualFoldersFile())) {
 			// Get the virtual folder info from the user's file
-			conf = configuration.getVirtualFoldersFile().trim().replaceAll("&comma;", ",");
-			File file = new File(configuration.getProfileDirectory(), conf);
+			conf = CONFIGURATION.getVirtualFoldersFile().trim().replaceAll("&comma;", ",");
+			File file = new File(CONFIGURATION.getProfileDirectory(), conf);
 			conf = null;
 
 			try {
 				conf = FileUtils.readFileToString(file, StandardCharsets.US_ASCII);
 			} catch (IOException e) {
 				LOGGER.warn("Unexpected exeption while reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
-				LOGGER.debug("",e);
+				LOGGER.debug("", e);
 				return null;
 			}
-		} else if (isNotBlank(configuration.getVirtualFolders())) {
+		} else if (isNotBlank(CONFIGURATION.getVirtualFolders())) {
 			// Get the virtual folder info from the config string
-			conf = configuration.getVirtualFolders().trim().replaceAll("&comma;", ",");
+			conf = CONFIGURATION.getVirtualFolders().trim().replaceAll("&comma;", ",");
 
 			// Convert our syntax into JSON syntax
 			String[] arrayLevel0 = conf.split(";");
@@ -126,7 +125,7 @@ public class MapFileConfiguration {
 
 			jsonStringFromConf.append("]");
 
-			conf = jsonStringFromConf.toString().replaceAll("\\\\","\\\\\\\\");
+			conf = jsonStringFromConf.toString().replaceAll("\\\\", "\\\\\\\\");
 
 		} else {
 			return null;

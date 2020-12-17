@@ -21,6 +21,7 @@ package net.pms.io;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -356,9 +357,13 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 *             new {@link ProcessWrapperConsumer} instance.
 	 * @throws IllegalAccessException If an access error occurs during creating
 	 *             of the new {@link ProcessWrapperConsumer} instance.
+	 * @throws SecurityException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalArgumentException
 	 */
-	public ThreadedProcessWrapper(Class<C> consumer) throws InstantiationException, IllegalAccessException {
-		this.consumer = consumer.newInstance();
+	public ThreadedProcessWrapper(Class<C> consumer) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		this.consumer = consumer.getDeclaredConstructor().newInstance();
 	}
 
 	/**

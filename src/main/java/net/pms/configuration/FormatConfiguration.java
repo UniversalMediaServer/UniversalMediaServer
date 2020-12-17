@@ -174,7 +174,7 @@ public class FormatConfiguration {
 	/** Used as a "video codec" when sequences of raw, uncompressed YUV is used as a video stream in AVI, MP4 or MOV files */
 	public static final String YUV = "yuv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
-	public static final String und = "und";
+	public static final String UND = "und";
 
 	private static class SupportSpec {
 		private int iMaxBitrate = Integer.MAX_VALUE;
@@ -198,10 +198,8 @@ public class FormatConfiguration {
 		private String mimeType;
 		private String videoCodec;
 		private String supportLine;
-		/** List of embedded subs supported by renderer defined in the Supported line in the renderer.conf */
-		private String embeddedSubs;
-		/** List of external subs supported by renderer defined in the Supported line in the renderer.conf */
-		private String externalSubs;
+		private String supportedEmbeddedSubtitlesFormats;
+		private String supportedExternalSubtitlesFormats;
 
 		SupportSpec() {
 			this.mimeType = MIMETYPE_AUTO;
@@ -359,7 +357,6 @@ public class FormatConfiguration {
 			} else {
 				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA());
 			}
-			
 		}
 
 		/**
@@ -368,13 +365,13 @@ public class FormatConfiguration {
 		 * or 0, its value is skipped for making the match. If any of the
 		 * non-null parameters does not match, false is returned. For example,
 		 * assume a configuration that contains only the following line:
-		 * 
+		 *
 		 * <blockquote><pre>
 		 * 	Supported = f:mp4 n:2 se:SUBRIP
 		 *
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = true
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, null,     true)  = false 
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false 
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, null,     true)  = false
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false
 		 * match("wav", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", false) = false
 		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "sub",    true)  = false
@@ -464,17 +461,16 @@ public class FormatConfiguration {
 
 			if (subsFormat != null) {
 				if (isExternalSubs) {
-					if (externalSubs != null && !subsFormat.matches(externalSubs)) { 
+					if (supportedExternalSubtitlesFormats == null || !subsFormat.matches(supportedExternalSubtitlesFormats)) {
 						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
 				} else {
-					if (embeddedSubs != null && !subsFormat.matches(embeddedSubs)) {
+					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						return false;
 					}
 				}
-				
 			}
 
 			if (extras != null && miExtras != null) {
@@ -717,7 +713,7 @@ public class FormatConfiguration {
 		return getMatchedMIMEtype(
 			media.getContainer(),
 			media.getCodecV(),
-			params.aid != null ? params.aid.getCodecA() : null,
+			params.getAid() != null ? params.getAid().getCodecA() : null,
 			0,
 			0,
 			0,
@@ -725,8 +721,8 @@ public class FormatConfiguration {
 			0,
 			0,
 			null,
-			params.sid.getType().name(),
-			params.sid.isExternal()
+			params.getSid().getType().name(),
+			params.getSid().isExternal()
 		);
 	}
 
@@ -797,9 +793,9 @@ public class FormatConfiguration {
 			} else if (token.startsWith("b:")) {
 				supportSpec.maxBitrate = token.substring(2).trim();
 			} else if (token.startsWith("si:")) {
-				supportSpec.embeddedSubs = token.substring(3).trim();
+				supportSpec.supportedEmbeddedSubtitlesFormats = token.substring(3).trim();
 			} else if (token.startsWith("se:")) {
-				supportSpec.externalSubs = token.substring(3).trim();
+				supportSpec.supportedExternalSubtitlesFormats = token.substring(3).trim();
 			} else if (token.startsWith("fps:")) {
 				supportSpec.maxFramerate = token.substring(4).trim();
 			} else if (token.contains(":")) {

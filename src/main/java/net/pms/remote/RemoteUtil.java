@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -80,34 +80,31 @@ public class RemoteUtil {
 	}
 
 	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				byte[] buffer = new byte[32 * 1024];
-				int bytes;
-				int sendBytes = 0;
+		Runnable r = () -> {
+			byte[] buffer = new byte[32 * 1024];
+			int bytes;
+			int sendBytes = 0;
 
-				try {
-					while ((bytes = in.read(buffer)) != -1) {
-						sendBytes += bytes;
-						os.write(buffer, 0, bytes);
-						os.flush();
-					}
-				} catch (IOException e) {
-					LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
-				} finally {
-					try {
-						in.close();
-					} catch (IOException e) {
-					}
+			try {
+				while ((bytes = in.read(buffer)) != -1) {
+					sendBytes += bytes;
+					os.write(buffer, 0, bytes);
+					os.flush();
 				}
+			} catch (IOException e) {
+				LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+			} finally {
 				try {
-					os.close();
+					in.close();
 				} catch (IOException e) {
 				}
-				if (renderer != null) {
-					renderer.stop();
-				}
+			}
+			try {
+				os.close();
+			} catch (IOException e) {
+			}
+			if (renderer != null) {
+				renderer.stop();
 			}
 		};
 		new Thread(r).start();
@@ -115,7 +112,7 @@ public class RemoteUtil {
 
 	public static String read(File f) {
 		try {
-			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
+			return FileUtils.readFileToString(f, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.debug("Error reading file: " + e);
 		}
@@ -220,7 +217,7 @@ public class RemoteUtil {
 		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
 		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
-		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
+		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ?
 			(WebRender) r : null;
 	}
 
@@ -426,7 +423,7 @@ public class RemoteUtil {
 
 		public String read(String filename) {
 			try {
-				return IOUtils.toString(getInputStream(filename), "UTF-8");
+				return IOUtils.toString(getInputStream(filename), StandardCharsets.UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Error reading resource {}: {}", filename, e);
 			}

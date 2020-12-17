@@ -28,6 +28,6 @@
 
 		@Override
 		public String[] getSupportedExtensions() {
-			return new String[] { "dsf" };
+			return new String[] {"dsf"};
 		}
 	}

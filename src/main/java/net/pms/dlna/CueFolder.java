@@ -40,6 +40,7 @@ public class CueFolder extends DLNAResource {
 	public File getPlaylistfile() {
 		return playlistfile;
 	}
+
 	private boolean valid = true;
 
 	public CueFolder(File f) {
@@ -124,7 +125,7 @@ public class CueFolder extends DLNAResource {
 							realFile.setMedia(new DLNAMediaInfo());
 							realFile.getMedia().setMediaparsed(true);
 						}
-						realFile.resolve();
+						realFile.syncResolve();
 						if (i == 0) {
 							originalMedia = realFile.getMedia();
 							if (originalMedia == null) {

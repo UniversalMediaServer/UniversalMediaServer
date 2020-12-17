@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class InfoDb implements DbHandler {
 	public static class InfoDbData {
 		public String imdb;
-		public String ep_name;
+		public String epName;
 		public String year;
 		public String season;
 		public String episode;
@@ -62,21 +62,18 @@ public class InfoDb implements DbHandler {
 				return;
 			}
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				askAndInsert(f, formattedName);
-			}
+		Runnable r = () -> {
+			askAndInsert(f, formattedName);
 		};
 		new Thread(r).start();
 	}
 
-	public void moveInfo(File old_file, File new_file) {
+	public void moveInfo(File oldFile, File newFile) {
 		synchronized (db) {
-			InfoDbData data = get(old_file);
+			InfoDbData data = get(oldFile);
 			if (data != null) {
-				db.removeNoSync(old_file.getAbsolutePath());
-				db.addNoSync(new_file.getAbsolutePath(), data);
+				db.removeNoSync(oldFile.getAbsolutePath());
+				db.addNoSync(newFile.getAbsolutePath(), data);
 				db.sync();
 			}
 		}
@@ -101,7 +98,7 @@ public class InfoDb implements DbHandler {
 	public Object create(String[] args, int off) {
 		InfoDbData data = new InfoDbData();
 		data.imdb = FileDb.safeGetArg(args, off);
-		data.ep_name = FileDb.safeGetArg(args, off + 1);
+		data.epName = FileDb.safeGetArg(args, off + 1);
 		data.title = FileDb.safeGetArg(args, off + 2);
 		data.season = FileDb.safeGetArg(args, off + 3);
 		data.episode = FileDb.safeGetArg(args, off + 4);
@@ -115,7 +112,7 @@ public class InfoDb implements DbHandler {
 		InfoDbData data = (InfoDbData) obj;
 		return new String[]{
 			data.imdb,
-			data.ep_name,
+			data.epName,
 			data.title,
 			data.season,
 			data.episode,
@@ -152,41 +149,38 @@ public class InfoDb implements DbHandler {
 
 		// update this first to make redo() return false for other
 		PMS.setKey(LAST_INFO_REREAD_KEY, "" + System.currentTimeMillis());
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				synchronized (db) {
-					// this whole iterator stuff is to avoid
-					// CMEs
-					Iterator<Entry<String, Object>> it = db.iterator();
-					boolean sync = false;
-					while (it.hasNext()) {
-						Map.Entry<String, Object> kv = it.next();
-						String key = kv.getKey();
+		Runnable r = () -> {
+			synchronized (db) {
+				// this whole iterator stuff is to avoid
+				// CMEs
+				Iterator<Entry<String, Object>> it = db.iterator();
+				boolean sync = false;
+				while (it.hasNext()) {
+					Map.Entry<String, Object> kv = it.next();
+					String key = kv.getKey();
 
-						// nonNull -> no need to ask again
-						if (!db.isNull(kv.getValue())) {
-							continue;
-						}
-						File f = new File(key);
-						String name = f.getName();
-						try {
-							String[] tmp = OpenSubtitle.getInfo(f, name);
-							// if we still get nothing from opensubs
-							// we don't fiddle with the db
-							if (tmp != null) {
-								kv.setValue(create(tmp, 0));
-								sync = true;
-							}
-						} catch (Exception e) {
-							LOGGER.error("Exception in redoNulls: {}", e.getMessage());
-							LOGGER.trace("", e);
-						}
+					// nonNull -> no need to ask again
+					if (!db.isNull(kv.getValue())) {
+						continue;
 					}
-					if (sync) {
-						// we need a manual sync here
-						db.sync();
+					File f = new File(key);
+					String name = f.getName();
+					try {
+						String[] tmp = OpenSubtitle.getInfo(f, name);
+						// if we still get nothing from opensubs
+						// we don't fiddle with the db
+						if (tmp != null) {
+							kv.setValue(create(tmp, 0));
+							sync = true;
+						}
+					} catch (Exception e) {
+						LOGGER.error("Exception in redoNulls: {}", e.getMessage());
+						LOGGER.trace("", e);
 					}
+				}
+				if (sync) {
+					// we need a manual sync here
+					db.sync();
 				}
 			}
 		};

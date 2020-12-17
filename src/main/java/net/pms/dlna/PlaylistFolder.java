@@ -92,7 +92,8 @@ public class PlaylistFolder extends DLNAResource {
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
-				return new BufferedReader(new InputStreamReader(new BOMInputStream(new FileInputStream(playlistfile)), charset));
+				FileInputStream inputStream = new FileInputStream(playlistfile);
+				return new BufferedReader(new InputStreamReader(new BOMInputStream(inputStream), charset));
 			}
 		}
 		return null;
@@ -189,7 +190,7 @@ public class PlaylistFolder extends DLNAResource {
 			Format f = FormatFactory.getAssociatedFormat(ext);
 			int type = f == null ? defaultContent : f.getType();
 
-			if (! isweb && ! FileUtil.isUrl(entry.fileName)) {
+			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
 				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
 				if (en.exists()) {
 					addChild(type == Format.PLAYLIST ? new PlaylistFolder(en) : new RealFile(en, entry.title));
@@ -197,7 +198,7 @@ public class PlaylistFolder extends DLNAResource {
 				}
 			} else {
 				String u = FileUtil.urlJoin(uri, entry.fileName);
-				if (type == Format.PLAYLIST && ! entry.fileName.endsWith(ext)) {
+				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
 					// If the filename continues past the "extension" (i.e. has a query string) it's
 					// likely not a nested playlist but a media item, for instance Twitch TV media urls:
 					//    'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
@@ -214,7 +215,7 @@ public class PlaylistFolder extends DLNAResource {
 				}
 			}
 		}
-		if (! isweb) {
+		if (!isweb) {
 			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
@@ -248,6 +249,8 @@ public class PlaylistFolder extends DLNAResource {
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
 				case "ups":
 					return new Playlist(name, uri);
+			default:
+				break;
 			}
 		}
 		return null;

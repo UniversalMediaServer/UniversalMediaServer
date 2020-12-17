@@ -1,15 +1,61 @@
-9.8.1 - 2020
+9.8.2 - 2020-11-08
+
+	General:
+		Improved filename prettifying for XviD and x265 videos
+		Improved support for WebP images
+		Fixed memory leaks
+		Fixed duration of resume files via DLNA
+		Fixed incorrect resolution metadata if the renderer uses KeepAspectRatioTranscoding
+		Fixed not removing old JRE folders on Windows install
+		Updated links in documentation (thanks, xaitax!)
+		Fixed date on zip logs filename (thanks, Midhun R Nair!)
+		Save logs to desktop by default (thanks, dotslash21!)
+	Renderers:
+		Improved support for Blu-ray and DVD subtitles on VLC for desktop
+		Improved detection of Microsoft Edge
+		Updated logo for Microsoft Edge
+	Translation updates via Crowdin:
+		Chinese (Simplified) (100%)
+		Chinese (Traditional) (100%)
+		Dutch (92%)
+		Italian (100%)
+		Romanian (100%)
+		Serbian (Cyrillic) (86%)
+	Dependencies:
+		Bump AdoptOpenJDK from 14.0.2 to 15.0.1+9
+		Bump assertj-core from 3.17.1 to 3.18.0
+		Bump commons-io from 2.7 to 2.8.0
+		Bump commons-lang3 from 3.7 to 3.9
+		Bump commons-text from 1.3 to 1.9
+		Bump git-commit-id-plugin from 4.0.2 to 4.0.3
+		Bump icu4j from 67.1 to 68.1
+		Bump junit5.version from 5.6.2 to 5.7.0
+		Bump junrar from 7.3.0 to 7.4.0
+		Bump maven-project-info-reports-plugin from 3.1.0 to 3.1.1
+		Bump metadata-extractor from 2.14.0 to 2.15.0
+		Bump oshi-core from 5.2.5 to 5.3.4
+		Bump spotbugs-maven-plugin from 4.0.4 to 4.1.4
+
+9.8.1 - 2020-09-05
 
 	General:
 		Improved speed of renderers and UMS recognizing each other
 		Reduced network and CPU loads associated with renderer discovery
+		Improved loading of external libraries
 		Fixed older macOS auto-updating to UMS for newer macOS
+		Fixed quickrun scripts for developers
+		Fixed not removing the Windows service firewall rule on uninstall
+	Translation updates via Crowdin:
+		English (United Kingdom) (33%)
+		German (98%)
+		Slovak (98%)
 	Dependencies:
+		Bump assertj-core from 3.16.1 to 3.17.1
 		Bump git-commit-id-plugin from 4.0.1 to 4.0.2
 		Bump junrar from 6.0.1 to 7.3.0
 		Bump maven-resources-plugin from 3.1.0 to 3.2.0
-		Bump MediaInfo from 18.12 to 20.03
-		Bump oshi-core from 5.2.2 to 5.2.3
+		Bump MediaInfo from 18.12 to 20.08
+		Bump oshi-core from 5.2.2 to 5.2.5
 
 9.8.0 - 2020-07-26
 

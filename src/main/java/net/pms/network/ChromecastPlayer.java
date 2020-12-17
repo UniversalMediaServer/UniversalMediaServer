@@ -13,7 +13,7 @@ import su.litvak.chromecast.api.v2.MediaStatus;
 import su.litvak.chromecast.api.v2.Status;
 
 public class ChromecastPlayer extends BasicPlayer.Logical {
-	private static final String MediaPlayer = "CC1AD845";
+	private static final String MEDIA_PLAYER = "CC1AD845";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastPlayer.class);
 	private ChromeCast api;
 	private Thread poller;
@@ -34,7 +34,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 				return;
 			}
 			try {
-				api.launchApp(MediaPlayer);
+				api.launchApp(MEDIA_PLAYER);
 				api.load("", null, item.uri, r.mimeType());
 			} catch (IOException e) {
 				LOGGER.debug("Bad chromecast load: " + e);
@@ -101,7 +101,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 	}
 
 	private int translateState(MediaStatus.PlayerState s) {
-		switch(s) {
+		switch (s) {
 			case IDLE: return STOPPED;
 			case PLAYING: // buffering is a kind of playing
 			case BUFFERING: return PLAYING;
@@ -111,42 +111,40 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 	}
 
 	public void startPoll() {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				for(;;) {
-					try {
-						Thread.sleep(1000);
-						Status s1 = api.getStatus();
-						if (s1 == null || !s1.isAppRunning(MediaPlayer)) {
-							continue;
-						}
-						MediaStatus status = api.getMediaStatus();
-						if (status == null) {
-							continue;
-						}
-						state.playback = translateState(status.playerState);
-						Media m = status.media;
-						if (m != null) {
-							if (m.url != null) {
-								state.uri = status.media.url;
-							}
-							if(m.duration != null) {
-								state.duration = StringUtil.convertTimeToString(status.media.duration, "%02d:%02d:%02.0f");
-							}
-						}
-						state.position = StringUtil.convertTimeToString(status.currentTime, "%02d:%02d:%02.0f");
-						if (status.volume != null) {
-							state.volume = status.volume.level.intValue();
-							state.mute = status.volume.muted;
-						}
-						alert();
-					} catch (InterruptedException | IOException e) {
-						LOGGER.debug("Bad chromecast mediastate " + e);
+		Runnable r = () -> {
+			for (;;) {
+				try {
+					Thread.sleep(1000);
+					Status s1 = api.getStatus();
+					if (s1 == null || !s1.isAppRunning(MEDIA_PLAYER)) {
+						continue;
 					}
+					MediaStatus status = api.getMediaStatus();
+					if (status == null) {
+						continue;
+					}
+					state.playback = translateState(status.playerState);
+					Media m = status.media;
+					if (m != null) {
+						if (m.url != null) {
+							state.uri = status.media.url;
+						}
+						if (m.duration != null) {
+							state.duration = StringUtil.convertTimeToString(status.media.duration, "%02d:%02d:%02.0f");
+						}
+					}
+					state.position = StringUtil.convertTimeToString(status.currentTime, "%02d:%02d:%02.0f");
+					if (status.volume != null) {
+						state.volume = status.volume.level.intValue();
+						state.mute = status.volume.muted;
+					}
+					alert();
+				} catch (InterruptedException | IOException e) {
+					LOGGER.debug("Bad chromecast mediastate " + e);
 				}
 			}
 		};
+
 		poller = new Thread(r);
 		poller.start();
 	}

@@ -23,7 +23,6 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Formatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
@@ -274,8 +273,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 		maxIconWidth = 0;
 		maxIconHeight = 0;
 
-		for (AnimatedIconFrame frame : frames)
-		{
+		for (AnimatedIconFrame frame : frames) {
 			maxIconWidth = Math.max(maxIconWidth, frame.icon.getIconWidth());
 			maxIconHeight = Math.max(maxIconHeight, frame.icon.getIconHeight());
 		}
@@ -428,7 +426,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 		return maxIconHeight;
 	}
 
-   /**
+	/**
 	*  Paints the icons of this compound icon at the specified location
 	*
 	*  @param c The component on which the icon is painted
@@ -454,8 +452,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 		//  Saving the x, y coordinates allows us to only repaint the icon and
 		//  not the entire component for each animation
 
-		if (c == component)
-		{
+		if (c == component) {
 			iconX = x;
 			iconY = y;
 		}
@@ -463,8 +460,8 @@ public class AnimatedIcon implements Icon, ActionListener {
 		//  Determine the proper alignment of the Icon, then paint it
 
 		Icon icon = frames.get(currentFrameIndex).icon;
-   		int width = getIconWidth();
-   		int height = getIconHeight();
+		int width = getIconWidth();
+		int height = getIconHeight();
 
 		int offsetX = getOffset(width, icon.getIconWidth(), alignmentX);
 		int offsetY = getOffset(height, icon.getIconHeight(), alignmentY);
@@ -551,7 +548,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 		AnimatedIconFrame[] result = new AnimatedIconFrame[returnToFirst ? 2 * (lastIdx - firstIdx) : lastIdx - firstIdx + 1];
 
 		int idx = firstIdx;
-		for (int i = 0;i <= lastIdx - firstIdx;i++) {
+		for (int i = 0; i <= lastIdx - firstIdx; i++) {
 			Icon icon = LooksFrame.readImageIcon(String.format(resourceNamePattern, idx));
 			if (icon == null) {
 				throw new IllegalArgumentException(String.format(

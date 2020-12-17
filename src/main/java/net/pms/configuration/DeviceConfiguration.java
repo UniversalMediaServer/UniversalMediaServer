@@ -105,7 +105,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 
 	@Override
 	public void setUUID(String uuid) {
-		if (uuid != null && ! uuid.equals(this.uuid)) {
+		if (uuid != null && !uuid.equals(this.uuid)) {
 			this.uuid = uuid;
 			// Switch to the custom device conf for this new uuid, if any
 			if (deviceConfs.containsKey(uuid) && deviceConf != deviceConfs.get(uuid)) {
@@ -184,7 +184,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			for (File f : files) {
 				if (f.getName().endsWith(".conf")) {
 					loadDeviceFile(f, createPropertiesConfiguration());
-					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), reloader));
+					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), RELOADER));
 				}
 			}
 		}
@@ -275,9 +275,9 @@ public class DeviceConfiguration extends PmsConfiguration {
 
 	public static ArrayList<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
 		ArrayList<RendererConfiguration> devices = new ArrayList<>();
-		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration)renderer).ref : renderer;
+		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration) renderer).ref : renderer;
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			if ((r instanceof DeviceConfiguration) && ((DeviceConfiguration)r).ref == ref) {
+			if ((r instanceof DeviceConfiguration) && ((DeviceConfiguration) r).ref == ref) {
 				devices.add(r);
 			}
 		}
@@ -287,7 +287,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	/**
 	 * Automatic reloading
 	 */
-	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			File f = new File(filename);
@@ -305,7 +305,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			conf.clear();
 			ids.addAll(Arrays.asList(loadDeviceFile(f, conf)));
 			for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-				if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration)r).getId())) {
+				if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration) r).getId())) {
 					r.reset();
 				}
 			}

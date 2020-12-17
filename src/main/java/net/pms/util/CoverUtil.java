@@ -42,8 +42,8 @@ import org.w3c.dom.NodeList;
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
-	protected static final String encoding = StandardCharsets.UTF_8.name();
-	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
+	protected static final String ENCODING = StandardCharsets.UTF_8.name();
+	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
@@ -105,7 +105,7 @@ public abstract class CoverUtil {
 	 */
 	protected String urlEncode(String url) {
 		try {
-			return URLEncoder.encode(url, encoding);
+			return URLEncoder.encode(url, ENCODING);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("UTF-8 is unsupported :O", e);
 			return "";

@@ -14,6 +14,7 @@ public class MediaLibrary extends VirtualFolder {
 	public MediaLibraryFolder getAllFolder() {
 		return allFolder;
 	}
+
 	private MediaLibraryFolder albumFolder;
 	private MediaLibraryFolder artistFolder;
 	private MediaLibraryFolder genreFolder;

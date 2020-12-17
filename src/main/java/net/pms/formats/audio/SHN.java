@@ -33,6 +33,6 @@ public class SHN extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "shn" };
+		return new String[] {"shn"};
 	}
 }

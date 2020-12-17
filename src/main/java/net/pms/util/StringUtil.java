@@ -1,21 +1,20 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 package net.pms.util;
@@ -31,9 +30,6 @@ import java.util.Formatter;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JEditorPane;
-import javax.swing.JTextPane;
-import javax.swing.text.html.HTMLEditorKit;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -74,10 +70,11 @@ public class StringUtil {
 	public static final long GIGA = 1000000000L;
 	public static final long TERA = 1000000000000L;
 	public static final long PETA = 1000000000000000L;
-	public static final long EXA  = 1000000000000000000L;
+	public static final long EXA = 1000000000000000000L;
 
 	/**
-	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
+	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical
+	 * HTML/DIDL/XML tag opening.
 	 *
 	 * @param sb String to append the tag beginning to.
 	 * @param tag String that represents the tag
@@ -88,7 +85,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Appends the closing symbol &gt; to the StringBuilder. This is a typical HTML/DIDL/XML tag closing.
+	 * Appends the closing symbol &gt; to the StringBuilder. This is a typical
+	 * HTML/DIDL/XML tag closing.
 	 *
 	 * @param sb String to append the ending character of a tag.
 	 */
@@ -97,7 +95,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Appends "&lt;/<u>tag</u>&gt;" to the StringBuilder. This is a typical closing HTML/DIDL/XML tag.
+	 * Appends "&lt;/<u>tag</u>&gt;" to the StringBuilder. This is a typical
+	 * closing HTML/DIDL/XML tag.
 	 *
 	 * @param sb
 	 * @param tag
@@ -127,7 +126,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Does double transformations between &<> characters and their XML representation with ampersands.
+	 * Does double transformations between &<> characters and their XML
+	 * representation with ampersands.
 	 *
 	 * @param s String to be encoded
 	 * @return Encoded String
@@ -136,13 +136,15 @@ public class StringUtil {
 		s = s.replace("&", "&amp;");
 		s = s.replace("<", "&lt;");
 		s = s.replace(">", "&gt;");
-		/* Skip encoding/escaping ' and " for compatibility with some renderers
-		 * This might need to be made into a renderer option if some renderers require them to be encoded
-		 * s = s.replace("\"", "&quot;");
-		 * s = s.replace("'", "&apos;");
+		/*
+		 * Skip encoding/escaping ' and " for compatibility with some renderers
+		 * This might need to be made into a renderer option if some renderers
+		 * require them to be encoded s = s.replace("\"", "&quot;"); s =
+		 * s.replace("'", "&apos;");
 		 */
 
-		// The second encoding/escaping of & is not a bug, it's what effectively adds the second layer of encoding/escaping
+		// The second encoding/escaping of & is not a bug, it's what effectively
+		// adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
 	}
@@ -154,7 +156,8 @@ public class StringUtil {
 	 * @return Encoded String
 	 */
 	public static String unEncodeXML(String s) {
-		// Note: ampersand substitution must be first in order to undo double transformations
+		// Note: ampersand substitution must be first in order to undo double
+		// transformations
 		// TODO: support ' and " if/when required, see encodeXML() above
 		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
 	}
@@ -178,7 +181,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Parse as double, or if it's not just one number, handles {hour}:{minute}:{seconds}
+	 * Parse as double, or if it's not just one number, handles
+	 * {hour}:{minute}:{seconds}
 	 *
 	 * @param time
 	 * @return
@@ -356,10 +360,7 @@ public class StringUtil {
 	 *             positive and outside the bounds of {@code first} or
 	 *             {@code second}.
 	 */
-	public static boolean isEqual(
-		String first,
-		String second
-	) {
+	public static boolean isEqual(String first, String second) {
 		return isEqual(first, second, false, false, false, null, false, 0, -1, -1);
 	}
 
@@ -380,11 +381,7 @@ public class StringUtil {
 	 *             positive and outside the bounds of {@code first} or
 	 *             {@code second}.
 	 */
-	public static boolean isEqual(
-		String first,
-		String second,
-		boolean blankIsNull
-	) {
+	public static boolean isEqual(String first, String second, boolean blankIsNull) {
 		return isEqual(first, second, blankIsNull, false, false, null, false, 0, -1, -1);
 	}
 
@@ -409,14 +406,7 @@ public class StringUtil {
 	 * @return {@code true} if the two {@link String}s are equal according to
 	 *         the rules set by the parameters, {@code false} otherwise.
 	 */
-	public static boolean isEqual(
-		String first,
-		String second,
-		boolean blankIsNull,
-		boolean trim,
-		boolean ignoreCase,
-		Locale locale
-	) {
+	public static boolean isEqual(String first, String second, boolean blankIsNull, boolean trim, boolean ignoreCase, Locale locale) {
 		return isEqual(first, second, blankIsNull, trim, ignoreCase, locale, false, 0, -1, -1);
 	}
 
@@ -484,14 +474,7 @@ public class StringUtil {
 	 *             positive and outside the bounds of {@code first} or
 	 *             {@code second}.
 	 */
-	public static boolean isEqualFrom(
-		String first,
-		String second,
-		boolean blankIsNull,
-		boolean ignoreCase,
-		Locale locale,
-		int fromIdx
-	) {
+	public static boolean isEqualFrom(String first, String second, boolean blankIsNull, boolean ignoreCase, Locale locale, int fromIdx) {
 		return isEqual(first, second, blankIsNull, false, ignoreCase, locale, false, 0, fromIdx, -1);
 	}
 
@@ -523,17 +506,9 @@ public class StringUtil {
 	 *             positive and outside the bounds of {@code first} or
 	 *             {@code second}.
 	 */
-	public static boolean isEqualTo(
-		String first,
-		String second,
-		boolean blankIsNull,
-		boolean ignoreCase,
-		Locale locale,
-		int toIdx
-	) {
+	public static boolean isEqualTo(String first, String second, boolean blankIsNull, boolean ignoreCase, Locale locale, int toIdx) {
 		return isEqual(first, second, blankIsNull, false, ignoreCase, locale, false, 0, -1, toIdx);
 	}
-
 
 	/**
 	 * Compares the specified {@link String}s for equality according to the
@@ -673,13 +648,11 @@ public class StringUtil {
 			}
 			if (fromIdx >= first.length() || fromIdx >= second.length()) {
 				throw new IndexOutOfBoundsException(
-					"fromIdx=" + fromIdx + ", first length=" + first.length() + ", second length=" + second.length()
-				);
+					"fromIdx=" + fromIdx + ", first length=" + first.length() + ", second length=" + second.length());
 			}
 			if (toIdx > first.length() || toIdx > second.length()) {
 				throw new IndexOutOfBoundsException(
-					"toIdx=" + fromIdx + ", first length=" + first.length() + ", second length=" + second.length()
-				);
+					"toIdx=" + fromIdx + ", first length=" + first.length() + ", second length=" + second.length());
 			}
 			if (fromIdx < 0) {
 				fromIdx = 0;
@@ -701,10 +674,12 @@ public class StringUtil {
 	}
 
 	/**
-	 * A unicode unescaper that translates unicode escapes, e.g. '\u005c', while leaving
-	 * intact any  sequences that can't be interpreted as escaped unicode.
+	 * A unicode unescaper that translates unicode escapes, e.g. '\u005c', while
+	 * leaving intact any sequences that can't be interpreted as escaped
+	 * unicode.
 	 */
 	public static class LaxUnicodeUnescaper extends UnicodeUnescaper {
+
 		@Override
 		public int translate(CharSequence input, int index, Writer out) throws IOException {
 			try {
@@ -717,8 +692,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Returns the argument string surrounded with quotes if it contains a space,
-	 * otherwise returns the string as is.
+	 * Returns the argument string surrounded with quotes if it contains a
+	 * space, otherwise returns the string as is.
 	 *
 	 * @param arg The argument string
 	 * @return The string, optionally in quotes.
@@ -763,8 +738,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Fill a string in a unicode safe way. 8 bit (&lt; 256) code points
-	 * equals ISO 8859-1 codes.
+	 * Fill a string in a unicode safe way. 8 bit (&lt; 256) code points equals
+	 * ISO 8859-1 codes.
 	 *
 	 * @param codePoint The unicode code point to be filled with
 	 * @param count The number of times to repeat the unicode code point
@@ -918,9 +893,8 @@ public class StringUtil {
 		}
 		// Turn XML string into a document
 		try {
-			Document xmlDocument = XmlUtils.xxeDisabledDocumentBuilderFactory()
-				.newDocumentBuilder()
-				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
+			Document xmlDocument = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder()
+				.parse(new InputSource(new ByteArrayInputStream(xml.getBytes(charset))));
 			return prettifyXML(xmlDocument, indentWidth);
 		} catch (IOException e) {
 			LOGGER.warn("Failed to read XML document, returning the source document: {}", e.getMessage());
@@ -928,7 +902,6 @@ public class StringUtil {
 			return xml;
 		}
 	}
-
 
 	/**
 	 * Formats a XML string to be easier to read with newlines and indentations.
@@ -941,36 +914,30 @@ public class StringUtil {
 	 * @throws XPathExpressionException If a parsing error occurs.
 	 * @throws TransformerException If a parsing error occurs.
 	 */
-	public static String prettifyXML(
-		Document xmlDocument,
-		int indentWidth
-	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
-			// Remove whitespaces outside tags
-			xmlDocument.normalize();
-			XPath xPath = XPathFactory.newInstance().newXPath();
-			NodeList nodeList = (NodeList) xPath.evaluate(
-				"//text()[normalize-space()='']",
-				xmlDocument,
-				XPathConstants.NODESET
-			);
+	public static String prettifyXML(Document xmlDocument, int indentWidth)
+		throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
+		// Remove whitespaces outside tags
+		xmlDocument.normalize();
+		XPath xPath = XPathFactory.newInstance().newXPath();
+		NodeList nodeList = (NodeList) xPath.evaluate("//text()[normalize-space()='']", xmlDocument, XPathConstants.NODESET);
 
-			for (int i = 0; i < nodeList.getLength(); ++i) {
-				Node node = nodeList.item(i);
-				node.getParentNode().removeChild(node);
-			}
+		for (int i = 0; i < nodeList.getLength(); ++i) {
+			Node node = nodeList.item(i);
+			node.getParentNode().removeChild(node);
+		}
 
-			// Setup pretty print options
-			TransformerFactory transformerFactory = XmlUtils.xxeDisabledTransformerFactory();
-			transformerFactory.setAttribute("indent-number", indentWidth);
-			Transformer transformer = transformerFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		// Setup pretty print options
+		TransformerFactory transformerFactory = XmlUtils.xxeDisabledTransformerFactory();
+		transformerFactory.setAttribute("indent-number", indentWidth);
+		Transformer transformer = transformerFactory.newTransformer();
+		transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+		transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-			// Return pretty print XML string
-			StringWriter stringWriter = new StringWriter();
-			transformer.transform(new DOMSource(xmlDocument), new StreamResult(stringWriter));
-			return stringWriter.toString();
+		// Return pretty print XML string
+		StringWriter stringWriter = new StringWriter();
+		transformer.transform(new DOMSource(xmlDocument), new StreamResult(stringWriter));
+		return stringWriter.toString();
 	}
 
 	/**
@@ -1034,12 +1001,7 @@ public class StringUtil {
 	 * @param lastSeparator the separator used between the last two elements.
 	 * @return The combined "readable" {@link String}.
 	 */
-	public static String createReadableCombinedString(
-		Collection<String> strings,
-		boolean quote,
-		String separator,
-		String lastSeparator
-	) {
+	public static String createReadableCombinedString(Collection<String> strings, boolean quote, String separator, String lastSeparator) {
 		if (strings == null || strings.isEmpty()) {
 			return "";
 		}
@@ -1104,12 +1066,7 @@ public class StringUtil {
 	 * @param lastSeparator the separator used between the last two elements.
 	 * @return The combined "readable" {@link String}.
 	 */
-	public static String createReadableCombinedString(
-		String[] strings,
-		boolean quote,
-		String separator,
-		String lastSeparator
-	) {
+	public static String createReadableCombinedString(String[] strings, boolean quote, String separator, String lastSeparator) {
 		if (strings == null || strings.length == 0) {
 			return "";
 		}

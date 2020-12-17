@@ -367,7 +367,6 @@ public class FileUtil {
 		return getExtension(file, null, null);
 	}
 
-	
 	/**
 	 * Returns the file extension from the specified {@link Path} or
 	 * {@code null} if it has no extension.
@@ -594,8 +593,8 @@ public class FileUtil {
 	 * one of these strings, the string and everything after them will be
 	 * removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
 
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
@@ -736,7 +735,7 @@ public class FileUtil {
 	 */
 	public static String[] getFileNameMetadata(String filename) {
 		if (filename == null) {
-			return new String[] { null, null, null, null, null, null };
+			return new String[] {null, null, null, null, null, null};
 		}
 
 		String formattedName;
@@ -751,7 +750,7 @@ public class FileUtil {
 		String tvEpisodeName   = null;
 		String tvEpisodeNumber = null;
 		String edition         = null;
-		
+
 		// This can contain editions and "Sample" for now
 		String extraInformation = null;
 
@@ -940,7 +939,7 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll(
-				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|"+
+				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|" +
 				"\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*",
 				""
 			);
@@ -1033,7 +1032,7 @@ public class FileUtil {
 			extraInformation = edition;
 		}
 
-		return new String[] { movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName };
+		return new String[] {movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName};
 	}
 
 	/**
@@ -1084,22 +1083,6 @@ public class FileUtil {
 		return matcher.find() ? matcher.start() : -1;
 	}
 
-	/**
-	 * @deprecated Use {@link #replaceExtension} instead.
-	 */
-	@Deprecated
-	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
-		return replaceExtension(parent, file, ext, true, true);
-	}
-
-	/**
-	 * @deprecated Use {@link #getFileNameWithNewExtension(File, File, String)}.
-	 */
-	@Deprecated
-	public static File getFileNameWitNewExtension(File parent, File f, String ext) {
-		return replaceExtension(parent, f, ext, true, true);
-	}
-
 	public static File getFileNameWithAddedExtension(File parent, File f, String ext) {
 		File ff = new File(parent, f.getName() + ext);
 
@@ -1108,30 +1091,6 @@ public class FileUtil {
 		}
 
 		return null;
-	}
-
-	/**
-	 * @deprecated Use {@link #getFileNameWithAddedExtension(File, File, String)}.
-	 */
-	@Deprecated
-	public static File getFileNameWitAddedExtension(File parent, File file, String ext) {
-		return getFileNameWithAddedExtension(parent, file, ext);
-	}
-
-	/**
-	 * @deprecated Use {@link #replaceExtension} instead.
-	 */
-	@Deprecated
-	public static File isFileExists(String f, String ext) {
-		return replaceExtension(new File(f), ext, true, true);
-	}
-
-	/**
-	 * @deprecated Use {@link #replaceExtension} instead.
-	 */
-	@Deprecated
-	public static File isFileExists(File f, String ext) {
-		return replaceExtension(f, ext, true, true);
 	}
 
 	/**
@@ -1915,15 +1874,6 @@ public class FileUtil {
 	}
 
 	/**
-	 * @deprecated Use {@link #createBufferedReaderDetectCharset(File, Charset)}
-	 *             instead.
-	 */
-	@Deprecated
-	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
-		return createBufferedReaderDetectCharset(file, StandardCharsets.UTF_8).getBufferedReader();
-	}
-
-	/**
 	 * Attempts to detect the {@link Charset} used in the specified {@link File}
 	 * and creates a {@link BufferedReader} using that {@link Charset}. If the
 	 * {@link Charset} detection fails, the specified default {@link Charset}
@@ -2051,7 +2001,7 @@ public class FileUtil {
 			}
 
 			if (Platform.isWindows()) {
-				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
+				Double version = BasicSystemUtils.instance.getWindowsVersion();
 				if (version == null) {
 					LOGGER.error(
 						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
@@ -2193,10 +2143,10 @@ public class FileUtil {
 	public static boolean isUnixStickyBit(Path path) throws IOException, InvalidFileSystemException {
 		PosixFileAttributes attr = Files.readAttributes(path, PosixFileAttributes.class);
 		try {
-			Field st_modeField = attr.getClass().getDeclaredField("st_mode");
-			st_modeField.setAccessible(true);
-			int st_mode = st_modeField.getInt(attr);
-			return (st_mode & S_ISVTX) > 0;
+			Field stModeField = attr.getClass().getDeclaredField("st_mode");
+			stModeField.setAccessible(true);
+			int stMode = stModeField.getInt(attr);
+			return (stMode & S_ISVTX) > 0;
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			throw new InvalidFileSystemException("File is not on a Unix file system: " + e.getMessage(), e);
 		}
@@ -2456,7 +2406,7 @@ public class FileUtil {
 
 	/**
 	 * Check if the provided {@code filename} string can be a directory
-	 * by checking if the string contains extension. 
+	 * by checking if the string contains extension.
 	 *
 	 * @param filename the string represented the directory
 	 * @return {@code true} if the string doesn't contain the extension
@@ -2464,5 +2414,35 @@ public class FileUtil {
 	 */
 	public static boolean isDirectory(String filename) {
 		return FileUtil.getExtension(filename) == null;
+	}
+
+	/**
+	 * Check if the {@code file} is a symbolic link.
+	 *
+	 * @param file the file to check
+	 * @return {@code true} if the file is a symbolic link
+	 * {@code false} otherwise.
+	 */
+	public static boolean isSymbolicLink(File file) {
+		return Files.isSymbolicLink(file.toPath());
+	}
+
+	/**
+	 * Return the file from the real path of the provided {@code file}
+	 * that is a symbolic link.
+	 *
+	 * @param file the symbolic link file
+	 * @return a File from the <em>real</em> path of the symbolic link file
+	 */
+	public static File getRealFile(File file) {
+		Path target = file.toPath();
+		while (Files.isSymbolicLink(target)) {
+			try {
+				target = target.toRealPath();
+			} catch (IOException ex) {
+				return target.toFile();
+			}
+		}
+		return target.toFile();
 	}
 }

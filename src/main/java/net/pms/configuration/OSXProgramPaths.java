@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import net.pms.util.FileUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 /**
  * This class keeps track of paths to external programs on macOS.
  *

@@ -62,8 +62,6 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.PlayerFactory;
-import net.pms.formats.Format;
-import net.pms.formats.FormatFactory;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
@@ -184,7 +182,7 @@ public class PMS {
 	 * it's holding is not. Any looping/iterating of this <code>List</code>
 	 * MUST be enclosed in:
 	 * S<pre><code>
-	 * synchronized(getFoundRenderers()) {
+	 * synchronized (getFoundRenderers()) {
 	 *      ..code..
 	 * }
 	 * </code></pre>
@@ -192,14 +190,6 @@ public class PMS {
 	 */
 	public List<RendererConfiguration> getFoundRenderers() {
 		return foundRenderers;
-	}
-
-	/**
-	 * @deprecated Use {@link #setRendererFound(RendererConfiguration)} instead.
-	 */
-	@Deprecated
-	public void setRendererfound(RendererConfiguration renderer) {
-		setRendererFound(renderer);
 	}
 
 	/**
@@ -594,13 +584,13 @@ public class PMS {
 		frame.setConnectionState(ConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.INSTANCE.isAviSynthAvailable() && BasicSystemUtils.INSTANCE.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
+		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.instance.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(BasicSystemUtils.instance.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(BasicSystemUtils.instance.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -610,7 +600,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.INSTANCE.isKerioFirewall()) {
+		if (BasicSystemUtils.instance.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
@@ -773,89 +763,40 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main DMS window or via
-	 * an action item.
+	 * Restarts the server. The trigger is either a button on the main DMS
+	 * window or via an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
 	public void reset() {
-		TaskRunner.getInstance().submitNamed("restart", true, new Runnable() {
-			@Override
-			public void run() {
-				try {
-					LOGGER.trace("Waiting 1 second...");
-					UPNPHelper.sendByeBye();
-					if (server != null) {
-						server.stop();
-					}
-					server = null;
-					RendererConfiguration.loadRendererConfigurations(configuration);
-
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						LOGGER.trace("Caught exception", e);
-					}
-
-					server = new HTTPServer(configuration.getServerPort());
-					server.start();
-					
-					// re-create the multicast socked because may happened the change of the used interface
-					UPNPHelper.getInstance().createMulticastSocket();
-					UPNPHelper.sendAlive();
-					frame.setReloadable(false);
-				} catch (IOException e) {
-					LOGGER.error("error during restart :" +e.getMessage(), e);
+		TaskRunner.getInstance().submitNamed("restart", true, () -> {
+			try {
+				LOGGER.trace("Waiting 1 second...");
+				UPNPHelper.sendByeBye();
+				if (server != null) {
+					server.stop();
 				}
+				server = null;
+				RendererConfiguration.loadRendererConfigurations(configuration);
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					LOGGER.trace("Caught exception", e);
+				}
+
+				server = new HTTPServer(configuration.getServerPort());
+				server.start();
+
+				// re-create the multicast socked because may happened the
+				// change of the used interface
+				UPNPHelper.getInstance().createMulticastSocket();
+				UPNPHelper.sendAlive();
+				frame.setReloadable(false);
+			} catch (IOException e) {
+				LOGGER.error("error during restart :" + e.getMessage(), e);
 			}
 		});
-	}
-
-	// Cannot remove these methods because of backwards compatibility;
-	// none of the DMS code uses it, but some plugins still do.
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the debug stream, or {@link System#out} in case the
-	 * debug stream has not been set up yet.
-	 * @param msg {@link String} to be added to the debug stream.
-	 */
-	@Deprecated
-	public static void debug(String msg) {
-		LOGGER.trace(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the info stream.
-	 * @param msg {@link String} to be added to the info stream.
-	 */
-	@Deprecated
-	public static void info(String msg) {
-		LOGGER.debug(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the minimal stream. This stream is also
-	 * shown in the Trace tab.
-	 * @param msg {@link String} to be added to the minimal stream.
-	 */
-	@Deprecated
-	public static void minimal(String msg) {
-		LOGGER.info(msg);
-	}
-
-	/**
-	 * @deprecated Use the SLF4J logging API instead.
-	 * Adds a message to the error stream. This is usually called by
-	 * statements that are in a try/catch block.
-	 * @param msg {@link String} to be added to the error stream
-	 * @param t {@link Throwable} comes from an {@link Exception}
-	 */
-	@Deprecated
-	public static void error(String msg, Throwable t) {
-		LOGGER.error(msg, t);
 	}
 
 	/**
@@ -929,12 +870,12 @@ public class PMS {
 
 	@Nonnull
 	public static PMS getNewInstance() {
-		instance=null;
+		instance = null;
 		createInstance();
 		return instance;
 	}
 
-	private synchronized static void createInstance() {
+	private static synchronized void createInstance() {
 		assert instance == null; // this should only be called once
 		instance = new PMS();
 
@@ -950,19 +891,7 @@ public class PMS {
 		}
 	}
 
-	/**
-	 * @deprecated Use {@link net.pms.formats.FormatFactory#getAssociatedFormat(String)}
-	 * instead.
-	 *
-	 * @param filename
-	 * @return The format.
-	 */
-	@Deprecated
-	public Format getAssociatedFormat(String filename) {
-		return FormatFactory.getAssociatedFormat(filename);
-	}
-
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
 		File profilePath = null;
@@ -1226,7 +1155,7 @@ public class PMS {
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
-		return getConfiguration(params != null ? params.mediaRenderer : null);
+		return getConfiguration(params != null ? params.getMediaRenderer() : null);
 	}
 
 	// Note: this should be used only when no RendererConfiguration or OutputParams is available
@@ -1252,22 +1181,6 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
-	}
-
-	/**
-	 * Returns whether the operating system is 64-bit or 32-bit.
-	 *
-	 * This will work with Windows and OS X but not necessarily with Linux
-	 * because when the OS is not Windows we are using Java's os.arch which
-	 * only detects the bitness of Java, not of the operating system.
-	 *
-	 * @return The bitness of the operating system.
-	 *
-	 * @deprecated Use {@link SystemInformation#getOSBitness()} instead.
-	 */
-	@Deprecated
-	public static int getOSBitness() {
-		return SystemInformation.getOSBitness();
 	}
 
 	/**
@@ -1330,11 +1243,11 @@ public class PMS {
 			if (logFile.exists()) {
 				File newFile = new File(newLogFileName);
 				if (!logFile.renameTo(newFile)) {
-					LOGGER.warn("Could not rename \"{}\" to \"{}\"",fullLogFileName,newLogFileName);
+					LOGGER.warn("Could not rename \"{}\" to \"{}\"", fullLogFileName, newLogFileName);
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}",fullLogFileName,newLogFileName,e);
+			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}", fullLogFileName, newLogFileName, e);
 		}
 	}
 
@@ -1353,7 +1266,7 @@ public class PMS {
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
-		} catch ( IOException e) {
+		} catch (IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
 
@@ -1361,7 +1274,7 @@ public class PMS {
 			dumpPid();
 		} catch (FileNotFoundException e) {
 			LOGGER.error(
-				"Failed to write PID file: "+ e.getMessage() +
+				"Failed to write PID file: " + e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
 			);
 		} catch (IOException e) {
@@ -1409,7 +1322,7 @@ public class PMS {
 		// check first and last, update since taskkill changed
 		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
 		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
-			  		  tmp[tmp.length - 2].contains("universal media server");
+						tmp[tmp.length - 2].contains("universal media server");
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
@@ -1417,7 +1330,7 @@ public class PMS {
 		return configuration.getDataFile("pms.pid");
 	}
 
-	private static void killProc() throws AccessControlException, IOException{
+	private static void killProc() throws AccessControlException, IOException {
 		ProcessBuilder pb = null;
 		String pid;
 		String pidFile = pidFile();
@@ -1655,14 +1568,6 @@ public class PMS {
 		return helpPage;
 	}
 
-	/**
-	 * @deprecated Use {@link com.sun.jna.Platform#isWindows()} instead
-	 */
-	@Deprecated
-	public boolean isWindows() {
-		return Platform.isWindows();
-	}
-
 	public static boolean isReady() {
 		return get().ready;
 	}
@@ -1674,11 +1579,6 @@ public class PMS {
 	private InfoDb infoDb;
 	private CodeDb codes;
 	private CodeEnter masterCode;
-
-	@Deprecated
-	public void infoDbAdd(File f, String formattedName) {
-		infoDb.backgroundAdd(f, formattedName);
-	}
 
 	public InfoDb infoDb() {
 		return infoDb;
@@ -1747,14 +1647,13 @@ public class PMS {
 				} catch (Exception e) {
 					LOGGER.debug("Can't create chromecast mgr");
 				}
-			}
-			else {
+			} else {
 				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
 			}
 		}
 	}
 
-	private void startjmDNS() throws IOException{
+	private void startjmDNS() throws IOException {
 		if (jmDNS == null) {
 			jmDNS = JmDNS.create();
 		}
@@ -1809,7 +1708,7 @@ public class PMS {
 	private UmsKeysDb keysDb;
 
 	public static String getKey(String key) {
-		 return instance.keysDb.get(key);
+		return instance.keysDb.get(key);
 	}
 
 	public static void setKey(String key, String val) {

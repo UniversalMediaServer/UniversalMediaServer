@@ -35,6 +35,13 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings({
+	"checkstyle:ConstantName",
+	"checkstyle:MemberName",
+	"checkstyle:MethodName",
+	"checkstyle:ParameterName",
+	"checkstyle:TypeName",
+})
 public class MediaInfo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfo.class);
 	static String libraryName;
@@ -82,8 +89,7 @@ public class MediaInfo {
 			}
 		});
 
-		@SuppressWarnings("cast")
-		MediaInfoDLL_Internal INSTANCE = (MediaInfoDLL_Internal) Native.loadLibrary(
+		MediaInfoDLL_Internal INSTANCE = Native.load(
 			libraryName,
 			MediaInfoDLL_Internal.class,
 			options
@@ -241,7 +247,6 @@ public class MediaInfo {
 			return value;
 		}
 	}
-
 
 	/**
 	 * An enum representing the C++ enum {@code fileoptions_t} defined in

@@ -62,7 +62,7 @@ public class ExternalFactory {
 	 * For logging messages.
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExternalFactory.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	/**
 	 * List of external listener class instances.
@@ -265,7 +265,7 @@ public class ExternalFactory {
 
 		externalListenerClasses.remove(clazz1);
 		ExternalListener remove = null;
-		for (ExternalListener list : externalListeners ) {
+		for (ExternalListener list : externalListeners) {
 			if (list.getClass().equals(clazz1)) {
 				remove = list;
 				break;
@@ -295,7 +295,7 @@ public class ExternalFactory {
 			File f = url2file(url);
 			File f1 = url2file(newUrl);
 
-			if (f1 == null || f ==null) {
+			if (f1 == null || f == null) {
 				continue;
 			}
 
@@ -310,7 +310,7 @@ public class ExternalFactory {
 
 		try {
 			f = new File(url.toURI());
-		} catch(URISyntaxException e) {
+		} catch (URISyntaxException e) {
 			f = new File(url.getPath());
 		}
 
@@ -329,7 +329,7 @@ public class ExternalFactory {
 
 	private static void purgeFiles() {
 		File purge = new File("purge");
-		String action = configuration.getPluginPurgeAction();
+		String action = CONFIGURATION.getPluginPurgeAction();
 
 		if (action.equalsIgnoreCase("none")) {
 			if (!purge.delete()) {
@@ -348,7 +348,7 @@ public class ExternalFactory {
 					if (!f.delete()) {
 						LOGGER.error("Could not delete file: \"{}\"", f.getAbsolutePath());
 					}
-				} else if(action.equalsIgnoreCase("backup")) {
+				} else if (action.equalsIgnoreCase("backup")) {
 					FileUtils.moveFileToDirectory(f, new File("backup"), true);
 					if (!f.delete()) {
 						LOGGER.error("Could not delete file: \"{}\"", f.getAbsolutePath());
@@ -375,7 +375,7 @@ public class ExternalFactory {
 	public static void lookup() {
 		// Start by purging files
 		purgeFiles();
-		File pluginsFolder = new File(configuration.getPluginDirectory());
+		File pluginsFolder = new File(CONFIGURATION.getPluginDirectory());
 		LOGGER.info("Searching for plugins in " + pluginsFolder.getAbsolutePath());
 
 		try {
@@ -447,9 +447,9 @@ public class ExternalFactory {
 			// time but rather at a later time.
 			try {
 				// Create a new instance of the plugin class and store it
-				ExternalListener instance = (ExternalListener) clazz.newInstance();
+				ExternalListener instance = (ExternalListener) clazz.getDeclaredConstructor().newInstance();
 				registerListener(instance);
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				LOGGER.error("Error instantiating plugin", e);
 			}
 		}
@@ -471,10 +471,9 @@ public class ExternalFactory {
 			if (Modifier.isStatic(postInstall.getModifiers())) {
 				postInstall.invoke((Object[]) null, (Object[]) null);
 			}
-		}
-
-		// Ignore all errors
-		catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException |
+			IllegalAccessException | InvocationTargetException e) {
+			// Ignore all errors
 		}
 	}
 
@@ -495,10 +494,10 @@ public class ExternalFactory {
 				doUpdate(update, Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
 				postInstall(clazz);
 				LOGGER.debug("do inst of " + clazz.getSimpleName());
-				instance = (ExternalListener) clazz.newInstance();
-				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
+				instance = (ExternalListener) clazz.getDeclaredConstructor().newInstance();
+				doUpdate(update, instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				LOGGER.error("Error instantiating plugin", e);
 			}
 		}
@@ -536,7 +535,7 @@ public class ExternalFactory {
 					res.args = null;
 				}
 				if (res.url != null || res.precoder != null || res.args != null) {
-					LOGGER.debug(((ExternalListener)resolver).name() + " resolver:" +
+					LOGGER.debug(((ExternalListener) resolver).name() + " resolver:" +
 						(res.url == null ? "" : " url=" + res.url) +
 						(res.precoder == null ? "" : " precoder=" + res.precoder) +
 						(res.args == null ? "" : " args=" + res.args));

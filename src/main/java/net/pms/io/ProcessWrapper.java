@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
- * Wrapper for executing a command line process while keeping an eye on it from UMS. 
+ * Wrapper for executing a command line process while keeping an eye on it from UMS.
  */
 public interface ProcessWrapper {
 	/**
@@ -62,6 +62,8 @@ public interface ProcessWrapper {
 	public void runInSameThread();
 
 	public void stopProcess();
+
 	public boolean isReadyToStop();
+
 	public void setReadyToStop(boolean nullable);
 }

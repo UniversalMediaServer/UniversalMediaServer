@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.service.Services;
 
-
 /**
  * A {@link ProcessWrapperConsumer} implementation that return the process
  * output as a {@link List} of {@link String}s wrapped in a

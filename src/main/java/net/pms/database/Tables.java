@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
  */
 public class Tables {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tables.class);
-	private static final Object checkTablesLock = new Object();
-	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
+	private static final Object CHECK_TABLES_LOCK = new Object();
+	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static boolean tablesChecked = false;
-	private static final String EscapeCharacter = "\\";
+	private static final String ESCAPE_CHARACTER = "\\";
 
 	// No instantiation
 	protected Tables() {
@@ -56,13 +56,13 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	public final static void checkTables() throws SQLException {
-		synchronized (checkTablesLock) {
+	public static final void checkTables() throws SQLException {
+		synchronized (CHECK_TABLES_LOCK) {
 			if (tablesChecked) {
 				LOGGER.debug("Database tables have already been checked, aborting check");
 			} else {
 				LOGGER.debug("Starting check of database tables");
-				try (Connection connection = database.getConnection()) {
+				try (Connection connection = DATABASE.getConnection()) {
 					if (!tableExists(connection, "TABLES")) {
 						createTablesTable(connection);
 					}
@@ -89,13 +89,13 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static boolean tableExists(final Connection connection, final String tableName, final String tableSchema) throws SQLException {
+	protected static final boolean tableExists(final Connection connection, final String tableName, final String tableSchema) throws SQLException {
 		LOGGER.trace("Checking if database table \"{}\" in schema \"{}\" exists", tableName, tableSchema);
 
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-                 "WHERE TABLE_SCHEMA = ? "+
-                 "AND  TABLE_NAME = ?"
+			"WHERE TABLE_SCHEMA = ? " +
+			"AND  TABLE_NAME = ?"
 		)) {
 			statement.setString(1, tableSchema);
 			statement.setString(2, tableName);
@@ -122,7 +122,7 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static boolean tableExists(final Connection connection, final String tableName) throws SQLException {
+	protected static final boolean tableExists(final Connection connection, final String tableName) throws SQLException {
 		return tableExists(connection, tableName, "PUBLIC");
 	}
 
@@ -137,7 +137,7 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static Integer getTableVersion(final Connection connection, final String tableName) throws SQLException {
+	protected static final Integer getTableVersion(final Connection connection, final String tableName) throws SQLException {
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT VERSION FROM TABLES " +
 				"WHERE NAME = ?"
@@ -167,7 +167,7 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static void setTableVersion(final Connection connection, final String tableName, final int version) throws SQLException {
+	protected static final void setTableVersion(final Connection connection, final String tableName, final int version) throws SQLException {
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT VERSION FROM TABLES WHERE NAME = ?"
 		)) {
@@ -209,14 +209,14 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static void dropTable(final Connection connection, final String tableName) throws SQLException {
+	protected static final void dropTable(final Connection connection, final String tableName) throws SQLException {
 		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
 		try (Statement statement = connection.createStatement()) {
 			statement.execute("DROP TABLE IF EXISTS " + tableName);
 		}
 	}
 
-	protected final static void createTablesTable(final Connection connection) throws SQLException {
+	protected static final void createTablesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"TABLES\"");
 		try (Statement statement = connection.createStatement()) {
 			statement.execute("CREATE TABLE TABLES(NAME VARCHAR(50) PRIMARY KEY, VERSION INT NOT NULL)");
@@ -239,7 +239,7 @@ public class Tables {
 	 * @return The SQL formatted string including the <code>=</code>,
 	 * <code>LIKE</code> or <code>IS</code> operator.
 	 */
-	public final static String sqlNullIfBlank(final String s, boolean quote, boolean like) {
+	public static final String sqlNullIfBlank(final String s, boolean quote, boolean like) {
 		if (s == null || s.trim().isEmpty()) {
 			return " IS NULL ";
 		} else if (like) {
@@ -260,7 +260,7 @@ public class Tables {
 	 * @param s the {@link String} to escape and quote.
 	 * @return The escaped and quoted {@code s}.
 	 */
-	public final static String sqlQuote(final String s) {
+	public static final String sqlQuote(final String s) {
 		return s == null ? null : "'" + s.replace("'", "''") + "'";
 	}
 
@@ -289,10 +289,10 @@ public class Tables {
 	 * @param s the {@link String} to be SQL escaped.
 	 * @return The escaped {@link String}.
 	 */
-	public final static String sqlLikeEscape(final String s) {
+	public static final String sqlLikeEscape(final String s) {
 		return s == null ? null : s.
-			replace(EscapeCharacter, EscapeCharacter + EscapeCharacter).
-			replace("%", EscapeCharacter + "%").
-			replace("_", EscapeCharacter + "_");
+			replace(ESCAPE_CHARACTER, ESCAPE_CHARACTER + ESCAPE_CHARACTER).
+			replace("%", ESCAPE_CHARACTER + "%").
+			replace("_", ESCAPE_CHARACTER + "_");
 	}
 }

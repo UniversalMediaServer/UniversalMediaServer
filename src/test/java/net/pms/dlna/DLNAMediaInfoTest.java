@@ -39,6 +39,7 @@ public class DLNAMediaInfoTest {
 		"video-h264-heaac.mp4",
 		"video-h264-eac3.mkv",
 		"audio-flac24.flac",
+		"video-xvid-mp3.avi",
 	};
 
 	@Test
@@ -152,7 +153,7 @@ public class DLNAMediaInfoTest {
 					break;
 				case 12:
 					assertThat(mediaInfo.toString()).isEqualTo(
-						"Container: WAV, Size: 1073218, Overall Bitrate: 256069, Bitrate: 256069, Duration: 0:00:33.529, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
+						"Container: WAV, Size: 1073218, Overall Bitrate: 256062, Bitrate: 256062, Duration: 0:00:33.530, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
 					);
 					break;
 				case 13:
@@ -193,6 +194,11 @@ public class DLNAMediaInfoTest {
 				case 20:
 					assertThat(mediaInfo.toString()).isEqualTo(
 						"Container: FLAC, Size: 3208022, Overall Bitrate: 1231959, Bitrate: 1231959, Duration: 0:00:20.832, Audio Tracks: 1 [Audio Codec: FLAC, Bitrate: 1231916, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: audio/x-flac"
+					);
+					break;
+				case 21:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: AVI, Size: 1282694, Overall Bitrate: 793255, Video Tracks: 1, Video Codec: divx, Duration: 0:00:12.936, Video Resolution: 720 x 400, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 25.000, Audio Tracks: 1 [Audio Track Title From Metadata: video-mpeg4-aac, Audio Codec: MP3, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi"
 					);
 					break;
 				default:

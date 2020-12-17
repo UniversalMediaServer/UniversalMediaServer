@@ -50,7 +50,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.util.FilePermissions;
 import net.pms.util.Version;
 import net.pms.util.FilePermissions.FileFlag;
-import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
@@ -74,7 +73,9 @@ public abstract class Player {
 	protected final ExternalProgramInfo programInfo;
 
 	public abstract int purpose();
+
 	public abstract JComponent config();
+
 	public abstract PlayerId id();
 
 	/**
@@ -82,7 +83,9 @@ public abstract class Player {
 	 *         executable path.
 	 */
 	public abstract String getConfigurablePathKey();
+
 	public abstract String name();
+
 	public abstract int type();
 
 	/**
@@ -121,7 +124,6 @@ public abstract class Player {
 	 */
 	@GuardedBy("enabledLock")
 	protected boolean enabled = false;
-
 
 	/**
 	 * Abstract constructor that sets the final {@code programInfo} variable.
@@ -248,8 +250,8 @@ public abstract class Player {
 		return executable == null ? null : executable.toString();
 	}
 
-	protected static final PmsConfiguration _configuration = PMS.getConfiguration();
-	protected PmsConfiguration configuration = _configuration;
+	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected PmsConfiguration configuration = CONFIGURATION;
 
 	public boolean avisynth() {
 		return false;
@@ -622,7 +624,7 @@ public abstract class Player {
 		try {
 			this.enabled = enabled;
 			if (setConfiguration) {
-				_configuration.setEngineEnabled(id(), enabled);
+				CONFIGURATION.setEngineEnabled(id(), enabled);
 			}
 		} finally {
 			enabledLock.writeLock().unlock();
@@ -637,7 +639,7 @@ public abstract class Player {
 		try {
 			enabled = !enabled;
 			if (setConfiguration) {
-				_configuration.setEngineEnabled(id(), enabled);
+				CONFIGURATION.setEngineEnabled(id(), enabled);
 			}
 		} finally {
 			enabledLock.writeLock().unlock();
@@ -708,34 +710,26 @@ public abstract class Player {
 			return;
 		}
 
-		if (params.aid == null) {
-			params.aid = resource.resolveAudioStream(params.mediaRenderer);
+		if (params.getAid() == null) {
+			params.setAid(resource.resolveAudioStream(params.getMediaRenderer()));
 		}
 
-		if (params.sid != null && params.sid.getId() == DLNAMediaLang.DUMMY_ID) {
+		if (params.getSid() != null && params.getSid().getId() == DLNAMediaLang.DUMMY_ID) {
 			LOGGER.trace("Don't want subtitles!");
-			params.sid = null;
-		} else if (params.sid instanceof DLNAMediaOnDemandSubtitle) {
-			 // Download/fetch live subtitles
-			if (params.sid.getExternalFile() == null) {
-				if (!((DLNAMediaOnDemandSubtitle) params.sid).fetch()) {
-					LOGGER.error("Failed to fetch on-demand subtitles \"{}\"", params.sid.getName());
+			params.setSid(null);
+		} else if (params.getSid() instanceof DLNAMediaOnDemandSubtitle) {
+			// Download/fetch live subtitles
+			if (params.getSid().getExternalFile() == null) {
+				if (!((DLNAMediaOnDemandSubtitle) params.getSid()).fetch()) {
+					LOGGER.error("Failed to fetch on-demand subtitles \"{}\"", params.getSid().getName());
 				}
-				if (params.sid.getExternalFile() == null) {
-					params.sid = null;
+				if (params.getSid().getExternalFile() == null) {
+					params.setSid(null);
 				}
 			}
-		} else if (params.sid == null) {
-			params.sid = resource.resolveSubtitlesStream(params.mediaRenderer, params.aid == null ? null : params.aid.getLang(), true);
-		}	
-	}
-
-	/**
-	 * @see #convertToModX(int, int)
-	 */
-	@Deprecated
-	public int convertToMod4(int number) {
-		return convertToModX(number, 4);
+		} else if (params.getSid() == null) {
+			params.setSid(resource.resolveSubtitlesStream(params.getMediaRenderer(), params.getAid() == null ? null : params.getAid().getLang(), true));
+		}
 	}
 
 	/**
@@ -871,7 +865,7 @@ public abstract class Player {
 					return true;
 				}
 
-				if (!BasicSystemUtils.INSTANCE.isAviSynthAvailable()) {
+				if (!BasicSystemUtils.instance.isAviSynthAvailable()) {
 					LOGGER.debug(
 						"Transcoding engine {} ({}) is unavailable since AviSynth couldn't be found",
 						this,

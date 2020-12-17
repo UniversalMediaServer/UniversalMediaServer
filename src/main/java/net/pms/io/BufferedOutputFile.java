@@ -35,7 +35,7 @@ public interface BufferedOutputFile {
 
 	public abstract long getWriteCount();
 
-	public abstract void write(byte b[], int off, int len) throws IOException;
+	public abstract void write(byte[] b, int off, int len) throws IOException;
 
 	public abstract void write(int b) throws IOException;
 
