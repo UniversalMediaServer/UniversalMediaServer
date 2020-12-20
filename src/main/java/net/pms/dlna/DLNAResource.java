@@ -712,39 +712,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return resolvedPlayer;
 		}
 
-		/*
-		 * At this stage, we know the media is compatible with the renderer based on its
-		 * "Supported" lines, and can therefore be streamed to the renderer without a
-		 * player. However, other details about the media can change this, such as
-		 * whether it has subtitles that match this user's language settings, so here we
-		 * perform those checks.
-		 */
-		boolean isIncompatible = false;
-		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles()) {
-			if (hasSubtitles(false)) {
-				DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream(renderer);
-				if (mediaSubtitle == null) {
-					mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
-				}
-				if (mediaSubtitle != null) {
-					if (mediaSubtitle.isExternal()) {
-						if (renderer != null && renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, media, this)) {
-							LOGGER.trace("This video has external subtitles that can be streamed");
-						} else {
-							LOGGER.trace("This video has external subtitles that must be transcoded");
-							isIncompatible = true;
-						}
-					} else {
-						if (renderer != null && renderer.isEmbeddedSubtitlesFormatSupported(mediaSubtitle)) {
-							LOGGER.trace("This video has embedded subtitles that are supported");
-						} else {
-							LOGGER.trace("This video has embedded subtitles that must be transcoded");
-							isIncompatible = true;
-						}
-					}
-				}
-			} else {
-				LOGGER.trace("This video does not have subtitles");
+		// Resolve subtitles stream
+		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles() && hasSubtitles(false)) {
+			DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream(renderer);
+			if (mediaSubtitle == null) {
+				mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
 			}
 		}
 
@@ -772,6 +744,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Try to match a player based on media information and format.
 		resolvedPlayer = PlayerFactory.getPlayer(this);
 
+		boolean isIncompatible = false;
 		if (resolvedPlayer != null) {
 			String prependTranscodingReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
@@ -888,7 +861,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		if (parserV2 && (format == null || !format.isImage())) {
 			// See which MIME type the renderer prefers in case it supports the media
-			String preferred = renderer.getFormatConfiguration().getMatchedMIMEtype(this);
+			String preferred = renderer.getFormatConfiguration().getMatchedMIMEtype(this, renderer);
 			if (preferred != null) {
 				// Use the renderer's preferred MIME type for this file
 				if (!FormatConfiguration.MIMETYPE_AUTO.equals(preferred)) {
@@ -1496,7 +1469,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					mediaSubtitle.isExternal() &&
 					renderer != null &&
 					(player == null || renderer.streamSubsForTranscodedVideo()) &&
-					renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, media, this);
+					renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this);
 
 				if (mediaAudio != null) {
 					String audioLanguage = mediaAudio.getLang();
@@ -2096,7 +2069,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					(player == null || mediaRenderer.streamSubsForTranscodedVideo()) &&
 					mediaSubtitle != null &&
 					mediaSubtitle.isExternal() &&
-					mediaRenderer.isExternalSubtitlesFormatSupported(mediaSubtitle, media, this)
+					mediaRenderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this)
 				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("External subtitles \"{}\" can be streamed to {}", mediaSubtitle.getName(), mediaRenderer);

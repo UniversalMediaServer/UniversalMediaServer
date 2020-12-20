@@ -347,13 +347,27 @@ public class FormatConfiguration {
 		}
 
 		public boolean match(String container, String videoCodec, String audioCodec) {
-			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, null, null, false);
+			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, null, null, false, null);
 		}
 
 		public boolean match(DLNAResource dlna) {
 			DLNAMediaInfo media = dlna.getMedia();
 			if (dlna.getMediaSubtitle() != null) {
-				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA(), 0, 0, 0, 0, 0, iMaxBitrate, null, dlna.getMediaSubtitle().getType().getExtension(), dlna.getMediaSubtitle().isExternal());
+				return match(
+					media.getContainer(),
+					media.getCodecV(),
+					dlna.getMediaAudio().getCodecA(),
+					0,
+					0,
+					0,
+					0,
+					0,
+					iMaxBitrate,
+					null,
+					dlna.getMediaSubtitle().getType().getExtension(),
+					dlna.getMediaSubtitle().isExternal(),
+					null
+				);
 			} else {
 				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA());
 			}
@@ -404,7 +418,8 @@ public class FormatConfiguration {
 			int videoHeight,
 			Map<String, String> extras,
 			String subsFormat,
-			boolean isExternalSubs
+			boolean isExternalSubs,
+			RendererConfiguration renderer
 		) {
 			// Satisfy a minimum threshold
 			if (format == null && videoCodec == null && audioCodec == null && subsFormat == null) {
@@ -463,12 +478,22 @@ public class FormatConfiguration {
 				if (isExternalSubs) {
 					if (supportedExternalSubtitlesFormats == null || !subsFormat.matches(supportedExternalSubtitlesFormats)) {
 						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
-						return false;
+						if (!renderer.isExternalSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
+							LOGGER.trace("And did not match any formats in the SupportedExternalSubtitlesFormats renderer configuration setting");
+							return false;
+						} else {
+							LOGGER.trace("But did match a format in the SupportedExternalSubtitlesFormats renderer configuration setting");
+						}
 					}
 				} else {
 					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
-						return false;
+						if (!renderer.isEmbeddedSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
+							LOGGER.trace("And did not match any formats in the SupportedInternalSubtitlesFormats renderer configuration setting");
+							return false;
+						} else {
+							LOGGER.trace("But did match a format in the SupportedInternalSubtitlesFormats renderer configuration setting");
+						}
 					}
 				}
 			}
@@ -583,14 +608,15 @@ public class FormatConfiguration {
 
 	/**
 	 * Match media information to audio codecs supported by the renderer and
-	 * return its MIME-type if the match is successful. Returns null if the
+	 * return its MIME type if the match is successful.Returns null if the
 	 * media is not natively supported by the renderer, which means it has
 	 * to be transcoded.
 	 *
 	 * @param dlna The DLNAResource
+	 * @param renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String getMatchedMIMEtype(DLNAResource dlna) {
+	public String getMatchedMIMEtype(DLNAResource dlna, RendererConfiguration renderer) {
 		DLNAMediaInfo media = dlna.getMedia();
 		if (media == null) {
 			return null;
@@ -623,7 +649,8 @@ public class FormatConfiguration {
 				media.getHeight(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				renderer
 			);
 		}
 
@@ -651,7 +678,8 @@ public class FormatConfiguration {
 				media.getHeight(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				renderer
 			);
 		}
 
@@ -670,7 +698,8 @@ public class FormatConfiguration {
 				frameRate,
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				renderer
 			);
 			finalMimeType = mimeType;
 			if (mimeType != null) { // if at least one audio track is compatible, the file can be streamed.
@@ -694,7 +723,8 @@ public class FormatConfiguration {
 			0,
 			null,
 			null,
-			false
+			false,
+			null
 		);
 	}
 
@@ -722,7 +752,8 @@ public class FormatConfiguration {
 			0,
 			null,
 			params.getSid().getType().name(),
-			params.getSid().isExternal()
+			params.getSid().isExternal(),
+			null
 		);
 	}
 
@@ -738,7 +769,8 @@ public class FormatConfiguration {
 		int videoHeight,
 		Map<String, String> extras,
 		String subsFormat,
-		boolean isInternal
+		boolean isInternal,
+		RendererConfiguration renderer
 	) {
 		String matchedMimeType = null;
 
@@ -755,7 +787,8 @@ public class FormatConfiguration {
 				videoHeight,
 				extras,
 				subsFormat,
-				isInternal
+				isInternal,
+				renderer
 			)) {
 				matchedMimeType = supportSpec.mimeType;
 				break;
