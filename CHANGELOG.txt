@@ -1,3 +1,31 @@
+9.8.3 - 2020-12-
+
+	General:
+		Added option to allow symlinked files to be treat as their real target file (thanks, SurfaceS!)
+		Fixed handling of web streams while transcoding with VLC (thanks, fu2x!)
+		Fixed support for subtitles with some user and renderer config combinations
+		Fixed renderer configuration change-detection not always working (thanks, fu2x!)
+		Fixed various errors on the web interface (thanks, SurfaceS!)
+		Fixed all code lint and enforce it in GitHub Actions
+		Fixed sending empty MusicBrainz requests
+		Fixed sending unnecessary network requests
+	Renderers:
+		Improved support for Sony Bravia XF series
+		Improved support for Yamaha A/V receivers
+		Improved detection of VLC for desktop
+	Translation updates via Crowdin:
+		Chinese (Traditional) (100%)
+		Czech (100%)
+	Dependencies:
+		Bump assertj-core from 3.18.0 to 3.18.1
+		Bump com.sun.xml.bind-version from 3.0.0-M5 to 3.0.0
+		Bump icu4j from 68.1 to 68.2
+		Bump maven-pmd-plugin from 3.13.0 to 3.14.0
+		Bump MediaInfo to 20.09
+		Bump oshi-core from 5.3.4 to 5.3.7
+		Bump saaj-impl from 1.5.2 to 2.0.0
+		Bump twelvemonkeys-imageio-version from 3.6 to 3.6.1
+
 9.8.2 - 2020-11-08
 
 	General:
