@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.logging.LoggingConfig;
 import net.pms.service.Services;
