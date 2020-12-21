@@ -553,7 +553,7 @@ public class VLCVideo extends Player {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 				} else if (
 					!params.getMediaRenderer().streamSubsForTranscodedVideo() ||
-					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), media, dlna)
+					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), dlna)
 				) {
 					String externalSubtitlesFileName;
 

@@ -684,7 +684,7 @@ public class DLNAMediaDatabase implements Runnable {
 								sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("TYPE")));
 								sub.setExternalFileOnly(externalFile);
 								sub.setSubCharacterSet(elements.getString("CHARSET"));
-								LOGGER.trace("Adding external subtitles from the database for {}: {}", name, fileName);
+								LOGGER.trace("Adding subtitles from the database for {}: {}", name, sub.toString());
 								media.addSubtitlesTrack(sub);
 							}
 						}

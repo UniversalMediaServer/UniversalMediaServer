@@ -2211,7 +2211,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
-		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().getMatchedMIMEtype(dlna) != null) {
+		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null) {
 			return true;
 		}
 
@@ -2429,6 +2429,28 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
+	 * Note: This can return false even when the renderer config has defined
+	 * external subtitles support for individual filetypes.
+	 *
+	 * @param subtitlesFormat the subtitles format to check for.
+	 * @return whether this renderer supports streaming this type of external
+	 * subtitles for all video formats.
+	 */
+	public boolean isExternalSubtitlesFormatSupportedForAllFiletypes(String subtitlesFormat) {
+		// First, check if this subtitles format is supported for all filetypes
+		if (isSubtitlesStreamingSupportedForAllFiletypes()) {
+			String[] supportedSubs = getExternalSubtitlesFormatsSupportedForAllFiletypes().split(",");
+			for (String supportedSub : supportedSubs) {
+				if (subtitlesFormat.equals(supportedSub.trim().toUpperCase())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Check if the given subtitle type is supported by renderer for streaming for given media.
 	 *
 	 * @todo this results in extra CPU use, since we probably already have
@@ -2436,51 +2458,54 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 *       refactor the logic of the caller to make that function only run
 	 *       once
 	 * @param subtitle Subtitles for checking
-	 * @param media Played media
 	 * @param dlna
 	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAMediaInfo media, DLNAResource dlna) {
-		if (subtitle == null || media == null || dlna == null) {
+	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAResource dlna) {
+		if (subtitle == null || dlna == null) {
 			return false;
 		}
 
-		// First, check if this subtitles format is supported for all filetypes
-		if (isSubtitlesStreamingSupportedForAllFiletypes()) {
-			String[] supportedSubs = getExternalSubtitlesFormatsSupportedForAllFiletypes().split(",");
-			for (String supportedSub : supportedSubs) {
-				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
-					return true;
-				}
-			}
-		}
-
-		LOGGER.trace("Checking whether the external subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " matches any 'se' entries in the 'Supported' lines");
-		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
+		LOGGER.trace("Checking whether the external subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " is supported by the renderer");
+		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
 	}
 
 	/**
-	 * Check if the internal subtitle type is supported by renderer.
+	 * Note: This can return false even when the renderer config has defined
+	 * external subtitles support for individual filetypes.
 	 *
-	 * @param subtitle Subtitles for checking
-	 * @return whether the renderer specifies support for the subtitles
+	 * @param subtitlesFormat the embedded subtitles format to check for.
+	 * @return whether this renderer supports streaming this type of embedded
+	 * subtitles for all video formats.
 	 */
-	public boolean isEmbeddedSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
-		if (subtitle == null) {
-			return false;
-		}
-
+	public boolean isEmbeddedSubtitlesFormatSupportedForAllFiletypes(String subtitlesFormat) {
 		if (isEmbeddedSubtitlesSupported()) {
 			String[] supportedSubs = getSupportedEmbeddedSubtitles().split(",");
 			for (String supportedSub : supportedSubs) {
-				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
+				if (subtitlesFormat.equals(supportedSub.trim().toUpperCase())) {
 					return true;
 				}
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Check if the internal subtitle type is supported by renderer.
+	 *
+	 * @param subtitle Subtitles for checking
+	 * @param dlna The dlna resource
+	 * @return whether the renderer specifies support for the subtitles
+	 */
+	public boolean isEmbeddedSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAResource dlna) {
+		if (subtitle == null) {
+			return false;
+		}
+
+		LOGGER.trace("Checking whether the embedded subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " is supported by the renderer");
+		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
 	}
 
 	public boolean isEmbeddedSubtitlesSupported() {
@@ -2927,7 +2952,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		LOGGER.trace("Checking whether the video bit depth " + (videoBitDepth != null ? videoBitDepth : "null") + " matches any 'vbd' entries in the 'Supported' lines");
-		return getFormatConfiguration().getMatchedMIMEtype(dlna) != null;
+		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
 	}
 
 	public boolean isRemoveTagsFromSRTsubs() {
