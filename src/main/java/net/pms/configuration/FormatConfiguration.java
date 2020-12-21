@@ -478,7 +478,7 @@ public class FormatConfiguration {
 				if (isExternalSubs) {
 					if (supportedExternalSubtitlesFormats == null || !subsFormat.matches(supportedExternalSubtitlesFormats)) {
 						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
-						if (!renderer.isExternalSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
+						if (renderer == null || !renderer.isExternalSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
 							LOGGER.trace("And did not match any formats in the SupportedExternalSubtitlesFormats renderer configuration setting");
 							return false;
 						} else {
@@ -488,7 +488,7 @@ public class FormatConfiguration {
 				} else {
 					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
-						if (!renderer.isEmbeddedSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
+						if (renderer == null || !renderer.isEmbeddedSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
 							LOGGER.trace("And did not match any formats in the SupportedInternalSubtitlesFormats renderer configuration setting");
 							return false;
 						} else {
