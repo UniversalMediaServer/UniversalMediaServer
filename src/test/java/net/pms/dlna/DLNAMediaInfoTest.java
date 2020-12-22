@@ -80,7 +80,7 @@ public class DLNAMediaInfoTest {
 		// especially on Linux which needs users to be involved.
 		assertThat(LibMediaInfoParser.isValid())
 			.withFailMessage("\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n")
-			.isFalse();
+			.isTrue();
 
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
