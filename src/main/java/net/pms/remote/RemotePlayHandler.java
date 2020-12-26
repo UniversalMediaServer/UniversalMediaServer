@@ -13,6 +13,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
@@ -144,7 +145,7 @@ public class RemotePlayHandler implements HttpHandler {
 		mustacheVars.put("breadcrumbs", breadcrumbs);
 		mustacheVars.put("folders", folders);
 
-		Format format =  rootResource.getFormat();
+		Format format = rootResource.getFormat();
 		boolean isImage = format.isImage();
 		boolean isVideo = format.isVideo();
 		boolean isAudio = format.isAudio();
@@ -283,7 +284,7 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
 				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
-			}  else if (p.contains("/playlist/")) {
+			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
 				// sanity
 				if (tmp.length < 3) {
@@ -301,10 +302,10 @@ public class RemotePlayHandler implements HttpHandler {
 					WebRender renderer = (WebRender) root.getDefaultRenderer();
 					if (op.equals("add")) {
 						PMS.get().getDynamicPls().add(r);
-						renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+						renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
 					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 						((Playlist) r.getParent()).remove(r);
-						renderer.notify(renderer.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+						renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
 					}
 				}
 				RemoteUtil.respond(t, returnPage(), 200, "text/html");
