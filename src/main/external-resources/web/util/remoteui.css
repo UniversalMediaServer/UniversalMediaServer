@@ -572,17 +572,6 @@ html {
 }
 /******END Sticky footer styles******/
 
-#Folders li:first-child span {
-	margin: 5px 0 6px;
-	padding-top: 3px;
-	padding-bottom: 1px;
-}
-@media screen and (max-width: 1080px) {
-	ul#Folders {
-		margin-top: 50px;
-		width: 100%;
-	}
-}
 ul#Folders > li > a {
 	font-weight: 600;
 	vertical-align: bottom;

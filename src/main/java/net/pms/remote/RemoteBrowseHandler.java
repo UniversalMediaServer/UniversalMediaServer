@@ -4,6 +4,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -124,6 +125,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		DLNAResource rootResource = id.equals("0") ? null : root.getDLNAResource(id, null);
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
+		String enterSearchStringText = RemoteUtil.getMsgString("Web.8", t);
+
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		if (
 			!resources.isEmpty() &&
@@ -160,6 +163,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		ArrayList<String> breadcrumbs = new ArrayList<>();
 		ArrayList<String> folders = new ArrayList<>();
+
+		// Will contain the direct child of Media Library, for shortcuts
+		ArrayList<String> mediaLibraryFolders = new ArrayList<>();
+
 		ArrayList<HashMap<String, String>> media = new ArrayList<>();
 		StringBuilder backLinkHTML = new StringBuilder();
 		Boolean isShowBreadcrumbs = false;
@@ -249,12 +256,14 @@ public class RemoteBrowseHandler implements HttpHandler {
 		mustacheVars.put("mostPlayed", "");
 		mustacheVars.put("mostPlayedLink", "");
 		mustacheVars.put("hasMostPlayed", false);
+		mustacheVars.put("mediaLibraryFolders", "");
+		mustacheVars.put("isFrontPage", false);
 
 		// Generate innerHtml snippets for folders and media items
 		for (DLNAResource resource : resources) {
 			String newId = resource.getResourceId();
 			String idForWeb = URLEncoder.encode(newId, "UTF-8");
-			String thumb = "/thumb/" + idForWeb;
+			String thumbnailUri = "/thumb/" + idForWeb;
 			String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 
 			if (resource instanceof VirtualVideoAction) {
@@ -263,7 +272,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				HashMap<String, String> item = new HashMap<>();
 				thumbHTML.append("<a href=\"#\" onclick=\"umsAjax('/play/").append(idForWeb)
 						.append("', true);return false;\" title=\"").append(name).append("\">")
-						.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumbnailUri).append("\" alt=\"").append(name).append("\">")
 						.append("</a>");
 				item.put("thumb", thumbHTML.toString());
 
@@ -304,41 +313,56 @@ public class RemoteBrowseHandler implements HttpHandler {
 				}
 
 				if (!isDisplayFoldersAsThumbnails || !(isDisplayFoldersAsThumbnails && (resource instanceof MediaLibraryFolder))) {
-					boolean isSkipThisFolder = false;
+					boolean addFolderToFoldersListOnLeft = true;
 
 					// Populate the front page
 					if (id.equals("0") && resource.getName().equals(Messages.getString("PMS.MediaLibrary"))) {
-						List<DLNAResource> mediaLibraryChildren = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
-						UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
-						DLNAResource videoFolder = mediaLibraryChildren.get(0);
+						mustacheVars.put("isFrontPage", true);
 
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAddedLink", "recentlyAdded", t);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayedLink", "recentlyPlayed", t);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgressLink", "inProgress", t);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayedLink", "mostPlayed", t);
+						List<DLNAResource> videoSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
+						UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("PMS.34"), true, true);
+						DLNAResource videoFolder = videoSearchResults.get(0);
+
+						List<DLNAResource> audioSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.1"));
+						UMSUtils.filterResourcesByName(audioSearchResults, Messages.getString("PMS.1"), true, true);
+						DLNAResource audioFolder = audioSearchResults.get(0);
+
+						List<DLNAResource> imageSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.31"));
+						UMSUtils.filterResourcesByName(imageSearchResults, Messages.getString("PMS.31"), true, true);
+						DLNAResource imagesFolder = imageSearchResults.get(0);
+
+						mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(videoFolder, enterSearchStringText));
+						mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(audioFolder, enterSearchStringText));
+						mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(imagesFolder, enterSearchStringText));
+
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAdded", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayed", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgress", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayed", t);
+
+						addFolderToFoldersListOnLeft = false;
 					}
 
-					if (!isSkipThisFolder) {
+					if (addFolderToFoldersListOnLeft) {
 						StringBuilder folderHTML = new StringBuilder();
 						// The resource is a folder
-						String p = "/browse/" + idForWeb;
+						String resourceUri = "/browse/" + idForWeb;
 						boolean code = (resource instanceof CodeEnter);
-						String txt = RemoteUtil.getMsgString("Web.8", t);
 						if (code) {
-							txt = RemoteUtil.getMsgString("Web.9", t);
+							enterSearchStringText = RemoteUtil.getMsgString("Web.9", t);
 						}
 						if (resource.getClass().getName().contains("SearchFolder") || code) {
 							// search folder add a prompt
 							// NOTE!!!
 							// Yes doing getClass.getname is REALLY BAD, but this
 							// is to make legacy plugins utilize this function as well
-							folderHTML.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("','")
-							.append(txt).append("');\" title=\"").append(name).append("\">");
+							folderHTML.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(resourceUri).append("','")
+							.append(enterSearchStringText).append("');\" title=\"").append(name).append("\">");
 						} else {
-							folderHTML.append("<a href=\"").append(p).append("\" oncontextmenu=\"searchFun('").append(p)
-							.append("','").append(txt).append("');\" title=\"").append(name).append("\">");
+							folderHTML.append("<a href=\"").append(resourceUri).append("\" oncontextmenu=\"searchFun('").append(resourceUri)
+							.append("','").append(enterSearchStringText).append("');\" title=\"").append(name).append("\">");
 						}
-						folderHTML.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(thumb).append(")\"></div>");
+						folderHTML.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(thumbnailUri).append(")\"></div>");
 						folderHTML.append("<span>").append(name).append("</span>");
 						folderHTML.append("</a>");
 						folders.add(folderHTML.toString());
@@ -346,7 +370,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				}
 			} else {
 				// The resource is a media file
-				media.add(getMediaHTML(resource, idForWeb, name, thumb, t));
+				media.add(getMediaHTML(resource, idForWeb, name, thumbnailUri, t));
 				hasFile = true;
 			}
 		}
@@ -400,6 +424,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
 		mustacheVars.put("hasFile", hasFile);
 		mustacheVars.put("folders", folders);
+		mustacheVars.put("mediaLibraryFolders", mediaLibraryFolders);
 		mustacheVars.put("media", media);
 		mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 
@@ -432,7 +457,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String folderNameKey,
 		String headingKey,
 		String hasFolderVarName,
-		String linkVarName,
 		String childrenVarName,
 		HttpExchange t
 	) throws IOException {
@@ -470,9 +494,30 @@ public class RemoteBrowseHandler implements HttpHandler {
 				recentlyPlayedLink.append("<a href=\"/browse/").append(recentlyPlayedFolderidForWeb).append("\">");
 				recentlyPlayedLink.append(Messages.getString(headingKey)).append(":");
 				recentlyPlayedLink.append("</a>");
+
+				String linkVarName = childrenVarName + "Link";
 				mustacheVars.put(linkVarName, recentlyPlayedLink.toString());
 			}
 		}
 		mustacheVars.put(childrenVarName, recentlyPlayedVideosHTML);
+	}
+
+	private String addMediaLibraryChildToMustacheVars(
+		DLNAResource childFolder,
+		String enterSearchStringText
+	) throws UnsupportedEncodingException {
+		String mediaLibraryChildId = childFolder.getResourceId();
+		String mediaLibraryChildIdForWeb = URLEncoder.encode(mediaLibraryChildId, "UTF-8");
+		String mediaLibraryChildUri = "/browse/" + mediaLibraryChildIdForWeb;
+		String mediaLibraryChildThumbUri = "/thumb/" + mediaLibraryChildIdForWeb;
+		String mediaLibraryChildname = StringEscapeUtils.escapeHtml4(childFolder.resumeName());
+		StringBuilder mediaLibraryFolderHTML = new StringBuilder();
+		mediaLibraryFolderHTML
+				.append("<a href=\"").append(mediaLibraryChildUri).append("\" oncontextmenu=\"searchFun('").append(mediaLibraryChildUri)
+				.append("','").append(enterSearchStringText).append("');\">")
+					.append("<div class=\"folder-thumbnail\" style=\"background-image:url(").append(mediaLibraryChildThumbUri).append(")\"></div>")
+					.append("<span>").append(mediaLibraryChildname).append("</span>")
+				.append("</a>");
+		return mediaLibraryFolderHTML.toString();
 	}
 }

@@ -84,7 +84,16 @@
 			</div>
 		</nav>
 		<div id="Container" class="noHzScroll">
-			<div id="FoldersContainer">
+			<div id="FoldersContainer" class="is-{{^isFrontPage}}not-{{/isFrontPage}}front-page">
+				{{#isFrontPage}}
+					<span class="category">Media Library:</span>
+					<ul id="Folders" class="nav nav-sidebar">
+						{{#mediaLibraryFolders}}
+							<li>{{this}}</li>
+						{{/mediaLibraryFolders}}
+					</ul>
+					<span class="category">Your folders:</span>
+				{{/isFrontPage}}
 				<ul id="Folders" class="nav nav-sidebar">
 					{{#folders}}
 						<li>{{this}}</li>
@@ -123,11 +132,6 @@
 							<p class="startYear"></p>
 							<p class="totalSeasons"></p>
 						</div>
-					</div>
-				{{/isTVSeriesWithAPIData}}
-				{{^isTVSeriesWithAPIData}}
-					<div class="mediaInfo no-api">
-						<h1>{{name}}</h1>
 					</div>
 				{{/isTVSeriesWithAPIData}}
 				{{#hasFile}}
@@ -205,20 +209,20 @@
 		<div class="overlay overlay-contentscale">
 			<button type="button" class="jQKeyboardBtn overlay-close"><span class="icon-close"></span></button>
 			<nav>
-			<div id="searchbar">
-				{{#hasFile}}
-					<form  id="SearchForm" method="get">
-						<input type="text" class="form-control jQKeyboard" placeholder="Search..." name="str">
-					</form>
-				{{/hasFile}}				
-			</div>
+				<div id="searchbar">
+					{{#hasFile}}
+						<form  id="SearchForm" method="get">
+							<input type="text" class="form-control jQKeyboard" placeholder="Search..." name="str">
+						</form>
+					{{/hasFile}}				
+				</div>
 			</nav>
 		</div>
 	</body>
 	<script src="/files/util/fontawesome/js/all.min.js"></script>
 	{{#hasFile}}
-	<script src="/files/util/searchclassie.js"></script>
-	<script src="/files/util/search.js"></script>
+		<script src="/files/util/searchclassie.js"></script>
+		<script src="/files/util/search.js"></script>
 	{{/hasFile}}
 	<script>$('input.jQKeyboard').initKeypad({'keyboardLayout': keyboard});</script>
 </html>
