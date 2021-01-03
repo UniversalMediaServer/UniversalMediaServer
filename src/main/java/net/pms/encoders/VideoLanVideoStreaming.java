@@ -146,11 +146,11 @@ public class VideoLanVideoStreaming extends Player {
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
-		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
+		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
-		pipe_process.runInNewThread();
+		pipeProcess.runInNewThread();
 		tsPipe.deleteLater();
 
 		params.getInputPipes()[0] = tsPipe;
@@ -205,7 +205,7 @@ public class VideoLanVideoStreaming extends Player {
 		cmdList.toArray(cmdArray);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(pipe_process);
+		pw.attachProcess(pipeProcess);
 
 		try {
 			Thread.sleep(150);
@@ -245,8 +245,8 @@ public class VideoLanVideoStreaming extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.INSTANCE.getVlcPath())) {
-				result.version(BasicSystemUtils.INSTANCE.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
+				result.version(BasicSystemUtils.instance.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

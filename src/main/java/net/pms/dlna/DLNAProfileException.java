@@ -2,7 +2,6 @@ package net.pms.dlna;
 
 import java.io.IOException;
 
-
 /**
  * An {@link IOException} indicating a DLNA media format profile related issue.
  *

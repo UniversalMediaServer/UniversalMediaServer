@@ -13,12 +13,12 @@ import net.coobird.thumbnailator.filters.ImageFilter;
  * href="https://github.com/coobird/thumbnailator/pull/92">is fixed</a>, this
  * class can be removed.
  */
-public class Rotation
-{
+public class Rotation {
 	/**
 	 * This class is not intended to be instantiated.
 	 */
-	private Rotation() {}
+	private Rotation() {
+	}
 
 	/**
 	 * An {@link ImageFilter} which applies a rotation to an image.
@@ -29,8 +29,7 @@ public class Rotation
 	 * @author coobird
 	 *
 	 */
-	public abstract static class Rotator implements ImageFilter
-	{
+	public abstract static class Rotator implements ImageFilter {
 		/**
 		 * This class is not intended to be instantiated.
 		 */
@@ -49,12 +48,10 @@ public class Rotation
 	 * @return				An instance of {@code Rotator} which will rotate
 	 * 						a given image.
 	 */
-	public static Rotator newRotator(final double angle)
-	{
+	public static Rotator newRotator(final double angle) {
 		Rotator r = new Rotator() {
 
-			private double[] calculatePosition(double x, double y, double angle)
-			{
+			private double[] calculatePosition(double x, double y, double angle) {
 				angle = Math.toRadians(angle);
 
 				double nx = (Math.cos(angle) * x) - (Math.sin(angle) * y);
@@ -63,8 +60,7 @@ public class Rotation
 				return new double[] {nx, ny};
 			}
 
-			public BufferedImage apply(BufferedImage img)
-			{
+			public BufferedImage apply(BufferedImage img) {
 				int width = img.getWidth();
 				int height = img.getHeight();
 
@@ -93,8 +89,8 @@ public class Rotation
 						Math.max(newPositions[2][1], newPositions[3][1])
 				);
 
-				int newWidth = (int)Math.round(maxX - minX);
-				int newHeight = (int)Math.round(maxY - minY);
+				int newWidth = (int) Math.round(maxX - minX);
+				int newHeight = (int) Math.round(maxY - minY);
 				newImage = new BufferedImageBuilder(newWidth, newHeight, img.getType()).build();
 
 				Graphics2D g = newImage.createGraphics();
@@ -111,8 +107,8 @@ public class Rotation
 				double w = newWidth / 2.0;
 				double h = newHeight / 2.0;
 				g.rotate(Math.toRadians(angle), w, h);
-				int centerX = (int)Math.round((newWidth - width) / 2.0);
-				int centerY = (int)Math.round((newHeight - height) / 2.0);
+				int centerX = (int) Math.round((newWidth - width) / 2.0);
+				int centerY = (int) Math.round((newHeight - height) / 2.0);
 
 				g.drawImage(img, centerX, centerY, null);
 				g.dispose();

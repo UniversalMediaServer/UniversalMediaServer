@@ -33,6 +33,6 @@ public class MKA extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "mka" };
+		return new String[] {"mka"};
 	}
 }

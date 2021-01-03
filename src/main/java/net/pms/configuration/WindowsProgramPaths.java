@@ -35,7 +35,6 @@ import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import com.sun.jna.Platform;
 
-
 /**
  * This class keeps track of paths to external programs on Windows.
  *
@@ -132,7 +131,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 
 		// VLC
-		Path vlcPath = BasicSystemUtils.INSTANCE.getVlcPath();
+		Path vlcPath = BasicSystemUtils.instance.getVlcPath();
 		if (vlcPath == null || !Files.exists(vlcPath)) {
 			vlcPath = FileUtil.findExecutableInOSPath(Paths.get("vlc.exe"));
 		}

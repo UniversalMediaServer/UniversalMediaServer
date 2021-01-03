@@ -29,8 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static final ReentrantReadWriteLock fullyPlayedEntriesLock = new ReentrantReadWriteLock();
-	private static final HashMap<String, Boolean> fullyPlayedEntries = new HashMap<>();
+	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
+	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -108,15 +108,15 @@ public class MediaMonitor extends VirtualFolder {
 			Set<String> fullyPlayedPaths = null;
 			if (config.isHideEmptyFolders()) {
 				fullyPlayedPaths = new HashSet<>();
-				fullyPlayedEntriesLock.readLock().lock();
+				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 				try {
-					for (Entry<String, Boolean> entry : fullyPlayedEntries.entrySet()) {
+					for (Entry<String, Boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
 						if (entry.getValue()) {
 							fullyPlayedPaths.add(entry.getKey());
 						}
 					}
 				} finally {
-					fullyPlayedEntriesLock.readLock().unlock();
+					FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
 				}
 			}
 			for (File fileEntry : files) {
@@ -309,22 +309,22 @@ public class MediaMonitor extends VirtualFolder {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isFullyPlayed(String fullPathToFile) {
-		fullyPlayedEntriesLock.readLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 		Boolean fullyPlayed;
 		try {
-			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
 		} finally {
-			fullyPlayedEntriesLock.readLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
 		}
 		if (fullyPlayed != null) {
 			return fullyPlayed;
 		}
 
 		// The status isn't cached, add it
-		fullyPlayedEntriesLock.writeLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
 			// It could have been added between the locks, check again
-			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
 			if (fullyPlayed != null) {
 				return fullyPlayed;
 			}
@@ -334,10 +334,10 @@ public class MediaMonitor extends VirtualFolder {
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
-			fullyPlayedEntries.put(fullPathToFile, fullyPlayed);
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, fullyPlayed);
 			return fullyPlayed;
 		} finally {
-			fullyPlayedEntriesLock.writeLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -350,12 +350,12 @@ public class MediaMonitor extends VirtualFolder {
 	 *            played, {@code false} otherwise.
 	 */
 	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
-		fullyPlayedEntriesLock.writeLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
-			fullyPlayedEntries.put(fullPathToFile, isFullyPlayed);
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
 		} finally {
-			fullyPlayedEntriesLock.writeLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
 	}
 

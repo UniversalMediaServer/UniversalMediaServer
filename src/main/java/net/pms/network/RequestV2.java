@@ -18,10 +18,10 @@
  */
 package net.pms.network;
 
-import static net.pms.util.StringUtil.convertStringToTime;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,30 +41,43 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.dlna.DLNAImageInputStream;
+import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaOnDemandSubtitle;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.FileTranscodeVirtualFolder;
+import net.pms.dlna.MediaType;
+import net.pms.dlna.Range;
+import net.pms.dlna.RealFile;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.message.BrowseRequest;
+import net.pms.network.message.BrowseSearchRequest;
 import net.pms.network.message.SamsungBookmark;
+import net.pms.network.message.SearchRequest;
+import net.pms.service.Services;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -84,23 +97,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import net.pms.dlna.DLNAImageInputStream;
-import net.pms.dlna.DLNAImageProfile;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaOnDemandSubtitle;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.dlna.FileTranscodeVirtualFolder;
-import net.pms.dlna.MediaType;
-import net.pms.dlna.Range;
-import net.pms.dlna.RealFile;
-import net.pms.image.BufferedImageFilterChain;
-import net.pms.network.message.BrowseRequest;
-import net.pms.network.message.BrowseSearchRequest;
-import net.pms.network.message.SearchRequest;
-import net.pms.service.Services;
-
 /**
  * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
  */
@@ -109,7 +105,7 @@ public class RequestV2 extends HTTPResource {
 	private final static String CRLF = "\r\n";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
-	private static int BUFFER_SIZE = 8 * 1024;
+	private static final int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -188,7 +184,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	public void setTimeRangeStartString(String str) {
-		setTimeRangeStart(convertStringToTime(str));
+		setTimeRangeStart(StringUtil.convertStringToTime(str));
 	}
 
 	public void setTimeRangeEnd(Double rangeEnd) {
@@ -196,7 +192,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	public void setTimeRangeEndString(String str) {
-		setTimeRangeEnd(convertStringToTime(str));
+		setTimeRangeEnd(StringUtil.convertStringToTime(str));
 	}
 
 	/**
@@ -217,11 +213,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
-	 * Rewritten version of the {@link Request} class.
+	 * This class will construct and transmit a proper HTTP response to a given HTTP request.Rewritten version of the {@link Request} class.
 	 * @param method The {@link String} that defines the HTTP method to be used.
-	 * @param argument The {@link HttpMethod} containing instructions for PMS. It contains a command,
-	 * 		a unique resource id and a resource name, all separated by slashes.
+	 * @param uri
 	 */
 	public RequestV2(HttpMethod method, String uri) {
 		this.method = method;
@@ -272,7 +266,7 @@ public class RequestV2 extends HTTPResource {
 		final boolean close,
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
-		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
+		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
 
@@ -520,9 +514,8 @@ public class RequestV2 extends HTTPResource {
 								dlna.getMediaSubtitle() != null &&
 								dlna.getMediaSubtitle().isExternal() &&
 								!configuration.isDisableSubtitles() &&
-								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia(), dlna)
+								mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna)
 							) {
-
 								String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 								if (isNotBlank(subtitleHttpHeader)  && (dlna.getPlayer() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 									// Device allows a custom subtitle HTTP header; construct it
@@ -537,12 +530,12 @@ public class RequestV2 extends HTTPResource {
 										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 										output.headers().set(subtitleHttpHeader, subtitleUrl);
-									} else {
-										LOGGER.trace(
-											"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
-											subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
-											);
-									}
+								} else {
+									LOGGER.trace(
+										"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+										subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
+										);
+								}
 							} else {
 								ArrayList<String> reasons = new ArrayList<>();
 								if (dlna.getMedia() == null) {
@@ -555,7 +548,7 @@ public class RequestV2 extends HTTPResource {
 									reasons.add("dlna.getMediaSubtitle() is null");
 								} else if (!dlna.getMediaSubtitle().isExternal()) {
 									reasons.add("the subtitles are internal/embedded");
-								} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna.getMedia(), dlna)) {
+								} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna)) {
 									reasons.add("the external subtitles format isn't supported by the renderer");
 								}
 								LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
@@ -617,17 +610,17 @@ public class RequestV2 extends HTTPResource {
 							// Content-Length refers to the current chunk size here, though in chunked
 							// mode if the request is open-ended and totalsize is unknown we omit it.
 							if (chunked && requested < 0 && totalsize < 0) {
-								CLoverride = -1;
+								cLoverride = -1;
 							} else {
-								CLoverride = bytes;
+								cLoverride = bytes;
 							}
 						} else {
 							// Content-Length refers to the total remaining size of the stream here.
-							CLoverride = remaining;
+							cLoverride = remaining;
 						}
 
 						// Calculate the corresponding highRange (this is usually redundant).
-						highRange = lowRange + CLoverride - (CLoverride > 0 ? 1 : 0);
+						highRange = lowRange + cLoverride - (cLoverride > 0 ? 1 : 0);
 
 						if (contentFeatures != null) {
 							output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
@@ -685,7 +678,7 @@ public class RequestV2 extends HTTPResource {
 		ChannelFuture future;
 		if (response.length() > 0) {
 			// A response message was constructed; convert it to data ready to be sent.
-			byte responseData[] = response.toString().getBytes(StandardCharsets.UTF_8);
+			byte[] responseData = response.toString().getBytes(StandardCharsets.UTF_8);
 			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + responseData.length);
 
 			// HEAD requests only require headers to be set, no need to set contents.
@@ -705,13 +698,13 @@ public class RequestV2 extends HTTPResource {
 		} else if (responseInputStream != null) {
 			// There is an input stream to send as a response.
 
-			if (CLoverride > -2) {
+			if (cLoverride > -2) {
 				// Content-Length override has been set, send or omit as appropriate
-				if (CLoverride > -1 && CLoverride != DLNAMediaInfo.TRANS_SIZE) {
+				if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
 					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 					// as the PS3 will display a network error and request the last seconds of the
 					// transcoded video. Better to send no Content-Length at all.
-					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + CLoverride);
+					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + cLoverride);
 				}
 			} else {
 				int contentLength = responseInputStream.available();
@@ -831,7 +824,7 @@ public class RequestV2 extends HTTPResource {
 		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		InputStream iStream = getResourceInputStream((uri.equals("description/fetch") ? "PMS.xml" : uri));
 
-		byte b[] = new byte[iStream.available()];
+		byte[] b = new byte[iStream.available()];
 		iStream.read(b);
 		String s = new String(b, StandardCharsets.UTF_8);
 
@@ -856,9 +849,9 @@ public class RequestV2 extends HTTPResource {
 		} else {
 			if (mediaRenderer.isSamsung()) {
 				// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
-				result = result.replace("<serialNumber/>", "<serialNumber/>" + CRLF
-						+ "<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF
-						+ "<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
+				result = result.replace("<serialNumber/>", "<serialNumber/>" + CRLF +
+						"<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF +
+						"<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
 			}
 		}
 
@@ -1061,9 +1054,9 @@ public class RequestV2 extends HTTPResource {
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
 		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
 		// we may use here different container IDs in the future
-		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.audioItem\"/>").append(CRLF);
-		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.videoItem\"/>").append(CRLF);
-		features.append("<container id=\"" + rootFolderId + "\" type=\"object.item.imageItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
 		features.append("</Feature>").append(CRLF);
 		features.append("</Features>").append(CRLF);
 
@@ -1176,11 +1169,13 @@ public class RequestV2 extends HTTPResource {
 					uf.setFakeParentId(containerID);
 				}
 
-				if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null
-					|| uf.getPlayer().isPlayerCompatible(mediaRenderer))
-					 // do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-					 // all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					|| files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
+				if (
+					uf.isCompatible(mediaRenderer) &&
+					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
+					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
+					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
+					files.get(0).getParent() instanceof FileTranscodeVirtualFolder
+				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {
 					minus++;
@@ -1211,7 +1206,7 @@ public class RequestV2 extends HTTPResource {
 
 		response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 		response.append(CRLF);
-		DLNAResource parentFolder = null;
+		DLNAResource parentFolder;
 
 		if (files != null && filessize > 0) {
 			parentFolder = files.get(0).getParent();

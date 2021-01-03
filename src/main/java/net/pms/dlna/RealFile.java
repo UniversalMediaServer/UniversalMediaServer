@@ -37,20 +37,33 @@ public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	public RealFile(File file) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, String name) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		getConf().setName(name);
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, boolean isEpisodeWithinSeasonFolder) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
+	}
+
+	/**
+	 * Add the file to MapFileConfiguration->Files.
+	 *
+	 * @param file The file to add.
+	 */
+	private void addFileToConfFiles(File file) {
+		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
+			getConf().getFiles().add(FileUtil.getRealFile(file));
+		} else {
+			getConf().getFiles().add(file);
+		}
 	}
 
 	@Override
@@ -147,7 +160,7 @@ public class RealFile extends MapFile {
 			File file = getFile();
 			if (file.getName().trim().isEmpty()) {
 				if (Platform.isWindows()) {
-					name = BasicSystemUtils.INSTANCE.getDiskLabel(file);
+					name = BasicSystemUtils.instance.getDiskLabel(file);
 				}
 				if (name != null && name.length() > 0) {
 					name = file.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";
@@ -201,7 +214,7 @@ public class RealFile extends MapFile {
 							setMedia(media);
 							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
 								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
-								getMedia().getSubtitleTracksList().clear();
+								getMedia().setSubtitlesTracks(new ArrayList<>());
 								resetSubtitlesStatus();
 							}
 

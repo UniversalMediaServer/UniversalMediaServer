@@ -104,7 +104,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
 		params.getInputPipes()[0] = pipe;
 
-		String cmdArray[] = new String[args().length + 4];
+		String[] cmdArray = new String[args().length + 4];
 		cmdArray[0] = getExecutable();
 		final String filename = dlna.getFileName();
 		cmdArray[1] = filename;
@@ -112,17 +112,17 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		cmdArray[cmdArray.length - 2] = "-o";
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 
-		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+		ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(mkfifo_process);
+		pw.attachProcess(mkfifoProcess);
 
 		/**
 		 * It can take a long time for Windows to create a named pipe (and
 		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
 		 * the current thread.
 		 */
-		mkfifo_process.runInSameThread();
+		mkfifoProcess.runInSameThread();
 
 		pipe.deleteLater();
 

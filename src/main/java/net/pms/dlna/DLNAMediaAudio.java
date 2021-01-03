@@ -275,14 +275,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @return True if the audio codec is RealAudio 14.4.
 	 */
-	public boolean isRealAudio14_4() {
+	public boolean isRealAudio144() {
 		return FormatConfiguration.REALAUDIO_14_4.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
 	 * @return True if the audio codec is RealAudio 28.8.
 	 */
-	public boolean isRealAudio28_8() {
+	public boolean isRealAudio288() {
 		return FormatConfiguration.REALAUDIO_28_8.equalsIgnoreCase(getCodecA());
 	}
 
@@ -459,9 +459,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "LPCM";
 		} else if (isQDesign()) {
 			return "QDesign";
-		} else if (isRealAudio14_4()) {
+		} else if (isRealAudio144()) {
 			return "RealAudio 14.4";
-		} else if (isRealAudio28_8()) {
+		} else if (isRealAudio288()) {
 			return "RealAudio 28.8";
 		} else if (isRALF()) {
 			return "RealAudio Lossless";
@@ -678,7 +678,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Sets the name of the main artist of the album of the audio track. 
+	 * Sets the name of the main artist of the album of the audio track.
 	 * This field is often used for the compilation type albums or "featuring..." songs.
 	 *
 	 * @param artist The album artist name to set.

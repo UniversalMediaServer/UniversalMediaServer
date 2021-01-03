@@ -1,3 +1,101 @@
+10.0.0-a1 - 2020-12-22
+
+	DLNA browsing:
+		When browsing a TV show in the Media Library, all videos across all seasons are visible.
+		There are two new folders within the Movies and TV Shows folders - Filter by Progress and Filter by Information.
+		Filter by Progress contains the Watched and Unwatched folders which used to sit within the Videos folder in the Media Library
+		Filter by Information lets you filter the videos by a new rich metadata set (actors, genres, country, director, genre, IMDb rating, release date).
+		Alongside that is a similar folder Filter by Information which lets you filter the videos by API metadata (actors, genres, etc.)
+		New folders Recently Added, Recently Played, In Progress and Most Played are in the Media Library
+	Web interface:
+		Added breadcrumbs at the top of each page
+		When in the TV Shows area of the Media Library, the TV shows themselves are shown as thumbnails, with covers from the API
+		When browsing a TV show, a movie, or a TV episode, any API metadata is displayed along with a large cover image, including actors, awards, classification, country, directors, genres, plot, ratings, year, and total seasons.
+		On those pages above, the colors on the pages are based on the cover image
+		Clicking on an individual actor, country, director, genre, or start year, takes you to a list of other media that matches that metadata
+		The last few items in the Recently Added, Recently Played, In Progress and Most Played folders are displayed on the front page
+		Each TV show and movie has an IMDb icon and direct link if one is found
+		Folder and media covers are shown
+		Fixed bugs with the Back button
+		Version has moved to the settings menu
+		Minor design updates
+	General:
+		API is enabled even without filename prettifying
+		Failed API lookups are debounced by 1 week to avoid network spam
+		Changed prettified season/episode number formatting from Series - 101 - Episode to Series S01E01 - Episode
+		Fixed some bugs with prettifying to support more files
+		Added support for audio playlist thumbnails (thanks, sf666!)
+		Playlist folders are correctly identified via UPnP (thanks, sf666!)
+	Dependency updates:
+		Bump jQuery from 1.12.0 to 3.5.1
+		Bump video.js from 7.2.3 to 7.10.1
+
+9.8.3 - 2020-12-22
+
+	General:
+		Added option to allow symlinked files to be treat as their real target file (thanks, SurfaceS!)
+		Fixed handling of web streams while transcoding with VLC (thanks, fu2x!)
+		Fixed support for subtitles with some user and renderer config combinations
+		Fixed renderer configuration change-detection not always working (thanks, fu2x!)
+		Fixed various errors on the web interface (thanks, SurfaceS!)
+		Fixed all code lint and enforce it in GitHub Actions
+		Fixed sending empty MusicBrainz requests
+		Fixed sending unnecessary network requests
+	Renderers:
+		Improved support for Sony Bravia XF series
+		Improved support for Yamaha A/V receivers
+		Improved detection of VLC for desktop
+	Translation updates via Crowdin:
+		Chinese (Traditional) (100%)
+		Czech (100%)
+	Dependencies:
+		Bump assertj-core from 3.18.0 to 3.18.1
+		Bump com.sun.xml.bind-version from 3.0.0-M5 to 3.0.0
+		Bump icu4j from 68.1 to 68.2
+		Bump maven-pmd-plugin from 3.13.0 to 3.14.0
+		Bump MediaInfo to 20.09
+		Bump oshi-core from 5.3.4 to 5.3.7
+		Bump saaj-impl from 1.5.2 to 2.0.0
+		Bump twelvemonkeys-imageio-version from 3.6 to 3.6.1
+
+9.8.2 - 2020-11-08
+
+	General:
+		Improved filename prettifying for XviD and x265 videos
+		Improved support for WebP images
+		Fixed memory leaks
+		Fixed duration of resume files via DLNA
+		Fixed incorrect resolution metadata if the renderer uses KeepAspectRatioTranscoding
+		Fixed not removing old JRE folders on Windows install
+		Updated links in documentation (thanks, xaitax!)
+		Fixed date on zip logs filename (thanks, Midhun R Nair!)
+		Save logs to desktop by default (thanks, dotslash21!)
+	Renderers:
+		Improved support for Blu-ray and DVD subtitles on VLC for desktop
+		Improved detection of Microsoft Edge
+		Updated logo for Microsoft Edge
+	Translation updates via Crowdin:
+		Chinese (Simplified) (100%)
+		Chinese (Traditional) (100%)
+		Dutch (92%)
+		Italian (100%)
+		Romanian (100%)
+		Serbian (Cyrillic) (86%)
+	Dependencies:
+		Bump AdoptOpenJDK from 14.0.2 to 15.0.1+9
+		Bump assertj-core from 3.17.1 to 3.18.0
+		Bump commons-io from 2.7 to 2.8.0
+		Bump commons-lang3 from 3.7 to 3.9
+		Bump commons-text from 1.3 to 1.9
+		Bump git-commit-id-plugin from 4.0.2 to 4.0.3
+		Bump icu4j from 67.1 to 68.1
+		Bump junit5.version from 5.6.2 to 5.7.0
+		Bump junrar from 7.3.0 to 7.4.0
+		Bump maven-project-info-reports-plugin from 3.1.0 to 3.1.1
+		Bump metadata-extractor from 2.14.0 to 2.15.0
+		Bump oshi-core from 5.2.5 to 5.3.4
+		Bump spotbugs-maven-plugin from 4.0.4 to 4.1.4
+
 9.8.1 - 2020-09-05
 
 	General:

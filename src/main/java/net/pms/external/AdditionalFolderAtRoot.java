@@ -11,7 +11,7 @@ public interface AdditionalFolderAtRoot extends ExternalListener {
 	/**
 	 * Gets the DLNAResource that will be added to the root folder. If it is
 	 * functional, it will show up after the default folders.
-	 * 
+	 *
 	 * @return the DLNAResource that will be added to the root folder
 	 */
 	public DLNAResource getChild();

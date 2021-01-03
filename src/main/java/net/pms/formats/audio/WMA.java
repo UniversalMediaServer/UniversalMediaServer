@@ -33,6 +33,6 @@ public class WMA extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "wma" };
+		return new String[] {"wma"};
 	}
 }

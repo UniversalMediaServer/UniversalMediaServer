@@ -80,20 +80,20 @@ public class TsMuxeRVideo extends Player {
 	@Override
 	public boolean excludeFormat(Format format) {
 		String extension = format.getMatchedExtension();
-		return extension != null
-			&& !extension.equals("mp4")
-			&& !extension.equals("mkv")
-			&& !extension.equals("ts")
-			&& !extension.equals("tp")
-			&& !extension.equals("m2ts")
-			&& !extension.equals("m2t")
-			&& !extension.equals("mpg")
-			&& !extension.equals("evo")
-			&& !extension.equals("mpeg")
-			&& !extension.equals("vob")
-			&& !extension.equals("m2v")
-			&& !extension.equals("mts")
-			&& !extension.equals("mov");
+		return extension != null &&
+			!extension.equals("mp4") &&
+			!extension.equals("mkv") &&
+			!extension.equals("ts") &&
+			!extension.equals("tp") &&
+			!extension.equals("m2ts") &&
+			!extension.equals("m2t") &&
+			!extension.equals("mpg") &&
+			!extension.equals("evo") &&
+			!extension.equals("mpeg") &&
+			!extension.equals("vob") &&
+			!extension.equals("m2v") &&
+			!extension.equals("mts") &&
+			!extension.equals("mov");
 	}
 
 	@Override
@@ -146,8 +146,8 @@ public class TsMuxeRVideo extends Player {
 		PipeIPCProcess ffVideoPipe;
 		ProcessWrapperImpl ffVideo;
 
-		PipeIPCProcess ffAudioPipe[] = null;
-		ProcessWrapperImpl ffAudio[] = null;
+		PipeIPCProcess[] ffAudioPipe = null;
+		ProcessWrapperImpl[] ffAudio = null;
 
 		String fps = media.getValidFps(false);
 
@@ -661,9 +661,9 @@ public class TsMuxeRVideo extends Player {
 		params.setMaxBufferSize(100);
 		params.getInputPipes()[0] = tsPipe;
 		params.setStdIn(null);
-		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
-		p.attachProcess(pipe_process);
-		pipe_process.runInNewThread();
+		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
+		p.attachProcess(pipeProcess);
+		pipeProcess.runInNewThread();
 
 		try {
 			Thread.sleep(50);
@@ -671,9 +671,9 @@ public class TsMuxeRVideo extends Player {
 		}
 		tsPipe.deleteLater();
 
-		ProcessWrapper ff_pipe_process = ffVideoPipe.getPipeProcess();
-		p.attachProcess(ff_pipe_process);
-		ff_pipe_process.runInNewThread();
+		ProcessWrapper ffPipeProcess = ffVideoPipe.getPipeProcess();
+		p.attachProcess(ffPipeProcess);
+		ffPipeProcess.runInNewThread();
 		try {
 			Thread.sleep(50);
 		} catch (InterruptedException e) {
@@ -689,9 +689,9 @@ public class TsMuxeRVideo extends Player {
 
 		if (ffAudioPipe != null && params.getAid() != null) {
 			for (int i = 0; i < ffAudioPipe.length; i++) {
-				ff_pipe_process = ffAudioPipe[i].getPipeProcess();
-				p.attachProcess(ff_pipe_process);
-				ff_pipe_process.runInNewThread();
+				ffPipeProcess = ffAudioPipe[i].getPipeProcess();
+				p.attachProcess(ffPipeProcess);
+				ffPipeProcess.runInNewThread();
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
@@ -726,6 +726,7 @@ public class TsMuxeRVideo extends Player {
 	public int type() {
 		return Format.VIDEO;
 	}
+
 	private JCheckBox tsmuxerforcefps;
 	private JCheckBox muxallaudiotracks;
 
@@ -741,7 +742,6 @@ public class TsMuxeRVideo extends Player {
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
-
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);

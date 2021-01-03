@@ -33,6 +33,6 @@ public class MonkeysAudio extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "ape" };
+		return new String[] {"ape"};
 	}
 }

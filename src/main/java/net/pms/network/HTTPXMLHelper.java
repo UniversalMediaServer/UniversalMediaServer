@@ -85,7 +85,7 @@ class HTTPXMLHelper {
 		return eventProp(prop, "");
 	}
 
-	public static String eventProp(String prop,String val) {
+	public static String eventProp(String prop, String val) {
 		return "<e:property><" + prop + ">" + val + "</" + prop + "></e:property>";
 	}
 

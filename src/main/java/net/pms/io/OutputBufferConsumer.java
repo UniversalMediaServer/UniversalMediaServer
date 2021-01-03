@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class OutputBufferConsumer extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputBufferConsumer.class);
 	private BufferedOutputFile outputBuffer;
-	
+
 	/**
 	 * Size of a buffer in bytes. The buffer is used to copy data from an
 	 * {@link java.io.InputStream InputStream} to an {@link java.io.OutputStream OutputStream}
@@ -50,7 +50,7 @@ public class OutputBufferConsumer extends OutputConsumer {
 	public void run() {
 		try {
 			//LOGGER.trace("Starting read from pipe");
-			byte buf[] = new byte[PIPE_BUFFER_SIZE];
+			byte[] buf = new byte[PIPE_BUFFER_SIZE];
 			int n = 0;
 			while ((n = inputStream.read(buf)) > 0) {
 				//LOGGER.trace("Fetched " + n + " from pipe");

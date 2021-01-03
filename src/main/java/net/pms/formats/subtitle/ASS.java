@@ -33,6 +33,6 @@ public class ASS extends SubtitleBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "ass", "ssa" };
+		return new String[] {"ass", "ssa"};
 	}
 }

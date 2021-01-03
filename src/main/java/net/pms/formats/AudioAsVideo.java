@@ -20,7 +20,7 @@ package net.pms.formats;
 
 public class AudioAsVideo extends MKV {
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Identifier getIdentifier() {

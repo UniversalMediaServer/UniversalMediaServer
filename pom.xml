@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>9.8.2-SNAPSHOT</version>
+	<version>9.8.4-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>9.8.2</project.version.short>
+		<project.version.short>9.8.4</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -74,19 +74,19 @@
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.6</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.6.1</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>118</binary-revision>
+		<binary-revision>120</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.2.0</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>4.0.2</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>4.0.3</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
 
@@ -116,6 +116,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.7.0</junit5.version>
+		<com.sun.xml.bind-version>3.0.0</com.sun.xml.bind-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -186,12 +187,12 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.7</version>
+			<version>3.11</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.3</version><!-- Versions above 1.3 require Java 8 -->
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -250,7 +251,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>[0.4, 0.5)</version>
+			<version>0.4.13</version>
 		</dependency>
 
 		<!--
@@ -328,9 +329,14 @@
 			<version>${twelvemonkeys-imageio-version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.sejda.imageio</groupId>
+			<artifactId>webp-imageio</artifactId>
+			<version>0.1.6</version>
+		</dependency>
+		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
-			<version>2.14.0</version>
+			<version>2.15.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.jthink</groupId>
@@ -350,7 +356,7 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
-			<version>7.3.0</version>
+			<version>7.4.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -408,7 +414,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>3.17.2</version>
+			<version>3.18.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -467,7 +473,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>67.1</version>
+			<version>68.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -536,7 +542,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.3.0</version>
+			<version>5.3.7</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -550,29 +556,24 @@
 			and add "-add-modules java.xml.bind" as a app command line argument
 		-->
 		<dependency>
-			<groupId>javax.xml.soap</groupId>
-			<artifactId>javax.xml.soap-api</artifactId>
-			<version>1.4.0</version>
-		</dependency>
-		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
-			<version>1.5.2</version>
+			<version>2.0.0</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-			<version>2.3.1</version>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-core</artifactId>
-			<version>2.3.0.1</version>
+			<version>${com.sun.xml.bind-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>2.3.3</version>
+			<version>${com.sun.xml.bind-version}</version>
 		</dependency>
 		<!-- end of JAXB dependencies -->
 	</dependencies>
@@ -1011,17 +1012,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.1.3</version>
-			</plugin>
-
-			<!-- Checkstyle report -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.1.0</version>
-				<configuration>
-					<configLocation>CheckStyle.xml</configLocation>
-				</configuration>
+				<version>4.1.4</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
@@ -1034,7 +1025,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.13.0</version>
+				<version>3.14.0</version>
 				<configuration>
 					<linkXref>false</linkXref>
 					<sourceEncoding>utf-8</sourceEncoding>
@@ -3383,7 +3374,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,14.999.999]</version>
+											<version>[1.8.0-51,15.999.999]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -3492,9 +3483,9 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="net.pms.PMS"
 										>
-											<runtime dir="${runtime}"/>
-											<!-- the following line can be used to force the use of JRE if the jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-14.jre/Contents/Home"/> -->
+											<!-- <runtime dir="${runtime}"/> -->
+											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
+											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
@@ -3513,7 +3504,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-osx-java-8</id>
+								<id>make-jar-with-dependencies-macos</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3582,7 +3573,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,14.999.999]</version>
+											<version>[1.8.0-51,15.999.999]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -3690,9 +3681,9 @@
 											workingdirectory="$APP_ROOT/Contents/Resources"
 											mainclassname="net.pms.PMS"
 										>
-											<runtime dir="${runtime}"/>
-											<!-- the following line can be used to force the use of JRE if the jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<!-- <runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-14.jre/Contents/Home"/> -->
+											<!-- <runtime dir="${runtime}"/> -->
+											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
+											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
@@ -4142,6 +4133,64 @@
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
 									</target>
 								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>linter</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-windows</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<mkdir dir="${project.binaries}" />
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/MediaInfo64.dll" usetimestamp="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Checkstyle report -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<version>3.1.1</version>
+						<configuration>
+							<configLocation>CheckStyle.xml</configLocation>
+							<encoding>UTF-8</encoding>
+							<consoleOutput>true</consoleOutput>
+							<failsOnError>true</failsOnError>
+							<linkXRef>false</linkXRef>
+						</configuration>
+						<executions>
+							<execution>
+								<id>validate</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>check</goal>
+								</goals>
 							</execution>
 						</executions>
 					</plugin>

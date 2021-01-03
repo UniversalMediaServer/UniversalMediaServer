@@ -107,7 +107,13 @@ public class HTTPResource {
 	public static final String WMV_TYPEMIME = "video/x-ms-wmv";
 	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
-	public HTTPResource() { }
+	public static final String WEBP_TYPEMIME = "image/webp";
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	public HTTPResource() {
+	}
 
 	/**
 	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
@@ -268,7 +274,7 @@ public class HTTPResource {
 		return 3;
 	}
 
-	public final String getMPEG_PS_OrgPN(int index) {
+	public final String getMpegPsOrgPN(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -276,7 +282,7 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMPEG_TS_MPEG2_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HD";
@@ -303,7 +309,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getMPEG_TS_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_TS";
 
 		switch (index) {
@@ -325,7 +331,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getMKV_H264_OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_MKV";
 
 		if (media == null || "high".equals(media.getH264Profile())) {
@@ -378,7 +384,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getWMV_OrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "WMV";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HIGH";

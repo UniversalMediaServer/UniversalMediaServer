@@ -142,9 +142,8 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			return;
 		}
 
-		int chapterInterval = configuration.isChapterSupport()
-			? configuration.getChapterInterval()
-			: -1;
+		int chapterInterval = configuration.isChapterSupport() ?
+			configuration.getChapterInterval() : -1;
 
 		if ((chapterInterval > 0) && isSeekable(dlna)) {
 			// don't add a chapter folder if the duration of the video
@@ -206,7 +205,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				// Transcode folder of live subtitles folder
 				subtitlesTracks = Collections.singletonList(getMediaSubtitle());
 			} else {
-				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitleTracksList());
+				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitlesTracks());
 			}
 
 			// If there is a single audio track, set that as audio track
@@ -299,13 +298,12 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				for (DLNAMediaSubtitle subtitlesTrack : subtitlesTracks) {
 					if (
 						subtitlesTrack != null && subtitlesTrack.isExternal() &&
-						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource.getMedia(), originalResource)
+						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource)
 					) {
 						DLNAResource copy = createResourceWithAudioSubtitlePlayer(originalResource, singleAudioTrack, subtitlesTrack, null);
 						entries.add(copy);
 					}
 
-					
 				}
 			}
 
@@ -316,11 +314,10 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			for (DLNAResource dlna : entries) {
 				LOGGER.trace(
 					"Adding {}: audio: {}, subtitle: {}, player: {}",
-					new Object[]{
 					dlna.getName(),
 					dlna.getMediaAudio(),
 					dlna.getMediaSubtitle(),
-					(dlna.getPlayer() != null ? dlna.getPlayer().name() : null),});
+					dlna.getPlayer() != null ? dlna.getPlayer().name() : null);
 
 				addChildInternal(dlna);
 				addChapterFolder(dlna);

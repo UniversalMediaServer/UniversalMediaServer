@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.service.Services;
 
-
 /**
  * A {@link ProcessWrapperConsumer} implementation that doesn't return the
  * process output.

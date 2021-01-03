@@ -768,7 +768,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 					query = buildMBRecordingQuery(tagInfo, round > 3);
 				}
 
-				if (query != null) {
+				if (isNotBlank(query)) {
 					final String url = "http://musicbrainz.org/ws/2/" + query + "&fmt=xml";
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Performing release MBID lookup at musicbrainz: \"{}\"", url);

@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
@@ -42,13 +41,11 @@ import net.pms.formats.FormatFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * This utility class handles {@link Player} creation and keeps a registry over
  * instances.
  */
 public final class PlayerFactory {
-
 	/**
 	 * Logger used for all logging.
 	 */

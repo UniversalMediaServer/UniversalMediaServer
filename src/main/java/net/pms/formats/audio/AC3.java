@@ -33,6 +33,6 @@ public class AC3 extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "ac3" };
+		return new String[] {"ac3"};
 	}
 }

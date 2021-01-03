@@ -21,7 +21,6 @@ package net.pms.encoders;
 
 import java.io.Serializable;
 
-
 /**
  * This class is similar to a marker interface, it's only purpose is to ensure
  * that subclass instances only equals themselves and that {@link #toString()}

@@ -33,6 +33,6 @@ public class AU extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "au", "snd" };
+		return new String[] {"au", "snd"};
 	}
 }
