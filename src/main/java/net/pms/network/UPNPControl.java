@@ -903,7 +903,7 @@ public class UPNPControl {
 
 	public static void setAVTransportURI(Device dev, String instanceID, String uri, String metaData) {
 		send(dev, instanceID, "AVTransport", "SetAVTransportURI", "CurrentURI", uri,
-			"CurrentURIMetaData", metaData != null ? StringUtil.unEncodeXML(metaData) : null);
+			"CurrentURIMetaData", metaData != null ? StringUtil.unEncodeXML(metaData) : "");
 	}
 
 	public static void setPlayMode(Device dev, String instanceID, String mode) {

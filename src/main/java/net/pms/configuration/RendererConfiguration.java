@@ -1785,14 +1785,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns whether or not to include metadata when pushing uris.
+	 * Returns whether to include metadata when pushing uris.
 	 * This is meant as a stopgap workaround for any renderer that
 	 * chokes on our metadata.
 	 *
 	 * @return whether to include metadata.
 	 */
 	public boolean isPushMetadata() {
-		return getBoolean(PUSH_METADATA, true);
+		return getBoolean(PUSH_METADATA, false);
 	}
 
 	/**
