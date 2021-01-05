@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -43,7 +43,7 @@ public class FilePermissionsTest {
 	@Test
 	public void throwsIllegalArgumentExceptionIfFileIsNull() throws FileNotFoundException {
 		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage("File argument cannot be null");
+		exception.expectMessage("file cannot be null");
 		File file = null;
 		new FilePermissions(file);
 	}

@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -42,8 +42,8 @@ import org.w3c.dom.NodeList;
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
-	protected static final String encoding = StandardCharsets.UTF_8.name();
-	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
+	protected static final String ENCODING = StandardCharsets.UTF_8.name();
+	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
@@ -87,7 +87,8 @@ public abstract class CoverUtil {
 	 */
 	protected Element getChildElement(Element element, String name) {
 		NodeList list = element.getElementsByTagName(name);
-		for (int i = 0; i < list.getLength(); i++) {
+		int listLength = list.getLength();
+		for (int i = 0; i < listLength; i++) {
 			Node node = list.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals(name) && node instanceof Element) {
 				return (Element) node;
@@ -104,7 +105,7 @@ public abstract class CoverUtil {
 	 */
 	protected String urlEncode(String url) {
 		try {
-			return URLEncoder.encode(url, encoding);
+			return URLEncoder.encode(url, ENCODING);
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.error("UTF-8 is unsupported :O", e);
 			return "";

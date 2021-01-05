@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -21,8 +21,13 @@
 package net.pms.newgui;
 
 import java.awt.Color;
+import java.awt.GraphicsConfiguration;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.net.URL;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -36,65 +41,89 @@ import org.slf4j.LoggerFactory;
 public class Splash extends JFrame implements MouseListener {
 	private static final long serialVersionUID = 2357524127613134620L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Splash.class);
-	private JLabel imglabel;
-	private ImageIcon img;
 	private PmsConfiguration configuration;
+	private final Object optionLock = new Object();
+	private JLabel imageLabel;
 
 	/**
-	 * Show the splash screen before the application GUI starts.
+	 * Creates a new instance and displays it.
 	 * <p>
-	 * When the GUI started call the {@code .dispose()} to release all resources used by this
-     * {@code Splash} class and return all memory they consume to the OS.
-	 * @return 
+	 * Use {@link #dispose()} to remove the {@link Splash} when the GUI is
+	 * initialized.
+	 *
+	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @param graphicsConfiguration the {@link GraphicsConfiguration} to use.
 	 */
-	public Splash(PmsConfiguration config) {
-		this.configuration = config;
-		if (!configuration.isShowSplashScreen()) {
+	public Splash(@Nonnull PmsConfiguration configuration, @Nullable GraphicsConfiguration graphicsConfiguration) {
+		super(graphicsConfiguration);
+		this.configuration = configuration;
+		if (!configuration.isShowSplashScreen() || System.getProperty("console") != null) {
 			return;
 		}
-			
-		img = new ImageIcon(getClass().getResource("/resources/images/splash.png"));
-		imglabel = new JLabel(img);
-		imglabel.setBounds(0, 0, img.getIconWidth(), img.getIconHeight());
-		setSize(imglabel.getWidth(), imglabel.getHeight());
-		setUndecorated(true);
-		setBackground(new Color(1.0f,1.0f,1.0f,0.0f));
-		setLocationRelativeTo(null);
-		setLayout(null);
-		add(imglabel);
-		imglabel.addMouseListener(this);
-		if (System.getProperty("console") == null) {
-			setVisible(true);
+
+		URL imageURL = getClass().getResource("/resources/images/splash.png");
+		if (imageURL == null) {
+			return;
 		}
+		ImageIcon image = new ImageIcon(imageURL);
+		imageLabel = new JLabel(image);
+		imageLabel.setBounds(0, 0, image.getIconWidth(), image.getIconHeight());
+		setSize(imageLabel.getWidth(), imageLabel.getHeight());
+		setUndecorated(true);
+		setBackground(new Color(1.0f, 1.0f, 1.0f, 0.0f));
+		add(imageLabel);
+		imageLabel.addMouseListener(this);
+		image = new ImageIcon(getClass().getResource("/resources/images/icon-32.png"));
+		setIconImage(image.getImage());
+		Rectangle bounds = getGraphicsConfiguration().getBounds();
+		setLocation(bounds.x + (bounds.width - getWidth()) / 2, bounds.y + (bounds.height - getHeight()) / 2);
+		setVisible(true);
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		int isShowSplashScreen = JOptionPane.showConfirmDialog(
-			null,
-			Messages.getString("Splash.1"),
-			Messages.getString("Splash.2"),
-			JOptionPane.YES_NO_OPTION
-		);
-		if (isShowSplashScreen == 0) {
-			configuration.setShowSplashScreen(false);
-			try {
-				configuration.save();
-			} catch (ConfigurationException e1) {
-				LOGGER.error("Error when saving the Splash Screen setting", e1);
+		synchronized (optionLock) {
+			int isShowSplashScreen = JOptionPane.showConfirmDialog(
+				this,
+				Messages.getString("Splash.1"),
+				Messages.getString("Splash.2"),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE
+			);
+			if (isShowSplashScreen == 0) {
+				configuration.setShowSplashScreen(false);
+				try {
+					configuration.save();
+				} catch (ConfigurationException e1) {
+					LOGGER.error("Error when saving the Splash Screen setting", e1);
+				}
 			}
 		}
 	}
 
 	@Override
-	public void mousePressed(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseReleased(MouseEvent e) {}
+	public void mouseReleased(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseEntered(MouseEvent e) {}
+	public void mouseEntered(MouseEvent e) {
+	}
 
 	@Override
-	public void mouseExited(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {
+	}
+
+	@Override
+	public void dispose() {
+		if (imageLabel != null) {
+			imageLabel.setVisible(false);
+		}
+		synchronized (optionLock) {
+			super.dispose();
+		}
+	}
 }

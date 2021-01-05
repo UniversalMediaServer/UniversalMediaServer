@@ -54,20 +54,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * This class handles the Windows-specific AviSynth/FFmpeg player combination. 
+ * This class handles the Windows-specific AviSynth/FFmpeg player combination.
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	public static final String ID = "avsffmpeg";
+	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_FFMPEG;
+	public static final String NAME = "AviSynth/FFmpeg";
+
+	// Not to be instantiated by anything but PlayerFactory
+	AviSynthFFmpeg() {
+	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
 	}
 
 	@Override
 	public String name() {
-		return "AviSynth/FFmpeg";
+		return NAME;
 	}
 
 	@Override
@@ -95,7 +100,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(filename, subTrack, -1, -1, null, null, _configuration);
+		return getAVSScript(filename, subTrack, -1, -1, null, null, CONFIGURATION);
 	}
 
 	/*
@@ -148,12 +153,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String interframeLines = null;
 			String interframePath  = configuration.getInterFramePath();
 
-			int Cores = 1;
+			int cores = 1;
 			if (configuration.isFfmpegAviSynthMultithreading()) {
-				Cores = configuration.getNumberOfCpuCores();
+				cores = configuration.getNumberOfCpuCores();
 
 				// Goes at the start of the file to initiate multithreading
-				mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
+				mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + cores + ")\n";
 
 				// Goes after the input line to make multithreading more efficient
 				mtLine2 = "SetMTMode(2)";
@@ -161,12 +166,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 			// True Motion
 			if (configuration.getFfmpegAvisynthInterFrame()) {
-				String GPU = "";
+				String gpu = "";
 				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()){
-					GPU = ", GPU=true";
+				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()) {
+					gpu = ", GPU=true";
 				}
 
 				interframeLines = "\n" +
@@ -174,18 +179,25 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
 					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
 					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Faster\")\n";
+					"InterFrame(Cores=" + cores + gpu + ", Preset=\"Faster\")\n";
 			}
 
 			String subLine = null;
-			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
+			if (
+				subTrack != null &&
+				subTrack.isExternal() &&
+				configuration.isAutoloadExternalSubtitles() &&
+				!configuration.isDisableSubtitles()
+			) {
 				if (subTrack.getExternalFile() != null) {
-					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
+					LOGGER.info("AviSynth script: Using subtitle track: {}", subTrack);
 					String function = "TextSub";
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+				} else {
+					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}
 			}
 
@@ -315,9 +327,6 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return builder.getPanel();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
@@ -353,7 +362,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
 		) {
 			return true;
 		}

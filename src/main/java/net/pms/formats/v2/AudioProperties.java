@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public class AudioProperties {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioProperties.class);
 
-	private static final Pattern intPattern = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
+	private static final Pattern INT_PATTERN = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
 //	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
 
 	private int numberOfChannels = 2;
@@ -145,7 +145,7 @@ public class AudioProperties {
 		// Channel(s) : 2 channels / 1 channel / 1 channel
 
 		int result = -1;
-		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
+		Matcher intMatcher = INT_PATTERN.matcher(mediaInfoValue);
 		while (intMatcher.find()) {
 			String matchResult = intMatcher.group();
 			try {
@@ -176,7 +176,7 @@ public class AudioProperties {
 		// Video_Delay : 0
 
 		int result = 0;
-		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
+		Matcher intMatcher = INT_PATTERN.matcher(mediaInfoValue);
 		if (intMatcher.find()) {
 			String matchResult = intMatcher.group();
 			try {
@@ -199,7 +199,7 @@ public class AudioProperties {
 		// SamplingRate : 44100 / 22050
 
 		int result = -1;
-		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
+		Matcher intMatcher = INT_PATTERN.matcher(mediaInfoValue);
 		while (intMatcher.find()) {
 			String matchResult = intMatcher.group();
 			try {
@@ -218,5 +218,21 @@ public class AudioProperties {
 		} else {
 			return result;
 		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		if (getNumberOfChannels() == 1) {
+			result.append("Channel: ").append(getNumberOfChannels());
+		} else {
+			result.append("Channels: ").append(getNumberOfChannels());
+		}
+		result.append(", Sample Frequency: ").append(getSampleFrequency()).append(" Hz");
+		if (getAudioDelay() != 0) {
+			result.append(", Delay: ").append(getAudioDelay());
+		}
+
+		return result.toString();
 	}
 }

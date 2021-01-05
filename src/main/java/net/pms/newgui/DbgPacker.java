@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,9 +25,6 @@ import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.external.DebugPacker;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FileUtil;
@@ -50,15 +50,6 @@ public class DbgPacker implements ActionListener {
 				Map.Entry<String, String> entry = logFilePaths.entrySet().iterator().next();
 				defaultLogFile = entry.getValue();
 			}
-			zippedLogFile = new File(defaultLogFile).getParent().toString();
-		} else {
-			// Fall back to getting the default folder
-			zippedLogFile = PMS.getConfiguration().getDefaultLogFilePath();
-		}
-		if (!zippedLogFile.isEmpty()) {
-			zippedLogFile = FileUtil.appendPathSeparator(zippedLogFile) + "ums_dbg.zip";
-		} else {
-			LOGGER.error("Could not find destination folder for packed debug files");
 		}
 	}
 
@@ -85,7 +76,8 @@ public class DbgPacker implements ActionListener {
 			}
 			c.weightx = 1.0;
 			top.add(box, c);
-			CustomJButton open = exists ? new CustomJButton(MetalIconFactory.getTreeLeafIcon()) : new CustomJButton("+");
+			CustomJButton open = exists ? new CustomJButton(MetalIconFactory.getTreeLeafIcon()) :
+					new CustomJButton("+");
 			open.setActionCommand(file.getAbsolutePath());
 			open.setToolTipText((exists ? "" : Messages.getString("DbgPacker.1") + " ") + file.getAbsolutePath());
 			open.addActionListener(this);
@@ -113,17 +105,6 @@ public class DbgPacker implements ActionListener {
 
 	private void poll() {
 		// call the client callbacks
-		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (listener instanceof DebugPacker) {
-				LOGGER.debug("Found client {}",listener.name());
-				Object obj = ((DebugPacker) listener).dbgpack_cb();
-				if (obj instanceof String) {
-					add(((String) obj).split(","));
-				} else if (obj instanceof String[]) {
-					add((String[]) obj);
-				}
-			}
-		}
 		PmsConfiguration configuration = PMS.getConfiguration();
 
 		// check dbgpack property in UMS.conf
@@ -136,23 +117,24 @@ public class DbgPacker implements ActionListener {
 		// add confs of connected renderers
 		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
 			add(r.getFile());
-			if (((DeviceConfiguration)r).isCustomized()) {
-				add(((DeviceConfiguration)r).getParentFile());
+			if (((DeviceConfiguration) r).isCustomized()) {
+				add(((DeviceConfiguration) r).getParentFile());
 			}
 		}
 
-		// add core items with the default logfile last (LinkedHashMap preserves insertion order)
+		// add core items with the default logfile last (LinkedHashMap preserves
+		// insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
 
 		// add virtual folders file if it exists
-		String vfolders = configuration.getVirtualFoldersFile(null);
+		String vfolders = configuration.getVirtualFoldersFile();
 		if (StringUtils.isNotEmpty(vfolders)) {
-			add(new File(profileDirectory, vfolders.substring(1)));
+			add(new File(profileDirectory, vfolders));
 		}
 
 		add(new File(profileDirectory, "WEB.conf"));
 		add(new File(configuration.getProfilePath()));
-		if (defaultLogFile != null && !defaultLogFile.isEmpty()){
+		if (defaultLogFile != null && !defaultLogFile.isEmpty()) {
 			add(new File(defaultLogFile + ".prev"));
 			add(new File(defaultLogFile));
 		}
@@ -166,7 +148,7 @@ public class DbgPacker implements ActionListener {
 
 	private void add(File file) {
 		if (file != null) {
-			LOGGER.debug("adding {}",file.getAbsolutePath());
+			LOGGER.debug("adding {}", file.getAbsolutePath());
 			try {
 				items.put(file.getCanonicalFile(), null);
 			} catch (IOException e) {
@@ -178,7 +160,7 @@ public class DbgPacker implements ActionListener {
 		byte[] buf = new byte[1024];
 		int len;
 		if (!f.exists()) {
-			LOGGER.debug("DbgPack file {} does not exist - ignoring",f.getAbsolutePath());
+			LOGGER.debug("DbgPack file {} does not exist - ignoring", f.getAbsolutePath());
 			return;
 		}
 		try (FileInputStream in = new FileInputStream(f)) {
@@ -203,26 +185,31 @@ public class DbgPacker implements ActionListener {
 			public void approveSelection() {
 				File f = getSelectedFile();
 				if (!f.isDirectory()) {
-					if (f.exists() && JOptionPane.showConfirmDialog(null, Messages.getString("DbgPacker.4"), "Confirm", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+					if (f.exists() && JOptionPane.showConfirmDialog(null, Messages.getString("DbgPacker.4"), "Confirm",
+							JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
 						return;
 					}
 					super.approveSelection();
 				}
 			}
 		};
-		fc.setFileFilter(
-			new FileFilter() {
-				@Override
-				public boolean accept(File f) {
-					String s = f.getName();
-					return f.isDirectory() || (s.endsWith(".zip") || s.endsWith(".ZIP"));
-				}
+		fc.setFileFilter(new FileFilter() {
+			@Override
+			public boolean accept(File f) {
+				String s = f.getName();
+				return f.isDirectory() || (s.endsWith(".zip") || s.endsWith(".ZIP"));
+			}
 
-				@Override
-				public String getDescription() {
-					return "*.zip";
-				}
-			});
+			@Override
+			public String getDescription() {
+				return "*.zip";
+			}
+		});
+		zippedLogFile = PMS.getConfiguration().getDefaultZippedLogFileFolder();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+		Date date = new Date();
+		String fileName = "ums_dbg_" + dateFormat.format(date) + ".zip";
+		zippedLogFile = FileUtil.appendPathSeparator(zippedLogFile) + fileName;
 		fc.setSelectedFile(new File(zippedLogFile));
 		if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 			zippedLogFile = fc.getSelectedFile().getPath();
@@ -258,7 +245,7 @@ public class DbgPacker implements ActionListener {
 			packDbg();
 		} else {
 			// Open: "showzip" - zipped file folder
-			//   not "showzip" - one of the listed files
+			// not "showzip" - one of the listed files
 			File file = str.equals("showzip") ? new File(zippedLogFile).getParentFile() : new File(str);
 			if (file.exists()) {
 				try {
@@ -266,14 +253,17 @@ public class DbgPacker implements ActionListener {
 				} catch (IOException e2) {
 					LOGGER.warn("Failed to open default desktop application: {}", e2);
 					if (Platform.isWindows()) {
-						JOptionPane.showMessageDialog(null, Messages.getString("DbgPacker.5") + e2, Messages.getString("TracesTab.6"),JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, Messages.getString("DbgPacker.5") + e2,
+								Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
 					} else {
-						JOptionPane.showMessageDialog(null, Messages.getString("DbgPacker.6") + e2, Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, Messages.getString("DbgPacker.6") + e2,
+								Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			} else {
-				JOptionPane.showMessageDialog(
-					null, String.format(Messages.getString("DbgPacker.7"), file.getAbsolutePath()), null, JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null,
+						String.format(Messages.getString("DbgPacker.7"), file.getAbsolutePath()), null,
+						JOptionPane.INFORMATION_MESSAGE);
 				reload((JComponent) e.getSource());
 			}
 		}
@@ -283,15 +273,8 @@ public class DbgPacker implements ActionListener {
 		// Rebuild and restart
 		LOGGER.debug("Reloading...");
 		((Window) c.getTopLevelAncestor()).dispose();
-		JOptionPane.showOptionDialog(
-			SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-			config(),
-			Messages.getString("Dialog.Options"),
-			JOptionPane.CLOSED_OPTION,
-			JOptionPane.PLAIN_MESSAGE,
-			null,
-			null,
-			null
-		);
+		JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()), config(),
+				Messages.getString("Dialog.Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null,
+				null);
 	}
 }

@@ -30,13 +30,21 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
@@ -61,24 +69,27 @@ import org.slf4j.LoggerFactory;
  */
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
+	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO;
+
+	/** The {@link Configuration} key for the custom VLC path. */
+	public static final String KEY_VLC_PATH = "vlc_path";
+
+	/** The {@link Configuration} key for the VLC executable type. */
+	public static final String KEY_VLC_EXECUTABLE_TYPE = "vlc_executable_type";
+	public static final String NAME = "VLC Video";
+
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
-	public static final String ID = "vlctranscoder";
 	protected JTextField scale;
 	protected JCheckBox experimentalCodecs;
 	protected JCheckBox audioSyncEnabled;
 	protected JTextField sampleRate;
 	protected JCheckBox sampleRateOverride;
-	SystemUtils registry = PMS.get().getRegistry();
 
 	protected boolean videoRemux;
 
-	@Deprecated
-	public VLCVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public VLCVideo() {
+	// Not to be instantiated by anything but PlayerFactory
+	VLCVideo() {
 	}
 
 	@Override
@@ -87,8 +98,18 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_VLC_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_VLC_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -113,7 +134,7 @@ public class VLCVideo extends Player {
 
 	@Override
 	public String name() {
-		return "VLC";
+		return NAME;
 	}
 
 	@Override
@@ -128,8 +149,8 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getVlcPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getVLCPaths();
 	}
 
 	/**
@@ -229,7 +250,7 @@ public class VLCVideo extends Player {
 		// Video scaling
 		args.put("scale", "1.0");
 
-		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		/**
 		 * Only output 6 audio channels for codecs other than AC-3 because as of VLC
@@ -240,9 +261,10 @@ public class VLCVideo extends Player {
 		int channels = 2;
 		if (
 			!isXboxOneWebVideo &&
-			params.aid.getAudioProperties().getNumberOfChannels() > 2 &&
+			params.getAid() != null &&
+			params.getAid().getAudioProperties().getNumberOfChannels() > 2 &&
 			configuration.getAudioChannelCount() == 6 &&
-			!params.mediaRenderer.isTranscodeToAC3()
+			!params.getMediaRenderer().isTranscodeToAC3()
 		) {
 			channels = 6;
 		}
@@ -267,8 +289,8 @@ public class VLCVideo extends Player {
 		return args;
 	}
 
-	private int[] getVideoBitrateConfig(String bitrate) {
-		int bitrates[] = new int[2];
+	private static int[] getVideoBitrateConfig(String bitrate) {
+		int[] bitrates = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
@@ -299,26 +321,34 @@ public class VLCVideo extends Player {
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 
-		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
+		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int[] rendererMaxBitrates = new int[2];
 
-		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
+		if (StringUtils.isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
+			rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			LOGGER.trace(
+				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+				"it is lower than the general configuration bitrate limit ({} Mb/s)",
+				params.getMediaRenderer().getRendererName(),
+				rendererMaxBitrates[0],
+				defaultMaxBitrates[0]
+			);
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
+		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeEnd() == 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] /= 2;
+			if (params.getMediaRenderer().isHalveBitrate()) {
+				defaultMaxBitrates[0] /= 2;
+			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -331,9 +361,9 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (!isXboxOneWebVideo && (params.mediaRenderer.isTranscodeToH264() || params.mediaRenderer.isTranscodeToH265())) {
+			if (!isXboxOneWebVideo && (params.getMediaRenderer().isTranscodeToH264() || params.getMediaRenderer().isTranscodeToH265())) {
 				if (
-					params.mediaRenderer.isH264Level41Limited() &&
+					params.getMediaRenderer().isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
@@ -353,7 +383,7 @@ public class VLCVideo extends Player {
 					bufSize = defaultMaxBitrates[1];
 				}
 
-				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+				if (params.getMediaRenderer().isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
 					bufSize = 1835;
 				}
 			}
@@ -361,7 +391,7 @@ public class VLCVideo extends Player {
 			if (!bitrateLevel41Limited) {
 				// Make room for audio
 				// TODO: set correct bitrate when remuxing DTS, like in FFMpegVideo
-				if (params.mediaRenderer.isTranscodeToAAC()) {
+				if (params.getMediaRenderer().isTranscodeToAAC()) {
 					defaultMaxBitrates[0] -= Math.min(configuration.getAudioBitrate(), 320);
 				} else {
 					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
@@ -378,10 +408,10 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (isXboxOneWebVideo || (!params.mediaRenderer.isTranscodeToH264() && !params.mediaRenderer.isTranscodeToH265())) {
+		if (isXboxOneWebVideo || (!params.getMediaRenderer().isTranscodeToH264() && !params.getMediaRenderer().isTranscodeToH265())) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+			String mpeg2OptionsRenderer = params.getMediaRenderer().getCustomFFmpegMPEG2Options();
 
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
@@ -390,7 +420,7 @@ public class VLCVideo extends Player {
 				mpeg2Options = "--sout-x264-keyint 5 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
 
 				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-				if (params.mediaRenderer.isPS3()) {
+				if (params.getMediaRenderer().isPS3()) {
 					mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
 				}
 
@@ -433,28 +463,28 @@ public class VLCVideo extends Player {
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
-		final String filename = dlna.getSystemName();
+		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(filename, media, params);
+		setAudioAndSubs(dlna, params);
 
 		// Make sure we can play this
-		CodecConfig config = genConfig(params.mediaRenderer);
+		CodecConfig config = genConfig(params.getMediaRenderer());
 
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
-		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
+		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
-		pipe_process.runInNewThread();
+		pipeProcess.runInNewThread();
 		tsPipe.deleteLater();
 
-		params.input_pipes[0] = tsPipe;
-		params.minBufferSize = params.minFileSize;
-		params.secondread_minsize = 100000;
+		params.getInputPipes()[0] = tsPipe;
+		params.setMinBufferSize(params.getMinFileSize());
+		params.setSecondReadMinSize(100000);
 
 		List<String> cmdList = new ArrayList<>();
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
@@ -463,18 +493,19 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (registry.getVlcVersion() != null) {
-			String vlcVersion = registry.getVlcVersion();
-			Version currentVersion = new Version(vlcVersion);
+		if (BasicSystemUtils.instance.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (currentVersion.compareTo(requiredVersion) > 0) {
+			if (BasicSystemUtils.instance.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
 				}
 			} else if (!configuration.isGPUAcceleration()) {
-				LOGGER.trace("Version " + vlcVersion + " of VLC is too low to handle the way we disable hardware acceleration.");
+				LOGGER.debug(
+					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
+					BasicSystemUtils.instance.getVlcVersion()
+				);
 			}
 		}
 
@@ -494,46 +525,60 @@ public class VLCVideo extends Player {
 		String disableSuffix = "track=-1";
 
 		// Handle audio language
-		if (params.aid != null) {
+		if (params.getAid() != null) {
 			// User specified language at the client, acknowledge it
-			if (params.aid.getLang() == null || params.aid.getLang().equals("und")) {
+			if (params.getAid().getLang() == null || params.getAid().getLang().equals("und")) {
 				// VLC doesn't understand "und", so try to get audio track by ID
-				cmdList.add("--audio-track=" + params.aid.getId());
+				cmdList.add("--audio-track=" + params.getAid().getId());
 			} else {
-				cmdList.add("--audio-language=" + params.aid.getLang());
+				if (
+					isBlank(params.getAid().getLang()) ||
+					DLNAMediaLang.UND.equals(params.getAid().getLang()) ||
+					"loc".equals(params.getAid().getLang())
+				) {
+					cmdList.add("--audio-track=-1");
+				} else {
+					cmdList.add("--audio-language=" + params.getAid().getLang());
+				}
 			}
 		} else {
-			// Not specified, use language from GUI
-			// FIXME: VLC does not understand "loc" or "und".
-			cmdList.add("--audio-language=" + configuration.getAudioLanguages());
+			cmdList.add("--audio-track=-1");
 		}
 
 		// Handle subtitle language
-		if (params.sid != null) { // User specified language at the client, acknowledge it
-			if (params.sid.isExternal() && !params.sid.isStreamable() && !params.mediaRenderer.streamSubsForTranscodedVideo()) {
-				String externalSubtitlesFileName;
+		if (params.getSid() != null) { // User specified language at the client, acknowledge it
+			if (params.getSid().isExternal()) {
+				if (params.getSid().getExternalFile() == null) {
+					cmdList.add("--sub-" + disableSuffix);
+					LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
+				} else if (
+					!params.getMediaRenderer().streamSubsForTranscodedVideo() ||
+					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), dlna)
+				) {
+					String externalSubtitlesFileName;
 
-				// External subtitle file
-				if (params.sid.isExternalFileUtf16()) {
-					try {
-						// Convert UTF-16 -> UTF-8
-						File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
-						FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
-					} catch (IOException e) {
-						LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
-						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+					// External subtitle file
+					if (params.getSid().isExternalFileUtf16()) {
+						try {
+							// Convert UTF-16 -> UTF-8
+							File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.getSid().getName());
+							FileUtil.convertFileFromUtf16ToUtf8(params.getSid().getExternalFile(), convertedSubtitles);
+							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+						} catch (IOException e) {
+							LOGGER.debug("Error converting file from UTF-16 to UTF-8", e);
+							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
+						}
+					} else {
+						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.getSid().getExternalFile());
 					}
-				} else {
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-				}
 
-				if (externalSubtitlesFileName != null) {
-					cmdList.add("--sub-file");
-					cmdList.add(externalSubtitlesFileName);
+					if (externalSubtitlesFileName != null) {
+						cmdList.add("--sub-file");
+						cmdList.add(externalSubtitlesFileName);
+					}
 				}
-			} else if (params.sid.getLang() != null && !params.sid.getLang().equals("und")) { // Load by ID (better)
-				cmdList.add("--sub-track=" + params.sid.getId());
+			} else if (params.getSid().getLang() != null && !params.getSid().getLang().equals("und")) { // Load by ID (better)
+				cmdList.add("--sub-track=" + params.getSid().getId());
 			} else { // VLC doesn't understand "und", but does understand a nonexistent track
 				cmdList.add("--sub-" + disableSuffix);
 			}
@@ -558,9 +603,9 @@ public class VLCVideo extends Player {
 		}
 
 		// Skip forward if necessary
-		if (params.timeseek != 0) {
+		if (params.getTimeSeek() != 0) {
 			cmdList.add("--start-time");
-			cmdList.add(String.valueOf(params.timeseek));
+			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
 		// Generate encoding args
@@ -595,10 +640,9 @@ public class VLCVideo extends Player {
 		// Pass to process wrapper
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-		cmdArray = finalizeTranscoderArgs(filename, dlna, media, params, cmdArray);
-		LOGGER.trace("Finalized args: " + StringUtils.join(cmdArray, " "));
+
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(pipe_process);
+		pw.attachProcess(pipeProcess);
 
 		// TODO: Why is this here?
 		try {
@@ -660,11 +704,87 @@ public class VLCVideo extends Player {
 		// Only handle local video - not web video or audio
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
 		) {
 			return true;
 		}
 
+		return false;
+	}
+
+	@Override
+	public boolean excludeFormat(Format extension) {
+		return false;
+	}
+
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+		return true;
+	}
+
+	@Override
+	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		ExecutableInfoBuilder result = executableInfo.modify();
+		if (Platform.isWindows()) {
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
+				result.version(BasicSystemUtils.instance.getVlcVersion());
+			}
+			result.available(Boolean.TRUE);
+		} else {
+			final String arg = "--version";
+			try {
+				ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+					30000,
+					1000,
+					executableInfo.getPath().toString(),
+					arg
+				);
+				if (output.getError() != null) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+					result.available(Boolean.FALSE);
+					LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
+					return result.build();
+				}
+				if (output.getExitCode() == 0) {
+					if (output.getOutput() != null && output.getOutput().size() > 0) {
+						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
+						Matcher matcher = pattern.matcher(output.getOutput().get(0));
+						if (matcher.find() && isNotBlank(matcher.group(1))) {
+							result.version(new Version(matcher.group(1)));
+						}
+					}
+					result.available(Boolean.TRUE);
+				} else {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.available(Boolean.FALSE);
+				}
+			} catch (InterruptedException e) {
+				return null;
+			}
+		}
+		if (result.version() != null) {
+			Version requiredVersion = new Version("2.0.2");
+			if (result.version().compareTo(requiredVersion) <= 0) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.VersionTooLow"), requiredVersion, this));
+				result.available(Boolean.FALSE);
+				LOGGER.warn(String.format(Messages.getRootString("Engine.VersionTooLow"), requiredVersion, this));
+			}
+		} else if (result.available() != null && result.available().booleanValue()) {
+			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
 		return false;
 	}
 }

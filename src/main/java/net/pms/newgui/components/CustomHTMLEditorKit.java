@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -33,20 +33,20 @@ import javax.swing.text.html.StyleSheet;
  * @author Nadahar
  * @since 5.4.0
  */
-public class CustomHTMLEditorKit extends HTMLEditorKit{
+public class CustomHTMLEditorKit extends HTMLEditorKit {
 
 	private static final long serialVersionUID = -4110333075630471497L;
 	private StyleSheet customStyleSheet;
 
-    @Override
-    public void setStyleSheet(StyleSheet styleSheet) {
-        customStyleSheet = styleSheet;
-    }
-    @Override
-    public StyleSheet getStyleSheet() {
-        if (customStyleSheet == null) {
-            customStyleSheet = super.getStyleSheet();
-        }
-        return customStyleSheet;
-    }
+	@Override
+	public void setStyleSheet(StyleSheet styleSheet) {
+		customStyleSheet = styleSheet;
+	}
+	@Override
+	public StyleSheet getStyleSheet() {
+		if (customStyleSheet == null) {
+			customStyleSheet = super.getStyleSheet();
+		}
+		return customStyleSheet;
+	}
 }

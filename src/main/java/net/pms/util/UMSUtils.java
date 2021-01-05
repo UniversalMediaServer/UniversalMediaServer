@@ -1,58 +1,53 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package net.pms.util;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.Collator;
 import java.util.*;
 import java.util.List;
-import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.filters.Canvas;
-import net.coobird.thumbnailator.geometry.Positions;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapperImpl;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UMSUtils {
-	private static final Collator collator;
+
+	private static final Collator COLLATOR;
 	private static final Logger LOGGER = LoggerFactory.getLogger(UMSUtils.class);
 
 	static {
-		collator = Collator.getInstance();
-		collator.setStrength(Collator.PRIMARY);
+		COLLATOR = Collator.getInstance();
+		COLLATOR.setStrength(Collator.PRIMARY);
 	}
 
 	public static void postSearch(List<DLNAResource> files, String searchCriteria) {
@@ -76,6 +71,8 @@ public class UMSUtils {
 					if (audio.getAlbum() != null) {
 						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
+					// TODO maciekberry: check whether it makes sense to use
+					// Album Artist
 					if (audio.getArtist() != null) {
 						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
 					}
@@ -92,31 +89,40 @@ public class UMSUtils {
 	}
 
 	// Sort constants
-	public static final int SORT_LOC_SENS =  0;
-	public static final int SORT_MOD_NEW =   1;
-	public static final int SORT_MOD_OLD =   2;
+	public static final int SORT_LOC_SENS = 0;
+	public static final int SORT_MOD_NEW = 1;
+	public static final int SORT_MOD_OLD = 2;
 	public static final int SORT_INS_ASCII = 3;
-	public static final int SORT_LOC_NAT =   4;
-	public static final int SORT_RANDOM =    5;
-	public static final int SORT_NO_SORT =   6;
+	public static final int SORT_LOC_NAT = 4;
+	public static final int SORT_RANDOM = 5;
+	public static final int SORT_NO_SORT = 6;
 
+	/**
+	 * Sorts a list of files using a custom method.
+	 *
+	 * @param files
+	 * @param method
+	 * @see #sort(java.util.ArrayList, int)
+	 */
 	public static void sort(List<File> files, int method) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
 				break;
 			case SORT_LOC_NAT: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
 						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
 
-						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
+						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
 			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
@@ -128,6 +134,7 @@ public class UMSUtils {
 				break;
 			case SORT_MOD_OLD: // Sort by modified date, oldest first
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
@@ -136,6 +143,7 @@ public class UMSUtils {
 				break;
 			case SORT_MOD_NEW: // Sort by modified date, newest first
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f2.lastModified()).compareTo(f1.lastModified());
@@ -148,87 +156,71 @@ public class UMSUtils {
 			case SORT_LOC_SENS: // Same as default
 			default: // Locale-sensitive A-Z
 				Collections.sort(files, new Comparator<File>() {
+
 					@Override
 					public int compare(File f1, File f2) {
 						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
 						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
 
-						return collator.compare(filename1ToSort, filename2ToSort);
+						return COLLATOR.compare(filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
 		}
 	}
 
-	private static int getHW(String[] s, int pos) {
-		if (pos > s.length - 1) {
-			return 0;
-		}
-		try {
-			return Integer.parseInt(s[pos].trim());
-		} catch (NumberFormatException e) {
-			return 0;
-		}
-	}
+	/**
+	 * Sorts a list of strings using a custom method.
+	 *
+	 * @param inputStrings
+	 * @param method
+	 * @see #sort(java.util.List, int)
+	 */
+	public static void sort(ArrayList<String> inputStrings, int method) {
+		switch (method) {
+			case SORT_NO_SORT: // no sorting
+				break;
+			case SORT_LOC_NAT: // Locale-sensitive natural sort
+				Collections.sort(inputStrings, new Comparator<String>() {
 
-	@SuppressWarnings("deprecation")
-	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
-		if (in == null) {
-			return in;
+					@Override
+					public int compare(String s1, String s2) {
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
+					}
+				});
+				break;
+			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
+				Collections.sort(inputStrings, new Comparator<String>() {
+
+					@Override
+					public int compare(String s1, String s2) {
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
+					}
+				});
+				break;
+			case SORT_RANDOM: // Random
+				Collections.shuffle(inputStrings, new Random(System.currentTimeMillis()));
+				break;
+			case SORT_LOC_SENS: // Same as default
+			default: // Locale-sensitive A-Z
+				Collections.sort(inputStrings, new Comparator<String>() {
+
+					@Override
+					public int compare(String s1, String s2) {
+						String filename1ToSort = FileUtil.renameForSorting(s1);
+						String filename2ToSort = FileUtil.renameForSorting(s2);
+
+						return COLLATOR.compare(filename1ToSort, filename2ToSort);
+					}
+				});
+				break;
 		}
-		String ts = r.getThumbSize();
-		if (StringUtils.isEmpty(ts) && StringUtils.isEmpty(r.getThumbBG())) {
-			// no need to convert here
-			return in;
-		}
-		int w;
-		int h;
-		Color col = null;
-		BufferedImage img;
-		try {
-			img = ImageIO.read(in);
-		} catch (Exception e) {
-			// catch whatever is thrown at us
-			// we can at least log it
-			LOGGER.debug("couldn't read thumb to manipulate it " + e);
-			img = null; // to make sure
-		}
-		if (img == null) {
-			return in;
-		}
-		w = img.getWidth();
-		h = img.getHeight();
-		if (StringUtils.isNotEmpty(ts)) {
-			// size limit thumbnail
-			w = getHW(ts.split("x"), 0);
-			h = getHW(ts.split("x"), 1);
-			if (w == 0 || h == 0) {
-				LOGGER.debug("bad thumb size {} skip scaling", ts);
-				w = h = 0; // just to make sure
-			}
-		}
-		if (StringUtils.isNotEmpty(r.getThumbBG())) {
-			try {
-				Field field = Color.class.getField(r.getThumbBG());
-				col = (Color) field.get(null);
-			} catch (Exception e) {
-				LOGGER.debug("bad color name " + r.getThumbBG());
-			}
-		}
-		if (w == 0 && h == 0 && col == null) {
-			return in;
-		}
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = img1.createGraphics();
-		if (col != null) {
-			g.setColor(col);
-		}
-		g.fillRect(0, 0, w, h);
-		g.drawImage(img, 0, 0, w, h, null);
-		ImageIO.write(img1, "jpeg", out);
-		out.flush();
-		return new ByteArrayInputStream(out.toByteArray());
 	}
 
 	public static String playedDurationStr(String current, String duration) {
@@ -271,7 +263,9 @@ public class UMSUtils {
 	/**
 	 * Bitwise constants relating to playlist management.
 	 */
+	@SuppressWarnings("checkstyle:InterfaceIsType")
 	public interface IOListModes {
+
 		public static final int PERMANENT = 1;
 		public static final int AUTOSAVE = 2;
 		public static final int AUTOREMOVE = 4;
@@ -281,6 +275,7 @@ public class UMSUtils {
 	 * A DLNAResource list with built-in file i/o.
 	 */
 	public static class IOList extends ArrayList<DLNAResource> implements IOListModes {
+
 		private static final long serialVersionUID = 8042924548275374060L;
 		private File file;
 		private int mode;
@@ -369,14 +364,8 @@ public class UMSUtils {
 				sb.append("\n");
 				for (DLNAResource r : playlist) {
 					String data = r.write();
-					if (!org.apache.commons.lang.StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
-						ExternalListener external = r.getMasterParent();
-						String id;
-						if (external != null) {
-							id = external.getClass().getName();
-						} else {
-							id = "internal:" + r.getClass().getName();
-						}
+					if (!StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
+						String id = "internal:" + r.getClass().getName();
 
 						sb.append("master:").append(id).append(';');
 						if (r.getPlayer() != null) {
@@ -389,13 +378,24 @@ public class UMSUtils {
 						}
 						if (r.getMediaSubtitle() != null) {
 							DLNAMediaSubtitle sub = r.getMediaSubtitle();
-							if (sub.getLang() != null && sub.getId() != -1) {
+							if (
+								sub.getLang() != null &&
+								(
+									(
+										sub.isExternal() &&
+										sub.getExternalFile() != null
+									) || (
+										sub.isEmbedded() &&
+										sub.getId() != -1
+									)
+								)
+							) {
 								sb.append("sub");
 								sb.append(sub.getLang());
 								sb.append(',');
 								if (sub.isExternal()) {
 									sb.append("file:");
-									sb.append(sub.getExternalFile().getAbsolutePath());
+									sb.append(sub.getExternalFile().getPath());
 								} else {
 									sb.append("id:");
 									sb.append("").append(sub.getId());
@@ -412,19 +412,10 @@ public class UMSUtils {
 			}
 		}
 
-		private static ExternalListener findMasterParent(String className) {
-			for (ExternalListener l : ExternalFactory.getExternalListeners()) {
-				if (className.equals(l.getClass().getName())) {
-					return l;
-				}
-			}
-			return null;
-		}
-
-		private static Player findPlayer(String playerName) {
-			for (Player p : PlayerFactory.getPlayers()) {
-				if (playerName.equals(p.name())) {
-					return p;
+		private static Player findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
+			for (Player player : PlayerFactory.getPlayers(onlyEnabled, onlyAvailable)) {
+				if (playerName.equals(player.name())) {
+					return player;
 				}
 			}
 			return null;
@@ -511,7 +502,7 @@ public class UMSUtils {
 					while (pos != -1) {
 						if (str.startsWith("player:")) {
 							// find last player
-							player = findPlayer(str.substring(7, pos));
+							player = findPlayerByName(str.substring(7, pos), true, true);
 						}
 						if (str.startsWith("resume")) {
 							// resume data
@@ -525,18 +516,10 @@ public class UMSUtils {
 						pos = str.indexOf(';');
 					}
 					LOGGER.debug("master is " + master + " str " + str);
-					ExternalListener external;
 					if (master.startsWith("internal:")) {
 						res = parse(master.substring(9), str);
 					} else {
-						external = findMasterParent(master);
-						if (external != null) {
-							res = resolveCreateMethod(external, str);
-							if (res != null) {
-								LOGGER.debug("set masterparent for " + res + " to " + external);
-								res.setMasterParent(external);
-							}
-						}
+						LOGGER.warn("Unknown master parents: {}", master);
 					}
 					if (res != null) {
 						if (resData != null) {
@@ -558,8 +541,7 @@ public class UMSUtils {
 							subData = tmp[1];
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile), null);
-								s.setId(100);
+								s.setExternalFile(new File(sFile));
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
 							} else if (subData.startsWith("id:")) {
@@ -573,14 +555,21 @@ public class UMSUtils {
 		}
 
 		public static DLNAResource resolveCreateMethod(ExternalListener l, String arg) {
-			// FIXME: this effectively imposes an undeclared interface, better to declare it explicitly
+			// FIXME: this effectively imposes an undeclared interface, better
+			// to declare it explicitly
 			Method create;
 			try {
 				Class<?> clazz = l.getClass();
 				create = clazz.getDeclaredMethod("create", String.class);
 				return (DLNAResource) create.invoke(l, arg);
 				// Ignore all errors
-			} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+			} catch (
+				SecurityException |
+				NoSuchMethodException |
+				IllegalArgumentException |
+				IllegalAccessException |
+				InvocationTargetException e
+			) {
 				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
 			}
 			return null;
@@ -588,64 +577,74 @@ public class UMSUtils {
 	}
 
 	/**
-	 * @see #scaleImage(byte[], int, int, boolean)
-	 * @deprecated
+	 * Check available GPU decoding acceleration methods possibly used by
+	 * FFmpeg.
+	 *
+	 * @param configuration in which the available GPU acceleration methods will
+	 *            be stored
+	 * @throws ConfigurationException
 	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank) {
-		return scaleImage(image, width, height, outputBlank, null);
+	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+		OutputParams outputParams = new OutputParams(configuration);
+		outputParams.setWaitBeforeStart(0);
+		outputParams.setLog(true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(
+			new String[] {configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels"}, false, outputParams, true, false);
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+			}
+
+			pw.stopProcess();
+		};
+
+		Thread failsafe = new Thread(r, "Get GPU acceleration methods used by FFmpeg");
+		failsafe.start();
+		pw.run();
+		List<String> result = pw.getOtherResults();
+		List<String> availableMethods = new ArrayList<String>(1);
+		availableMethods.addAll(Arrays.asList("none"));
+		availableMethods.add("auto");
+		if (result != null) {
+			for (String line : result) {
+				line = line.trim();
+				if (line.equals("Hardware acceleration methods:")) {
+					continue;
+				} else {
+					// fix duplicating GPU acceleration methods reported in
+					// https://github.com/UniversalMediaServer/UniversalMediaServer/issues/1592
+					if (!availableMethods.contains(line)) {
+						availableMethods.add(line);
+					}
+				}
+			}
+		}
+
+		configuration.setFFmpegAvailableGPUDecodingAccelerationMethods(availableMethods);
+		configuration.save();
 	}
 
 	/**
-	 * Creates a black background with the exact dimensions specified, then
-	 * centers the image on the background, preserving the aspect ratio.
-	 *
-	 * @param image
-	 * @param width
-	 * @param height
-	 * @param outputBlank whether to return null or a black image when the
-	 *                    image parameter is null
-	 * @param renderer
-	 *
-	 * @return the scaled image
+	 * @see https://stackoverflow.com/a/19155453/2049714
+	 * @param a first list to compare
+	 * @param b second list to compare
+	 * @return whether the lists are equal
 	 */
-	public static byte[] scaleImage(byte[] image, int width, int height, boolean outputBlank, RendererConfiguration renderer) {
-		ByteArrayInputStream in = null;
-		if (image == null && !outputBlank) {
-			return null;
-		} else if (image != null) {
-			in = new ByteArrayInputStream(image);
+	public static boolean isListsEqual(ArrayList<String> a, ArrayList<String> b) {
+		// Check for sizes and nulls
+		if (a == null && b == null) {
+			return true;
 		}
 
-		try {
-			BufferedImage img;
-			if (in != null) {
-				img = ImageIO.read(in);
-			} else {
-				img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-			}
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-			if (renderer != null && renderer.isThumbnailPadding()) {
-				Thumbnails.of(img)
-					.size(width, height)
-					.addFilter(new Canvas(width, height, Positions.CENTER, Color.BLACK))
-					.outputFormat("JPEG")
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-			} else {
-				Thumbnails.of(img)
-					.size(width, height)
-					.outputFormat("JPEG")
-					.outputQuality(1.0f)
-					.toOutputStream(out);
-			}
-
-			return out.toByteArray();
-		} catch (IOException e) {
-			LOGGER.debug("Failed to resize image: {}", e.getMessage());
-			LOGGER.trace("", e);
+		if ((a == null && b != null) || (a != null && b == null) || (a.size() != b.size())) {
+			return false;
 		}
 
-		return null;
+		// Sort and compare the two lists
+		Collections.sort(a);
+		Collections.sort(b);
+
+		return a.equals(b);
 	}
 }

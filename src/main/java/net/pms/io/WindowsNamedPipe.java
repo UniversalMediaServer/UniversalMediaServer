@@ -18,6 +18,7 @@
  */
 package net.pms.io;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
@@ -39,14 +40,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	private boolean b2;
 	private FileOutputStream debug;
 	private BufferedOutputFile directBuffer;
-
-	/**
-	 * @deprecated Use {@link #setLoop(boolean)} instead.
-	 *
-	 * This field will be made private in a future version.
-	 */
-	@Deprecated
-	public static boolean loop = true;
+	private static boolean loop = true;
 
 	/**
 	 * Size for the buffer used in defining pipes for Windows in bytes. The buffer is used
@@ -55,8 +49,14 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	 */
 	private static final int BUFSIZE = 500000;
 
+	@SuppressWarnings({
+		"checkstyle:ConstantName",
+		"checkstyle:MethodName",
+		"checkstyle:ParameterName",
+		"checkstyle:TypeName"
+	})
 	public interface Kernel32 extends StdCallLibrary {
-		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32",
+		Kernel32 INSTANCE = Native.load("kernel32",
 			Kernel32.class
 		);
 
@@ -197,27 +197,22 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 				start();
 
 				if (forceReconnect) {
-					forced = new Thread(
-						new Runnable() {
-							@Override
-							public void run() {
-								b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
-							}
-						},
-						"Forced Reconnector"
-					);
+					forced = new Thread(() -> {
+						b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
+					}, "Forced Reconnector");
 
 					forced.start();
 				}
 			}
 		} catch (Exception e1) {
-			LOGGER.debug("Caught exception", e1);
+			LOGGER.warn("Error creating Windows named pipe: {}", e1.getMessage());
+			LOGGER.trace("", e1);
 		}
 	}
 
 	@Override
 	public void run() {
-		LOGGER.debug("Waiting for pipe connection " + this.path);
+		LOGGER.debug("Waiting for Windows names pipe connection \"{}\"", path);
 		boolean b1 = Kernel32.INSTANCE.ConnectNamedPipe(handle1, null);
 
 		if (forceReconnect) {
@@ -227,11 +222,11 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 				} catch (InterruptedException e) { }
 			}
 
-			LOGGER.debug("Forced reconnection of " + path + " with result : " + b2);
+			LOGGER.debug("Forced reconnection of {} with result: {}", path, b2);
 			handle1 = handle2;
 		}
 
-		LOGGER.debug("Result of " + this.path + " : " + b1);
+		LOGGER.debug("Result of {}: {}", path, b1);
 
 		try {
 			if (b1) {
@@ -340,12 +335,22 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 					}
 				}
 			}
+		} catch (InterruptedIOException e) {
+			if (LOGGER.isDebugEnabled()) {
+				if (isNotBlank(e.getMessage())) {
+					LOGGER.debug("Windows named pipe interrupted after writing {} bytes, shutting down: {}", e.bytesTransferred, e.getMessage());
+				} else {
+					LOGGER.debug("Windows named pipe interrupted after writing {} bytes, shutting down...", e.bytesTransferred);
+				}
+				LOGGER.trace("", e);
+			}
 		} catch (IOException e) {
-			LOGGER.debug("Error: " + e.getMessage());
+			LOGGER.debug("Windows named pipe error: {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 
 		if (!in) {
-			LOGGER.debug("Disconnected pipe: " + path);
+			LOGGER.debug("Disconnecting Windows named pipe: {}", path);
 			Kernel32.INSTANCE.FlushFileBuffers(handle1);
 			Kernel32.INSTANCE.DisconnectNamedPipe(handle1);
 		} else {

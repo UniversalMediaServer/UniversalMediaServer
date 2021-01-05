@@ -32,21 +32,21 @@ public class DeviceConfiguration extends PmsConfiguration {
 	private static HashMap<String, String> xref;
 	private static File deviceDir;
 
-	public DeviceConfiguration() {
+	public DeviceConfiguration() throws InterruptedException {
 		super(0);
 	}
 
-	public DeviceConfiguration(File f, String uuid) throws ConfigurationException {
+	public DeviceConfiguration(File f, String uuid) throws ConfigurationException, InterruptedException {
 		super(f, uuid);
 		inherit(this);
 	}
 
-	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException {
+	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
 		super(0);
 		inherit(ref);
 	}
 
-	public DeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException {
+	public DeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
 		super(0);
 		deviceConf = initConfiguration(ia);
 		inherit(ref);
@@ -81,11 +81,9 @@ public class DeviceConfiguration extends PmsConfiguration {
 		// Sync our internal PmsConfiguration vars
 		// TODO: create new objects here instead?
 		tempFolder = baseConf.tempFolder;
-		programPaths = baseConf.programPaths;
 		filter = baseConf.filter;
 
 		// Initialize our internal RendererConfiguration vars
-		renderCache = new HashMap<>();
 		sortedHeaderMatcher = ref.sortedHeaderMatcher;
 		// Note: intentionally omitting 'player = null' so as to preserve player state when reloading
 		loaded = true;
@@ -107,7 +105,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 
 	@Override
 	public void setUUID(String uuid) {
-		if (uuid != null && ! uuid.equals(this.uuid)) {
+		if (uuid != null && !uuid.equals(this.uuid)) {
 			this.uuid = uuid;
 			// Switch to the custom device conf for this new uuid, if any
 			if (deviceConfs.containsKey(uuid) && deviceConf != deviceConfs.get(uuid)) {
@@ -186,7 +184,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			for (File f : files) {
 				if (f.getName().endsWith(".conf")) {
 					loadDeviceFile(f, createPropertiesConfiguration());
-					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), reloader));
+					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), RELOADER));
 				}
 			}
 		}
@@ -277,9 +275,9 @@ public class DeviceConfiguration extends PmsConfiguration {
 
 	public static ArrayList<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
 		ArrayList<RendererConfiguration> devices = new ArrayList<>();
-		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration)renderer).ref : renderer;
+		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration) renderer).ref : renderer;
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			if ((r instanceof DeviceConfiguration) && ((DeviceConfiguration)r).ref == ref) {
+			if ((r instanceof DeviceConfiguration) && ((DeviceConfiguration) r).ref == ref) {
 				devices.add(r);
 			}
 		}
@@ -289,7 +287,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	/**
 	 * Automatic reloading
 	 */
-	public static final FileWatcher.Listener reloader = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			File f = new File(filename);
@@ -307,7 +305,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			conf.clear();
 			ids.addAll(Arrays.asList(loadDeviceFile(f, conf)));
 			for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-				if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration)r).getId())) {
+				if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration) r).getId())) {
 					r.reset();
 				}
 			}

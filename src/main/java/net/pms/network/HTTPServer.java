@@ -23,9 +23,11 @@ import java.net.*;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.util.concurrent.Executors;
-import net.pms.Messages;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.newgui.StatusTab.ConnectionState;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -33,12 +35,14 @@ import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.util.ThreadNameDeterminer;
+import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class HTTPServer implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPServer.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private final int port;
 	private String hostname;
 	private ServerSocketChannel serverSocketChannel;
@@ -51,20 +55,8 @@ public class HTTPServer implements Runnable {
 	private NetworkInterface networkInterface;
 	private ChannelGroup group;
 
-	// XXX not used
-	@Deprecated
-	public InetAddress getIafinal() {
-		return iafinal;
-	}
-
 	public NetworkInterface getNetworkInterface() {
 		return networkInterface;
-	}
-
-	// use getNetworkInterface()
-	@Deprecated
-	public NetworkInterface getNi() {
-		return getNetworkInterface();
 	}
 
 	public HTTPServer(int port) {
@@ -84,7 +76,7 @@ public class HTTPServer implements Runnable {
 	}
 
 	public boolean start() throws IOException {
-		hostname = configuration.getServerHostname();
+		hostname = CONFIGURATION.getServerHostname();
 		InetSocketAddress address;
 
 		if (StringUtils.isNotBlank(hostname)) {
@@ -96,7 +88,7 @@ public class HTTPServer implements Runnable {
 			} else {
 				address = new InetSocketAddress(hostname, port);
 			}
-		} else if (isAddressFromInterfaceFound(configuration.getNetworkInterface())) { // XXX sets iafinal and networkInterface
+		} else if (isAddressFromInterfaceFound(CONFIGURATION.getNetworkInterface())) { // XXX sets iafinal and networkInterface
 			LOGGER.info("Using address {} found on network interface: {}", iafinal, networkInterface.toString().trim().replace('\n', ' '));
 			address = new InetSocketAddress(iafinal, port);
 		} else {
@@ -104,13 +96,14 @@ public class HTTPServer implements Runnable {
 			address = new InetSocketAddress(port);
 		}
 
-		LOGGER.info("Created socket: " + address);
+		LOGGER.info("Created socket: {}", address);
 
-		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
-			group = new DefaultChannelGroup("myServer");
+		if (CONFIGURATION.isHTTPEngineV2()) { // HTTP Engine V2
+			ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
+			group = new DefaultChannelGroup("HTTPServer");
 			factory = new NioServerSocketChannelFactory(
-				Executors.newCachedThreadPool(),
-				Executors.newCachedThreadPool()
+				Executors.newCachedThreadPool(new NettyBossThreadFactory()),
+				Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
 			);
 
 			ServerBootstrap bootstrap = new ServerBootstrap(factory);
@@ -131,7 +124,7 @@ public class HTTPServer implements Runnable {
 				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
 				LOGGER.trace("The error was: " + e);
-				PMS.get().getFrame().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
+				PMS.get().getFrame().setConnectionState(ConnectionState.BLOCKED);
 			}
 
 			if (hostname == null && iafinal != null) {
@@ -152,7 +145,7 @@ public class HTTPServer implements Runnable {
 				hostname = InetAddress.getLocalHost().getHostAddress();
 			}
 
-			runnable = new Thread(this, "HTTP Server");
+			runnable = new Thread(this, "HTTPv1 Request Handler");
 			runnable.setDaemon(false);
 			runnable.start();
 		}
@@ -229,23 +222,20 @@ public class HTTPServer implements Runnable {
 				// basic IP filter: solntcev at gmail dot com
 				boolean ignore = false;
 
-				if (configuration.getIpFiltering().allowed(inetAddress)) {
-					LOGGER.trace("Receiving a request from: " + ip);
-				} else {
+				if (!CONFIGURATION.getIpFiltering().allowed(inetAddress)) {
 					ignore = true;
 					socket.close();
-					LOGGER.trace("Ignoring request from: " + ip);
+					LOGGER.trace("Ignoring request from {}:{}" + ip, socket.getPort());
 				}
 
 				if (!ignore) {
 					if (count == Integer.MAX_VALUE) {
 						count = 1;
-					} else
-					{
+					} else {
 						count++;
 					}
 					RequestHandler request = new RequestHandler(socket);
-					Thread thread = new Thread(request, "Request Handler " + count);
+					Thread thread = new Thread(request, "HTTPv1 Request Worker " + count);
 					thread.start();
 				}
 			} catch (ClosedByInterruptException e) {
@@ -265,6 +255,56 @@ public class HTTPServer implements Runnable {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
+		}
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates Netty worker threads.
+	 */
+	static class NettyWorkerThreadFactory implements ThreadFactory {
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		NettyWorkerThreadFactory() {
+			group = new ThreadGroup("Netty worker group");
+			group.setDaemon(false);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "HTTPv2 Request Worker " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			if (thread.getPriority() != Thread.NORM_PRIORITY) {
+				thread.setPriority(Thread.NORM_PRIORITY);
+			}
+			return thread;
+		}
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates Netty boss threads.
+	 */
+	static class NettyBossThreadFactory implements ThreadFactory {
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		NettyBossThreadFactory() {
+			group = new ThreadGroup("Netty boss group");
+			group.setDaemon(false);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "HTTPv2 Request Handler " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			if (thread.getPriority() != Thread.NORM_PRIORITY) {
+				thread.setPriority(Thread.NORM_PRIORITY);
+			}
+			return thread;
 		}
 	}
 }

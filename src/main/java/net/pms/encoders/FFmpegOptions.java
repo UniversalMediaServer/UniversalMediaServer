@@ -1,19 +1,20 @@
 package net.pms.encoders;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import net.pms.configuration.PmsConfiguration;
+import javax.annotation.Nonnull;
 import net.pms.util.ProcessUtil;
 
-public class FFmpegOptions extends optionsHashMap {
+public class FFmpegOptions extends OptionsHashMap {
 	// ffmpeg [global_options] {[input_file_options] -i ‘input_file’} ... {[output_file_options] ‘output_file’} ...
 
 	private static final long serialVersionUID = -1283795835781170081L;
 
 	// options that go in the 'global_options' slot
-	public static final List<String> globals = Arrays.asList(
+	public static final List<String> GLOBALS = Arrays.asList(
 		// global options:
 		"-loglevel", "-v", "-report", "-max_alloc", "-y", "-n", "-stats",
 		"-bits_per_raw_sample", "-croptop", "-cropbottom", "-cropleft", "-cropright",
@@ -27,7 +28,7 @@ public class FFmpegOptions extends optionsHashMap {
 	);
 
 	// options that go in the 'input_file_options' slot
-	public static final List<String> input_file_options = Arrays.asList(
+	public static final List<String> INPUT_FILE_OPTIONS = Arrays.asList(
 		// http options
 		"-seekable", "-chunked_post", "-headers", "-content_type", "-user-agent",
 		"-multiple_requests", "-post_data", "-timeout", "-mime_type", "-cookies",
@@ -56,7 +57,7 @@ public class FFmpegOptions extends optionsHashMap {
 	// slot, though in reality many of the remaining options can be used
 	// with input files too.
 	public void transferGlobals(List<String> list) {
-		transferAny(globals, list);
+		transferAny(GLOBALS, list);
 	}
 
 	public void transferInputFileOptions(List<String> list) {
@@ -79,15 +80,16 @@ public class FFmpegOptions extends optionsHashMap {
 			}
 		}
 
-		transferAny(input_file_options, list);
+		transferAny(INPUT_FILE_OPTIONS, list);
 	}
 
 	public FFmpegOptions() {
 	}
 
-	public static List<String> getSupportedProtocols(PmsConfiguration configuration) {
-		ArrayList<String> protocols = new ArrayList<>();
-		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
+	@Nonnull
+	public static List<String> getSupportedProtocols(@Nonnull Path executable) {
+		List<String> result = new ArrayList<>();
+		String output = ProcessUtil.run(executable.toString(), "-protocols");
 		boolean add = false;
 		boolean old = false;
 		for (String line : output.split("\\s*\n\\s*")) {
@@ -97,22 +99,27 @@ public class FFmpegOptions extends optionsHashMap {
 			} else if (line.equals("Output:")) {
 				break;
 			} else if (add) {
-				protocols.add(line);
+				result.add(line);
 
 			// old style - see http://git.videolan.org/?p=ffmpeg.git;a=commitdiff;h=cdc6a87f193b1bf99a640a44374d4f2597118959
 			} else if (line.startsWith("I.. = Input")) {
 				old = true;
 			} else if (old && line.startsWith("I")) {
-				protocols.add(line.split("\\s+")[1]);
+				result.add(line.split("\\s+")[1]);
 			}
 		}
-		return protocols;
+		if (result.contains("mmsh")) {
+			// Workaround a FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+			// Also see launchTranscode()
+			result.add("mms");
+		}
+		return result;
 	}
 }
 
 // A HashMap of options and args (if any)
 // which preserves insertion order
-class optionsHashMap extends LinkedHashMap<String, String> {
+class OptionsHashMap extends LinkedHashMap<String, String> {
 	private static final long serialVersionUID = 7021453139296691483L;
 
 	public void addAll(List<String> args) {
@@ -135,7 +142,7 @@ class optionsHashMap extends LinkedHashMap<String, String> {
 
 	public void transfer(String opt, List<String> list) {
 		if (containsKey(opt)) {
-			_transfer(opt, list);
+			transferOption(opt, list);
 		}
 	}
 
@@ -147,11 +154,11 @@ class optionsHashMap extends LinkedHashMap<String, String> {
 
 	public void transferAll(List<String> list) {
 		for (Object opt : keySet().toArray()) {
-			_transfer((String) opt, list);
+			transferOption((String) opt, list);
 		}
 	}
 
-	private void _transfer(String opt, List<String> list) {
+	private void transferOption(String opt, List<String> list) {
 		list.add(opt);
 		String optarg = remove(opt);
 		if (optarg != null) {

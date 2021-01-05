@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import net.pms.PMS;
@@ -26,23 +27,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemotePlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemotePlayHandler.class);
 	private RemoteWeb parent;
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	public RemotePlayHandler(RemoteWeb parent) {
 		this.parent = parent;
 	}
 
-	private String returnPage() {
+	private static String returnPage() {
 		// special page to return
 		return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
 	}
 
-	private void addNextByType(DLNAResource d, HashMap<String, Object> vars) {
+	private static void addNextByType(DLNAResource d, HashMap<String, Object> vars) {
 		List<DLNAResource> children = d.getParent().getChildren();
-		boolean looping = configuration.getWebAutoLoop(d.getFormat());
+		boolean looping = CONFIGURATION.getWebAutoLoop(d.getFormat());
 		int type = d.getType();
 		int size = children.size();
 		int mod = looping ? size : 9999;
@@ -68,9 +70,9 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 	}
 
-	private String mkPage(String id, HttpExchange t) throws IOException {
+	private String mkPage(String id, HttpExchange t) throws IOException, InterruptedException {
 		HashMap<String, Object> vars = new HashMap<>();
-		vars.put("serverName", configuration.getServerDisplayName());
+		vars.put("serverName", CONFIGURATION.getServerDisplayName());
 
 		LOGGER.debug("Make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
@@ -108,13 +110,13 @@ public class RemotePlayHandler implements HttpHandler {
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
 		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));
-		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && configuration.getWebFlash()));
+		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && CONFIGURATION.getWebFlash()));
 
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String name = StringEscapeUtils.escapeHtml(r.resumeName());
-		String mime = root.getDefaultRenderer().getMimeType(r.mimeType(), r.getMedia());
+		String mime = root.getDefaultRenderer().getMimeType(r);
 		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
 		String auto = "autoplay";
 		@SuppressWarnings("unused")
@@ -136,8 +138,8 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("isVideo", isVideo);
 		vars.put("name", name);
 		vars.put("id1", id1);
-		vars.put("autoContinue", configuration.getWebAutoCont(format));
-		if (configuration.isDynamicPls()) {
+		vars.put("autoContinue", CONFIGURATION.getWebAutoCont(format));
+		if (CONFIGURATION.isDynamicPls()) {
 			if (r.getParent() instanceof Playlist) {
 				vars.put("plsOp", "del");
 				vars.put("plsSign", "-");
@@ -152,8 +154,8 @@ public class RemotePlayHandler implements HttpHandler {
 		if (isImage) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
-			int delay = configuration.getWebImgSlideDelay() * 1000;
-			if (delay > 0 && configuration.getWebAutoCont(format)) {
+			int delay = CONFIGURATION.getWebImgSlideDelay() * 1000;
+			if (delay > 0 && CONFIGURATION.getWebAutoCont(format)) {
 				vars.put("delay", delay);
 			}
 		} else {
@@ -174,23 +176,23 @@ public class RemotePlayHandler implements HttpHandler {
 				vars.put("height", renderer.getVideoHeight());
 			}
 		}
-		if (configuration.useWebControl()) {
+		if (CONFIGURATION.useWebControl()) {
 			vars.put("push", true);
 		}
 
-		if (isVideo && configuration.getWebSubs()) {
+		if (isVideo && CONFIGURATION.getWebSubs()) {
 			// only if subs are requested as <track> tags
 			// otherwise we'll transcode them in
-			boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
+			boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();
 			if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
-				configuration.setFFmpegFontConfig(false);
+				CONFIGURATION.setFFmpegFontConfig(false);
 			}
-			OutputParams p = new OutputParams(configuration);
-			p.sid = r.getMediaSubtitle();
-			Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
-			if (p.sid != null && p.sid.getType().isText()) {
+			OutputParams p = new OutputParams(CONFIGURATION);
+			p.setSid(r.getMediaSubtitle());
+			Player.setAudioAndSubs(r, p);
+			if (p.getSid() != null && p.getSid().getType().isText()) {
 				try {
-					File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
+					File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, CONFIGURATION, SubtitleType.WEBVTT);
 					LOGGER.debug("subFile " + subFile);
 					if (subFile != null) {
 						vars.put("sub", parent.getResources().add(subFile));
@@ -200,7 +202,7 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 			}
 
-			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
+			CONFIGURATION.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 		}
 
 		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(vars);
@@ -208,53 +210,61 @@ public class RemotePlayHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
-		if (RemoteUtil.deny(t)) {
-			throw new IOException("Access denied");
-		}
-		String p = t.getRequestURI().getPath();
-		if (p.contains("/play/")) {
-			LOGGER.debug("got a play request " + t.getRequestURI());
-			String id = RemoteUtil.getId("play/", t);
-			String response = mkPage(id, t);
-//			LOGGER.trace("play page " + response);
-			RemoteUtil.respond(t, response, 200, "text/html");
-		} else if (p.contains("/playerstatus/")) {
-			String json = IOUtils.toString(t.getRequestBody(), "UTF-8");
-			LOGGER.trace("got player status: " + json);
-			RemoteUtil.respond(t, "", 200, "text/html");
+		try {
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String p = t.getRequestURI().getPath();
+			if (p.contains("/play/")) {
+				LOGGER.debug("got a play request " + t.getRequestURI());
+				String id = RemoteUtil.getId("play/", t);
+				String response = mkPage(id, t);
+				//LOGGER.trace("play page " + response);
+				RemoteUtil.respond(t, response, 200, "text/html");
+			} else if (p.contains("/playerstatus/")) {
+				String json = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
+				LOGGER.trace("got player status: " + json);
+				RemoteUtil.respond(t, "", 200, "text/html");
 
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-			if (root == null) {
-				LOGGER.debug("root not found");
-				throw new IOException("Unknown root");
-			}
-			WebRender renderer = (WebRender) root.getDefaultRenderer();
-			((WebRender.WebPlayer)renderer.getPlayer()).setData(json);
-		}  else if (p.contains("/playlist/")) {
-			String[] tmp = p.split("/");
-			// sanity
-			if (tmp.length < 3) {
-				throw new IOException("Bad request");
-			}
-			String op = tmp[tmp.length - 2];
-			String id = tmp[tmp.length - 1];
-			DLNAResource r = PMS.getGlobalRepo().get(id);
- 			if (r != null) {
 				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 				if (root == null) {
 					LOGGER.debug("root not found");
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
- 				if (op.equals("add")) {
- 					PMS.get().getDynamicPls().add(r);
-					renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
-				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
-					((Playlist)r.getParent()).remove(r);
-					renderer.notify(renderer.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
+			}  else if (p.contains("/playlist/")) {
+				String[] tmp = p.split("/");
+				// sanity
+				if (tmp.length < 3) {
+					throw new IOException("Bad request");
 				}
+				String op = tmp[tmp.length - 2];
+				String id = tmp[tmp.length - 1];
+				DLNAResource r = PMS.getGlobalRepo().get(id);
+				if (r != null) {
+					RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+					if (root == null) {
+						LOGGER.debug("root not found");
+						throw new IOException("Unknown root");
+					}
+					WebRender renderer = (WebRender) root.getDefaultRenderer();
+					if (op.equals("add")) {
+						PMS.get().getDynamicPls().add(r);
+						renderer.notify(renderer.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
+						((Playlist) r.getParent()).remove(r);
+						renderer.notify(renderer.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+					}
+				}
+				RemoteUtil.respond(t, returnPage(), 200, "text/html");
 			}
-			RemoteUtil.respond(t, returnPage(), 200, "text/html");
+		} catch (IOException e) {
+			throw e;
+		} catch (Exception e) {
+			// Nothing should get here, this is just to avoid crashing the thread
+			LOGGER.error("Unexpected error in RemotePlayHandler.handle(): {}", e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 }

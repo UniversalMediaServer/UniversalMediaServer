@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
@@ -90,12 +91,12 @@ public interface BasicPlayer extends ActionListener {
 
 		public DeviceConfiguration renderer;
 		protected State state;
-		protected LinkedHashSet<ActionListener> listeners;
+		protected final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
+		protected final LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
 
 		public Minimal(DeviceConfiguration renderer) {
 			this.renderer = renderer;
 			state = new State();
-			listeners = new LinkedHashSet<>();
 			if (renderer.gui != null) {
 				connect(renderer.gui);
 			}
@@ -119,22 +120,37 @@ public interface BasicPlayer extends ActionListener {
 		@Override
 		public void connect(ActionListener listener) {
 			if (listener != null) {
-				listeners.add(listener);
+				listenersLock.writeLock().lock();
+				try {
+					listeners.add(listener);
+				} finally {
+					listenersLock.writeLock().unlock();
+				}
 			}
 		}
 
 		@Override
 		public void disconnect(ActionListener listener) {
-			listeners.remove(listener);
-			if (listeners.isEmpty()) {
-				close();
+			listenersLock.writeLock().lock();
+			try {
+				listeners.remove(listener);
+				if (listeners.isEmpty()) {
+					close();
+				}
+			} finally {
+				listenersLock.writeLock().unlock();
 			}
 		}
 
 		@Override
 		public void alert() {
-			for (ActionListener l : listeners) {
-				l.actionPerformed(new ActionEvent(this, 0, null));
+			listenersLock.readLock().lock();
+			try {
+				for (ActionListener l : listeners) {
+					l.actionPerformed(new ActionEvent(this, 0, null));
+				}
+			} finally {
+				listenersLock.readLock().unlock();
 			}
 		}
 
@@ -145,7 +161,13 @@ public interface BasicPlayer extends ActionListener {
 
 		@Override
 		public void close() {
-			listeners.clear();
+			listenersLock.writeLock().lock();
+			try {
+				listeners.clear();
+			} finally {
+				listenersLock.writeLock().unlock();
+			}
+
 			renderer.setPlayer(null);
 		}
 
@@ -253,11 +275,11 @@ public interface BasicPlayer extends ActionListener {
 
 		public Playlist.Item resolveURI(String uri, String metadata) {
 			if (uri != null) {
-				Playlist.Item item;
+				Playlist.Item item = playlist.get(uri);
 				if (metadata != null && metadata.startsWith("<DIDL")) {
 					// If it looks real assume it's valid
 					return new Playlist.Item(uri, null, metadata);
-				} else if ((item = playlist.get(uri)) != null) {
+				} else if (item != null) {
 					// We've played it before
 					return item;
 				} else {
@@ -394,27 +416,25 @@ public interface BasicPlayer extends ActionListener {
 					continue;
 				}
 				final String folder = tmp[1];
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						while(PMS.get().getServer().getHost() == null) {
-							try {
-								Thread.sleep(1000);
-							} catch (Exception e) {
-								return;
-							}
-						}
-						RealFile f = new RealFile(new File(folder));
-						f.discoverChildren();
-						f.analyzeChildren(-1);
-						player.addAll(-1, f.getChildren(), -1);
-						// add a short delay here since player.add uses swing.invokelater
+				Runnable r = () -> {
+					while (PMS.get().getServer().getHost() == null) {
 						try {
 							Thread.sleep(1000);
-						} catch (Exception e) {
+						} catch (InterruptedException e) {
+							return;
 						}
-						player.pressPlay(null, null);
 					}
+					RealFile f = new RealFile(new File(folder));
+					f.discoverChildren();
+					f.analyzeChildren(-1);
+					player.addAll(-1, f.getChildren(), -1);
+					// add a short delay here since player.add uses
+					// swing.invokelater
+					try {
+						Thread.sleep(1000);
+					} catch (Exception e) {
+					}
+					player.pressPlay(null, null);
 				};
 				new Thread(r).start();
 			}
@@ -422,6 +442,7 @@ public interface BasicPlayer extends ActionListener {
 
 		public static class Playlist extends DefaultComboBoxModel {
 			private static final long serialVersionUID = 5934677633834195753L;
+			private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
 
 			Logical player;
 
@@ -448,10 +469,12 @@ public interface BasicPlayer extends ActionListener {
 						// An alias for the currently selected item
 						StringUtils.isBlank(uri) || uri.equals(selectedName) ? selectedItem :
 						// An item index, e.g. '$i$4'
-						uri.startsWith("$i$") ? getElementAt(Integer.valueOf(uri.substring(3))) :
+						uri.startsWith("$i$") ? getElementAt(Integer.parseInt(uri.substring(3))) :
 						// Or an actual uri
 						get(uri));
 				} catch (Exception e) {
+					LOGGER.error("An error occurred while resolving the item for URI \"{}\": {}", uri, e.getMessage());
+					LOGGER.trace("", e);
 				}
 				return (item != null && isValid(item, player.renderer)) ? item : null;
 			}
@@ -459,7 +482,7 @@ public interface BasicPlayer extends ActionListener {
 			public static boolean isValid(Item item, DeviceConfiguration renderer) {
 				if (DLNAResource.isResourceUrl(item.uri)) {
 					// Check existence for resource uris
-					if (PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
+					if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
 						return true;
 					}
 					// Repair the item if possible
@@ -490,16 +513,14 @@ public interface BasicPlayer extends ActionListener {
 			public void add(final int index, final String uri, final String name, final String metadata, final boolean select) {
 				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							Item item = resolve(uri);
-							if (item == null) {
-								item = new Item(uri, name, metadata);
-								insertElementAt(item, index > -1 ? index : getSize());
-							}
-							if (select) {
-								setSelectedItem(item);
-							}
+					SwingUtilities.invokeLater(() -> {
+						Item item = resolve(uri);
+						if (item == null) {
+							item = new Item(uri, name, metadata);
+							insertElementAt(item, index > -1 ? index : getSize());
+						}
+						if (select) {
+							setSelectedItem(item);
 						}
 					});
 				}
@@ -508,12 +529,10 @@ public interface BasicPlayer extends ActionListener {
 			public void remove(final String uri) {
 				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							Item item = resolve(uri);
-							if (item != null) {
-								removeElement(item);
-							}
+					SwingUtilities.invokeLater(() -> {
+						Item item = resolve(uri);
+						if (item != null) {
+							removeElement(item);
 						}
 					});
 				}
@@ -547,7 +566,7 @@ public interface BasicPlayer extends ActionListener {
 			public static class Item {
 				private static final Logger LOGGER = LoggerFactory.getLogger(Item.class);
 				public String name, uri, metadata;
-				static final Matcher dctitle = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
+				static final Matcher DC_TITLE = Pattern.compile("<dc:title>(.+)</dc:title>").matcher("");
 
 				public Item(String uri, String name, String metadata) {
 					this.uri = uri;
@@ -559,8 +578,8 @@ public interface BasicPlayer extends ActionListener {
 				public String toString() {
 					if (StringUtils.isBlank(name)) {
 						try {
-							name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
-								dctitle.group(1) :
+							name = (!StringUtils.isEmpty(metadata) && DC_TITLE.reset(unescape(metadata)).find()) ?
+								DC_TITLE.group(1) :
 								new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
 						} catch (UnsupportedEncodingException e) {
 							LOGGER.error("URL decoding error ", e);
@@ -573,7 +592,7 @@ public interface BasicPlayer extends ActionListener {
 				public boolean equals(Object other) {
 					return other == null ? false :
 						other == this ? true :
-						other instanceof Item ? ((Item)other).uri.equals(uri) :
+						other instanceof Item ? ((Item) other).uri.equals(uri) :
 						other.toString().equals(uri);
 				}
 

@@ -14,7 +14,7 @@ public interface StartStopListener extends ExternalListener {
 	 * @param resource the DLNAResource being played
 	 */
 	public void nowPlaying(DLNAMediaInfo media, DLNAResource resource);
-	
+
 	/**
 	 * Called when a resource stops playing
 	 * @param media the DLNAMediaInfo for the resource being stopped

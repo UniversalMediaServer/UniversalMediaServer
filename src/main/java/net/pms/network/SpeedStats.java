@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
-import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SystemUtils;
@@ -52,7 +52,16 @@ public class SpeedStats {
 
 	private final Map<String, Future<Integer>> speedStats = new HashMap<>();
 
-	public Future<Integer> getSpeedInMBitsStored(InetAddress addr, String rendererName) {
+	/**
+	 * Returns the estimated networks throughput for the given IP address in
+	 * Mb/s from the cache as a {@link Future}. If no value is cached for
+	 * {@code addr}, {@code null} is returned.
+	 *
+	 * @param addr the {@link InetAddress} to lookup.
+	 * @return The {@link Future} with the estimated network throughput or
+	 *         {@code null}.
+	 */
+	public Future<Integer> getSpeedInMBitsStored(InetAddress addr) {
 		// only look in the store
 		// if no pings are done resort to conf values
 		synchronized (speedStats) {
@@ -102,7 +111,7 @@ public class SpeedStats {
 
 		private Integer doCall() throws Exception {
 			String ip = addr.getHostAddress();
-			LOGGER.info("Checking IP: " + ip + " for " + rendererName);
+			LOGGER.info("Checking IP: {} for {}", ip, rendererName);
 			// calling the canonical host name the first time is slow, so we call it in a separate thread
 			String hostname = addr.getCanonicalHostName();
 			synchronized (speedStats) {
@@ -111,9 +120,9 @@ public class SpeedStats {
 					// wait a little bit
 					try {
 						// probably we are waiting for ourself to finish the work...
-						Integer value = otherTask.get(100, TimeUnit.MILLISECONDS);
+						Integer value = otherTask.get(200, TimeUnit.MILLISECONDS);
 						// if the other task already calculated the speed, we get the result,
-						// unless we do it now 
+						// unless we do it now
 						if (value != null) {
 							return value;
 						}
@@ -124,9 +133,9 @@ public class SpeedStats {
 			}
 
 			if (!ip.equals(hostname)) {
-				LOGGER.info("Renderer " + rendererName + " found on this address: " + hostname + " (" + ip + ")");
+				LOGGER.info("Renderer {} found on address: {} ({})", rendererName, hostname, ip);
 			} else {
-				LOGGER.info("Renderer " + rendererName + " found on this address: " + ip);
+				LOGGER.info("Renderer {} found on address: {}", rendererName, ip);
 			}
 
 			int[] sizes = {512, 1476, 9100, 32000, 64000};
@@ -141,7 +150,7 @@ public class SpeedStats {
 				}
 			}
 			double speedInMbits1 = bps / (cnt * 1000000);
-			LOGGER.info("Renderer " + rendererName + " has an estimated network speed of " + speedInMbits1 + " Mb/s");
+			LOGGER.info("Renderer {} has an estimated network speed of {} Mb/s", rendererName, speedInMbits1);
 			int speedInMbits = (int) speedInMbits1;
 			if (speedInMbits1 < 1.0) {
 				speedInMbits = -1;
@@ -158,19 +167,16 @@ public class SpeedStats {
 		private double doPing(int size) {
 			// let's get that speed
 			OutputParams op = new OutputParams(null);
-			op.log = true;
-			op.maxBufferSize = 1;
-			SystemUtils sysUtil = PMS.get().getRegistry();
-			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 3, size), op, true, false);
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(3000);
-					} catch (InterruptedException e) {
-					}
-					pw.stopProcess();
+			op.setLog(true);
+			op.setMaxBufferSize(1);
+			SystemUtils sysUtil = BasicSystemUtils.instance;
+			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
+			Runnable r = () -> {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
 				}
+				pw.stopProcess();
 			};
 
 			Thread failsafe = new Thread(r, "SpeedStats Failsafe");
@@ -197,8 +203,8 @@ public class SpeedStats {
 
 			if (c > 0) {
 				time /= c;
-				int frags = ((size + 8) / 1500) + 1;
-				LOGGER.debug("est speed for " + size + " " + frags + " is " + ((size + 8 + (frags * 32)) * 8000 * 2) / time);
+				int frags = sysUtil.getPingPacketFragments(size);
+				LOGGER.debug("Estimated speed from ICMP packet size {} in {} fragment(s) is {} bit/s", size, frags, ((size + 8 + (frags * 32)) * 8000 * 2) / time);
 				return ((size + 8 + (frags * 32)) * 8000 * 2) / time;
 			}
 			return time;

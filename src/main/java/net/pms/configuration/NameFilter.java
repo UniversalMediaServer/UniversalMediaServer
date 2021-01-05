@@ -17,7 +17,6 @@ public class NameFilter {
 	private final ConfigurationReader configurationReader;
 	private static final Logger LOGGER = LoggerFactory.getLogger(NameFilter.class);
 
-
 	public NameFilter() throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
 		configurationReader = new ConfigurationReader(configuration, true); // true: log

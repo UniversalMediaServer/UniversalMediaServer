@@ -27,13 +27,13 @@ public class CodeEnter extends VirtualFolder {
 		}
 
 		@Override
-		public boolean quietPlay() {
-			return true;
+		public boolean isLogPlayEvents() {
+			return false;
 		}
 	}
 
 	public CodeEnter(DLNAResource r) {
-		super(r.getName(), r.getThumbnailURL());
+		super(r.getName(), r.getThumbnailURL(DLNAImageProfile.JPEG_TN));
 		resource = r;
 		code = "";
 		enteredCode = "";

@@ -1,0 +1,112 @@
+<assembly
+	xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+	
+	<!--
+		For macOS the actual assembly of the App Bundle and DMG disk image 
+		is handled by the osxappbundle-maven-plugin. This assembly descriptor merely 
+		copies all the files in the right place so the other plugin can pick them 
+		up easily.
+	-->
+
+	<id>distribution</id>
+	<formats>
+		<format>dir</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<fileSets>
+		<!-- Include the binaries specific to 10.15 onwards -->
+		<fileSet>
+			<directory>${project.binaries}/osx/10.15</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/osx</outputDirectory>
+			<useDefaultExcludes>true</useDefaultExcludes>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>mencoder</include>
+				<include>mplayer</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include the unzipped binaries -->
+		<fileSet>
+			<directory>${project.binaries}/osx</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/osx</outputDirectory>
+			<useDefaultExcludes>true</useDefaultExcludes>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>builds.txt</include>
+				<include>dcraw</include>
+				<include>ffmpeg</include>
+				<include>flac</include>
+				<include>libmediainfo.dylib</include>
+				<include>tsMuxeR</include>
+				<include>tsMuxeR-new</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include unzipped libmediainfo.dylib -->
+		<fileSet>
+			<directory>${project.binaries}</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>libmediainfo.dylib</include>
+				<include>MediaInfo-License.html</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include documentation -->
+		<fileSet>
+			<directory>${project.basedir}</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>README.md</include>
+				<include>CHANGELOG.txt</include>
+				<include>LICENSE.txt</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include fontconfig files -->
+		<fileSet>
+			<directory>${project.external-resources}/osx/fonts</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/fonts</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include configuration files -->
+		<fileSet>
+			<directory>${project.external-resources}</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>UMS.conf</include>
+				<include>WEB.conf</include>
+				<include>logback.headless.xml</include>
+				<include>logback.xml</include>
+				<include>documentation/**</include>
+				<include>plugins/**</include>
+				<include>renderers/*</include>
+				<include>VirtualFolders.conf</include>
+				<include>DummyInput.ass</include>
+				<include>DummyInput.jpg</include>
+				<include>web/**</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include jar-with-dependencies -->
+		<fileSet>
+			<directory>${project.basedir}/target</directory>
+			<outputDirectory>${project.name}.app/Contents/Java</outputDirectory>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>${project.build.finalName}-jar-with-dependencies.jar</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>

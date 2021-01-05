@@ -142,8 +142,8 @@ public class RendererPanel extends JPanel {
 
 	public JButton editButton(final boolean create) {
 		final File file = create ? renderer.getUsableFile() : renderer.getFile();
-		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>"
-			: "<html><font color=blue>" + Messages.getString("RendererPanel.2") + ":</font> ") + file.getName() + "</html>",
+		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>" :
+			"<html><font color=blue>" + Messages.getString("RendererPanel.2") + ":</font> ") + file.getName() + "</html>",
 			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
 		open.setFocusPainted(false);

@@ -30,10 +30,6 @@ body#ContentPage.browsePage {
 	position: relative;
 }
 
-#ContentPage #Container {
-	position: relative;
-}
-
 #FrontPage #Menu {
 	position: relative;
 }
@@ -90,18 +86,17 @@ body#ContentPage.browsePage {
 
 #Logo {
 	position: absolute;
-	left: 243px;
+	left: 237px;
 	top: 29px;
-	background: url('/files/logo.png') !important;
-	width: 217px;
+	background: url('/files/logo.png') center no-repeat;
+	width: 230px;
 	height: 220px !important;
 	display: block;
 }
 
-#FrontPage #Menu a h3 {
+#FrontPage #Menu a h1 {
 	margin-top: 240px;
 	text-align: center;
-	font-family: Arial, Verdana, Tahoma, sans-serif;
 	color: #5a5a5a;
 	font-size: 22px;
 	text-decoration: none;
@@ -133,6 +128,9 @@ ul#Folders li a:hover {
 ul#Folders li span {
 	display: block;
 	margin-bottom: 5px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 ul#Media {
@@ -173,6 +171,7 @@ ul#Media .thumb {
 	width: auto;
 	display: block;
 	margin: 0 auto;
+	object-fit: contain;
 }
 
 ul#Media .caption {
@@ -496,3 +495,8 @@ form#SearchForm {
 	left: 45%;
 }
 
+.VersionNumber {
+	position: absolute;
+	bottom: 0;
+	padding-left: 10px;
+}

@@ -1,35 +1,37 @@
 package net.pms.update;
 
+import com.sun.jna.Platform;
+import java.awt.Desktop;
 import java.io.*;
+import java.net.URI;
 import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.util.UriRetriever;
+import net.pms.util.UriFileRetriever;
 import net.pms.util.UriRetrieverCallback;
 import net.pms.util.Version;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Checks for and downloads new versions of PMS.
+ * Checks for and downloads new versions of UMS.
  *
  * @author Tim Cox (mail@tcox.org)
  */
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
-	private static final String TARGET_FILENAME = "new-version.exe";
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	public static enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
 	}
 
 	private final String serverUrl;
-	private final UriRetriever uriRetriever = new UriRetriever();
-	private final AutoUpdaterServerProperties serverProperties = new AutoUpdaterServerProperties();
+	private final UriFileRetriever uriRetriever = new UriFileRetriever();
+	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 	private final Version currentVersion;
 	private Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
@@ -46,14 +48,11 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	public void pollServer() {
 		if (serverUrl != null) { // don't poll if the server URL is null
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						doPollServer();
-					} catch (UpdateException e) {
-						setErrorState(e);
-					}
+			executor.execute(() -> {
+				try {
+					doPollServer();
+				} catch (UpdateException e) {
+					setErrorState(e);
 				}
 			});
 		}
@@ -64,9 +63,10 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 		try {
 			setState(State.POLLING_SERVER);
-			byte[] propertiesAsData = uriRetriever.get(serverUrl);
+			long unixTime = System.currentTimeMillis() / 1000L;
+			byte[] propertiesAsData = uriRetriever.get(serverUrl + "?cacheBuster=" + unixTime);
 			synchronized (stateLock) {
-				serverProperties.loadFrom(propertiesAsData);
+				SERVER_PROPERTIES.loadFrom(propertiesAsData);
 				setState(isUpdateAvailable() ? State.UPDATE_AVAILABLE : State.NO_UPDATE_AVAILABLE);
 			}
 		} catch (IOException e) {
@@ -75,27 +75,21 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	public void getUpdateFromNetwork() {
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					doGetUpdateFromNetwork();
-				} catch (UpdateException e) {
-					setErrorState(e);
-				}
+		executor.execute(() -> {
+			try {
+				doGetUpdateFromNetwork();
+			} catch (UpdateException e) {
+				setErrorState(e);
 			}
 		});
 	}
 
 	public void runUpdateAndExit() {
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					doRunUpdateAndExit();
-				} catch (UpdateException e) {
-					setErrorState(e);
-				}
+		executor.execute(() -> {
+			try {
+				doRunUpdateAndExit();
+			} catch (UpdateException e) {
+				setErrorState(e);
 			}
 		});
 	}
@@ -118,32 +112,28 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void doRunUpdateAndExit() throws UpdateException {
 		synchronized (stateLock) {
-			if (state != State.DOWNLOAD_FINISHED) {
-				throw new UpdateException("Must download before run");
+			if (state == State.DOWNLOAD_FINISHED) {
+				setState(State.EXECUTING_SETUP);
+				launchExe();
+				System.exit(0);
 			}
 		}
-
-		setState(State.EXECUTING_SETUP);
-		launchExe();
-		System.exit(0);
 	}
 
 	private void launchExe() throws UpdateException {
 		try {
-			File exe = new File(TARGET_FILENAME);
-			if (!exe.exists()) {
-				exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
-			}
-			// Use exec(String[]) to avoid space-quoting issues
-			Runtime.getRuntime().exec(new String[] {exe.getAbsolutePath()});
-		} catch (IOException e) {
-			wrapException("Unable to run update. You may need to manually download it.", e);
+			File exe = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
+			Desktop desktop = Desktop.getDesktop();
+			desktop.open(exe);
+		} catch (Exception e) {
+			LOGGER.debug("Failed to run update after downloading: {}", e);
+			wrapException(Messages.getString("AutoUpdate.UnableToRunUpdate"), e);
 		}
 	}
 
 	private void assertUpdateIsAvailable() throws UpdateException {
 		synchronized (stateLock) {
-			if (!serverProperties.isStateValid()) {
+			if (!SERVER_PROPERTIES.isStateValid()) {
 				throw new UpdateException("Server error. Try again later.");
 			}
 
@@ -182,55 +172,35 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	public boolean isUpdateAvailable() {
-		// TODO (tcox): Make updates work on Linux and Mac
-		return Version.isPmsUpdatable(currentVersion, serverProperties.getLatestVersion());
+		return Version.isPmsUpdatable(currentVersion, SERVER_PROPERTIES.getLatestVersion());
+	}
+
+	private static String getTargetFilename() {
+		String filename = "new-version.";
+		String fileExtension = "tgz";
+
+		if (Platform.isWindows()) {
+			fileExtension = "exe";
+		}
+		if (Platform.isMac()) {
+			fileExtension = "dmg";
+		}
+
+		return filename + fileExtension;
 	}
 
 	private void downloadUpdate() throws UpdateException {
-		String downloadUrl = serverProperties.getDownloadUrl();
+		String downloadUrl = SERVER_PROPERTIES.getDownloadUrl();
 
-		/**
-		 * Modify the URL to match the Java version.
-		 * We keep "Java7" hardcoded to maintain compatibility with
-		 * older versions of UMS.
-		 */
-		if (System.getProperty("java.version").startsWith("1.8")) {
-			downloadUrl = downloadUrl.replace("Java7", "Java8");
-		} else if (System.getProperty("java.version").startsWith("1.6")) {
-			downloadUrl = downloadUrl.replace("Java7", "Java6");
-		}
+		File target = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 
 		try {
-			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
-			writeToDisk(download);
-		} catch (IOException e) {
+			uriRetriever.getFile(new URI(downloadUrl), target, this);
+		} catch (Exception e) {
+			// when the file download is canceled by user or an error happens
+			// during downloading than delete the partially downloaded file
+			target.delete();
 			wrapException("Cannot download update", e);
-		}
-	}
-
-	private void writeToDisk(byte[] download) throws IOException {
-		File target = new File(TARGET_FILENAME);
-		InputStream downloadedFromNetwork = new ByteArrayInputStream(download);
-		FileOutputStream fileOnDisk = null;
-
-		try {
-			try {
-				fileOnDisk = new FileOutputStream(target);
-				fileOnDisk.write("test".getBytes());
-			} catch (Exception e) {
-				// seems no rights
-				target = new File(configuration.getTempFolder(), TARGET_FILENAME);
-			} finally {
-				if (fileOnDisk != null) {
-					fileOnDisk.close();
-				}
-			}
-			fileOnDisk = new FileOutputStream(target);
-			int bytesSaved = IOUtils.copy(downloadedFromNetwork, fileOnDisk);
-			LOGGER.info("Wrote " + bytesSaved + " bytes to " + target.getAbsolutePath());
-		} finally {
-			IOUtils.closeQuietly(downloadedFromNetwork);
-			IOUtils.closeQuietly(fileOnDisk);
 		}
 	}
 

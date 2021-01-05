@@ -10,14 +10,14 @@ public interface ExternalListener {
 	/**
 	 * Gets the graphical component to configure the plugin. If no configuration
 	 * is required, return null.
-	 * 
+	 *
 	 * @return JComponent for plugin configuration
 	 */
 	public JComponent config();
 
 	/**
 	 * The name of the plugin, as it will be shown in the GUI
-	 * 
+	 *
 	 * @return name of the plugin
 	 */
 	public String name();

@@ -44,6 +44,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.newgui.components.AnimatedIcon;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
+import net.pms.newgui.components.JAnimatedButton;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
@@ -54,28 +58,26 @@ import org.slf4j.LoggerFactory;
 
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
-	private static final Color memColor = new Color(119, 119, 119, 128);
-	private static final Color bufColor = new Color(75, 140, 181, 128);
+	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
+	private static final Color BUF_COLOR = new Color(75, 140, 181, 128);
 
 	public static class RendererItem implements ActionListener {
 		public ImagePanel icon;
 		public JLabel label;
 		public GuiUtil.MarqueeLabel playingLabel;
-//		public GuiUtil.ScrollLabel playingLabel;
 		public GuiUtil.FixedPanel playing;
 		public JLabel time;
 		public JFrame frame;
 		public GuiUtil.SmoothProgressBar rendererProgressBar;
-		public RendererPanel panel;
+		public RendererPanel rendererPanel;
 		public String name = " ";
-		private JPanel _panel = null;
+		private JPanel panel = null;
 
-		public RendererItem(RendererConfiguration r) {
-			icon = addRendererIcon(r.getRendererIcon());
+		public RendererItem(RendererConfiguration renderer) {
+			icon = addRendererIcon(renderer.getRendererIcon());
 			icon.enableRollover();
-			label = new JLabel(r.getRendererName());
+			label = new JLabel(renderer.getRendererName());
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
-//			playingLabel = new GuiUtil.ScrollLabel(" ");
 			playingLabel.setForeground(Color.gray);
 			int h = (int) playingLabel.getSize().getHeight();
 			playing = new GuiUtil.FixedPanel(0, h);
@@ -85,8 +87,10 @@ public class StatusTab {
 			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
 			rendererProgressBar.setStringPainted(true);
 			rendererProgressBar.setBorderPainted(false);
-			rendererProgressBar.setString(r.getAddress().getHostAddress());
-			rendererProgressBar.setForeground(bufColor);
+			if (renderer.getAddress() != null) {
+				rendererProgressBar.setString(renderer.getAddress().getHostAddress());
+			}
+			rendererProgressBar.setForeground(BUF_COLOR);
 		}
 
 		@Override
@@ -106,7 +110,7 @@ public class StatusTab {
 			parent.add(getPanel());
 			parent.validate();
 			// Maximize the playing label width
-			int w = _panel.getWidth() - _panel.getInsets().left - _panel.getInsets().right;
+			int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
 			playing.setSize(w, (int) playingLabel.getSize().getHeight());
 			playingLabel.setMaxWidth(w);
 		}
@@ -118,8 +122,8 @@ public class StatusTab {
 					frame.dispose();
 					frame = null;
 				}
-				Container parent = _panel.getParent();
-				parent.remove(_panel);
+				Container parent = panel.getParent();
+				parent.remove(panel);
 				parent.revalidate();
 				parent.repaint();
 			} catch (Exception e) {
@@ -127,7 +131,7 @@ public class StatusTab {
 		}
 
 		public JPanel getPanel() {
-			if (_panel == null) {
+			if (panel == null) {
 				PanelBuilder b = new PanelBuilder(new FormLayout(
 					"center:pref",
 					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
@@ -139,15 +143,13 @@ public class StatusTab {
 				b.add(rendererProgressBar, cc.xy(1, 5));
 				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
 				b.add(time, cc.xy(1, 9));
-				_panel = b.getPanel();
+				panel = b.getPanel();
 			}
-			return _panel;
+			return panel;
 		}
 	}
 
-	private ImagePanel imagePanel;
 	private JPanel renderers;
-	private JLabel jl;
 	private JProgressBar memoryProgressBar;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
 	private JLabel bitrateLabel;
@@ -159,15 +161,89 @@ public class StatusTab {
 	private long peak;
 	private static DecimalFormat formatter = new DecimalFormat("#,###");
 	private static int bufferSize;
+	public enum ConnectionState {
+		SEARCHING, CONNECTED, DISCONNECTED, BLOCKED, UNKNOWN
+	};
+	private ConnectionState connectionState = ConnectionState.UNKNOWN;
+	private final JAnimatedButton connectionStatus = new JAnimatedButton();
+	private final AnimatedIcon searchingIcon;
+	private final AnimatedIcon connectedIcon;
+	private final AnimatedIcon disconnectedIcon;
+	private final AnimatedIcon blockedIcon;
 
+	/**
+	 * Shows a simple visual status of the server.
+	 *
+	 * @todo choose better icons for these
+	 * @param configuration
+	 */
 	StatusTab(PmsConfiguration configuration) {
+		// Build Animations
+		searchingIcon = new AnimatedIcon(connectionStatus, "icon-status-connecting.png");
+
+		connectedIcon = new AnimatedIcon(connectionStatus, "icon-status-connected.png");
+
+		disconnectedIcon = new AnimatedIcon(connectionStatus, "icon-status-disconnected.png");
+
+		blockedIcon = new AnimatedIcon(connectionStatus, "icon-status-warning.png");
+
 		bufferSize = configuration.getMaxMemoryBufferSize();
+	}
+
+	void setConnectionState(ConnectionState connectionState) {
+		if (connectionState == null) {
+			throw new IllegalArgumentException("connectionState cannot be null");
+		}
+		if (!connectionState.equals(this.connectionState)) {
+			this.connectionState = connectionState;
+			AnimatedIcon oldIcon = (AnimatedIcon) connectionStatus.getIcon();
+			switch (connectionState) {
+				case SEARCHING:
+					connectionStatus.setToolTipText(Messages.getString("PMS.130"));
+					searchingIcon.restartArm();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, searchingIcon, false));
+					} else {
+						connectionStatus.setIcon(searchingIcon);
+					}
+					break;
+				case CONNECTED:
+					connectionStatus.setToolTipText(Messages.getString("PMS.18"));
+					connectedIcon.restartArm();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, connectedIcon, false));
+					} else {
+						connectionStatus.setIcon(connectedIcon);
+					}
+					break;
+				case DISCONNECTED:
+					connectionStatus.setToolTipText(Messages.getString("PMS.0"));
+					disconnectedIcon.restartArm();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, disconnectedIcon, false));
+					} else {
+						connectionStatus.setIcon(disconnectedIcon);
+					}
+					break;
+				case BLOCKED:
+					connectionStatus.setToolTipText(Messages.getString("PMS.141"));
+					blockedIcon.reset();
+					if (oldIcon != null) {
+						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, blockedIcon, false));
+					} else {
+						connectionStatus.setIcon(blockedIcon);
+					}
+					break;
+				default:
+					connectionStatus.setIcon(null);
+			}
+		}
 	}
 
 	public void updateCurrentBitrate() {
 		long total = 0;
 		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized(foundRenderers) {
+		synchronized (foundRenderers) {
 			for (RendererConfiguration r : foundRenderers) {
 				total += r.getBuffer();
 			}
@@ -177,14 +253,6 @@ public class StatusTab {
 		}
 	}
 
-	public JLabel getJl() {
-		return jl;
-	}
-
-	public ImagePanel getImagePanel() {
-		return imagePanel;
-	}
-
 	public JComponent build() {
 		// Apply the orientation for the locale
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
@@ -192,19 +260,21 @@ public class StatusTab {
 		String colSpec = FormLayoutUtil.getColSpec("pref, 30dlu, fill:pref:grow, 30dlu, pref", orientation);
 		//                                             1     2          3           4     5
 
+		//RowSpec.decode("bottom:max(50dlu;pref)");
 		FormLayout layout = new FormLayout(colSpec,
 			//                          1     2          3            4     5
 			//                   //////////////////////////////////////////////////
-			  "p,"               // Detected Media Renderers --------------------//  1
-			+ "9dlu,"            //                                              //
-			+ "fill:p:grow,"     //                 <renderers>                  //  3
-			+ "3dlu,"            //                                              //
-			+ "p,"               // ---------------------------------------------//  5
-			+ "3dlu,"            //           |                       |          //
-			+ "p,"               // Connected |  Memory Usage         |<bitrate> //  7
-			+ "3dlu,"            //           |                       |          //
-			+ "p,"               //  <icon>   |  <statusbar>          |          //  9
-			                     //////////////////////////////////////////////////
+			"p," +               // Detected Media Renderers --------------------//  1
+			"9dlu," +            //                                              //
+			"fill:p:grow," +     //                 <renderers>                  //  3
+			"3dlu," +            //                                              //
+			"p," +               // ---------------------------------------------//  5
+			"10dlu," +           //           |                       |          //
+			"[10pt,p]," +        // Connected |  Memory Usage         |<bitrate> //  7
+			"1dlu," +            //           |                       |          //
+			"[30pt,p]," +        //  <icon>   |  <statusbar>          |          //  9
+			"3dlu,"              //           |                       |          //
+			//                   //////////////////////////////////////////////////
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -226,27 +296,27 @@ public class StatusTab {
 			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 260));
-		rsp.getHorizontalScrollBar().setLocation(0,250);
+		rsp.getHorizontalScrollBar().setLocation(0, 250);
 
 		builder.add(rsp, cc.xyw(1, 3, 5));
 
 		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
 
-		// Connected
-		jl = new JLabel(Messages.getString("StatusTab.3"));
-		builder.add(jl, FormLayoutUtil.flip(cc.xy(1, 7,  "center, top"), colSpec, orientation));
-		jl.setFont(bold);
-		jl.setForeground(fgColor);
+		connectedIcon.start();
+		searchingIcon.start();
+		disconnectedIcon.start();
+		connectionStatus.setFocusable(false);
+		builder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, CellConstraints.CENTER, CellConstraints.TOP), colSpec, orientation));
 
-		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
-		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+		// Set initial connection state
+		setConnectionState(ConnectionState.SEARCHING);
 
 		// Memory
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
 		memBarUI.setActiveLabel("{}", Color.white, 0);
 		memBarUI.setActiveLabel("{}", Color.red, 90);
-		memBarUI.addSegment("", memColor);
-		memBarUI.addSegment("", bufColor);
+		memBarUI.addSegment("", MEM_COLOR);
+		memBarUI.addSegment("", BUF_COLOR);
 		memBarUI.setTickMarks(getTickMarks(), "{}");
 		memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
 		memoryProgressBar.setStringPainted(true);
@@ -313,20 +383,6 @@ public class StatusTab {
 		}
 	}
 
-	public ImagePanel buildImagePanel(String url) {
-		BufferedImage bi = null;
-
-		if (url != null) {
-			try {
-				bi = ImageIO.read(LooksFrame.class.getResourceAsStream(url));
-			} catch (IOException e) {
-				LOGGER.debug("Caught exception", e);
-			}
-		}
-
-		return new ImagePanel(bi);
-	}
-
 	public void addRenderer(final RendererConfiguration renderer) {
 		final RendererItem r = new RendererItem(renderer);
 		r.addTo(renderers);
@@ -336,26 +392,26 @@ public class StatusTab {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						if (r.frame == null) {
-							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
-							// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
-							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
-							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
-							r.frame = new JFrame();
-							r.panel = new RendererPanel(renderer);
-							r.frame.add(r.panel);
-							r.panel.update();
-							r.frame.setResizable(false);
-							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
-							r.frame.setLocationRelativeTo(top);
-							r.frame.setVisible(true);
-						} else {
-							r.frame.setVisible(true);
-							r.frame.toFront();
-						}
+				SwingUtilities.invokeLater(() -> {
+					if (r.frame == null) {
+						JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+						// We're using JFrame instead of JDialog here so as to
+						// have a minimize button. Since the player panel
+						// is intrinsically a freestanding module this approach
+						// seems valid to me but some frown on it: see
+						// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
+						r.frame = new JFrame();
+						r.rendererPanel = new RendererPanel(renderer);
+						r.frame.add(r.rendererPanel);
+						r.rendererPanel.update();
+						r.frame.setResizable(false);
+						r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+						r.frame.setLocationRelativeTo(top);
+						r.frame.setVisible(true);
+					} else {
+						r.frame.setExtendedState(JFrame.NORMAL);
+						r.frame.setVisible(true);
+						r.frame.toFront();
 					}
 				});
 			}
@@ -363,16 +419,13 @@ public class StatusTab {
 	}
 
 	public static void updateRenderer(final RendererConfiguration renderer) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				if (renderer.gui != null) {
-					renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
-					renderer.gui.label.setText(renderer.getRendererName());
-					// Update the popup panel if it's been opened
-					if (renderer.gui.panel != null) {
-						renderer.gui.panel.update();
-					}
+		SwingUtilities.invokeLater(() -> {
+			if (renderer.gui != null) {
+				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
+				renderer.gui.label.setText(renderer.getRendererName());
+				// Update the popup panel if it's been opened
+				if (renderer.gui.rendererPanel != null) {
+					renderer.gui.rendererPanel.update();
 				}
 			}
 		});
@@ -473,25 +526,19 @@ public class StatusTab {
 			}
 		}
 		final long buffer = buf;
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
-			}
+		SwingUtilities.invokeLater(() -> {
+			memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
 		});
 	}
 
 	private void startMemoryUpdater() {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				for(;;) {
-					updateMemoryUsage();
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						return;
-					}
+		Runnable r = () -> {
+			for (;;) {
+				updateMemoryUsage();
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					return;
 				}
 			}
 		};

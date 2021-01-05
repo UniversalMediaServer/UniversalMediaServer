@@ -24,15 +24,22 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
-public class MEncoderWebVideo extends Player {
-	public static final String ID = "mencoderwebvideo";
+public class MEncoderWebVideo extends MEncoderVideo {
+	public static final PlayerId ID = StandardPlayerId.MENCODER_WEB_VIDEO;
+
+	/** The {@link Configuration} key for the DCRaw executable type. */
+	public static final String KEY_MENCODER_WEB_EXECUTABLE_TYPE = "mencoder_web_executable_type";
+	public static final String NAME = "MEncoder Web Video";
+
+	// Not to be instantiated by anything but PlayerFactory
+	MEncoderWebVideo() {
+	}
 
 	@Override
 	public JComponent config() {
@@ -40,8 +47,13 @@ public class MEncoderWebVideo extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_MENCODER_WEB_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -59,6 +71,7 @@ public class MEncoderWebVideo extends Player {
 		return "video/mpeg";
 	}
 
+	@Override
 	protected String[] getDefaultArgs() {
 		int nThreads = configuration.getMencoderMaxThreads();
 		String acodec = configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3";
@@ -77,14 +90,6 @@ public class MEncoderWebVideo extends Player {
 			};
 	}
 
-	@Deprecated
-	public MEncoderWebVideo(PmsConfiguration configuration) {
-		this();
-	}
-
-	public MEncoderWebVideo() {
-	}
-
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
@@ -92,40 +97,32 @@ public class MEncoderWebVideo extends Player {
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
-		params.minBufferSize = params.minFileSize;
-		params.secondread_minsize = 100000;
+		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		params.setMinBufferSize(params.getMinFileSize());
+		params.setSecondReadMinSize(100000);
 
 		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
-		params.input_pipes[0] = pipe;
+		params.getInputPipes()[0] = pipe;
 
-		String cmdArray[] = new String[args().length + 4];
-		cmdArray[0] = executable();
-		final String filename = dlna.getSystemName();
+		String[] cmdArray = new String[args().length + 4];
+		cmdArray[0] = getExecutable();
+		final String filename = dlna.getFileName();
 		cmdArray[1] = filename;
 		System.arraycopy(args(), 0, cmdArray, 2, args().length);
 		cmdArray[cmdArray.length - 2] = "-o";
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 
-		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray
-		);
+		ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(mkfifo_process);
+		pw.attachProcess(mkfifoProcess);
 
 		/**
 		 * It can take a long time for Windows to create a named pipe (and
 		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
 		 * the current thread.
 		 */
-		mkfifo_process.runInSameThread();
+		mkfifoProcess.runInSameThread();
 
 		pipe.deleteLater();
 
@@ -147,7 +144,7 @@ public class MEncoderWebVideo extends Player {
 
 	@Override
 	public String name() {
-		return "MEncoder Web";
+		return NAME;
 	}
 
 	@Override
@@ -155,19 +152,6 @@ public class MEncoderWebVideo extends Player {
 		return getDefaultArgs();
 	}
 
-	@Override
-	public String executable() {
-		return configuration.getMencoderPath();
-	}
-
-	@Override
-	public int type() {
-		return Format.VIDEO;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebVideo(resource);

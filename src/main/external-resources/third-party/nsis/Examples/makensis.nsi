@@ -119,6 +119,7 @@ ${MementoSection} "NSIS Core Files (required)" SecCore
   File ..\makensisw.exe
   File ..\COPYING
   File ..\NSIS.chm
+  !searchparse /file "..\NSIS.chm" "ITSF" VALIDATE_CHM
   File ..\NSIS.exe
   File /nonfatal ..\NSIS.exe.manifest
 

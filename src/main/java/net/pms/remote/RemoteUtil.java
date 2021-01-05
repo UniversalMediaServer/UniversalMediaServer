@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -19,6 +19,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
+import net.pms.network.HTTPResource;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.FileWatcher;
 import net.pms.util.Languages;
@@ -28,19 +29,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class RemoteUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteUtil.class);
 
-	public static final String MIME_MP4 = "video/mp4";
-	public static final String MIME_OGG = "video/ogg";
-	public static final String MIME_WEBM = "video/webm";
 	//public static final String MIME_TRANS = MIME_MP4;
-	public static final String MIME_TRANS = MIME_OGG;
+	public static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
 	//public static final String MIME_TRANS = MIME_WEBM;
-	public static final String MIME_MP3 = "audio/mpeg";
-	public static final String MIME_WAV = "audio/wav";
-	public static final String MIME_PNG = "image/png";
-	public static final String MIME_JPG = "image/jpeg";
 
 	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
@@ -85,34 +80,31 @@ public class RemoteUtil {
 	}
 
 	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				byte[] buffer = new byte[32 * 1024];
-				int bytes;
-				int sendBytes = 0;
+		Runnable r = () -> {
+			byte[] buffer = new byte[32 * 1024];
+			int bytes;
+			int sendBytes = 0;
 
-				try {
-					while ((bytes = in.read(buffer)) != -1) {
-						sendBytes += bytes;
-						os.write(buffer, 0, bytes);
-						os.flush();
-					}
-				} catch (IOException e) {
-					LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
-				} finally {
-					try {
-						in.close();
-					} catch (IOException e) {
-					}
+			try {
+				while ((bytes = in.read(buffer)) != -1) {
+					sendBytes += bytes;
+					os.write(buffer, 0, bytes);
+					os.flush();
 				}
+			} catch (IOException e) {
+				LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+			} finally {
 				try {
-					os.close();
+					in.close();
 				} catch (IOException e) {
 				}
-				if (renderer != null) {
-					renderer.stop();
-				}
+			}
+			try {
+				os.close();
+			} catch (IOException e) {
+			}
+			if (renderer != null) {
+				renderer.stop();
 			}
 		};
 		new Thread(r).start();
@@ -120,7 +112,7 @@ public class RemoteUtil {
 
 	public static String read(File f) {
 		try {
-			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
+			return FileUtils.readFileToString(f, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.debug("Error reading file: " + e);
 		}
@@ -179,12 +171,17 @@ public class RemoteUtil {
 		if (
 			mime != null &&
 			(
-				mime.equals(MIME_MP4) ||
-				mime.equals(MIME_WEBM) ||
-				mime.equals(MIME_OGG) ||
-				mime.equals(MIME_MP3) ||
-				mime.equals(MIME_PNG) ||
-				mime.equals(MIME_JPG)
+				mime.equals(HTTPResource.MP4_TYPEMIME) ||
+				mime.equals(HTTPResource.WEBM_TYPEMIME) ||
+				mime.equals(HTTPResource.OGG_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
+				mime.equals(HTTPResource.BMP_TYPEMIME) ||
+				mime.equals(HTTPResource.PNG_TYPEMIME) ||
+				mime.equals(HTTPResource.JPEG_TYPEMIME) ||
+				mime.equals(HTTPResource.GIF_TYPEMIME)
 			)
 		) {
 			return true;
@@ -220,7 +217,7 @@ public class RemoteUtil {
 		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
 		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
-		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender)r).getUser()))) ?
+		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ?
 			(WebRender) r : null;
 	}
 
@@ -278,7 +275,7 @@ public class RemoteUtil {
 
 	public static boolean transMp4(String mime, DLNAMediaInfo media) {
 		LOGGER.debug("mp4 profile " + media.getH264Profile());
-		return mime.equals(MIME_MP4) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 	private static IpFilter bumpFilter = null;
@@ -413,7 +410,7 @@ public class RemoteUtil {
 		 */
 		public File getFile(String hash) {
 			try {
-				int h = Integer.valueOf(hash);
+				int h = Integer.parseInt(hash);
 				for (File f : files) {
 					if (f.hashCode() == h) {
 						return f;
@@ -426,7 +423,7 @@ public class RemoteUtil {
 
 		public String read(String filename) {
 			try {
-				return IOUtils.toString(getInputStream(filename), "UTF-8");
+				return IOUtils.toString(getInputStream(filename), StandardCharsets.UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Error reading resource {}: {}", filename, e);
 			}
@@ -468,6 +465,8 @@ public class RemoteUtil {
 					t = compile(getInputStream(filename));
 					templates.put(filename, t);
 					PMS.getFileWatcher().add(new FileWatcher.Watch(url.getFile(), recompiler));
+				} else {
+					LOGGER.warn("Couldn't find web template \"{}\"", filename);
 				}
 			}
 			return t;

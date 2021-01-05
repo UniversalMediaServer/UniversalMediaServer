@@ -31,14 +31,13 @@ import org.slf4j.LoggerFactory;
 /**
  * IP Filter class, which supports multiple wildcards, ranges. For example :
  * 127.0.0.1,192.168.0-1.*
- * 
+ *
  * @author zsombor
- * 
+ *
  */
 public class IpFilter {
-
-	private final static String IP_FILTER_RULE_CHAR = "0123456789-.* ";
-	private final static Pattern PATTERN = Pattern.compile("(([0-9]*)(-([0-9]*))?)");
+	private static final String IP_FILTER_RULE_CHAR = "0123456789-.* ";
+	private static final Pattern PATTERN = Pattern.compile("(([0-9]*)(-([0-9]*))?)");
 	private static final Logger LOGGER = LoggerFactory.getLogger(IpFilter.class);
 
 	interface Predicate {
@@ -92,7 +91,7 @@ public class IpFilter {
 
 			/*
 			 * (non-Javadoc)
-			 * 
+			 *
 			 * @see java.lang.Object#toString()
 			 */
 			@Override
@@ -250,20 +249,20 @@ public class IpFilter {
 		boolean log = isFirstDecision(addr);
 		if (matchers.isEmpty()) {
 			if (log) {
-				LOGGER.info("No IP filter specified, access granted to " + addr);
+				LOGGER.trace("IP Filter: No IP filter specified, access granted to {}", addr.getHostAddress());
 			}
 			return true;
 		}
 		for (Predicate p : matchers) {
 			if (p.match(addr)) {
 				if (log) {
-					LOGGER.info("Access granted to " + addr + " by rule: " + p);
+					LOGGER.trace("IP Filter: Access granted to {} with rule: {}", addr.getHostAddress(), p);
 				}
 				return true;
 			}
 		}
 		if (log) {
-			LOGGER.info("Access denied to " + addr);
+			LOGGER.info("IP Filter: Access denied to {}", addr.getHostName());
 		}
 		return false;
 	}

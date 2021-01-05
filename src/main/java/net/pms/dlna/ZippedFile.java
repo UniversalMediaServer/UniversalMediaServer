@@ -55,13 +55,13 @@ public class ZippedFile extends DLNAResource {
 	}
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE) {
 			// no thumbnail support for now for zip files
 			return null;
 		}
 
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	@Override
@@ -86,12 +86,6 @@ public class ZippedFile extends DLNAResource {
 	@Override
 	public boolean isFolder() {
 		return true;
-	}
-
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
 	}
 
 	@Override

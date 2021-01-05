@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,7 +19,6 @@
  */
 package net.pms.database;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,6 +28,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is responsible for managing the Cover Art Archive table. It
@@ -39,16 +39,16 @@ import org.slf4j.LoggerFactory;
  * @author Nadahar
  */
 
-public final class TableCoverArtArchive extends Tables{
+public final class TableCoverArtArchive extends Tables {
 
 	/**
-	 * tableLock is used to synchronize database access on table level.
+	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
 	 * described as experimental. This lock therefore used in addition to SQL
 	 * transaction locks. All access to this table must be guarded with this
 	 * lock. The lock allows parallel reads.
 	 */
-	private static final ReadWriteLock tableLock = new ReentrantReadWriteLock();
+	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableCoverArtArchive.class);
 	private static final String TABLE_NAME = "COVER_ART_ARCHIVE";
 
@@ -83,7 +83,7 @@ public final class TableCoverArtArchive extends Tables{
 	}
 
 	private static String contructMBIDWhere(final String mBID) {
-		return " WHERE MBID" + nullIfBlank(mBID);
+		return " WHERE MBID" + sqlNullIfBlank(mBID, true, false);
 	}
 
 	/**
@@ -95,16 +95,16 @@ public final class TableCoverArtArchive extends Tables{
 	public static void writeMBID(final String mBID, final byte[] cover) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = database.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID);
+		try (Connection connection = DATABASE.getConnection()) {
+			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
 			}
 
-			tableLock.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)){
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)){
+				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
 						if (cover != null || result.getBlob("COVER") == null) {
 							if (trace) {
@@ -112,7 +112,7 @@ public final class TableCoverArtArchive extends Tables{
 							}
 							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 							if (cover != null) {
-								result.updateString("COVER", mBID);
+								result.updateBytes("COVER", cover);
 							} else {
 								result.updateNull("COVER");
 							}
@@ -137,7 +137,7 @@ public final class TableCoverArtArchive extends Tables{
 					connection.commit();
 				}
 			} finally {
-				tableLock.writeLock().unlock();
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error while writing Cover Art Archive cover for MBID \"{}\": {}", mBID, e.getMessage());
@@ -157,14 +157,14 @@ public final class TableCoverArtArchive extends Tables{
 		boolean trace = LOGGER.isTraceEnabled();
 		CoverArtArchiveResult result;
 
-		try (Connection connection = database.getConnection()) {
-			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID);
+		try (Connection connection = DATABASE.getConnection()) {
+			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching for cover with \"{}\"", query);
 			}
 
-			tableLock.readLock().lock();
+			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
@@ -174,7 +174,7 @@ public final class TableCoverArtArchive extends Tables{
 					}
 				}
 			} finally {
-				tableLock.readLock().unlock();
+				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -197,7 +197,7 @@ public final class TableCoverArtArchive extends Tables{
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		tableLock.writeLock().lock();
+		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = getTableVersion(connection, TABLE_NAME);
@@ -205,10 +205,10 @@ public final class TableCoverArtArchive extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}
@@ -223,7 +223,7 @@ public final class TableCoverArtArchive extends Tables{
 				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
-			tableLock.writeLock().unlock();
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -240,9 +240,10 @@ public final class TableCoverArtArchive extends Tables{
 	@SuppressWarnings("unused")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
-		tableLock.writeLock().lock();
+		TABLE_LOCK.writeLock().lock();
 		try {
-			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					//case 1: Alter table to version 2
 					default:
@@ -254,12 +255,12 @@ public final class TableCoverArtArchive extends Tables{
 			}
 			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} finally {
-			tableLock.writeLock().unlock();
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
 	/**
-	 * Must be called in inside a table lock
+	 * Must be called from inside a table lock
 	 */
 	private static void createCoverArtArchiveTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
@@ -269,7 +270,7 @@ public final class TableCoverArtArchive extends Tables{
 					"ID IDENTITY PRIMARY KEY, " +
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
-					"COVER BLOB, " +
+					"COVER BLOB" +
 				")");
 			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
 		}

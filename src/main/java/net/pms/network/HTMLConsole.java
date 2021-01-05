@@ -26,7 +26,7 @@ import net.pms.util.PropertiesUtil;
 public class HTMLConsole {
 	public static String servePage(String resource) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("<html><head><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");
+		sb.append("<html><head><meta charset=\"utf-8\"><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");
 
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 		PmsConfiguration configuration = PMS.getConfiguration();
@@ -36,16 +36,16 @@ public class HTMLConsole {
 				database.scanLibrary();
 			}
 			if (database.isScanLibraryRunning()) {
-				sb.append("<p align=center><b>Scan in progress! you can also <a href=\"stop\">stop it</a></b></p><br>");
+				sb.append("<p style=\"margin: 0 auto; text-align: center;\"><b>Scan in progress! you can also <a href=\"stop\">stop it</a></b></p><br>");
 			}
 		}
 
 		if (resource.equals("stop") && configuration.getUseCache() && database.isScanLibraryRunning()) {
 			database.stopScanLibrary();
-			sb.append("<p align=center><b>Scan stopped!</b></p><br>");
+			sb.append("<p style=\"margin: 0 auto; text-align: center;\"><b>Scan stopped!</b></p><br>");
 		}
 
-		sb.append("<p align=center><img src='/images/logo.png'><br>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML console<br><br>Menu:<br>");
+		sb.append("<p style=\"margin: 0 auto; text-align: center;\"><img src='/images/logo.png'><br>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML console<br><br>Menu:<br>");
 		sb.append("<a href=\"home\">Home</a><br>");
 		sb.append("<a href=\"scan\">Scan folders</a><br>");
 		sb.append("</p></body></html>");

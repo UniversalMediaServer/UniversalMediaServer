@@ -27,7 +27,7 @@ Section "Test 1"
   Goto end
   
   success:
-  DetailPrint "Test 1 succeded (output: $R0)"
+  DetailPrint "Test 1 succeeded (output: $R0)"
   
   end:
   
@@ -69,7 +69,7 @@ Section "Test 2"
   Goto end
   
   success:
-  DetailPrint "Test 2 succeded (output: $R1)"
+  DetailPrint "Test 2 succeeded (output: $R1)"
   
   end:
 

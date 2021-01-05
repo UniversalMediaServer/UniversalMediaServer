@@ -18,34 +18,52 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.io.BasicSystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
-	private boolean useSuperThumb;
-
 	public RealFile(File file) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		setLastModified(file.lastModified());
-		useSuperThumb = false;
 	}
 
 	public RealFile(File file, String name) {
-		getConf().getFiles().add(file);
+		addFileToConfFiles(file);
 		getConf().setName(name);
 		setLastModified(file.lastModified());
-		useSuperThumb = false;
+	}
+
+	public RealFile(File file, boolean isEpisodeWithinSeasonFolder) {
+		addFileToConfFiles(file);
+		setLastModified(file.lastModified());
+		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
+	}
+
+	/**
+	 * Add the file to MapFileConfiguration->Files.
+	 *
+	 * @param file The file to add.
+	 */
+	private void addFileToConfFiles(File file) {
+		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
+			getConf().getFiles().add(FileUtil.getRealFile(file));
+		} else {
+			getConf().getFiles().add(file);
+		}
 	}
 
 	@Override
@@ -55,29 +73,41 @@ public class RealFile extends MapFile {
 		if (!file.isDirectory()) {
 			resolveFormat();
 		}
-		
-		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
-			setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
+
+		if (getType() == Format.SUBTITLE) {
+			// Don't add subtitles as separate resources
+			getConf().getFiles().remove(file);
+			return false;
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
-		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
+		if (valid && getParent() != null && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isUseMediaInfo()) {
 			// we need to resolve the DLNA resource now
 			run();
-
-			if (getMedia() != null && getMedia().getThumb() == null && getType() != Format.AUDIO) { // MediaInfo retrieves cover art now
-				getMedia().setThumbready(false);
-			}
 
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
-			if (getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
-				valid = false;
+			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
 				if (getMedia().isEncrypted()) {
+					valid = false;
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
-					LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
+					// problematic media not parsed by MediaInfo try to parse it in a different way by ffmpeg, AudioFileIO or ImagesUtil
+					// this is a quick fix for the MediaInfo insufficient parsing method
+					getMedia().setMediaparsed(false);
+					InputFile inputfile = new InputFile();
+					inputfile.setFile(file);
+					getMedia().setContainer(null);
+					getMedia().parse(inputfile, getFormat(), getType(), false, false, null);
+					if (getMedia().getContainer() == null) {
+						valid = false;
+						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
+					}
+				}
+
+				if (!valid) {
+					getConf().getFiles().remove(file);
 				}
 			}
 
@@ -85,6 +115,9 @@ public class RealFile extends MapFile {
 			if (getParent().getDefaultRenderer().isMediaInfoThumbnailGeneration()) {
 				checkThumbnail();
 			}
+		} else if (this.getType() == Format.UNKNOWN && !this.isFolder()) {
+			getConf().getFiles().remove(file);
+			return false;
 		}
 
 		return valid;
@@ -127,7 +160,7 @@ public class RealFile extends MapFile {
 			File file = getFile();
 			if (file.getName().trim().isEmpty()) {
 				if (Platform.isWindows()) {
-					name = PMS.get().getRegistry().getDiskLabel(file);
+					name = BasicSystemUtils.instance.getDiskLabel(file);
 				}
 				if (name != null && name.length() > 0) {
 					name = file.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";
@@ -172,13 +205,30 @@ public class RealFile extends MapFile {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
-					ArrayList<DLNAMediaInfo> medias = database.getData(fileName, file.lastModified());
+					DLNAMediaInfo media;
+					try {
+						media = database.getData(fileName, file.lastModified());
 
-					if (medias != null && medias.size() == 1) {
-						setMedia(medias.get(0));
-						getMedia().finalize(getType(), input);
-						found = true;
+						setExternalSubtitlesParsed();
+						if (media != null) {
+							setMedia(media);
+							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
+								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
+								getMedia().setSubtitlesTracks(new ArrayList<>());
+								resetSubtitlesStatus();
+							}
+
+							getMedia().postParse(getType(), input);
+							found = true;
+						}
+					} catch (InvalidClassException e) {
+						LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
+						LOGGER.trace("", e);
+					} catch (IOException | SQLException e) {
+						LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
+						LOGGER.trace("", e);
 					}
+
 				}
 			}
 
@@ -187,8 +237,6 @@ public class RealFile extends MapFile {
 					setMedia(new DLNAMediaInfo());
 				}
 
-				found = !getMedia().isMediaparsed() && !getMedia().isParsing();
-
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 				} else {
@@ -196,90 +244,97 @@ public class RealFile extends MapFile {
 					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 				}
 
-				if (found && configuration.getUseCache()) {
+				if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
-						database.insertData(fileName, file.lastModified(), getType(), getMedia());
+						try {
+							/*
+							 * Even though subtitles will be resolved later in
+							 * DLNAResource.syncResolve, we must make sure that
+							 * they are resolved before insertion into the
+							 * database
+							 */
+							if (getMedia() != null && getMedia().isVideo()) {
+								registerExternalSubtitles(false);
+							}
+							database.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
+						} catch (SQLException e) {
+							LOGGER.error(
+								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
+								fileName,
+								e.getMessage());
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("SQL error code: {}", e.getErrorCode());
+								if (
+									e.getCause() instanceof SQLException &&
+									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
+								) {
+									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+								}
+								LOGGER.trace("", e);
+							}
+						}
 					}
 				}
 			}
+			if (getMedia() != null && getMedia().isSLS()) {
+				setFormat(getMedia().getAudioVariantFormat());
+			}
 		}
 	}
 
 	@Override
-	public String getThumbnailContentType() {
-		return super.getThumbnailContentType();
-	}
-
-	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
-		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder && (getMediaSubtitle() != null || getMediaAudio() != null)) {
-			return super.getThumbnailInputStream();
-		}
-
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File file = getFile();
 		File cachedThumbnail = null;
+		MediaType mediaType = getMedia() != null ? getMedia().getMediaType() : MediaType.UNKNOWN;
 
-		if (getParent() != null && getParent() instanceof RealFile) {
-			cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-		}
-
-		File thumbFolder = null;
-		boolean alternativeCheck = false;
-
-		while (cachedThumbnail == null) {
-			if (thumbFolder == null && getType() != Format.IMAGE) {
-				thumbFolder = file.getParentFile();
+		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
+			String alternativeFolder = configuration.getAlternateThumbFolder();
+			ArrayList<File> folders = new ArrayList<>(2);
+			if (file.getParentFile() != null) {
+				folders.add(null);
 			}
-
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
-			}
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-			}
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-			}
-
-			if (alternativeCheck) {
-				break;
-			}
-
-			if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-				thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-				if (!thumbFolder.isDirectory()) {
-					thumbFolder = null;
-					break;
+			if (isNotBlank(alternativeFolder)) {
+				File thumbFolder = new File(alternativeFolder);
+				if (thumbFolder.isDirectory() && thumbFolder.exists()) {
+					folders.add(thumbFolder);
 				}
 			}
 
-			alternativeCheck = true;
+			for (File folder : folders) {
+				File audioVideoFile = folder == null ? file : new File(folder, file.getName());
+				HashSet<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
+				if (!potentials.isEmpty()) {
+					// We have no rules for how to pick a particular one if there's multiple candidates
+					cachedThumbnail = potentials.iterator().next();
+					break;
+				}
+			}
+			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() != null && getParent() instanceof MapFile) {
+				cachedThumbnail = ((MapFile) getParent()).getPotentialCover();
+			}
 		}
 
 		if (file.isDirectory()) {
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
-			}
+			cachedThumbnail = MapFile.getFolderThumbnail(file);
 		}
 
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
 
-		if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
-			return new FileInputStream(cachedThumbnail);
-		} else if (getMedia() != null && getMedia().getThumb() != null) {
-			return getMedia().getThumbnailInputStream();
-		} else {
-			return super.getThumbnailInputStream();
+		DLNAThumbnailInputStream result = null;
+		try {
+			if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
+				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
+			} else if (getMedia() != null && getMedia().getThumb() != null) {
+				result = getMedia().getThumbnailInputStream();
+			}
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
+			LOGGER.trace("", e);
 		}
+		return result != null ? result : super.getThumbnailInputStream();
 	}
 
 	@Override
@@ -290,22 +345,11 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
-		sb.append('/');
-		if (getMedia() != null && getMedia().getThumb() != null) {
-			return super.getThumbnailURL();
-		} else if (getType() == Format.AUDIO) {
-			if (getParent() != null && getParent() instanceof RealFile && ((RealFile) getParent()).getPotentialCover() != null) {
-				return super.getThumbnailURL();
-			}
-			return null;
-		}
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	@Override
@@ -318,7 +362,40 @@ public class RealFile extends MapFile {
 		return getName() + ">" + getFile().getAbsolutePath();
 	}
 
-	public void ignoreThumbHandling() {
-		useSuperThumb = true;
+	private volatile String baseNamePrettified;
+	private volatile String baseNameWithoutExtension;
+	private final Object displayNameBaseLock = new Object();
+
+	@Override
+	protected String getDisplayNameBase() {
+		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof DLNAMediaOnDemandSubtitle) {
+			return ((DLNAMediaOnDemandSubtitle) getMediaSubtitle()).getName();
+		}
+		if (isFolder()) {
+			return super.getDisplayNameBase();
+		}
+		if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
+			// Double-checked locking
+			if (baseNamePrettified == null) {
+				synchronized (displayNameBaseLock) {
+					if (baseNamePrettified == null) {
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getFile(), getMedia(), isEpisodeWithinSeasonFolder());
+					}
+				}
+			}
+			return baseNamePrettified;
+		} else if (configuration.isHideExtensions()) {
+			// Double-checked locking
+			if (baseNameWithoutExtension == null) {
+				synchronized (displayNameBaseLock) {
+					if (baseNameWithoutExtension == null) {
+						baseNameWithoutExtension = FileUtil.getFileNameWithoutExtension(super.getDisplayNameBase());
+					}
+				}
+			}
+			return baseNameWithoutExtension;
+		}
+
+		return super.getDisplayNameBase();
 	}
 }

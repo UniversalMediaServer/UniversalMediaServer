@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<root xmlns:dlna="urn:schemas-dlna-org:device-1-0" xmlns="urn:schemas-upnp-org:device-1-0">
+<root xmlns="urn:schemas-upnp-org:device-1-0" xmlns:dlna="urn:schemas-dlna-org:device-1-0" xmlns:sec="http://www.sec.co.kr/dlna">
 	<specVersion>
 		<major>1</major>
 		<minor>0</minor>
 	</specVersion>
 	<URLBase>http://[host]:[port]/</URLBase>
 	<device>
+		<dlna:X_DLNACAP/>
 		<dlna:X_DLNADOC xmlns:dlna="urn:schemas-dlna-org:device-1-0">DMS-1.50</dlna:X_DLNADOC>
 		<dlna:X_DLNADOC xmlns:dlna="urn:schemas-dlna-org:device-1-0">M-DMS-1.50</dlna:X_DLNADOC>
 		<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
 		<friendlyName>Universal Media Server</friendlyName>
 		<manufacturer>UMS</manufacturer>
-		<manufacturerURL>http://www.universalmediaserver.com</manufacturerURL>
+		<manufacturerURL>https://www.universalmediaserver.com</manufacturerURL>
 		<modelDescription>UPnP/AV 1.0 Compliant Media Server</modelDescription>
 		<modelName>UMS</modelName>
 		<modelNumber>01</modelNumber>
-		<modelURL>http://www.universalmediaserver.com</modelURL>
+		<modelURL>https://www.universalmediaserver.com</modelURL>
 		<serialNumber/>
 		<UPC/>
 		<UDN>[uuid]</UDN>
@@ -85,6 +86,13 @@
 				<SCPDURL>/UPnP_AV_ConnectionManager_1.0.xml</SCPDURL>
 				<controlURL>/upnp/control/connection_manager</controlURL>
 				<eventSubURL>/upnp/event/connection_manager</eventSubURL>
+			</service>
+			<service>
+				<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>
+				<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>
+				<SCPDURL>/UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml</SCPDURL>
+				<controlURL>/upnp/control/x_ms_mediareceiverregistrar</controlURL>
+				<eventSubURL>/upnp/event/x_ms_mediareceiverregistrar</eventSubURL>
 			</service>
 		</serviceList>
 	</device>

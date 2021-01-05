@@ -18,32 +18,44 @@
  */
 package net.pms.newgui;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
-import com.jgoodies.looks.windows.WindowsLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
-import javax.imageio.ImageIO;
+import javax.annotation.Nonnull;
 import javax.swing.*;
-import javax.swing.border.Border;
+import javax.swing.UIDefaults.LazyValue;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.io.BasicSystemUtils;
 import net.pms.io.WindowsNamedPipe;
-import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.components.AnimatedIcon;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
+import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
+import net.pms.newgui.components.JAnimatedButton;
+import net.pms.newgui.components.JImageButton;
+import net.pms.newgui.components.WindowProperties;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
@@ -56,13 +68,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final AutoUpdater autoUpdater;
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
+	private final WindowProperties windowProperties;
 	private static final long serialVersionUID = 8723727186288427690L;
-	private Dimension storedWindowSize = new Dimension();
-	private Dimension storedScreenSize = new Dimension();
 	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
-	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
-	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
-	private Dimension screenSize = getToolkit().getScreenSize();
+	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
 
 	/**
 	 * List of context sensitive help pages URLs. These URLs should be
@@ -81,25 +90,45 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		null
 	};
 
-	private NavigationShareTab nt;
+	private NavigationShareTab navigationSettingsTab;
+	private SharedContentTab sharedContentTab;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
-	private GeneralTab gt;
+	private GeneralTab generalSettingsTab;
 	private HelpTab ht;
-	private PluginTab pt;
-	private AbstractButton reload;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");;
+	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
+		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
+	);
+	private AnimatedIcon restartIcon;
+	private AbstractButton webinterface;
 	private JLabel status;
 	private static Object lookAndFeelInitializedLock = new Object();
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
+
+	/**
+	 * Class name of Windows L&F provided in Sun JDK.
+	 */
+	public static final String WINDOWS_LNF = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+
+	/**
+	 * Class name of PlasticXP L&F.
+	 */
+	public static final String PLASTICXP_LNF = "com.jgoodies.looks.plastic.PlasticXPLookAndFeel";
+
+	/**
+	 * Class name of Metal L&F.
+	 */
+	public static final String METAL_LNF = "javax.swing.plaf.metal.MetalLookAndFeel";
 
 	public ViewLevel getViewLevel() {
 		return viewLevel;
 	}
 
 	public void setViewLevel(ViewLevel viewLevel) {
-		if (viewLevel != ViewLevel.UNKNOWN){
+		if (viewLevel != ViewLevel.UNKNOWN) {
 			this.viewLevel = viewLevel;
 			tt.applyViewLevel();
 		}
@@ -109,66 +138,75 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tt;
 	}
 
-	public NavigationShareTab getNt() {
-		return nt;
+	public NavigationShareTab getNavigationSettingsTab() {
+		return navigationSettingsTab;
+	}
+
+	public SharedContentTab getSharedContentTab() {
+		return sharedContentTab;
 	}
 
 	public TranscodingTab getTr() {
 		return tr;
 	}
 
-	public GeneralTab getGt() {
-		return gt;
-	}
-
-	public PluginTab getPt() {
-		return pt;
-	}
-
-	public AbstractButton getReload() {
-		return reload;
+	public GeneralTab getGeneralSettingsTab() {
+		return generalSettingsTab;
 	}
 
 	public static void initializeLookAndFeel() {
-
 		synchronized (lookAndFeelInitializedLock) {
 			if (lookAndFeelInitialized) {
 				return;
 			}
 
-			LookAndFeel selectedLaf = null;
 			if (Platform.isWindows()) {
-				selectedLaf = new WindowsLookAndFeel();
+				try {
+					UIManager.setLookAndFeel(WINDOWS_LNF);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+					LOGGER.error("Error while setting Windows look and feel: ", e);
+				}
 			} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
-				selectedLaf = new PlasticLookAndFeel();
+				try {
+					UIManager.setLookAndFeel(PLASTICXP_LNF);
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+					LOGGER.error("Error while setting Plastic XP look and feel: ", e);
+				}
 			} else {
 				try {
 					String systemClassName = UIManager.getSystemLookAndFeelClassName();
-					// Workaround for Gnome
-					try {
-						String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-						Class.forName(gtkLAF);
 
-						if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
-							systemClassName = gtkLAF;
+					if (!Platform.isMac()) {
+						// Workaround for Gnome
+						try {
+							String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+							Class.forName(gtkLAF);
+
+							if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
+								systemClassName = gtkLAF;
+							}
+						} catch (ClassNotFoundException ce) {
+							LOGGER.error("Error loading GTK look and feel: ", ce);
 						}
-					} catch (ClassNotFoundException ce) {
-						LOGGER.error("Error loading GTK look and feel: ", ce);
 					}
 
 					LOGGER.trace("Choosing Java look and feel: " + systemClassName);
 					UIManager.setLookAndFeel(systemClassName);
 				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e1) {
-					selectedLaf = new PlasticLookAndFeel();
+					try {
+						UIManager.setLookAndFeel(PLASTICXP_LNF);
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+						LOGGER.error("Error while setting Plastic XP look and feel: ", e);
+					}
 					LOGGER.error("Error while setting native look and feel: ", e1);
 				}
 			}
 
-			if (selectedLaf instanceof PlasticLookAndFeel) {
+			if (isParticularLaFSet(UIManager.getLookAndFeel(), PLASTICXP_LNF)) {
 				PlasticLookAndFeel.setPlasticTheme(PlasticLookAndFeel.createMyDefaultTheme());
 				PlasticLookAndFeel.setTabStyle(PlasticLookAndFeel.TAB_STYLE_DEFAULT_VALUE);
 				PlasticLookAndFeel.setHighContrastFocusColorsEnabled(false);
-			} else if (selectedLaf != null && selectedLaf.getClass() == MetalLookAndFeel.class) {
+			} else if (isParticularLaFSet(UIManager.getLookAndFeel(), METAL_LNF)) {
 				MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
 			}
 
@@ -178,12 +216,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			JCheckBox checkBox = new JCheckBox();
 			checkBox.getUI().uninstallUI(checkBox);
 
-			if (selectedLaf != null) {
-				try {
-					UIManager.setLookAndFeel(selectedLaf);
-				} catch (UnsupportedLookAndFeelException e) {
-					LOGGER.warn("Can't change look and feel", e);
-				}
+			// Workaround for JDK-8179014: JFileChooser with Windows look and feel crashes on win 10
+			// https://bugs.openjdk.java.net/browse/JDK-8179014
+			if (isParticularLaFSet(UIManager.getLookAndFeel(), WINDOWS_LNF)) {
+				UIManager.put("FileChooser.useSystemExtensionHiding", false);
 			}
 
 			lookAndFeelInitialized = true;
@@ -191,13 +227,47 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	/**
+	 * Safely checks whether a particular look and feel class is set.
+	 *
+	 * @param lnf
+	 * @param lookAndFeelClassPath
+	 * @return whether the incoming look and feel class is set
+	 */
+	private static boolean isParticularLaFSet(LookAndFeel lnf, String lookAndFeelClassPath) {
+		// as of Java 10, com.sun.java.swing.plaf.windows.WindowsLookAndFeel
+		// is no longer available on macOS
+		// thus "instanceof WindowsLookAndFeel" directives will result
+		// in a NoClassDefFoundError during runtime
+		if (lnf == null) {
+			return false;
+		} else {
+			try {
+				Class c = Class.forName(lookAndFeelClassPath);
+				return c.isInstance(lnf);
+			} catch (ClassNotFoundException cnfe) {
+				// if it is not possible to load the Windows LnF class, the
+				// given lnf instance cannot be an instance of the Windows
+				// LnF class
+				return false;
+			}
+		}
+	}
+
+	/**
 	 * Constructs a <code>DemoFrame</code>, configures the UI,
 	 * and builds the content.
 	 */
-	public LooksFrame(AutoUpdater autoUpdater, PmsConfiguration configuration) {
+	public LooksFrame(AutoUpdater autoUpdater, @Nonnull PmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
+		super(windowConfiguration.getGraphicsConfiguration());
+		if (configuration == null) {
+			throw new IllegalArgumentException("configuration can't be null");
+		}
+		setResizable(true);
+		windowProperties = new WindowProperties(this, STANDARD_SIZE, MINIMUM_SIZE, windowConfiguration);
 		this.autoUpdater = autoUpdater;
 		this.configuration = configuration;
 		assert this.configuration != null;
+		setMinimumSize(MINIMUM_SIZE);
 		Options.setDefaultIconSize(new Dimension(18, 18));
 		Options.setUseNarrowButtons(true);
 
@@ -222,52 +292,97 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			autoUpdater.pollServer();
 		}
 
-		// http://propedit.sourceforge.jp/propertieseditor.jnlp
-		Font sf = null;
+		// Shared Fonts
+		final Integer twelve = Integer.valueOf(12);
+		final Integer fontPlain = Integer.valueOf(Font.PLAIN);
+		final Integer fontBold = Integer.valueOf(Font.BOLD);
 
-		// Set an unicode font for testing exotic languages (Japanese)
+		LazyValue dialogPlain12 = new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.DIALOG, fontPlain, twelve);
+			}
+		};
+
+		LazyValue sansSerifPlain12 =  new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
+			}
+		};
+
+		LazyValue monospacedPlain12 = new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
+			}
+		};
+
+		LazyValue dialogBold12 = new LazyValue() {
+			@Override
+			public Object createValue(UIDefaults t) {
+				return new FontUIResource(Font.DIALOG, fontBold, twelve);
+			}
+		};
+
+		Object menuFont = dialogPlain12;
+		Object fixedControlFont = monospacedPlain12;
+		Object controlFont = dialogPlain12;
+		Object messageFont = dialogPlain12;
+		Object windowFont = dialogBold12;
+		Object toolTipFont = sansSerifPlain12;
+		Object iconFont = controlFont;
+
+		// Override our fonts with a unicode font for languages with special characters
 		final String language = configuration.getLanguageTag();
-
 		if (language != null && (language.equals("ja") || language.startsWith("zh") || language.equals("ko"))) {
-			sf = new Font("SansSerif", Font.PLAIN, 12);
+			// http://propedit.sourceforge.jp/propertieseditor.jnlp
+			menuFont = sansSerifPlain12;
+			fixedControlFont = sansSerifPlain12;
+			controlFont = sansSerifPlain12;
+			messageFont = sansSerifPlain12;
+			windowFont = sansSerifPlain12;
+			iconFont = sansSerifPlain12;
 		}
 
-		if (sf != null) {
-			UIManager.put("Button.font", sf);
-			UIManager.put("ToggleButton.font", sf);
-			UIManager.put("RadioButton.font", sf);
-			UIManager.put("CheckBox.font", sf);
-			UIManager.put("ColorChooser.font", sf);
-			UIManager.put("ToggleButton.font", sf);
-			UIManager.put("ComboBox.font", sf);
-			UIManager.put("ComboBoxItem.font", sf);
-			UIManager.put("InternalFrame.titleFont", sf);
-			UIManager.put("Label.font", sf);
-			UIManager.put("List.font", sf);
-			UIManager.put("MenuBar.font", sf);
-			UIManager.put("Menu.font", sf);
-			UIManager.put("MenuItem.font", sf);
-			UIManager.put("RadioButtonMenuItem.font", sf);
-			UIManager.put("CheckBoxMenuItem.font", sf);
-			UIManager.put("PopupMenu.font", sf);
-			UIManager.put("OptionPane.font", sf);
-			UIManager.put("Panel.font", sf);
-			UIManager.put("ProgressBar.font", sf);
-			UIManager.put("ScrollPane.font", sf);
-			UIManager.put("Viewport", sf);
-			UIManager.put("TabbedPane.font", sf);
-			UIManager.put("TableHeader.font", sf);
-			UIManager.put("TextField.font", sf);
-			UIManager.put("PasswordFiled.font", sf);
-			UIManager.put("TextArea.font", sf);
-			UIManager.put("TextPane.font", sf);
-			UIManager.put("EditorPane.font", sf);
-			UIManager.put("TitledBorder.font", sf);
-			UIManager.put("ToolBar.font", sf);
-			UIManager.put("ToolTip.font", sf);
-			UIManager.put("Tree.font", sf);
-			UIManager.put("Spinner.font", sf);
-		}
+		UIManager.put("Button.font", controlFont);
+		UIManager.put("CheckBox.font", controlFont);
+		UIManager.put("CheckBoxMenuItem.font", menuFont);
+		UIManager.put("ComboBox.font", controlFont);
+		UIManager.put("EditorPane.font", controlFont);
+		UIManager.put("FileChooser.listFont", iconFont);
+		UIManager.put("FormattedTextField.font", controlFont);
+		UIManager.put("InternalFrame.titleFont", windowFont);
+		UIManager.put("Label.font", controlFont);
+		UIManager.put("List.font", controlFont);
+		UIManager.put("PopupMenu.font", menuFont);
+		UIManager.put("Menu.font", menuFont);
+		UIManager.put("MenuBar.font", menuFont);
+		UIManager.put("MenuItem.font", menuFont);
+		UIManager.put("MenuItem.acceleratorFont", menuFont);
+		UIManager.put("RadioButton.font", controlFont);
+		UIManager.put("RadioButtonMenuItem.font", menuFont);
+		UIManager.put("OptionPane.font", messageFont);
+		UIManager.put("OptionPane.messageFont", messageFont);
+		UIManager.put("OptionPane.buttonFont", messageFont);
+		UIManager.put("Panel.font", controlFont);
+		UIManager.put("PasswordField.font", controlFont);
+		UIManager.put("ProgressBar.font", controlFont);
+		UIManager.put("ScrollPane.font", controlFont);
+		UIManager.put("Slider.font", controlFont);
+		UIManager.put("Spinner.font", controlFont);
+		UIManager.put("TabbedPane.font", controlFont);
+		UIManager.put("Table.font", controlFont);
+		UIManager.put("TableHeader.font", controlFont);
+		UIManager.put("TextArea.font", fixedControlFont);
+		UIManager.put("TextField.font", controlFont);
+		UIManager.put("TextPane.font", controlFont);
+		UIManager.put("TitledBorder.font", controlFont);
+		UIManager.put("ToggleButton.font", controlFont);
+		UIManager.put("ToolBar.font", menuFont);
+		UIManager.put("ToolTip.font", toolTipFont);
+		UIManager.put("Tree.font", controlFont);
+		UIManager.put("Viewport.font", controlFont);
 
 		setTitle("Test");
 		setIconImage(readImageIcon("icon-32.png").getImage());
@@ -324,62 +439,36 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		setTitle(title);
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		if (screenSize.width < MINIMUM_SIZE.width || screenSize.height < MINIMUM_SIZE.height) {
-			setMinimumSize(screenSize);
-		} else {
-			setMinimumSize(MINIMUM_SIZE);
+		if (Platform.isMac()) {
+			addWindowListener(new WindowAdapter() {
+				public void windowClosing(WindowEvent e) {
+					setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+					setExtendedState(JFrame.ICONIFIED);
+				}
+			});
 		}
-
-		String ss = configuration.getScreenSize();
-		storedScreenSize.height = Integer.parseInt(ss.substring(ss.indexOf('x') + 1));
-		storedScreenSize.width = Integer.parseInt(ss.substring(0, ss.indexOf('x')));
-		String[] windowGeometryValues = configuration.getWindowGeometry().split(",");
-		int posX = Integer.parseInt(windowGeometryValues[0].substring(windowGeometryValues[0].indexOf('=') + 1));
-		int posY = Integer.parseInt(windowGeometryValues[1].substring(windowGeometryValues[1].indexOf('=') + 1));
-		storedWindowSize.width = Integer.parseInt(windowGeometryValues[2].substring(windowGeometryValues[2].indexOf('=') + 1));
-		storedWindowSize.height = Integer.parseInt(windowGeometryValues[3].substring(windowGeometryValues[3].indexOf('=') + 1));
-		setSize(storedWindowSize);
-		boolean screenChanged = false;
-		if (storedScreenSize.width != screenSize.getWidth() || storedScreenSize.height != screenSize.getHeight()) {
-			setSize(STANDARD_SIZE);
-			screenChanged = true;
-		} else if (configuration.getWindowExtendedState() != NORMAL) {
-			setExtendedState(configuration.getWindowExtendedState());
-		} else if (screenSize.width < storedWindowSize.width || screenSize.height < storedWindowSize.height) {
-			setSize(screenSize);
-		}
-
-		// Customize the colors used in tooltips
-		UIManager.put("ToolTip.background", new ColorUIResource(PMS.getConfiguration().getToolTipBackgroundColor()));
-		Border border = BorderFactory.createLineBorder(PMS.getConfiguration().getToolTipBackgroundColor(), 4);
-		UIManager.put("ToolTip.border", border);
-		UIManager.put("ToolTip.foreground", new ColorUIResource(PMS.getConfiguration().getToolTipForegroundColor()));
 
 		// Display tooltips immediately and for a long time
 		ToolTipManager.sharedInstance().setInitialDelay(400);
 		ToolTipManager.sharedInstance().setDismissDelay(60000);
 		ToolTipManager.sharedInstance().setReshowDelay(400);
 
-		setResizable(true);
-		Dimension paneSize = getSize();
-		if (posX == -1 && posY == -1 || screenChanged) { // first run of UMS or screen/desktop was changed so set the position to the middle of the screen
-			setLocation(
-			((screenSize.width > paneSize.width) ? ((screenSize.width - paneSize.width) / 2) : 0),
-			((screenSize.height > paneSize.height) ? ((screenSize.height - paneSize.height) / 2) : 0)
-			);
-		} else {
-			setLocation(posX, posY);
-		}
-
 		if (!configuration.isMinimized() && System.getProperty(START_SERVICE) == null) {
 			setVisible(true);
 		}
-		PMS.get().getRegistry().addSystemTray(this);
+
+		if (configuration.isMinimized() && Platform.isMac()) {
+			// setVisible is required to iconify the frame
+			setVisible(true);
+			setExtendedState(JFrame.ICONIFIED);
+		}
+
+		BasicSystemUtils.instance.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
 		URL url = LooksFrame.class.getResource("/resources/images/" + filename);
-		return new ImageIcon(url);
+		return url == null ? null : new ImageIcon(url);
 	}
 
 	public JComponent buildContent() {
@@ -389,15 +478,59 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.setRollover(true);
 
 		toolBar.add(new JPanel());
-		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
+
+		if (PMS.getConfiguration().useWebInterface()) {
+			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png");
+			webinterface.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					String error = null;
+					if (PMS.get().getWebInterface() != null && isNotBlank(PMS.get().getWebInterface().getUrl())) {
+						try {
+							URI uri = new URI(PMS.get().getWebInterface().getUrl());
+							try {
+								Desktop.getDesktop().browse(uri);
+							} catch (RuntimeException | IOException be) {
+								LOGGER.error("Cound not open the default web browser: {}", be.getMessage());
+								LOGGER.trace("", be);
+								error = Messages.getString("LooksFrame.BrowserError") + "\n" + be.getMessage();
+							}
+						} catch (URISyntaxException se) {
+							LOGGER.error(
+								"Could not form a valid web interface URI from \"{}\": {}",
+								PMS.get().getWebInterface().getUrl(),
+								se.getMessage()
+							);
+							LOGGER.trace("", se);
+							error = Messages.getString("LooksFrame.URIError");
+						}
+					} else {
+						error = Messages.getString("LooksFrame.URIError");
+					}
+					if (error != null) {
+						JOptionPane.showMessageDialog(null, error, Messages.getString("Dialog.Error"), JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			});
+			webinterface.setToolTipText(Messages.getString("LooksFrame.30"));
+			webinterface.setEnabled(configuration.useWebInterface());
+			toolBar.add(webinterface);
+			toolBar.addSeparator(new Dimension(20, 1));
+		}
+
+		restartIcon = (AnimatedIcon) reload.getIcon();
+		restartRequredIcon.start();
+		setReloadable(false);
 		reload.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				reload.setEnabled(false);
 				PMS.get().reset();
 			}
 		});
 		reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		toolBar.add(reload);
+
 		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
 		quit.addActionListener(new ActionListener() {
@@ -415,6 +548,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		// Apply the orientation to the toolbar and all components in it
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		toolBar.applyComponentOrientation(orientation);
+		toolBar.setBorder(new EmptyBorder(new Insets(8, 0, 0, 0)));
 
 		panel.add(toolBar, BorderLayout.NORTH);
 		panel.add(buildMain(), BorderLayout.CENTER);
@@ -437,18 +571,22 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration, this);
-		gt = new GeneralTab(configuration, this);
-		pt = new PluginTab(configuration, this);
-		nt = new NavigationShareTab(configuration, this);
+		generalSettingsTab = new GeneralTab(configuration, this);
+		navigationSettingsTab = new NavigationShareTab(configuration, this);
+		sharedContentTab = new SharedContentTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabGeneralSettings"), generalSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabNavigationSettings"), navigationSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.TabSharedContent"), sharedContentTab.build());
+		if (!configuration.isDisableTranscoding()) {
+			tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
+		} else {
+			tr.build();
+		}
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
 
@@ -479,15 +617,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tabbedPane;
 	}
 
-	protected AbstractButton createToolBarButton(String text, String iconName) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+	protected JImageButton createToolBarButton(String text, String iconName) {
+		JImageButton button = new JImageButton(text, iconName);
 		button.setFocusable(false);
-		button.setBorderPainted(false);
 		return button;
 	}
 
-	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
-		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+	protected JAnimatedButton createAnimatedToolBarButton(String text, String iconName) {
+		JAnimatedButton button = new JAnimatedButton(text, iconName);
+		button.setFocusable(false);
+		return button;
+	}
+
+	protected JImageButton createToolBarButton(String text, String iconName, String toolTipText) {
+		JImageButton button = new JImageButton(text, iconName);
 		button.setToolTipText(toolTipText);
 		button.setFocusable(false);
 		button.setBorderPainted(false);
@@ -496,19 +639,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
-		String windowGeometry = getBounds().toString();
-		try {
-			if (getExtendedState() != NORMAL) {
-				configuration.setWindowExtendedState(getExtendedState());
-			} else {
-				configuration.setWindowExtendedState(NORMAL);
-				configuration.setWindowGeometry(windowGeometry.substring(windowGeometry.indexOf('[') + 1, windowGeometry.indexOf(']')));
-			}
-			configuration.setScreenSize((int) screenSize.getWidth() + "x" + (int) screenSize.getHeight());
-		} catch (Exception e) {
-			LOGGER.warn("Failed to save window geometry and size: {}", e.getMessage());
-			LOGGER.debug("", e);
-		}
+		windowProperties.dispose();
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -519,8 +650,16 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
+	public void dispose() {
+		windowProperties.dispose();
+		super.dispose();
+	}
+
+	@Override
 	public void append(final String msg) {
-		tt.append(msg);
+		SwingUtilities.invokeLater(() -> {
+			tt.append(msg);
+		});
 	}
 
 	@Override
@@ -529,14 +668,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setStatusCode(int code, String msg, String icon) {
-		st.getJl().setText(msg);
-
-		try {
-			st.getImagePanel().set(ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/" + icon)));
-		} catch (IOException e) {
-			LOGGER.error(null, e);
-		}
+	public void setConnectionState(final ConnectionState connectionState) {
+		SwingUtilities.invokeLater(() -> {
+			st.setConnectionState(connectionState);
+		});
 	}
 
 	@Override
@@ -552,17 +687,24 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * changed.<br>
 	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
 	 *
-	 * @param bool true if the server has to be restarted, false otherwise
+	 * @param required true if the server has to be restarted, false otherwise
 	 */
 	@Override
-	public void setReloadable(boolean bool) {
-		if (bool) {
-			reload.setIcon(readImageIcon("button-restart-required.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.13"));
-		} else {
-			reload.setIcon(readImageIcon("button-restart.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.28"));
-		}
+	public void setReloadable(final boolean required) {
+		SwingUtilities.invokeLater(() -> {
+			if (required) {
+				if (reload.getIcon() == restartIcon) {
+					restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
+					reload.setToolTipText(Messages.getString("LooksFrame.13"));
+				}
+			} else {
+				reload.setEnabled(true);
+				if (restartRequredIcon == reload.getIcon()) {
+					reload.setToolTipText(Messages.getString("LooksFrame.28"));
+					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
+				}
+			}
+		});
 	}
 
 	@Override
@@ -586,6 +728,9 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void checkForUpdates(boolean isStartup) {
 		if (autoUpdater != null) {
 			try {
+				if (!isStartup) {
+					autoUpdater.pollServer();
+				}
 				AutoUpdateDialog.showIfNecessary(this, autoUpdater, isStartup);
 			} catch (NoClassDefFoundError ncdfe) {
 				LOGGER.error("Error displaying AutoUpdateDialog", ncdfe);
@@ -618,15 +763,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void serverReady() {
 		st.updateMemoryUsage();
-		gt.addRenderers();
-		pt.addPlugins();
+		generalSettingsTab.addRenderers();
 	}
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
-		getNt().setScanLibraryEnabled(flag);
+		getSharedContentTab().setScanLibraryEnabled(flag);
 	}
 
+	@Override
 	public String getLog() {
 		return getTt().getList().getText();
 	}

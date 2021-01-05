@@ -1,7 +1,0 @@
-language: java
-addons:
-  apt:
-    packages:
-    - mediainfo 
-install: mvn external:install 
-script: mvn install -Dmaven.javadoc.skip=true -B -V

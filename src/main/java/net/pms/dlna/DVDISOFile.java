@@ -18,9 +18,11 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.text.WordUtils;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
@@ -30,25 +32,43 @@ import net.pms.util.ProcessUtil;
 
 public class DVDISOFile extends VirtualFolder {
 	private static final String NAME = "[DVD ISO] %s";
+	private String volumeId;
 	private File file;
 	private boolean isVideoTS;
 
 	private static String getName(File file) {
-		return String.format(NAME, getFilename(file));
+		return String.format(NAME, getFileName(file));
 	}
 
 	// FIXME the logic here (all folders are VIDEO_TS folders) isn't
 	// consistent with the logic used to set isVideoTS
-	private static String getFilename(File file) {
+	private static String getFileName(File file) {
 		return file.isFile() ? file.getName() : "VIDEO_TS";
 	}
 
-	public String getFilename() {
-		return getFilename(file);
+	@Override
+	public String getFileName() {
+		return getFileName(file);
+	}
+
+	@Override
+	public String getName() {
+		if (isNotBlank(volumeId)) {
+			if (configuration.isPrettifyFilenames()) {
+				return "[DVD] " + volumeId;
+			}
+			return super.getName() + " (" + volumeId + ")";
+		}
+		return super.getName();
+	}
+
+	@Override
+	public String getSystemName() {
+		return file == null ? "Unknown" : file.getAbsolutePath();
 	}
 
 	public DVDISOFile(File file) {
-		super(getName(file), null);
+		super(getName(file), "images/thumbnail-disc.png");
 		this.file = file;
 
 		/*
@@ -75,13 +95,12 @@ public class DVDISOFile extends VirtualFolder {
 
 	@Override
 	protected void resolveOnce() {
-		double titles[] = new double[100];
-		String cmd[] = new String[]{
-			configuration.getMplayerPath(),
+		double[] titles = new double[100];
+		String[] cmd = new String[]{
+			configuration.getMPlayerPath(),
 			"-identify",
 			"-endpos",
 			"0",
-			"-v",
 			"-ao",
 			"null",
 			"-vc",
@@ -90,22 +109,20 @@ public class DVDISOFile extends VirtualFolder {
 			"null",
 			"-dvd-device",
 			ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
-			"dvd://1"
+			"dvd://"
 		};
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.log = true;
+		params.setMaxBufferSize(1);
+		params.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e) {
-				}
-				pw.stopProcess();
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
 			}
+			pw.stopProcess();
 		};
+
 		Thread failsafe = new Thread(r, "DVDISO Failsafe");
 		failsafe.start();
 		pw.runInSameThread();
@@ -116,6 +133,15 @@ public class DVDISOFile extends VirtualFolder {
 					int rank = Integer.parseInt(line.substring(13, line.indexOf("_LENGT")));
 					double duration = Double.parseDouble(line.substring(line.lastIndexOf("LENGTH=") + 7));
 					titles[rank] = duration;
+				} else if (line.startsWith("ID_DVD_VOLUME_ID")) {
+					String volumeID = line.substring(line.lastIndexOf("_ID=") + 4).trim();
+					if (configuration.isPrettifyFilenames()) {
+						volumeID = volumeID.replaceAll("_", " ");
+						if (isNotBlank(volumeID) && volumeID.equals(volumeID.toUpperCase(PMS.getLocale()))) {
+							volumeID = WordUtils.capitalize(volumeID.toLowerCase(PMS.getLocale()));
+						}
+					}
+					this.volumeId = volumeID;
 				}
 			}
 		}
@@ -130,7 +156,7 @@ public class DVDISOFile extends VirtualFolder {
 			 * Common-sense is a single video track on a DVD is usually greater than 1h
 			 */
 			if (titles[i] > 10 && (titles[i] != oldduration || oldduration < 3600)) {
-				DVDISOTitle dvd = new DVDISOTitle(file, i);
+				DVDISOTitle dvd = new DVDISOTitle(file, volumeId, i);
 				addChild(dvd);
 				oldduration = titles[i];
 			}

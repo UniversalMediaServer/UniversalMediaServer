@@ -3,13 +3,12 @@ package net.pms.io;
 import java.io.File;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.nio.file.Path;
+import javax.annotation.Nullable;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.Version;
 
 public interface SystemUtils {
-
-	public abstract void disableGoToSleep();
-
-	public abstract void reenableGoToSleep();
 
 	public abstract File getAvsPluginsDir();
 
@@ -23,23 +22,11 @@ public interface SystemUtils {
 
 	public abstract boolean isKerioFirewall();
 
-	/*
-	 * Use getVlcPath() instead
-	 */
-	@Deprecated
-	public abstract String getVlcp();
+	public abstract Path getVlcPath();
 
-	/*
-	 * Use getVlcVersion() instead
-	 */
-	@Deprecated
-	public abstract String getVlcv();
+	public abstract Version getVlcVersion();
 
-	public abstract String getVlcPath();
-
-	public abstract String getVlcVersion();
-
-	public abstract boolean isAvis();
+	public abstract boolean isAviSynthAvailable();
 
 	/**
 	 * Open HTTP URLs in the default browser.
@@ -53,7 +40,7 @@ public interface SystemUtils {
 
 	/**
 	 * Fetch the hardware address for a network interface.
-	 * 
+	 *
 	 * @param ni Interface to fetch the mac address for
 	 * @return the mac address as bytes, or null if it couldn't be fetched.
 	 * @throws SocketException
@@ -74,4 +61,19 @@ public interface SystemUtils {
 	String[] getPingCommand(String hostAddress, int count, int packetSize);
 
 	String parsePingLine(String line);
+
+	/**
+	 * This is't an actual but an estimated value assuming default MTU size.
+	 *
+	 * @param packetSize the size of the packet in bytes.
+	 * @return The estimated number of fragments.
+	 */
+	int getPingPacketFragments(int packetSize);
+
+	/**
+	 * @return The Windows (internal) version or {@code null} if the platform
+	 *         isn't Windows or the value could not be parsed.
+	 */
+	@Nullable
+	public Double getWindowsVersion();
 }

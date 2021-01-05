@@ -36,6 +36,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.service.PreventSleepMode;
+import net.pms.service.SleepManager;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.WindowsUtil;
@@ -47,24 +49,24 @@ public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	public JCheckBox smcheckBox;
 	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox hideAdvancedOptions;
 	private JCheckBox newHTTPEngine;
-	private JCheckBox preventSleep;
+	private JComboBox<String> preventSleep;
 	private JTextField host;
 	private JTextField port;
 	private JTextField serverName;
 	private JComboBox<String> networkinterfacesCBX;
-	private JTextField ip_filter;
+	private JTextField ipFilter;
 	public JTextField maxbitrate;
 	private JCheckBox adaptBitrate;
 	private JComboBox<String> renderers;
 	private final PmsConfiguration configuration;
-	private JCheckBox fdCheckBox;
+	private JCheckBox forceDefaultRenderer;
 	private JCheckBox extNetBox;
 	private JCheckBox appendProfileName;
 	private JCheckBox runWizardOnProgramStartup;
@@ -109,7 +111,7 @@ public class GeneralTab {
 		builder.addLabel(Messages.getString("GeneralTab.14"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 		JPanel languagePanel = new JPanel();
-		languagePanel.setLayout(new BoxLayout(languagePanel,BoxLayout.LINE_AXIS));
+		languagePanel.setLayout(new BoxLayout(languagePanel, BoxLayout.LINE_AXIS));
 		currentLanguage.setEnabled(false);
 		currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
 		languagePanel.add(currentLanguage);
@@ -154,10 +156,12 @@ public class GeneralTab {
 			ypos += 2;
 		}
 
-		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		int xpos = 1;
+		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
+		xpos += 2;
 
 		if (Platform.isWindows()) {
-			autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
+			autoStart = new JCheckBox(Messages.getString("GeneralTab.StartWithWindows"), configuration.isAutoStart());
 			autoStart.setContentAreaFilled(false);
 			autoStart.addItemListener(new ItemListener() {
 				@Override
@@ -165,7 +169,8 @@ public class GeneralTab {
 					configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
+			xpos += 2;
 		}
 
 		showSplashScreen = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.isShowSplashScreen());
@@ -177,15 +182,15 @@ public class GeneralTab {
 			}
 		});
 
-		builder.add(GuiUtil.getPreferredSizeComponent(showSplashScreen), FormLayoutUtil.flip(cc.xy(5, ypos), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(showSplashScreen), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 		ypos += 2;
+		xpos += 2;
 
-		if (!configuration.isHideAdvancedOptions()) {
+		if (!configuration.isHideAdvancedOptions() && Platform.isWindows()) {
 			installService = new CustomJButton();
 			refreshInstallServiceButtonState();
 
-			builder.add(installService, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			ypos += 2;
+			builder.add(installService, FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 		}
 
 		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("NetworkTab.8"));
@@ -260,7 +265,7 @@ public class GeneralTab {
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
 		if (allConfs != null) {
-			sortRendererConfiurationsByName(allConfs);
+			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
 					keyValues.add(renderer.getRendererName());
@@ -284,6 +289,7 @@ public class GeneralTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			// Edit UMS configuration file manually
 			CustomJButton confEdit = new CustomJButton(Messages.getString("NetworkTab.51"));
+			confEdit.setToolTipText(configuration.getProfilePath());
 			confEdit.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -367,21 +373,24 @@ public class GeneralTab {
 
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
 			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
-			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+			String savedNetworkInterface = configuration.getNetworkInterface();
+			// for backwards-compatibility check if the short network interface name is used
+			savedNetworkInterface = NetworkConfiguration.getInstance().replaceShortInterfaceNameByDisplayName(savedNetworkInterface);
+			networkInterfaces.setSelectedKey(savedNetworkInterface);
 			networkinterfacesCBX.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+						configuration.setNetworkInterface(networkInterfaces.getSelectedKey());
 					}
 				}
 			});
 
-			ip_filter = new JTextField(configuration.getIpFilter());
-			ip_filter.addKeyListener(new KeyAdapter() {
+			ipFilter = new JTextField(configuration.getIpFilter());
+			ipFilter.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
-					configuration.setIpFilter(ip_filter.getText());
+					configuration.setIpFilter(ipFilter.getText());
 				}
 			});
 
@@ -419,7 +428,7 @@ public class GeneralTab {
 			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			builder.add(ipFilter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
@@ -431,6 +440,25 @@ public class GeneralTab {
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
+			boolean preventSleepSupported = SleepManager.isPreventSleepSupported();
+			if (preventSleepSupported) {
+				builder.addLabel(Messages.getString("NetworkTab.PreventSleepLabel"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+				final KeyedComboBoxModel<PreventSleepMode, String> preventSleepModel = createPreventSleepModel();
+				preventSleep = new JComboBox<>(preventSleepModel);
+				preventSleep.setToolTipText(Messages.getString("NetworkTab.PreventSleepToolTip"));
+				preventSleepModel.setSelectedKey(configuration.getPreventSleep());
+				preventSleep.addItemListener(new ItemListener() {
+
+					@Override
+					public void itemStateChanged(ItemEvent e) {
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+							configuration.setPreventSleep(preventSleepModel.getSelectedKey());
+						}
+					}
+				});
+				builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			}
+
 			newHTTPEngine = new JCheckBox(Messages.getString("NetworkTab.32"), configuration.isHTTPEngineV2());
 			newHTTPEngine.addItemListener(new ItemListener() {
 				@Override
@@ -438,18 +466,7 @@ public class GeneralTab {
 					configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-
-			if (Platform.isWindows()) {
-				preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
-				preventSleep.addItemListener(new ItemListener() {
-					@Override
-					public void itemStateChanged(ItemEvent e) {
-						configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
-					}
-				});
-				builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
-			}
+			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(preventSleepSupported ? 7 : 1, ypos), colSpec, orientation));
 			ypos += 2;
 
 			final SelectRenderers selectRenderers = new SelectRenderers();
@@ -470,15 +487,16 @@ public class GeneralTab {
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"), configuration.isRendererForceDefault());
-			fdCheckBox.setContentAreaFilled(false);
-			fdCheckBox.addItemListener(new ItemListener() {
+			forceDefaultRenderer = new JCheckBox(Messages.getString("GeneralTab.ForceDefaultRenderer"), configuration.isRendererForceDefault());
+			forceDefaultRenderer.setToolTipText(Messages.getString("GeneralTab.ForceDefaultRendererTooltip"));
+			forceDefaultRenderer.setContentAreaFilled(false);
+			forceDefaultRenderer.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
+			builder.add(forceDefaultRenderer, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 
 			ypos += 2;
 
@@ -540,7 +558,7 @@ public class GeneralTab {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						WindowsUtil.uninstallWin32Service();
-						LOGGER.info(Messages.getString("GeneralTab.3"));
+						LOGGER.info("Uninstalled UMS Windows service");
 
 						// Refresh the button state after it has been clicked
 						refreshInstallServiceButtonState();
@@ -568,7 +586,7 @@ public class GeneralTab {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (WindowsUtil.installWin32Service()) {
-							LOGGER.info(Messages.getString("PMS.41"));
+							LOGGER.info("Installed UMS Windows service");
 
 							// Refresh the button state after it has been clicked
 							refreshInstallServiceButtonState();
@@ -595,14 +613,26 @@ public class GeneralTab {
 	}
 
 	private KeyedComboBoxModel<String, String> createNetworkInterfacesModel() {
-		List<String> keys = NetworkConfiguration.getInstance().getKeys();
-		List<String> names = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> keys = NetworkConfiguration.getInstance().getDisplayNames();
+		List<String> names = NetworkConfiguration.getInstance().getDisplayNamesWithAddress();
 		keys.add(0, "");
 		names.add(0, "");
-		final KeyedComboBoxModel<String, String> networkInterfaces = new KeyedComboBoxModel<>(
-			keys.toArray(new String[keys.size()]), names.toArray(new String[names.size()])
+		return new KeyedComboBoxModel<>(
+			keys.toArray(new String[keys.size()]),
+			names.toArray(new String[names.size()])
 		);
-		return networkInterfaces;
+	}
+
+	private KeyedComboBoxModel<PreventSleepMode, String> createPreventSleepModel() {
+		PreventSleepMode[] modes = PreventSleepMode.values();
+		String[] descriptions = new String[modes.length];
+		for (int i = 0; i < modes.length; i++) {
+			descriptions[i] = modes[i].toString();
+		}
+		return new KeyedComboBoxModel<>(
+			modes,
+			descriptions
+		);
 	}
 
 	/**
@@ -617,7 +647,7 @@ public class GeneralTab {
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
 		if (allConfs != null) {
-			sortRendererConfiurationsByName(allConfs);
+			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
 					keyValues.add(renderer.getRendererName());
@@ -654,20 +684,20 @@ public class GeneralTab {
 		});
 	}
 
-	private void sortRendererConfiurationsByName(ArrayList<RendererConfiguration> rendererConfigurations){
-		Collections.sort(rendererConfigurations , new Comparator<RendererConfiguration>() {
+	private void sortRendererConfigurationsByName(ArrayList<RendererConfiguration> rendererConfigurations) {
+		Collections.sort(rendererConfigurations, new Comparator<RendererConfiguration>() {
 
 			@Override
 			public int compare(RendererConfiguration o1, RendererConfiguration o2) {
-				if(o1 == null && o2 == null){
+				if (o1 == null && o2 == null) {
 					return 0;
 				}
 
-				if(o1 == null) {
+				if (o1 == null) {
 					return 1;
 				}
 
-				if(o2 == null) {
+				if (o2 == null) {
 					return -1;
 				}
 

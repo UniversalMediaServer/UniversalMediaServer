@@ -18,12 +18,14 @@
  */
 package net.pms.formats;
 
-import java.util.StringTokenizer;
+import java.util.Locale;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,23 +46,68 @@ public abstract class Format implements Cloneable {
 	private String matchedExtension;
 
 	public enum Identifier {
+		AC3,
+		ADPCM,
+		ADTS,
+		AIFF,
+		APE,
+		ATRAC,
+		AU,
 		AUDIO_AS_VIDEO,
+		ASS,
 		BMP,
+		DFF,
+		DSF,
+		DTS,
 		DVRMS,
+		EAC3,
 		FLAC,
 		GIF,
+		RGBE,
+		ICNS,
+		ICO,
+		IFF,
+		IDX,
 		ISO,
+		ISOVOB,
 		JPG,
 		M4A,
+		MICRODVD,
+		MKA,
 		MKV,
+		MLP,
 		MP3,
+		MPA,
+		MPC,
 		MPG,
+		OGA,
 		OGG,
+		PCX,
+		PICT,
 		PNG,
+		PNM,
+		PSD,
+		RA,
 		RAW,
-		TIF,
+		SAMI,
+		SGI,
+		SHN,
+		SUBRIP,
+		SUP,
+		TGA,
+		THD,
+		THREEGA,
+		THREEG2A,
+		TIFF,
+		TTA,
+		TXT,
 		WAV,
+		WBMP,
 		WEB,
+		WEBP,
+		WEBVTT,
+		WMA,
+		WV,
 		CUSTOM,
 		PLAYLIST
 	}
@@ -71,6 +118,7 @@ public abstract class Format implements Cloneable {
 	public static final int UNKNOWN  =  8;
 	public static final int PLAYLIST = 16;
 	public static final int ISO      = 32;
+	public static final int SUBTITLE = 64;
 
 	public int getType() {
 		return type;
@@ -113,14 +161,6 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * @deprecated Use {@link #getSupportedExtensions} instead.
-	 */
-	@Deprecated
-	public String[] getId() {
-		return getSupportedExtensions();
-	}
-
-	/**
 	 * Returns a list of file extensions to use to identify
 	 * a particular format e.g. "mp3" or "mpg". Extensions
 	 * are expected to be in lower case. The default value is
@@ -135,35 +175,19 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
-	 * <p>
-	 * Returns whether or not a format can be handled by the PS3 natively.
-	 * This means the format can be streamed to PS3 instead of having to be
-	 * transcoded.
-	 *
-	 * @return True if the format can be handled by PS3, false otherwise.
-	 */
-	@Deprecated
-	public abstract boolean ps3compatible();
-
-	/**
 	 * Returns whether or not media can be handled by the renderer natively,
 	 * based on the given media information and renderer. If the format can be
 	 * streamed (as opposed to having to be transcoded), <code>true</code> will
 	 * be returned.
 	 *
-	 * @param media
-	 *            The media information.
-	 * @param renderer
-	 *            The renderer for which to check. If <code>null</code> is set
-	 *            as renderer, the default renderer configuration will be used.
-	 *
-	 * @return True if the format can be handled by the renderer, false
-	 *         otherwise.
-	 *
+	 * @param dlna The media information.
+	 * @param renderer The renderer for which to check. If <code>null</code>
+	 *                 is set as renderer, the default renderer configuration
+	 *                 will be used.
+	 * @return Whether the format can be handled by the renderer
 	 * @since 1.50.1
 	 */
-	public boolean isCompatible(DLNAMediaInfo media, RendererConfiguration renderer) {
+	public boolean isCompatible(DLNAResource dlna, RendererConfiguration renderer) {
 		RendererConfiguration referenceRenderer;
 
 		if (renderer != null) {
@@ -175,17 +199,16 @@ public abstract class Format implements Cloneable {
 		}
 
 		// Let the renderer configuration decide on native compatibility
-		return referenceRenderer.isCompatible(media, this);
+		return referenceRenderer.isCompatible(dlna, this);
 	}
 
 	public abstract boolean transcodable();
 
+	/**
+	 * Returns the default MIME for the given media type.
+	 */
 	public String mimeType() {
 		return HTTPResource.getDefaultMimeType(type);
-	}
-
-	public void setIcon(String filename) {
-		icon = filename;
 	}
 
 	public String getIcon() {
@@ -205,7 +228,7 @@ public abstract class Format implements Cloneable {
 			return false;
 		}
 
-		filename = filename.toLowerCase();
+		filename = filename.toLowerCase(Locale.ROOT);
 		String[] supportedExtensions = getSupportedExtensions();
 
 		if (supportedExtensions != null) {
@@ -215,7 +238,7 @@ public abstract class Format implements Cloneable {
 			}
 
 			for (String extension : supportedExtensions) {
-				String ext = extension.toLowerCase();
+				String ext = extension.toLowerCase(Locale.ROOT);
 				if (filename.endsWith("." + ext)) {
 					setMatchedExtension(ext);
 					return true;
@@ -242,6 +265,10 @@ public abstract class Format implements Cloneable {
 		return (type & UNKNOWN) == UNKNOWN;
 	}
 
+	public boolean isSubtitle() {
+		return (type & SUBTITLE) == SUBTITLE;
+	}
+
 	@Override
 	protected Object clone() {
 		Object o = null;
@@ -255,11 +282,6 @@ public abstract class Format implements Cloneable {
 
 	public Format duplicate() {
 		return (Format) this.clone();
-	}
-
-	@Deprecated
-	public void parse(DLNAMediaInfo media, InputFile file, int type) {
-		parse(media, file, type, null);
 	}
 
 	/**
@@ -280,42 +302,29 @@ public abstract class Format implements Cloneable {
 	 * the list of supplied extensions.
 	 *
 	 * @param extensions String of comma-separated extensions
-	 * @param moreExtensions String of comma-separated extensions
 	 *
 	 * @return True if this format matches an extension in the supplied lists,
 	 * false otherwise.
 	 *
 	 * @see #match(String)
 	 */
-	public boolean skip(String extensions, String moreExtensions) {
-		if ("*".equals(extensions)) {
-			return true;
-		}
+	public boolean skip(String... extensions) {
+		for (String extensionsString : extensions) {
+			if (extensionsString == null) {
+				continue;
+			}
 
-		if (extensions != null && extensions.length() > 0) {
-			StringTokenizer st = new StringTokenizer(extensions, ",");
+			if ("*".equals(extensionsString)) {
+				return true;
+			}
 
-			while (st.hasMoreTokens()) {
-				String id = st.nextToken().toLowerCase();
-
-				if (matchedExtension != null && matchedExtension.toLowerCase().equals(id)) {
+			String[] extensionsArray = extensionsString.split(",");
+			for (String extension : extensionsArray) {
+				if (StringUtil.hasValue(extension) && extension.equalsIgnoreCase(matchedExtension)) {
 					return true;
 				}
 			}
 		}
-
-		if (moreExtensions != null && moreExtensions.length() > 0) {
-			StringTokenizer st = new StringTokenizer(moreExtensions, ",");
-
-			while (st.hasMoreTokens()) {
-				String id = st.nextToken().toLowerCase();
-
-				if (matchedExtension != null && matchedExtension.toLowerCase().equals(id)) {
-					return true;
-				}
-			}
-		}
-
 		return false;
 	}
 

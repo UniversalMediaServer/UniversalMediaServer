@@ -37,13 +37,13 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	private ZipFile zipFile;
 
 	@Override
-	protected String getThumbnailURL() {
+	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) {
 			// no thumbnail support for now for zipped videos
 			return null;
 		}
 
-		return super.getThumbnailURL();
+		return super.getThumbnailURL(profile);
 	}
 
 	public ZippedEntry(File file, String zeName, long length) {
@@ -76,12 +76,6 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 		return false;
 	}
 
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
-	}
-
 	@Override
 	public String getSystemName() {
 		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
@@ -90,7 +84,6 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -101,36 +94,33 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public void push(final OutputStream out) throws IOException {
-		Runnable r = new Runnable() {
+		Runnable r = () -> {
 			InputStream in = null;
 
-			@Override
-			public void run() {
+			try {
+				int n = -1;
+				byte[] data = new byte[65536];
+				zipFile = new ZipFile(file);
+				ZipEntry ze = zipFile.getEntry(zeName);
+				in = zipFile.getInputStream(ze);
+
+				while ((n = in.read(data)) > -1) {
+					out.write(data, 0, n);
+				}
+
+				in.close();
+				in = null;
+			} catch (Exception e) {
+				LOGGER.error("Unpack error. Possibly harmless.", e);
+			} finally {
 				try {
-					int n = -1;
-					byte[] data = new byte[65536];
-					zipFile = new ZipFile(file);
-					ZipEntry ze = zipFile.getEntry(zeName);
-					in = zipFile.getInputStream(ze);
-
-					while ((n = in.read(data)) > -1) {
-						out.write(data, 0, n);
+					if (in != null) {
+						in.close();
 					}
-
-					in.close();
-					in = null;
-				} catch (Exception e) {
-					LOGGER.error("Unpack error. Possibly harmless.", e);
-				} finally {
-					try {
-						if (in != null) {
-							in.close();
-						}
-						zipFile.close();
-						out.close();
-					} catch (IOException e) {
-						LOGGER.debug("Caught exception", e);
-					}
+					zipFile.close();
+					out.close();
+				} catch (IOException e) {
+					LOGGER.debug("Caught exception", e);
 				}
 			}
 		};
@@ -158,12 +148,15 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 				input.setPush(this);
 				input.setSize(length());
 				getFormat().parse(getMedia(), input, getType(), null);
+				if (getMedia() != null && getMedia().isSLS()) {
+					setFormat(getMedia().getAudioVariantFormat());
+				}
 			}
 		}
 	}
 
 	@Override
-	public InputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {

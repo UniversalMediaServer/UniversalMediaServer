@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -30,9 +30,8 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 public class TextAreaFIFOTest {
-
 	@Before
-	public void setUp() throws ConfigurationException {
+	public void setUp() throws ConfigurationException, InterruptedException {
 		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
@@ -40,7 +39,7 @@ public class TextAreaFIFOTest {
 
 	@Test
 	public void testTextAreaFIFO() {
-		TextAreaFIFO textArea = new TextAreaFIFO(950);
+		TextAreaFIFO textArea = new TextAreaFIFO(950, 100);
 
 		assertEquals("InitialLines", textArea.getMaxLines(), 950);
 		textArea.setMaxLines(0);
