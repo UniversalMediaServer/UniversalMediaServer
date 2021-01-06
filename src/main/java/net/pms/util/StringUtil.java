@@ -1324,7 +1324,7 @@ public class StringUtil {
 	/**
 	 * Make the full DIDL XML representation by adding the DIDL header and footer
 	 * to the provided item.
-	 * 
+	 *
 	 * @param item the item string.
 	 *
 	 * @return The full DIDL string.
