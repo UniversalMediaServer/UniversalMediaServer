@@ -672,10 +672,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Sets the MB record ID for this track.
 	 *
-	 * @param mbid_record The MB record ID.
+	 * @param mbidRecord The MB record ID.
 	 */
-	public void setMbidRecord(String mbid_record) {
-		this.mbidRecord = mbid_record;
+	public void setMbidRecord(String mbidRecord) {
+		this.mbidRecord = mbidRecord;
 	}
 
 	/**
@@ -690,10 +690,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Sets the MB track ID for this track.
 	 *
-	 * @param mbid_track The MB track ID.
+	 * @param mbidTrack The MB track ID.
 	 */
-	public void setMbidTrack(String mbid_track) {
-		this.mbidTrack = mbid_track;
+	public void setMbidTrack(String mbidTrack) {
+		this.mbidTrack = mbidTrack;
 	}
 
 	/**

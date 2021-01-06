@@ -2392,21 +2392,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodedExtension = "_transcoded_to.mpg";
 						}
 					} else if (media.isAudio()) {
-						if (mediaRenderer.isTranscodeToMP3()) {
-							transcodedExtension = "_transcoded_to.mp3";
-						} else if (mediaRenderer.isTranscodeToWAV()) {
-							transcodedExtension = "_transcoded_to.wav";
-						} else {
-							transcodedExtension = "_transcoded_to.pcm";
-						}
+					    if (mediaRenderer.isTranscodeToMP3()) {
+					        transcodedExtension = "_transcoded_to.mp3";
+					    } else if (mediaRenderer.isTranscodeToWAV()) {
+					        transcodedExtension = "_transcoded_to.wav";
+					    } else {
+					        transcodedExtension = "_transcoded_to.pcm";
+					    }
 					}
 				}
 
 				sb.append(getFileURL()).append(transcodedExtension);
 				closeTag(sb, "res");
 			}
-			
-            // DESC Metadata support: add ability for control point to identify song by MusicBrainz TrackID
+
+			// DESC Metadata support: add ability for control point to identify song by MusicBrainz TrackID
 			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
 			    openTag(sb, "desc");
 			    addAttribute(sb, "id", "2");
