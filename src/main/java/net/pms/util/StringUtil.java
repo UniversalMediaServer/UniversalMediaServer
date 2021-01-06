@@ -1321,10 +1321,18 @@ public class StringUtil {
 		LOWER
 	}
 
-	public static String makeDidlString(String metadata) {
+	/**
+	 * Make the full DIDL XML representation by adding the DIDL header and footer
+	 * to the provided item.
+	 * 
+	 * @param item the item string.
+	 *
+	 * @return The full DIDL string.
+	 */
+	public static String makeDidlString(String item) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(HTTPXMLHelper.DIDL_HEADER);
-		sb.append(metadata);
+		sb.append(item);
 		sb.append(HTTPXMLHelper.DIDL_FOOTER);
 		return sb.toString();
 	}
