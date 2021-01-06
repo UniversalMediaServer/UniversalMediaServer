@@ -2390,7 +2390,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
-			mediaType != MediaType.IMAGE && (
+			mediaType != MediaType.IMAGE &&
+				// don't add the thumbnail resources when the BasicPlayer
+				// is pushing the media to the renderer. This should avoid
+				// to spam the DIDL.
+				this.parent instanceof UnattachedFolder && (
 				!isFolder ||
 				mediaRenderer.isSendFolderThumbnails() ||
 				this instanceof DVDISOFile
