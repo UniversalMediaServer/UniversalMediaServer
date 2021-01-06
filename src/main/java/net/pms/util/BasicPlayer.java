@@ -16,6 +16,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.network.HTTPXMLHelper;
 import static net.pms.network.UPNPHelper.unescape;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -287,11 +288,19 @@ public interface BasicPlayer extends ActionListener {
 					// Note: here metadata (if any) is actually the resource name
 					DLNAResource resource = DLNAResource.getValidResource(uri, metadata, renderer);
 					if (resource != null) {
-						return new Playlist.Item(resource.getURL("", true), resource.getDisplayName(renderer), resource.getDidlString(renderer));
+						return new Playlist.Item(resource.getURL("", true), resource.getDisplayName(renderer), makeDidlString(resource.getDidlString(renderer)));
 					}
 				}
 			}
 			return null;
+		}
+	
+		String makeDidlString(String metadata) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(HTTPXMLHelper.DIDL_HEADER);
+			sb.append(metadata);
+			sb.append(HTTPXMLHelper.DIDL_FOOTER);
+			return sb.toString();
 		}
 
 		@Override
@@ -386,7 +395,7 @@ public interface BasicPlayer extends ActionListener {
 					// skip these
 					continue;
 				}
-				playlist.add(index, r.getURL("", true), r.getDisplayName(), r.getDidlString(renderer), i == selIndex);
+				playlist.add(index, r.getURL("", true), r.getDisplayName(), makeDidlString(r.getDidlString(renderer)), i == selIndex);
 			}
 		}
 
