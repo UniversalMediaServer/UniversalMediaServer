@@ -294,7 +294,7 @@ public interface BasicPlayer extends ActionListener {
 			}
 			return null;
 		}
-	
+
 		String makeDidlString(String metadata) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(HTTPXMLHelper.DIDL_HEADER);
