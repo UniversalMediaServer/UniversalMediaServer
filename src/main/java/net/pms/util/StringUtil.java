@@ -43,6 +43,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.network.HTTPXMLHelper;
 import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1318,5 +1319,13 @@ public class StringUtil {
 
 		/** Lower-case, lowercase or minuscule */
 		LOWER
+	}
+
+	public static String makeDidlString(String metadata) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(HTTPXMLHelper.DIDL_HEADER);
+		sb.append(metadata);
+		sb.append(HTTPXMLHelper.DIDL_FOOTER);
+		return sb.toString();
 	}
 }

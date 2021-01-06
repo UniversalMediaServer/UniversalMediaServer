@@ -817,7 +817,7 @@ public class Request extends HTTPResource {
 							// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 							// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 							files.get(0).getParent() instanceof FileTranscodeVirtualFolder) {
-								response.append(uf.getDidlString(mediaRenderer));
+								response.append(uf.getDidlValue(mediaRenderer));
 						} else {
 							minus++;
 						}

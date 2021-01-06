@@ -1177,7 +1177,7 @@ public class RequestV2 extends HTTPResource {
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 					files.get(0).getParent() instanceof FileTranscodeVirtualFolder
 				) {
-					filesData.append(uf.getDidlString(mediaRenderer));
+					filesData.append(uf.getDidlValue(mediaRenderer));
 				} else {
 					minus++;
 				}

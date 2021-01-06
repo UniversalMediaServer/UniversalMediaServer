@@ -2047,6 +2047,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Returns an XML (DIDL) representation of the DLNA node. It gives a
 	 * complete representation of the item, with as many tags as available.
 	 * Recommendations as per UPNP specification are followed where possible.
+	 * <P>
+	 * To complete the DIDL the header and footer must be added.
 	 *
 	 * @param mediaRenderer
 	 *            Media Renderer for which to represent this information. Useful
@@ -2054,7 +2056,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return String representing the item. An example would start like this:
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="1">}
 	 */
-	public final String getDidlString(RendererConfiguration mediaRenderer) {
+	public final String getDidlValue(RendererConfiguration mediaRenderer) {
 		// Use device-specific configuration, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
