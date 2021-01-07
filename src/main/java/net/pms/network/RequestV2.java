@@ -1194,9 +1194,7 @@ public class RequestV2 extends HTTPResource {
 
 		response.append(CRLF);
 		response.append(HTTPXMLHelper.RESULT_HEADER);
-		response.append(HTTPXMLHelper.DIDL_HEADER);
-		response.append(filesData);
-		response.append(HTTPXMLHelper.DIDL_FOOTER);
+		response.append(StringUtil.makeDidlString(filesData.toString()));
 		response.append(HTTPXMLHelper.RESULT_FOOTER);
 		response.append(CRLF);
 
