@@ -2392,13 +2392,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodedExtension = "_transcoded_to.mpg";
 						}
 					} else if (media.isAudio()) {
-					    if (mediaRenderer.isTranscodeToMP3()) {
-					        transcodedExtension = "_transcoded_to.mp3";
-					    } else if (mediaRenderer.isTranscodeToWAV()) {
-					        transcodedExtension = "_transcoded_to.wav";
-					    } else {
-					        transcodedExtension = "_transcoded_to.pcm";
-					    }
+						if (mediaRenderer.isTranscodeToMP3()) {
+							transcodedExtension = "_transcoded_to.mp3";
+						} else if (mediaRenderer.isTranscodeToWAV()) {
+							transcodedExtension = "_transcoded_to.wav";
+						} else {
+							transcodedExtension = "_transcoded_to.pcm";
+						}
 					}
 				}
 
@@ -2408,17 +2408,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// DESC Metadata support: add ability for control point to identify song by MusicBrainz TrackID
 			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
-			    openTag(sb, "desc");
-			    addAttribute(sb, "id", "2");
-			    addAttribute(sb, "nameSpace", "http://ums/tags"); // TODO add real namespace  
-			    addAttribute(sb, "type", "ums-tags");
-			    endTag(sb);
-			    addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
-			    addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
-			    closeTag(sb, "desc");
-			}		    
+				openTag(sb, "desc");
+				addAttribute(sb, "id", "2");
+				addAttribute(sb, "nameSpace", "http://ums/tags"); // TODO add real namespace
+				addAttribute(sb, "type", "ums-tags");
+				endTag(sb);
+				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
+				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
+				closeTag(sb, "desc");
+			}
 		}
-		
+
 		if (subsAreValidForStreaming) {
 			String subsURL = getSubsURL(media_subtitle);
 			if (mediaRenderer.useClosedCaption()) {
