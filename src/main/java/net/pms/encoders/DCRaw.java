@@ -58,7 +58,7 @@ public class DCRaw extends ImagePlayer {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[] { "-e", "-c" };
+		return new String[] {"-e", "-c"};
 	}
 
 	@Override

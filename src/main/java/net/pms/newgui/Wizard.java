@@ -42,7 +42,7 @@ public class Wizard {
 
 		// The current question number
 		int currentQuestionNumber = 1;
-		
+
 		String status = new StringBuilder()
 			.append(Messages.getString("Wizard.2"))
 			.append(" %d ")
@@ -83,7 +83,6 @@ public class Wizard {
 		} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
 			configuration.setMinimized(false);
 		}
-		
 
 		// Ask if their network is wired, etc.
 		int networkType = JOptionPane.showOptionDialog(
@@ -169,24 +168,22 @@ public class Wizard {
 		);
 
 		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					JFileChooser chooser;
-					try {
-						chooser = new JFileChooser();
-					} catch (Exception ee) {
-						chooser = new JFileChooser(new RestrictedFileSystemView());
-					}
+			SwingUtilities.invokeAndWait(() -> {
+				JFileChooser chooser;
+				try {
+					chooser = new JFileChooser();
+				} catch (Exception ee) {
+					chooser = new JFileChooser(new RestrictedFileSystemView());
+				}
 
-					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					chooser.setDialogTitle(Messages.getString("Wizard.12"));
-					chooser.setMultiSelectionEnabled(false);
-					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
-					} else {
-						// If the user cancels this option, the default directories will be used.
-					}
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooser.setDialogTitle(Messages.getString("Wizard.12"));
+				chooser.setMultiSelectionEnabled(false);
+				if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+					configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
+					// } else {
+					// If the user cancels this option, the default directories
+					// will be used.
 				}
 			});
 		} catch (InterruptedException | InvocationTargetException e) {

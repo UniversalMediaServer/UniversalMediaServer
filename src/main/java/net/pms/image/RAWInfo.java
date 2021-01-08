@@ -6,7 +6,6 @@ import net.pms.util.ParseException;
 import com.drew.metadata.Metadata;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class RAWInfo extends ExifInfo {
@@ -95,7 +94,7 @@ public class RAWInfo extends ExifInfo {
 		PhotometricInterpretation photometricInterpretation,
 		ExifOrientation exifOrientation,
 		ExifOrientation originalExifOrientation,
-		Integer ExifVersion,
+		Integer exifVersion,
 		ExifCompression exifCompression,
 		ExifColorSpace exifColorSpace,
 		boolean hasExifThumbnail
@@ -113,7 +112,7 @@ public class RAWInfo extends ExifInfo {
 			photometricInterpretation,
 			exifOrientation,
 			originalExifOrientation,
-			ExifVersion,
+			exifVersion,
 			exifCompression,
 			exifColorSpace,
 			hasExifThumbnail

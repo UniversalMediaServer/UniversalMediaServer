@@ -170,4 +170,174 @@ Checkstyle configuration for Universal Media Server.
     <property name="format" value="\s+$"/>
     <property name="message" value="Line has trailing spaces."/>
   </module>
+=======
+	<property name="fileExtensions" value="java, xml"/>
+	<module name="SuppressWarningsFilter" />
+	<module name="SeverityMatchFilter" />
+	<module name="TreeWalker">
+		<property name="tabWidth" value="4"/>
+		<module name="EmptyLineSeparator">
+			<property name="severity" value="warning"/>
+			<property name="allowNoEmptyLineBetweenFields" value="true"/>
+			<property name="allowMultipleEmptyLines" value="false"/>
+			<property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
+		</module>
+		<module name="RegexpSinglelineJava">
+			<property name="format" value="^\t*(?! \*) "/>
+			<property name="message" value="Indent must use tab characters"/>
+			<property name="ignoreComments" value="true"/>
+		</module>
+		<module name="SuppressWarningsHolder" />
+		<module name="JavadocMethod">
+			<property name="severity" value="warning"/>
+			<property name="scope" value="protected"/>
+		</module>
+		<module name="JavadocType">
+			<property name="severity" value="warning"/>
+			<property name="scope" value="protected"/>
+		</module>
+		<module name="JavadocVariable">
+			<property name="severity" value="warning"/>
+			<property name="scope" value="protected"/>
+		</module>
+		<module name="JavadocStyle">
+			<property name="severity" value="warning"/>
+			<property name="endOfSentenceFormat" value="([.?!:][ \t\n\r\f&lt;])|([.?!:]$)"/>
+			<property name="tokens" value="INTERFACE_DEF,CLASS_DEF,METHOD_DEF,CTOR_DEF"/>
+		</module>
+		<module name="ConstantName"/>
+		<module name="LocalFinalVariableName"/>
+		<module name="LocalVariableName"/>
+		<module name="MemberName"/>
+		<module name="MethodName"/>
+		<module name="PackageName"/>
+		<module name="ParameterName"/>
+		<module name="StaticVariableName"/>
+		<module name="TypeName"/>
+		<module name="AvoidStarImport">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="IllegalImport">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="RedundantImport"/>
+		<module name="UnusedImports">
+			<property name="processJavadoc" value="false"/>
+		</module>
+		<module name="MethodLength">
+			<property name="severity" value="warning"/>
+			<property name="max" value="300"/>
+		</module>
+		<module name="ParameterNumber">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="EmptyForIteratorPad"/>
+		<module name="GenericWhitespace"/>
+		<module name="MethodParamPad"/>
+		<module name="NoWhitespaceAfter"/>
+		<module name="NoWhitespaceBefore"/>
+		<module name="OperatorWrap">
+			<property name="option" value="eol"/>
+			<property name="tokens" value="QUESTION,COLON,EQUAL,NOT_EQUAL,DIV,PLUS,MINUS,STAR,MOD,SR,BSR,GE,GT,SL,LE,LT,BXOR,BOR,LOR,BAND,LAND,LITERAL_INSTANCEOF,TYPE_EXTENSION_AND,ASSIGN"/>
+		</module>
+		<module name="ParenPad"/>
+		<module name="TypecastParenPad"/>
+		<module name="WhitespaceAfter"/>
+		<module name="WhitespaceAround">
+			<property name="allowEmptyCatches" value="true"/>
+			<property name="allowEmptyConstructors" value="true"/>
+		</module>
+		<module name="ModifierOrder">
+			<property name="severity" value="warning"/>
+		</module>
+		<module name="AvoidNestedBlocks"/>
+		<module name="EmptyBlock"/>
+		<module name="LeftCurly"/>
+		<module name="NeedBraces"/>
+		<module name="RightCurly"/>
+		<module name="AvoidInlineConditionals">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="EmptyStatement"/>
+		<module name="EqualsHashCode"/>
+		<module name="HiddenField">
+			<property name="tokens" value="VARIABLE_DEF"/>
+		</module>
+		<module name="IllegalInstantiation"/>
+		<module name="InnerAssignment"/>
+		<module name="MagicNumber">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="MissingSwitchDefault">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="SimplifyBooleanExpression"/>
+		<module name="SimplifyBooleanReturn"/>
+		<module name="DesignForExtension">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="FinalClass">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="InterfaceIsType"/>
+		<module name="VisibilityModifier">
+			<property name="severity" value="warning"/>
+			<property name="protectedAllowed" value="true"/>
+			<property name="allowPublicImmutableFields" value="true"/>
+		</module>
+		<module name="ArrayTypeStyle"/>
+		<module name="FinalParameters">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="TodoComment">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="UpperEll"/>
+		<module name="CommentsIndentation">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="Indentation">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="Indentation">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+		<module name="CommentsIndentation">
+			<property name="severity" value="ignore"/>
+			<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+		</module>
+	</module>
+	<module name="JavadocPackage">
+		<property name="severity" value="ignore"/>
+		<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+	</module>
+	<module name="NewlineAtEndOfFile">
+		<property name="lineSeparator" value="lf"/>
+	</module>
+	<module name="Translation"/>
+	<module name="FileLength">
+		<property name="severity" value="ignore"/>
+		<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+	</module>
+	<module name="FileTabCharacter">
+		<property name="severity" value="ignore"/>
+		<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+	</module>
+	<module name="RegexpSingleline">
+		<property name="format" value="\s+$"/>
+		<property name="message" value="Line has trailing spaces."/>
+	</module>
 </module>

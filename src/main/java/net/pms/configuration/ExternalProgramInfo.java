@@ -30,7 +30,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.lang.model.type.ExecutableType;
 import net.pms.encoders.ExecutableErrorType;
 import net.pms.util.Version;
 

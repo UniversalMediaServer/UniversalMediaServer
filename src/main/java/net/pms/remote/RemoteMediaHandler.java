@@ -74,7 +74,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			DLNAMediaSubtitle sid = null;
 			String mimeType = root.getDefaultRenderer().getMimeType(resource);
 			//DLNAResource dlna = res.get(0);
-			WebRender renderer = (WebRender) defaultRenderer;
+			WebRender render = (WebRender) defaultRenderer;
 			DLNAMediaInfo media = resource.getMedia();
 			if (media == null) {
 				media = new DLNAMediaInfo();
@@ -89,7 +89,7 @@ public class RemoteMediaHandler implements HttpHandler {
 				if (flash) {
 					mimeType = "video/flash";
 				} else if (!RemoteUtil.directmime(mimeType) || RemoteUtil.transMp4(mimeType, media)) {
-					mimeType = renderer != null ? renderer.getVideoMimeType() : RemoteUtil.transMime();
+					mimeType = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
 					if (FileUtil.isUrl(resource.getSystemName())) {
 						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_WEB_VIDEO, false, false));
 					} else if (!(resource instanceof DVDISOTitle)) {
@@ -117,7 +117,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			Range.Byte range = RemoteUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
-			if(range.getEnd() == 0) {
+			if (range.getEnd() == 0) {
 				// For web resources actual length may be unknown until we open the stream
 				range.setEnd(resource.length());
 			}
@@ -126,7 +126,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			headers.add("Accept-Ranges", "bytes");
 			long end = range.getEnd();
 			long start = range.getStart();
-			String rStr = start + "-" + end + "/*" ;
+			String rStr = start + "-" + end + "/*";
 			headers.add("Content-Range", "bytes " + rStr);
 			if (start != 0) {
 				code = 206;
@@ -136,13 +136,13 @@ public class RemoteMediaHandler implements HttpHandler {
 			headers.add("Connection", "keep-alive");
 			httpExchange.sendResponseHeaders(code, 0);
 			OutputStream os = httpExchange.getResponseBody();
-			if (renderer != null) {
-				renderer.start(resource);
+			if (render != null) {
+				render.start(resource);
 			}
 			if (sid != null) {
 				resource.setMediaSubtitle(sid);
 			}
-			RemoteUtil.dump(in, os, renderer);
+			RemoteUtil.dump(in, os, render);
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {

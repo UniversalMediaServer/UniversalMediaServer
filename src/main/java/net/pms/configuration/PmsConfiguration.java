@@ -51,7 +51,6 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.newgui.SharedContentTab.SharedFoldersTableModel;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
@@ -94,11 +93,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
 	private static volatile boolean enabledEnginesBuilt = false;
-	private static final ReentrantReadWriteLock enabledEnginesLock = new ReentrantReadWriteLock();
+	private static final ReentrantReadWriteLock ENABLED_ENGINES_LOCK = new ReentrantReadWriteLock();
 	private static UniqueList<PlayerId> enabledEngines;
 
 	private static volatile boolean enginesPriorityBuilt = false;
-	private static final ReentrantReadWriteLock enginesPriorityLock = new ReentrantReadWriteLock();
+	private static final ReentrantReadWriteLock ENGINES_PRIORITY_LOCK = new ReentrantReadWriteLock();
 	private static UniqueList<PlayerId> enginesPriority;
 
 	/*
@@ -193,9 +192,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
+	protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-	
+
 	/**
 	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
 	 */
@@ -263,9 +263,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
-	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL= "playlist_auto_add_all";
+	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL = "playlist_auto_add_all";
 	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
-	protected static final String KEY_PLAYLIST_AUTO_PLAY= "playlist_auto_play";
+	protected static final String KEY_PLAYLIST_AUTO_PLAY = "playlist_auto_play";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
@@ -367,14 +367,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
 
 	// The default profile name displayed on the renderer
-	protected static String HOSTNAME;
+	protected static String hostName;
 
-	protected static String DEFAULT_AVI_SYNTH_SCRIPT;
+	protected static String defaultAviSynthScript;
 	protected static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
 	protected static final int BUFFER_MEMORY_FACTOR = 368;
-	protected static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
+	protected static int maxMaxMemoryBufferSize = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	protected static final char LIST_SEPARATOR = ',';
-	public final String ALL_RENDERERS = "All renderers";
+	public final String allRenderers = "All renderers";
 
 	// Path to default logfile directory
 	protected String defaultLogFileDir = null;
@@ -482,7 +482,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String PROFILE_PATH;
 
 	// Absolute path to WEB.conf file e.g. /path/to/WEB.conf
-	protected static String WEB_CONF_PATH;
+	protected static String webConfPath;
 
 	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
 	// "project.skelprofile.dir" project property
@@ -579,7 +579,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			File pmsConfFile = new File(PROFILE_PATH);
 
 			try {
-				((PropertiesConfiguration)configuration).load(pmsConfFile);
+				((PropertiesConfiguration) configuration).load(pmsConfFile);
 			} catch (ConfigurationException e) {
 				if (Platform.isLinux() && SKEL_PROFILE_PATH != null) {
 					LOGGER.debug("Failed to load {} ({}) - attempting to load skel profile", PROFILE_PATH, e.getMessage());
@@ -587,7 +587,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 					try {
 						// Load defaults from skel profile, save them later to PROFILE_PATH
-						((PropertiesConfiguration)configuration).load(skelConfigFile);
+						((PropertiesConfiguration) configuration).load(skelConfigFile);
 						LOGGER.info("Default configuration loaded from {}", SKEL_PROFILE_PATH);
 					} catch (ConfigurationException ce) {
 						LOGGER.warn("Can't load neither {}: {} nor {}: {}", PROFILE_PATH, e.getMessage(), SKEL_PROFILE_PATH, ce.getMessage());
@@ -598,7 +598,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 		}
 
-		((PropertiesConfiguration)configuration).setPath(PROFILE_PATH);
+		((PropertiesConfiguration) configuration).setPath(PROFILE_PATH);
 
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = new ConfigurableProgramPaths(configuration);
@@ -608,11 +608,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		Locale.setDefault(getLanguageLocale());
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
-		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
+		defaultAviSynthScript = "<movie>\n<sub>\n";
 
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
-			MAX_MAX_MEMORY_BUFFER_SIZE = (int) usableMemory;
+			maxMaxMemoryBufferSize = (int) usableMemory;
 		}
 	}
 
@@ -1246,6 +1246,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
+
 	/**
 	 * The name of the server.
 	 *
@@ -1373,7 +1374,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The maximum memory buffer size.
 	 */
 	public int getMaxMemoryBufferSize() {
-		return Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 200)));
+		return Math.max(0, Math.min(maxMaxMemoryBufferSize, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 200)));
 	}
 
 	/**
@@ -1383,7 +1384,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value The maximum buffer size.
 	 */
 	public void setMaxMemoryBufferSize(int value) {
-		configuration.setProperty(KEY_MAX_MEMORY_BUFFER_SIZE, Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, value)));
+		configuration.setProperty(KEY_MAX_MEMORY_BUFFER_SIZE, Math.max(0, Math.min(maxMaxMemoryBufferSize, value)));
 	}
 
 	/**
@@ -2079,7 +2080,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The selected renderers as a list.
 	 */
 	public List<String> getSelectedRenderers() {
-		return getStringList(KEY_SELECTED_RENDERERS, ALL_RENDERERS);
+		return getStringList(KEY_SELECTED_RENDERERS, allRenderers);
 	}
 
 	/**
@@ -2439,7 +2440,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The AviSynth script template.
 	 */
 	public String getAvisynthScript() {
-		return getString(KEY_AVISYNTH_SCRIPT, DEFAULT_AVI_SYNTH_SCRIPT);
+		return getString(KEY_AVISYNTH_SCRIPT, defaultAviSynthScript);
 	}
 
 	/**
@@ -2522,7 +2523,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getFFmpegGPUDecodingAccelerationThreadNumber() {
-		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER,"1");
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, "1");
 	}
 
 	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
@@ -2689,7 +2690,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			return;
 		}
 
-		enabledEnginesLock.writeLock().lock();
+		ENABLED_ENGINES_LOCK.writeLock().lock();
 		try {
 			// Not a bug, using double checked locking
 			if (enabledEnginesBuilt) {
@@ -2704,7 +2705,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 			enabledEnginesBuilt = true;
 		} finally {
-			enabledEnginesLock.writeLock().unlock();
+			ENABLED_ENGINES_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2717,11 +2718,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public List<PlayerId> getEnabledEngines() {
 		buildEnabledEngines();
-		enabledEnginesLock.readLock().lock();
+		ENABLED_ENGINES_LOCK.readLock().lock();
 		try {
 			return new ArrayList<PlayerId>(enabledEngines);
 		} finally {
-			enabledEnginesLock.readLock().unlock();
+			ENABLED_ENGINES_LOCK.readLock().unlock();
 		}
 	}
 
@@ -2738,11 +2739,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		buildEnabledEngines();
-		enabledEnginesLock.readLock().lock();
+		ENABLED_ENGINES_LOCK.readLock().lock();
 		try {
 			return enabledEngines.contains(id);
 		} finally {
-			enabledEnginesLock.readLock().unlock();
+			ENABLED_ENGINES_LOCK.readLock().unlock();
 		}
 	}
 
@@ -2772,7 +2773,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
 
-		enabledEnginesLock.writeLock().lock();
+		ENABLED_ENGINES_LOCK.writeLock().lock();
 		try {
 			buildEnabledEngines();
 			if (enabledEngines.contains(id)) {
@@ -2786,7 +2787,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 			configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
 		} finally {
-			enabledEnginesLock.writeLock().unlock();
+			ENABLED_ENGINES_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2837,7 +2838,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (enginesPriorityBuilt) {
 			return;
 		}
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			// Not a bug, using double checked locking
 			if (enginesPriorityBuilt) {
@@ -2852,7 +2853,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 			enginesPriorityBuilt = true;
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2864,11 +2865,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public UniqueList<PlayerId> getEnginesPriority() {
 		buildEnginesPriority();
-		enginesPriorityLock.readLock().lock();
+		ENGINES_PRIORITY_LOCK.readLock().lock();
 		try {
 			return new UniqueList<PlayerId>(enginesPriority);
 		} finally {
-			enginesPriorityLock.readLock().unlock();
+			ENGINES_PRIORITY_LOCK.readLock().unlock();
 		}
 	}
 
@@ -2885,23 +2886,23 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		buildEnginesPriority();
-		enginesPriorityLock.readLock().lock();
+		ENGINES_PRIORITY_LOCK.readLock().lock();
 		try {
 			int index = enginesPriority.indexOf(id);
 			if (index >= 0) {
 				return index;
 			}
 		} finally {
-			enginesPriorityLock.readLock().unlock();
+			ENGINES_PRIORITY_LOCK.readLock().unlock();
 		}
 
 		// The engine isn't listed, add it last
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			enginesPriority.add(id);
 			return enginesPriority.indexOf(id);
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2952,7 +2953,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
 
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			buildEnginesPriority();
 
@@ -2972,7 +2973,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			enginesPriority.add(newPosition, id);
 			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 
 		PlayerFactory.sortPlayers();
@@ -3008,7 +3009,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
 
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			buildEnginesPriority();
 
@@ -3029,7 +3030,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			enginesPriority.add(newPosition, id);
 			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 		PlayerFactory.sortPlayers();
 	}
@@ -3269,7 +3270,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * This just preserves wizard functionality of offering the user a choice
 	 * to share a directory.
 	 *
-	 * @param directoryPath 
+	 * @param directoryPath
 	 */
 	public void setOnlySharedDirectory(String directoryPath) {
 		synchronized (sharedFoldersLock) {
@@ -3527,7 +3528,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	private static int findPathSort(String[] paths, String path) throws NumberFormatException{
+	private static int findPathSort(String[] paths, String path) throws NumberFormatException {
 		for (String path1 : paths) {
 			String[] kv = path1.split(",");
 			if (kv.length < 2) {
@@ -3709,8 +3710,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public synchronized IpFilter getIpFiltering() {
-	    filter.setRawFilter(getIpFilter());
-	    return filter;
+		filter.setRawFilter(getIpFilter());
+		return filter;
 	}
 
 	public void setIpFilter(String value) {
@@ -3780,6 +3781,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setHideEmptyFolders(final boolean value) {
 		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, value);
+	}
+
+	public boolean isUseSymlinksTargetFile() {
+		return getBoolean(PmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, false);
+	}
+
+	public void setUseSymlinksTargetFile(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, value);
 	}
 
 	/**
@@ -4068,15 +4077,15 @@ public class PmsConfiguration extends RendererConfiguration {
 		// Initialise this here rather than in the constructor
 		// or statically so that custom settings are logged
 		// to the logfile/Logs tab.
-		if (WEB_CONF_PATH == null) {
-			WEB_CONF_PATH = FileUtil.getFileLocation(
+		if (webConfPath == null) {
+			webConfPath = FileUtil.getFileLocation(
 				getString(KEY_WEB_CONF_PATH, null),
 				PROFILE_DIRECTORY,
 				DEFAULT_WEB_CONF_FILENAME
 			).getFilePath();
 		}
 
-		return getString(KEY_WEB_CONF_PATH, WEB_CONF_PATH);
+		return getString(KEY_WEB_CONF_PATH, webConfPath);
 	}
 
 	public String getPluginDirectory() {
@@ -4088,16 +4097,16 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getProfileName() {
-		if (HOSTNAME == null) { // Initialise this lazily
+		if (hostName == null) { // Initialise this lazily
 			try {
-				HOSTNAME = InetAddress.getLocalHost().getHostName();
+				hostName = InetAddress.getLocalHost().getHostName();
 			} catch (UnknownHostException e) {
 				LOGGER.info("Can't determine hostname");
-				HOSTNAME = "unknown host";
+				hostName = "unknown host";
 			}
 		}
 
-		return getString(KEY_PROFILE_NAME, HOSTNAME);
+		return getString(KEY_PROFILE_NAME, hostName);
 	}
 
 	public boolean isAutoUpdate() {
@@ -4116,16 +4125,16 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_UUID, null);
 	}
 
-	public void setUuid(String value){
+	public void setUuid(String value) {
 		configuration.setProperty(KEY_UUID, value);
 	}
 
 	public void addConfigurationListener(ConfigurationListener l) {
-		((PropertiesConfiguration)configuration).addConfigurationListener(l);
+		((PropertiesConfiguration) configuration).addConfigurationListener(l);
 	}
 
 	public void removeConfigurationListener(ConfigurationListener l) {
-		((PropertiesConfiguration)configuration).removeConfigurationListener(l);
+		((PropertiesConfiguration) configuration).removeConfigurationListener(l);
 	}
 
 	public boolean getFolderLimit() {
@@ -4150,12 +4159,12 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getSearchDepth() {
 		int ret = (getBoolean(KEY_SEARCH_RECURSE, true) ? 100 : 2);
-	   	return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
+		return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
 	}
 
 	public void reload() {
 		try {
-			((PropertiesConfiguration)configuration).refresh();
+			((PropertiesConfiguration) configuration).refresh();
 		} catch (ConfigurationException e) {
 			LOGGER.error(null, e);
 		}
@@ -4275,7 +4284,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// Save the path if we got here
 			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
-				((PropertiesConfiguration)configuration).save();
+				((PropertiesConfiguration) configuration).save();
 			} catch (ConfigurationException e) {
 				LOGGER.warn("An error occurred while saving configuration: {}", e.getMessage());
 			}
@@ -4327,7 +4336,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getDataDir() + File.separator + str;
 	}
 
-	private String KEY_URL_RES_ORDER = "url_resolve_order";
+	private static final String KEY_URL_RES_ORDER = "url_resolve_order";
 
 	public String[] getURLResolveOrder() {
 		return getString(KEY_URL_RES_ORDER, "").split(",");
@@ -4386,7 +4395,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public Level getLoggingFilterConsole() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"),Level.INFO);
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"), Level.INFO);
 	}
 
 	public void setLoggingFilterConsole(Level value) {
@@ -4394,7 +4403,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public Level getLoggingFilterLogsTab() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"),Level.INFO);
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"), Level.INFO);
 	}
 
 	public void setLoggingFilterLogsTab(Level value) {
@@ -4402,11 +4411,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public int getLoggingLogsTabLinebuffer() {
-		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN), LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 	}
 
 	public void setLoggingLogsTabLinebuffer(int value) {
-		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN), LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value);
 	}
 
@@ -4723,7 +4732,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			key = KEY_WEB_CONT_AUDIO;
 			def = true;
 		}
-	
+
 		if (f.isImage()) {
 			key = KEY_WEB_CONT_IMAGE;
 			def = false;
@@ -4820,7 +4829,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isDynamicPlsAutoSave() {
-	   	return getBoolean(KEY_DYNAMIC_PLS_AUTO_SAVE, false);
+		return getBoolean(KEY_DYNAMIC_PLS_AUTO_SAVE, false);
 	}
 
 	public String getDynamicPlsSavePath() {

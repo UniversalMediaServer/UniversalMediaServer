@@ -464,6 +464,7 @@ public class ImagesUtil {
 			return null;
 		}
 	}
+
 	/**
 	 * This attempts to get the underlying byte array directly from the
 	 * {@link InputStream} if it is backed by a byte array, otherwise the

@@ -33,6 +33,6 @@ public class DTS extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "dts" };
+		return new String[] {"dts"};
 	}
 }

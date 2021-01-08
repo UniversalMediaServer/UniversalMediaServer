@@ -32,9 +32,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
-import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.CustomJButton;
-import net.pms.newgui.components.JAnimatedButton;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
@@ -52,9 +50,9 @@ public class NavigationShareTab {
 	private JCheckBox hideengines;
 	private JTextField seekpos;
 	private JCheckBox thumbgenCheckBox;
-	private JCheckBox mplayer_thumb;
-	private JCheckBox dvdiso_thumb;
-	private JCheckBox image_thumb;
+	private JCheckBox mplayerThumb;
+	private JCheckBox dvdisoThumb;
+	private JCheckBox imageThumb;
 	private JCheckBox cacheenable;
 	private JCheckBox archive;
 	private JComboBox<String> sortmethod;
@@ -71,18 +69,10 @@ public class NavigationShareTab {
 	private JCheckBox isUseInfoFromAPI;
 	private JCheckBox resume;
 	private JCheckBox isScanSharedFoldersOnStartup;
+	private JCheckBox useSymlinksTargetFile;
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
-	private static final JAnimatedButton scanButton = new JAnimatedButton("button-scan.png");
-	private final AnimatedIcon scanNormalIcon = (AnimatedIcon) scanButton.getIcon();
-	private final AnimatedIcon scanRolloverIcon = (AnimatedIcon) scanButton.getRolloverIcon();
-	private final AnimatedIcon scanPressedIcon = (AnimatedIcon) scanButton.getPressedIcon();
-	private final AnimatedIcon scanDisabledIcon = (AnimatedIcon) scanButton.getDisabledIcon();
-	private static final AnimatedIcon scanBusyIcon = new AnimatedIcon(scanButton, "button-scan-busy.png");
-	private static final AnimatedIcon scanBusyRolloverIcon = new AnimatedIcon(scanButton, "button-cancel.png");
-	private static final AnimatedIcon scanBusyPressedIcon = new AnimatedIcon(scanButton, "button-cancel_pressed.png");
-	private static final AnimatedIcon scanBusyDisabledIcon = new AnimatedIcon(scanButton, "button-scan-busy_disabled.png");
 
 	private JComboBox<String> addVideoSuffix;
 
@@ -105,37 +95,39 @@ public class NavigationShareTab {
 	private static final String PANEL_COL_SPEC = "left:pref,          3dlu,                pref, 3dlu,                       pref, 3dlu,               pref, 3dlu, pref, 3dlu, pref, default:grow";
 	private static final String PANEL_ROW_SPEC =
 		//                                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		"p,"                              // Thumbnails
-		+ "3dlu,"                         //
-		+ "p,"                            //                      Generate thumbnails         Thumbnail seeking position:         [seeking position]               Image thumbnails
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "9dlu,"                         //
-		+ "p,"                            // File sorting
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "9dlu,"                         //
-		+ "p,"                            // Virtual folders
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "3dlu,"                         //
-		+ "p,"                            //
-		+ "9dlu,"                         //
-		+ "fill:default:grow";            // Shared folders
+		"p," +                            // Thumbnails
+		"3dlu," +                         //
+		"p," +                            //                      Generate thumbnails         Thumbnail seeking position:         [seeking position]               Image thumbnails
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"9dlu," +                         //
+		"p," +                            // File sorting
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"9dlu," +                         //
+		"p," +                            // Virtual folders
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"3dlu," +                         //
+		"p," +                            //
+		"9dlu," +                         //
+		"fill:default:grow";              // Shared folders
 
 	public JComponent build() {
 		// Apply the orientation for the locale
@@ -162,16 +154,16 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(thumbgenCheckBox),             FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			builder.addLabel(Messages.getString("NetworkTab.16"),                        FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 			builder.add(seekpos,                                                         FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(image_thumb),                  FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(imageThumb),                  FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.26"),                           FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 			builder.add(audiothumbnail,                                                  FormLayoutUtil.flip(cc.xyw(3, 5, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(mplayer_thumb),                FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(mplayerThumb),                FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.27"),                           FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 			builder.add(defaultThumbFolder,                                              FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 			builder.add(select,                                                          FormLayoutUtil.flip(cc.xy(5, 7), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(dvdiso_thumb),                 FormLayoutUtil.flip(cc.xy(7, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(dvdisoThumb),                 FormLayoutUtil.flip(cc.xy(7, 7), colSpec, orientation));
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"),              FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
@@ -214,10 +206,12 @@ public class NavigationShareTab {
 			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(hideemptyfolders),             FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy (1, 29   ), colSpec, orientation));
-			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 29, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy (7, 29   ), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy (9, 29   ), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(useSymlinksTargetFile),        FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+
+			builder.addLabel(Messages.getString("FoldTab.72"),                           FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
+			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 31, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy(7, 31), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy(9, 31), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
@@ -262,45 +256,36 @@ public class NavigationShareTab {
 		// Generate thumbnails
 		thumbgenCheckBox = new JCheckBox(Messages.getString("NetworkTab.2"), configuration.isThumbnailGenerationEnabled());
 		thumbgenCheckBox.setContentAreaFilled(false);
-		thumbgenCheckBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setThumbnailGenerationEnabled((e.getStateChange() == ItemEvent.SELECTED));
-				seekpos.setEnabled(configuration.isThumbnailGenerationEnabled());
-				mplayer_thumb.setEnabled(configuration.isThumbnailGenerationEnabled());
-			}
+		thumbgenCheckBox.addItemListener((ItemEvent e) -> {
+			configuration.setThumbnailGenerationEnabled((e.getStateChange() == ItemEvent.SELECTED));
+			seekpos.setEnabled(configuration.isThumbnailGenerationEnabled());
+			mplayerThumb.setEnabled(configuration.isThumbnailGenerationEnabled());
 		});
 
 		// Use MPlayer for video thumbnails
-		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
-		mplayer_thumb.setToolTipText(Messages.getString("FoldTab.61"));
-		mplayer_thumb.setContentAreaFilled(false);
-		mplayer_thumb.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		mplayerThumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
+		mplayerThumb.setToolTipText(Messages.getString("FoldTab.61"));
+		mplayerThumb.setContentAreaFilled(false);
+		mplayerThumb.addItemListener((ItemEvent e) -> {
+			configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		if (configuration.isThumbnailGenerationEnabled()) {
-			mplayer_thumb.setEnabled(true);
+			mplayerThumb.setEnabled(true);
 		} else {
-			mplayer_thumb.setEnabled(false);
+			mplayerThumb.setEnabled(false);
 		}
 
 		// DVD ISO thumbnails
-		dvdiso_thumb = new JCheckBox(Messages.getString("FoldTab.19"), configuration.isDvdIsoThumbnails());
-		dvdiso_thumb.setContentAreaFilled(false);
-		dvdiso_thumb.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		dvdisoThumb = new JCheckBox(Messages.getString("FoldTab.19"), configuration.isDvdIsoThumbnails());
+		dvdisoThumb.setContentAreaFilled(false);
+		dvdisoThumb.addItemListener((ItemEvent e) -> {
+			configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED));
 		});
 
 		// Image thumbnails
-		image_thumb = new JCheckBox(Messages.getString("FoldTab.21"), configuration.getImageThumbnailsEnabled());
-		image_thumb.setContentAreaFilled(false);
-		image_thumb.addItemListener(new ItemListener() {
+		imageThumb = new JCheckBox(Messages.getString("FoldTab.21"), configuration.getImageThumbnailsEnabled());
+		imageThumb.setContentAreaFilled(false);
+		imageThumb.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setImageThumbnailsEnabled((e.getStateChange() == ItemEvent.SELECTED));
@@ -493,6 +478,17 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setHideEmptyFolders((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		// Use target file for symlinks
+		useSymlinksTargetFile = new JCheckBox(Messages.getString("FoldTab.useSymlinksTargetFile"), configuration.isUseSymlinksTargetFile());
+		useSymlinksTargetFile.setToolTipText(Messages.getString("FoldTab.useSymlinksTargetFileToolTip"));
+		useSymlinksTargetFile.setContentAreaFilled(false);
+		useSymlinksTargetFile.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setUseSymlinksTargetFile((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 

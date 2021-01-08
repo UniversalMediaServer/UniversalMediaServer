@@ -40,6 +40,6 @@ public class MLP extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "mlp" };
+		return new String[] {"mlp"};
 	}
 }

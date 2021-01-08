@@ -80,7 +80,7 @@ public final class TableTVSeries extends Tables {
 			condition = "IMDBID = " + sqlQuote((String) tvSeries.get("imdbID"));
 		}
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE " + condition + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching in " + TABLE_NAME + " with \"{}\" before set", query);
@@ -156,7 +156,7 @@ public final class TableTVSeries extends Tables {
 	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
 
 			if (trace) {
@@ -192,7 +192,7 @@ public final class TableTVSeries extends Tables {
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT * FROM " + TABLE_NAME + " WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {
@@ -226,7 +226,7 @@ public final class TableTVSeries extends Tables {
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
@@ -263,7 +263,7 @@ public final class TableTVSeries extends Tables {
 	public static List<HashMap<String, Object>> getAPIResultsBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + TableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataActors.TABLE_NAME + ".TVSERIESID " +
@@ -332,7 +332,7 @@ public final class TableTVSeries extends Tables {
 		}
 		String simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			TABLE_LOCK.writeLock().lock();
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement(
@@ -377,7 +377,7 @@ public final class TableTVSeries extends Tables {
 	 * @param imdbID the IMDb ID to remove
 	 */
 	public static void remove(final String imdbID) {
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "DELETE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID);
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
@@ -409,13 +409,11 @@ public final class TableTVSeries extends Tables {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
-					if (version < TABLE_VERSION) {
-//						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
+					if (version > TABLE_VERSION) {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}
@@ -435,7 +433,7 @@ public final class TableTVSeries extends Tables {
 	}
 
 	public static void updateThumbnailId(long id, int thumbId) {
-		try (Connection conn = database.getConnection()) {
+		try (Connection conn = DATABASE.getConnection()) {
 			TABLE_LOCK.writeLock().lock();
 			try (
 				PreparedStatement ps = conn.prepareStatement(

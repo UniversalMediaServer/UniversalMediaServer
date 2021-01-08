@@ -53,8 +53,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES_NOSORT_DEDUPED = 17;
 	private boolean isTVSeries = false;
 	private boolean isMovieFolder = false;
-	private String sqls[];
-	private int expectedOutputs[];
+	private String[] sqls;
+	private int[] expectedOutputs;
 	private DLNAMediaDatabase database;
 	private String displayNameOverride;
 	private ArrayList<String> populatedVirtualFoldersListFromDb;
@@ -65,7 +65,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this(name, new String[]{sql}, new int[]{expectedOutput});
 	}
 
-	public MediaLibraryFolder(String name, String sql[], int expectedOutput[]) {
+	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput) {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
@@ -76,7 +76,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		this(name, new String[]{sql}, new int[]{expectedOutput}, nameToDisplay);
 	}
 
-	public MediaLibraryFolder(String name, String sql[], int expectedOutput[], String nameToDisplay) {
+	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput, String nameToDisplay) {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
@@ -86,7 +86,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 	}
 
-	public MediaLibraryFolder(String name, String sql[], int expectedOutput[], String nameToDisplay, boolean isTVSeriesFolder, boolean isMoviesFolder) {
+	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput, String nameToDisplay, boolean isTVSeriesFolder, boolean isMoviesFolder) {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
@@ -457,7 +457,7 @@ LOGGER.info("2firstSql: " + firstSql);
 				default:
 					break;
 			}
-			
+
 			int[] filteredExpectedOutputsWithPrependedTexts = filteredExpectedOutputs.clone();
 			filteredExpectedOutputsWithPrependedTexts = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
 
@@ -513,13 +513,12 @@ LOGGER.info("2firstSql: " + firstSql);
 			}
 		}
 
-		if (expectedOutput == EPISODES && newVirtualFolders.size() == 1) {
-			// Skip adding season folders if there is only one season
-		} else {
+		// Skip adding season folders if there is only one season
+		if (!(expectedOutput == EPISODES && newVirtualFolders.size() == 1)) {
 			for (String virtualFolderName : newVirtualFolders) {
 				if (isTextOutputExpected(expectedOutput)) {
-					String sqls2[] = new String[sqls.length - 1];
-					int expectedOutputs2[] = new int[expectedOutputs.length - 1];
+					String[] sqls2 = new String[sqls.length - 1];
+					int[] expectedOutputs2 = new int[expectedOutputs.length - 1];
 					System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 					System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
 
@@ -533,7 +532,7 @@ LOGGER.info("2firstSql: " + firstSql);
 						String condition = "FILES.TVSEASON = '" + virtualFolderName + "' AND ";
 						episodesWithinSeasonQuery.insert(indexAfterWhere, condition);
 
-						sqls2 = new String[] { transformSQL(episodesWithinSeasonQuery.toString()) };
+						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
 						LOGGER.info("15 " + episodesWithinSeasonQuery.toString());
 
 						if (virtualFolderName.length() != 4) {
@@ -675,7 +674,7 @@ LOGGER.info("2firstSql: " + firstSql);
 
 						"ORDER BY " + TableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING DESC"
 					},
-					new int[]{ MediaLibraryFolder.MOVIE_FOLDERS, MediaLibraryFolder.FILES_NOSORT_DEDUPED }
+					new int[]{MediaLibraryFolder.MOVIE_FOLDERS, MediaLibraryFolder.FILES_NOSORT_DEDUPED}
 				);
 				addChild(recommendations);
 			}

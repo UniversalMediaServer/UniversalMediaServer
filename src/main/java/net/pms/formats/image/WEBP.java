@@ -23,7 +23,7 @@ package net.pms.formats.image;
  * A representation of the WebP file format.
  *
  * @since 9.8.2
- * 
+ *
  * @author valib
  */
 public class WEBP extends ImageBase {
@@ -41,7 +41,7 @@ public class WEBP extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "webp" };
+		return new String[] {"webp"};
 	}
 
 	/**

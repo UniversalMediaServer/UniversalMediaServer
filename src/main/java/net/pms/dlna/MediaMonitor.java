@@ -29,8 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static final ReentrantReadWriteLock fullyPlayedEntriesLock = new ReentrantReadWriteLock();
-	private static final HashMap<String, Boolean> fullyPlayedEntries = new HashMap<>();
+	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
+	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -108,15 +108,15 @@ public class MediaMonitor extends VirtualFolder {
 			Set<String> fullyPlayedPaths = null;
 			if (config.isHideEmptyFolders()) {
 				fullyPlayedPaths = new HashSet<>();
-				fullyPlayedEntriesLock.readLock().lock();
+				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 				try {
-					for (Entry<String, Boolean> entry : fullyPlayedEntries.entrySet()) {
+					for (Entry<String, Boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
 						if (entry.getValue()) {
 							fullyPlayedPaths.add(entry.getKey());
 						}
 					}
 				} finally {
-					fullyPlayedEntriesLock.readLock().unlock();
+					FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
 				}
 			}
 			for (File fileEntry : files) {
@@ -159,6 +159,17 @@ public class MediaMonitor extends VirtualFolder {
 		}
 
 		final RealFile realFile = (RealFile) resource;
+		String fullPathToFile = realFile.getFile().getAbsolutePath();
+
+		boolean isMonitored = false;
+		List<Path> foldersMonitored = configuration.getMonitoredFolders();
+		if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+			for (Path folderMonitored : foldersMonitored) {
+				if (fullPathToFile.contains(folderMonitored.toAbsolutePath().toString())) {
+					isMonitored = true;
+				}
+			}
+		}
 
 		// The total video duration in seconds
 		double fileDuration = 0;
@@ -201,101 +212,90 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
 			DLNAResource fileParent = realFile.getParent();
-			if (fileParent != null) {
-				boolean isMonitored = false;
-				List<Path> foldersMonitored = configuration.getMonitoredFolders();
-				if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
-					for (Path folderMonitored : foldersMonitored) {
-						if (realFile.getFile().getAbsolutePath().contains(folderMonitored.toAbsolutePath().toString())) {
-							isMonitored = true;
-						}
+			if (fileParent != null && isMonitored && !isFullyPlayed(fullPathToFile)) {
+				if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER && fullyPlayedAction != FullyPlayedAction.MOVE_TRASH) {
+					setFullyPlayed(fullPathToFile, true);
+					if (realFile.getMedia() != null) {
+						realFile.getMedia().setThumbready(false);
 					}
 				}
 
-				if (isMonitored && !isFullyPlayed(realFile.getFile().getAbsolutePath())) {
-					if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER && fullyPlayedAction != FullyPlayedAction.MOVE_TRASH) {
-						setFullyPlayed(realFile.getFile().getAbsolutePath(), true);
-						if (realFile.getMedia() != null) {
-							realFile.getMedia().setThumbready(false);
-						}
-					}
+				setDiscovered(false);
+				getChildren().clear();
 
-					setDiscovered(false);
-					getChildren().clear();
+				File playedFile = new File(fullPathToFile);
 
-					File playedFile = new File(realFile.getFile().getAbsolutePath());
+				if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
+					String oldDirectory = FileUtil.appendPathSeparator(playedFile.getAbsoluteFile().getParent());
+					String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
+					if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
+						// Move the video to a different folder
+						boolean moved = false;
+						File newFile = null;
 
-					if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
-						String oldDirectory = FileUtil.appendPathSeparator(playedFile.getAbsoluteFile().getParent());
-						String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
-						if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
-							// Move the video to a different folder
-							boolean moved = false;
-							File newFile = null;
+						try {
+							Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
+							LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+							newFile = new File(newDirectory + playedFile.getName());
+							moved = true;
+						} catch (IOException e) {
+							LOGGER.debug("Moving {} failed, trying again in 3 seconds: {}", playedFile.getName(), e.getMessage());
 
 							try {
+								Thread.sleep(3000);
 								Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
 								LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
 								newFile = new File(newDirectory + playedFile.getName());
 								moved = true;
-							} catch (IOException e) {
-								LOGGER.debug("Moving {} failed, trying again in 3 seconds: {}", playedFile.getName(), e.getMessage());
-
-								try {
-									Thread.sleep(3000);
-									Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
-									LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
-									newFile = new File(newDirectory + playedFile.getName());
-									moved = true;
-								} catch (InterruptedException e2) {
-									LOGGER.debug(
-										"Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}",
-										playedFile.getName(),
-										e2.getMessage()
-									);
-									Thread.currentThread().interrupt();
-								} catch (IOException e3) {
-									LOGGER.debug("Moving {} failed a second time: {}", playedFile.getName(), e3.getMessage());
-								}
+							} catch (InterruptedException e2) {
+								LOGGER.debug(
+									"Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}",
+									playedFile.getName(),
+									e2.getMessage()
+								);
+								Thread.currentThread().interrupt();
+							} catch (IOException e3) {
+								LOGGER.debug("Moving {} failed a second time: {}", playedFile.getName(), e3.getMessage());
 							}
-
-							if (moved) {
-								RootFolder.parseFileForDatabase(newFile);
-								setFullyPlayed(newDirectory + playedFile.getName(), true);
-							}
-						} else if (StringUtils.isBlank(newDirectory)) {
-							LOGGER.warn(
-								"Failed to move \"{}\" after being fully played because the folder to move to isn't configured",
-								playedFile.getName()
-							);
-						} else {
-							LOGGER.trace(
-								"Not moving \"{}\" after being fully played since it's already in the target folder \"{}\"",
-								playedFile.getName(),
-								newDirectory
-							);
 						}
-					} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
-						try {
-							if (Platform.isLinux()) {
-								FreedesktopTrash.moveToTrash(playedFile);
-							} else {
-								FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
-							}
-						} catch (IOException | FileUtil.InvalidFileSystemException e) {
-							LOGGER.warn(
-								"Failed to move file \"{}\" to recycler/trash after it has been fully played: {}",
-								playedFile.getAbsoluteFile(),
-								e.getMessage()
-							);
-							LOGGER.trace("", e);
+
+						if (moved) {
+							RootFolder.parseFileForDatabase(newFile);
+							setFullyPlayed(newDirectory + playedFile.getName(), true);
 						}
+					} else if (StringUtils.isBlank(newDirectory)) {
+						LOGGER.warn(
+							"Failed to move \"{}\" after being fully played because the folder to move to isn't configured",
+							playedFile.getName()
+						);
+					} else {
+						LOGGER.trace(
+							"Not moving \"{}\" after being fully played since it's already in the target folder \"{}\"",
+							playedFile.getName(),
+							newDirectory
+						);
 					}
-					LOGGER.info("{} marked as fully played", playedFile.getName());
+				} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
+					try {
+						if (Platform.isLinux()) {
+							FreedesktopTrash.moveToTrash(playedFile);
+						} else {
+							FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
+						}
+					} catch (IOException | FileUtil.InvalidFileSystemException e) {
+						LOGGER.warn(
+							"Failed to move file \"{}\" to recycler/trash after it has been fully played: {}",
+							playedFile.getAbsoluteFile(),
+							e.getMessage()
+						);
+						LOGGER.trace("", e);
+					}
 				}
+				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
-			LOGGER.trace("   final decision: not fully played");
+			TableFilesStatus.setLastPlayed(fullPathToFile);
+			LOGGER.trace("final decision: not fully played");
 		}
 	}
 
@@ -309,22 +309,22 @@ public class MediaMonitor extends VirtualFolder {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isFullyPlayed(String fullPathToFile) {
-		fullyPlayedEntriesLock.readLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 		Boolean fullyPlayed;
 		try {
-			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
 		} finally {
-			fullyPlayedEntriesLock.readLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
 		}
 		if (fullyPlayed != null) {
 			return fullyPlayed;
 		}
 
 		// The status isn't cached, add it
-		fullyPlayedEntriesLock.writeLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
 			// It could have been added between the locks, check again
-			fullyPlayed = fullyPlayedEntries.get(fullPathToFile);
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
 			if (fullyPlayed != null) {
 				return fullyPlayed;
 			}
@@ -334,10 +334,10 @@ public class MediaMonitor extends VirtualFolder {
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
-			fullyPlayedEntries.put(fullPathToFile, fullyPlayed);
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, fullyPlayed);
 			return fullyPlayed;
 		} finally {
-			fullyPlayedEntriesLock.writeLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -350,12 +350,13 @@ public class MediaMonitor extends VirtualFolder {
 	 *            played, {@code false} otherwise.
 	 */
 	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
-		fullyPlayedEntriesLock.writeLock().lock();
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
-			fullyPlayedEntries.put(fullPathToFile, isFullyPlayed);
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
+			TableFilesStatus.setLastPlayed(fullPathToFile);
 		} finally {
-			fullyPlayedEntriesLock.writeLock().unlock();
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
 	}
 

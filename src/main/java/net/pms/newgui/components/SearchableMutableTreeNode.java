@@ -92,8 +92,7 @@ public class SearchableMutableTreeNode extends DefaultMutableTreeNode {
 		return (String) super.getUserObject();
 	}
 
-    public SearchableMutableTreeNode getParent() {
-        return (SearchableMutableTreeNode) parent;
-    }
-
+	public SearchableMutableTreeNode getParent() {
+		return (SearchableMutableTreeNode) parent;
+	}
 }

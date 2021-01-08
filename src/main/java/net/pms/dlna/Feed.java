@@ -63,7 +63,7 @@ public class Feed extends DLNAResource {
 
 	public void parse() throws Exception {
 		SyndFeedInput input = new SyndFeedInput();
-		byte b[] = downloadAndSendBinary(url);
+		byte[] b = downloadAndSendBinary(url);
 		if (b != null) {
 			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
 			name = feed.getTitle();
@@ -114,12 +114,12 @@ public class Feed extends DLNAResource {
 				}
 			}
 		}
-		if ("thumbnail".equals(elt.getName()) && "media".equals(elt.getNamespacePrefix())
-				&& tempItemThumbURL == null) {
+		if ("thumbnail".equals(elt.getName()) && "media".equals(elt.getNamespacePrefix()) &&
+				tempItemThumbURL == null) {
 			tempItemThumbURL = elt.getAttribute("url").getValue();
 		}
-		if ("image".equals(elt.getName()) && "exInfo".equals(elt.getNamespacePrefix())
-				&& tempItemThumbURL == null) {
+		if ("image".equals(elt.getName()) && "exInfo".equals(elt.getNamespacePrefix()) &&
+				tempItemThumbURL == null) {
 			tempItemThumbURL = elt.getValue();
 		}
 	}

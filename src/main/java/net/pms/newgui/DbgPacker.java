@@ -76,8 +76,8 @@ public class DbgPacker implements ActionListener {
 			}
 			c.weightx = 1.0;
 			top.add(box, c);
-			CustomJButton open = exists ? new CustomJButton(MetalIconFactory.getTreeLeafIcon())
-					: new CustomJButton("+");
+			CustomJButton open = exists ? new CustomJButton(MetalIconFactory.getTreeLeafIcon()) :
+					new CustomJButton("+");
 			open.setActionCommand(file.getAbsolutePath());
 			open.setToolTipText((exists ? "" : Messages.getString("DbgPacker.1") + " ") + file.getAbsolutePath());
 			open.addActionListener(this);

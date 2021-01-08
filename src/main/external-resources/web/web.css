@@ -113,12 +113,36 @@ ul li a {
 	background: rgba(18, 18, 18, 0.8);
 }
 
+#FoldersContainer .category {
+	display: block;
+	padding: 15px 0 0 15px;
+}
+
 #Folders {
 	padding: 15px 0 0 0;
 }
 
-#Folders li:first-child span {
+.is-not-front-page #Folders li:first-child span {
 	margin-bottom: 12px;
+	margin: 5px 0 6px;
+	padding-top: 3px;
+	padding-bottom: 1px;
+}
+
+@media screen and (max-width: 1080px) {
+	#FoldersContainer {
+		margin-top: 50px;
+		width: 100%;
+	}
+
+	.is-front-page {
+		padding-top: 15px;
+	}
+
+	#FoldersContainer .category {
+		display: block;
+		padding: 0 0 0 15px;
+	}
 }
 
 ul#Folders li a {

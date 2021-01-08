@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
  * file-change notifications as opposed to directly polling or examining files.
- * 
+ *
  * @see https://docs.oracle.com/javase/tutorial/essential/io/examples/WatchDir.java
  */
 public class FileWatcher {
@@ -291,65 +291,67 @@ public class FileWatcher {
 		}
 
 		// Watch for subscribed file events
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					do {
-						// take() will block until events occur in our subscribed directories
-						WatchKey key = watchService.take();
-						try {
-							// Wait a bit in case there are a few repeats
-							Thread.sleep(100);
-						} catch (InterruptedException e) { }
-						// Filter the received directory event(s)
-						for (WatchEvent<?> e : key.pollEvents()) {
-							final WatchEvent.Kind<?> kind = e.kind();
-							if (kind != OVERFLOW) {
-								WatchEvent<Path> event = (WatchEvent<Path>) e;
-								// Determine the actual file
-								Path dir = (Path) key.watchable();
-								final Path filename = dir.resolve(event.context());
-								final boolean isDir;
-								if (!Files.exists(filename)) {
-									isDir = FileUtil.isDirectory(filename.toString());
-								} else {
-									isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/); 
-								}
+		new Thread(() -> {
+			try {
+				do {
+					// take() will block until events occur in our subscribed
+					// directories
+					WatchKey key = watchService.take();
+					try {
+						// Wait a bit in case there are a few repeats
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+					}
+					// Filter the received directory event(s)
+					for (WatchEvent<?> e : key.pollEvents()) {
+						final WatchEvent.Kind<?> kind = e.kind();
+						if (kind != OVERFLOW) {
+							WatchEvent<Path> event = (WatchEvent<Path>) e;
+							// Determine the actual file
+							Path path = (Path) key.watchable();
+							final Path filename = path.resolve(event.context());
+							final boolean isDir;
+							if (!Files.exists(filename)) {
+								isDir = FileUtil.isDirectory(filename.toString());
+							} else {
+								isDir = Files
+									.isDirectory(filename/* , NOFOLLOW_LINKS */);
+							}
 
-								// See if we're watching for this specific file
-								for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
-									final Watch w = iterator.next();
-									if (!Watch.isValid(w)) {
-										LOGGER.debug("Deleting expired file watch at {}: {}", dir, w.fspec);
-										iterator.remove();
-										continue;
-									}
-									if (w.matcher.matches(filename)) {
-										// We have an event of interest
-										LOGGER.debug("{} (ct={}): {}", kind, event.count(), filename);
-										if (isDir && kind == ENTRY_CREATE && Watch.isRecursive(w)) {
-											// It's a new directory in a recursive scope,
-											// traverse it to include any subdirs
-											addRecursive(w, filename);
-										} else {
-											// It's a regular event, schedule a notice
-											notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
-												kind == ENTRY_MODIFY ? 500 : 0);
-										}
+							// See if we're watching for this specific file
+							for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
+								final Watch w = iterator.next();
+								if (!Watch.isValid(w)) {
+									LOGGER.debug("Deleting expired file watch at {}: {}", path, w.fspec);
+									iterator.remove();
+									continue;
+								}
+								if (w.matcher.matches(filename)) {
+									// We have an event of interest
+									LOGGER.debug("{} (ct={}): {}", kind, event.count(), filename);
+									if (isDir && kind == ENTRY_CREATE && Watch.isRecursive(w)) {
+										// It's a new directory in a recursive
+										// scope,
+										// traverse it to include any subdirs
+										addRecursive(w, filename);
+									} else {
+										// It's a regular event, schedule a
+										// notice
+										notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
+											kind == ENTRY_MODIFY ? 500 : 0);
 									}
 								}
 							}
 						}
-						// Reset and clean up
-						if (!key.reset()) {
-							keys.remove(key);
-						}
-					} while (!keys.isEmpty());
-				} catch (Exception e) {
-					LOGGER.debug("Event process error: " + e);
-					e.printStackTrace();
-				}
+					}
+					// Reset and clean up
+					if (!key.reset()) {
+						keys.remove(key);
+					}
+				} while (!keys.isEmpty());
+			} catch (Exception e) {
+				LOGGER.debug("Event process error: " + e);
+				e.printStackTrace();
 			}
 		}, "File watcher").start();
 	}
