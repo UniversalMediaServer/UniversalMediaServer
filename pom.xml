@@ -117,6 +117,7 @@
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.7.0</junit5.version>
 		<com.sun.xml.bind-version>3.0.0</com.sun.xml.bind-version>
+		<checkstyle.config.location>CheckStyle.xml</checkstyle.config.location>		
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
