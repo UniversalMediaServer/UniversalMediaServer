@@ -13,10 +13,6 @@ Checkstyle configuration for Universal Media Server.
 	<property name="fileExtensions" value="java, xml"/>
 	<module name="SuppressWarningsFilter" />
 	<module name="SeverityMatchFilter" />
-	<module name="LineLength">
-		<property name="max" value="140"/>
-		<property name="tabWidth" value="4"/>
-	</module>	
 	<module name="TreeWalker">
 		<property name="tabWidth" value="4"/>
 		<module name="EmptyLineSeparator">
