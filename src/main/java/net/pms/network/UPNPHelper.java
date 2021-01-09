@@ -281,19 +281,21 @@ public class UPNPHelper extends UPNPControl {
 		ssdpSocket.setTimeToLive(32);
 
 		try {
-			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);
+			LOGGER.trace("Setting the SSDP network interface: {}", networkInterface);
 			ssdpSocket.setNetworkInterface(networkInterface);
 		} catch (SocketException ex) {
-			LOGGER.warn("Setting SSDP network interface failed: {}", ex);
-			NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-			if (confIntf != null) {
-				LOGGER.trace("Setting SSDP network interface from configuration: {}", confIntf);
-				try {
-					ssdpSocket.setNetworkInterface(confIntf);
-				} catch (SocketException ex2) {
-					LOGGER.warn("Setting SSDP network interface from configuration failed: {}", ex2);
-					throw new IOException(ex2);
+			LOGGER.warn("Setting the SSDP network interface failed: {}", ex);
+			LOGGER.trace("Trying to set the new network interface from network configuration");
+			try {
+				NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+				if (confIntf != null) {
+					LOGGER.trace("Setting the SSDP network interface from network configuration: {}", confIntf);
+					networkInterface = confIntf;
+					ssdpSocket.setNetworkInterface(networkInterface);
 				}
+			} catch (SocketException | UnknownHostException ex2) {
+				LOGGER.warn("Setting the SSDP network interface from configuration failed: {}", ex2);
+				throw new IOException(ex2);
 			}
 		}
 
