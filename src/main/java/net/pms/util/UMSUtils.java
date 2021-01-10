@@ -50,40 +50,59 @@ public class UMSUtils {
 		COLLATOR.setStrength(Collator.PRIMARY);
 	}
 
-	public static void postSearch(List<DLNAResource> files, String searchCriteria) {
-		if (files == null || searchCriteria == null) {
+	/**
+	 * Filters the list of resources in-place by removing all items that do
+	 * not match or contain searchString.
+	 *
+	 * @param resources
+	 * @param searchString
+	 * @param isExpectOneResult whether to only return one result
+	 * @param isExactMatch whether to only return exact matches
+	 */
+	public static void filterResourcesByName(List<DLNAResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
+		if (resources == null || searchString == null) {
 			return;
 		}
-		searchCriteria = searchCriteria.toLowerCase();
-		for (int i = files.size() - 1; i >= 0; i--) {
-			DLNAResource res = files.get(i);
+		searchString = searchString.toLowerCase();
+		for (int i = resources.size() - 1; i >= 0; i--) {
+			DLNAResource res = resources.get(i);
 
 			if (res.isSearched()) {
 				continue;
 			}
 
-			boolean keep = res.getName().toLowerCase().contains(searchCriteria);
-			final DLNAMediaInfo media = res.getMedia();
-
-			if (!keep && media != null && media.getAudioTracksList() != null) {
-				for (int j = 0; j < media.getAudioTracksList().size(); j++) {
-					DLNAMediaAudio audio = media.getAudioTracksList().get(j);
-					if (audio.getAlbum() != null) {
-						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
-					}
-					// TODO maciekberry: check whether it makes sense to use
-					// Album Artist
-					if (audio.getArtist() != null) {
-						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
-					}
-					if (audio.getSongname() != null) {
-						keep |= audio.getSongname().toLowerCase().contains(searchCriteria);
-					}
-				}
+			boolean keep;
+			if (isExactMatch) {
+				keep = res.getName().toLowerCase().equals(searchString);
+			} else {
+				keep = res.getName().toLowerCase().contains(searchString);
 			}
 
-			if (!keep) { // dump it
-				files.remove(i);
+			final DLNAMediaInfo media = res.getMedia();
+
+			if (keep && isExpectOneResult) {
+				resources.clear();
+				resources.add(res);
+				break;
+			}
+
+			if (!keep) {
+				if (media != null && media.getAudioTracksList() != null) {
+					for (int j = 0; j < media.getAudioTracksList().size(); j++) {
+						DLNAMediaAudio audio = media.getAudioTracksList().get(j);
+						if (audio.getAlbum() != null) {
+							keep |= audio.getAlbum().toLowerCase().contains(searchString);
+						}
+						//TODO maciekberry: check whether it makes sense to use Album Artist
+						if (audio.getArtist() != null) {
+							keep |= audio.getArtist().toLowerCase().contains(searchString);
+						}
+						if (audio.getSongname() != null) {
+							keep |= audio.getSongname().toLowerCase().contains(searchString);
+						}
+					}
+				}
+				resources.remove(i);
 			}
 		}
 	}
@@ -98,13 +117,26 @@ public class UMSUtils {
 	public static final int SORT_NO_SORT = 6;
 
 	/**
-	 * Sorts a list of files using a custom method.
+	 * Sorts a list of files using a custom method when the files are not episodes
+	 * within TV series folders of the Media Library.
 	 *
 	 * @param files
 	 * @param method
 	 * @see #sort(java.util.ArrayList, int)
 	 */
 	public static void sort(List<File> files, int method) {
+		sort(files, method, false);
+	}
+
+	/**
+	 * Sorts a list of files using a custom method.
+	 *
+	 * @param files
+	 * @param method
+	 * @param isEpisodeWithinTVSeriesFolder
+	 * @see #sort(java.util.ArrayList, int)
+	 */
+	public static void sort(List<File> files, int method, final boolean isEpisodeWithinTVSeriesFolder) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
 				break;
@@ -113,8 +145,8 @@ public class UMSUtils {
 
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
 
 						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
 					}
@@ -125,8 +157,8 @@ public class UMSUtils {
 
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
 
 						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 					}
@@ -159,8 +191,8 @@ public class UMSUtils {
 
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
 
 						return COLLATOR.compare(filename1ToSort, filename2ToSort);
 					}
