@@ -1,4 +1,4 @@
-10.0.0 - 2021-01- - Changes since 10.0.0-a1
+10.0.0 - 2021-01-12 - Changes since 10.0.0-a1
 
 	General:
 		Retry media lookups that failed due to transient errors
@@ -6,10 +6,24 @@
 	Renderers:
 		Improved support for Sony Bluray UBP-X800M2 (thanks, thechrisgregory!)
 		Fixed UPnP pushing via Panasonic TVs and Samsung Q9 TVs
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%)
+		English (United Kingdom) (32%)
+		Finnish (100%)
+		Greek (91%)
+		French (100%)
+		Japanese (99%)
+		Polish (100%)
+		Portuguese (100%)
+		Portuguese (Brazilian) (100%)
+		Romanian (99%)
+		Serbian (99%)
+		Turkish (100%)
 	Dependency updates:
 		Bump spotbugs-maven-plugin from 4.1.4 to 4.2.0
 
-10.0.0 - 2021-01- - Changes since 9.8.3
+10.0.0 - 2021-01-12 - Changes since 9.8.3
 
 	DLNA browsing:
 		When browsing a TV show in the Media Library, all videos across all seasons are visible.
@@ -41,6 +55,20 @@
 	Renderers:
 		Improved support for Sony Bluray UBP-X800M2 (thanks, thechrisgregory!)
 		Fixed UPnP pushing via Panasonic TVs and Samsung Q9 TVs
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%)
+		English (United Kingdom) (32%)
+		Finnish (100%)
+		Greek (91%)
+		French (100%)
+		Japanese (99%)
+		Polish (100%)
+		Portuguese (100%)
+		Portuguese (Brazilian) (100%)
+		Romanian (99%)
+		Serbian (99%)
+		Turkish (100%)
 	Dependency updates:
 		Bump jQuery from 1.12.0 to 3.5.1
 		Bump spotbugs-maven-plugin from 4.1.4 to 4.2.0
