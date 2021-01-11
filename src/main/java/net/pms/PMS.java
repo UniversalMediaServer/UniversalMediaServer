@@ -81,7 +81,6 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.h2.tools.ConvertTraceFile;
@@ -427,6 +426,7 @@ public class PMS {
 			Tables.checkTables();
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
+			LOGGER.trace("Error was: {}", e1);
 		}
 
 		// Log registered ImageIO plugins
@@ -533,7 +533,6 @@ public class PMS {
 
 		// init dbs
 		keysDb = new UmsKeysDb();
-		infoDb = new InfoDb();
 		codes = new CodeDb();
 		masterCode = null;
 
@@ -650,7 +649,7 @@ public class PMS {
 		}
 
 		if (web != null && web.getServer() != null) {
-			LOGGER.info("WEB interface is available at: " + web.getUrl());
+			LOGGER.info("Web interface is available at: " + web.getUrl());
 		}
 
 		// initialize the cache
@@ -857,7 +856,7 @@ public class PMS {
 	 */
 	@Nonnull
 	public static PMS get() {
-		// XXX when DMS is run as an application, the instance is initialized via the createInstance call in main().
+		// XXX when we run as an application, the instance is initialized via the createInstance call in main().
 		// However, plugin tests may need access to a DMS instance without going
 		// to the trouble of launching the DMS application, so we provide a fallback
 		// initialization here. Either way, createInstance() should only be called once (see below)
@@ -1103,30 +1102,6 @@ public class PMS {
 				LOGGER.trace("", e);
 			}
 		}
-	}
-
-	/**
-	 * Returns a similar TV series name from the database.
-	 *
-	 * @param title
-	 * @return
-	 */
-	public String getSimilarTVSeriesName(String title) {
-		if (title == null) {
-			return title;
-		}
-
-		title = FileUtil.getSimplifiedShowName(title);
-		title = StringEscapeUtils.escapeSql(title);
-
-		if (getConfiguration().getUseCache()) {
-			ArrayList<String> titleList = getDatabase().getStrings("SELECT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAMESIMPLE='" + title + "' LIMIT 1");
-			if (titleList.size() > 0) {
-				return titleList.get(0);
-			}
-		}
-
-		return "";
 	}
 
 	/**
@@ -1576,13 +1551,8 @@ public class PMS {
 		return get().globalRepo;
 	}
 
-	private InfoDb infoDb;
 	private CodeDb codes;
 	private CodeEnter masterCode;
-
-	public InfoDb infoDb() {
-		return infoDb;
-	}
 
 	public CodeDb codeDb() {
 		return codes;

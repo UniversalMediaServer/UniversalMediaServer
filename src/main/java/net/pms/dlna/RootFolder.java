@@ -74,7 +74,6 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private Playlist recentlyPlayed;
 	private ArrayList<DLNAResource> webFolders;
 
 	public RootFolder() {
@@ -129,26 +128,20 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.isShowRecentlyPlayedFolder()) {
-			recentlyPlayed = new Playlist(Messages.getString("VirtualFolder.1"),
-				PMS.getConfiguration().getDataFile("UMS.last"),
-				PMS.getConfiguration().getInt("last_play_limit", 250),
-				Playlist.PERMANENT | Playlist.AUTOSAVE);
-			addChild(recentlyPlayed, true, isAddGlobally);
-		}
+		if (configuration.getUseCache()) {
+			List<Path> foldersMonitored = configuration.getMonitoredFolders();
+			if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+				File[] dirs = new File[foldersMonitored.size()];
+				int i = 0;
+				for (Path folderMonitored : foldersMonitored) {
+					dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replaceAll("&comma;", ","));
+					i++;
+				}
+				mon = new MediaMonitor(dirs);
 
-		List<Path> foldersMonitored = configuration.getMonitoredFolders();
-		if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
-			File[] dirs = new File[foldersMonitored.size()];
-			int i = 0;
-			for (Path folderMonitored : foldersMonitored) {
-				dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replaceAll("&comma;", ","));
-				i++;
-			}
-			mon = new MediaMonitor(dirs);
-
-			if (configuration.isShowNewMediaFolder()) {
-				addChild(mon, true, isAddGlobally);
+				if (configuration.isShowNewMediaFolder()) {
+					addChild(mon, true, isAddGlobally);
+				}
 			}
 		}
 
@@ -652,7 +645,6 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac()) {
 			LOGGER.debug("Adding iPhoto folder");
-
 			Process process = null;
 			try {
 				// This command will show the XML files for recently opened iPhoto databases
@@ -1486,9 +1478,6 @@ public class RootFolder extends DLNAResource {
 	public void stopPlaying(DLNAResource res) {
 		if (mon != null) {
 			mon.stopped(res);
-		}
-		if (recentlyPlayed != null) {
-			recentlyPlayed.add(res);
 		}
 	}
 

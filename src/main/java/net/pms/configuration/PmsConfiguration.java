@@ -3926,7 +3926,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isUseInfoFromIMDb() {
-		return getBoolean(KEY_USE_IMDB_INFO, false) && isPrettifyFilenames();
+		return getBoolean(KEY_USE_IMDB_INFO, true);
 	}
 
 	public void setUseInfoFromIMDb(boolean value) {
@@ -4694,7 +4694,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Default port for the WEB interface.
+	 * Default port for the web interface.
 	 */
 	public int getWebPort() {
 		return getInt(KEY_WEB_PORT, 9001);

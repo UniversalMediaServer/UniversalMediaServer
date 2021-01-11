@@ -1,13 +1,13 @@
 ul#Folders {
-	background-color: #222;
 	display: block;
 	padding: 20px;
 	z-index: 1;
 }
 
-ul#Media {
+ul#Media,
+#TVSeriesContainer {
 	margin: 0 -20px 0 0;
-	padding: 20px 0 20px 20px;
+	padding: 20px 20px 20px 0;
 }
 
 #ContentPage #Menu {
@@ -27,3 +27,26 @@ ul#Media {
 	position: static;
 }
 
+#navbar {
+	background: rgba(28, 28, 28, 0.8);
+}
+
+.mediaInfo {
+	margin: 0 20px 0 0;
+}
+
+.browsePage .mediaInfo {
+	display: flex;
+}
+
+.mediaInfoText {
+	padding: 2px 20px
+}
+
+.browsePage .mediaInfoText {
+	margin-top: 60px;
+}
+
+.videoPage .mediaInfoText {
+	margin-top: 20px;
+}
