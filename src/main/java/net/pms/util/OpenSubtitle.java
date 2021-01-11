@@ -277,10 +277,6 @@ public class OpenSubtitle {
 					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
 					return "{ statusCode: \"" + status + "\", serverResponse: " + gson.toJson(errorMessage) + " }";
 			}
-		} catch (MalformedURLException ex) {
-			LOGGER.debug("" + ex);
-		} catch (IOException ex) {
-			LOGGER.debug("" + ex);
 		} finally {
 			if (connection != null) {
 				try {
@@ -1883,14 +1879,14 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Attempt to return information from OpenSubtitles about the file based on
+	 * Attempt to return information from our API about the file based on
 	 * the title or sanitized (prettified) filename.
 	 *
 	 * @param title title or filename
 	 *
 	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDb.
+	 *         if we couldn't find it.
 	 *
 	 * @throws IOException
 	 */
@@ -1913,14 +1909,14 @@ public class OpenSubtitle {
 	}
 
 	/**
-	 * Attempt to return information from OpenSubtitles about the file based on
+	 * Attempt to return information from our API about the file based on
 	 * the IMDb ID.
 	 *
 	 * @param imdb the IMDb ID
 	 *
 	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it on IMDb.
+	 *         if we couldn't find it.
 	 *
 	 * @throws IOException
 	 */
@@ -4965,25 +4961,31 @@ public class OpenSubtitle {
 				String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
 				Boolean isTVEpisodeBasedOnFilename = media.isTVEpisode();
 
-				if (isTVEpisodeBasedOnFilename) {
-					String unpaddedEpisodeNumber = tvEpisodeNumberFromFilename.startsWith("0") ? tvEpisodeNumberFromFilename.substring(1) : tvEpisodeNumberFromFilename;
-					metadataFromAPI = getInfo(file, null, yearFromFilename, tvSeasonFromFilename, unpaddedEpisodeNumber);
-				} else {
-					metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename, null, null);
-				}
-
-				if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
-					LOGGER.trace("Failed lookup for " + file.getName());
-					TableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""));
-
-					// File lookup failed, but before we return, attempt to enhance TV series data
+				try {
 					if (isTVEpisodeBasedOnFilename) {
-						setTVSeriesInfo(null, titleFromFilename, yearFromFilename, titleSimplifiedFromFilename, file);
+						String unpaddedEpisodeNumber = tvEpisodeNumberFromFilename.startsWith("0") ? tvEpisodeNumberFromFilename.substring(1) : tvEpisodeNumberFromFilename;
+						metadataFromAPI = getInfo(file, null, yearFromFilename, tvSeasonFromFilename, unpaddedEpisodeNumber);
+					} else {
+						metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename, null, null);
 					}
 
+					if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
+						LOGGER.trace("Failed lookup for " + file.getName());
+						TableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""));
+
+						// File lookup failed, but before we return, attempt to enhance TV series data
+						if (isTVEpisodeBasedOnFilename) {
+							setTVSeriesInfo(null, titleFromFilename, yearFromFilename, titleSimplifiedFromFilename, file);
+						}
+
+						return;
+					} else if (overTheTopLogging) {
+						LOGGER.trace("Found an API match for " + file.getName());
+					}
+				} catch (IOException ex) {
+					// this likely means a transient error so don't store the failure, to allow retries
+					LOGGER.debug("Likely transient error", ex);
 					return;
-				} else if (overTheTopLogging) {
-					LOGGER.trace("Found an API match for " + file.getName());
 				}
 
 				String typeFromAPI = (String) metadataFromAPI.get("type");
@@ -5152,7 +5154,7 @@ public class OpenSubtitle {
 					}
 					TableVideoMetadataReleased.set(file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
 				}
-			} catch (IOException | SQLException ex) {
+			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
 				frame.setStatusLine("");
