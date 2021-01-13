@@ -317,8 +317,6 @@ public class DLNAMediaDatabase implements Runnable {
 				executeUpdate(conn, "DROP TABLE METADATA");
 				LOGGER.trace("DROPPING TABLE REGEXP_RULES");
 				executeUpdate(conn, "DROP TABLE REGEXP_RULES");
-				LOGGER.trace("DROPPING TABLE AUDIOTRACKS");
-				executeUpdate(conn, "DROP TABLE AUDIOTRACKS");
 				LOGGER.trace("DROPPING TABLE SUBTRACKS");
 				executeUpdate(conn, "DROP TABLE SUBTRACKS");
 			} catch (SQLException se) {
@@ -374,33 +372,6 @@ public class DLNAMediaDatabase implements Runnable {
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
-				sb.append("CREATE TABLE AUDIOTRACKS (");
-				sb.append("  ID                INT              NOT NULL");
-				sb.append(", FILEID            BIGINT           NOT NULL");
-				sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
-				sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", NRAUDIOCHANNELS   NUMERIC");
-				sb.append(", SAMPLEFREQ        VARCHAR2(").append(SIZE_SAMPLEFREQ).append(')');
-				sb.append(", CODECA            VARCHAR2(").append(SIZE_CODECA).append(')');
-				sb.append(", BITSPERSAMPLE     INT");
-				sb.append(", ALBUM             VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ARTIST            VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", ALBUMARTIST       VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", SONGNAME          VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
-				sb.append(", YEAR              INT");
-				sb.append(", TRACK             INT");
-				sb.append(", DELAY             INT");
-				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
-				sb.append(", BITRATE           INT");
-				sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
-				sb.append(", FOREIGN KEY(FILEID)");
-				sb.append("    REFERENCES FILES(ID)");
-				sb.append("    ON DELETE CASCADE");
-				sb.append(')');
-				LOGGER.trace("Creating table AUDIOTRACKS with:\n\n{}\n", sb.toString());
-				executeUpdate(conn, sb.toString());
-				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
 				sb.append("  ID       INT              NOT NULL");
 				sb.append(", FILEID   BIGINT           NOT NULL");
@@ -450,21 +421,6 @@ public class DLNAMediaDatabase implements Runnable {
 
 				LOGGER.trace("Creating index TYPE_MODIFIED");
 				executeUpdate(conn, "CREATE INDEX TYPE_MODIFIED on FILES (TYPE, MODIFIED)");
-
-				LOGGER.trace("Creating index IDXARTIST");
-				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
-
-				LOGGER.trace("Creating index IDXALBUMARTIST");
-				executeUpdate(conn, "CREATE INDEX IDXALBUMARTIST on AUDIOTRACKS (ALBUMARTIST asc);");
-
-				LOGGER.trace("Creating index IDXALBUM");
-				executeUpdate(conn, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
-
-				LOGGER.trace("Creating index IDXGENRE");
-				executeUpdate(conn, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
-
-				LOGGER.trace("Creating index IDXYEAR");
-				executeUpdate(conn, "CREATE INDEX IDXYEAR on AUDIOTRACKS (YEAR asc);");
 
 				LOGGER.trace("Creating table REGEXP_RULES");
 				executeUpdate(conn, "CREATE TABLE REGEXP_RULES ( ID VARCHAR2(255) PRIMARY KEY, RULE VARCHAR2(255), ORDR NUMERIC);");
@@ -662,6 +618,8 @@ public class DLNAMediaDatabase implements Runnable {
 								audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
 								audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
 								audio.setBitRate(elements.getInt("BITRATE"));
+								audio.setMbidRecord(elements.getString("MBID_RECORD"));
+								audio.setMbidTrack(elements.getString("MBID_TRACK"));
 								media.getAudioTracksList().add(audio);
 							}
 						}
@@ -781,13 +739,13 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
-			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE";
+			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK";
 
 		TABLE_LOCK.writeLock().lock();
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
-					"FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
+					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
 					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, " +
 					"DELAY, MUXINGMODE, BITRATE " +
 				"FROM AUDIOTRACKS " +
@@ -806,6 +764,8 @@ public class DLNAMediaDatabase implements Runnable {
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
 					if (rs.next()) {
+						rs.updateString("MBID_RECORD", left(trimToEmpty(audioTrack.getMbidRecord()), SIZE_MAX));
+						rs.updateString("MBID_TRACK", left(trimToEmpty(audioTrack.getMbidTrack()), SIZE_MAX));
 						rs.updateString("LANG", left(audioTrack.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(audioTrack.getAudioTrackTitleFromMetadata(), SIZE_MAX));
 						rs.updateInt("NRAUDIOCHANNELS", audioTrack.getAudioProperties().getNumberOfChannels());
@@ -859,6 +819,8 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setInt(16, audioTrack.getAudioProperties().getAudioDelay());
 						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
 						insertStatement.setInt(18, audioTrack.getBitRate());
+						insertStatement.setString(19, audioTrack.getMbidRecord());
+						insertStatement.setString(20, audioTrack.getMbidTrack());
 						insertStatement.executeUpdate();
 					}
 				}
