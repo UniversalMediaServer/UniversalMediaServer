@@ -245,8 +245,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 			firstSql = sqls[0];
 			expectedOutput = expectedOutputs[0];
 
-LOGGER.info("2expectedOutput: " + expectedOutput);
-LOGGER.info("2firstSql: " + firstSql);
+LOGGER.trace("2expectedOutput: " + expectedOutput);
+LOGGER.trace("2firstSql: " + firstSql);
 			if (firstSql != null) {
 				firstSql = transformSQL(firstSql);
 				switch (expectedOutput) {
@@ -285,7 +285,7 @@ LOGGER.info("2firstSql: " + firstSql);
 
 						int indexBeforeOrderByInFirstQuery = seasonsQuery.indexOf(orderByString);
 						seasonsQuery.replace(indexBeforeOrderByInFirstQuery, seasonsQuery.length(), orderBySection);
-						LOGGER.info("11 " + seasonsQuery.toString());
+						LOGGER.trace("11 " + seasonsQuery.toString());
 						virtualFoldersListFromDb = database.getStrings(seasonsQuery.toString());
 						populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 						break;
@@ -533,7 +533,7 @@ LOGGER.info("2firstSql: " + firstSql);
 						episodesWithinSeasonQuery.insert(indexAfterWhere, condition);
 
 						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
-						LOGGER.info("15 " + episodesWithinSeasonQuery.toString());
+						LOGGER.trace("15 " + episodesWithinSeasonQuery.toString());
 
 						if (virtualFolderName.length() != 4) {
 							nameToDisplay = Messages.getString("VirtualFolder.6") + " " + virtualFolderName;
