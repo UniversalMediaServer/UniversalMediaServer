@@ -222,14 +222,34 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	public static void sendAlive() {
 		LOGGER.debug("Sending ALIVE...");
-		for (String nt : NT_LIST) {
-			try {
+		MulticastSocket multicastSocket = null;
+
+		try {
+			multicastSocket = getNewMulticastSocket();
+			InetAddress upnpAddress = getIPv4MulticastAddress();
+			multicastSocket.joinGroup(upnpAddress);
+
+			for (String nt: NT_LIST) {
 				sendMessage(multicastSocket, nt, ALIVE);
-			} catch (IOException e) {
-				LOGGER.trace("Error when sending the ALIVE message: {}", e);
+			}
+		} catch (IOException e) {
+			LOGGER.debug("Error sending ALIVE message", e);
+		} finally {
+			if (multicastSocket != null) {
+				// Clean up the multicast socket nicely
+				try {
+					InetAddress upnpAddress = getIPv4MulticastAddress();
+					multicastSocket.leaveGroup(upnpAddress);
+				} catch (IOException e) {
+				}
+
+				multicastSocket.disconnect();
+				multicastSocket.close();
 			}
 		}
 	}
+
+	static boolean multicastLog = true;
 
 	/**
 	 * Gets the new multicast socket.
@@ -238,7 +258,7 @@ public class UPNPHelper extends UPNPControl {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static MulticastSocket getNewMulticastSocket() throws IOException {
-		networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+		NetworkInterface networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
 		if (networkInterface == null) {
 			try {
@@ -263,19 +283,7 @@ public class UPNPHelper extends UPNPControl {
 			throw new IOException("No usable network interface found for UPnP multicast");
 		}
 
-		// Use configurable source port as per
-		// http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-		// XXX this should not be configurable because it breaks the standard
-		MulticastSocket ssdpSocket = null;
-		try {
-			ssdpSocket = new MulticastSocket(CONFIGURATION.getUpnpPort());
-		} catch (IOException e) {
-			LOGGER.error("Unable to bind multicast socket to port: " + CONFIGURATION.getUpnpPort() +
-				", which means that UMS will not automatically appear on your renderer! " +
-				"This usually means that another program occupies the port. Please " +
-				"stop the UMS and the other program to free up the port and start the UMS again.");
-			throw new IOException(e);
-		}
+		MulticastSocket ssdpSocket = new MulticastSocket(CONFIGURATION.getUpnpPort());
 
 		ssdpSocket.setReuseAddress(true);
 		// In the UPnP standard is written:
@@ -298,7 +306,6 @@ public class UPNPHelper extends UPNPControl {
 					ssdpSocket.setNetworkInterface(confIntf);
 				} catch (SocketException ex2) {
 					LOGGER.warn("Setting SSDP network interface from configuration failed: {}", ex2);
-					throw new IOException(ex2);
 				}
 			}
 		}
@@ -367,7 +374,8 @@ public class UPNPHelper extends UPNPControl {
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF +
 		// StringUtils.replace(msg, CRLF, "<CRLF>")));
 
-		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), socketAddress);
+		InetAddress upnpAddress = getIPv4MulticastAddress();
+		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
 
 		/**
 		 * Requirement [7.2.4.1]: UPnP endpoints (devices and control points)
@@ -405,8 +413,41 @@ public class UPNPHelper extends UPNPControl {
 		aliveThread.start();
 
 		Runnable r = () -> {
+			boolean bindErrorReported = false;
 			while (true) {
+				MulticastSocket multicastSocket = null;
 				try {
+					// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
+					multicastSocket = new MulticastSocket(CONFIGURATION.getUpnpPort());
+
+					if (bindErrorReported) {
+						LOGGER.warn("Finally, acquiring port {} was successful!", CONFIGURATION.getUpnpPort());
+					}
+
+					NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+
+					try {
+						/**
+						 * Setting the network interface will throw a SocketException on Mac OS X
+						 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
+						 * configurations will not listen at all.
+						 */
+						if (ni != null) {
+							multicastSocket.setNetworkInterface(ni);
+							LOGGER.trace("Setting multicast network interface: {}", ni);
+						} else if (PMS.get().getServer().getNetworkInterface() != null) {
+							multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+							LOGGER.trace("Setting multicast network interface: {}", PMS.get().getServer().getNetworkInterface());
+						}
+					} catch (SocketException e) {
+						// Not setting the network interface will work just fine on Mac OS X.
+					}
+
+					multicastSocket.setTimeToLive(4);
+					multicastSocket.setReuseAddress(true);
+					InetAddress upnpAddress = getIPv4MulticastAddress();
+					multicastSocket.joinGroup(upnpAddress);
+
 					final int mSearch = 1;
 					final int notify = 2;
 					InetAddress lastAddress = null;
@@ -423,60 +464,54 @@ public class UPNPHelper extends UPNPControl {
 						InetAddress address = receivePacket.getAddress();
 						int packetType = s.startsWith("M-SEARCH") ? mSearch : s.startsWith("NOTIFY") ? notify : 0;
 
-						long currentTime = System.currentTimeMillis();
-						/*
-						 * Do not respond to a message if it: - Is from the
-						 * same address as the last message, and - Is the
-						 * same packet type as the last message, and - Has
-						 * happened within 10 seconds of the last valid
-						 * message
-						 */
-						boolean redundant = address.equals(lastAddress) && packetType == lastPacketType &&
-							currentTime < (lastValidPacketReceivedTime + 10 * 1000);
-						// Is the request from our own server, i.e.
-						// self-originating?
-						boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
+						boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
 
-						if (CONFIGURATION.getIpFiltering().allowed(address) && !isSelf && isNotIgnoredDevice(s)) {
-							String remoteAddr = address.getHostAddress();
-							int remotePort = receivePacket.getPort();
-							if (!redundant) {
-								if (packetType == mSearch || packetType == notify) {
-									if (LOGGER.isTraceEnabled()) {
-										String requestType = "";
-										if (packetType == mSearch) {
-											requestType = "M-SEARCH";
-										} else if (packetType == notify) {
-											requestType = "NOTIFY";
-										}
-										LOGGER.trace("Received a {} from [{}:{}]: {}", requestType, remoteAddr, remotePort, s);
-									}
+						if (packetType == mSearch) {
+							if (CONFIGURATION.getIpFiltering().allowed(address)) {
+								String remoteAddr = address.getHostAddress();
+								int remotePort = receivePacket.getPort();
+								if (!redundant && LOGGER.isTraceEnabled()) {
+									LOGGER.trace("Received a M-SEARCH from [{}:{}]: {}", remoteAddr, remotePort, s);
+								}
 
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-									}
+								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
+									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
+								}
 
-									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
-										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
-									}
+								if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
+									sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
+								}
 
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
-											StringUtils.indexOf(s, "ssdp:all") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
+								if (
+									StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0 ||
+									StringUtils.indexOf(s, "ssdp:all") > 0
+								) {
+									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+								}
 
-									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
-										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
-									}
-								} else {
-									LOGGER.trace("Received an unrecognized request from [{}:{}]: {}", remoteAddr, remotePort, s);
+								if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
+									sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 								}
 								lastValidPacketReceivedTime = System.currentTimeMillis();
 							}
+						// Don't log redundant notify messages
+						} else if (packetType == notify && !redundant && LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Received a NOTIFY from [{}:{}]", address.getHostAddress(), receivePacket.getPort());
 						}
 						lastAddress = address;
 						lastPacketType = packetType;
 					}
+				} catch (BindException e) {
+					if (!bindErrorReported) {
+						LOGGER.error("Unable to bind to " + CONFIGURATION.getUpnpPort()
+						+ ", which means that UMS will not automatically appear on your renderer! "
+						+ "This usually means that another program occupies the port. Please "
+						+ "stop the other program and free up the port. "
+						+ "UMS will keep trying to bind to it...[{}]", e.getMessage());
+					}
+
+					bindErrorReported = true;
+					sleep(5000);
 				} catch (IOException e) {
 					LOGGER.error("UPnP network exception: {}", e.getMessage());
 					LOGGER.trace("", e);
@@ -485,7 +520,8 @@ public class UPNPHelper extends UPNPControl {
 					if (multicastSocket != null) {
 					// Clean up the multicast socket nicely
 						try {
-							multicastSocket.leaveGroup(socketAddress, networkInterface);
+							InetAddress upnpAddress = getIPv4MulticastAddress();
+							multicastSocket.leaveGroup(upnpAddress);
 						} catch (IOException e) {
 							LOGGER.trace("Final UPnP network exception: {}", e.getMessage());
 							LOGGER.trace("", e);
