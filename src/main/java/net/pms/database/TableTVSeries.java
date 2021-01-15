@@ -239,9 +239,7 @@ public final class TableTVSeries extends Tables {
 			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
-					LOGGER.info("executed query for " + title);
 					if (resultSet.next()) {
-						LOGGER.info("got result for " + title);
 						return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 					}
 				}
