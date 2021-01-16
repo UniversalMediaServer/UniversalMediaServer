@@ -79,7 +79,7 @@ public class Wizard {
 
 		if (whetherToSelectDefaultOptions == JOptionPane.YES_OPTION || whetherToSelectDefaultOptions == JOptionPane.CLOSED_OPTION) {
 			configuration.setMinimized(false);
-			configuration.setMaximumBitrate("90");
+			configuration.setAutomaticMaximumBitrate(true);
 			configuration.setMPEG2MainSettings("Automatic (Wired)");
 			configuration.setx264ConstantRateFactor("Automatic (Wired)");
 			configuration.setHideAdvancedOptions(true);
@@ -221,4 +221,3 @@ public class Wizard {
 		}
 	}
 }
-
