@@ -66,11 +66,6 @@ public class Wizard {
 				Messages.getString("Wizard.10")
 			};
 
-		Object[] defaultOptions = {
-			Messages.getString("Dialog.YES"),
-			Messages.getString("Dialog.NO")
-		};
-
 		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
 			null,
 			Messages.getString("Wizard.13"),
@@ -78,8 +73,8 @@ public class Wizard {
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.QUESTION_MESSAGE,
 			null,
-			defaultOptions,
-			defaultOptions[1]
+			yesNoOptions,
+			yesNoOptions[1]
 		);
 
 		if (whetherToSelectDefaultOptions == JOptionPane.YES_OPTION) {
@@ -89,16 +84,6 @@ public class Wizard {
 			configuration.setx264ConstantRateFactor("Automatic (Wired)");
 			configuration.setHideAdvancedOptions(true);
 			configuration.setScanSharedFoldersOnStartup(true);
-
-			// The wizard finished, do not ask them again
-			configuration.setRunWizard(false);
-
-			// Save all changes
-			try {
-				configuration.save();
-			} catch (ConfigurationException e) {
-				LOGGER.error("Error when saving changed configuration: ", e);
-			}
 		} else if (whetherToSelectDefaultOptions == JOptionPane.NO_OPTION) {
 			// Ask if they want UMS to start minimized
 			int whetherToStartMinimized = JOptionPane.showOptionDialog(
@@ -223,16 +208,16 @@ public class Wizard {
 			} catch (InterruptedException | InvocationTargetException e) {
 				LOGGER.error("Error when saving folders: ", e);
 			}
+		}
 
-			// The wizard finished, do not ask them again
-			configuration.setRunWizard(false);
+		// The wizard finished, do not ask them again
+		configuration.setRunWizard(false);
 
-			// Save all changes
-			try {
-				configuration.save();
-			} catch (ConfigurationException e) {
-				LOGGER.error("Error when saving changed configuration: ", e);
-			}
+		// Save all changes
+		try {
+			configuration.save();
+		} catch (ConfigurationException e) {
+			LOGGER.error("Error when saving changed configuration: ", e);
 		}
 	}
 }
