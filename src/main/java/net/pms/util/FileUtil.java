@@ -1083,6 +1083,10 @@ public class FileUtil {
 	}
 
 	public static int indexOf(Pattern pattern, String s) {
+		if (isBlank(s)) {
+			return -1;
+		}
+
 		Matcher matcher = pattern.matcher(s);
 		return matcher.find() ? matcher.start() : -1;
 	}
