@@ -89,7 +89,7 @@ public class Wizard {
 			configuration.setx264ConstantRateFactor("Automatic (Wired)");
 			configuration.setHideAdvancedOptions(true);
 			configuration.setScanSharedFoldersOnStartup(true);
-			
+
 			// The wizard finished, do not ask them again
 			configuration.setRunWizard(false);
 
