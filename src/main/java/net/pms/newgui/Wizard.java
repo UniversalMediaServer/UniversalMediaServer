@@ -72,13 +72,13 @@ public class Wizard {
 		};
 
 		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
-			null, 
-			Messages.getString("Wizard.13"), 
-			String.format(status, currentQuestionNumber++), 
+			null,
+			Messages.getString("Wizard.13"),
+			String.format(status, currentQuestionNumber++),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.QUESTION_MESSAGE,
-			null, 
-			defaultOptions, 
+			null,
+			defaultOptions,
 			defaultOptions[1]
 		);
 
@@ -89,10 +89,10 @@ public class Wizard {
 			configuration.setx264ConstantRateFactor("Automatic (Wired)");
 			configuration.setHideAdvancedOptions(true);
 			configuration.setScanSharedFoldersOnStartup(true);
-				
+			
 			// The wizard finished, do not ask them again
 			configuration.setRunWizard(false);
-	
+
 			// Save all changes
 			try {
 				configuration.save();
