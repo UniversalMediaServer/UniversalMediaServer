@@ -77,14 +77,14 @@ public class Wizard {
 			yesNoOptions[1]
 		);
 
-		if (whetherToSelectDefaultOptions == JOptionPane.YES_OPTION) {
+		if (whetherToSelectDefaultOptions == JOptionPane.YES_OPTION || whetherToSelectDefaultOptions == JOptionPane.CLOSED_OPTION) {
 			configuration.setMinimized(false);
 			configuration.setMaximumBitrate("90");
 			configuration.setMPEG2MainSettings("Automatic (Wired)");
 			configuration.setx264ConstantRateFactor("Automatic (Wired)");
 			configuration.setHideAdvancedOptions(true);
 			configuration.setScanSharedFoldersOnStartup(true);
-		} else if (whetherToSelectDefaultOptions == JOptionPane.NO_OPTION) {
+		} else {
 			// Ask if they want UMS to start minimized
 			int whetherToStartMinimized = JOptionPane.showOptionDialog(
 				null,
