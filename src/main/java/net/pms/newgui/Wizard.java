@@ -66,6 +66,22 @@ public class Wizard {
 				Messages.getString("Wizard.10")
 			};
 
+		Object[] defaultOptions = {
+			Messages.getString("Dialog.YES"),
+			Messages.getString("Dialog.NO")
+		};
+
+		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
+			null, 
+			Messages.getString("Wizard.13"), 
+			String.format(status, currentQuestionNumber++), 
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.QUESTION_MESSAGE,
+			null, 
+			defaultOptions, 
+			defaultOptions[1]
+		);
+
 		// Ask if they want UMS to start minimized
 		int whetherToStartMinimized = JOptionPane.showOptionDialog(
 			null,
