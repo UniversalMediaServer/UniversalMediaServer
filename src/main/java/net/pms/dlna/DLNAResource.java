@@ -2479,6 +2479,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
 		} else {
+			/**
+			 * videoItem is used for recorded videos but does not support
+			 * properties like episodeNumber, seriesTitle, etc.
+			 *
+			 * @see page 251 of http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
+			 */
 			uclass = "object.item.videoItem";
 		}
 
