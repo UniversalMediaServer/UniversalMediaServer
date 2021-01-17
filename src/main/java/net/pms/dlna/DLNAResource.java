@@ -2185,10 +2185,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
 			}
 			if (isNotBlank(media.getMovieOrShowName())) {
-				addXMLTagAndAttribute(sb, "upnp:seriesTitle", media.getMovieOrShowName());
+				addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(media.getMovieOrShowName()));
 			}
 			if (isNotBlank(media.getTVEpisodeName())) {
-				addXMLTagAndAttribute(sb, "upnp:programTitle", media.getTVEpisodeName());
+				addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(media.getTVEpisodeName()));
 			}
 		}
 
