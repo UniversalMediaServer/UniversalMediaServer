@@ -24,6 +24,9 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -39,6 +42,7 @@ import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.model.types.UDN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Helper class to handle the UPnP traffic that makes UMS discoverable by other
@@ -752,6 +756,17 @@ public class UPNPHelper extends UPNPControl {
 				if (item.name != null) {
 					state.name = item.name;
 				}
+
+				try {
+					LOGGER.trace(
+						"The unescaped DIDL string sent for pushing meadia is:\n{}",
+						StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(item.metadata), StandardCharsets.UTF_8, 2)
+					);
+				} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+					LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
+					LOGGER.trace("", e);
+				}
+
 				UPNPControl.setAVTransportURI(dev, instanceID, item.uri, renderer.isPushMetadata() ? item.metadata : null);
 			}
 		}
