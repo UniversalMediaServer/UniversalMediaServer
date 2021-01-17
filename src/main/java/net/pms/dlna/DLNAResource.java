@@ -2177,6 +2177,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
+		if (media != null && media.isTVEpisode()) {
+			if (isNotBlank(media.getTVSeason())) {
+				addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
+			}
+			if (isNotBlank(media.getTVEpisodeNumber())) {
+				addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
+			}
+			if (isNotBlank(media.getMovieOrShowName())) {
+				addXMLTagAndAttribute(sb, "upnp:seriesTitle", media.getMovieOrShowName());
+			}
+			if (isNotBlank(media.getTVEpisodeName())) {
+				addXMLTagAndAttribute(sb, "upnp:programTitle", media.getTVEpisodeName());
+			}
+		}
+
 		MediaType mediaType = media != null ? media.getMediaType() : MediaType.UNKNOWN;
 		if (!isFolder && mediaType == MediaType.IMAGE) {
 			appendImage(sb, mediaRenderer);
@@ -2454,7 +2469,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			format.isAudio()
 		) {
 			uclass = "object.item.audioItem.musicTrack";
+		} else if (
+			media != null &&
+			(
+				media.isTVEpisode() ||
+				isNotBlank(media.getYear())
+			)
+		) {
+			// videoItem.movie is used for TV episodes and movies
+			uclass = "object.item.videoItem.movie";
 		} else {
+			/**
+			 * videoItem is used for recorded videos but does not support
+			 * properties like episodeNumber, seriesTitle, etc.
+			 *
+			 * @see page 251 of http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
+			 */
 			uclass = "object.item.videoItem";
 		}
 
