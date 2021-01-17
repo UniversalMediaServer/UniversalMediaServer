@@ -2469,8 +2469,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			format.isAudio()
 		) {
 			uclass = "object.item.audioItem.musicTrack";
-		} else {
+		} else if (
+			media != null &&
+			(
+				media.isTVEpisode() ||
+				isNotBlank(media.getYear())
+			)
+		) {
+			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
+		} else {
+			uclass = "object.item.videoItem";
 		}
 
 		addXMLTagAndAttribute(sb, "upnp:class", uclass);
