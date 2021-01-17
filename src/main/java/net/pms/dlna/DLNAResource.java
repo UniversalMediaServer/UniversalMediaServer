@@ -2182,7 +2182,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
 			}
 			if (isNotBlank(media.getTVEpisodeNumber())) {
-				addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumber());
+				addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
 			}
 			if (isNotBlank(media.getMovieOrShowName())) {
 				addXMLTagAndAttribute(sb, "upnp:seriesTitle", media.getMovieOrShowName());
@@ -2469,10 +2469,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			format.isAudio()
 		) {
 			uclass = "object.item.audioItem.musicTrack";
-		} else if (media != null && media.isTVEpisode()) {
-			uclass = "object.item.epgItem.videoProgram";
 		} else {
-			uclass = "object.item.videoItem";
+			uclass = "object.item.videoItem.movie";
 		}
 
 		addXMLTagAndAttribute(sb, "upnp:class", uclass);

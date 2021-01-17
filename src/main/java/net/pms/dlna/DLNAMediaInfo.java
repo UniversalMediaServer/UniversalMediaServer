@@ -2209,6 +2209,13 @@ public class DLNAMediaInfo implements Cloneable {
 		return tvEpisodeNumber;
 	}
 
+	public String getTVEpisodeNumberUnpadded() {
+		if (tvEpisodeNumber.length() > 1 && tvEpisodeNumber.startsWith("0")) {
+			return tvEpisodeNumber.substring(1);
+		}
+		return tvEpisodeNumber;
+	}
+
 	public void setTVEpisodeNumber(String value) {
 		this.tvEpisodeNumber = value;
 	}
