@@ -1763,7 +1763,12 @@ public class OpenSubtitle {
 		String apiResult = null;
 		if (file != null) {
 			path = file.toPath();
-			apiResult = getInfoFromOSDbHash(getHash(path), file.length(), year, season, episodeNumber);
+			String osdbHash = getHash(path);
+			if (isNotBlank(osdbHash)) {
+				apiResult = getInfoFromOSDbHash(getHash(path), file.length(), year, season, episodeNumber);
+			} else {
+				LOGGER.trace("OSDb hash was blank for " + path);
+			}
 		}
 		if (apiResult == null || apiResult.contains("statusCode")) { // no good on hash! try imdb
 			String imdbID = ImdbUtil.extractImdbId(path, false);
@@ -1862,7 +1867,7 @@ public class OpenSubtitle {
 	 */
 	private static String getInfoFromOSDbHash(String hash, long size, String year, String season, String episodeNumber) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
-		List getParameters = new ArrayList();
+		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(year)) {
 			getParameters.add("year=" + year);
 		}
@@ -1894,7 +1899,7 @@ public class OpenSubtitle {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		String endpoint = isSeries ? "seriestitle" : "title";
 
-		List getParameters = new ArrayList();
+		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(title)) {
 			title = URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
 			getParameters.add("title=" + title);
@@ -1923,7 +1928,7 @@ public class OpenSubtitle {
 	private static String getInfoFromIMDbID(String imdbid) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 
-		List getParameters = new ArrayList();
+		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(imdbid)) {
 			getParameters.add("imdbid=" + imdbid);
 		}
