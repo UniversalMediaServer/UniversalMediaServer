@@ -66,6 +66,11 @@ public class Wizard {
 				Messages.getString("Wizard.10")
 			};
 
+		Object[] defaultOptions = {
+				Messages.getString("Dialog.DefaultsYes"),
+				Messages.getString("Dialog.DefaultsNo")
+			};
+
 		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
 			null,
 			Messages.getString("Wizard.13"),
@@ -73,11 +78,11 @@ public class Wizard {
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.QUESTION_MESSAGE,
 			null,
-			yesNoOptions,
-			yesNoOptions[1]
+			defaultOptions,
+			defaultOptions[1]
 		);
 
-		if (whetherToSelectDefaultOptions == JOptionPane.YES_OPTION || whetherToSelectDefaultOptions == JOptionPane.CLOSED_OPTION) {
+		if (whetherToSelectDefaultOptions == JOptionPane.NO_OPTION || whetherToSelectDefaultOptions == JOptionPane.CLOSED_OPTION) {
 			configuration.setMinimized(false);
 			configuration.setAutomaticMaximumBitrate(true);
 			configuration.setMPEG2MainSettings("Automatic (Wired)");
