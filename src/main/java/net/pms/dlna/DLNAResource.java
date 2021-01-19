@@ -2204,7 +2204,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":*";
+				String dlnaOrgPnFlags = getDlnaOrgPnFlags(mediaRenderer, c);
+				String tempString = "http-get:*:" + getRendererMimeType(mediaRenderer) + ":" + (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "*") + getDlnaOrgOpFlags(mediaRenderer);
 				addAttribute(sb, "protocolInfo", tempString);
 				if (subsAreValidForStreaming && mediaRenderer.offerSubtitlesByProtocolInfo() && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", mediaSubtitle.getType().getExtension().toUpperCase());
