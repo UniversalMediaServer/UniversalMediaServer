@@ -1750,22 +1750,22 @@ public class OpenSubtitle {
 	 * one succeeds.
 	 *
 	 * @param file the {@link File} to lookup.
-	 * @param formattedName the name to use in the name search
+	 * @param movieOrTVSeriesTitle the title of the movie or TV series
 	 * @param year optional year to include with title lookups
-	 * @param season
+	 * @param seasonNumber
 	 * @param episodeNumber
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap getInfo(File file, String formattedName, String year, String season, String episodeNumber) throws IOException {
-		LOGGER.trace("getting API info for " + file + ", " + formattedName);
+	public static HashMap getInfo(File file, String movieOrTVSeriesTitle, String year, String seasonNumber, String episodeNumber) throws IOException {
+		LOGGER.trace("getting API info for " + file + ", " + movieOrTVSeriesTitle);
 		Path path = null;
 		String apiResult = null;
 		if (file != null) {
 			path = file.toPath();
 			String osdbHash = getHash(path);
 			if (isNotBlank(osdbHash)) {
-				apiResult = getInfoFromOSDbHash(getHash(path), file.length(), year, season, episodeNumber);
+				apiResult = getInfoFromOSDbHash(getHash(path), file.length(), year, seasonNumber, episodeNumber);
 			} else {
 				LOGGER.trace("OSDb hash was blank for " + path);
 			}
@@ -1779,17 +1779,13 @@ public class OpenSubtitle {
 		}
 
 		if (apiResult == null || apiResult.contains("statusCode")) { // final try, use the name
-			if (StringUtils.isEmpty(formattedName) && file != null) {
-				formattedName = file.getName();
-			}
-
-			LOGGER.trace("looking up filename " + formattedName);
-			apiResult = getInfoFromFilename(formattedName, false, year);
+			LOGGER.trace("looking up movie or episode " + movieOrTVSeriesTitle);
+			apiResult = getInfoFromFilename(movieOrTVSeriesTitle, false, year, seasonNumber, episodeNumber);
 		}
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
 		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
-			LOGGER.trace("no result for " + formattedName + ", received: " + apiResult);
+			LOGGER.trace("no result for " + movieOrTVSeriesTitle + ", received: " + apiResult);
 			return null;
 		}
 
@@ -1835,7 +1831,7 @@ public class OpenSubtitle {
 				formattedName = formattedName.substring(0, yearIndex);
 			}
 			LOGGER.trace("looking up title {}", formattedName);
-			apiResult = getInfoFromFilename(formattedName, true, year);
+			apiResult = getInfoFromFilename(formattedName, true, year, null, null);
 		}
 
 		HashMap<String, Object> data = new HashMap();
@@ -1895,9 +1891,9 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String getInfoFromFilename(String title, boolean isSeries, String year) throws IOException {
+	private static String getInfoFromFilename(String title, boolean isSeries, String year, String seasonNumber, String episodeNumber) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
-		String endpoint = isSeries ? "seriestitle" : "title";
+		String endpoint = isSeries ? "seriestitle" : "v2/title";
 
 		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(title)) {
@@ -1906,6 +1902,12 @@ public class OpenSubtitle {
 		}
 		if (isNotBlank(year)) {
 			getParameters.add("year=" + year);
+		}
+		if (isNotBlank(seasonNumber)) {
+			getParameters.add("seasonNumber=" + seasonNumber);
+		}
+		if (isNotBlank(episodeNumber)) {
+			getParameters.add("episodeNumber=" + episodeNumber);
 		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
@@ -4968,8 +4970,7 @@ public class OpenSubtitle {
 
 				try {
 					if (isTVEpisodeBasedOnFilename) {
-						String unpaddedEpisodeNumber = tvEpisodeNumberFromFilename.startsWith("0") ? tvEpisodeNumberFromFilename.substring(1) : tvEpisodeNumberFromFilename;
-						metadataFromAPI = getInfo(file, null, yearFromFilename, tvSeasonFromFilename, unpaddedEpisodeNumber);
+						metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename, tvSeasonFromFilename, media.getTVEpisodeNumberUnpadded());
 					} else {
 						metadataFromAPI = getInfo(file, titleFromFilename, yearFromFilename, null, null);
 					}
