@@ -103,8 +103,8 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
-		testHeaders    ("LG BP", "User-Agent: LG-BP550-1");
-		testUPNPDetails("LG BP", "friendlyName=LG-BP550-1");
+		testHeaders    ("LG BP", "User-Agent: LG-BP350");
+		testUPNPDetails("LG BP", "friendlyName=LG-BP350");
 
 		testHeaders    ("LG BP550", "User-Agent: LG-BP550-1");
 		testUPNPDetails("LG BP550", "friendlyName=LG-BP550-1");
