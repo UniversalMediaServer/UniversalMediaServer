@@ -103,6 +103,39 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
+		testHeaders    ("LG BP", "User-Agent: LG-BP550-1");
+		testUPNPDetails("LG BP", "friendlyName=LG-BP550-1");
+
+		testHeaders    ("LG BP550", "User-Agent: LG-BP550-1");
+		testUPNPDetails("LG BP550", "friendlyName=LG-BP550-1");
+
+		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
+
+		testUPNPDetails("LG LCD TV (2014)", "friendlyName=[TV][LG]42LB5700-ZB");
+
+		testUPNPDetails("LG LM660", "friendlyName=[TV]42LM660S-ZA");
+
+		testUPNPDetails("LG LS5700", "friendlyName=[TV]42LS5700-SB");
+
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
+		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED65C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55E9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55C9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65E9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65E9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77C9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77C9AUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77B9PUA");
+
+		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
+
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
 
 		testHeaders    ("LG WebOS TV", "User-Agent: Linux/3.10.19-32.afro.4 UPnP/1.0 LGE WebOS TV LGE_DLNA_SDK/1.6.0/04.30.13 DLNADOC/1.50");
