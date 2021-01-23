@@ -133,6 +133,8 @@ public class RendererConfigurationTest {
 		testUPNPDetails("LG OLED", "modelNumber=OLED77C9PUB");
 		testUPNPDetails("LG OLED", "modelNumber=OLED77C9AUB");
 		testUPNPDetails("LG OLED", "modelNumber=OLED77B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9SLA");
+		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED55B9SLA");
 
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
 
