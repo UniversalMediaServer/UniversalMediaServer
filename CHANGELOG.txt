@@ -1,3 +1,16 @@
+10.0.1-SNAPSHOT
+
+	General:
+		Added some UPnP properties for TV episodes
+		Reduced network traffic
+		Fixed error when parsing episode filenames without titles
+	Renderers:
+		Improved detection of LG OLED TVs
+		Improved support for Panasonic HZ1500
+		Improved support for Roku Ultra devices
+	Dependency updates:
+		Bump oshi-core from 5.3.7 to 5.4.0
+
 10.0.0 - 2021-01-12 - Changes since 10.0.0-a1
 
 	General:
