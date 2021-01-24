@@ -571,6 +571,12 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (!bitrateLevel41Limited) {
+				// Set maximum bitrate for MPEG-2 which should be 10.08 Mbit/s
+				// for audio + video bitrate. See the https://en.wikipedia.org/wiki/MPEG-2
+				if (params.getMediaRenderer().isTranscodeToMPEG2() && defaultMaxBitrates[0] > 10 && !dtsRemux) {
+					defaultMaxBitrates[0] = 10;
+				}
+
 				// Make room for audio
 				if (dtsRemux) {
 					defaultMaxBitrates[0] -= 1510;
