@@ -4,9 +4,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
+import net.pms.Messages;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.network.message.SearchRequest;
@@ -18,7 +17,7 @@ import net.pms.network.message.SearchRequest;
  * Attention: This is rather a quick (hack) implementation for a general search use-case. Not all properties, op's and val's are being
  * processed or interpreted by the tokenizer.
  *
- * Lookout: A right - now not implemented - but more stable solution could use an EBNF parser like COCO/R or COCO/S using the grammar supplied
+ * Lookout: A more robust but here now not implemented solution could use an EBNF parser like COCO/R or COCO/S using the grammar supplied
  * by the document <b>ContentDirectory:1 Service Template Version 1.01 Section 2.5.5.1</b>.
  * </pre>
  */
@@ -56,81 +55,80 @@ public class SearchRequestHandler {
 	}
 
 	public StringBuilder createSearchResponse(SearchRequest requestMessage, RendererConfiguration mediaRenderer) {
-		DLNAMediaDatabase db = PMS.get().getDatabase();
-		int foundNumberReturned = 0;
+		int numberReturned = 0;
 		int totalMatches = 0;
 		int updateID = 1;
 
 		StringBuilder dlnaItems = new StringBuilder();
 		try {
-			generateSql(requestMessage, mediaRenderer, dlnaItems);
+			int requestType = getRequestType(requestMessage.getSearchCriteria());
+
+			MediaLibraryFolder folder = null;
+			if (requestType == TYPE_FILES) {
+				StringBuilder sqlFiles = new StringBuilder();
+				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, MediaLibraryFolder.FILES));
+				folder = new MediaLibraryFolder("Search result", sqlFiles.toString(), MediaLibraryFolder.FILES);
+			} else {
+				StringBuilder sqlText = new StringBuilder();
+				sqlText.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, MediaLibraryFolder.TEXTS));
+
+				StringBuilder sqlFiles = new StringBuilder();
+				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, MediaLibraryFolder.FILES));
+				folder = new MediaLibraryFolder(Messages.getString("PMS.16"), new String[]{sqlText.toString(), "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND A.ALBUM = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+			}
+
+			folder.discoverChildren();
+			for (DLNAResource uf : folder.getChildren()) {
+				if (totalMatches >= requestMessage.getStartingIndex()) {
+					totalMatches++;
+					if (numberReturned < requestMessage.getRequestedCount()) {
+						numberReturned++;
+						uf.resolve();
+						dlnaItems.append(uf.getDidlString(mediaRenderer));
+					}
+				}
+			}
 		} catch (Exception e) {
 			LOGGER.warn("error transforming searchCriteria to SQL.", e);
 		}
 
 		// Build response message
-		StringBuilder response = new StringBuilder();
-		response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
-		response.append(CRLF);
-		response.append(HTTPXMLHelper.RESULT_HEADER);
-		response.append(HTTPXMLHelper.DIDL_HEADER);
-		response.append(dlnaItems.toString());
-		response.append(HTTPXMLHelper.DIDL_FOOTER);
-		response.append(HTTPXMLHelper.RESULT_FOOTER);
-		response.append(CRLF);
-		response.append("<NumberReturned>").append(foundNumberReturned).append("</NumberReturned>");
-		response.append(CRLF);
-		response.append("<TotalMatches>").append(totalMatches).append("</TotalMatches>");
-		response.append(CRLF);
-		response.append("<UpdateID>");
-		response.append(updateID);
-		response.append("</UpdateID>");
-		response.append(CRLF);
-		response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
+		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID, dlnaItems);
 		return createResponse(response.toString());
-	}
-
-	private void generateSql(SearchRequest requestMessage, RendererConfiguration mediaRenderer, StringBuilder dlnaItems) {
-		int requestType = getRequestType(requestMessage.getSearchCriteria());
-
-		StringBuilder sql = new StringBuilder();
-		sql.append(convertToSql(requestMessage.getSearchCriteria(), requestType));
-
-		MediaLibraryFolder folder = new MediaLibraryFolder("Search result ...", sql.toString(), 0);
-		folder.discoverChildren();
-		for (DLNAResource uf : folder.getChildren()) {
-			uf.resolve();
-			System.out.println(uf.getDidlString(mediaRenderer));
-			dlnaItems.append(uf.getDidlString(mediaRenderer));
-		}
-		System.out.println(dlnaItems.toString());
 	}
 
 	/**
 	 * Adds SELECT part of the sql.
 	 *
+	 * @param mediaFolderType
+	 *
 	 * @param sql
 	 * @param search
 	 */
-	private void addSqlSelectPartByType(StringBuilder sql, int requestType) {
-		switch (requestType) {
-			case TYPE_FILES:
-				sql.append("select FILENAME, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ");
-				break;
-			case TYPE_ALBUM:
-				sql.append("select FILENAME, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ");
-				break;
-
-			default:
-				break;
+	private String addSqlSelectByType(int requestType, int mediaFolderType) {
+		if (MediaLibraryFolder.FILES == mediaFolderType) {
+			switch (requestType) {
+				case TYPE_FILES:
+				case TYPE_PERSON:
+				case TYPE_ALBUM:
+					return "select FILENAME, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+				case TYPE_PLAYLIST:
+					return "select FILENAME, MODIFIED from FILES as F where ";
+				default:
+					throw new RuntimeException("not implemented request type");
+			}
+		} else if (MediaLibraryFolder.TEXTS == mediaFolderType) {
+			return String.format("select A.ALBUM from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ",
+				getPropertyMapping(requestType));
 		}
+		throw new RuntimeException("not implemented media folder type");
 	}
 
-	StringBuilder convertToSql(String upnpSearch, int requestType) {
+	StringBuilder convertToFilesSql(String upnpSearch, int requestType, int mediaFolderType) {
 		int lastIndex = 0;
 		StringBuilder sb = new StringBuilder();
 
-		addSqlSelectPartByType(sb, requestType);
+		sb.append(addSqlSelectByType(requestType, mediaFolderType));
 
 		Matcher matcher = tokenizerPattern.matcher(upnpSearch);
 
@@ -148,6 +146,10 @@ public class SearchRequestHandler {
 		if (lastIndex < upnpSearch.length()) {
 			sb.append(upnpSearch, lastIndex, upnpSearch.length());
 		}
+		if ((TYPE_FILES != requestType) && (MediaLibraryFolder.FILES == mediaFolderType)) {
+			sb.append(" AND ").append(getPropertyMapping(requestType));
+			sb.append(" = ").append("'${0}'");
+		}
 		return sb;
 	}
 
@@ -155,7 +157,7 @@ public class SearchRequestHandler {
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {
-			sb.append(String.format("%s regexp '.*%s.*'", getField(property, requestType), val));
+			sb.append(String.format("LOWER(%s) regexp '.*%s.*'", getField(property, requestType), val.toLowerCase()));
 		} else {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
@@ -168,7 +170,6 @@ public class SearchRequestHandler {
 		}
 		throw new RuntimeException("unknown or unimplemented property: >" + property + "<");
 	}
-
 
 	private String getPropertyMapping(int requestType) {
 		switch (requestType) {
@@ -225,6 +226,28 @@ public class SearchRequestHandler {
 		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER).append(CRLF);
 		response.append(payload).append(CRLF);
 		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER).append(CRLF);
+		return response;
+	}
+
+	private StringBuilder buildEnvelope(int foundNumberReturned, int totalMatches, int updateID, StringBuilder dlnaItems) {
+		StringBuilder response = new StringBuilder();
+		response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.RESULT_HEADER);
+		response.append(HTTPXMLHelper.DIDL_HEADER);
+		response.append(dlnaItems.toString());
+		response.append(HTTPXMLHelper.DIDL_FOOTER);
+		response.append(HTTPXMLHelper.RESULT_FOOTER);
+		response.append(CRLF);
+		response.append("<NumberReturned>").append(foundNumberReturned).append("</NumberReturned>");
+		response.append(CRLF);
+		response.append("<TotalMatches>").append(totalMatches).append("</TotalMatches>");
+		response.append(CRLF);
+		response.append("<UpdateID>");
+		response.append(updateID);
+		response.append("</UpdateID>");
+		response.append(CRLF);
+		response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
 		return response;
 	}
 
