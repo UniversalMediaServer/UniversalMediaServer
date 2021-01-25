@@ -1758,7 +1758,7 @@ public class OpenSubtitle {
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
 	public static HashMap getInfo(File file, String movieOrTVSeriesTitle, String year, String season, String episode) throws IOException {
-		LOGGER.trace("getting API info for " + file + ", " + movieOrTVSeriesTitle);
+		LOGGER.trace("getting API info for " + file + ", " + movieOrTVSeriesTitle + ", " + season + ", " + episode);
 		Path path = null;
 		String apiResult = null;
 		if (file != null) {
@@ -1779,7 +1779,8 @@ public class OpenSubtitle {
 		}
 
 		if (apiResult == null || apiResult.contains("statusCode")) { // final try, use the name
-			LOGGER.trace("looking up movie or episode " + movieOrTVSeriesTitle);
+			String mediaType = isBlank(episode) ? "movie" : "episode";
+			LOGGER.trace("looking up " + mediaType + ": " + movieOrTVSeriesTitle);
 			apiResult = getInfoFromFilename(movieOrTVSeriesTitle, false, year, season, episode);
 		}
 
@@ -1816,7 +1817,7 @@ public class OpenSubtitle {
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
 	public static HashMap<String, Object> getTVSeriesInfo(String formattedName, String imdbID, String year) throws IOException {
-		LOGGER.trace("getting API info for {}, {}, {}", formattedName, imdbID, year);
+		LOGGER.trace("getting API info for TV series: {}, {}, {}", formattedName, imdbID, year);
 		String apiResult = null;
 
 		if (isNotBlank(imdbID)) {
