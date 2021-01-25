@@ -728,11 +728,14 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
-						if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
-							LOGGER.trace("", invocation.getFailure());
+						if (log) {
+							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
+							if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
+								LOGGER.trace("", invocation.getFailure());
+							}
+
+							rendererMap.mark(uuid, ACTIVE, false);
 						}
-						rendererMap.mark(uuid, ACTIVE, false);
 					}
 				}.run();
 
