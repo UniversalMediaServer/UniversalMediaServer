@@ -64,10 +64,11 @@ public class SearchRequestHandler {
 			int requestType = getRequestType(requestMessage.getSearchCriteria());
 
 			MediaLibraryFolder folder = null;
-			if (requestType == TYPE_FILES) {
+			int folderType = TYPE_FILES == requestType ? MediaLibraryFolder.FILES : MediaLibraryFolder.PLAYLISTS;
+			if (requestType == TYPE_FILES || requestType == TYPE_PLAYLIST) {
 				StringBuilder sqlFiles = new StringBuilder();
-				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, MediaLibraryFolder.FILES));
-				folder = new MediaLibraryFolder("Search result", sqlFiles.toString(), MediaLibraryFolder.FILES);
+				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, folderType));
+				folder = new MediaLibraryFolder("Search result", sqlFiles.toString(), folderType);
 			} else {
 				StringBuilder sqlText = new StringBuilder();
 				sqlText.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, MediaLibraryFolder.TEXTS));
@@ -124,6 +125,8 @@ public class SearchRequestHandler {
 		} else if (MediaLibraryFolder.TEXTS == mediaFolderType) {
 			return String.format("select %s from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ",
 				getPropertyMapping(requestType));
+		} else if (MediaLibraryFolder.PLAYLISTS == mediaFolderType) {
+			return "select FILENAME, MODIFIED from FILES F where ";
 		}
 		throw new RuntimeException("not implemented media folder type");
 	}
