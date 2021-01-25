@@ -710,6 +710,9 @@ public class UPNPControl {
 		if (svc != null) {
 			Action x = svc.getAction(action);
 			String name = getFriendlyName(dev);
+			// The GetPositionInfo couldn't be implemented properly
+			// so don't log it because it is not important. The UMS is
+			// using it only to show the current state of the media playing.
 			boolean log = !action.equals("GetPositionInfo");
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
