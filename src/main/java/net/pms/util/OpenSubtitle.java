@@ -1752,12 +1752,12 @@ public class OpenSubtitle {
 	 * @param file the {@link File} to lookup.
 	 * @param movieOrTVSeriesTitle the title of the movie or TV series
 	 * @param year optional year to include with title lookups
-	 * @param seasonNumber
-	 * @param episodeNumber
+	 * @param season
+	 * @param episode
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static HashMap getInfo(File file, String movieOrTVSeriesTitle, String year, String seasonNumber, String episodeNumber) throws IOException {
+	public static HashMap getInfo(File file, String movieOrTVSeriesTitle, String year, String season, String episode) throws IOException {
 		LOGGER.trace("getting API info for " + file + ", " + movieOrTVSeriesTitle);
 		Path path = null;
 		String apiResult = null;
@@ -1765,7 +1765,7 @@ public class OpenSubtitle {
 			path = file.toPath();
 			String osdbHash = getHash(path);
 			if (isNotBlank(osdbHash)) {
-				apiResult = getInfoFromOSDbHash(getHash(path), file.length(), year, seasonNumber, episodeNumber);
+				apiResult = getInfoFromOSDbHash(getHash(path), file.length(), year, season, episode);
 			} else {
 				LOGGER.trace("OSDb hash was blank for " + path);
 			}
@@ -1780,7 +1780,7 @@ public class OpenSubtitle {
 
 		if (apiResult == null || apiResult.contains("statusCode")) { // final try, use the name
 			LOGGER.trace("looking up movie or episode " + movieOrTVSeriesTitle);
-			apiResult = getInfoFromFilename(movieOrTVSeriesTitle, false, year, seasonNumber, episodeNumber);
+			apiResult = getInfoFromFilename(movieOrTVSeriesTitle, false, year, season, episode);
 		}
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
@@ -1854,6 +1854,8 @@ public class OpenSubtitle {
 	 *
 	 * @param hash the OSDb hash
 	 * @param size the byte-size
+	 * @param season
+	 * @param episode
 	 *
 	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
@@ -1861,7 +1863,7 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String getInfoFromOSDbHash(String hash, long size, String year, String season, String episodeNumber) throws IOException {
+	private static String getInfoFromOSDbHash(String hash, long size, String year, String season, String episode) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(year)) {
@@ -1870,8 +1872,8 @@ public class OpenSubtitle {
 		if (isNotBlank(season)) {
 			getParameters.add("season=" + season);
 		}
-		if (isNotBlank(episodeNumber)) {
-			getParameters.add("episodeNumber=" + episodeNumber);
+		if (isNotBlank(episode)) {
+			getParameters.add("episode=" + episode);
 		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/osdbhash/" + hash + "/" + size + "?" + getParametersJoined);
@@ -1884,6 +1886,9 @@ public class OpenSubtitle {
 	 * the title or sanitized (prettified) filename.
 	 *
 	 * @param title title or filename
+	 * @param isSeries whether we are looking for a TV series (not a video itself)
+	 * @param season
+	 * @param episode
 	 *
 	 * @return a string array including the IMDb ID, episode title, season number,
 	 *         episode number relative to the season, and the show name, or null
@@ -1891,7 +1896,7 @@ public class OpenSubtitle {
 	 *
 	 * @throws IOException
 	 */
-	private static String getInfoFromFilename(String title, boolean isSeries, String year, String seasonNumber, String episodeNumber) throws IOException {
+	private static String getInfoFromFilename(String title, boolean isSeries, String year, String season, String episode) throws IOException {
 		URL domain = new URL("https://www.universalmediaserver.com");
 		String endpoint = isSeries ? "seriestitle" : "v2/title";
 
@@ -1903,11 +1908,11 @@ public class OpenSubtitle {
 		if (isNotBlank(year)) {
 			getParameters.add("year=" + year);
 		}
-		if (isNotBlank(seasonNumber)) {
-			getParameters.add("seasonNumber=" + seasonNumber);
+		if (isNotBlank(season)) {
+			getParameters.add("season=" + season);
 		}
-		if (isNotBlank(episodeNumber)) {
-			getParameters.add("episodeNumber=" + episodeNumber);
+		if (isNotBlank(episode)) {
+			getParameters.add("episode=" + episode);
 		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
@@ -5005,8 +5010,8 @@ public class OpenSubtitle {
 					titleFromAPI = (String) metadataFromAPI.get("title");
 				}
 
-				String tvSeasonFromAPI = (String) metadataFromAPI.get("seasonNumber");
-				String tvEpisodeNumberFromAPI = (String) metadataFromAPI.get("episodeNumber");
+				String tvSeasonFromAPI = (String) metadataFromAPI.get("season");
+				String tvEpisodeNumberFromAPI = (String) metadataFromAPI.get("episode");
 				if (tvEpisodeNumberFromAPI != null && tvEpisodeNumberFromAPI.length() == 1) {
 					tvEpisodeNumberFromAPI = "0" + tvEpisodeNumberFromAPI;
 				}
