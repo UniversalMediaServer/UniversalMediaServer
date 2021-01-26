@@ -69,6 +69,7 @@ public class UPNPControl {
 	private static final boolean DEBUG = true; // log upnp state vars
 
 	protected static Map<String, Renderer> socketMap = new HashMap<>();
+	private static boolean isGetPositionInfoImplemented = true;
 
 	public static class DeviceMap<T extends Renderer> extends HashMap<String, HashMap<String, T>> {
 		private static final long serialVersionUID = 1510675619549915489L;
@@ -203,9 +204,11 @@ public class UPNPControl {
 					sleep(1000);
 					// if (DEBUG) LOGGER.debug("InstanceID: " + id);
 					for (ActionArgumentValue o : getPositionInfo(d, id)) {
-						data.put(o.getArgument().getName(), o.toString());
-						// if (DEBUG) LOGGER.debug(o.getArgument().getName() +
-						// ": " + o.toString());
+						if (isGetPositionInfoImplemented) {
+							data.put(o.getArgument().getName(), o.toString());
+							// if (DEBUG) LOGGER.debug(o.getArgument().getName() +
+							// ": " + o.toString());
+						}
 					}
 					alert();
 				}
@@ -730,16 +733,24 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						LOGGER.debug("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
-						if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
-							LOGGER.trace("", invocation.getFailure());
+						// Show all failures except the GetPositionInfo first occurrence
+						// and than set the isGetPositionInfoImplemented to false.
+						if (log || (!log && isGetPositionInfoImplemented)) {
+							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
+							if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
+								LOGGER.trace("", invocation.getFailure());
+							}
+
+							// Don't mark the renderer false when there is an error
+							// in the GetPositionInfo. It could be wrong implementation
+							// in the renderer.
+							if (log) {
+								rendererMap.mark(uuid, ACTIVE, false);
+							}
 						}
 
-						// Don't mark the renderer false when there is an error
-						// to GetPositionInfo. It could be wrong implementation
-						// in the renderer.
-						if (log) { 
-							rendererMap.mark(uuid, ACTIVE, false);
+						if (!log && isGetPositionInfoImplemented) {
+							isGetPositionInfoImplemented = false;
 						}
 					}
 				}.run();
