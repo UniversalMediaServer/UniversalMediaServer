@@ -733,7 +733,7 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						// Show all failures except the GetPositionInfo first occurrence
+						// Show all failures and the GetPositionInfo first occurrence
 						// and than set the isGetPositionInfoImplemented to false.
 						if (log || (!log && isGetPositionInfoImplemented)) {
 							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
