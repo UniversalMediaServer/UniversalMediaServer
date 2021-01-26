@@ -710,9 +710,8 @@ public class UPNPControl {
 		if (svc != null) {
 			Action x = svc.getAction(action);
 			String name = getFriendlyName(dev);
-			// The GetPositionInfo couldn't be implemented properly
-			// so don't log it because it is not important. The UMS is
-			// using it only to show the current state of the media playing.
+			// Don't spam the log with the GetPositionInfo because it is not important.
+			// The UMS is using it only to show the current state of the media playing.
 			boolean log = !action.equals("GetPositionInfo");
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
@@ -731,12 +730,15 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						if (log) {
-							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
-							if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
-								LOGGER.trace("", invocation.getFailure());
-							}
+						LOGGER.debug("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
+						if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
+							LOGGER.trace("", invocation.getFailure());
+						}
 
+						// Don't mark the renderer false when there is an error
+						// to GetPositionInfo. It could be wrong implementation
+						// in the renderer.
+						if (log) { 
 							rendererMap.mark(uuid, ACTIVE, false);
 						}
 					}
