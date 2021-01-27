@@ -282,7 +282,13 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		ssdpSocket.setReuseAddress(true);
-		ssdpSocket.setTimeToLive(32);
+		// In the UPnP standard is written:
+		// To limit network congestion, the time-to-live (TTL) of each IP packet for each multicast message SHOULD default to 2 and
+		// SHOULD be configurable. When the TTL is greater than 1, it is possible for multicast messages to traverse multiple routers;
+		// therefore control points and devices using non-AutoIP addresses MUST send an IGMP Join message so that routers will forward
+		// multicast messages to them (this is not necessary when using an Auto-IP address, since packets with Auto-IP addresses will not be
+		// forwarded by routers).
+		ssdpSocket.setTimeToLive(2);
 
 		try {
 			LOGGER.trace("Setting SSDP network interface: {}", networkInterface);

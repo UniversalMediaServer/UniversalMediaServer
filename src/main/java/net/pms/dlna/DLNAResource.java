@@ -37,6 +37,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.database.TableTVSeries;
 import net.pms.database.TableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -101,6 +102,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private long lastModified;
 
 	private boolean isEpisodeWithinSeasonFolder = false;
+	private boolean isEpisodeWithinTVSeriesFolder = false;
 
 	/**
 	 * Represents the transformation to be used to the file. If null, then
@@ -1736,7 +1738,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
-	protected DLNAResource clone() {
+	public DLNAResource clone() {
 		DLNAResource o = null;
 		try {
 			o = (DLNAResource) super.clone();
@@ -2177,6 +2179,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
+		if (media != null && media.isTVEpisode()) {
+			if (isNotBlank(media.getTVSeason())) {
+				addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
+			}
+			if (isNotBlank(media.getTVEpisodeNumber())) {
+				addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
+			}
+			if (isNotBlank(media.getMovieOrShowName())) {
+				addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(media.getMovieOrShowName()));
+			}
+			if (isNotBlank(media.getTVEpisodeName())) {
+				addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(media.getTVEpisodeName()));
+			}
+		}
+
 		MediaType mediaType = media != null ? media.getMediaType() : MediaType.UNKNOWN;
 		if (!isFolder && mediaType == MediaType.IMAGE) {
 			appendImage(sb, mediaRenderer);
@@ -2363,6 +2380,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				sb.append(getFileURL()).append(transcodedExtension);
 				closeTag(sb, "res");
 			}
+
+			// DESC Metadata support: add ability for control point to identify song by MusicBrainz TrackID
+			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
+				openTag(sb, "desc");
+				addAttribute(sb, "id", "2");
+				addAttribute(sb, "nameSpace", "http://ums/tags"); // TODO add real namespace
+				addAttribute(sb, "type", "ums-tags");
+				endTag(sb);
+				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
+				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
+				closeTag(sb, "desc");
+			}
 		}
 
 		if (subsAreValidForStreaming) {
@@ -2411,7 +2440,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (first != null && media != null && !media.isSecondaryFormatValid()) {
 			uclass = "dummy";
 		} else if (isFolder) {
-			uclass = "object.container.storageFolder";
+			if (this instanceof PlaylistFolder) {
+				uclass = "object.container.playlistContainer";
+			} else {
+				uclass = "object.container.storageFolder";
+			}
 			if (xbox360 && getFakeParentId() != null) {
 				switch (getFakeParentId()) {
 					case "7":
@@ -2442,7 +2475,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			format.isAudio()
 		) {
 			uclass = "object.item.audioItem.musicTrack";
+		} else if (
+			media != null &&
+			(
+				media.isTVEpisode() ||
+				isNotBlank(media.getYear())
+			)
+		) {
+			// videoItem.movie is used for TV episodes and movies
+			uclass = "object.item.videoItem.movie";
 		} else {
+			/**
+			 * videoItem is used for recorded videos but does not support
+			 * properties like episodeNumber, seriesTitle, etc.
+			 *
+			 * @see page 251 of http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
+			 */
 			uclass = "object.item.videoItem";
 		}
 
@@ -2485,7 +2533,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		/*
 		 * There's no technical difference between the image itself and the
 		 * thumbnail for an object.item.imageItem, they are all simply listed
-		 * as <res> entries. To DMS there is a difference since the thumbnail
+		 * as <res> entries. To UMS there is a difference since the thumbnail
 		 * is cached while the image itself is not. The idea here is therefore
 		 * to offer any size smaller than or equal to the cached thumbnail
 		 * using the cached thumbnail as the source, and offer anything bigger
@@ -2672,7 +2720,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Images add thumbnail resources together with the image resources in appendImage()
 		if (MediaType.IMAGE != mediaType) {
-
 			ImageInfo imageInfo = thumbnailImageInfo != null ? thumbnailImageInfo :
 				getMedia() != null && getMedia().getThumb() != null && getMedia().getThumb().getImageInfo() != null ?
 					getMedia().getThumb().getImageInfo() : null;
@@ -3261,7 +3308,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume(), renderer);
 			if (!isResume() && media.getThumb() != null && configurationSpecificToRenderer.getUseCache() && inputFile.getFile() != null) {
-				TableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath());
+				TableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
 			}
 		}
 	}
@@ -3636,6 +3683,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void setIsEpisodeWithinSeasonFolder(boolean isEpisodeWithinSeasonFolder) {
 		this.isEpisodeWithinSeasonFolder = isEpisodeWithinSeasonFolder;
+	}
+
+	/**
+	 * @return Whether this is a TV episode being accessed directly inside a
+	 * TV series folder in the Media Library
+	 */
+	public boolean isEpisodeWithinTVSeriesFolder() {
+		return isEpisodeWithinTVSeriesFolder;
+	}
+
+	/**
+	 * Sets whether this is a TV episode being accessed directly inside a
+	 * TV series folder in the Media Library
+	 *
+	 * @param isEpisodeWithinTVSeriesFolder
+	 */
+	protected void setIsEpisodeWithinTVSeriesFolder(boolean isEpisodeWithinTVSeriesFolder) {
+		this.isEpisodeWithinTVSeriesFolder = isEpisodeWithinTVSeriesFolder;
 	}
 
 	/**
@@ -4835,6 +4900,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param file
 	 */
 	private void setMetadataFromFileName(File file) {
+		if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
+			LOGGER.trace("Metadata already exists for {}", file.getName());
+			return;
+		}
+
 		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
 		String titleFromFilename            = metadataFromFilename[0];
 		String yearFromFilename             = metadataFromFilename[1];
@@ -4856,7 +4926,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 * already have in our database. This is to avoid minor grammatical differences
 			 * like "Word and Word" vs. "Word & Word" from creating two virtual folders.
 			 */
-			titleFromDatabase = PMS.get().getSimilarTVSeriesName(titleFromFilename);
+			titleFromDatabase = TableTVSeries.getSimilarTVSeriesName(titleFromFilename);
 			titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
 			if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
 				media.setMovieOrShowName(titleFromDatabase);
@@ -4882,6 +4952,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			if (configuration.getUseCache()) {
 				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+
+				// Creates a minimal TV series row with just the title, that might be enhanced later by the API
+				if (media.isTVEpisode()) {
+					TableTVSeries.set(null, media.getMovieOrShowName());
+				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -4891,10 +4966,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 			LOGGER.trace("", e);
 		} finally {
-			/**
-			 * Attempt to enhance the metadata by using OpenSubtitles if the
-			 * setting is enabled.
-			 */
+			// Attempt to enhance the metadata via our API.
 			if (configuration.isUseInfoFromIMDb()) {
 				OpenSubtitle.backgroundLookupAndAdd(file, media);
 			}

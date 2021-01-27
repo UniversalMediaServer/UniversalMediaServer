@@ -66,7 +66,7 @@ public class NavigationShareTab {
 	private JCheckBox ignorethewordthe;
 	private JTextField atzLimit;
 	private JCheckBox prettifyfilenames;
-	private JCheckBox episodeTitles;
+	private JCheckBox isUseInfoFromAPI;
 	private JCheckBox resume;
 	private JCheckBox isScanSharedFoldersOnStartup;
 	private JCheckBox useSymlinksTargetFile;
@@ -175,7 +175,7 @@ public class NavigationShareTab {
 
 			builder.add(GuiUtil.getPreferredSizeComponent(prettifyfilenames),            FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(hideextensions),               FormLayoutUtil.flip(cc.xy(3, 13), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(episodeTitles),                FormLayoutUtil.flip(cc.xy(7, 13), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isUseInfoFromAPI),             FormLayoutUtil.flip(cc.xy(7, 13), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.addSubtitlesInfo"),             FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 			builder.add(addVideoSuffix,                                                  FormLayoutUtil.flip(cc.xyw(3, 15, 3), colSpec, orientation));
@@ -610,17 +610,13 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
 				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
-				episodeTitles.setEnabled((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
-		episodeTitles = new JCheckBox(Messages.getString("FoldTab.74"), configuration.isUseInfoFromIMDb());
-		episodeTitles.setToolTipText(Messages.getString("FoldTab.64"));
-		episodeTitles.setContentAreaFilled(false);
-		if (!configuration.isPrettifyFilenames()) {
-			episodeTitles.setEnabled(false);
-		}
-		episodeTitles.addItemListener(new ItemListener() {
+		isUseInfoFromAPI = new JCheckBox(Messages.getString("FoldTab.UseInfoFromAPI"), configuration.isUseInfoFromIMDb());
+		isUseInfoFromAPI.setToolTipText(Messages.getString("FoldTab.UseInfoFromAPITooltip"));
+		isUseInfoFromAPI.setContentAreaFilled(false);
+		isUseInfoFromAPI.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED));

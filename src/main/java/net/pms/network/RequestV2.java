@@ -1145,7 +1145,7 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
-				objectID,
+			objectID,
 			browseDirectChildren,
 			startingIndex,
 			requestCount,
@@ -1154,11 +1154,9 @@ public class RequestV2 extends HTTPResource {
 		);
 
 		if (searchCriteria != null && files != null) {
-			UMSUtils.postSearch(files, searchCriteria);
-			if (xbox360) {
-				if (files.size() > 0) {
-					files = files.get(0).getChildren();
-				}
+			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
+			if (xbox360 && files.size() > 0) {
+				files = files.get(0).getChildren();
 			}
 		}
 
