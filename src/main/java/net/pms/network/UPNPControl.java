@@ -159,7 +159,6 @@ public class UPNPControl {
 		public volatile boolean active, renew;
 		public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
 		public volatile PanasonicDmpProfiles panasonicDmpProfiles;
-		// State if the GetPositionInfo is properly implemented
 		public boolean isGetPositionInfoImplemented = true;
 
 		public Renderer(String uuid) {
