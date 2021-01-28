@@ -705,7 +705,7 @@ public class UPNPControl {
 			LOGGER.debug("Missed events: " + numberOfMissedEvents + " for subscription " + sub.getService().getServiceId().getId() + " on " + getFriendlyName(uuid));
 		}
 	}
-	
+
 	public static ActionInvocation send(final Device dev, String instanceID, String service, final String action, String... args) {
 		return send(dev, instanceID, null, service, action, args);
 	}
