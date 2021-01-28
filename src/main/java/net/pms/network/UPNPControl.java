@@ -159,6 +159,7 @@ public class UPNPControl {
 		public volatile boolean active, renew;
 		public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
 		public volatile PanasonicDmpProfiles panasonicDmpProfiles;
+		// State if the GetPositionInfo is properly implemented
 		public boolean isGetPositionInfoImplemented = true;
 
 		public Renderer(String uuid) {
@@ -705,6 +706,10 @@ public class UPNPControl {
 			LOGGER.debug("Missed events: " + numberOfMissedEvents + " for subscription " + sub.getService().getServiceId().getId() + " on " + getFriendlyName(uuid));
 		}
 	}
+	
+	public static ActionInvocation send(final Device dev, String instanceID, String service, final String action, String... args) {
+		return send(dev, instanceID, null, service, action, args);
+	}
 
 	// Convenience functions for sending various upnp service requests
 	public static ActionInvocation send(final Device dev, String instanceID, Renderer renderer, String service, final String action, String... args) {
@@ -735,7 +740,7 @@ public class UPNPControl {
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
 						// Show all failures and the GetPositionInfo first occurrence
 						// and than set the isGetPositionInfoImplemented to false.
-						if (isNotGetPositionInfoRequest || (!isNotGetPositionInfoRequest && renderer.isGetPositionInfoImplemented)) {
+						if (isNotGetPositionInfoRequest || (!isNotGetPositionInfoRequest && renderer !=null && renderer.isGetPositionInfoImplemented)) {
 							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
 							if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
 								LOGGER.trace("", invocation.getFailure());
@@ -749,7 +754,7 @@ public class UPNPControl {
 							}
 						}
 
-						if (!isNotGetPositionInfoRequest && renderer.isGetPositionInfoImplemented) {
+						if (!isNotGetPositionInfoRequest && renderer !=null && renderer.isGetPositionInfoImplemented) {
 							renderer.isGetPositionInfoImplemented = false;
 							LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable checking it.", renderer);
 						}
@@ -838,32 +843,32 @@ public class UPNPControl {
 	public final static String TRACK_NR = "TRACK_NR";
 
 	public static void play(Device dev, String instanceID) {
-		send(dev, instanceID, null, "AVTransport", "Play", "Speed", "1");
+		send(dev, instanceID, "AVTransport", "Play", "Speed", "1");
 	}
 
 	public static void pause(Device dev, String instanceID) {
-		send(dev, instanceID, null, "AVTransport", "Pause");
+		send(dev, instanceID, "AVTransport", "Pause");
 	}
 
 	public static void next(Device dev, String instanceID) {
-		send(dev, instanceID, null, "AVTransport", "Next");
+		send(dev, instanceID, "AVTransport", "Next");
 	}
 
 	public static void previous(Device dev, String instanceID) {
-		send(dev, instanceID, null, "AVTransport", "Previous");
+		send(dev, instanceID, "AVTransport", "Previous");
 	}
 
 	public static void seek(Device dev, String instanceID, String mode, String target) {
 		// REL_TIME target format is "hh:mm:ss"
-		send(dev, instanceID, null, "AVTransport", "Seek", "Unit", mode, "Target", target);
+		send(dev, instanceID, "AVTransport", "Seek", "Unit", mode, "Target", target);
 	}
 
 	public static void stop(Device dev, String instanceID) {
-		send(dev, instanceID, null, "AVTransport", "Stop");
+		send(dev, instanceID, "AVTransport", "Stop");
 	}
 
 	public static String getCurrentTransportState(Device dev, String instanceID) {
-		ActionInvocation invocation = send(dev, instanceID, null, "AVTransport", "GetTransportInfo");
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetTransportInfo");
 		if (invocation == null) {
 			return null;
 		}
@@ -872,7 +877,7 @@ public class UPNPControl {
 	}
 
 	public static String getCurrentTransportActions(Device dev, String instanceID) {
-		ActionInvocation invocation = send(dev, instanceID, null, "AVTransport", "GetCurrentTransportActions");
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetCurrentTransportActions");
 		if (invocation == null) {
 			return null;
 		}
@@ -881,7 +886,7 @@ public class UPNPControl {
 	}
 
 	public static String getDeviceCapabilities(Device dev, String instanceID) {
-		ActionInvocation invocation = send(dev, instanceID, null, "AVTransport", "GetDeviceCapabilities");
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetDeviceCapabilities");
 		if (invocation == null) {
 			return null;
 		}
@@ -890,7 +895,7 @@ public class UPNPControl {
 	}
 
 	public static String getMediaInfo(Device dev, String instanceID) {
-		ActionInvocation invocation = send(dev, instanceID, null, "AVTransport", "GetMediaInfo");
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetMediaInfo");
 		if (invocation == null) {
 			return null;
 		}
@@ -904,7 +909,7 @@ public class UPNPControl {
 	}
 
 	public static String getTransportInfo(Device dev, String instanceID) {
-		ActionInvocation invocation = send(dev, instanceID, null, "AVTransport", "GetTransportInfo");
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetTransportInfo");
 		if (invocation == null) {
 			return null;
 		}
@@ -913,7 +918,7 @@ public class UPNPControl {
 	}
 
 	public static String getTransportSettings(Device dev, String instanceID) {
-		ActionInvocation invocation = send(dev, instanceID, null, "AVTransport", "GetTransportSettings");
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetTransportSettings");
 		if (invocation == null) {
 			return null;
 		}
@@ -922,16 +927,16 @@ public class UPNPControl {
 	}
 
 	public static void setAVTransportURI(Device dev, String instanceID, String uri, String metaData) {
-		send(dev, instanceID, null, "AVTransport", "SetAVTransportURI", "CurrentURI", uri,
+		send(dev, instanceID, "AVTransport", "SetAVTransportURI", "CurrentURI", uri,
 			"CurrentURIMetaData", metaData != null ? StringUtil.unEncodeXML(metaData) : null);
 	}
 
 	public static void setPlayMode(Device dev, String instanceID, String mode) {
-		send(dev, instanceID, null, "AVTransport", "SetPlayMode", "NewPlayMode", mode);
+		send(dev, instanceID, "AVTransport", "SetPlayMode", "NewPlayMode", mode);
 	}
 
 	public static String xDlnaGetBytePositionInfo(Device dev, String instanceID, String trackSize) {
-		ActionInvocation invocation = send(dev, instanceID, null, "AVTransport", "X_DLNA_GetBytePositionInfo", "TrackSize", trackSize);
+		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "X_DLNA_GetBytePositionInfo", "TrackSize", trackSize);
 		if (invocation == null) {
 			return null;
 		}
@@ -950,7 +955,7 @@ public class UPNPControl {
 	}
 
 	public static String getMute(Device dev, String instanceID, String channel) {
-		ActionInvocation invocation = send(dev, instanceID, null, "RenderingControl", "GetMute", "Channel", channel);
+		ActionInvocation invocation = send(dev, instanceID, "RenderingControl", "GetMute", "Channel", channel);
 		if (invocation == null) {
 			return null;
 		}
@@ -963,7 +968,7 @@ public class UPNPControl {
 	}
 
 	public static String getVolume(Device dev, String instanceID, String channel) {
-		ActionInvocation invocation = send(dev, instanceID, null, "RenderingControl", "GetVolume", "Channel", channel);
+		ActionInvocation invocation = send(dev, instanceID, "RenderingControl", "GetVolume", "Channel", channel);
 		if (invocation == null) {
 			return null;
 		}
@@ -976,7 +981,7 @@ public class UPNPControl {
 	}
 
 	public static void setMute(Device dev, String instanceID, boolean on, String channel) {
-		send(dev, instanceID, null, "RenderingControl", "SetMute", "DesiredMute", on ? "1" : "0", "Channel", channel);
+		send(dev, instanceID, "RenderingControl", "SetMute", "DesiredMute", on ? "1" : "0", "Channel", channel);
 	}
 
 	public static void setVolume(Device dev, String instanceID, int volume) {
@@ -985,7 +990,7 @@ public class UPNPControl {
 
 	public static void setVolume(Device dev, String instanceID, int volume, String channel) {
 		// volume = 1 to 100
-		send(dev, instanceID, null, "RenderingControl", "SetVolume", "DesiredVolume", String.valueOf(volume), "Channel", channel);
+		send(dev, instanceID, "RenderingControl", "SetVolume", "DesiredVolume", String.valueOf(volume), "Channel", channel);
 	}
 
 }
