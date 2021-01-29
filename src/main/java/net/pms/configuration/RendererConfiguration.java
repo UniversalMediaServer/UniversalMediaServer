@@ -166,6 +166,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	protected static final String SEEK_BY_TIME = "SeekByTime";
 	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
+	protected static final String SEND_DLNA_ORG_FLAGS = "SendDLNAOrgFlags";
 	protected static final String SEND_FOLDER_THUMBNAILS = "SendFolderThumbnails";
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration";
@@ -2032,6 +2033,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
+	}
+
+	public boolean isSendDLNAOrgFlags() {
+		return getBoolean(SEND_DLNA_ORG_FLAGS, true);
 	}
 
 	public boolean isAccurateDLNAOrgPN() {
