@@ -1,4 +1,4 @@
-10.0.1-SNAPSHOT
+10.0.1 - 2021-01-29
 
 	General:
 		Added some UPnP properties for TV episodes
