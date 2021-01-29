@@ -2,14 +2,28 @@
 
 	General:
 		Added some UPnP properties for TV episodes
+		Added renderer config option SendDLNAOrgFlags
 		Reduced network traffic
-		Fixed error when parsing episode filenames without titles
+		Fixed error when parsing episode filenames without series titles
+		Fixed not recognizing TV episodes past episode 99
+		Fixed finding metadata for some TV episodes, especially anime
+		Fixed not showing some metadata for movies and episodes on the web interface
 	Renderers:
 		Improved detection of LG OLED TVs
 		Improved support for Panasonic HZ1500
 		Improved support for Roku Ultra devices
+		Improved support for Sony Bravia XH Series TVs (thanks, SimpleUser!)
+	Translation updates via Crowdin:
+		Arabic (57%) (thanks, meratkha!)
+		German (100%) (thanks, pipin!)
+		Korean (99%) (thanks, VenusGirl!)
+		Norwegian (88%) (thanks, lexmerlin!)
+		Romanian (100%) (thanks, FlorinT!)
 	Dependency updates:
-		Bump oshi-core from 5.3.7 to 5.4.0
+		Bump assertj-core from 3.18.1 to 3.19.0
+		Bump JRE from 15.0.1 to 15.0.2
+		Bump oshi-core from 5.3.7 to 5.4.1
+		Bump twelvemonkeys-imageio-version from 3.6.1 to 3.6.2
 
 10.0.0 - 2021-01-12 - Changes since 10.0.0-a1
 
