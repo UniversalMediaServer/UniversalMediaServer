@@ -679,4 +679,22 @@ public class UMSUtils {
 
 		return a.equals(b);
 	}
+
+	/**
+	 * Accepts two parameters, the string of the associated tool tip and 
+	 * notes to be shown in the tool tip
+	 *
+	 * @param name
+	 * @param notes
+	 */
+
+	 public static String toolTipMessage(String name, String notes) {
+		StringBuilder toolTipHTMLBuilder = new StringBuilder();
+		
+		toolTipHTMLBuilder.append("<html><strong>Default:</strong> False<br><strong>Notes:</strong> ")
+							.append(notes)
+							.append("</html>");
+
+		return toolTipHTMLBuilder.toString();
+	 }
 }
