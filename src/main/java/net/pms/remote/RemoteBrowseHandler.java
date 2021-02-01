@@ -383,7 +383,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 			) {
 				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, true, root);
 				if (apiMetadataAsJavaScriptVars != null) {
-					LOGGER.info("apiMetadataAsJavaScriptVars " + apiMetadataAsJavaScriptVars);
 					mustacheVars.put("isTVSeriesWithAPIData", true);
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 				}

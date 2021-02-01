@@ -1692,7 +1692,7 @@ public class DLNAMediaDatabase implements Runnable {
 				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRated.TABLE_NAME + ".FILENAME " +
 				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRatings.TABLE_NAME + ".FILENAME " +
 				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataReleased.TABLE_NAME + ".FILENAME " +
-				"WHERE FILES.FILENAME = " + sqlQuote(filename) + " and IMDBID != ''";
+				"WHERE " + TABLE_NAME + ".FILENAME = " + sqlQuote(filename) + " and IMDBID != ''";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
@@ -1701,9 +1701,7 @@ public class DLNAMediaDatabase implements Runnable {
 			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						return convertResultSetToList(resultSet);
-					}
+					return convertResultSetToList(resultSet);
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
