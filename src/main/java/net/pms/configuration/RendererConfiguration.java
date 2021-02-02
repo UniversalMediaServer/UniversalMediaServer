@@ -1355,27 +1355,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				} else if (isTranscodeToMP3()) {
 					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-				} else if (isNoAudioTranscoding()) {
+				} else if (isTranscodeToLPCM()) {
+					matchedMimeType = defaultAudioTranscoding(media);
+				} else if (isNoAudioTranscoding() || isMediaTypeSupported(media.getMimeType())) {
 					matchedMimeType = media.getMimeType();
 				} else {
-					// Default audio transcoding mime type
-					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
-
-					if (pmsConfiguration.isAudioResample()) {
-						if (isTranscodeAudioTo441()) {
-							matchedMimeType += ";rate=44100;channels=2";
-						} else {
-							matchedMimeType += ";rate=48000;channels=2";
-						}
-					} else if (media != null) {
-						AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
-						if (audio.getSampleFrequency() > 0) {
-							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
-						}
-						if (audio.getNumberOfChannels() > 0) {
-							matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
-						}
-					}
+					matchedMimeType = defaultAudioTranscoding(media);
 				}
 			}
 		}
@@ -1389,6 +1374,29 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return mimes.get(matchedMimeType);
 		}
 
+		return matchedMimeType;
+	}
+
+	private String defaultAudioTranscoding(DLNAMediaInfo media) {
+		String matchedMimeType;
+		// Default audio transcoding mime type
+		matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
+
+		if (pmsConfiguration.isAudioResample()) {
+			if (isTranscodeAudioTo441()) {
+				matchedMimeType += ";rate=44100;channels=2";
+			} else {
+				matchedMimeType += ";rate=48000;channels=2";
+			}
+		} else if (media != null) {
+			AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+			if (audio.getSampleFrequency() > 0) {
+				matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+			}
+			if (audio.getNumberOfChannels() > 0) {
+				matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
+			}
+		}
 		return matchedMimeType;
 	}
 
@@ -2936,6 +2944,23 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public String getSupportedVideoBitDepths() {
 		return getString(SUPPORTED_VIDEO_BIT_DEPTHS, "8");
+	}
+
+	/**
+	 * Checks if mediaType is supported by this renderer
+	 * @param mediaType
+	 *
+	 * @return TRUE, if mediaType is supported, otherwise FALSE.
+	 */
+	public boolean isMediaTypeSupported(String mediaType) {
+		String altMediaType = mediaType.replaceAll("/x-", "/");
+		ArrayList<String> supportedLines = (ArrayList<String>) configurationReader.getCustomProperty(SUPPORTED);
+		for (String line : supportedLines) {
+			if (line.contains(mediaType) || line.contains(altMediaType)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

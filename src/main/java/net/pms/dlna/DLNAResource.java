@@ -3153,7 +3153,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		InputStream is = null;
-		if (this instanceof RealFile && mediarenderer.isNoAudioTranscoding()) {
+		if (this instanceof RealFile && (mediarenderer.isNoAudioTranscoding() || mediarenderer.isMediaTypeSupported(media.getMimeType()))) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(String.format("MediaType %s is supported by render device : %s",
+					media.getMimeType(), Boolean.toString(mediarenderer.isMediaTypeSupported(media.getMimeType()))));
+			}
 			is = new FileInputStream(((RealFile) this).getFile());
 		} else {
 			// (Re)start transcoding process if necessary
