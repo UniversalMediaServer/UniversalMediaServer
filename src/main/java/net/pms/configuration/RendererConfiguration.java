@@ -106,6 +106,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MP3 = "MP3";
 	protected static final String WAV = "WAV";
 	protected static final String WMV = "WMV";
+	protected static final String NO_TRANS = "NO_TRANS";
 
 	// video transcoding options
 	protected static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
@@ -1201,6 +1202,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getAudioTranscode().equals(WAV);
 	}
 
+	public boolean isNoAudioTranscoding() { // check media renderer capabilities
+		return getAudioTranscode().equals(NO_TRANS);
+	}
+
 	public boolean isTranscodeAudioTo441() {
 		return getBoolean(TRANSCODE_AUDIO_441KHZ, false);
 	}
@@ -1350,6 +1355,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				} else if (isTranscodeToMP3()) {
 					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else if (isNoAudioTranscoding()) {
+					matchedMimeType = media.getMimeType();
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;

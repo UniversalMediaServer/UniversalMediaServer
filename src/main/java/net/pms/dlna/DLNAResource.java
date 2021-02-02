@@ -2216,7 +2216,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(mediaSubtitle));
 				}
 
-				if (getFormat() != null && getFormat().isVideo() && media != null && media.isMediaparsed()) {
+				if (getFormat() != null && (getFormat().isVideo() || getFormat().isAudio()) && media != null && media.isMediaparsed()) {
 					long transcodedSize = mediaRenderer.getTranscodedSize();
 					if (player == null) {
 						addAttribute(sb, "size", media.getSize());
@@ -2373,6 +2373,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodedExtension = "_transcoded_to.mp3";
 						} else if (mediaRenderer.isTranscodeToWAV()) {
 							transcodedExtension = "_transcoded_to.wav";
+						} else if (mediaRenderer.isNoAudioTranscoding()) {
+							transcodedExtension = "";
 						} else {
 							transcodedExtension = "_transcoded_to.pcm";
 						}
@@ -3150,80 +3152,79 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		// (Re)start transcoding process if necessary
-		if (externalProcess == null || externalProcess.isDestroyed()) {
-			// First playback attempt => start new transcoding process
-			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
-			lastStartSystemTime = System.currentTimeMillis();
-			externalProcess = player.launchTranscode(this, media, params);
-			if (params.getWaitBeforeStart() > 0) {
-				LOGGER.trace("Sleeping for {} milliseconds", params.getWaitBeforeStart());
+		InputStream is = null;
+		if (this instanceof RealFile && mediarenderer.isNoAudioTranscoding()) {
+			is = new FileInputStream(((RealFile) this).getFile());
+		} else {
+			// (Re)start transcoding process if necessary
+			if (externalProcess == null || externalProcess.isDestroyed()) {
+				// First playback attempt => start new transcoding process
+				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
+				lastStartSystemTime = System.currentTimeMillis();
+				externalProcess = player.launchTranscode(this, media, params);
+				if (params.getWaitBeforeStart() > 0) {
+					LOGGER.trace("Sleeping for {} milliseconds", params.getWaitBeforeStart());
+					try {
+						Thread.sleep(params.getWaitBeforeStart());
+					} catch (InterruptedException e) {
+						LOGGER.error(null, e);
+					}
+					LOGGER.trace("Finished sleeping for " + params.getWaitBeforeStart() + " milliseconds");
+				}
+			} else if (
+				params.getTimeSeek() > 0 &&
+				media != null &&
+				media.isMediaparsed() &&
+				media.getDurationInSeconds() > 0
+			) {
+				// Time seek request => stop running transcode process and start a new one
+				LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
+				params.setMinBufferSize(1);
+				Runnable r = () -> {
+					externalProcess.stopProcess();
+				};
+				new Thread(r, "External Process Stopper").start();
+				lastStartSystemTime = System.currentTimeMillis();
+				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
 				try {
-					Thread.sleep(params.getWaitBeforeStart());
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					LOGGER.error(null, e);
 				}
+				if (newExternalProcess == null) {
+					LOGGER.trace("External process instance is null... sounds not good");
+				}
 
-				LOGGER.trace("Finished sleeping for " + params.getWaitBeforeStart() + " milliseconds");
+				externalProcess = newExternalProcess;
 			}
-		} else if (
-			params.getTimeSeek() > 0 &&
-			media != null &&
-			media.isMediaparsed() &&
-			media.getDurationInSeconds() > 0
-		) {
-			// Time seek request => stop running transcode process and start a new one
-			LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
-			params.setMinBufferSize(1);
-			Runnable r = () -> {
-				externalProcess.stopProcess();
-			};
-
-			new Thread(r, "External Process Stopper").start();
-			lastStartSystemTime = System.currentTimeMillis();
-			ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				LOGGER.error(null, e);
+			if (externalProcess == null) {
+				return null;
 			}
-
-			if (newExternalProcess == null) {
-				LOGGER.trace("External process instance is null... sounds not good");
-			}
-
-			externalProcess = newExternalProcess;
-		}
-
-		if (externalProcess == null) {
-			return null;
-		}
-
-		InputStream is = null;
-		int timer = 0;
-		while (is == null && timer < 10) {
-			is = externalProcess.getInputStream(low);
-			timer++;
-			if (is == null) {
-				LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
+			int timer = 0;
+			while (is == null && timer < 10) {
+				is = externalProcess.getInputStream(low);
+				timer++;
+				if (is == null) {
+					LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+					}
 				}
 			}
-		}
 
-		// fail fast: don't leave a process running indefinitely if it's
-		// not producing output after params.waitbeforestart milliseconds + 5 seconds
-		// this cleans up lingering MEncoder web video transcode processes that hang
-		// instead of exiting
-		if (is == null && !externalProcess.isDestroyed()) {
-			Runnable r = () -> {
-				LOGGER.error("External input stream instance is null... stopping process");
-				externalProcess.stopProcess();
-			};
+			// fail fast: don't leave a process running indefinitely if it's
+			// not producing output after params.waitbeforestart milliseconds + 5 seconds
+			// this cleans up lingering MEncoder web video transcode processes that hang
+			// instead of exiting
+			if (is == null && !externalProcess.isDestroyed()) {
+				Runnable r = () -> {
+					LOGGER.error("External input stream instance is null... stopping process");
+					externalProcess.stopProcess();
+				};
 
-			new Thread(r, "Hanging External Process Stopper").start();
+				new Thread(r, "Hanging External Process Stopper").start();
+			}
 		}
 
 		return is;
