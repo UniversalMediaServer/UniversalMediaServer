@@ -144,8 +144,8 @@ public class SearchRequestHandler {
 
 			if ("upnp:class".equalsIgnoreCase(matcher.group("property"))) {
 				interpretUpnpClass(sb, matcher.group("op"), matcher.group("val"), requestType);
-			} else if (matcher.group("property").startsWith("dc:title")) {
-				appendTitleProperty(sb, matcher.group("property"), matcher.group("op"), matcher.group("val"), requestType);
+			} else if (matcher.group("property").startsWith("upnp:") || matcher.group("property").startsWith("dc:")) {
+				appendProperty(sb, matcher.group("property"), matcher.group("op"), matcher.group("val"), requestType);
 			}
 			sb.append("");
 			lastIndex = matcher.end();
@@ -160,7 +160,16 @@ public class SearchRequestHandler {
 		return sb;
 	}
 
-	private void appendTitleProperty(StringBuilder sb, String property, String op, String val, int requestType) {
+	/**
+	 * Title property depends on what Result type is being searched for.
+	 *
+	 * @param sb
+	 * @param property
+	 * @param op
+	 * @param val
+	 * @param requestType
+	 */
+	private void appendProperty(StringBuilder sb, String property, String op, String val, int requestType) {
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {
@@ -172,8 +181,13 @@ public class SearchRequestHandler {
 	}
 
 	private Object getField(String property, int requestType) {
+		// handle title by return type.
 		if ("dc:title".equalsIgnoreCase(property)) {
 			return getPropertyMapping(requestType);
+		} else if ("upnp:artist".equalsIgnoreCase(property)) {
+			return " A.ARTIST";
+		} else if ("upnp:genre".equalsIgnoreCase(property)) {
+			return " A.GENRE";
 		}
 		throw new RuntimeException("unknown or unimplemented property: >" + property + "<");
 	}
