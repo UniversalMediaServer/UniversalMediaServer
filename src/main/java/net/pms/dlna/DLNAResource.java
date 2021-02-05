@@ -2314,6 +2314,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									addAttribute(sb, "nrAudioChannels", transcodeNumberOfChannels);
 								}
 							}
+							addAttribute(sb, "bitsPerSample", firstAudioTrack.getBitsperSample());
 						}
 
 						if (player == null) {
