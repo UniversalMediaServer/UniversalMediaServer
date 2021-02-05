@@ -28,6 +28,7 @@ public class SearchRequestHandler {
 	final static int TYPE_ALBUM = 2;
 	final static int TYPE_PERSON = 3;
 	final static int TYPE_PLAYLIST = 4;
+	final static int TYPE_VIDEO = 5;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestHandler.class);
 	private final static String CRLF = "\r\n";
@@ -41,14 +42,19 @@ public class SearchRequestHandler {
 		Matcher matcher = classPattern.matcher(searchCriteria);
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
-			if ("object.item.audioItem.musicTrack".equalsIgnoreCase(propertyValue)) {
-				return TYPE_FILES;
-			} else if ("object.container.person".equalsIgnoreCase(propertyValue)) {
-				return TYPE_PERSON;
-			} else if ("object.container.album".equalsIgnoreCase(propertyValue)) {
-				return TYPE_ALBUM;
-			} else if ("object.container.playlistContainer".equalsIgnoreCase(propertyValue)) {
-				return TYPE_PLAYLIST;
+			if (propertyValue != null) {
+				if (propertyValue.toLowerCase().startsWith("object.item.audioitem.musictrack")) {
+					return TYPE_FILES;
+				} else if (propertyValue.toLowerCase().startsWith("object.container.person")) {
+					return TYPE_PERSON;
+				} else if (propertyValue.toLowerCase().startsWith("object.container.album")) {
+					return TYPE_ALBUM;
+				} else if (propertyValue.toLowerCase().startsWith("object.container.playlistcontainer")) {
+					return TYPE_PLAYLIST;
+				} else if (propertyValue.toLowerCase().startsWith("object.item.videoitem")) {
+					// TODO implement VIDEO search
+					return TYPE_UNKNOWN; // return TYPE_VIDEO
+				}
 			}
 		}
 		return TYPE_UNKNOWN;
