@@ -2216,7 +2216,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(mediaSubtitle));
 				}
 
-				if (getFormat() != null && (getFormat().isVideo() || getFormat().isAudio()) && media != null && media.isMediaparsed()) {
+				if (getFormat() != null && (getFormat().isVideo()) && media != null && media.isMediaparsed()) {
 					long transcodedSize = mediaRenderer.getTranscodedSize();
 					if (player == null) {
 						addAttribute(sb, "size", media.getSize());
