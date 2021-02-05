@@ -53,7 +53,7 @@ public class SearchRequestHandler {
 					return TYPE_PLAYLIST;
 				} else if (propertyValue.toLowerCase().startsWith("object.item.videoitem")) {
 					// TODO implement VIDEO search
-					return TYPE_UNKNOWN; // return TYPE_VIDEO
+					return TYPE_VIDEO;
 				}
 			}
 		}
@@ -95,6 +95,7 @@ public class SearchRequestHandler {
 					if (numberReturned < requestMessage.getRequestedCount()) {
 						numberReturned++;
 						uf.resolve();
+						uf.setFakeParentId("0");
 						dlnaItems.append(uf.getDidlString(mediaRenderer));
 					}
 				}
