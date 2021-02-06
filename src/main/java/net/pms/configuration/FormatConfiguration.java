@@ -375,10 +375,11 @@ public class FormatConfiguration {
 
 		/**
 		 * Determine whether or not the provided parameters match the
-		 * "Supported" lines for this configuration. If a parameter is null
-		 * or 0, its value is skipped for making the match. If any of the
-		 * non-null parameters does not match, false is returned. For example,
-		 * assume a configuration that contains only the following line:
+		 * "Supported" lines for this configuration, or the related settings.
+		 * If a parameter is null or 0, its value is skipped for making the
+		 * match. If any of the non-null parameters does not match, false is
+		 * returned.
+		 * For example, assume a configuration that contains only the following line:
 		 *
 		 * <blockquote><pre>
 		 * 	Supported = f:mp4 n:2 se:SUBRIP
@@ -400,9 +401,14 @@ public class FormatConfiguration {
 		 * @param framerate
 		 * @param videoWidth
 		 * @param videoHeight
-		 * @param extras
+		 * @param extras map containing 0 or more key/value pairs for:
+		 *               - vbd (Video bit depth)
+		 *               - qpel
+		 *               - gmc
+		 *               - gop
 		 * @param subsFormat
 		 * @param isExternalSubs
+		 * @param renderer
 		 * @return False if any of the provided non-null parameters is not a
 		 * 			match, true otherwise.
 		 */
@@ -498,29 +504,37 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (extras != null && miExtras != null) {
+			if (extras != null) {
 				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();
 				while (keyIt.hasNext()) {
 					String key = keyIt.next().getKey();
 					String value = extras.get(key).toLowerCase();
 
-					if (key.equals(MI_VBD) && miExtras.get(MI_VBD) != null && !miExtras.get(MI_VBD).matcher(value).matches()) {
-						LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", value, supportLine);
-						return false;
+					if (key.equals(MI_VBD)) {
+						if (miExtras != null && miExtras.get(MI_VBD) != null) {
+							if (!miExtras.get(MI_VBD).matcher(value).matches()) {
+							    LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", value, supportLine);
+							    return false;
+							}
+						} else if (!(renderer != null && renderer.isVideoBitDepthSupportedForAllFiletypes(value))) {
+							LOGGER.trace("The video bit depth \"{}\" is not supported for this filetype, or all filetypes", value);
+							return false;
+						}
 					}
 
-					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
+					if (key.equals(MI_QPEL) && miExtras != null && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
 						LOGGER.trace("QPel value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 
-					if (key.equals(MI_GMC) && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
+					if (key.equals(MI_GMC) && miExtras != null && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
 						LOGGER.trace("GMC value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 
 					if (
 						key.equals(MI_GOP) &&
+						miExtras != null &&
 						miExtras.get(MI_GOP) != null &&
 						miExtras.get(MI_GOP).matcher("static").matches() &&
 						value.equals("variable")

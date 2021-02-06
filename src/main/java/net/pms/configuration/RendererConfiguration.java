@@ -2960,6 +2960,27 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
 	}
 
+	/**
+	 * Note: This can return false even when the renderer config has defined
+	 * support for the bit depth for individual filetypes.
+	 *
+	 * @param videoBitDepth the video bit depth to check for.
+	 * @return whether this renderer supports streaming this video bit depth
+	 *         for all video formats.
+	 */
+	public boolean isVideoBitDepthSupportedForAllFiletypes(String videoBitDepth) {
+		if (videoBitDepth != null) {
+			String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+			for (String supportedBitDepth : supportedBitDepths) {
+				if (videoBitDepth.equals(supportedBitDepth.trim())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	public boolean isRemoveTagsFromSRTsubs() {
 		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
 	}
