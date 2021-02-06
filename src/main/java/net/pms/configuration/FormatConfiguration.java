@@ -513,8 +513,8 @@ public class FormatConfiguration {
 					if (key.equals(MI_VBD)) {
 						if (miExtras != null && miExtras.get(MI_VBD) != null) {
 							if (!miExtras.get(MI_VBD).matcher(value).matches()) {
-							    LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", value, supportLine);
-							    return false;
+								LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", value, supportLine);
+								return false;
 							}
 						} else if (!(renderer != null && renderer.isVideoBitDepthSupportedForAllFiletypes(value))) {
 							LOGGER.trace("The video bit depth \"{}\" is not supported for this filetype, or all filetypes", value);
