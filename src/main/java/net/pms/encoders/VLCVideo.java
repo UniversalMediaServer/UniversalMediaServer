@@ -510,7 +510,7 @@ public class VLCVideo extends Player {
 		}
 
 		// Useful for the more esoteric codecs people use
-		if (experimentalCodecs.isSelected()) {
+		if (configuration.isVlcExperimentalCodecs()) {
 			cmdList.add("--sout-avcodec-strict=-2");
 		}
 
