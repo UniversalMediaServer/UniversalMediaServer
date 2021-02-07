@@ -267,12 +267,12 @@ public class GeneralTab {
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
 				scrollPane.setPreferredSize(new Dimension(900, 450));
-				
+
 				try {
 					try (FileInputStream fis = new FileInputStream(conf); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
 						String line;
 						StringBuilder sb = new StringBuilder();
-						
+
 						while ((line = in.readLine()) != null) {
 							sb.append(line);
 							sb.append("\n");
@@ -282,16 +282,16 @@ public class GeneralTab {
 				} catch (IOException e1) {
 					return;
 				}
-				
+
 				tPanel.add(scrollPane, BorderLayout.NORTH);
 				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
-				
+
 				if (JOptionPane.showOptionDialog(looksFrame,
 					tPanel, Messages.getString("NetworkTab.51"),
 					JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
 					String text = textArea.getText();
-					
+
 					try {
 						try (FileOutputStream fos = new FileOutputStream(conf)) {
 							fos.write(text.getBytes());
@@ -502,10 +502,10 @@ public class GeneralTab {
 				installService.addActionListener((ActionEvent e) -> {
 					WindowsUtil.uninstallWin32Service();
 					LOGGER.info("Uninstalled UMS Windows service");
-					
+
 					// Refresh the button state after it has been clicked
 					refreshInstallServiceButtonState();
-					
+
 					JOptionPane.showMessageDialog(
 						looksFrame,
 						Messages.getString("GeneralTab.3"),
@@ -527,10 +527,10 @@ public class GeneralTab {
 				installService.addActionListener((ActionEvent e) -> {
 					if (WindowsUtil.installWin32Service()) {
 						LOGGER.info("Installed UMS Windows service");
-						
+
 						// Refresh the button state after it has been clicked
 						refreshInstallServiceButtonState();
-						
+
 						JOptionPane.showMessageDialog(
 							looksFrame,
 							Messages.getString("NetworkTab.11") +
@@ -625,15 +625,15 @@ public class GeneralTab {
 			if (o1 == null && o2 == null) {
 				return 0;
 			}
-			
+
 			if (o1 == null) {
 				return 1;
 			}
-			
+
 			if (o2 == null) {
 				return -1;
 			}
-			
+
 			return o1.getRendererName().toLowerCase().compareTo(o2.getRendererName().toLowerCase());
 		});
 	}
