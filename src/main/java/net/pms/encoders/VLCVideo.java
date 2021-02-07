@@ -206,7 +206,7 @@ public class VLCVideo extends Player {
 		*/
 
 		// This has caused garbled audio, so only enable when told to
-		if (audioSyncEnabled.isSelected()) {
+		if (configuration.isVlcAudioSyncEnabled()) {
 			codecConfig.extraTrans.put("audio-sync", "");
 		}
 		return codecConfig;
