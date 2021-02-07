@@ -129,6 +129,9 @@ public class DLNAMediaInfo implements Cloneable {
 	private String pixelAspectRatio;
 	private ScanType scanType;
 	private ScanOrder scanOrder;
+	private String lastPlaybackPosition = "0";
+	private String lastPlaybackTime = "0";
+	private int playbackCount = 0;
 
 	/**
 	 * The frame rate mode as read from the parser
@@ -2163,6 +2166,30 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
+	}
+
+	public int getPlaybackCount() {
+		return playbackCount;
+	}
+
+	public void setPlaybackCount(int value) {
+		this.playbackCount = value;
+	}
+
+	public String getLastPlaybackPosition() {
+		return lastPlaybackPosition;
+	}
+
+	public void setLastPlaybackPosition(String value) {
+		this.lastPlaybackPosition = value;
+	}
+
+	public String getLastPlaybackTime() {
+		return lastPlaybackTime;
+	}
+
+	public void setLastPlaybackTime(String value) {
+		this.lastPlaybackTime = value;
 	}
 
 	public String getIMDbID() {

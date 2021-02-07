@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 10;
+	private static final int TABLE_VERSION = 11;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -139,8 +139,9 @@ public final class TableFilesStatus extends Tables {
 	 * Sets the last played date and increments the play count.
 	 *
 	 * @param fullPathToFile
+	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	public static void setLastPlayed(final String fullPathToFile) {
+	public static void setLastPlayed(final String fullPathToFile, final String lastPlaybackPosition) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
@@ -169,6 +170,7 @@ public final class TableFilesStatus extends Tables {
 					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 					result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
 					result.updateInt("PLAYCOUNT", playCount);
+					result.updateString("LASTPLAYBACKPOSITION", lastPlaybackPosition);
 
 					if (isCreatingNewRecord) {
 						result.insertRow();
@@ -510,6 +512,12 @@ public final class TableFilesStatus extends Tables {
 						}
 						version = 10;
 						break;
+					case 10:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION VARCHAR2(1024) DEFAULT '0'");
+						}
+						version = 11;
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
@@ -531,13 +539,14 @@ public final class TableFilesStatus extends Tables {
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID            IDENTITY PRIMARY KEY, " +
-					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
-					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
-					"BOOKMARK      INTEGER DEFAULT 0, " +
-					"DATELASTPLAY  DATETIME, " +
-					"PLAYCOUNT     INTEGER DEFAULT 0, " +
+					"ID                     IDENTITY PRIMARY KEY, " +
+					"FILENAME               VARCHAR2(1024)        NOT NULL, " +
+					"MODIFIED               DATETIME, " +
+					"ISFULLYPLAYED          BOOLEAN                          DEFAULT false, " +
+					"BOOKMARK               INTEGER                          DEFAULT 0, " +
+					"DATELASTPLAY           DATETIME, " +
+					"PLAYCOUNT              INTEGER                          DEFAULT 0, " +
+					"LASTPLAYBACKPOSITION   VARCHAR2(1024)                   DEFAULT '0', " +
 				")"
 			);
 

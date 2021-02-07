@@ -2177,19 +2177,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (media != null && media.isTVEpisode()) {
-			if (isNotBlank(media.getTVSeason())) {
-				addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
+		if (media != null) {
+			if (media.isTVEpisode()) {
+				if (isNotBlank(media.getTVSeason())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
+				}
+				if (isNotBlank(media.getTVEpisodeNumber())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
+				}
+				if (isNotBlank(media.getMovieOrShowName())) {
+					addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(media.getMovieOrShowName()));
+				}
+				if (isNotBlank(media.getTVEpisodeName())) {
+					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(media.getTVEpisodeName()));
+				}
 			}
-			if (isNotBlank(media.getTVEpisodeNumber())) {
-				addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
-			}
-			if (isNotBlank(media.getMovieOrShowName())) {
-				addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(media.getMovieOrShowName()));
-			}
-			if (isNotBlank(media.getTVEpisodeName())) {
-				addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(media.getTVEpisodeName()));
-			}
+
+			addXMLTagAndAttribute(sb, "upnp:playbackCount", media.getPlaybackCount());
+			addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(media.getLastPlaybackTime()));
+			addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(media.getLastPlaybackPosition()));
 		}
 
 		MediaType mediaType = media != null ? media.getMediaType() : MediaType.UNKNOWN;
