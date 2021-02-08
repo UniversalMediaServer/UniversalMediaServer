@@ -18,18 +18,46 @@
  */
 package net.pms.dlna;
 
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.awt.RenderingHints;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -43,7 +71,16 @@ import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.encoders.*;
+import net.pms.encoders.AviSynthFFmpeg;
+import net.pms.encoders.AviSynthMEncoder;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.MEncoderVideo;
+import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.TsMuxeRVideo;
+import net.pms.encoders.VLCVideo;
+import net.pms.encoders.VideoLanVideoStreaming;
+import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.image.BufferedImageFilterChain;
@@ -55,16 +92,16 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.UPNPControl.Renderer;
-import net.pms.util.*;
-import static net.pms.util.StringUtil.*;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.external.ExternalListener;
+import net.pms.util.BasicThreadFactory;
+import net.pms.util.DLNAList;
+import net.pms.util.FileUtil;
+import net.pms.util.FullyPlayed;
+import net.pms.util.GenericIcons;
+import net.pms.util.Iso639;
+import net.pms.util.MpegUtil;
+import net.pms.util.OpenSubtitle;
+import net.pms.util.StringUtil;
+import net.pms.util.SubtitleUtils;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory service.
@@ -2373,7 +2410,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodedExtension = "_transcoded_to.mp3";
 						} else if (mediaRenderer.isTranscodeToWAV()) {
 							transcodedExtension = "_transcoded_to.wav";
-						} else if (mediaRenderer.isNoAudioTranscoding()) {
+						} else if (mediaRenderer.isMediaTypeSupported(media.getMimeType())) {
 							transcodedExtension = "";
 						} else {
 							transcodedExtension = "_transcoded_to.pcm";
@@ -3153,7 +3190,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		InputStream is = null;
-		if (this instanceof RealFile && (mediarenderer.isNoAudioTranscoding() || mediarenderer.isMediaTypeSupported(media.getMimeType()))) {
+		if (this instanceof RealFile && (mediarenderer.isMediaTypeSupported(media.getMimeType()))) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(String.format("MediaType %s is supported by render device : %s",
 					media.getMimeType(), Boolean.toString(mediarenderer.isMediaTypeSupported(media.getMimeType()))));
