@@ -1346,14 +1346,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					matchedMimeType = HTTPResource.MPEG_TYPEMIME;
 				}
 			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToWAV()) {
-					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				if (isMediaTypeSupported(media.getMimeType())) {
+					matchedMimeType = media.getMimeType();
 				} else if (isTranscodeToMP3()) {
 					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
 				} else if (isTranscodeToLPCM()) {
 					matchedMimeType = defaultAudioTranscoding(media);
-				} else if (isMediaTypeSupported(media.getMimeType())) {
-					matchedMimeType = media.getMimeType();
+				} else if (isTranscodeToWAV()) {
+					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
 				} else {
 					matchedMimeType = defaultAudioTranscoding(media);
 				}
@@ -1823,7 +1823,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The codec name.
 	 */
 	public String getAudioTranscode() {
-		return getString(TRANSCODE_AUDIO, "");
+		return getString(TRANSCODE_AUDIO, LPCM);
 	}
 
 	/**
