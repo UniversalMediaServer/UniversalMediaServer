@@ -2358,8 +2358,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								addAttribute(sb, "size", media.getSize());
 							}
 						} else {
+							if (mediaRenderer.isMediaTypeSupported(media.getMimeType())) {
+								addAttribute(sb, "size", media.getSize());
 							// Calculate WAV size
-							if (
+							} else if (
 								firstAudioTrack != null &&
 								media.getDurationInSeconds() > 0.0 &&
 								transcodeFrequency > 0 &&

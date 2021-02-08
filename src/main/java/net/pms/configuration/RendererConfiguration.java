@@ -1823,7 +1823,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The codec name.
 	 */
 	public String getAudioTranscode() {
-		return getString(TRANSCODE_AUDIO, LPCM);
+		return getString(TRANSCODE_AUDIO, "");
 	}
 
 	/**
