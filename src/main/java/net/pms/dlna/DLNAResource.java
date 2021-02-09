@@ -2194,8 +2194,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			addXMLTagAndAttribute(sb, "upnp:playbackCount", media.getPlaybackCount());
-			addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(media.getLastPlaybackTime()));
-			addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(media.getLastPlaybackPosition()));
+			if (isNotBlank(media.getLastPlaybackTime())) {
+				addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(media.getLastPlaybackTime()));
+			}
+			if (isNotBlank(media.getLastPlaybackPositionForUPnP())) {
+				addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(media.getLastPlaybackPositionForUPnP()));
+			}
 		}
 
 		MediaType mediaType = media != null ? media.getMediaType() : MediaType.UNKNOWN;

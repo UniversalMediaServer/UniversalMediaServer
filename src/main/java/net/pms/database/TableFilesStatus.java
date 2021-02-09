@@ -141,7 +141,7 @@ public final class TableFilesStatus extends Tables {
 	 * @param fullPathToFile
 	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	public static void setLastPlayed(final String fullPathToFile, final String lastPlaybackPosition) {
+	public static void setLastPlayed(final String fullPathToFile, final Double lastPlaybackPosition) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
@@ -170,7 +170,9 @@ public final class TableFilesStatus extends Tables {
 					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 					result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
 					result.updateInt("PLAYCOUNT", playCount);
-					result.updateString("LASTPLAYBACKPOSITION", lastPlaybackPosition);
+					if (lastPlaybackPosition != null) {
+						result.updateDouble("LASTPLAYBACKPOSITION", lastPlaybackPosition);
+					}
 
 					if (isCreatingNewRecord) {
 						result.insertRow();
@@ -514,7 +516,7 @@ public final class TableFilesStatus extends Tables {
 						break;
 					case 10:
 						try (Statement statement = connection.createStatement()) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION VARCHAR2(1024) DEFAULT '0'");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
 						}
 						version = 11;
 						break;
@@ -546,7 +548,7 @@ public final class TableFilesStatus extends Tables {
 					"BOOKMARK               INTEGER                          DEFAULT 0, " +
 					"DATELASTPLAY           DATETIME, " +
 					"PLAYCOUNT              INTEGER                          DEFAULT 0, " +
-					"LASTPLAYBACKPOSITION   VARCHAR2(1024)                   DEFAULT '0', " +
+					"LASTPLAYBACKPOSITION   DOUBLE                           DEFAULT 0.0, " +
 				")"
 			);
 

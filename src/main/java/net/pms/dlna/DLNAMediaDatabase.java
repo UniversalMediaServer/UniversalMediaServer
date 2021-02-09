@@ -654,7 +654,7 @@ public class DLNAMediaDatabase implements Runnable {
 							if (elements.next()) {
 								media.setPlaybackCount(elements.getInt("PLAYCOUNT"));
 								media.setLastPlaybackTime(elements.getString("DATELASTPLAY"));
-								media.setLastPlaybackPosition(elements.getString("LASTPLAYBACKPOSITION"));
+								media.setLastPlaybackPosition(elements.getDouble("LASTPLAYBACKPOSITION"));
 							}
 						}
 					}

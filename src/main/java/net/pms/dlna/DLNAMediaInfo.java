@@ -19,7 +19,9 @@
 package net.pms.dlna;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -129,8 +131,8 @@ public class DLNAMediaInfo implements Cloneable {
 	private String pixelAspectRatio;
 	private ScanType scanType;
 	private ScanOrder scanOrder;
-	private String lastPlaybackPosition = "0";
-	private String lastPlaybackTime = "0";
+	private Double lastPlaybackPosition = null;
+	private String lastPlaybackTime;
 	private int playbackCount = 0;
 
 	/**
@@ -2176,11 +2178,39 @@ public class DLNAMediaInfo implements Cloneable {
 		this.playbackCount = value;
 	}
 
-	public String getLastPlaybackPosition() {
+	public Double getLastPlaybackPosition() {
 		return lastPlaybackPosition;
 	}
 
-	public void setLastPlaybackPosition(String value) {
+	public String getLastPlaybackPositionForUPnP() {
+		if (lastPlaybackPosition == null) {
+			return null;
+		}
+
+		BigDecimal secondsValue = BigDecimal.valueOf(lastPlaybackPosition);
+		Duration dur = Duration.ofSeconds(secondsValue.longValue());
+		long hours = dur.toHours();
+		int minutes = dur.toMinutesPart();
+		int seconds = dur.toSecondsPart();
+		int milliseconds = dur.toMillisPart();
+
+		String hoursString = String.valueOf(hours);
+		String minutesString = String.valueOf(minutes);
+		String secondsString = String.valueOf(seconds);
+		String millisecondsString = String.valueOf(milliseconds);
+
+		if (minutesString.length() == 1) {
+			minutesString = "0" + minutesString;
+		}
+
+		if (secondsString.length() == 1) {
+			secondsString = "0" + secondsString;
+		}
+
+		return hoursString + ":" + minutesString + ":" + secondsString + "." + millisecondsString;
+	}
+
+	public void setLastPlaybackPosition(double value) {
 		this.lastPlaybackPosition = value;
 	}
 

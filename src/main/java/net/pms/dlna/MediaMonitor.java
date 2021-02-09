@@ -190,8 +190,6 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed += realFile.getLastStartPosition();
 		}
 
-		String lastPlaybackPosition = String.valueOf(elapsed);
-
 		FullyPlayedAction fullyPlayedAction = configuration.getFullyPlayedAction();
 
 		if (LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION)) {
@@ -216,7 +214,7 @@ public class MediaMonitor extends VirtualFolder {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null && isMonitored && !isFullyPlayed(fullPathToFile)) {
 				if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER && fullyPlayedAction != FullyPlayedAction.MOVE_TRASH) {
-					setFullyPlayed(fullPathToFile, true, lastPlaybackPosition);
+					setFullyPlayed(fullPathToFile, true, elapsed);
 					if (realFile.getMedia() != null) {
 						realFile.getMedia().setThumbready(false);
 					}
@@ -263,7 +261,7 @@ public class MediaMonitor extends VirtualFolder {
 
 						if (moved) {
 							RootFolder.parseFileForDatabase(newFile);
-							setFullyPlayed(newDirectory + playedFile.getName(), true, lastPlaybackPosition);
+							setFullyPlayed(newDirectory + playedFile.getName(), true, elapsed);
 						}
 					} else if (StringUtils.isBlank(newDirectory)) {
 						LOGGER.warn(
@@ -296,7 +294,7 @@ public class MediaMonitor extends VirtualFolder {
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
-			TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			TableFilesStatus.setLastPlayed(fullPathToFile, elapsed);
 			LOGGER.trace("final decision: not fully played");
 		}
 	}
@@ -352,7 +350,7 @@ public class MediaMonitor extends VirtualFolder {
 	 *            played, {@code false} otherwise.
 	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, String lastPlaybackPosition) {
+	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, Double lastPlaybackPosition) {
 		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
