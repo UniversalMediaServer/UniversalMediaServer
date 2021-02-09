@@ -1,5 +1,11 @@
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +14,13 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import org.apache.commons.codec.binary.Base64;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
@@ -21,10 +34,6 @@ import net.pms.util.Iso639;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.Version;
-import org.apache.commons.codec.binary.Base64;
-import static org.apache.commons.lang3.StringUtils.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LibMediaInfoParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
@@ -268,6 +277,7 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setAlbumArtist(mI.Get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
+					addMusicBrainzIDs(file, currentAudioTrack);
 
 					value = mI.Get(general, 0, "Track/Position");
 					if (!value.isEmpty()) {
@@ -505,6 +515,23 @@ public class LibMediaInfoParser {
 			}
 
 			media.setMediaparsed(true);
+		}
+	}
+
+	private static void addMusicBrainzIDs(File file, DLNAMediaAudio currentAudioTrack) {
+		try {
+			AudioFile af;
+			if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
+				af = AudioFileIO.readAs(file, "mp3");
+			} else {
+				af = AudioFileIO.read(file);
+			}
+			Tag t = af.getTag();
+			if (t != null) {
+				currentAudioTrack.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
+				currentAudioTrack.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+			}
+		} catch (Exception e) {
 		}
 	}
 
