@@ -168,7 +168,6 @@ public class RemotePlayHandler implements HttpHandler {
 			if (CONFIGURATION.getUseCache()) {
 				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, false, root);
 				if (apiMetadataAsJavaScriptVars != null) {
-					LOGGER.info("apiMetadataAsJavaScriptVars: " + apiMetadataAsJavaScriptVars);
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 					mustacheVars.put("isVideoWithAPIData", true);
 				}

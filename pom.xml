@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.0.1-SNAPSHOT</version>
+	<version>10.0.2-SNAPSHOT</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -81,7 +81,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>120</binary-revision>
+		<binary-revision>121</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -115,7 +115,7 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.7.0</junit5.version>
+		<junit5.version>5.7.1</junit5.version>
 		<com.sun.xml.bind-version>3.0.0</com.sun.xml.bind-version>
 	</properties>
 	<pluginRepositories>
@@ -3009,7 +3009,6 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre15/legal/java.desktop/ADDITIONAL_LICENSE_INFO?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/legal/java.desktop/ADDITIONAL_LICENSE_INFO" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/legal/java.desktop/ASSEMBLY_EXCEPTION?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/legal/java.desktop/ASSEMBLY_EXCEPTION" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/legal/java.desktop/colorimaging.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/legal/java.desktop/colorimaging.md" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre15/legal/java.desktop/freetype.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/legal/java.desktop/freetype.md" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/legal/java.desktop/giflib.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/legal/java.desktop/giflib.md" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/legal/java.desktop/harfbuzz.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/legal/java.desktop/harfbuzz.md" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/legal/java.desktop/jpeg.md?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/legal/java.desktop/jpeg.md" usetimestamp="true" />
@@ -3197,7 +3196,6 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre15/lib/libdt_socket.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/lib/libdt_socket.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/lib/libextnet.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/lib/libextnet.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/lib/libfontmanager.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/lib/libfontmanager.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre15/lib/libfreetype.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/lib/libfreetype.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/lib/libinstrument.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/lib/libinstrument.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/lib/libj2gss.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/lib/libj2gss.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre15/lib/libj2pcsc.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre15/lib/libj2pcsc.so" usetimestamp="true" />
@@ -4175,7 +4173,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>3.1.1</version>
+						<version>3.1.2</version>
 						<configuration>
 							<configLocation>CheckStyle.xml</configLocation>
 							<encoding>UTF-8</encoding>

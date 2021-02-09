@@ -26,7 +26,6 @@ import com.sun.jna.Platform;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -198,15 +197,8 @@ public class VLCVideo extends Player {
 		}
 		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
-		/**
-		// Audio sample rate handling
-		if (sampleRateOverride.isSelected()) {
-			codecConfig.sampleRate = Integer.valueOf(sampleRate.getText());
-		}
-		*/
-
 		// This has caused garbled audio, so only enable when told to
-		if (audioSyncEnabled.isSelected()) {
+		if (configuration.isVlcAudioSyncEnabled()) {
 			codecConfig.extraTrans.put("audio-sync", "");
 		}
 		return codecConfig;
@@ -510,7 +502,7 @@ public class VLCVideo extends Player {
 		}
 
 		// Useful for the more esoteric codecs people use
-		if (experimentalCodecs.isSelected()) {
+		if (configuration.isVlcExperimentalCodecs()) {
 			cmdList.add("--sout-avcodec-strict=-2");
 		}
 
@@ -673,21 +665,15 @@ public class VLCVideo extends Player {
 
 		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
-		experimentalCodecs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		experimentalCodecs.addItemListener((ItemEvent e) -> {
+			configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
-		audioSyncEnabled.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		audioSyncEnabled.addItemListener((ItemEvent e) -> {
+			configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(audioSyncEnabled), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
