@@ -19,9 +19,7 @@
 package net.pms.dlna;
 
 import java.io.*;
-import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.time.Duration;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
