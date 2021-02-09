@@ -2187,17 +2187,16 @@ public class DLNAMediaInfo implements Cloneable {
 			return null;
 		}
 
-		BigDecimal secondsValue = BigDecimal.valueOf(lastPlaybackPosition);
-		Duration dur = Duration.ofSeconds(secondsValue.longValue());
-		long hours = dur.toHours();
-		int minutes = dur.toMinutesPart();
-		int seconds = dur.toSecondsPart();
-		int milliseconds = dur.toMillisPart();
+		int secondsValue = lastPlaybackPosition.intValue();
+
+		int seconds = secondsValue % 60;
+		int hours = secondsValue / 60;
+		int minutes = hours % 60;
+		hours = hours / 60;
 
 		String hoursString = String.valueOf(hours);
 		String minutesString = String.valueOf(minutes);
 		String secondsString = String.valueOf(seconds);
-		String millisecondsString = String.valueOf(milliseconds);
 
 		if (minutesString.length() == 1) {
 			minutesString = "0" + minutesString;
@@ -2207,7 +2206,7 @@ public class DLNAMediaInfo implements Cloneable {
 			secondsString = "0" + secondsString;
 		}
 
-		return hoursString + ":" + minutesString + ":" + secondsString + "." + millisecondsString;
+		return hoursString + ":" + minutesString + ":" + secondsString + ".000";
 	}
 
 	public void setLastPlaybackPosition(double value) {
