@@ -318,7 +318,7 @@ public abstract class Format implements Cloneable {
 				return true;
 			}
 
-			String[] extensionsArray = extensionsString.split(",");
+			String[] extensionsArray = extensionsString.split(", ");
 			for (String extension : extensionsArray) {
 				if (StringUtil.hasValue(extension) && extension.equalsIgnoreCase(matchedExtension)) {
 					return true;
