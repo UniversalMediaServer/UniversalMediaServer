@@ -115,7 +115,7 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.7.0</junit5.version>
+		<junit5.version>5.7.1</junit5.version>
 		<com.sun.xml.bind-version>3.0.0</com.sun.xml.bind-version>
 	</properties>
 	<pluginRepositories>
