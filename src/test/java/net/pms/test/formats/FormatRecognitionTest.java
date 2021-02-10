@@ -45,7 +45,6 @@ import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.formats.v2.SubtitleUtilsTest;
 import net.pms.network.HTTPResource;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -65,6 +64,7 @@ public class FormatRecognitionTest {
 	private static boolean mediaInfoParserIsValid;
 	private static PmsConfiguration configuration;
 	private final Class<?> CLASS = FormatRecognitionTest.class;
+	File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
@@ -105,7 +105,7 @@ public class FormatRecognitionTest {
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
 		// Construct regular two channel MP3 information
-		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		assertNotNull(testFile);
 		DLNAResource dlna = new RealFile(testFile);
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mp3");
@@ -138,7 +138,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		assertNotNull(testFile);
 		DLNAResource dlna = new RealFile(testFile);
 		// Construct regular two channel MPG information
 		DLNAMediaInfo info = new DLNAMediaInfo();
@@ -173,7 +173,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		assertNotNull(testFile);
 		DLNAResource dlna = new RealFile(testFile);
 		// Construct MKV information
 		DLNAMediaInfo info = new DLNAMediaInfo();
@@ -205,7 +205,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		assertNotNull(testFile);
 		DLNAResource dlna = new RealFile(testFile);
 		// DVRMS: false
 		DLNAMediaInfo info = new DLNAMediaInfo();
