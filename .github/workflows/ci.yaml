@@ -15,12 +15,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 15
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
       - name: Install dependencies from Maven
         run: mvn external:install
       - name: Run tests (XCode ${{ matrix.xcode }})
