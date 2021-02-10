@@ -26,6 +26,8 @@
 			<includes>
 				<include>mencoder</include>
 				<include>mplayer</include>
+				<include>tsMuxeR</include>
+				<include>tsMuxeR-new</include>
 			</includes>
 		</fileSet>
 
@@ -41,8 +43,6 @@
 				<include>ffmpeg</include>
 				<include>flac</include>
 				<include>libmediainfo.dylib</include>
-				<include>tsMuxeR</include>
-				<include>tsMuxeR-new</include>
 			</includes>
 		</fileSet>
 
