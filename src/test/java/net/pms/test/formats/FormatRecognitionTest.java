@@ -189,7 +189,7 @@ public class FormatRecognitionTest {
 	/**
 	 * Test the compatibility of the
 	 * {@link Format#isCompatible(DLNAMediaInfo, RendererConfiguration)} for the
-	 * Playstation 3 renderer.
+	 * Sony Playstation 3 renderer.
 	 */
 	@Test
 	public void testPS3Compatibility() {
