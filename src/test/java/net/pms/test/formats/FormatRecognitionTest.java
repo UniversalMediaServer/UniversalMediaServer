@@ -45,8 +45,10 @@ import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.formats.v2.SubtitleUtilsTest;
 import net.pms.network.HTTPResource;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FileUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -62,6 +64,7 @@ import org.slf4j.LoggerFactory;
 public class FormatRecognitionTest {
 	private static boolean mediaInfoParserIsValid;
 	private static PmsConfiguration configuration;
+	private final Class<?> CLASS = FormatRecognitionTest.class;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
@@ -134,7 +137,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		File testVideo = new File("test.mkv");
+		File testVideo = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
 		DLNAResource dlna = new RealFile(testVideo);
 		// Construct regular two channel MPG information
 		DLNAMediaInfo info = new DLNAMediaInfo();
