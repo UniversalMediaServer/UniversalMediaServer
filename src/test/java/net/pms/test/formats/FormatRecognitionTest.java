@@ -105,7 +105,8 @@ public class FormatRecognitionTest {
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
 		// Construct regular two channel MP3 information
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		DLNAResource dlna = new RealFile(testFile);
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mp3");
 		info.setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
@@ -137,8 +138,8 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		File testVideo = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
-		DLNAResource dlna = new RealFile(testVideo);
+		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		DLNAResource dlna = new RealFile(testFile);
 		// Construct regular two channel MPG information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("avi");
@@ -172,7 +173,8 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		DLNAResource dlna = new RealFile(testFile);
 		// Construct MKV information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mkv");
@@ -203,7 +205,8 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
+		DLNAResource dlna = new RealFile(testFile);
 		// DVRMS: false
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("dvr");
