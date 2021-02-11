@@ -140,7 +140,7 @@ public class PipeProcess {
 	public OutputStream getOutputStream() throws IOException {
 		if (!Platform.isWindows()) {
 			LOGGER.trace("Opening file {} for writing...", linuxPipeName);
-			try (RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "rw")){
+			try (RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "rw")) {
 				return new FileOutputStream(raf.getFD());
 			}
 		}

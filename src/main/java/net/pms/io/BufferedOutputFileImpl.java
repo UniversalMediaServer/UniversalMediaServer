@@ -313,7 +313,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			} catch (InterruptedException e) {
 			} finally  {
 				input = getCurrentInputStream();
-			} 
+			}
 		}
 
 		if (buffer != null) {

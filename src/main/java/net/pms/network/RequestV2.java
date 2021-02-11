@@ -240,7 +240,7 @@ public class RequestV2 extends HTTPResource {
 
 	/**
 	 * The InputStream for the response to a received request.
-	 * Defining it here make it hopefully automatically closable. 
+	 * Defining it here make it hopefully automatically closable.
 	 */
 	private InputStream responseInputStream = null;
 
