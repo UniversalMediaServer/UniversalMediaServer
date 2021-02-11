@@ -65,7 +65,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Install dependencies from Maven
         run: mvn external:install
-      - name: Run tests (Ubuntu Bionic)
+      - name: Run tests
         run: |
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
