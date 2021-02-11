@@ -1065,6 +1065,8 @@ public class PMS {
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
+		} catch (Exception e) {
+			System.err.println("Error in main " + e.getMessage());
 		}
 	}
 

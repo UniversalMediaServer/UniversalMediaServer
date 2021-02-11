@@ -66,7 +66,7 @@ public class RealFile extends MapFile {
 	 * @param file The file to add.
 	 */
 	private void addFileToConfFiles(File file) {
-		if (configuration != null && configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
+		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
 			getConf().getFiles().add(FileUtil.getRealFile(file));
 		} else {
 			getConf().getFiles().add(file);
