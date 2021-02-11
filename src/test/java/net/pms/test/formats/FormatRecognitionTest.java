@@ -134,7 +134,8 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		File testVideo = new File("test.mkv");
+		DLNAResource dlna = new RealFile(testVideo);
 		// Construct regular two channel MPG information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("avi");
