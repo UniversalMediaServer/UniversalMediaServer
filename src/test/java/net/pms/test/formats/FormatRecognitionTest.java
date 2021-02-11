@@ -47,7 +47,6 @@ import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.network.HTTPResource;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.io.FileUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
