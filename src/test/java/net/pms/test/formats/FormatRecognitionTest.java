@@ -63,8 +63,6 @@ import org.slf4j.LoggerFactory;
 public class FormatRecognitionTest {
 	private static boolean mediaInfoParserIsValid;
 	private static PmsConfiguration configuration;
-	private final Class<?> CLASS = FormatRecognitionTest.class;
-	File testFile = FileUtils.toFile(CLASS.getResource("../../dlna/video-h265-aac.mkv"));
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
@@ -107,8 +105,7 @@ public class FormatRecognitionTest {
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
 		// Construct regular two channel MP3 information
-		assertNotNull(testFile);
-		DLNAResource dlna = new RealFile(testFile);
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mp3");
 		info.setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
@@ -140,8 +137,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		assertNotNull(testFile);
-		DLNAResource dlna = new RealFile(testFile);
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// Construct regular two channel MPG information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("avi");
@@ -175,8 +171,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		assertNotNull(testFile);
-		DLNAResource dlna = new RealFile(testFile);
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// Construct MKV information
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mkv");
@@ -207,8 +202,7 @@ public class FormatRecognitionTest {
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 
-		assertNotNull(testFile);
-		DLNAResource dlna = new RealFile(testFile);
+		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// DVRMS: false
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("dvr");
