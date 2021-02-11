@@ -1,3 +1,106 @@
+10.0.1 - 2021-01-29
+
+	General:
+		Added some UPnP properties for TV episodes
+		Added renderer config option SendDLNAOrgFlags
+		Reduced network traffic
+		Fixed error when parsing episode filenames without series titles
+		Fixed not recognizing TV episodes past episode 99
+		Fixed finding metadata for some TV episodes, especially anime
+		Fixed not showing some metadata for movies and episodes on the web interface
+	Renderers:
+		Improved detection of LG OLED TVs
+		Improved support for Panasonic HZ1500
+		Improved support for Roku Ultra devices
+		Improved support for Sony Bravia XH Series TVs (thanks, SimpleUser!)
+	Translation updates via Crowdin:
+		Arabic (57%) (thanks, meratkha!)
+		German (100%) (thanks, pipin!)
+		Korean (99%) (thanks, VenusGirl!)
+		Norwegian (88%) (thanks, lexmerlin!)
+		Romanian (100%) (thanks, FlorinT!)
+	Dependency updates:
+		Bump assertj-core from 3.18.1 to 3.19.0
+		Bump JRE from 15.0.1 to 15.0.2
+		Bump oshi-core from 5.3.7 to 5.4.1
+		Bump twelvemonkeys-imageio-version from 3.6.1 to 3.6.2
+
+10.0.0 - 2021-01-12 - Changes since 10.0.0-a1
+
+	General:
+		Retry media lookups that failed due to transient errors
+		Fixed automatic file watching
+	Renderers:
+		Improved support for Sony Bluray UBP-X800M2 (thanks, thechrisgregory!)
+		Fixed UPnP pushing via Panasonic TVs and Samsung Q9 TVs
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%)
+		English (United Kingdom) (32%)
+		Finnish (100%)
+		Greek (91%)
+		French (100%)
+		Japanese (99%)
+		Polish (100%)
+		Portuguese (100%)
+		Portuguese (Brazilian) (100%)
+		Romanian (99%)
+		Serbian (99%)
+		Turkish (100%)
+	Dependency updates:
+		Bump spotbugs-maven-plugin from 4.1.4 to 4.2.0
+
+10.0.0 - 2021-01-12 - Changes since 9.8.3
+
+	DLNA browsing:
+		When browsing a TV show in the Media Library, all videos across all seasons are visible.
+		There are two new folders within the Movies and TV Shows folders - Filter by Progress and Filter by Information.
+		Filter by Progress contains the Watched and Unwatched folders which used to sit within the Videos folder in the Media Library
+		Filter by Information lets you filter the videos by a new rich metadata set (actors, genres, country, director, genre, IMDb rating, release date).
+		Alongside that is a similar folder Filter by Information which lets you filter the videos by API metadata (actors, genres, etc.)
+		New folders Recently Added, Recently Played, In Progress and Most Played are in the Media Library
+	Web interface:
+		Added breadcrumbs at the top of each page
+		When in the TV Shows area of the Media Library, the TV shows themselves are shown as thumbnails, with covers from the API
+		When browsing a TV show, a movie, or a TV episode, any API metadata is displayed along with a large cover image, including actors, awards, classification, country, directors, genres, plot, ratings, year, and total seasons.
+		On those pages above, the colors on the pages are based on the cover image
+		Clicking on an individual actor, country, director, genre, or start year, takes you to a list of other media that matches that metadata
+		The last few items in the Recently Added, Recently Played, In Progress and Most Played folders are displayed on the front page
+		Each TV show and movie has an IMDb icon and direct link if one is found
+		Folder and media covers are shown
+		Fixed bugs with the Back button
+		Version has moved to the settings menu
+		Minor design updates
+	General:
+		API is enabled even without filename prettifying
+		Failed API lookups are debounced by 1 week to avoid network spam
+		Changed prettified season/episode number formatting from Series - 101 - Episode to Series S01E01 - Episode
+		Fixed some bugs with prettifying to support more files
+		Added support for audio playlist thumbnails (thanks, sf666!)
+		Playlist folders are correctly identified via UPnP (thanks, sf666!)
+		Fixed automatic file watching
+	Renderers:
+		Improved support for Sony Bluray UBP-X800M2 (thanks, thechrisgregory!)
+		Fixed UPnP pushing via Panasonic TVs and Samsung Q9 TVs
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%)
+		English (United Kingdom) (32%)
+		Finnish (100%)
+		Greek (91%)
+		French (100%)
+		Japanese (99%)
+		Polish (100%)
+		Portuguese (100%)
+		Portuguese (Brazilian) (100%)
+		Romanian (99%)
+		Serbian (99%)
+		Turkish (100%)
+	Dependency updates:
+		Bump jQuery from 1.12.0 to 3.5.1
+		Bump spotbugs-maven-plugin from 4.1.4 to 4.2.0
+		Bump video.js from 7.2.3 to 7.10.1
+
 10.0.0-a1 - 2020-12-22
 
 	DLNA browsing:

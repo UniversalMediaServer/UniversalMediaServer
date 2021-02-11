@@ -108,7 +108,7 @@ public class RemoteWeb {
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
-				LOGGER.error("Failed to start WEB interface on HTTPS: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info(
@@ -118,7 +118,7 @@ public class RemoteWeb {
 					);
 				}
 			} catch (GeneralSecurityException e) {
-				LOGGER.error("Failed to start WEB interface on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface on HTTPS due to a security error: {}", e.getMessage());
 				LOGGER.trace("", e);
 			}
 		} else {
@@ -400,7 +400,6 @@ public class RemoteWeb {
 						}
 					}
 					mime = "text/html";
-
 				} else if (path.startsWith("/files/proxy")) {
 					String url = t.getRequestURI().getQuery();
 					if (url != null) {
@@ -642,9 +641,10 @@ public class RemoteWeb {
 			} catch (IOException e) {
 				throw e;
 			} catch (Exception e) {
-				// Nothing should get here, this is just to avoid crashing the thread
-				LOGGER.error("Unexpected error in RemotePollHandler.handle(): {}", e.getMessage());
-				LOGGER.trace("", e);
+				// This can happen if a browser is left open and our cookie changed, or something like that
+				// I'm just leaving this note here as a clue for the next person who encounters this
+				LOGGER.error("Unexpected error on web interface. Please try closing any tabs or windows that contain UMS and try again");
+				LOGGER.debug("", e);
 			}
 		}
 	}

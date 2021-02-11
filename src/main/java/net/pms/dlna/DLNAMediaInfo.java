@@ -143,7 +143,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private volatile DLNAThumbnail thumb = null;
 
 	/**
-	 * Metadata gathered from either the filename or OpenSubtitles.
+	 * Metadata gathered from either the filename or our API.
 	 */
 	private String imdbID;
 	private String year;
@@ -154,6 +154,25 @@ public class DLNAMediaInfo implements Cloneable {
 	private String tvEpisodeName;
 	private String extraInformation;
 	private boolean isTVEpisode;
+
+	private HashSet<String> actors = new HashSet<>();
+	private String awards;
+	private String boxOffice;
+	private String country;
+	private HashSet<String> directors = new HashSet<>();
+	private HashSet<String> genres = new HashSet<>();
+	private String goofs;
+	private String metascore;
+	private String production;
+	private String poster;
+	private String rated;
+	private String imdbRating;
+	private HashSet<String> ratings = new HashSet<>();
+	private String released;
+	private String runtime;
+	private String tagline;
+	private String trivia;
+	private String votes;
 
 	private volatile ImageInfo imageInfo = null;
 	private String mimeType;
@@ -685,6 +704,8 @@ public class DLNAMediaInfo implements Cloneable {
 								audio.setAlbum(t.getFirst(FieldKey.ALBUM));
 								audio.setArtist(t.getFirst(FieldKey.ARTIST));
 								audio.setSongname(t.getFirst(FieldKey.TITLE));
+								audio.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
+								audio.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
 								String y = t.getFirst(FieldKey.YEAR);
 
 								try {
@@ -1705,6 +1726,22 @@ public class DLNAMediaInfo implements Cloneable {
 			if (subtitleTracks != null && !subtitleTracks.isEmpty()) {
 				appendSubtitleTracks(result);
 			}
+			if (isNotBlank(getIMDbID())) {
+				result.append(", IMDb ID: ").append(getIMDbID());
+			}
+			if (isNotBlank(getYear())) {
+				result.append(", Year: ").append(getYear());
+			}
+			if (isNotBlank(getMovieOrShowName())) {
+				result.append(", Movie/TV series name: ").append(getMovieOrShowName());
+			}
+			if (isTVEpisode()) {
+				result.append(", TV season: ").append(getTVSeason());
+				result.append(", TV episode number: ").append(getTVEpisodeNumber());
+				if (isNotBlank(getVideoTrackTitleFromMetadata())) {
+					result.append(", TV episode name: ").append(getTVEpisodeName());
+				}
+			}
 		} else if (getAudioTrackCount() > 0) {
 			result.append(", Bitrate: ").append(getBitrate());
 			result.append(", Duration: ").append(getDurationString());
@@ -2172,6 +2209,13 @@ public class DLNAMediaInfo implements Cloneable {
 		return tvEpisodeNumber;
 	}
 
+	public String getTVEpisodeNumberUnpadded() {
+		if (tvEpisodeNumber.length() > 1 && tvEpisodeNumber.startsWith("0")) {
+			return tvEpisodeNumber.substring(1);
+		}
+		return tvEpisodeNumber;
+	}
+
 	public void setTVEpisodeNumber(String value) {
 		this.tvEpisodeNumber = value;
 	}
@@ -2203,7 +2247,7 @@ public class DLNAMediaInfo implements Cloneable {
 		return extraInformation;
 	}
 
-	/**
+	/*
 	 * Any extra information like movie edition or whether it is a
 	 * sample video.
 	 *

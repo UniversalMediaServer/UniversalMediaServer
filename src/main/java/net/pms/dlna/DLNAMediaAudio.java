@@ -44,6 +44,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private String audioTrackTitleFromMetadata;
 	private String muxingModeAudio;
 	private String albumartist;
+	private String mbidRecord;
+	private String mbidTrack;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -665,6 +667,42 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setAlbum(String album) {
 		this.album = album;
+	}
+
+	/**
+	 * Sets the MB record ID for this track.
+	 *
+	 * @param mbidRecord The MB record ID.
+	 */
+	public void setMbidRecord(String mbidRecord) {
+		this.mbidRecord = mbidRecord;
+	}
+
+	/**
+	 * Returns the MB record ID for this track
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidRecord() {
+		return this.mbidRecord;
+	}
+
+	/**
+	 * Sets the MB track ID for this track.
+	 *
+	 * @param mbidTrack The MB track ID.
+	 */
+	public void setMbidTrack(String mbidTrack) {
+		this.mbidTrack = mbidTrack;
+	}
+
+	/**
+	 * Returns MB track id for this track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidTrack() {
+		return this.mbidTrack;
 	}
 
 	/**
