@@ -5,8 +5,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map.Entry;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -30,14 +33,18 @@ public class ApiHandler {
 	 *
 	 * @param method HTTP method
 	 * @param content body content
-	 * @param response Response to request
+	 * @param output Response to request
 	 * @param event The request
 	 * @param uri
 	 */
-	public void handleApiRequest(HttpMethod method, String content, StringBuilder response, String uri, MessageEvent event) {
+	public void handleApiRequest(HttpMethod method, String content, HttpResponse output, String uri, MessageEvent event) {
+		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+		output.setStatus(HttpResponseStatus.NO_CONTENT);
+
 		String serverApiKey = PMS.getConfiguration().getApiKey();
 		if (serverApiKey.length() < 12) {
 			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
+			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
 			return;
 		}
 
@@ -53,6 +60,7 @@ public class ApiHandler {
 			}
 		} else {
 			LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf api_key value.");
+			output.setStatus(HttpResponseStatus.UNAUTHORIZED);
 		}
 	}
 
