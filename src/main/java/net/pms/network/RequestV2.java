@@ -274,7 +274,7 @@ public class RequestV2 extends HTTPResource {
 
 		if (uri.startsWith("api/")) {
 			ApiHandler api = new ApiHandler();
-			api.handleApiRequest(method, response, uri.substring(4));
+			api.handleApiRequest(method, content, response, uri.substring(4));
 		} else if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("console/")) {
 			// Request to output a page to the HTML console.
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");

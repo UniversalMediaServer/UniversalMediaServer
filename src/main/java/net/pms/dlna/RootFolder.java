@@ -255,7 +255,7 @@ public class RootFolder extends DLNAResource {
 		running = false;
 	}
 
-	private void scan(DLNAResource resource) {
+	public void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
