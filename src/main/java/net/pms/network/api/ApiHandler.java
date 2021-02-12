@@ -3,7 +3,10 @@ package net.pms.network.api;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map.Entry;
+import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
@@ -25,20 +28,47 @@ public class ApiHandler {
 	/**
 	 * Handle API calls
 	 *
-	 * @param method
-	 * @param content
-	 * @param response
-	 * @param substring
+	 * @param method HTTP method
+	 * @param content body content
+	 * @param response Response to request
+	 * @param event The request
+	 * @param uri
 	 */
-	public void handleApiRequest(HttpMethod method, String content, StringBuilder response, String uri) {
-		switch (uri) {
-			case "rescan":
-				rescanLibrary();
-				break;
-			case "rescanFileOrFolder":
-				rescanLibraryFileOrFolder(content);
-				break;
+	public void handleApiRequest(HttpMethod method, String content, StringBuilder response, String uri, MessageEvent event) {
+		String serverApiKey = PMS.getConfiguration().getApiKey();
+		if (serverApiKey.length() < 12) {
+			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
+			return;
 		}
+
+		String givenApiKey = extractApiKey(event);
+		if (serverApiKey.equals(givenApiKey)) {
+			switch (uri) {
+				case "rescan":
+					rescanLibrary();
+					break;
+				case "rescanFileOrFolder":
+					rescanLibraryFileOrFolder(content);
+					break;
+			}
+		} else {
+			LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf api_key value.");
+		}
+	}
+
+	/**
+	 * Extracts API key from header.
+	 * @param event
+	 * @return
+	 */
+	private String extractApiKey(MessageEvent event) {
+		HttpRequest request = (HttpRequest) event.getMessage();
+		for (Entry<String, String> entry : request.headers().entries()) {
+			if (entry.getKey().equalsIgnoreCase("api-key")) {
+				return entry.getValue();
+			}
+		}
+		return null;
 	}
 
 	/**
