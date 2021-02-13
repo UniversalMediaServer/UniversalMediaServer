@@ -43,7 +43,7 @@ public class SearchRequestHandler {
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
 			if (propertyValue != null) {
-				if (propertyValue.toLowerCase().startsWith("object.item.audioitem.musictrack")) {
+				if (propertyValue.toLowerCase().startsWith("object.item.audioitem")) {
 					return TYPE_FILES;
 				} else if (propertyValue.toLowerCase().startsWith("object.container.person")) {
 					return TYPE_PERSON;
@@ -84,7 +84,7 @@ public class SearchRequestHandler {
 				folder = new MediaLibraryFolder(Messages.getString("PMS.16"),
 					new String[] {sqlText.toString(), String.format(
 						"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND %s = '${0}'",
-						getPropertyMapping(requestType)) },
+						getTitlePropertyMapping(requestType)) },
 					new int[] {MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES });
 			}
 
@@ -125,13 +125,14 @@ public class SearchRequestHandler {
 				case TYPE_ALBUM:
 					return "select FILENAME, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 				case TYPE_PLAYLIST:
+				case TYPE_VIDEO:
 					return "select FILENAME, MODIFIED from FILES as F where ";
 				default:
 					throw new RuntimeException("not implemented request type");
 			}
 		} else if (MediaLibraryFolder.TEXTS == mediaFolderType) {
 			return String.format("select %s from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ",
-				getPropertyMapping(requestType));
+				getTitlePropertyMapping(requestType));
 		} else if (MediaLibraryFolder.PLAYLISTS == mediaFolderType) {
 			return "select FILENAME, MODIFIED from FILES F where ";
 		}
@@ -161,7 +162,7 @@ public class SearchRequestHandler {
 			sb.append(upnpSearch, lastIndex, upnpSearch.length());
 		}
 		if ((TYPE_FILES != requestType) && (MediaLibraryFolder.FILES == mediaFolderType)) {
-			sb.append(" AND ").append(getPropertyMapping(requestType));
+			sb.append(" AND ").append(getTitlePropertyMapping(requestType));
 			sb.append(" = ").append("'${0}'");
 		}
 		return sb;
@@ -190,16 +191,18 @@ public class SearchRequestHandler {
 	private Object getField(String property, int requestType) {
 		// handle title by return type.
 		if ("dc:title".equalsIgnoreCase(property)) {
-			return getPropertyMapping(requestType);
+			return getTitlePropertyMapping(requestType);
 		} else if ("upnp:artist".equalsIgnoreCase(property)) {
 			return " A.ARTIST";
 		} else if ("upnp:genre".equalsIgnoreCase(property)) {
 			return " A.GENRE";
+		} else if ("dc:creator".equalsIgnoreCase(property)) {
+			return " A.ALBUMARTIST ";
 		}
 		throw new RuntimeException("unknown or unimplemented property: >" + property + "<");
 	}
 
-	private String getPropertyMapping(int requestType) {
+	private String getTitlePropertyMapping(int requestType) {
 		switch (requestType) {
 			case TYPE_FILES:
 				return " A.SONGNAME ";
@@ -208,6 +211,7 @@ public class SearchRequestHandler {
 			case TYPE_PERSON:
 				return " COALESCE(A.ALBUMARTIST, A.ARTIST) ";
 			case TYPE_PLAYLIST:
+			case TYPE_VIDEO:
 				return " F.FILENAME ";
 			default:
 				break;
@@ -217,7 +221,7 @@ public class SearchRequestHandler {
 
 	private void interpretUpnpClass(StringBuilder sb, String op, String val, int requestType) {
 		if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
-			sb.append(String.format(" F.TYPE = %d ", getFileType(val)));
+			sb.append(String.format(" F.TYPE = %d ", getFileType(requestType)));
 		}
 	}
 
@@ -227,19 +231,20 @@ public class SearchRequestHandler {
 	 * @param val
 	 * @return
 	 */
-	private int getFileType(String val) {
+	private int getFileType(int mediaFolderType) {
 		// album and persons titles are stored within the RealFile and have
 		// therefore no unique id.
-		if ("object.item.audioItem.musicTrack".equalsIgnoreCase(val)) {
+		switch (mediaFolderType) {
+			case TYPE_FILES:
+			case TYPE_ALBUM:
+			case TYPE_PERSON:
 			return 1;
-		} else if ("object.container.person".equalsIgnoreCase(val)) {
-			return 1;
-		} else if ("object.container.album".equalsIgnoreCase(val)) {
-			return 1;
-		} else if ("object.container.playlistContainer".equalsIgnoreCase(val)) {
-			return 16;
+			case TYPE_VIDEO:
+				return 4;
+			case TYPE_PLAYLIST:
+				return 16;
 		}
-		throw new RuntimeException("unknown or unimplemented operator : " + "unknown or unimplemented upnp:class : >" + val + "<");
+		throw new RuntimeException("unknown or unimplemented operator : " + "unknown or unimplemented mediafolder type : >" + mediaFolderType + "<");
 	}
 
 	/**
