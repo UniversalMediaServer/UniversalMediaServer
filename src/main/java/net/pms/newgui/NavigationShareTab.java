@@ -264,7 +264,7 @@ public class NavigationShareTab {
 
 		// Use MPlayer for video thumbnails
 		mplayerThumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
-		mplayerThumb.setToolTipText(UMSUtils.toolTipMessage("mplayerThumb", "FoldTab.61"));
+		mplayerThumb.setToolTipText(UMSUtils.toolTipMessage("FoldTab.61", "FoldTab.61Note"));
 		mplayerThumb.setContentAreaFilled(false);
 		mplayerThumb.addItemListener((ItemEvent e) -> {
 			configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
@@ -383,7 +383,7 @@ public class NavigationShareTab {
 
 		// Enable the Media Library
 		cacheenable = new JCheckBox(Messages.getString("NetworkTab.EnableMediaLibrary"), configuration.getUseCache());
-		cacheenable.setToolTipText(UMSUtils.toolTipMessage("cacheenable", "FoldTab.ShowMediaLibraryFolderTooltip"));
+		cacheenable.setToolTipText(UMSUtils.toolTipMessage("Enabled", "FoldTab.ShowMediaLibraryFolderTooltipNote"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.addItemListener(new ItemListener() {
 			@Override

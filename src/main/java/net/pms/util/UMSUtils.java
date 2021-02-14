@@ -682,16 +682,20 @@ public class UMSUtils {
 	}
 
 	/**
-	 * Accepts two parameters, the string of the associated tool tip and
-	 * notes to be shown in the tool tip
+	 * Accepts two parameters, the default value of the associated variable and
+	 * notes to be shown in the tool tip. It adds the default strings to
+	 * generate the tooltip.
 	 *
-	 * @param name
-	 * @param notes
+	 * @param defaultValue The default value of the variable.
+	 * @param notes The comment to describe the variable possibilities.
 	 */
 
-	public static String toolTipMessage(String name, String notes) {
+	public static String toolTipMessage(String defaultValue, String notes) {
 		StringBuilder toolTipHTMLBuilder = new StringBuilder();
-		toolTipHTMLBuilder.append("<html><strong>Default:</strong> False<br><strong>Notes:</strong> ")
+		toolTipHTMLBuilder.append(Messages.getString("TooltipPrefix"))
+							.append(Messages.getString(defaultValue))
+							.append("<br><strong>")
+							.append(Messages.getString("TooltipNotes"))
 							.append(Messages.getString(notes))
 							.append("</html>");
 

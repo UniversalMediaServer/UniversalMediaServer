@@ -48,6 +48,7 @@ import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.KeyedStringComboBoxModel;
 import net.pms.util.SubtitleUtils;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -426,7 +427,7 @@ public class TranscodingTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			builder.addLabel(Messages.getString("TrTab2.23"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
-			maxbuffer.setToolTipText(Messages.getString("TrTab2.73"));
+			maxbuffer.setToolTipText(UMSUtils.toolTipMessage("TrTab2.73", "TrTab2.73Note"));
 			maxbuffer.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
