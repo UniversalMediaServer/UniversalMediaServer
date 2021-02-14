@@ -264,7 +264,7 @@ public class NavigationShareTab {
 
 		// Use MPlayer for video thumbnails
 		mplayerThumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
-		mplayerThumb.setToolTipText(Messages.getString("FoldTab.61"));
+		mplayerThumb.setToolTipText(UMSUtils.toolTipMessage("mplayerThumb", "FoldTab.61"));
 		mplayerThumb.setContentAreaFilled(false);
 		mplayerThumb.addItemListener((ItemEvent e) -> {
 			configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
@@ -383,7 +383,7 @@ public class NavigationShareTab {
 
 		// Enable the Media Library
 		cacheenable = new JCheckBox(Messages.getString("NetworkTab.EnableMediaLibrary"), configuration.getUseCache());
-		cacheenable.setToolTipText(Messages.getString("FoldTab.ShowMediaLibraryFolderTooltip"));
+		cacheenable.setToolTipText(UMSUtils.toolTipMessage("cacheenable", "FoldTab.ShowMediaLibraryFolderTooltip"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.addItemListener(new ItemListener() {
 			@Override
@@ -427,7 +427,7 @@ public class NavigationShareTab {
 
 		// Hide transcoding engine names
 		hideengines = new JCheckBox(Messages.getString("FoldTab.showEngineNamesAfterFilenames"), !configuration.isHideEngineNames());
-		hideengines.setToolTipText(Messages.getString("FoldTab.showEngineNamesAfterFilenamesToolTip"));
+		hideengines.setToolTipText(UMSUtils.toolTipMessage("hideengines", "FoldTab.showEngineNamesAfterFilenamesToolTip"));
 		hideengines.setContentAreaFilled(false);
 		hideengines.addItemListener(new ItemListener() {
 			@Override
@@ -452,7 +452,7 @@ public class NavigationShareTab {
 
 		addVideoSuffix = new JComboBox<String>(videoSuffixKCBM);
 		addVideoSuffix.setEditable(false);
-		addVideoSuffix.setToolTipText(Messages.getString("FoldTab.addSubtitlesInfoToolTip"));
+		addVideoSuffix.setToolTipText(UMSUtils.toolTipMessage("addVideoSuffix", "FoldTab.addSubtitlesInfoToolTip"));
 
 		videoSuffixKCBM.setSelectedKey(configuration.getSubtitlesInfoLevel());
 
@@ -472,7 +472,7 @@ public class NavigationShareTab {
 
 		// Hide empty folders
 		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"), configuration.isHideEmptyFolders());
-		hideemptyfolders.setToolTipText(Messages.getString("FoldTab.59"));
+		hideemptyfolders.setToolTipText(UMSUtils.toolTipMessage("hideemptyfolders", "FoldTab.59"));
 		hideemptyfolders.setContentAreaFilled(false);
 		hideemptyfolders.addItemListener(new ItemListener() {
 			@Override
@@ -483,7 +483,7 @@ public class NavigationShareTab {
 
 		// Use target file for symlinks
 		useSymlinksTargetFile = new JCheckBox(Messages.getString("FoldTab.useSymlinksTargetFile"), configuration.isUseSymlinksTargetFile());
-		useSymlinksTargetFile.setToolTipText(Messages.getString("FoldTab.useSymlinksTargetFileToolTip"));
+		useSymlinksTargetFile.setToolTipText(UMSUtils.toolTipMessage("useSymlinksTargetFile", "FoldTab.useSymlinksTargetFileToolTip"));
 		useSymlinksTargetFile.setContentAreaFilled(false);
 		useSymlinksTargetFile.addItemListener(new ItemListener() {
 			@Override
@@ -494,7 +494,7 @@ public class NavigationShareTab {
 
 		// Show iTunes library
 		itunes = new JCheckBox(Messages.getString("FoldTab.30"), configuration.isShowItunesLibrary());
-		itunes.setToolTipText(Messages.getString("FoldTab.47"));
+		itunes.setToolTipText(UMSUtils.toolTipMessage("itunes", "FoldTab.47"));
 		itunes.setContentAreaFilled(false);
 		if (!(Platform.isMac() || Platform.isWindows())) {
 			itunes.setEnabled(false);
@@ -569,7 +569,7 @@ public class NavigationShareTab {
 
 		// Ignore the word "the" while sorting
 		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordAandThe());
-		ignorethewordthe.setToolTipText(Messages.getString("FoldTab.44"));
+		ignorethewordthe.setToolTipText(UMSUtils.toolTipMessage("isIgnoreTheWordAandThe", "FoldTab.44"));
 		ignorethewordthe.setContentAreaFilled(false);
 		ignorethewordthe.addItemListener(new ItemListener() {
 			@Override
@@ -579,7 +579,7 @@ public class NavigationShareTab {
 		});
 
 		atzLimit = new JTextField("" + configuration.getATZLimit());
-		atzLimit.setToolTipText(Messages.getString("FoldTab.49"));
+		atzLimit.setToolTipText(UMSUtils.toolTipMessage("atzLimit", "FoldTab.49"));
 		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -603,7 +603,7 @@ public class NavigationShareTab {
 		});
 
 		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"), configuration.isPrettifyFilenames());
-		prettifyfilenames.setToolTipText(Messages.getString("FoldTab.45"));
+		prettifyfilenames.setToolTipText(UMSUtils.toolTipMessage("prettifyfilenames", "FoldTab.45"));
 		prettifyfilenames.setContentAreaFilled(false);
 		prettifyfilenames.addItemListener(new ItemListener() {
 			@Override
@@ -614,7 +614,7 @@ public class NavigationShareTab {
 		});
 
 		isUseInfoFromAPI = new JCheckBox(Messages.getString("FoldTab.UseInfoFromAPI"), configuration.isUseInfoFromIMDb());
-		isUseInfoFromAPI.setToolTipText(Messages.getString("FoldTab.UseInfoFromAPITooltip"));
+		isUseInfoFromAPI.setToolTipText(UMSUtils.toolTipMessage("isUseInfoFromAPI", "FoldTab.UseInfoFromAPITooltip"));
 		isUseInfoFromAPI.setContentAreaFilled(false);
 		isUseInfoFromAPI.addItemListener(new ItemListener() {
 			@Override
@@ -624,7 +624,7 @@ public class NavigationShareTab {
 		});
 
 		isShowFolderNewMedia = new JCheckBox(Messages.getString("FoldTab.ShowNewMediaFolder"), configuration.isShowNewMediaFolder());
-		isShowFolderNewMedia.setToolTipText(Messages.getString("FoldTab.66"));
+		isShowFolderNewMedia.setToolTipText(UMSUtils.toolTipMessage("isShowFolderNewMedia", "FoldTab.66"));
 		isShowFolderNewMedia.setContentAreaFilled(false);
 		isShowFolderNewMedia.addItemListener(new ItemListener() {
 			@Override
@@ -634,7 +634,7 @@ public class NavigationShareTab {
 		});
 
 		resume = new JCheckBox(Messages.getString("NetworkTab.68"), configuration.isResumeEnabled());
-		resume.setToolTipText(Messages.getString("NetworkTab.69"));
+		resume.setToolTipText(UMSUtils.toolTipMessage("resume", "NetworkTab.69"));
 		resume.setContentAreaFilled(false);
 		resume.addItemListener(new ItemListener() {
 			@Override

@@ -25,6 +25,7 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -691,7 +692,7 @@ public class UMSUtils {
 	public static String toolTipMessage(String name, String notes) {
 		StringBuilder toolTipHTMLBuilder = new StringBuilder();
 		toolTipHTMLBuilder.append("<html><strong>Default:</strong> False<br><strong>Notes:</strong> ")
-							.append(notes)
+							.append(Messages.getString(notes))
 							.append("</html>");
 
 		return toolTipHTMLBuilder.toString();
