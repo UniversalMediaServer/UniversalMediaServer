@@ -692,9 +692,9 @@ public class UMSUtils {
 
 	public static String toolTipMessage(String defaultValue, String notes) {
 		StringBuilder toolTipHTMLBuilder = new StringBuilder();
-		toolTipHTMLBuilder.append(Messages.getString("TooltipPrefix"))
+		toolTipHTMLBuilder.append("<html>")
+							.append(Messages.getString("TooltipDefault"))
 							.append(Messages.getString(defaultValue))
-							.append("<br><strong>")
 							.append(Messages.getString("TooltipNotes"))
 							.append(Messages.getString(notes))
 							.append("</html>");
