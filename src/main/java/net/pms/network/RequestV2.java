@@ -108,6 +108,7 @@ public class RequestV2 extends HTTPResource {
 	private static final int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
+	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
 
 	/**
 	 * A {@link String} that contains the uri with which this {@link RequestV2} was
@@ -1079,7 +1080,7 @@ public class RequestV2 extends HTTPResource {
 
 	private StringBuilder searchHandler() {
 		SearchRequest requestMessage = getPayload(SearchRequest.class);
-		return this.browseSearchHandler(requestMessage);
+		return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
 	}
 
 	/**
