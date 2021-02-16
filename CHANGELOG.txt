@@ -1,4 +1,4 @@
-10.1.0 - 2021-02-??
+10.1.0 - 2021-02-16
 
 	General:
 		Added lastPlaybackPosition, lastPlaybackDate, and playbackCount to UPnP responses
