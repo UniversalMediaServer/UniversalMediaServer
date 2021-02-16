@@ -1,3 +1,23 @@
+10.1.0 - 2021-02-??
+
+	General:
+		Added lastPlaybackPosition, lastPlaybackDate, and playbackCount to UPnP responses
+		Added bitsPerSample to UPnP responses (thanks, sf666!)
+		Fixed VLC transcoding bugs
+		Fixed SkipExtensions setting not supporting spaces (thanks, ik666!)
+		Fixed tsMuxeR on 64-bit Linux and macOS systems
+		Fixed MPlayer/MEncoder on macOS 10.15+
+	Translation updates via Crowdin:
+		Arabic (100%) (thanks,خليل مراطلة (meratkha)!)
+		Catalan (93%) (thanks, nikodeimos!)
+		Dutch (100%) (thanks, DJ_eMPe!)
+		Korean (99%) (thanks, VenusGirl!)
+		Serbian (Cyrillic) (100%) (thanks, Slobodan Simić (Слободан Симић) (slsimic)!)
+	Dependency updates:
+		Bump junit5.version from 5.7.0 to 5.7.1
+		Bump maven-checkstyle-plugin from 3.1.1 to 3.1.2
+		Bump MPlayer/MEncoder for macOS to SB67
+
 10.0.1 - 2021-01-29
 
 	General:
