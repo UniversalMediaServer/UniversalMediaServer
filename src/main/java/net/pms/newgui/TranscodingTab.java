@@ -48,7 +48,7 @@ import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.KeyedStringComboBoxModel;
 import net.pms.util.SubtitleUtils;
-import net.pms.util.UMSUtils;
+import static net.pms.util.UMSUtils.toolTipMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -427,7 +427,7 @@ public class TranscodingTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			builder.addLabel(Messages.getString("TrTab2.23"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
-			maxbuffer.setToolTipText(UMSUtils.toolTipMessage("TrTab2.73", "TrTab2.73Note"));
+			maxbuffer.setToolTipText(toolTipMessage("TrTab2.73", "TrTab2.73.Note"));
 			maxbuffer.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -588,7 +588,7 @@ public class TranscodingTab {
 
 		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setPreferredSize(getPreferredHeight(vq));
-		vq.setToolTipText(UMSUtils.toolTipMessage("TrTab2.74", "TrTab2.74Note"));
+		vq.setToolTipText(toolTipMessage("TrTab2.74", "TrTab2.74.Note"));
 		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
 		vq.addItemListener(new ItemListener() {
 			@Override
@@ -752,7 +752,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
-		langs.setToolTipText(Messages.getString("TrTab2.75"));
+		langs.setToolTipText(toolTipMessage("TrTab2.75", "TrTab2.75.Note"));
 		langs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -776,7 +776,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
-		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
+		defaultsubs.setToolTipText(toolTipMessage("TrTab2.76", "TrTab2.76.Note"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
