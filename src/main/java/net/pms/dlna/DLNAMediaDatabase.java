@@ -540,8 +540,9 @@ public class DLNAMediaDatabase implements Runnable {
 			TABLE_LOCK.readLock().lock();
 			try (
 				PreparedStatement stmt = conn.prepareStatement(
-					"SELECT * FROM FILES LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON FILES.THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
-					"WHERE FILENAME = ? AND FILES.MODIFIED = ? " +
+					"SELECT * FROM " + TABLE_NAME + " " +
+					"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
+					"WHERE " + TABLE_NAME + ".FILENAME = ? AND " + TABLE_NAME + ".MODIFIED = ? " +
 					"LIMIT 1"
 				);
 			) {
@@ -551,6 +552,7 @@ public class DLNAMediaDatabase implements Runnable {
 					ResultSet rs = stmt.executeQuery();
 					PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
 					PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
+					PreparedStatement status = conn.prepareStatement("SELECT * FROM " + TableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
@@ -644,6 +646,15 @@ public class DLNAMediaDatabase implements Runnable {
 								sub.setSubCharacterSet(elements.getString("CHARSET"));
 								LOGGER.trace("Adding subtitles from the database for {}: {}", name, sub.toString());
 								media.addSubtitlesTrack(sub);
+							}
+						}
+
+						status.setString(1, name);
+						try (ResultSet elements = status.executeQuery()) {
+							if (elements.next()) {
+								media.setPlaybackCount(elements.getInt("PLAYCOUNT"));
+								media.setLastPlaybackTime(elements.getString("DATELASTPLAY"));
+								media.setLastPlaybackPosition(elements.getDouble("LASTPLAYBACKPOSITION"));
 							}
 						}
 					}
