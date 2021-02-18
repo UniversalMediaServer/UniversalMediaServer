@@ -373,6 +373,7 @@ public class GeneralTab {
 			}
 
 			adaptBitrate = new JCheckBox(Messages.getString("GeneralTab.12"), configuration.isAutomaticMaximumBitrate());
+			adaptBitrate.setToolTipText(Messages.getString("GeneralTab.12.Tooltip"));
 			adaptBitrate.setContentAreaFilled(false);
 			adaptBitrate.addActionListener((ActionEvent e) -> {
 				configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
