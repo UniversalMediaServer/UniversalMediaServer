@@ -1761,7 +1761,31 @@ public class OpenSubtitle {
 		LOGGER.trace("getting API info for " + file + ", " + movieOrTVSeriesTitle + ", " + season + ", " + episode);
 		Path path = null;
 		String apiResult = null;
-		if (file != null) {
+
+		/**
+		 * Try lookup by IMDb ID from the filename.
+		 * This is a custom thing we support and probably 0% of users do it.
+		 */
+		String imdbID = ImdbUtil.extractImdbId(path, false);
+		if (isNotBlank(imdbID)) {
+			LOGGER.trace("looking up IMDb ID " + imdbID);
+			apiResult = getInfoFromIMDbID(imdbID);
+		}
+
+		/**
+		 * Try the other data extracted from the filename.
+		 * This will usually be the one that succeeds.
+		 */
+		if (apiResult == null || apiResult.contains("statusCode")) {
+			String mediaType = isBlank(episode) ? "movie" : "episode";
+			LOGGER.trace("looking up " + mediaType + ": " + movieOrTVSeriesTitle);
+			apiResult = getInfoFromFilename(movieOrTVSeriesTitle, false, year, season, episode);
+		}
+
+		/**
+		 * As a last try, search by OSDb (Open Subtitles) hash.
+		 */
+		if (file != null && (apiResult == null || apiResult.contains("statusCode"))) {
 			path = file.toPath();
 			String osdbHash = getHash(path);
 			if (isNotBlank(osdbHash)) {
@@ -1769,19 +1793,6 @@ public class OpenSubtitle {
 			} else {
 				LOGGER.trace("OSDb hash was blank for " + path);
 			}
-		}
-		if (apiResult == null || apiResult.contains("statusCode")) { // no good on hash! try imdb
-			String imdbID = ImdbUtil.extractImdbId(path, false);
-			if (isNotBlank(imdbID)) {
-				LOGGER.trace("looking up IMDb ID " + imdbID);
-				apiResult = getInfoFromIMDbID(imdbID);
-			}
-		}
-
-		if (apiResult == null || apiResult.contains("statusCode")) { // final try, use the name
-			String mediaType = isBlank(episode) ? "movie" : "episode";
-			LOGGER.trace("looking up " + mediaType + ": " + movieOrTVSeriesTitle);
-			apiResult = getInfoFromFilename(movieOrTVSeriesTitle, false, year, season, episode);
 		}
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
@@ -1898,14 +1909,16 @@ public class OpenSubtitle {
 	 * @throws IOException
 	 */
 	private static String getInfoFromFilename(String title, boolean isSeries, String year, String season, String episode) throws IOException {
+		if (isBlank(title)) {
+			return null;
+		}
+
 		URL domain = new URL("https://www.universalmediaserver.com");
 		String endpoint = isSeries ? "seriestitle" : "v2/title";
-
 		ArrayList<String> getParameters = new ArrayList<>();
-		if (isNotBlank(title)) {
-			title = URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
-			getParameters.add("title=" + title);
-		}
+		title = URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
+		getParameters.add("title=" + title);
+
 		if (isNotBlank(year)) {
 			getParameters.add("year=" + year);
 		}
