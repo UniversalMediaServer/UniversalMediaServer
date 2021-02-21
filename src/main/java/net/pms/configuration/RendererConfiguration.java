@@ -1837,7 +1837,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
 			try {
 				int calculatedSpeed = calculatedSpeed();
-				if (calculatedSpeed > 30) { // this should be an wired connection
+				if (calculatedSpeed >= 70) { // this should be an wired connection
 					setAutomaticVideoQuality("Automatic (Wired)");
 				} else {
 					setAutomaticVideoQuality("Automatic (Wireless)");
