@@ -491,8 +491,8 @@ public class FFMpegVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		if (StringUtils.isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
+		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -607,6 +607,19 @@ public class FFMpegVideo extends Player {
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
+			// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
+			} else if (configuration.isAutomaticMaximumBitrate()) {
+				if (dlna.getDefaultRenderer().getAutomaticVideoQuality().equals("Automatic (Wireless)")) {
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+				} else {
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 1280) {
+						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+					} else if (media.getWidth() > 720) {
+						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+					}
+
+				}
 			} else if (mpeg2Options.contains("Automatic")) {
 				boolean isWireless = mpeg2Options.contains("Wireless");
 				mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
@@ -630,6 +643,11 @@ public class FFMpegVideo extends Player {
 		} else {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
+			if (configuration.isAutomaticMaximumBitrate()) {
+				if (isNotBlank(dlna.getDefaultRenderer().getAutomaticVideoQuality())) {
+					x264CRF = dlna.getDefaultRenderer().getAutomaticVideoQuality();
+				}
+			}
 
 			// Remove comment from the value
 			if (x264CRF.contains("/*")) {

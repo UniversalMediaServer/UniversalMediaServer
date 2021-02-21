@@ -691,8 +691,8 @@ public class MEncoderVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		if (isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
+		if (mediaRenderer.getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(mediaRenderer.getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -1241,8 +1241,8 @@ public class MEncoderVideo extends Player {
 			int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 			int[] rendererMaxBitrates = new int[2];
 
-			if (isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
-				rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
+			if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
+				rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
 			}
 
 			if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
