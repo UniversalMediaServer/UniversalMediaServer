@@ -414,7 +414,7 @@ public class VLCVideo extends Player {
 			}
 
 			if (mpeg2Options.contains("Automatic")) {
-				if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+				if (mpeg2Options.contains("Wireless")) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qmin 2 --sout-avcodec-qmax 7";
