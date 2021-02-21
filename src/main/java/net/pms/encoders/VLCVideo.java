@@ -436,6 +436,11 @@ public class VLCVideo extends Player {
 		} else {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
+			if (configuration.isAutomaticMaximumBitrate()) {
+				if (isNotBlank(params.getMediaRenderer().getAutomaticVideoQuality())) {
+					x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
+				}
+			}
 
 			// Remove comment from the value
 			if (x264CRF.contains("/*")) {

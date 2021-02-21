@@ -637,8 +637,8 @@ public class FFMpegVideo extends Player {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
 			if (configuration.isAutomaticMaximumBitrate()) {
-				if (isNotBlank(dlna.getDefaultRenderer().getAutomaticVideoQuality())) {
-					x264CRF = dlna.getDefaultRenderer().getAutomaticVideoQuality();
+				if (isNotBlank(params.getMediaRenderer().getAutomaticVideoQuality())) {
+					x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
 				}
 			}
 

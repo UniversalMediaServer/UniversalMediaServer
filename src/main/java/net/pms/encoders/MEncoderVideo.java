@@ -1335,6 +1335,11 @@ public class MEncoderVideo extends Player {
 			} else if (configuration.getx264ConstantRateFactor() != null && isTranscodeToH264) {
 				// Set H.264 video quality
 				String x264CRF = configuration.getx264ConstantRateFactor();
+				if (configuration.isAutomaticMaximumBitrate()) {
+					if (isNotBlank(params.getMediaRenderer().getAutomaticVideoQuality())) {
+						x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
+					}
+				}
 
 				// Remove comment from the value
 				if (x264CRF.contains("/*")) {
