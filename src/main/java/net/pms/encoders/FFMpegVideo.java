@@ -607,20 +607,12 @@ public class FFMpegVideo extends Player {
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
-			// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
 			} else if (configuration.isAutomaticMaximumBitrate()) {
-				if (dlna.getDefaultRenderer().getAutomaticVideoQuality().equals("Automatic (Wireless)")) {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
-				} else {
-					// Lower quality for 720p+ content
-					if (media.getWidth() > 1280) {
-						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-					} else if (media.getWidth() > 720) {
-						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
-					}
+				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
+				mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
 
-				}
-			} else if (mpeg2Options.contains("Automatic")) {
+			if (mpeg2Options.contains("Automatic")) {
 				boolean isWireless = mpeg2Options.contains("Wireless");
 				mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
@@ -638,6 +630,7 @@ public class FFMpegVideo extends Player {
 					}
 				}
 			}
+
 			String[] customOptions = StringUtils.split(mpeg2Options);
 			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		} else {

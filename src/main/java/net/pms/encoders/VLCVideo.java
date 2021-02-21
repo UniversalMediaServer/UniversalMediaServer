@@ -408,7 +408,13 @@ public class VLCVideo extends Player {
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
-			} else if (mpeg2Options.contains("Automatic")) {
+			} else if (configuration.isAutomaticMaximumBitrate()) {
+				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
+				mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
+			
+			if (mpeg2Options.contains("Automatic")) {
+				boolean isWireless = mpeg2Options.contains("Wireless");
 				mpeg2Options = "--sout-x264-keyint 5 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
 
 				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
@@ -416,7 +422,7 @@ public class VLCVideo extends Player {
 					mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
 				}
 
-				if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+				if (isWireless || defaultMaxBitrates[0] < 70) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qmin 2 --sout-avcodec-qmax 7";
