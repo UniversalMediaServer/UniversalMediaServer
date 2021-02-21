@@ -1343,7 +1343,7 @@ public class MEncoderVideo extends Player {
 
 				// Determine a good quality setting based on video attributes
 				if (x264CRF.contains("Automatic")) {
-					if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
+					if (x264CRF.contains("Wireless")) {
 						x264CRF = "19";
 						// Lower quality for 720p+ content
 						if (media.getWidth() > 1280) {

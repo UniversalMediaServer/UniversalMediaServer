@@ -613,7 +613,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (mpeg2Options.contains("Automatic")) {
-				if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
+				if (mpeg2Options.contains("Wireless")) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
