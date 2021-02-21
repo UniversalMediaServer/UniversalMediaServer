@@ -2975,7 +2975,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
 	}
 
-	private String automaticVideoQuality = null;
+	private String automaticVideoQuality;
 	private void setAutomaticVideoQuality(String value) {
 		automaticVideoQuality = value;
 	}
