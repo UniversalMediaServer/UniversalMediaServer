@@ -621,7 +621,7 @@ public class FFMpegVideo extends Player {
 						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
 					}
 				} else if (params.getMediaRenderer().isPS3()) {
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					// It has been reported that non-PS3 renderers prefer -g 5 but prefer 25 for PS3 because it lowers the average bitrate
 					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 				} else { // set the wired quality
 					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";

@@ -1316,7 +1316,7 @@ public class MEncoderVideo extends Player {
 								mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
 							}
 						} else if (params.getMediaRenderer().isPS3()) {
-							// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+							// It has been reported that non-PS3 renderers prefer keyint 5 but prefer 25 for PS3 because it lowers the average bitrate
 							mpeg2Options = "keyint=25:vqscale=1:vqmin=2:vqmax=3";
 						} else { // set the wired quality
 							mpeg2Options = "keyint=5:vqscale=1:vqmin=2:vqmax=3";
