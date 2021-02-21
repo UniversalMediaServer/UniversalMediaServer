@@ -412,7 +412,7 @@ public class VLCVideo extends Player {
 				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
 				mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
 			}
-			
+
 			if (mpeg2Options.contains("Automatic")) {
 				boolean isWireless = mpeg2Options.contains("Wireless");
 				mpeg2Options = "--sout-x264-keyint 5 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
