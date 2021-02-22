@@ -2553,7 +2553,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Returns the actual renderer network speed in Mbits/sec calculated from
 	 * the Ping response.
 	 *
-	 * @return the actual speed or 0 when the calculation fails.
+	 * @return the actual speed or the default MAX_VIDEO_BITRATE when the calculation fails.
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
