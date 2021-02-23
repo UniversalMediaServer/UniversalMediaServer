@@ -129,6 +129,9 @@ public class DLNAMediaInfo implements Cloneable {
 	private String pixelAspectRatio;
 	private ScanType scanType;
 	private ScanOrder scanOrder;
+	private Double lastPlaybackPosition = null;
+	private String lastPlaybackTime;
+	private int playbackCount = 0;
 
 	/**
 	 * The frame rate mode as read from the parser
@@ -2163,6 +2166,57 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
+	}
+
+	public int getPlaybackCount() {
+		return playbackCount;
+	}
+
+	public void setPlaybackCount(int value) {
+		this.playbackCount = value;
+	}
+
+	public Double getLastPlaybackPosition() {
+		return lastPlaybackPosition;
+	}
+
+	public String getLastPlaybackPositionForUPnP() {
+		if (lastPlaybackPosition == null) {
+			return null;
+		}
+
+		int secondsValue = lastPlaybackPosition.intValue();
+
+		int seconds = secondsValue % 60;
+		int hours = secondsValue / 60;
+		int minutes = hours % 60;
+		hours = hours / 60;
+
+		String hoursString = String.valueOf(hours);
+		String minutesString = String.valueOf(minutes);
+		String secondsString = String.valueOf(seconds);
+
+		if (minutesString.length() == 1) {
+			minutesString = "0" + minutesString;
+		}
+
+		if (secondsString.length() == 1) {
+			secondsString = "0" + secondsString;
+		}
+
+		return hoursString + ":" + minutesString + ":" + secondsString + ".000";
+	}
+
+	public void setLastPlaybackPosition(double value) {
+		this.lastPlaybackPosition = value;
+	}
+
+	public String getLastPlaybackTime() {
+		return lastPlaybackTime;
+	}
+
+	public void setLastPlaybackTime(String value) {
+		this.lastPlaybackTime = value;
 	}
 
 	public String getIMDbID() {
