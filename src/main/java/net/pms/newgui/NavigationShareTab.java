@@ -38,6 +38,7 @@ import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.UMSUtils;
+import static net.pms.util.UMSUtils.toolTipMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -264,7 +265,7 @@ public class NavigationShareTab {
 
 		// Use MPlayer for video thumbnails
 		mplayerThumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
-		mplayerThumb.setToolTipText(UMSUtils.toolTipMessage("Disabled", "FoldTab.61Note"));
+		mplayerThumb.setToolTipText(toolTipMessage("FoldTab.61", "FoldTab.61Note"));
 		mplayerThumb.setContentAreaFilled(false);
 		mplayerThumb.addItemListener((ItemEvent e) -> {
 			configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
@@ -383,7 +384,7 @@ public class NavigationShareTab {
 
 		// Enable the Media Library
 		cacheenable = new JCheckBox(Messages.getString("NetworkTab.EnableMediaLibrary"), configuration.getUseCache());
-		cacheenable.setToolTipText(UMSUtils.toolTipMessage("Enabled", "FoldTab.ShowMediaLibraryFolderTooltipNote"));
+		cacheenable.setToolTipText(toolTipMessage("FoldTab.ShowMediaLibraryFolderTooltip", "FoldTab.ShowMediaLibraryFolderTooltipNote"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.addItemListener(new ItemListener() {
 			@Override
@@ -427,7 +428,7 @@ public class NavigationShareTab {
 
 		// Hide transcoding engine names
 		hideengines = new JCheckBox(Messages.getString("FoldTab.showEngineNamesAfterFilenames"), !configuration.isHideEngineNames());
-		hideengines.setToolTipText(UMSUtils.toolTipMessage("hideengines", "FoldTab.showEngineNamesAfterFilenamesToolTip"));
+		hideengines.setToolTipText(("hideengines", "FoldTab.showEngineNamesAfterFilenamesToolTip"));
 		hideengines.setContentAreaFilled(false);
 		hideengines.addItemListener(new ItemListener() {
 			@Override
@@ -452,7 +453,7 @@ public class NavigationShareTab {
 
 		addVideoSuffix = new JComboBox<String>(videoSuffixKCBM);
 		addVideoSuffix.setEditable(false);
-		addVideoSuffix.setToolTipText(UMSUtils.toolTipMessage("addVideoSuffix", "FoldTab.addSubtitlesInfoToolTip"));
+		addVideoSuffix.setToolTipText(toolTipMessage("FoldTab.addSubtitlesInfoToolTip", "FoldTab.addSubtitlesInfoToolTipNote"));
 
 		videoSuffixKCBM.setSelectedKey(configuration.getSubtitlesInfoLevel());
 
@@ -472,7 +473,7 @@ public class NavigationShareTab {
 
 		// Hide empty folders
 		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"), configuration.isHideEmptyFolders());
-		hideemptyfolders.setToolTipText(UMSUtils.toolTipMessage("hideemptyfolders", "FoldTab.59"));
+		hideemptyfolders.setToolTipText(toolTipMessage("FoldTab.59","FoldTab.59Note"));
 		hideemptyfolders.setContentAreaFilled(false);
 		hideemptyfolders.addItemListener(new ItemListener() {
 			@Override
@@ -483,7 +484,7 @@ public class NavigationShareTab {
 
 		// Use target file for symlinks
 		useSymlinksTargetFile = new JCheckBox(Messages.getString("FoldTab.useSymlinksTargetFile"), configuration.isUseSymlinksTargetFile());
-		useSymlinksTargetFile.setToolTipText(UMSUtils.toolTipMessage("useSymlinksTargetFile", "FoldTab.useSymlinksTargetFileToolTip"));
+		useSymlinksTargetFile.setToolTipText(toolTipMessage("FoldTab.useSymlinksTargetFileToolTip", "FoldTab.useSymlinksTargetFileToolTipNote"));
 		useSymlinksTargetFile.setContentAreaFilled(false);
 		useSymlinksTargetFile.addItemListener(new ItemListener() {
 			@Override
@@ -494,7 +495,7 @@ public class NavigationShareTab {
 
 		// Show iTunes library
 		itunes = new JCheckBox(Messages.getString("FoldTab.30"), configuration.isShowItunesLibrary());
-		itunes.setToolTipText(UMSUtils.toolTipMessage("itunes", "FoldTab.47"));
+		itunes.setToolTipText(toolTipMessage("FoldTab.47", "FoldTab.47Note"));
 		itunes.setContentAreaFilled(false);
 		if (!(Platform.isMac() || Platform.isWindows())) {
 			itunes.setEnabled(false);
@@ -569,7 +570,7 @@ public class NavigationShareTab {
 
 		// Ignore the word "the" while sorting
 		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordAandThe());
-		ignorethewordthe.setToolTipText(UMSUtils.toolTipMessage("isIgnoreTheWordAandThe", "FoldTab.44"));
+		ignorethewordthe.setToolTipText(toolTipMessage("FoldTab.44", "FoldTab.44Note"));
 		ignorethewordthe.setContentAreaFilled(false);
 		ignorethewordthe.addItemListener(new ItemListener() {
 			@Override
@@ -579,7 +580,7 @@ public class NavigationShareTab {
 		});
 
 		atzLimit = new JTextField("" + configuration.getATZLimit());
-		atzLimit.setToolTipText(UMSUtils.toolTipMessage("atzLimit", "FoldTab.49"));
+		atzLimit.setToolTipText(toolTipMessage("FoldTab.49", "FoldTab.49Note"));
 		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -603,7 +604,7 @@ public class NavigationShareTab {
 		});
 
 		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"), configuration.isPrettifyFilenames());
-		prettifyfilenames.setToolTipText(UMSUtils.toolTipMessage("prettifyfilenames", "FoldTab.45"));
+		prettifyfilenames.setToolTipText(toolTipMessage("FoldTab.45", "FoldTab.45Note"));
 		prettifyfilenames.setContentAreaFilled(false);
 		prettifyfilenames.addItemListener(new ItemListener() {
 			@Override
@@ -614,7 +615,7 @@ public class NavigationShareTab {
 		});
 
 		isUseInfoFromAPI = new JCheckBox(Messages.getString("FoldTab.UseInfoFromAPI"), configuration.isUseInfoFromIMDb());
-		isUseInfoFromAPI.setToolTipText(UMSUtils.toolTipMessage("isUseInfoFromAPI", "FoldTab.UseInfoFromAPITooltip"));
+		isUseInfoFromAPI.setToolTipText(toolTipMessage("FoldTab.UseInfoFromAPITooltip", "FoldTab.UseInfoFromAPITooltipNote"));
 		isUseInfoFromAPI.setContentAreaFilled(false);
 		isUseInfoFromAPI.addItemListener(new ItemListener() {
 			@Override
@@ -624,7 +625,7 @@ public class NavigationShareTab {
 		});
 
 		isShowFolderNewMedia = new JCheckBox(Messages.getString("FoldTab.ShowNewMediaFolder"), configuration.isShowNewMediaFolder());
-		isShowFolderNewMedia.setToolTipText(UMSUtils.toolTipMessage("isShowFolderNewMedia", "FoldTab.66"));
+		isShowFolderNewMedia.setToolTipText(toolTipMessage("FoldTab.66", "FoldTab.66Note"));
 		isShowFolderNewMedia.setContentAreaFilled(false);
 		isShowFolderNewMedia.addItemListener(new ItemListener() {
 			@Override
@@ -634,7 +635,7 @@ public class NavigationShareTab {
 		});
 
 		resume = new JCheckBox(Messages.getString("NetworkTab.68"), configuration.isResumeEnabled());
-		resume.setToolTipText(UMSUtils.toolTipMessage("resume", "NetworkTab.69"));
+		resume.setToolTipText(toolTipMessage("NetworkTab.69", "NetworkTab.69Note"));
 		resume.setContentAreaFilled(false);
 		resume.addItemListener(new ItemListener() {
 			@Override
