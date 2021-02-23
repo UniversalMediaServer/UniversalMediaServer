@@ -473,7 +473,7 @@ public class NavigationShareTab {
 
 		// Hide empty folders
 		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"), configuration.isHideEmptyFolders());
-		hideemptyfolders.setToolTipText(toolTipMessage("FoldTab.59","FoldTab.59Note"));
+		hideemptyfolders.setToolTipText(toolTipMessage("FoldTab.59", "FoldTab.59Note"));
 		hideemptyfolders.setContentAreaFilled(false);
 		hideemptyfolders.addItemListener(new ItemListener() {
 			@Override
