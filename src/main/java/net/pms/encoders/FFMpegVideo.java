@@ -526,7 +526,7 @@ public class FFMpegVideo extends Player {
 				defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 			}
 
-			if (params.getMediaRenderer().isHalveBitrate()) {
+			if (params.getMediaRenderer().isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
