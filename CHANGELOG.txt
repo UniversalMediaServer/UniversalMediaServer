@@ -1,3 +1,19 @@
+10.1.1 - 2021-
+
+	General:
+		Improved speed of API lookups by up to 3x
+		Fixed support for some languages, e.g. Arabic
+	Renderers:
+		Added support for MediaPlayer by PeteManchester
+		Added support for nextCP/2
+	Translation updates via Crowdin:
+		Arabic (100%) (thanks, خليل مراطلة !)
+		Catalan (100%) (thanks, nikodeimos!)
+		French (100%) (thanks, Archaos!)
+		Hungarian (100%) (thanks, Viktor Kozma!)
+		Slovak (99%) (thanks, Dušan!)
+		Swedish (100%) (thanks, Erik Karlsson!)
+
 10.1.0 - 2021-02-16
 
 	General:
