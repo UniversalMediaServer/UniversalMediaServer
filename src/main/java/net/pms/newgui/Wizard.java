@@ -67,8 +67,8 @@ public class Wizard {
 			};
 
 		Object[] defaultOptions = {
-				Messages.getString("Dialog.DefaultsYes"),
-				Messages.getString("Dialog.DefaultsNo")
+				Messages.getString("Wizard.DefaultsYes"),
+				Messages.getString("Wizard.DefaultsNo")
 			};
 
 		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
