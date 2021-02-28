@@ -31,17 +31,17 @@
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
 	<version>10.1.1-SNAPSHOT</version>
-	<url>http://www.universalmediaserver.com/</url>
+	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
 	<organization>
 		<name>Universal Media Server</name>
-		<url>http://www.universalmediaserver.com/</url>
+		<url>https://www.universalmediaserver.com/</url>
 	</organization>
 	<licenses>
 		<license>
 			<name>GNU General Public License version 2</name>
-			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+			<url>https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt</url>
 			<distribution>manual</distribution>
 		</license>
 	</licenses>

@@ -1866,7 +1866,7 @@ public class OpenSubtitle {
 		String osdbHash,
 		long filebytesize
 	) throws IOException {
-		URL domain = new URL("https://www.universalmediaserver.com");
+		URL domain = new URL("https://api.universalmediaserver.com");
 		String endpoint = isSeries ? "seriestitle" : "video";
 		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(title)) {
