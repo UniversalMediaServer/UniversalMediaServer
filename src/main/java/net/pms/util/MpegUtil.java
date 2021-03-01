@@ -18,8 +18,7 @@ public class MpegUtil {
 						for (Entry<Integer, Integer> entry : ptsStart.entrySet()) {
 							Integer id = entry.getKey();
 							if (ptsEnd.get(id) != null) {
-								int dur = ptsEnd.get(id)
-									- entry.getValue();
+								int dur = ptsEnd.get(id) - entry.getValue();
 								dur /= 90000;
 								return dur;
 							}
@@ -31,12 +30,10 @@ public class MpegUtil {
 		return 0;
 	}
 
-	private static Map<Integer, Integer> checkRange(RandomAccessFile raf, long startingPos,
-		int range, boolean end) throws IOException {
+	private static Map<Integer, Integer> checkRange(RandomAccessFile raf, long startingPos, int range, boolean end) throws IOException {
 		Map<Integer, Integer> pts = new HashMap<>();
-		byte buffer[] = new byte[range];
-		if (end) // statringPos not applicable for end==true
-		{
+		byte[] buffer = new byte[range];
+		if (end) { // statringPos not applicable for end==true
 			raf.seek(raf.length() - range);
 		} else {
 			raf.seek(0 + startingPos);
@@ -65,8 +62,7 @@ public class MpegUtil {
 			if (buffer[i + 7] == -32 && buffer[i + 6] == 1) {
 				int diff = i + 7 + 4; // 47 50 11 11 00 00 01 E0 00 00 84 C0
 				// check pts
-				if ((buffer[diff] & 128) == 128 && (buffer[diff + 2] & 32) == 32
-						&& (pts.get(id) == null || (pts.get(id) != null && end))) {
+				if ((buffer[diff] & 128) == 128 && (buffer[diff + 2] & 32) == 32 && (pts.get(id) == null || (pts.get(id) != null && end))) {
 					pts.put(id, getTS(buffer, diff + 3));
 				}
 			}
@@ -74,13 +70,14 @@ public class MpegUtil {
 		return pts;
 	}
 
-	private static int getTS(byte buffer[], int diff) {
-		return (((((buffer[diff + 0] & 0xff) << 8) + (buffer[diff + 1] & 0xff)) >> 1) << 15)
-			+ ((((buffer[diff + 2] & 0xff) << 8) + (buffer[diff + 3] & 0xff)) >> 1);
+	private static int getTS(byte[] buffer, int diff) {
+		return (((((buffer[diff + 0] & 0xff) << 8) + (buffer[diff + 1] & 0xff)) >> 1) << 15) +
+			((((buffer[diff + 2] & 0xff) << 8) + (buffer[diff + 3] & 0xff)) >> 1);
 	}
 
 	/**
 	 * gets position for specified time in MPEG stream (M2TS, TS)
+	 *
 	 * @param f - file to check
 	 * @param timeS - time (in seconds) to find
 	 * @return position in stream (in bytes).
@@ -105,8 +102,7 @@ public class MpegUtil {
 						if (ptsEnd.get(id) != null) {
 							int time = (ptsEnd.get(id) - entry.getValue()) / 90000;
 
-							if (time == timeS) // found it
-							{
+							if (time == timeS) { // found it
 								return currentPos;
 							}
 

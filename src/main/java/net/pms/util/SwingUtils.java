@@ -33,7 +33,6 @@ import javax.swing.text.JTextComponent;
  * This is a utility class for various reusable Swing methods. *
  */
 public class SwingUtils {
-
 	// We don't want this to be instanced, only static methods
 	private SwingUtils() {
 	}
@@ -64,29 +63,29 @@ public class SwingUtils {
 		}
 
 		FontMetrics metrics = textComponent.getFontMetrics(textComponent.getFont());
-	    FontRenderContext rendererContext = metrics.getFontRenderContext();
-	    float formatWidth = width - textComponent.getInsets().left - textComponent.getInsets().right;
+		FontRenderContext rendererContext = metrics.getFontRenderContext();
+		float formatWidth = width - textComponent.getInsets().left - textComponent.getInsets().right;
 
-	    int lines = 0;
-	    String[] paragraphs = text.split("\n");
-	    for (String paragraph : paragraphs) {
-	    	if (paragraph.isEmpty()) {
-	    		lines++;
-	    	} else {
+		int lines = 0;
+		String[] paragraphs = text.split("\n");
+		for (String paragraph : paragraphs) {
+			if (paragraph.isEmpty()) {
+				lines++;
+			} else {
 				AttributedString attributedText = new AttributedString(paragraph);
 				attributedText.addAttribute(TextAttribute.FONT, textComponent.getFont());
-			    AttributedCharacterIterator charIterator = attributedText.getIterator();
-			    LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(charIterator, rendererContext);
+				AttributedCharacterIterator charIterator = attributedText.getIterator();
+				LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(charIterator, rendererContext);
 
-			    lineMeasurer.setPosition(charIterator.getBeginIndex());
-			    while (lineMeasurer.getPosition() < charIterator.getEndIndex()) {
-			    	lineMeasurer.nextLayout(formatWidth);
-			    	lines++;
-			    }
-	    	}
-	    }
+				lineMeasurer.setPosition(charIterator.getBeginIndex());
+				while (lineMeasurer.getPosition() < charIterator.getEndIndex()) {
+					lineMeasurer.nextLayout(formatWidth);
+					lines++;
+				}
+			}
+		}
 
-	    return new Dimension(width, metrics.getHeight() * lines + textComponent.getInsets().top + textComponent.getInsets().bottom);
+		return new Dimension(width, metrics.getHeight() * lines + textComponent.getInsets().top + textComponent.getInsets().bottom);
 	}
 
 	/**

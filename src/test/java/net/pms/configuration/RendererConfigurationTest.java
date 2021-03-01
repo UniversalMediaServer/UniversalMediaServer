@@ -103,6 +103,41 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
+		testHeaders    ("LG Blu-Ray Player", "User-Agent: LG-BP350");
+		testUPNPDetails("LG Blu-Ray Player", "friendlyName=LG-BP350");
+
+		testHeaders    ("LG BP550", "User-Agent: LG-BP550-1");
+		testUPNPDetails("LG BP550", "friendlyName=LG-BP550-1");
+
+		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
+
+		testUPNPDetails("LG LCD TV (2014)", "friendlyName=[TV][LG]42LB5700-ZB");
+
+		testUPNPDetails("LG LM660", "friendlyName=[TV]42LM660S-ZA");
+
+		testUPNPDetails("LG LS5700", "friendlyName=[TV]42LS5700-SB");
+
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
+		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED65C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55E9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55C9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65E9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65E9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77C9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77C9AUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9SLA");
+		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED55B9SLA");
+
+		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
+
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
 
 		testHeaders    ("LG WebOS TV", "User-Agent: Linux/3.10.19-32.afro.4 UPnP/1.0 LGE WebOS TV LGE_DLNA_SDK/1.6.0/04.30.13 DLNADOC/1.50");
@@ -213,6 +248,8 @@ public class RendererConfigurationTest {
 
 		testHeaders("Showtime 4", "User-Agent: Showtime PS3 4.2");
 
+		testHeaders("Sony Bluray UBP-X800M2", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"UBP-X800M2\"; mv=\"2.0\";");
+
 		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");
 
 		testHeaders("Sony Bravia HX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";");
@@ -228,6 +265,10 @@ public class RendererConfigurationTest {
 		testHeaders("Telstra T-Box", "User-Agent: telstra");
 
 		testHeaders("VideoWeb TV", "friendlyName.dlna.org: VideoWeb");
+
+		testHeaders("VLC for desktop", "User-Agent: 6.2.9200 2/, UPnP/1.0, Portable SDK for UPnP devices/1.6.19");
+		testHeaders("VLC for desktop", "User-Agent: Linux/3.13.0-68-generic, UPnP/1.0, Portable SDK for UPnP devices/1.6.6");
+		testHeaders("VLC for desktop", "User-Agent: 6.1.7601 2/Service Pack 1, UPnP/1.0, Portable SDK for UPnP devices/1.6.19 for VLC 64-bit version 2.2.4");
 
 		testHeaders("WD TV Live", "User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423");
 

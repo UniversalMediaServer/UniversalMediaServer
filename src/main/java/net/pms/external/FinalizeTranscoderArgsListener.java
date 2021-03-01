@@ -15,7 +15,7 @@ public interface FinalizeTranscoderArgsListener extends ExternalListener {
 	/**
 	 * Called before the transcoding of a resource starts to determine the list
 	 * of commands to be used
-	 * 
+	 *
 	 * @param player
 	 *            the player being used
 	 * @param filename

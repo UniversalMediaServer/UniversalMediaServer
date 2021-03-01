@@ -9,11 +9,9 @@ import com.drew.metadata.gif.GifControlDirectory;
 import com.drew.metadata.gif.GifHeaderDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class GIFInfo extends ImageInfo {
-
 	protected final String formatVersion;
 	protected final boolean hasTransparency;
 
@@ -157,9 +155,9 @@ public class GIFInfo extends ImageInfo {
 					}
 				}
 			} else if (directory instanceof GifControlDirectory) {
-				boolean hasTransparency = ((GifControlDirectory) directory).isTransparent();
-				((GIFParseInfo) parsedInfo).hasTransparency = hasTransparency;
-				if (hasTransparency) {
+				boolean isTransparent = ((GifControlDirectory) directory).isTransparent();
+				((GIFParseInfo) parsedInfo).hasTransparency = isTransparent;
+				if (isTransparent) {
 					if (parsedInfo.numComponents == null) {
 						throw new ParseException(
 							"Invalid GIF image - Graphic Control Extension block encountered before the Header block"
@@ -187,7 +185,6 @@ public class GIFInfo extends ImageInfo {
 			hasTransparency
 		);
 	}
-
 
 	/**
 	 * @return The format version {@link String} from the start of the GIF

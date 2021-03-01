@@ -76,6 +76,12 @@ public class DLNAMediaInfoTest {
 		// Create a new PMS instance
 		PMS.getNewInstance();
 
+		// Check if the MediaInfo library is properly installed and initialized
+		// especially on Linux which needs users to be involved.
+		assertThat(LibMediaInfoParser.isValid())
+			.withFailMessage("\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n")
+			.isTrue();
+
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
 		DLNAResource parent = new VirtualFolder("test", "test");
@@ -153,7 +159,7 @@ public class DLNAMediaInfoTest {
 					break;
 				case 12:
 					assertThat(mediaInfo.toString()).isEqualTo(
-						"Container: WAV, Size: 1073218, Overall Bitrate: 256069, Bitrate: 256069, Duration: 0:00:33.529, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
+						"Container: WAV, Size: 1073218, Overall Bitrate: 256062, Bitrate: 256062, Duration: 0:00:33.530, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
 					);
 					break;
 				case 13:

@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class CacheLogger {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(CacheLogger.class);
+	private static Logger logger = LoggerFactory.getLogger(CacheLogger.class);
 	private static LinkedList<Appender<ILoggingEvent>> appenderList = new LinkedList<>();
 	private static volatile CacheAppender<ILoggingEvent> cacheAppender = null;
 	private static LoggerContext loggerContext = null;
@@ -78,11 +78,11 @@ public class CacheLogger {
 		ILoggerFactory iLoggerFactory = LoggerFactory.getILoggerFactory();
 		if (!(iLoggerFactory instanceof LoggerContext)) {
 			// Not using LogBack, CacheAppender not applicable
-			LOGGER.debug("Not using LogBack, aborting CacheLogger");
+			logger.debug("Not using LogBack, aborting CacheLogger");
 			loggerContext = null;
 			return;
 		} else if (!isActive()) {
-			LOGGER.error("initContext() cannot be called while isActive() is false");
+			logger.error("initContext() cannot be called while isActive() is false");
 			return;
 		}
 
@@ -100,7 +100,7 @@ public class CacheLogger {
 
 	public static synchronized void startCaching() {
 		if (isActive()) {
-			LOGGER.debug("StartCaching() failed: Caching already started");
+			logger.debug("StartCaching() failed: Caching already started");
 		} else {
 			cacheAppender = new CacheAppender<>();
 			initContext();
@@ -109,10 +109,10 @@ public class CacheLogger {
 
 	public static synchronized void stopAndFlush() {
 		if (loggerContext == null) {
-			LOGGER.debug("Not using LogBack, aborting CacheLogger.stopAndFlush()");
+			logger.debug("Not using LogBack, aborting CacheLogger.stopAndFlush()");
 			return;
 		} else if (!isActive()) {
-			LOGGER.error("stopAndFlush() cannot be called while isActive() is false");
+			logger.error("stopAndFlush() cannot be called while isActive() is false");
 			return;
 		}
 

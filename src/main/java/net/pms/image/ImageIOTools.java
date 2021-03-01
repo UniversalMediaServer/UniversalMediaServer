@@ -46,7 +46,7 @@ import com.drew.metadata.Metadata;
  */
 public class ImageIOTools {
 
-	protected static final IIORegistry theRegistry = IIORegistry.getDefaultInstance();
+	protected static final IIORegistry REGISTRY = IIORegistry.getDefaultInstance();
 
 	// Not to be instantiated
 	private ImageIOTools() {
@@ -276,13 +276,13 @@ public class ImageIOTools {
 		Iterator<ImageInputStreamSpi> iter;
 		// Ensure category is present
 		try {
-			iter = theRegistry.getServiceProviders(ImageInputStreamSpi.class, true);
+			iter = REGISTRY.getServiceProviders(ImageInputStreamSpi.class, true);
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
 
 		while (iter.hasNext()) {
-			ImageInputStreamSpi spi = (ImageInputStreamSpi)iter.next();
+			ImageInputStreamSpi spi = (ImageInputStreamSpi) iter.next();
 			if (spi.getInputClass().isInstance(input)) {
 				try {
 					return spi.createInputStreamInstance(input, false, null);

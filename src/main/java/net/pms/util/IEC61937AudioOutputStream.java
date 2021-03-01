@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 
 public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IEC61937AudioOutputStream.class);
-	private static int bits[] = new int[]{16, 16, 20, 20, 0, 24, 24};
-	private static int samplerates[] = new int[]{
+	private static int[] bits = new int[]{16, 16, 20, 20, 0, 24, 24};
+	private static int[] samplerates = new int[]{
 		0,
 		8000,
 		16000,
@@ -44,12 +44,12 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 	private boolean dtsHD = false;
 	private int framesize;
 	private int blocks;
-	private int sample_rate;
+	private int sampleRate;
 	private PCMAudioOutputStream out;
 	private int padding;
-	private byte preamble[];
+	private byte[] preamble;
 	private boolean usepreamble;
-	private byte dtshdpreamble[];
+	private byte[] dtshdpreamble;
 	private int period;
 
 	public IEC61937AudioOutputStream(PCMAudioOutputStream out) {
@@ -78,20 +78,20 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 			streamableByteNumber = framesize;
 			if (framesize == 0 || dtsHD) {
 				blocks = ((data[off + 4] & 0x01) << 6) + ((data[off + 5] & 0xfc) >> 2);
-				sample_rate = samplerates[((data[off + 8] >> 2) & 0x0f)];
+				sampleRate = samplerates[((data[off + 8] >> 2) & 0x0f)];
 				framesize = ((data[off + 5] & 0x03) << 12) + ((data[off + 6] & 0xff) << 4) + ((data[off + 7] & 0xf0) >> 4) + 1;
-				int framesize_sup = 0;
-				int dts_rate = 48000;
-				boolean skip_dtshd = true;
-				if (!skip_dtshd && off + framesize + 3 < data.length && data[off + framesize] == 100 && data[off + framesize + 1] == 88 && data[off + framesize + 2] == 32 && data[off + framesize + 3] == 37) {
+				int framesizeSup = 0;
+				int dtsRate = 48000;
+				boolean skipDtsHd = true;
+				if (!skipDtsHd && off + framesize + 3 < data.length && data[off + framesize] == 100 && data[off + framesize + 1] == 88 && data[off + framesize + 2] == 32 && data[off + framesize + 3] == 37) {
 					dtsHD = true;
-					dts_rate = 192000;
-					framesize_sup = ((data[off + framesize + 6] & 0x0f) << 11) + ((data[off + framesize + 7] & 0xff) << 3) + ((data[off + framesize + 8] & 0xf0) >> 5) + 1;
-					framesize += framesize_sup;
+					dtsRate = 192000;
+					framesizeSup = ((data[off + framesize + 6] & 0x0f) << 11) + ((data[off + framesize + 7] & 0xff) << 3) + ((data[off + framesize + 8] & 0xf0) >> 5) + 1;
+					framesize += framesizeSup;
 				}
 				blocks++;
 
-				int pcm_wrapped_frame_size = blocks << 7;
+				int pcmWrappedFrameSize = blocks << 7;
 				if (usepreamble && preamble == null) {
 					int bitspersample = ((data[off + 11] & 0x01) << 2) + ((data[off + 12] & 0xfc) >> 6);
 					if (bitspersample < 7) {
@@ -122,7 +122,7 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 						}
 					}
 					if (dtsHD) {
-						period = dts_rate * (blocks << 5) / sample_rate;
+						period = dtsRate * (blocks << 5) / sampleRate;
 						byte subtype = 0x0;
 						switch (period) {
 							case 512:
@@ -153,18 +153,18 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 						dtshdpreamble[9] = -2;
 					}
 				}
-				if (out.sampleFrequency != dts_rate || out.nbchannels != 2 || out.bitsperSample != 16) {
+				if (out.sampleFrequency != dtsRate || out.nbchannels != 2 || out.bitsperSample != 16) {
 					out.nbchannels = 2;
-					out.sampleFrequency = dts_rate;
+					out.sampleFrequency = dtsRate;
 					out.bitsperSample = 16;
 					//out.wavMode = true;
 					out.init();
 				}
 				if (dtsHD) {
-					pcm_wrapped_frame_size = period * 4;
+					pcmWrappedFrameSize = period * 4;
 				}
-				if (framesize > pcm_wrapped_frame_size) {
-					framesize -= framesize_sup;
+				if (framesize > pcmWrappedFrameSize) {
+					framesize -= framesizeSup;
 				}
 				streamableByteNumber = framesize;
 				if (dtshdpreamble != null) {
@@ -173,12 +173,12 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 					framesize += dtshdpreamble.length;
 				}
 				if (preamble != null) {
-					int framesize_bits = framesize * 8;
-					preamble[7] = (byte) (framesize_bits & 0xff);
-					preamble[6] = (byte) ((framesize_bits >> 8) & 0xff);
+					int framesizeBits = framesize * 8;
+					preamble[7] = (byte) (framesizeBits & 0xff);
+					preamble[6] = (byte) ((framesizeBits >> 8) & 0xff);
 				}
 
-				padding = pcm_wrapped_frame_size - framesize - (preamble != null ? preamble.length : 0);
+				padding = pcmWrappedFrameSize - framesize - (preamble != null ? preamble.length : 0);
 				//LOGGER.debug("DTS spdif framesize: " + framesize + " / padding: " + padding);
 			}
 		} else if (data[off + 0] == 11 && data[off + 1] == 119) {
@@ -195,7 +195,7 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 					if (data[off + i] == a0 && data[off + i + 1] == a1) {
 						framesize = i;
 						streamableByteNumber = framesize;
-						int pcm_wrapped_frame_size = 6144; // padding_bytes = number_of_samples_in_the_audio_frame * 4 - frame_size
+						int pcmWrappedFrameSize = 6144; // padding_bytes = number_of_samples_in_the_audio_frame * 4 - frame_size
 						if (out != null) {
 							PCMAudioOutputStream pout = out;
 							pout.nbchannels = 2;
@@ -205,18 +205,18 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 						}
 						if (usepreamble) {
 							preamble = new byte[8];
-							padding = pcm_wrapped_frame_size - framesize - preamble.length;
+							padding = pcmWrappedFrameSize - framesize - preamble.length;
 							preamble[1] = 114; // syncword1
 							preamble[0] = -8;
 							preamble[3] = 31; // syncword2
 							preamble[2] = 78;
 							preamble[5] = 1; // ac3
 							preamble[4] = 0;
-							int framesize_bits = framesize * 8;
-							preamble[7] = (byte) (framesize_bits % 256);
-							preamble[6] = (byte) (framesize_bits / 256);
+							int framesizeBits = framesize * 8;
+							preamble[7] = (byte) (framesizeBits % 256);
+							preamble[6] = (byte) (framesizeBits / 256);
 						} else {
-							padding = pcm_wrapped_frame_size - framesize;
+							padding = pcmWrappedFrameSize - framesize;
 						}
 						LOGGER.debug("AC3 spdif framesize: " + framesize + " / padding: " + padding + " preamble[6]: " + preamble[6]);
 						discard = false;

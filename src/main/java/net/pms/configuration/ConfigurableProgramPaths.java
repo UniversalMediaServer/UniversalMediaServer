@@ -401,7 +401,4 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 
 		return customPath;
 	}
-
-
-
 }

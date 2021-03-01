@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 9;
+	private static final int TABLE_VERSION = 11;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -77,7 +77,7 @@ public final class TableFilesStatus extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
@@ -136,6 +136,66 @@ public final class TableFilesStatus extends Tables {
 	}
 
 	/**
+	 * Sets the last played date and increments the play count.
+	 *
+	 * @param fullPathToFile
+	 * @param lastPlaybackPosition how many seconds were played
+	 */
+	public static void setLastPlayed(final String fullPathToFile, final Double lastPlaybackPosition) {
+		boolean trace = LOGGER.isTraceEnabled();
+		String query;
+
+		try (Connection connection = DATABASE.getConnection()) {
+			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+			if (trace) {
+				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
+			}
+
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				connection.setAutoCommit(false);
+				try (ResultSet result = statement.executeQuery(query)) {
+					int playCount = 0;
+					boolean isCreatingNewRecord = false;
+
+					if (result.next()) {
+						playCount = result.getInt("PLAYCOUNT");
+					} else {
+						isCreatingNewRecord = true;
+						result.moveToInsertRow();
+						result.updateString("FILENAME", fullPathToFile);
+					}
+					playCount++;
+
+					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
+					result.updateInt("PLAYCOUNT", playCount);
+					if (lastPlaybackPosition != null) {
+						result.updateDouble("LASTPLAYBACKPOSITION", lastPlaybackPosition);
+					}
+
+					if (isCreatingNewRecord) {
+						result.insertRow();
+					} else {
+						result.updateRow();
+					}
+				} finally {
+					connection.commit();
+				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while writing last played date to " + TABLE_NAME + " for \"{}\": {}",
+				fullPathToFile,
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
 	 * Sets whether each file within the folder is fully played.
 	 *
 	 * @param fullPathToFolder the full path to the folder.
@@ -148,7 +208,7 @@ public final class TableFilesStatus extends Tables {
 		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
 		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
@@ -188,7 +248,7 @@ public final class TableFilesStatus extends Tables {
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
 	public static void remove(final String filename, boolean useLike) {
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
@@ -213,7 +273,7 @@ public final class TableFilesStatus extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 		Boolean result = null;
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
 			if (trace) {
@@ -241,10 +301,10 @@ public final class TableFilesStatus extends Tables {
 	public static int getBookmark(final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 		int result = 0;
-		
-		try (Connection connection = database.getConnection()) {
+
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			
+
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
@@ -269,7 +329,7 @@ public final class TableFilesStatus extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
-		try (Connection connection = database.getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
@@ -327,7 +387,7 @@ public final class TableFilesStatus extends Tables {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}
@@ -361,7 +421,7 @@ public final class TableFilesStatus extends Tables {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
-			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
@@ -447,6 +507,19 @@ public final class TableFilesStatus extends Tables {
 						}
 						version = 9;
 						break;
+					case 9:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
+						}
+						version = 10;
+						break;
+					case 10:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
+						}
+						version = 11;
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
@@ -468,11 +541,14 @@ public final class TableFilesStatus extends Tables {
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID            IDENTITY PRIMARY KEY, " +
-					"FILENAME      VARCHAR2(1024)        NOT NULL, " +
-					"MODIFIED      DATETIME, " +
-					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
-					"BOOKMARK      INTEGER DEFAULT 0" +
+					"ID                     IDENTITY PRIMARY KEY, " +
+					"FILENAME               VARCHAR2(1024)        NOT NULL, " +
+					"MODIFIED               DATETIME, " +
+					"ISFULLYPLAYED          BOOLEAN                          DEFAULT false, " +
+					"BOOKMARK               INTEGER                          DEFAULT 0, " +
+					"DATELASTPLAY           DATETIME, " +
+					"PLAYCOUNT              INTEGER                          DEFAULT 0, " +
+					"LASTPLAYBACKPOSITION   DOUBLE                           DEFAULT 0.0, " +
 				")"
 			);
 

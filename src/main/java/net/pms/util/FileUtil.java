@@ -367,7 +367,6 @@ public class FileUtil {
 		return getExtension(file, null, null);
 	}
 
-	
 	/**
 	 * Returns the file extension from the specified {@link Path} or
 	 * {@code null} if it has no extension.
@@ -609,18 +608,14 @@ public class FileUtil {
 	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special\\sEdition|Unrated|Final\\sCut|Remastered|Extended\\sCut|IMAX\\sEdition|Uncensored|Directors\\sCut|Uncut)(?!\\))";
 	private static final Pattern COMMON_FILE_EDITIONS_PATTERN = Pattern.compile(COMMON_FILE_EDITIONS);
 
-	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d)(?:[\\s']|v\\d)";
+	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d{1,4})(?:[\\s']|v\\d)";
 	private static final Pattern COMMON_ANIME_EPISODE_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
 
 	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S1\\sEP)(\\d\\d-\\d\\d)(?:[\\s']|v\\d)";
 	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
 
 	public static String getFileNamePrettified(String f) {
-		return getFileNamePrettified(f, null, null, false);
-	}
-
-	public static String getFileNamePrettified(String f, File file) {
-		return getFileNamePrettified(f, file, null, false);
+		return getFileNamePrettified(f, null, false, false);
 	}
 
 	/**
@@ -631,20 +626,22 @@ public class FileUtil {
 	 * standardized filename.
 	 *
 	 * @param f The filename
-	 * @param file The file to possibly be used by the InfoDb
 	 * @param media
 	 * @param isEpisodeWithinSeasonFolder whether this is an episode within
 	 *                                    a season folder in the Media Library
+	 * @param isEpisodeWithinTVSeriesFolder whether this is an episode within
+	 *                                      a TV series folder in the Media Library
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, File file, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder) {
-		String formattedName = null;
+	public static String getFileNamePrettified(String f, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
+		String formattedName;
 
 		String title;
 		String year;
 		String extraInformation;
 		String tvSeason;
+		String tvSeasonPadded;
 		String tvEpisodeNumber;
 		String tvEpisodeName;
 		boolean isTVEpisode = false;
@@ -680,6 +677,17 @@ public class FileUtil {
 
 		// Build the prettified filename from the metadata
 		if (isTVEpisode) {
+			tvSeasonPadded = tvSeason;
+			if (tvSeason.matches("(19|20)\\d{2}")) {
+				// If the season is a year, anticipate a "/" for a date
+				tvSeasonPadded += "/";
+			} else {
+				if (tvSeason.length() == 1) {
+					tvSeasonPadded = "0" + tvSeasonPadded;
+				}
+				tvSeasonPadded = "S" + tvSeasonPadded + "E";
+			}
+
 			// Make sure the episode number has a leading zero
 			if (tvEpisodeNumber.length() == 1) {
 				tvEpisodeNumber = "0" + tvEpisodeNumber;
@@ -699,13 +707,18 @@ public class FileUtil {
 				} else {
 					formattedName += tvEpisodeName;
 				}
+			} else if (isEpisodeWithinTVSeriesFolder) {
+				formattedName = tvSeasonPadded + tvEpisodeNumber + " - ";
+
+				if (isBlank(tvEpisodeName)) {
+					formattedName += "Episode " + tvEpisodeNumber;
+				} else {
+					formattedName += tvEpisodeName;
+				}
 			} else {
-				// If the season is a year, anticipate a "/" for a date
-				if (isNotBlank(tvSeason) && isNotBlank(tvEpisodeNumber)) {
-					if (tvSeason.matches("(19|20)\\d{2}")) {
-						tvSeason += "/";
-					}
-					formattedName = title + " - " + tvSeason + tvEpisodeNumber;
+				formattedName = title;
+				if (isNotBlank(tvSeasonPadded) && isNotBlank(tvEpisodeNumber)) {
+					formattedName += " " + tvSeasonPadded + tvEpisodeNumber;
 				}
 
 				if (isNotBlank(tvEpisodeName)) {
@@ -736,7 +749,7 @@ public class FileUtil {
 	 */
 	public static String[] getFileNameMetadata(String filename) {
 		if (filename == null) {
-			return new String[] { null, null, null, null, null, null };
+			return new String[] {null, null, null, null, null, null};
 		}
 
 		String formattedName;
@@ -751,9 +764,9 @@ public class FileUtil {
 		String tvEpisodeName   = null;
 		String tvEpisodeNumber = null;
 		String edition         = null;
-		
+
 		// This can contain editions and "Sample" for now
-		String extraInformation = null;
+		String extraInformation;
 
 		Pattern pattern;
 		Matcher matcher;
@@ -764,24 +777,26 @@ public class FileUtil {
 			isSample = true;
 		}
 
-		if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
-			// This matches scene and most p2p TV episodes within the first 9 seasons that are more than one episode
-			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)(?:[eE]|-[eE])(\\d\\d)");
+		if (formattedName.matches(".*[sS](\\d\\d|\\d)[eE]\\d\\d([eE]|-[eE])\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes that are more than one episode
+			pattern = Pattern.compile("[sS](\\d\\d|\\d)[eE](\\d\\d)(?:[eE]|-[eE])(\\d\\d)");
 			matcher = pattern.matcher(formattedName);
 
 			if (matcher.find()) {
 				tvSeason = matcher.group(1);
+				if (tvSeason.length() == 1) {
+					tvSeason = "0" + tvSeason;
+				}
 				tvEpisodeNumber = matcher.group(2);
 				tvEpisodeNumber += "-" + matcher.group(3);
 			}
 
-			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)\\s", " - $1$2$3-$5$6 - ");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
-			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " - $1$2$3-$5$6");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d|\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)\\s", " S" + tvSeason + "E$2$3-$5$6 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d|\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " S" + tvSeason + "E$2$3-$5$6");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d|\\d)E(\\d)(\\d)([eE]|-[eE])(\\d)(\\d)", " S" + tvSeason + "E$2$3-$5$6");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
@@ -791,12 +806,15 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
-			// This matches scene and most p2p TV episodes within the first 9 seasons
-			pattern = Pattern.compile("[sS](\\d\\d)[eE](\\d\\d)");
+		} else if (formattedName.matches(".*[sS](\\d\\d|\\d)[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes
+			pattern = Pattern.compile("[sS](\\d\\d|\\d)[eE](\\d\\d)");
 			matcher = pattern.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = matcher.group(1);
+				if (tvSeason.length() == 1) {
+					tvSeason = "0" + tvSeason;
+				}
 				tvEpisodeNumber = matcher.group(2);
 			}
 
@@ -806,45 +824,23 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)\\s", " - $1$2$3 - ");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
-			formattedName = formattedName.replaceAll("\\sS(\\d\\d)E(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d|\\d)E(\\d)(\\d)\\s", " S" + tvSeason + "E$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\sS(\\d\\d|\\d)E(\\d)(\\d)", " S" + tvSeason + "E$2$3");
+			formattedName = formattedName.replaceAll("\\sS(\\d\\d|\\d)E(\\d)(\\d)", " S" + tvSeason + "E$2$3");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*\\s\\d[xX]\\d\\d.*")) {
-			// This matches older scene and most p2p TV episodes within the first 9 seasons
-			pattern = Pattern.compile("\\s(\\d)[xX](\\d\\d)");
-			matcher = pattern.matcher(formattedName);
-			if (matcher.find()) {
-				tvSeason = "0" + matcher.group(1);
-				tvEpisodeNumber = matcher.group(2);
-			}
-
-			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
-			}
-
-			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
-			// Then strip the end of the episode if it does not have the episode name in the title
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
-			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
-			formattedName = formattedName.replaceAll("(?i)\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
-			formattedName = formattedName.replaceAll("\\s(\\d)x(\\d)(\\d)", " - $1$2$3");
-			formattedName = removeFilenameEndMetadata(formattedName);
-			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*\\s\\d\\d[xX]\\d\\d.*")) {
-			// This matches older scene and most p2p TV episodes after the first 9 seasons
-			pattern = Pattern.compile("\\s(\\d\\d)[xX](\\d\\d)");
+		} else if (formattedName.matches(".*\\s(\\d\\d|\\d)[xX]\\d\\d.*")) {
+			// This matches older scene (like .avi releases) and some p2p TV episodes
+			pattern = Pattern.compile("\\s(\\d\\d|\\d)[xX](\\d\\d)");
 			matcher = pattern.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = matcher.group(1);
+				if (tvSeason.length() == 1) {
+					tvSeason = "0" + tvSeason;
+				}
 				tvEpisodeNumber = matcher.group(2);
 			}
 
@@ -854,13 +850,12 @@ public class FileUtil {
 				edition = result.edition;
 			}
 
-			// Rename the season/episode numbers. For example, "12x01" changes to " - 1201"
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)\\s", " - $1$2$3 - ");
-			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
-			formattedName = formattedName.replaceAll("\\s(\\d\\d)x(\\d)(\\d)", " - $1$2$3");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d|\\d)x(\\d)(\\d)\\s", " S" + tvSeason + "E$2$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d\\d|\\d)x(\\d)(\\d)", " S" + tvSeason + "E$2$3");
+			formattedName = formattedName.replaceAll("\\s(\\d\\d|\\d)x(\\d)(\\d)", " S" + tvSeason + "E$2$3");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d\\d\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
@@ -873,12 +868,12 @@ public class FileUtil {
 				tvEpisodeNumber += "/" + matcher.group(3);
 			}
 
-			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
+			// Rename the date. For example, "2013.03.18" changes to "2013/03/18"
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s", " - $1$2/$3/$4 - ");
-			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
-			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " - $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)\\s", " $1$2/$3/$4 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
+			formattedName = formattedName.replaceAll("\\s(19|20)(\\d\\d)\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
@@ -940,7 +935,7 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll(
-				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|"+
+				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|" +
 				"\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*",
 				""
 			);
@@ -989,7 +984,7 @@ public class FileUtil {
 		if (tvSeason != null) {
 			// Remove leading 0 from the season if it exists
 			tvSeason = stripStart(tvSeason, "0");
-			pattern = Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2}|\\d{4}-\\d{2}) - (.*)");
+			pattern = Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
 			int showNameIndex = indexOf(pattern, formattedName);
 			if (isEmpty(movieOrShowName)) {
 				if (showNameIndex != -1) {
@@ -1003,11 +998,19 @@ public class FileUtil {
 						}
 					}
 				} else {
-					showNameIndex = indexOf(Pattern.compile("(?i) - (\\d{2}|\\d{4}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
+					showNameIndex = indexOf(Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
 				}
+			}
+			if (movieOrShowName != null) {
+				movieOrShowName = movieOrShowName.trim();
+			}
+			int yearIndex = indexOf(Pattern.compile("\\s(?:19|20)\\d{2}"), movieOrShowName);
+			if (yearIndex > -1) {
+				year = formattedName.substring(yearIndex + 1, yearIndex + 5);
+				movieOrShowName = formattedName.substring(0, yearIndex) + " (" + year + ")";
 			}
 		} else {
 			if (isMovieWithoutYear) {
@@ -1033,7 +1036,7 @@ public class FileUtil {
 			extraInformation = edition;
 		}
 
-		return new String[] { movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName };
+		return new String[] {movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName};
 	}
 
 	/**
@@ -1080,6 +1083,10 @@ public class FileUtil {
 	}
 
 	public static int indexOf(Pattern pattern, String s) {
+		if (isBlank(s)) {
+			return -1;
+		}
+
 		Matcher matcher = pattern.matcher(s);
 		return matcher.find() ? matcher.start() : -1;
 	}
@@ -1859,8 +1866,16 @@ public class FileUtil {
 	}
 
 	public static String renameForSorting(String filename) {
+		return renameForSorting(filename, false);
+	}
+
+	public static String renameForSorting(String filename, boolean isEpisodeWithinTVSeriesFolder) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			filename = basicPrettify(filename);
+			if (isEpisodeWithinTVSeriesFolder) {
+				filename = getFileNamePrettified(filename, null, false, isEpisodeWithinTVSeriesFolder);
+			} else {
+				filename = basicPrettify(filename);
+			}
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
@@ -2002,7 +2017,7 @@ public class FileUtil {
 			}
 
 			if (Platform.isWindows()) {
-				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
+				Double version = BasicSystemUtils.instance.getWindowsVersion();
 				if (version == null) {
 					LOGGER.error(
 						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
@@ -2144,10 +2159,10 @@ public class FileUtil {
 	public static boolean isUnixStickyBit(Path path) throws IOException, InvalidFileSystemException {
 		PosixFileAttributes attr = Files.readAttributes(path, PosixFileAttributes.class);
 		try {
-			Field st_modeField = attr.getClass().getDeclaredField("st_mode");
-			st_modeField.setAccessible(true);
-			int st_mode = st_modeField.getInt(attr);
-			return (st_mode & S_ISVTX) > 0;
+			Field stModeField = attr.getClass().getDeclaredField("st_mode");
+			stModeField.setAccessible(true);
+			int stMode = stModeField.getInt(attr);
+			return (stMode & S_ISVTX) > 0;
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			throw new InvalidFileSystemException("File is not on a Unix file system: " + e.getMessage(), e);
 		}
@@ -2407,7 +2422,7 @@ public class FileUtil {
 
 	/**
 	 * Check if the provided {@code filename} string can be a directory
-	 * by checking if the string contains extension. 
+	 * by checking if the string contains extension.
 	 *
 	 * @param filename the string represented the directory
 	 * @return {@code true} if the string doesn't contain the extension
@@ -2415,5 +2430,35 @@ public class FileUtil {
 	 */
 	public static boolean isDirectory(String filename) {
 		return FileUtil.getExtension(filename) == null;
+	}
+
+	/**
+	 * Check if the {@code file} is a symbolic link.
+	 *
+	 * @param file the file to check
+	 * @return {@code true} if the file is a symbolic link
+	 * {@code false} otherwise.
+	 */
+	public static boolean isSymbolicLink(File file) {
+		return Files.isSymbolicLink(file.toPath());
+	}
+
+	/**
+	 * Return the file from the real path of the provided {@code file}
+	 * that is a symbolic link.
+	 *
+	 * @param file the symbolic link file
+	 * @return a File from the <em>real</em> path of the symbolic link file
+	 */
+	public static File getRealFile(File file) {
+		Path target = file.toPath();
+		while (Files.isSymbolicLink(target)) {
+			try {
+				target = target.toRealPath();
+			} catch (IOException ex) {
+				return target.toFile();
+			}
+		}
+		return target.toFile();
 	}
 }

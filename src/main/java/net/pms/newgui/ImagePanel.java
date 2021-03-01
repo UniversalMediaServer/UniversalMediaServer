@@ -131,8 +131,8 @@ public class ImagePanel extends JButton {
 		}
 	}
 
-	static final Color background = (Color) UIManager.getLookAndFeelDefaults().get("Button.background");
-	static final Color highlight = (Color) UIManager.getLookAndFeelDefaults().get("Button.highlight");
+	static final Color BACKGROUND = (Color) UIManager.getLookAndFeelDefaults().get("Button.background");
+	static final Color HIGHLIGHT = (Color) UIManager.getLookAndFeelDefaults().get("Button.highlight");
 
 	public void enableRollover() {
 		setRolloverEnabled(true);
@@ -141,7 +141,7 @@ public class ImagePanel extends JButton {
 			public void stateChanged(ChangeEvent e) {
 				if (getSource() != null) {
 					ButtonModel model = (ButtonModel) e.getSource();
-					setBackground(model.isRollover() ? highlight : background);
+					setBackground(model.isRollover() ? HIGHLIGHT : BACKGROUND);
 					//setBorderPainted(model.isRollover()); // some lafs ignore borderPainted
 					//setCursor(model.isRollover() ? new Cursor(Cursor.HAND_CURSOR) : new Cursor(Cursor.DEFAULT_CURSOR));
 				}
@@ -152,11 +152,8 @@ public class ImagePanel extends JButton {
 	public void setGrey(boolean b) {
 		if (isGrey != b) {
 			isGrey = b;
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					repaint();
-				}
+			SwingUtilities.invokeLater(() -> {
+				repaint();
 			});
 		}
 	}

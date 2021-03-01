@@ -44,6 +44,8 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private String audioTrackTitleFromMetadata;
 	private String muxingModeAudio;
 	private String albumartist;
+	private String mbidRecord;
+	private String mbidTrack;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -275,14 +277,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @return True if the audio codec is RealAudio 14.4.
 	 */
-	public boolean isRealAudio14_4() {
+	public boolean isRealAudio144() {
 		return FormatConfiguration.REALAUDIO_14_4.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
 	 * @return True if the audio codec is RealAudio 28.8.
 	 */
-	public boolean isRealAudio28_8() {
+	public boolean isRealAudio288() {
 		return FormatConfiguration.REALAUDIO_28_8.equalsIgnoreCase(getCodecA());
 	}
 
@@ -459,9 +461,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "LPCM";
 		} else if (isQDesign()) {
 			return "QDesign";
-		} else if (isRealAudio14_4()) {
+		} else if (isRealAudio144()) {
 			return "RealAudio 14.4";
-		} else if (isRealAudio28_8()) {
+		} else if (isRealAudio288()) {
 			return "RealAudio 28.8";
 		} else if (isRALF()) {
 			return "RealAudio Lossless";
@@ -668,6 +670,42 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Sets the MB record ID for this track.
+	 *
+	 * @param mbidRecord The MB record ID.
+	 */
+	public void setMbidRecord(String mbidRecord) {
+		this.mbidRecord = mbidRecord;
+	}
+
+	/**
+	 * Returns the MB record ID for this track
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidRecord() {
+		return this.mbidRecord;
+	}
+
+	/**
+	 * Sets the MB track ID for this track.
+	 *
+	 * @param mbidTrack The MB track ID.
+	 */
+	public void setMbidTrack(String mbidTrack) {
+		this.mbidTrack = mbidTrack;
+	}
+
+	/**
+	 * Returns MB track id for this track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidTrack() {
+		return this.mbidTrack;
+	}
+
+	/**
 	 * Returns the name of the artist performing the audio track.
 	 *
 	 * @return The artist name.
@@ -678,7 +716,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Sets the name of the main artist of the album of the audio track. 
+	 * Sets the name of the main artist of the album of the audio track.
 	 * This field is often used for the compilation type albums or "featuring..." songs.
 	 *
 	 * @param artist The album artist name to set.

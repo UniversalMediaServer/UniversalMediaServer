@@ -840,6 +840,7 @@ public class ProcessManager {
 			if (process == null) {
 				return;
 			}
+
 			IOUtils.closeSilently(process.getInputStream());
 			IOUtils.closeSilently(process.getErrorStream());
 			IOUtils.closeSilently(process.getOutputStream());

@@ -23,9 +23,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import net.pms.image.BufferedImageFilter.BufferedImageFilterResult;
-
 
 /**
  * This class is a special {@link List} implementation that can only hold
@@ -37,7 +35,6 @@ import net.pms.image.BufferedImageFilter.BufferedImageFilterResult;
  * @author Nadahar
  */
 public class BufferedImageFilterChain extends ArrayList<BufferedImageFilter> {
-
 	private static final long serialVersionUID = 1L;
 
 	/**

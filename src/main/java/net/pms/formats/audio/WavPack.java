@@ -33,6 +33,6 @@ public class WavPack extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "wv", "wvp" };
+		return new String[] {"wv", "wvp"};
 	}
 }

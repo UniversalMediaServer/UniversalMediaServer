@@ -24,7 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-
 public class BufferedOutputByteArrayImpl extends ByteArrayOutputStream implements BufferedOutputFile {
 
 	public BufferedOutputByteArrayImpl(OutputParams params) {

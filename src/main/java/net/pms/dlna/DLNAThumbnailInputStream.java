@@ -23,7 +23,6 @@ import java.awt.color.ColorSpace;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.imageio.ImageIO;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ColorSpaceType;
@@ -187,7 +186,7 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 *
 	 * @throws NullPointerException if {@code thumbnail} is {@code null}.
 	 */
-	protected DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
+	public DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
 		super(thumbnail.getBytes(false));
 		this.imageInfo = thumbnail.getImageInfo();
 		this.profile = thumbnail.getDLNAImageProfile();
@@ -262,14 +261,12 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this thumbnail.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
-
 
 	/**
 	 * @return The {@link ImageFormat} for this thumbnail.

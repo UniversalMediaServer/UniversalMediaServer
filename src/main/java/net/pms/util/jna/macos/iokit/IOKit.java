@@ -25,7 +25,6 @@ import net.pms.util.jna.JnaIntEnum;
 import net.pms.util.jna.JnaIntEnumConverter;
 import net.pms.util.jna.JnaLongEnum;
 import net.pms.util.jna.JnaLongEnumConverter;
-import net.pms.util.jna.macos.corefoundation.CoreFoundation;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFAllocatorRef;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFDictionaryRef;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFDictionaryRefByReference;
@@ -33,8 +32,6 @@ import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFMutableDictionaryR
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFMutableDictionaryRefByReference;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFStringRef;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFTypeRef;
-import net.pms.util.jna.macos.kernreturn.DefaultKernReturnT;
-import net.pms.util.jna.macos.kernreturn.IOReturn;
 import net.pms.util.jna.macos.kernreturn.KernReturnT;
 import net.pms.util.jna.macos.kernreturn.KernReturnTConverter;
 import net.pms.util.jna.macos.types.IOConnectT;
@@ -61,31 +58,28 @@ import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.NativeLongByReference;
 
-
 /**
  * Partial mapping of IOKit:
  * <ul>
- *   <li>Power Assertions from {@code IOKit/pwr_mgt/IOPMLib.h}</li>
- *   <li>Some constants from {@code IOKit/pwr_mgt/IOPM.h}</li>
- *   <li>Some functions from {@code IOKitLib.h}</li>
+ * <li>Power Assertions from {@code IOKit/pwr_mgt/IOPMLib.h}</li>
+ * <li>Some constants from {@code IOKit/pwr_mgt/IOPM.h}</li>
+ * <li>Some functions from {@code IOKitLib.h}</li>
  * </ul>
  *
  * @author Nadahar
  */
-@SuppressWarnings({
-	"checkstyle:ConstantName",
-	"checkstyle:MethodName",
-	"checkstyle:ParameterName",
-	"checkstyle:JavadocVariable"
-})
+@SuppressWarnings({ "checkstyle:ConstantName", "checkstyle:MethodName", "checkstyle:ParameterName", "checkstyle:JavadocVariable" })
 public interface IOKit extends Library {
+
 	/**
 	 * The options to pass to {@link Native#loadLibrary}.
 	 */
 	Map<String, Object> OPTIONS = Collections.unmodifiableMap(new HashMap<String, Object>() {
+
 		private static final long serialVersionUID = 1L;
 		{
 			put(Library.OPTION_TYPE_MAPPER, new DefaultTypeMapper() {
+
 				{
 					addTypeConverter(JnaIntEnum.class, new JnaIntEnumConverter());
 					addTypeConverter(JnaLongEnum.class, new JnaLongEnumConverter());
@@ -100,8 +94,8 @@ public interface IOKit extends Library {
 	IOKit INSTANCE = Native.load("IOKit", IOKit.class, OPTIONS);
 
 	/*
-     * Power Assertions from {@code IOKit/pwr_mgt/IOPMLib.h}
-     */
+	 * Power Assertions from {@code IOKit/pwr_mgt/IOPMLib.h}
+	 */
 
 	/**
 	 * Prevents the system from sleeping automatically due to a lack of user
@@ -269,8 +263,7 @@ public interface IOKit extends Library {
 
 	/**
 	 * Creates an IOPMAssertion with more flexibility than
-	 * {@link #IOPMAssertionCreateWithDescription}
-	 * .
+	 * {@link #IOPMAssertionCreateWithDescription} .
 	 *
 	 * Create a new PM assertion - the caller must specify the type of
 	 * assertion, initial level, and its properties as
@@ -279,28 +272,28 @@ public interface IOKit extends Library {
 	 * and/or required to be specified in the {@code assertionProperties}
 	 * dictionary argument.
 	 * <ul>
-	 *   <li>REQUIRED: {@link #kIOPMAssertionTypeKey} define the assertion type.
-	 *   <li>REQUIRED: {@link #kIOPMAssertionNameKey} Caller must describe the
-	 *   name for the activity that requires the change in behavior provided by
-	 *   the assertion.
-	 *   <li>OPTIONAL: {@link #kIOPMAssertionLevelKey} define an initial value. If
-	 *   not set, assertion is turned on after creation.
-	 *   <li>OPTIONAL: {@link #kIOPMAssertionDetailsKey} Caller may describe
-	 *   context-specific data about the assertion.
-	 *   <li>OPTIONAL: {@link #kIOPMAssertionHumanReadableReasonKey} Caller may
-	 *   describe the reason for creating the assertion in a localizable
-	 *   {@code CFString}. This should be a human readable phrase that describes
-	 *   the actions the calling process is taking while the assertion is held,
-	 *   like "Downloading TV episodes", or "Compiling Projects"
-	 *   <li>OPTIONAL: {@link #kIOPMAssertionLocalizationBundlePathKey} Caller may
-	 *   provide its bundle's path, where OS X can localize for GUI display the
-	 *   {@code CFString} specified by
-	 *   {@link #kIOPMAssertionHumanReadableReasonKey}.
-	 *   <li>OPTIONAL: {@code kIOPMAssertionPlugInIDKey} if the caller is a plugin
-	 *   with a different identity than the process it's loaded in.
-	 *   <li>OPTIONAL: {@code kIOPMAssertionFrameworkIDKey} if the caller is a
-	 *   framework acting on behalf of a process.
-	 *   <li>OPTIONAL: The caller may specify a timeout in seconds.
+	 * <li>REQUIRED: {@link #kIOPMAssertionTypeKey} define the assertion type.
+	 * <li>REQUIRED: {@link #kIOPMAssertionNameKey} Caller must describe the
+	 * name for the activity that requires the change in behavior provided by
+	 * the assertion.
+	 * <li>OPTIONAL: {@link #kIOPMAssertionLevelKey} define an initial value. If
+	 * not set, assertion is turned on after creation.
+	 * <li>OPTIONAL: {@link #kIOPMAssertionDetailsKey} Caller may describe
+	 * context-specific data about the assertion.
+	 * <li>OPTIONAL: {@link #kIOPMAssertionHumanReadableReasonKey} Caller may
+	 * describe the reason for creating the assertion in a localizable
+	 * {@code CFString}. This should be a human readable phrase that describes
+	 * the actions the calling process is taking while the assertion is held,
+	 * like "Downloading TV episodes", or "Compiling Projects"
+	 * <li>OPTIONAL: {@link #kIOPMAssertionLocalizationBundlePathKey} Caller may
+	 * provide its bundle's path, where OS X can localize for GUI display the
+	 * {@code CFString} specified by
+	 * {@link #kIOPMAssertionHumanReadableReasonKey}.
+	 * <li>OPTIONAL: {@code kIOPMAssertionPlugInIDKey} if the caller is a plugin
+	 * with a different identity than the process it's loaded in.
+	 * <li>OPTIONAL: {@code kIOPMAssertionFrameworkIDKey} if the caller is a
+	 * framework acting on behalf of a process.
+	 * <li>OPTIONAL: The caller may specify a timeout in seconds.
 	 * </ul>
 	 *
 	 * @param assertionProperties Dictionary providing the properties of the
@@ -312,10 +305,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.7
 	 */
-	KernReturnT IOPMAssertionCreateWithProperties(
-		CFDictionaryRef assertionProperties,
-		IntByReference assertionID
-	);
+	KernReturnT IOPMAssertionCreateWithProperties(CFDictionaryRef assertionProperties, IntByReference assertionID);
 
 	/**
 	 * Declares that the user is active on the system.
@@ -357,11 +347,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.7.3
 	 */
-	KernReturnT IOPMAssertionDeclareUserActivity(
-		CFStringRef assertionName,
-		IOPMUserActiveType userType,
-		IntByReference assertionID
-	);
+	KernReturnT IOPMAssertionDeclareUserActivity(CFStringRef assertionName, IOPMUserActiveType userType, IntByReference assertionID);
 
 	/**
 	 * A convenience function for handling remote network clients; this is a
@@ -399,9 +385,8 @@ public interface IOKit extends Library {
 	 * {@link #kIOPMUserActiveRemote}.
 	 *
 	 * @param assertionName A string that describes the name of the caller and
-	 *            the activity being handled by this assertion (e.g.
-	 *            "Serving a podcast"). The name must be less than 128
-	 *            characters.
+	 *            the activity being handled by this assertion (e.g. "Serving a
+	 *            podcast"). The name must be less than 128 characters.
 	 * @param assertionID (Output) On Success, an unique id will be returned in
 	 *            this parameter. The caller may call this function again with
 	 *            the unique id returned previously to report additional user
@@ -415,10 +400,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.9
 	 */
-	KernReturnT IOPMDeclareNetworkClientActivity(
-		CFStringRef assertionName,
-		IntByReference assertionID
-	);
+	KernReturnT IOPMDeclareNetworkClientActivity(CFStringRef assertionName, IntByReference assertionID);
 
 	/**
 	 * Increments the assertion's retain count.
@@ -481,20 +463,16 @@ public interface IOKit extends Library {
 	 *            {@code CF type} expected for the specified key.
 	 * @return An {@link IOReturn} return code. Returns:
 	 *         <ul>
-	 *           <li>{@link IOReturn#kIOReturnNotPrivileged} if the caller
-	 *           doesn't have permission to modify this assertion.</li>
-	 *           <li>{@link IOReturn#kIOReturnNotFound} if PM can't locate this
-	 *           assertion.</li>
-	 *           <li>{@link IOReturn#kIOReturnError} upon an unidentified
-	 *           error.</li>
-	 *           <li>{@link IOReturn#kIOReturnSuccess} otherwise.</li>
+	 *         <li>{@link IOReturn#kIOReturnNotPrivileged} if the caller doesn't
+	 *         have permission to modify this assertion.</li>
+	 *         <li>{@link IOReturn#kIOReturnNotFound} if PM can't locate this
+	 *         assertion.</li>
+	 *         <li>{@link IOReturn#kIOReturnError} upon an unidentified
+	 *         error.</li>
+	 *         <li>{@link IOReturn#kIOReturnSuccess} otherwise.</li>
 	 *         </ul>
 	 */
-	KernReturnT IOPMAssertionSetProperty(
-		int theAssertion,
-		CFStringRef theProperty,
-		CFTypeRef theValue
-	);
+	KernReturnT IOPMAssertionSetProperty(int theAssertion, CFStringRef theProperty, CFTypeRef theValue);
 
 	/**
 	 * Returns a dictionary listing all assertions, grouped by their owning
@@ -561,11 +539,7 @@ public interface IOKit extends Library {
 	 *             version of this API instead.
 	 */
 	@Deprecated
-	KernReturnT IOPMAssertionCreate(
-		CFStringRef assertionType,
-		int assertionLevel,
-		IntByReference assertionID
-	);
+	KernReturnT IOPMAssertionCreate(CFStringRef assertionType, int assertionLevel, IntByReference assertionID);
 
 	/**
 	 * The simplest API to create a power assertion.
@@ -671,8 +645,7 @@ public interface IOKit extends Library {
 	 * <p>
 	 * Describes the the activity the assertion is protecting. The creator
 	 * should specify a {@code CFString} value for this key in the dictionary
-	 * passed to
-	 * {@link #IOPMAssertionCreateWithProperties}.
+	 * passed to {@link #IOPMAssertionCreateWithProperties}.
 	 * <p>
 	 * The assertion name is separate from the assertion type's behavior -
 	 * specify a {@code CFString} like "Checking mail" or "Compiling" that
@@ -712,9 +685,9 @@ public interface IOKit extends Library {
 	 * Describe your assertion as thoroughly as possible. See these other keys
 	 * that can you can set to add explanation to an assertion:
 	 * <ul>
-	 *   <li>REQUIRED {@link #kIOPMAssertionNameKey}
-	 *   <li>OPTIONAL {@link #kIOPMAssertionHumanReadableReasonKey}
-	 *   <li>OPTIONAL {@link #kIOPMAssertionLocalizationBundlePathKey}
+	 * <li>REQUIRED {@link #kIOPMAssertionNameKey}
+	 * <li>OPTIONAL {@link #kIOPMAssertionHumanReadableReasonKey}
+	 * <li>OPTIONAL {@link #kIOPMAssertionLocalizationBundlePathKey}
 	 * </ul>
 	 */
 	String kIOPMAssertionDetailsKey = "Details";
@@ -742,8 +715,8 @@ public interface IOKit extends Library {
 	 * Describe your assertion as thoroughly as possible. See these other keys
 	 * that can you can set to add explanation to an assertion:
 	 * <ul>
-	 *   <li>REQUIRED {@link #kIOPMAssertionNameKey}
-	 *   <li>OPTIONAL {@link #kIOPMAssertionDetailsKey}
+	 * <li>REQUIRED {@link #kIOPMAssertionNameKey}
+	 * <li>OPTIONAL {@link #kIOPMAssertionDetailsKey}
 	 * </ul>
 	 */
 	String kIOPMAssertionHumanReadableReasonKey = "HumanReadableReason";
@@ -814,8 +787,7 @@ public interface IOKit extends Library {
 	 * The value for this key will be a {@code CFNumber},
 	 * {@code kCFNumberIntType} with value {@link #kIOPMAssertionLevelOff} or
 	 * {@link #kIOPMAssertionLevelOn}. The level reflects the assertion's level
-	 * set at creation, or adjusted via
-	 * {@link #IOPMAssertionSetProperty}.
+	 * set at creation, or adjusted via {@link #IOPMAssertionSetProperty}.
 	 */
 	String kIOPMAssertionLevelKey = "AssertLevel";
 
@@ -835,6 +807,7 @@ public interface IOKit extends Library {
 	 * Represents {@code IOPMUserActiveType} in {@code IOPMLib.h}.
 	 */
 	public enum IOPMUserActiveType implements JnaIntEnum<IOPMUserActiveType> {
+
 		/** User is local on the system */
 		kIOPMUserActiveLocal(0),
 
@@ -858,7 +831,8 @@ public interface IOKit extends Library {
 		}
 
 		/**
-		 * @param iopmUserActiveType the {@code IOPMUserActiveType} integer value.
+		 * @param iopmUserActiveType the {@code IOPMUserActiveType} integer
+		 *            value.
 		 * @return The corresponding {@link IOPMUserActiveType}.
 		 */
 		public static IOPMUserActiveType typeOf(int iopmUserActiveType) {
@@ -876,39 +850,40 @@ public interface IOKit extends Library {
 	 */
 
 	/**
-	 * Power Source state is published as properties to the {@code IORegistry} under these keys.
+	 * Power Source state is published as properties to the {@code IORegistry}
+	 * under these keys.
 	 */
-	String kIOPMPSExternalConnectedKey     = "ExternalConnected";
+	String kIOPMPSExternalConnectedKey = "ExternalConnected";
 	String kIOPMPSExternalChargeCapableKey = "ExternalChargeCapable";
-	String kIOPMPSBatteryInstalledKey      = "BatteryInstalled";
-	String kIOPMPSIsChargingKey            = "IsCharging";
-	String kIOPMFullyChargedKey            = "FullyCharged";
-	String kIOPMPSAtWarnLevelKey           = "AtWarnLevel";
-	String kIOPMPSAtCriticalLevelKey       = "AtCriticalLevel";
-	String kIOPMPSCurrentCapacityKey       = "CurrentCapacity";
-	String kIOPMPSMaxCapacityKey           = "MaxCapacity";
-	String kIOPMPSDesignCapacityKey        = "DesignCapacity";
-	String kIOPMPSTimeRemainingKey         = "TimeRemaining";
-	String kIOPMPSAmperageKey              = "Amperage";
-	String kIOPMPSVoltageKey               = "Voltage";
-	String kIOPMPSCycleCountKey            = "CycleCount";
-	String kIOPMPSMaxErrKey                = "MaxErr";
-	String kIOPMPSAdapterInfoKey           = "AdapterInfo";
-	String kIOPMPSLocationKey              = "Location";
-	String kIOPMPSErrorConditionKey        = "ErrorCondition";
-	String kIOPMPSManufacturerKey          = "Manufacturer";
-	String kIOPMPSManufactureDateKey       = "ManufactureDate";
-	String kIOPMPSModelKey                 = "Model";
-	String kIOPMPSSerialKey                = "Serial";
-	String kIOPMDeviceNameKey              = "DeviceName";
-	String kIOPMPSLegacyBatteryInfoKey     = "LegacyBatteryInfo";
-	String kIOPMPSBatteryHealthKey         = "BatteryHealth";
-	String kIOPMPSHealthConfidenceKey      = "HealthConfidence";
-	String kIOPMPSCapacityEstimatedKey     = "CapacityEstimated";
-	String kIOPMPSBatteryChargeStatusKey   = "ChargeStatus";
-	String kIOPMPSBatteryTemperatureKey    = "Temperature";
-	String kIOPMPSAdapterDetailsKey        = "AdapterDetails";
-	String kIOPMPSChargerConfigurationKey  = "ChargerConfiguration";
+	String kIOPMPSBatteryInstalledKey = "BatteryInstalled";
+	String kIOPMPSIsChargingKey = "IsCharging";
+	String kIOPMFullyChargedKey = "FullyCharged";
+	String kIOPMPSAtWarnLevelKey = "AtWarnLevel";
+	String kIOPMPSAtCriticalLevelKey = "AtCriticalLevel";
+	String kIOPMPSCurrentCapacityKey = "CurrentCapacity";
+	String kIOPMPSMaxCapacityKey = "MaxCapacity";
+	String kIOPMPSDesignCapacityKey = "DesignCapacity";
+	String kIOPMPSTimeRemainingKey = "TimeRemaining";
+	String kIOPMPSAmperageKey = "Amperage";
+	String kIOPMPSVoltageKey = "Voltage";
+	String kIOPMPSCycleCountKey = "CycleCount";
+	String kIOPMPSMaxErrKey = "MaxErr";
+	String kIOPMPSAdapterInfoKey = "AdapterInfo";
+	String kIOPMPSLocationKey = "Location";
+	String kIOPMPSErrorConditionKey = "ErrorCondition";
+	String kIOPMPSManufacturerKey = "Manufacturer";
+	String kIOPMPSManufactureDateKey = "ManufactureDate";
+	String kIOPMPSModelKey = "Model";
+	String kIOPMPSSerialKey = "Serial";
+	String kIOPMDeviceNameKey = "DeviceName";
+	String kIOPMPSLegacyBatteryInfoKey = "LegacyBatteryInfo";
+	String kIOPMPSBatteryHealthKey = "BatteryHealth";
+	String kIOPMPSHealthConfidenceKey = "HealthConfidence";
+	String kIOPMPSCapacityEstimatedKey = "CapacityEstimated";
+	String kIOPMPSBatteryChargeStatusKey = "ChargeStatus";
+	String kIOPMPSBatteryTemperatureKey = "Temperature";
+	String kIOPMPSAdapterDetailsKey = "AdapterDetails";
+	String kIOPMPSChargerConfigurationKey = "ChargerConfiguration";
 
 	/*
 	 * Some functions from {@code IOKitLib.h}
@@ -1260,12 +1235,7 @@ public interface IOKit extends Library {
 	 *            for the callers use with the notification.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IOConnectSetNotificationPort(
-		IOConnectT connect,
-		int type,
-		MachPortT port,
-		Pointer reference
-	);
+	KernReturnT IOConnectSetNotificationPort(IOConnectT connect, int type, MachPortT port, Pointer reference);
 
 	/**
 	 * Set CF container based properties on a connection.
@@ -1322,8 +1292,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.5
 	 */
-	KernReturnT IOConnectCallMethod(
-		MachPortT connection, // In
+	KernReturnT IOConnectCallMethod(MachPortT connection, // In
 		int selector, // In
 		LongByReference input, // In
 		int inputCnt, // In
@@ -1355,8 +1324,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.5
 	 */
-	KernReturnT IOConnectCallAsyncMethod(
-		MachPortT connection, // In
+	KernReturnT IOConnectCallAsyncMethod(MachPortT connection, // In
 		int selector, // In
 		MachPortT wake_port, // In
 		LongByReference reference, // In
@@ -1384,8 +1352,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.5
 	 */
-	KernReturnT IOConnectCallStructMethod(
-		MachPortT connection, // In
+	KernReturnT IOConnectCallStructMethod(MachPortT connection, // In
 		int selector, // In
 		Structure inputStruct, // In
 		NativeLong inputStructCnt, // In
@@ -1409,8 +1376,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.5
 	 */
-	KernReturnT IOConnectCallAsyncStructMethod(
-		MachPortT connection, // In
+	KernReturnT IOConnectCallAsyncStructMethod(MachPortT connection, // In
 		int selector, // In
 		MachPortT wake_port, // In
 		LongByReference reference, // In
@@ -1434,8 +1400,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.5
 	 */
-	KernReturnT IOConnectCallScalarMethod(
-		MachPortT connection, // In
+	KernReturnT IOConnectCallScalarMethod(MachPortT connection, // In
 		int selector, // In
 		LongByReference input, // In
 		int inputCnt, // In
@@ -1459,8 +1424,7 @@ public interface IOKit extends Library {
 	 *
 	 * @since OS X 10.5
 	 */
-	KernReturnT IOConnectCallAsyncScalarMethod(
-		MachPortT connection, // In
+	KernReturnT IOConnectCallAsyncScalarMethod(MachPortT connection, // In
 		int selector, // In
 		MachPortT wake_port, // In
 		LongByReference reference, // In
@@ -1600,12 +1564,7 @@ public interface IOKit extends Library {
 	 *            {@link #IOObjectRelease}.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IORegistryEntryCreateIterator(
-		IORegistryEntryT entry,
-		IONameT plane,
-		int options,
-		IOIteratorTRef iterator
-	);
+	KernReturnT IORegistryEntryCreateIterator(IORegistryEntryT entry, IONameT plane, int options, IOIteratorTRef iterator);
 
 	/**
 	 * Recurse into the current entry in the registry iteration.
@@ -1631,7 +1590,7 @@ public interface IOKit extends Library {
 	 *         recursion was undone, {@link IOReturn#kIOReturnNoDevice} if no
 	 *         recursive levels are left in the iteration.
 	 */
-	KernReturnT IORegistryIteratorExitEntry(IOIteratorT	iterator);
+	KernReturnT IORegistryIteratorExitEntry(IOIteratorT iterator);
 
 	/**
 	 * Returns a C-string name assigned to a registry entry.
@@ -1661,11 +1620,7 @@ public interface IOKit extends Library {
 	 * @param name the caller's buffer to receive the name.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IORegistryEntryGetNameInPlane(
-		IORegistryEntryT entry,
-		IONameT plane,
-		IONameT name
-	);
+	KernReturnT IORegistryEntryGetNameInPlane(IORegistryEntryT entry, IONameT plane, IONameT name);
 
 	/**
 	 * Returns a C-string location assigned to a registry entry, in a specified
@@ -1683,11 +1638,7 @@ public interface IOKit extends Library {
 	 * @param location the caller's buffer to receive the location string.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IORegistryEntryGetLocationInPlane(
-		IORegistryEntryT entry,
-		IONameT plane,
-		IONameT location
-	);
+	KernReturnT IORegistryEntryGetLocationInPlane(IORegistryEntryT entry, IONameT plane, IONameT location);
 
 	/**
 	 * Create a path for a registry entry.
@@ -1707,11 +1658,7 @@ public interface IOKit extends Library {
 	 *         attached in the plane, or if the buffer is not large enough to
 	 *         contain the path.
 	 */
-	KernReturnT IORegistryEntryGetPath(
-		IORegistryEntryT entry,
-		IONameT plane,
-		IOStringT path
-	);
+	KernReturnT IORegistryEntryGetPath(IORegistryEntryT entry, IONameT plane, IOStringT path);
 
 	/**
 	 * Create a path for a registry entry.
@@ -1763,9 +1710,9 @@ public interface IOKit extends Library {
 	 * counterparts.
 	 *
 	 * @param entry the registry entry handle whose property table to copy.
-	 * @param properties (Output) a {@code CFDictionary} is created and
-	 *            returned to the caller on success. The caller should release
-	 *            with {@link CoreFoundation#CFRelease}.
+	 * @param properties (Output) a {@code CFDictionary} is created and returned
+	 *            to the caller on success. The caller should release with
+	 *            {@link CoreFoundation#CFRelease}.
 	 * @param allocator the {@code CFAllocator} to use when creating the CF
 	 *            containers.
 	 * @param options no options are currently defined.
@@ -1796,12 +1743,7 @@ public interface IOKit extends Library {
 	 * @return A CF container is created and returned the caller on success. The
 	 *         caller should release this with {@link CoreFoundation#CFRelease}.
 	 */
-	CFTypeRef IORegistryEntryCreateCFProperty(
-		IORegistryEntryT entry,
-		CFStringRef key,
-		CFAllocatorRef allocator,
-		int options
-	);
+	CFTypeRef IORegistryEntryCreateCFProperty(IORegistryEntryT entry, CFStringRef key, CFAllocatorRef allocator, int options);
 
 	/**
 	 * Create a CF representation of a registry entry's property. This function
@@ -1884,11 +1826,7 @@ public interface IOKit extends Library {
 	 *            corresponding {@code OSDictionary} etc. objects.
 	 * @return A {@link KernReturnT} error code returned by the object.
 	 */
-	KernReturnT IORegistryEntrySetCFProperty(
-		IORegistryEntryT entry,
-		CFStringRef propertyName,
-		CFTypeRef property
-	);
+	KernReturnT IORegistryEntrySetCFProperty(IORegistryEntryT entry, CFStringRef propertyName, CFTypeRef property);
 
 	/**
 	 * Returns an iterator over an registry entry's child entries in a plane.
@@ -1904,11 +1842,7 @@ public interface IOKit extends Library {
 	 *            {@link #IOObjectRelease} when the iteration is finished.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IORegistryEntryGetChildIterator(
-		IORegistryEntryT entry,
-		IONameT plane,
-		IOIteratorTRef iterator
-	);
+	KernReturnT IORegistryEntryGetChildIterator(IORegistryEntryT entry, IONameT plane, IOIteratorTRef iterator);
 
 	/**
 	 * Returns the first child of a registry entry in a plane.
@@ -1923,11 +1857,7 @@ public interface IOKit extends Library {
 	 *            must be released with {@link #IOObjectRelease} by the caller.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IORegistryEntryGetChildEntry(
-		IORegistryEntryT entry,
-		IONameT plane,
-		IORegistryEntryTRef child
-	);
+	KernReturnT IORegistryEntryGetChildEntry(IORegistryEntryT entry, IONameT plane, IORegistryEntryTRef child);
 
 	/**
 	 * Returns an iterator over an registry entry's parent entries in a plane.
@@ -1943,11 +1873,7 @@ public interface IOKit extends Library {
 	 *            {@link #IOObjectRelease} when the iteration is finished.
 	 * @return A {@link KernReturnT} error.
 	 */
-	KernReturnT IORegistryEntryGetParentIterator(
-		IORegistryEntryT entry,
-		IONameT plane,
-		IOIteratorTRef iterator
-	);
+	KernReturnT IORegistryEntryGetParentIterator(IORegistryEntryT entry, IONameT plane, IOIteratorTRef iterator);
 
 	/**
 	 * Returns the first parent of a registry entry in a plane.
@@ -1963,11 +1889,7 @@ public interface IOKit extends Library {
 	 *            caller.
 	 * @return A {@link KernReturnT} error code.
 	 */
-	KernReturnT IORegistryEntryGetParentEntry(
-		IORegistryEntryT entry,
-		IONameT plane,
-		IORegistryEntryTRef parent
-	);
+	KernReturnT IORegistryEntryGetParentEntry(IORegistryEntryT entry, IONameT plane, IORegistryEntryTRef parent);
 
 	/**
 	 * Determines if the registry entry is attached in a plane.
@@ -2002,7 +1924,7 @@ public interface IOKit extends Library {
 	 *         otherwise it should be released with
 	 *         {@link CoreFoundation#CFRelease} by the caller.
 	 */
-	CFMutableDictionaryRef IOServiceMatching(String	name);
+	CFMutableDictionaryRef IOServiceMatching(String name);
 
 	/**
 	 * Create a matching dictionary that specifies an {@code IOService} name

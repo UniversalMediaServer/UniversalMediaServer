@@ -1,3 +1,246 @@
+10.2.0 - 2021-02-28
+
+	General:
+		Added option to skip the first-run wizard (thanks, Ahmed Adan!)
+		Improved speed of API lookups by up to 3x
+		Improved support for MusicBrainz (thanks, ik666!)
+		Fixed support for some languages, e.g. Arabic
+		Fixed and secured some URLs in the code and docs
+	Renderers:
+		Added support for MediaPlayer by PeteManchester
+		Added support for nextCP/2
+		Fix auto loading for Sony UBP-X800
+	Translation updates via Crowdin:
+		Arabic (100%) (thanks, خليل مراطلة !)
+		Catalan (100%) (thanks, nikodeimos!)
+		French (100%) (thanks, Archaos!)
+		Hungarian (100%) (thanks, Viktor Kozma!)
+		Slovak (99%) (thanks, Dušan!)
+		Swedish (100%) (thanks, Erik Karlsson!)
+	Dependency updates:
+		Bump CheckStyle to 8.40
+
+10.1.0 - 2021-02-16
+
+	General:
+		Added lastPlaybackPosition, lastPlaybackDate, and playbackCount to UPnP responses
+		Added bitsPerSample to UPnP responses (thanks, sf666!)
+		Fixed VLC transcoding bugs
+		Fixed SkipExtensions setting not supporting spaces (thanks, ik666!)
+		Fixed tsMuxeR on 64-bit Linux (including Docker) and macOS systems
+		Fixed MPlayer/MEncoder on macOS 10.15+
+	Translation updates via Crowdin:
+		Arabic (100%) (thanks,خليل مراطلة (meratkha)!)
+		Catalan (93%) (thanks, nikodeimos!)
+		Dutch (100%) (thanks, DJ_eMPe!)
+		Korean (99%) (thanks, VenusGirl!)
+		Serbian (Cyrillic) (100%) (thanks, Slobodan Simić (Слободан Симић) (slsimic)!)
+	Dependency updates:
+		Bump junit5.version from 5.7.0 to 5.7.1
+		Bump maven-checkstyle-plugin from 3.1.1 to 3.1.2
+		Bump MPlayer/MEncoder for macOS to SB67
+
+10.0.1 - 2021-01-29
+
+	General:
+		Added some UPnP properties for TV episodes
+		Added renderer config option SendDLNAOrgFlags
+		Reduced network traffic
+		Fixed error when parsing episode filenames without series titles
+		Fixed not recognizing TV episodes past episode 99
+		Fixed finding metadata for some TV episodes, especially anime
+		Fixed not showing some metadata for movies and episodes on the web interface
+	Renderers:
+		Improved detection of LG OLED TVs
+		Improved support for Panasonic HZ1500
+		Improved support for Roku Ultra devices
+		Improved support for Sony Bravia XH Series TVs (thanks, SimpleUser!)
+	Translation updates via Crowdin:
+		Arabic (57%) (thanks, meratkha!)
+		German (100%) (thanks, pipin!)
+		Korean (99%) (thanks, VenusGirl!)
+		Norwegian (88%) (thanks, lexmerlin!)
+		Romanian (100%) (thanks, FlorinT!)
+	Dependency updates:
+		Bump assertj-core from 3.18.1 to 3.19.0
+		Bump JRE from 15.0.1 to 15.0.2
+		Bump oshi-core from 5.3.7 to 5.4.1
+		Bump twelvemonkeys-imageio-version from 3.6.1 to 3.6.2
+
+10.0.0 - 2021-01-12 - Changes since 10.0.0-a1
+
+	General:
+		Retry media lookups that failed due to transient errors
+		Fixed automatic file watching
+	Renderers:
+		Improved support for Sony Bluray UBP-X800M2 (thanks, thechrisgregory!)
+		Fixed UPnP pushing via Panasonic TVs and Samsung Q9 TVs
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%)
+		English (United Kingdom) (32%)
+		Finnish (100%)
+		Greek (91%)
+		French (100%)
+		Japanese (99%)
+		Polish (100%)
+		Portuguese (100%)
+		Portuguese (Brazilian) (100%)
+		Romanian (99%)
+		Serbian (99%)
+		Turkish (100%)
+	Dependency updates:
+		Bump spotbugs-maven-plugin from 4.1.4 to 4.2.0
+
+10.0.0 - 2021-01-12 - Changes since 9.8.3
+
+	DLNA browsing:
+		When browsing a TV show in the Media Library, all videos across all seasons are visible.
+		There are two new folders within the Movies and TV Shows folders - Filter by Progress and Filter by Information.
+		Filter by Progress contains the Watched and Unwatched folders which used to sit within the Videos folder in the Media Library
+		Filter by Information lets you filter the videos by a new rich metadata set (actors, genres, country, director, genre, IMDb rating, release date).
+		Alongside that is a similar folder Filter by Information which lets you filter the videos by API metadata (actors, genres, etc.)
+		New folders Recently Added, Recently Played, In Progress and Most Played are in the Media Library
+	Web interface:
+		Added breadcrumbs at the top of each page
+		When in the TV Shows area of the Media Library, the TV shows themselves are shown as thumbnails, with covers from the API
+		When browsing a TV show, a movie, or a TV episode, any API metadata is displayed along with a large cover image, including actors, awards, classification, country, directors, genres, plot, ratings, year, and total seasons.
+		On those pages above, the colors on the pages are based on the cover image
+		Clicking on an individual actor, country, director, genre, or start year, takes you to a list of other media that matches that metadata
+		The last few items in the Recently Added, Recently Played, In Progress and Most Played folders are displayed on the front page
+		Each TV show and movie has an IMDb icon and direct link if one is found
+		Folder and media covers are shown
+		Fixed bugs with the Back button
+		Version has moved to the settings menu
+		Minor design updates
+	General:
+		API is enabled even without filename prettifying
+		Failed API lookups are debounced by 1 week to avoid network spam
+		Changed prettified season/episode number formatting from Series - 101 - Episode to Series S01E01 - Episode
+		Fixed some bugs with prettifying to support more files
+		Added support for audio playlist thumbnails (thanks, sf666!)
+		Playlist folders are correctly identified via UPnP (thanks, sf666!)
+		Fixed automatic file watching
+	Renderers:
+		Improved support for Sony Bluray UBP-X800M2 (thanks, thechrisgregory!)
+		Fixed UPnP pushing via Panasonic TVs and Samsung Q9 TVs
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%)
+		English (United Kingdom) (32%)
+		Finnish (100%)
+		Greek (91%)
+		French (100%)
+		Japanese (99%)
+		Polish (100%)
+		Portuguese (100%)
+		Portuguese (Brazilian) (100%)
+		Romanian (99%)
+		Serbian (99%)
+		Turkish (100%)
+	Dependency updates:
+		Bump jQuery from 1.12.0 to 3.5.1
+		Bump spotbugs-maven-plugin from 4.1.4 to 4.2.0
+		Bump video.js from 7.2.3 to 7.10.1
+
+10.0.0-a1 - 2020-12-22
+
+	DLNA browsing:
+		When browsing a TV show in the Media Library, all videos across all seasons are visible.
+		There are two new folders within the Movies and TV Shows folders - Filter by Progress and Filter by Information.
+		Filter by Progress contains the Watched and Unwatched folders which used to sit within the Videos folder in the Media Library
+		Filter by Information lets you filter the videos by a new rich metadata set (actors, genres, country, director, genre, IMDb rating, release date).
+		Alongside that is a similar folder Filter by Information which lets you filter the videos by API metadata (actors, genres, etc.)
+		New folders Recently Added, Recently Played, In Progress and Most Played are in the Media Library
+	Web interface:
+		Added breadcrumbs at the top of each page
+		When in the TV Shows area of the Media Library, the TV shows themselves are shown as thumbnails, with covers from the API
+		When browsing a TV show, a movie, or a TV episode, any API metadata is displayed along with a large cover image, including actors, awards, classification, country, directors, genres, plot, ratings, year, and total seasons.
+		On those pages above, the colors on the pages are based on the cover image
+		Clicking on an individual actor, country, director, genre, or start year, takes you to a list of other media that matches that metadata
+		The last few items in the Recently Added, Recently Played, In Progress and Most Played folders are displayed on the front page
+		Each TV show and movie has an IMDb icon and direct link if one is found
+		Folder and media covers are shown
+		Fixed bugs with the Back button
+		Version has moved to the settings menu
+		Minor design updates
+	General:
+		API is enabled even without filename prettifying
+		Failed API lookups are debounced by 1 week to avoid network spam
+		Changed prettified season/episode number formatting from Series - 101 - Episode to Series S01E01 - Episode
+		Fixed some bugs with prettifying to support more files
+		Added support for audio playlist thumbnails (thanks, sf666!)
+		Playlist folders are correctly identified via UPnP (thanks, sf666!)
+	Dependency updates:
+		Bump jQuery from 1.12.0 to 3.5.1
+		Bump video.js from 7.2.3 to 7.10.1
+
+9.8.3 - 2020-12-22
+
+	General:
+		Added option to allow symlinked files to be treat as their real target file (thanks, SurfaceS!)
+		Fixed handling of web streams while transcoding with VLC (thanks, fu2x!)
+		Fixed support for subtitles with some user and renderer config combinations
+		Fixed renderer configuration change-detection not always working (thanks, fu2x!)
+		Fixed various errors on the web interface (thanks, SurfaceS!)
+		Fixed all code lint and enforce it in GitHub Actions
+		Fixed sending empty MusicBrainz requests
+		Fixed sending unnecessary network requests
+	Renderers:
+		Improved support for Sony Bravia XF series
+		Improved support for Yamaha A/V receivers
+		Improved detection of VLC for desktop
+	Translation updates via Crowdin:
+		Chinese (Traditional) (100%)
+		Czech (100%)
+	Dependencies:
+		Bump assertj-core from 3.18.0 to 3.18.1
+		Bump com.sun.xml.bind-version from 3.0.0-M5 to 3.0.0
+		Bump icu4j from 68.1 to 68.2
+		Bump maven-pmd-plugin from 3.13.0 to 3.14.0
+		Bump MediaInfo to 20.09
+		Bump oshi-core from 5.3.4 to 5.3.7
+		Bump saaj-impl from 1.5.2 to 2.0.0
+		Bump twelvemonkeys-imageio-version from 3.6 to 3.6.1
+
+9.8.2 - 2020-11-08
+
+	General:
+		Improved filename prettifying for XviD and x265 videos
+		Improved support for WebP images
+		Fixed memory leaks
+		Fixed duration of resume files via DLNA
+		Fixed incorrect resolution metadata if the renderer uses KeepAspectRatioTranscoding
+		Fixed not removing old JRE folders on Windows install
+		Updated links in documentation (thanks, xaitax!)
+		Fixed date on zip logs filename (thanks, Midhun R Nair!)
+		Save logs to desktop by default (thanks, dotslash21!)
+	Renderers:
+		Improved support for Blu-ray and DVD subtitles on VLC for desktop
+		Improved detection of Microsoft Edge
+		Updated logo for Microsoft Edge
+	Translation updates via Crowdin:
+		Chinese (Simplified) (100%)
+		Chinese (Traditional) (100%)
+		Dutch (92%)
+		Italian (100%)
+		Romanian (100%)
+		Serbian (Cyrillic) (86%)
+	Dependencies:
+		Bump AdoptOpenJDK from 14.0.2 to 15.0.1+9
+		Bump assertj-core from 3.17.1 to 3.18.0
+		Bump commons-io from 2.7 to 2.8.0
+		Bump commons-lang3 from 3.7 to 3.9
+		Bump commons-text from 1.3 to 1.9
+		Bump git-commit-id-plugin from 4.0.2 to 4.0.3
+		Bump icu4j from 67.1 to 68.1
+		Bump junit5.version from 5.6.2 to 5.7.0
+		Bump junrar from 7.3.0 to 7.4.0
+		Bump maven-project-info-reports-plugin from 3.1.0 to 3.1.1
+		Bump metadata-extractor from 2.14.0 to 2.15.0
+		Bump oshi-core from 5.2.5 to 5.3.4
+		Bump spotbugs-maven-plugin from 4.0.4 to 4.1.4
+
 9.8.1 - 2020-09-05
 
 	General:

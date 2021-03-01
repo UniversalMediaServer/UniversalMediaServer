@@ -33,6 +33,6 @@ public class SUP extends SubtitleBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "sup" };
+		return new String[] {"sup"};
 	}
 }

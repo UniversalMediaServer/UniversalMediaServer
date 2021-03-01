@@ -1,28 +1,23 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
-import java.awt.color.ColorSpace;
-import java.awt.image.BufferedImage;
-import java.awt.image.DirectColorModel;
-import java.awt.image.IndexColorModel;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -192,27 +187,27 @@ public enum BufferedImageType {
 	 * components can result, depending on the colors in the
 	 * <code>IndexColorModel</code> colormap.
 	 */
-    TYPE_BYTE_INDEXED(13);
+	TYPE_BYTE_INDEXED(13);
 
-	private static final Map<Integer, BufferedImageType> map = new HashMap<>();
+	private static final Map<Integer, BufferedImageType> MAP = new HashMap<>();
 
-    static {
-        for (BufferedImageType bufferedImageType : BufferedImageType.values()) {
-            map.put(bufferedImageType.typeId, bufferedImageType);
-        }
-    }
+	static {
+		for (BufferedImageType bufferedImageType : BufferedImageType.values()) {
+			MAP.put(bufferedImageType.typeId, bufferedImageType);
+		}
+	}
 
-    public static BufferedImageType toBufferedImageType(int typeId) {
-        return map.get(typeId);
-    }
+	public static BufferedImageType toBufferedImageType(int typeId) {
+		return MAP.get(typeId);
+	}
 
 	private final int typeId;
 
-    private BufferedImageType(int typeId) {
-    	this.typeId = typeId;
+	private BufferedImageType(int typeId) {
+		this.typeId = typeId;
 	}
 
-    public int getTypeId() {
-    	return typeId;
-    }
+	public int getTypeId() {
+		return typeId;
+	}
 }

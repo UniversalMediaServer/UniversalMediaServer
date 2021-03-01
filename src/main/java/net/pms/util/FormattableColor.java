@@ -36,11 +36,11 @@ import java.util.regex.Pattern;
 @SuppressWarnings("serial")
 public class FormattableColor extends Color {
 
-	protected static final Pattern hexPattern =
+	protected static final Pattern HEX_PATTERN =
 		Pattern.compile("(?i)^\\s*(?:x'|%|#|0x|\\\\x|%x|\\$|h'|16#|16r|#x|#16r|&h|0h)([0-9a-f]{1,8})'?\\s*$");
-	protected static final Pattern decPattern =
+	protected static final Pattern DEC_PATTERN =
 		Pattern.compile("^\\s*(-?\\d{1,10})\\s*$");
-	private static final Map<String, int[]> knownColors = new HashMap<>(140, 1f);
+	private static final Map<String, int[]> KNOWN_COLORS = new HashMap<>(140, 1f);
 
 	/**
 	 * @see Color#Color(int)
@@ -202,10 +202,10 @@ public class FormattableColor extends Color {
 					a > -1 && a < 256
 				) {
 					return
-			        	(a << 24) |
-			        	(r << 16) |
-			        	(g << 8)  |
-			            b;
+						(a << 24) |
+						(r << 16) |
+						(g << 8)  |
+						b;
 				}
 			}
 
@@ -222,20 +222,20 @@ public class FormattableColor extends Color {
 		int[] rgb = getNamedColorValues(color);
 		if (rgb != null && rgb.length == 3) {
 			return
-	        	(0xFF000000) |
-	        	((rgb[0] & 0xFF) << 16) |
-	        	((rgb[1] & 0xFF) << 8)  |
-	            (rgb[2] & 0xFF);
+				(0xFF000000) |
+				((rgb[0] & 0xFF) << 16) |
+				((rgb[1] & 0xFF) << 8)  |
+				(rgb[2] & 0xFF);
 
 		}
 		// Try to parse as system property
 		Color colorInstance = Color.getColor(color);
 		if (colorInstance != null) {
 			return
-	        	((colorInstance.getAlpha() & 0xFF) << 24) |
-	        	((colorInstance.getRed() & 0xFF) << 16) |
-	        	((colorInstance.getGreen() & 0xFF) << 8)  |
-	            (colorInstance.getBlue() & 0xFF);
+				((colorInstance.getAlpha() & 0xFF) << 24) |
+				((colorInstance.getRed() & 0xFF) << 16) |
+				((colorInstance.getGreen() & 0xFF) << 8)  |
+				(colorInstance.getBlue() & 0xFF);
 		}
 
 		// Parsing failed
@@ -308,41 +308,41 @@ public class FormattableColor extends Color {
 
 		pattern = pattern.toUpperCase(Locale.ROOT);
 		for (int i = 0; i < pattern.length(); i++) {
-			if ("RR".equals(pattern.substring(i, i+2))) {
+			if ("RR".equals(pattern.substring(i, i + 2))) {
 				if (red.length() < 2) {
 					sb.append("0").append(red);
 				} else {
 					sb.append(red);
 				}
 				i++;
-			} else if ("R".equals(pattern.substring(i, i+1))) {
+			} else if ("R".equals(pattern.substring(i, i + 1))) {
 				sb.append(red);
-			} else if ("GG".equals(pattern.substring(i, i+2))) {
+			} else if ("GG".equals(pattern.substring(i, i + 2))) {
 				if (green.length() < 2) {
 					sb.append("0").append(green);
 				} else {
 					sb.append(green);
 				}
 				i++;
-			} else if ("G".equals(pattern.substring(i, i+1))) {
+			} else if ("G".equals(pattern.substring(i, i + 1))) {
 				sb.append(green);
-			} else if ("BB".equals(pattern.substring(i, i+2))) {
+			} else if ("BB".equals(pattern.substring(i, i + 2))) {
 				if (blue.length() < 2) {
 					sb.append("0").append(blue);
 				} else {
 					sb.append(blue);
 				}
 				i++;
-			} else if ("B".equals(pattern.substring(i, i+1))) {
+			} else if ("B".equals(pattern.substring(i, i + 1))) {
 				sb.append(blue);
-			} else if ("AA".equals(pattern.substring(i, i+2))) {
+			} else if ("AA".equals(pattern.substring(i, i + 2))) {
 				if (alpha.length() < 2) {
 					sb.append("0").append(alpha);
 				} else {
 					sb.append(alpha);
 				}
 				i++;
-			} else if ("A".equals(pattern.substring(i, i+1))) {
+			} else if ("A".equals(pattern.substring(i, i + 1))) {
 				sb.append(alpha);
 			}
 		}
@@ -354,18 +354,18 @@ public class FormattableColor extends Color {
 	}
 
 	@Override
-    public String toString() {
-        return
-        	getClass().getSimpleName() +
-        	"[r=" + getHexValue("0x", "RR", null, true, false) +
-        	", g=" + getHexValue("0x", "GG", null, true, false) +
-        	", b=" + getHexValue("0x", "BB", null, true, false) +
-        	", a=" + getHexValue("0x", "AA", null, true, false) +
-        	"]";
-    }
+	public String toString() {
+		return
+			getClass().getSimpleName() +
+			"[r=" + getHexValue("0x", "RR", null, true, false) +
+			", g=" + getHexValue("0x", "GG", null, true, false) +
+			", b=" + getHexValue("0x", "BB", null, true, false) +
+			", a=" + getHexValue("0x", "AA", null, true, false) +
+			"]";
+	}
 
 	protected static String extractHexString(String s) {
-		Matcher matcher = hexPattern.matcher(s);
+		Matcher matcher = HEX_PATTERN.matcher(s);
 		if (matcher.find()) {
 			return matcher.group(1).toUpperCase(Locale.ROOT);
 		} else {
@@ -374,7 +374,7 @@ public class FormattableColor extends Color {
 	}
 
 	protected static String extractDecString(String s) {
-		Matcher matcher = decPattern.matcher(s);
+		Matcher matcher = DEC_PATTERN.matcher(s);
 		if (matcher.find()) {
 			return matcher.group(1);
 		} else {
@@ -391,8 +391,8 @@ public class FormattableColor extends Color {
 	 */
 	public static int[] getNamedColorValues(String colorName) {
 		colorName = colorName.toUpperCase(Locale.ROOT);
-		if (knownColors.containsKey(colorName)) {
-			return knownColors.get(colorName);
+		if (KNOWN_COLORS.containsKey(colorName)) {
+			return KNOWN_COLORS.get(colorName);
 		}
 		return null;
 	}
@@ -400,145 +400,145 @@ public class FormattableColor extends Color {
 	static {
 		// The color values are from http://ffmpeg.org/ffmpeg-utils.html#Color
 
-		knownColors.put("ALICEBLUE", new int[] {0xF0, 0xF8, 0xFF});
-		knownColors.put("ANTIQUEWHITE", new int[] {0xFA, 0xEB, 0xD7});
-		knownColors.put("AQUA", new int[] {0x00, 0xFF, 0xFF});
-		knownColors.put("AQUAMARINE", new int[] {0x7F, 0xFF, 0xD4});
-		knownColors.put("AZURE", new int[] {0xF0, 0xFF, 0xFF});
-		knownColors.put("BEIGE", new int[] {0xF5, 0xF5, 0xDC});
-		knownColors.put("BISQUE", new int[] {0xFF, 0xE4, 0xC4});
-		knownColors.put("BLACK", new int[] {0x00, 0x00, 0x00});
-		knownColors.put("BLANCHEDALMOND", new int[] {0xFF, 0xEB, 0xCD});
-		knownColors.put("BLUE", new int[] {0x00, 0x00, 0xFF});
-		knownColors.put("BLUEVIOLET", new int[] {0x8A, 0x2B, 0xE2});
-		knownColors.put("BROWN", new int[] {0xA5, 0x2A, 0x2A});
-		knownColors.put("BURLYWOOD", new int[] {0xDE, 0xB8, 0x87});
-		knownColors.put("CADETBLUE", new int[] {0x5F, 0x9E, 0xA0});
-		knownColors.put("CHARTREUSE", new int[] {0x7F, 0xFF, 0x00});
-		knownColors.put("CHOCOLATE", new int[] {0xD2, 0x69, 0x1E});
-		knownColors.put("CORAL", new int[] {0xFF, 0x7F, 0x50});
-		knownColors.put("CORNFLOWERBLUE", new int[] {0x64, 0x95, 0xED});
-		knownColors.put("CORNSILK", new int[] {0xFF, 0xF8, 0xDC});
-		knownColors.put("CRIMSON", new int[] {0xDC, 0x14, 0x3C});
-		knownColors.put("CYAN", new int[] {0x00, 0xFF, 0xFF});
-		knownColors.put("DARKBLUE", new int[] {0x00, 0x00, 0x8B});
-		knownColors.put("DARKCYAN", new int[] {0x00, 0x8B, 0x8B});
-		knownColors.put("DARKGOLDENROD", new int[] {0xB8, 0x86, 0x0B});
-		knownColors.put("DARKGRAY", new int[] {0xA9, 0xA9, 0xA9});
-		knownColors.put("DARKGREEN", new int[] {0x00, 0x64, 0x00});
-		knownColors.put("DARKKHAKI", new int[] {0xBD, 0xB7, 0x6B});
-		knownColors.put("DARKMAGENTA", new int[] {0x8B, 0x00, 0x8B});
-		knownColors.put("DARKOLIVEGREEN", new int[] {0x55, 0x6B, 0x2F});
-		knownColors.put("DARKORANGE", new int[] {0xFF, 0x8C, 0x00});
-		knownColors.put("DARKORCHID", new int[] {0x99, 0x32, 0xCC});
-		knownColors.put("DARKRED", new int[] {0x8B, 0x00, 0x00});
-		knownColors.put("DARKSALMON", new int[] {0xE9, 0x96, 0x7A});
-		knownColors.put("DARKSEAGREEN", new int[] {0x8F, 0xBC, 0x8F});
-		knownColors.put("DARKSLATEBLUE", new int[] {0x48, 0x3D, 0x8B});
-		knownColors.put("DARKSLATEGRAY", new int[] {0x2F, 0x4F, 0x4F});
-		knownColors.put("DARKTURQUOISE", new int[] {0x00, 0xCE, 0xD1});
-		knownColors.put("DARKVIOLET", new int[] {0x94, 0x00, 0xD3});
-		knownColors.put("DEEPPINK", new int[] {0xFF, 0x14, 0x93});
-		knownColors.put("DEEPSKYBLUE", new int[] {0x00, 0xBF, 0xFF});
-		knownColors.put("DIMGRAY", new int[] {0x69, 0x69, 0x69});
-		knownColors.put("DODGERBLUE", new int[] {0x1E, 0x90, 0xFF});
-		knownColors.put("FIREBRICK", new int[] {0xB2, 0x22, 0x22});
-		knownColors.put("FLORALWHITE", new int[] {0xFF, 0xFA, 0xF0});
-		knownColors.put("FORESTGREEN", new int[] {0x22, 0x8B, 0x22});
-		knownColors.put("FUCHSIA", new int[] {0xFF, 0x00, 0xFF});
-		knownColors.put("GAINSBORO", new int[] {0xDC, 0xDC, 0xDC});
-		knownColors.put("GHOSTWHITE", new int[] {0xF8, 0xF8, 0xFF});
-		knownColors.put("GOLD", new int[] {0xFF, 0xD7, 0x00});
-		knownColors.put("GOLDENROD", new int[] {0xDA, 0xA5, 0x20});
-		knownColors.put("GRAY", new int[] {0x80, 0x80, 0x80});
-		knownColors.put("GREEN", new int[] {0x00, 0x80, 0x00});
-		knownColors.put("GREENYELLOW", new int[] {0xAD, 0xFF, 0x2F});
-		knownColors.put("HONEYDEW", new int[] {0xF0, 0xFF, 0xF0});
-		knownColors.put("HOTPINK", new int[] {0xFF, 0x69, 0xB4});
-		knownColors.put("INDIANRED", new int[] {0xCD, 0x5C, 0x5C});
-		knownColors.put("INDIGO", new int[] {0x4B, 0x00, 0x82});
-		knownColors.put("IVORY", new int[] {0xFF, 0xFF, 0xF0});
-		knownColors.put("KHAKI", new int[] {0xF0, 0xE6, 0x8C});
-		knownColors.put("LAVENDER", new int[] {0xE6, 0xE6, 0xFA});
-		knownColors.put("LAVENDERBLUSH", new int[] {0xFF, 0xF0, 0xF5});
-		knownColors.put("LAWNGREEN", new int[] {0x7C, 0xFC, 0x00});
-		knownColors.put("LEMONCHIFFON", new int[] {0xFF, 0xFA, 0xCD});
-		knownColors.put("LIGHTBLUE", new int[] {0xAD, 0xD8, 0xE6});
-		knownColors.put("LIGHTCORAL", new int[] {0xF0, 0x80, 0x80});
-		knownColors.put("LIGHTCYAN", new int[] {0xE0, 0xFF, 0xFF});
-		knownColors.put("LIGHTGOLDENRODYELLOW", new int[] {0xFA, 0xFA, 0xD2});
-		knownColors.put("LIGHTGRAY", new int[] {0xD3, 0xD3, 0xD3});
-		knownColors.put("LIGHTGREEN", new int[] {0x90, 0xEE, 0x90});
-		knownColors.put("LIGHTPINK", new int[] {0xFF, 0xB6, 0xC1});
-		knownColors.put("LIGHTSALMON", new int[] {0xFF, 0xA0, 0x7A});
-		knownColors.put("LIGHTSEAGREEN", new int[] {0x20, 0xB2, 0xAA});
-		knownColors.put("LIGHTSKYBLUE", new int[] {0x87, 0xCE, 0xFA});
-		knownColors.put("LIGHTSLATEGRAY", new int[] {0x77, 0x88, 0x99});
-		knownColors.put("LIGHTSTEELBLUE", new int[] {0xB0, 0xC4, 0xDE});
-		knownColors.put("LIGHTYELLOW", new int[] {0xFF, 0xFF, 0xE0});
-		knownColors.put("LIME", new int[] {0x00, 0xFF, 0x00});
-		knownColors.put("LIMEGREEN", new int[] {0x32, 0xCD, 0x32});
-		knownColors.put("LINEN", new int[] {0xFA, 0xF0, 0xE6});
-		knownColors.put("MAGENTA", new int[] {0xFF, 0x00, 0xFF});
-		knownColors.put("MAROON", new int[] {0x80, 0x00, 0x00});
-		knownColors.put("MEDIUMAQUAMARINE", new int[] {0x66, 0xCD, 0xAA});
-		knownColors.put("MEDIUMBLUE", new int[] {0x00, 0x00, 0xCD});
-		knownColors.put("MEDIUMORCHID", new int[] {0xBA, 0x55, 0xD3});
-		knownColors.put("MEDIUMPURPLE", new int[] {0x93, 0x70, 0xDB});
-		knownColors.put("MEDIUMSEAGREEN", new int[] {0x3C, 0xB3, 0x71});
-		knownColors.put("MEDIUMSLATEBLUE", new int[] {0x7B, 0x68, 0xEE});
-		knownColors.put("MEDIUMSPRINGGREEN", new int[] {0x00, 0xFA, 0x9A});
-		knownColors.put("MEDIUMTURQUOISE", new int[] {0x48, 0xD1, 0xCC});
-		knownColors.put("MEDIUMVIOLETRED", new int[] {0xC7, 0x15, 0x85});
-		knownColors.put("MIDNIGHTBLUE", new int[] {0x19, 0x19, 0x70});
-		knownColors.put("MINTCREAM", new int[] {0xF5, 0xFF, 0xFA});
-		knownColors.put("MISTYROSE", new int[] {0xFF, 0xE4, 0xE1});
-		knownColors.put("MOCCASIN", new int[] {0xFF, 0xE4, 0xB5});
-		knownColors.put("NAVAJOWHITE", new int[] {0xFF, 0xDE, 0xAD});
-		knownColors.put("NAVY", new int[] {0x00, 0x00, 0x80});
-		knownColors.put("OLDLACE", new int[] {0xFD, 0xF5, 0xE6});
-		knownColors.put("OLIVE", new int[] {0x80, 0x80, 0x00});
-		knownColors.put("OLIVEDRAB", new int[] {0x6B, 0x8E, 0x23});
-		knownColors.put("ORANGE", new int[] {0xFF, 0xA5, 0x00});
-		knownColors.put("ORANGERED", new int[] {0xFF, 0x45, 0x00});
-		knownColors.put("ORCHID", new int[] {0xDA, 0x70, 0xD6});
-		knownColors.put("PALEGOLDENROD", new int[] {0xEE, 0xE8, 0xAA});
-		knownColors.put("PALEGREEN", new int[] {0x98, 0xFB, 0x98});
-		knownColors.put("PALETURQUOISE", new int[] {0xAF, 0xEE, 0xEE});
-		knownColors.put("PALEVIOLETRED", new int[] {0xDB, 0x70, 0x93});
-		knownColors.put("PAPAYAWHIP", new int[] {0xFF, 0xEF, 0xD5});
-		knownColors.put("PEACHPUFF", new int[] {0xFF, 0xDA, 0xB9});
-		knownColors.put("PERU", new int[] {0xCD, 0x85, 0x3F});
-		knownColors.put("PINK", new int[] {0xFF, 0xC0, 0xCB});
-		knownColors.put("PLUM", new int[] {0xDD, 0xA0, 0xDD});
-		knownColors.put("POWDERBLUE", new int[] {0xB0, 0xE0, 0xE6});
-		knownColors.put("PURPLE", new int[] {0x80, 0x00, 0x80});
-		knownColors.put("RED", new int[] {0xFF, 0x00, 0x00});
-		knownColors.put("ROSYBROWN", new int[] {0xBC, 0x8F, 0x8F});
-		knownColors.put("ROYALBLUE", new int[] {0x41, 0x69, 0xE1});
-		knownColors.put("SADDLEBROWN", new int[] {0x8B, 0x45, 0x13});
-		knownColors.put("SALMON", new int[] {0xFA, 0x80, 0x72});
-		knownColors.put("SANDYBROWN", new int[] {0xF4, 0xA4, 0x60});
-		knownColors.put("SEAGREEN", new int[] {0x2E, 0x8B, 0x57});
-		knownColors.put("SEASHELL", new int[] {0xFF, 0xF5, 0xEE});
-		knownColors.put("SIENNA", new int[] {0xA0, 0x52, 0x2D});
-		knownColors.put("SILVER", new int[] {0xC0, 0xC0, 0xC0});
-		knownColors.put("SKYBLUE", new int[] {0x87, 0xCE, 0xEB});
-		knownColors.put("SLATEBLUE", new int[] {0x6A, 0x5A, 0xCD});
-		knownColors.put("SLATEGRAY", new int[] {0x70, 0x80, 0x90});
-		knownColors.put("SNOW", new int[] {0xFF, 0xFA, 0xFA});
-		knownColors.put("SPRINGGREEN", new int[] {0x00, 0xFF, 0x7F});
-		knownColors.put("STEELBLUE", new int[] {0x46, 0x82, 0xB4});
-		knownColors.put("TAN", new int[] {0xD2, 0xB4, 0x8C});
-		knownColors.put("TEAL", new int[] {0x00, 0x80, 0x80});
-		knownColors.put("THISTLE", new int[] {0xD8, 0xBF, 0xD8});
-		knownColors.put("TOMATO", new int[] {0xFF, 0x63, 0x47});
-		knownColors.put("TURQUOISE", new int[] {0x40, 0xE0, 0xD0});
-		knownColors.put("VIOLET", new int[] {0xEE, 0x82, 0xEE});
-		knownColors.put("WHEAT", new int[] {0xF5, 0xDE, 0xB3});
-		knownColors.put("WHITE", new int[] {0xFF, 0xFF, 0xFF});
-		knownColors.put("WHITESMOKE", new int[] {0xF5, 0xF5, 0xF5});
-		knownColors.put("YELLOW", new int[] {0xFF, 0xFF, 0x00});
-		knownColors.put("YELLOWGREEN", new int[] {0x9A, 0xCD, 0x32});
+		KNOWN_COLORS.put("ALICEBLUE", new int[] {0xF0, 0xF8, 0xFF});
+		KNOWN_COLORS.put("ANTIQUEWHITE", new int[] {0xFA, 0xEB, 0xD7});
+		KNOWN_COLORS.put("AQUA", new int[] {0x00, 0xFF, 0xFF});
+		KNOWN_COLORS.put("AQUAMARINE", new int[] {0x7F, 0xFF, 0xD4});
+		KNOWN_COLORS.put("AZURE", new int[] {0xF0, 0xFF, 0xFF});
+		KNOWN_COLORS.put("BEIGE", new int[] {0xF5, 0xF5, 0xDC});
+		KNOWN_COLORS.put("BISQUE", new int[] {0xFF, 0xE4, 0xC4});
+		KNOWN_COLORS.put("BLACK", new int[] {0x00, 0x00, 0x00});
+		KNOWN_COLORS.put("BLANCHEDALMOND", new int[] {0xFF, 0xEB, 0xCD});
+		KNOWN_COLORS.put("BLUE", new int[] {0x00, 0x00, 0xFF});
+		KNOWN_COLORS.put("BLUEVIOLET", new int[] {0x8A, 0x2B, 0xE2});
+		KNOWN_COLORS.put("BROWN", new int[] {0xA5, 0x2A, 0x2A});
+		KNOWN_COLORS.put("BURLYWOOD", new int[] {0xDE, 0xB8, 0x87});
+		KNOWN_COLORS.put("CADETBLUE", new int[] {0x5F, 0x9E, 0xA0});
+		KNOWN_COLORS.put("CHARTREUSE", new int[] {0x7F, 0xFF, 0x00});
+		KNOWN_COLORS.put("CHOCOLATE", new int[] {0xD2, 0x69, 0x1E});
+		KNOWN_COLORS.put("CORAL", new int[] {0xFF, 0x7F, 0x50});
+		KNOWN_COLORS.put("CORNFLOWERBLUE", new int[] {0x64, 0x95, 0xED});
+		KNOWN_COLORS.put("CORNSILK", new int[] {0xFF, 0xF8, 0xDC});
+		KNOWN_COLORS.put("CRIMSON", new int[] {0xDC, 0x14, 0x3C});
+		KNOWN_COLORS.put("CYAN", new int[] {0x00, 0xFF, 0xFF});
+		KNOWN_COLORS.put("DARKBLUE", new int[] {0x00, 0x00, 0x8B});
+		KNOWN_COLORS.put("DARKCYAN", new int[] {0x00, 0x8B, 0x8B});
+		KNOWN_COLORS.put("DARKGOLDENROD", new int[] {0xB8, 0x86, 0x0B});
+		KNOWN_COLORS.put("DARKGRAY", new int[] {0xA9, 0xA9, 0xA9});
+		KNOWN_COLORS.put("DARKGREEN", new int[] {0x00, 0x64, 0x00});
+		KNOWN_COLORS.put("DARKKHAKI", new int[] {0xBD, 0xB7, 0x6B});
+		KNOWN_COLORS.put("DARKMAGENTA", new int[] {0x8B, 0x00, 0x8B});
+		KNOWN_COLORS.put("DARKOLIVEGREEN", new int[] {0x55, 0x6B, 0x2F});
+		KNOWN_COLORS.put("DARKORANGE", new int[] {0xFF, 0x8C, 0x00});
+		KNOWN_COLORS.put("DARKORCHID", new int[] {0x99, 0x32, 0xCC});
+		KNOWN_COLORS.put("DARKRED", new int[] {0x8B, 0x00, 0x00});
+		KNOWN_COLORS.put("DARKSALMON", new int[] {0xE9, 0x96, 0x7A});
+		KNOWN_COLORS.put("DARKSEAGREEN", new int[] {0x8F, 0xBC, 0x8F});
+		KNOWN_COLORS.put("DARKSLATEBLUE", new int[] {0x48, 0x3D, 0x8B});
+		KNOWN_COLORS.put("DARKSLATEGRAY", new int[] {0x2F, 0x4F, 0x4F});
+		KNOWN_COLORS.put("DARKTURQUOISE", new int[] {0x00, 0xCE, 0xD1});
+		KNOWN_COLORS.put("DARKVIOLET", new int[] {0x94, 0x00, 0xD3});
+		KNOWN_COLORS.put("DEEPPINK", new int[] {0xFF, 0x14, 0x93});
+		KNOWN_COLORS.put("DEEPSKYBLUE", new int[] {0x00, 0xBF, 0xFF});
+		KNOWN_COLORS.put("DIMGRAY", new int[] {0x69, 0x69, 0x69});
+		KNOWN_COLORS.put("DODGERBLUE", new int[] {0x1E, 0x90, 0xFF});
+		KNOWN_COLORS.put("FIREBRICK", new int[] {0xB2, 0x22, 0x22});
+		KNOWN_COLORS.put("FLORALWHITE", new int[] {0xFF, 0xFA, 0xF0});
+		KNOWN_COLORS.put("FORESTGREEN", new int[] {0x22, 0x8B, 0x22});
+		KNOWN_COLORS.put("FUCHSIA", new int[] {0xFF, 0x00, 0xFF});
+		KNOWN_COLORS.put("GAINSBORO", new int[] {0xDC, 0xDC, 0xDC});
+		KNOWN_COLORS.put("GHOSTWHITE", new int[] {0xF8, 0xF8, 0xFF});
+		KNOWN_COLORS.put("GOLD", new int[] {0xFF, 0xD7, 0x00});
+		KNOWN_COLORS.put("GOLDENROD", new int[] {0xDA, 0xA5, 0x20});
+		KNOWN_COLORS.put("GRAY", new int[] {0x80, 0x80, 0x80});
+		KNOWN_COLORS.put("GREEN", new int[] {0x00, 0x80, 0x00});
+		KNOWN_COLORS.put("GREENYELLOW", new int[] {0xAD, 0xFF, 0x2F});
+		KNOWN_COLORS.put("HONEYDEW", new int[] {0xF0, 0xFF, 0xF0});
+		KNOWN_COLORS.put("HOTPINK", new int[] {0xFF, 0x69, 0xB4});
+		KNOWN_COLORS.put("INDIANRED", new int[] {0xCD, 0x5C, 0x5C});
+		KNOWN_COLORS.put("INDIGO", new int[] {0x4B, 0x00, 0x82});
+		KNOWN_COLORS.put("IVORY", new int[] {0xFF, 0xFF, 0xF0});
+		KNOWN_COLORS.put("KHAKI", new int[] {0xF0, 0xE6, 0x8C});
+		KNOWN_COLORS.put("LAVENDER", new int[] {0xE6, 0xE6, 0xFA});
+		KNOWN_COLORS.put("LAVENDERBLUSH", new int[] {0xFF, 0xF0, 0xF5});
+		KNOWN_COLORS.put("LAWNGREEN", new int[] {0x7C, 0xFC, 0x00});
+		KNOWN_COLORS.put("LEMONCHIFFON", new int[] {0xFF, 0xFA, 0xCD});
+		KNOWN_COLORS.put("LIGHTBLUE", new int[] {0xAD, 0xD8, 0xE6});
+		KNOWN_COLORS.put("LIGHTCORAL", new int[] {0xF0, 0x80, 0x80});
+		KNOWN_COLORS.put("LIGHTCYAN", new int[] {0xE0, 0xFF, 0xFF});
+		KNOWN_COLORS.put("LIGHTGOLDENRODYELLOW", new int[] {0xFA, 0xFA, 0xD2});
+		KNOWN_COLORS.put("LIGHTGRAY", new int[] {0xD3, 0xD3, 0xD3});
+		KNOWN_COLORS.put("LIGHTGREEN", new int[] {0x90, 0xEE, 0x90});
+		KNOWN_COLORS.put("LIGHTPINK", new int[] {0xFF, 0xB6, 0xC1});
+		KNOWN_COLORS.put("LIGHTSALMON", new int[] {0xFF, 0xA0, 0x7A});
+		KNOWN_COLORS.put("LIGHTSEAGREEN", new int[] {0x20, 0xB2, 0xAA});
+		KNOWN_COLORS.put("LIGHTSKYBLUE", new int[] {0x87, 0xCE, 0xFA});
+		KNOWN_COLORS.put("LIGHTSLATEGRAY", new int[] {0x77, 0x88, 0x99});
+		KNOWN_COLORS.put("LIGHTSTEELBLUE", new int[] {0xB0, 0xC4, 0xDE});
+		KNOWN_COLORS.put("LIGHTYELLOW", new int[] {0xFF, 0xFF, 0xE0});
+		KNOWN_COLORS.put("LIME", new int[] {0x00, 0xFF, 0x00});
+		KNOWN_COLORS.put("LIMEGREEN", new int[] {0x32, 0xCD, 0x32});
+		KNOWN_COLORS.put("LINEN", new int[] {0xFA, 0xF0, 0xE6});
+		KNOWN_COLORS.put("MAGENTA", new int[] {0xFF, 0x00, 0xFF});
+		KNOWN_COLORS.put("MAROON", new int[] {0x80, 0x00, 0x00});
+		KNOWN_COLORS.put("MEDIUMAQUAMARINE", new int[] {0x66, 0xCD, 0xAA});
+		KNOWN_COLORS.put("MEDIUMBLUE", new int[] {0x00, 0x00, 0xCD});
+		KNOWN_COLORS.put("MEDIUMORCHID", new int[] {0xBA, 0x55, 0xD3});
+		KNOWN_COLORS.put("MEDIUMPURPLE", new int[] {0x93, 0x70, 0xDB});
+		KNOWN_COLORS.put("MEDIUMSEAGREEN", new int[] {0x3C, 0xB3, 0x71});
+		KNOWN_COLORS.put("MEDIUMSLATEBLUE", new int[] {0x7B, 0x68, 0xEE});
+		KNOWN_COLORS.put("MEDIUMSPRINGGREEN", new int[] {0x00, 0xFA, 0x9A});
+		KNOWN_COLORS.put("MEDIUMTURQUOISE", new int[] {0x48, 0xD1, 0xCC});
+		KNOWN_COLORS.put("MEDIUMVIOLETRED", new int[] {0xC7, 0x15, 0x85});
+		KNOWN_COLORS.put("MIDNIGHTBLUE", new int[] {0x19, 0x19, 0x70});
+		KNOWN_COLORS.put("MINTCREAM", new int[] {0xF5, 0xFF, 0xFA});
+		KNOWN_COLORS.put("MISTYROSE", new int[] {0xFF, 0xE4, 0xE1});
+		KNOWN_COLORS.put("MOCCASIN", new int[] {0xFF, 0xE4, 0xB5});
+		KNOWN_COLORS.put("NAVAJOWHITE", new int[] {0xFF, 0xDE, 0xAD});
+		KNOWN_COLORS.put("NAVY", new int[] {0x00, 0x00, 0x80});
+		KNOWN_COLORS.put("OLDLACE", new int[] {0xFD, 0xF5, 0xE6});
+		KNOWN_COLORS.put("OLIVE", new int[] {0x80, 0x80, 0x00});
+		KNOWN_COLORS.put("OLIVEDRAB", new int[] {0x6B, 0x8E, 0x23});
+		KNOWN_COLORS.put("ORANGE", new int[] {0xFF, 0xA5, 0x00});
+		KNOWN_COLORS.put("ORANGERED", new int[] {0xFF, 0x45, 0x00});
+		KNOWN_COLORS.put("ORCHID", new int[] {0xDA, 0x70, 0xD6});
+		KNOWN_COLORS.put("PALEGOLDENROD", new int[] {0xEE, 0xE8, 0xAA});
+		KNOWN_COLORS.put("PALEGREEN", new int[] {0x98, 0xFB, 0x98});
+		KNOWN_COLORS.put("PALETURQUOISE", new int[] {0xAF, 0xEE, 0xEE});
+		KNOWN_COLORS.put("PALEVIOLETRED", new int[] {0xDB, 0x70, 0x93});
+		KNOWN_COLORS.put("PAPAYAWHIP", new int[] {0xFF, 0xEF, 0xD5});
+		KNOWN_COLORS.put("PEACHPUFF", new int[] {0xFF, 0xDA, 0xB9});
+		KNOWN_COLORS.put("PERU", new int[] {0xCD, 0x85, 0x3F});
+		KNOWN_COLORS.put("PINK", new int[] {0xFF, 0xC0, 0xCB});
+		KNOWN_COLORS.put("PLUM", new int[] {0xDD, 0xA0, 0xDD});
+		KNOWN_COLORS.put("POWDERBLUE", new int[] {0xB0, 0xE0, 0xE6});
+		KNOWN_COLORS.put("PURPLE", new int[] {0x80, 0x00, 0x80});
+		KNOWN_COLORS.put("RED", new int[] {0xFF, 0x00, 0x00});
+		KNOWN_COLORS.put("ROSYBROWN", new int[] {0xBC, 0x8F, 0x8F});
+		KNOWN_COLORS.put("ROYALBLUE", new int[] {0x41, 0x69, 0xE1});
+		KNOWN_COLORS.put("SADDLEBROWN", new int[] {0x8B, 0x45, 0x13});
+		KNOWN_COLORS.put("SALMON", new int[] {0xFA, 0x80, 0x72});
+		KNOWN_COLORS.put("SANDYBROWN", new int[] {0xF4, 0xA4, 0x60});
+		KNOWN_COLORS.put("SEAGREEN", new int[] {0x2E, 0x8B, 0x57});
+		KNOWN_COLORS.put("SEASHELL", new int[] {0xFF, 0xF5, 0xEE});
+		KNOWN_COLORS.put("SIENNA", new int[] {0xA0, 0x52, 0x2D});
+		KNOWN_COLORS.put("SILVER", new int[] {0xC0, 0xC0, 0xC0});
+		KNOWN_COLORS.put("SKYBLUE", new int[] {0x87, 0xCE, 0xEB});
+		KNOWN_COLORS.put("SLATEBLUE", new int[] {0x6A, 0x5A, 0xCD});
+		KNOWN_COLORS.put("SLATEGRAY", new int[] {0x70, 0x80, 0x90});
+		KNOWN_COLORS.put("SNOW", new int[] {0xFF, 0xFA, 0xFA});
+		KNOWN_COLORS.put("SPRINGGREEN", new int[] {0x00, 0xFF, 0x7F});
+		KNOWN_COLORS.put("STEELBLUE", new int[] {0x46, 0x82, 0xB4});
+		KNOWN_COLORS.put("TAN", new int[] {0xD2, 0xB4, 0x8C});
+		KNOWN_COLORS.put("TEAL", new int[] {0x00, 0x80, 0x80});
+		KNOWN_COLORS.put("THISTLE", new int[] {0xD8, 0xBF, 0xD8});
+		KNOWN_COLORS.put("TOMATO", new int[] {0xFF, 0x63, 0x47});
+		KNOWN_COLORS.put("TURQUOISE", new int[] {0x40, 0xE0, 0xD0});
+		KNOWN_COLORS.put("VIOLET", new int[] {0xEE, 0x82, 0xEE});
+		KNOWN_COLORS.put("WHEAT", new int[] {0xF5, 0xDE, 0xB3});
+		KNOWN_COLORS.put("WHITE", new int[] {0xFF, 0xFF, 0xFF});
+		KNOWN_COLORS.put("WHITESMOKE", new int[] {0xF5, 0xF5, 0xF5});
+		KNOWN_COLORS.put("YELLOW", new int[] {0xFF, 0xFF, 0x00});
+		KNOWN_COLORS.put("YELLOWGREEN", new int[] {0x9A, 0xCD, 0x32});
 	}
 }

@@ -26,7 +26,6 @@ import com.sun.jna.Platform;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -198,15 +197,8 @@ public class VLCVideo extends Player {
 		}
 		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
-		/**
-		// Audio sample rate handling
-		if (sampleRateOverride.isSelected()) {
-			codecConfig.sampleRate = Integer.valueOf(sampleRate.getText());
-		}
-		*/
-
 		// This has caused garbled audio, so only enable when told to
-		if (audioSyncEnabled.isSelected()) {
+		if (configuration.isVlcAudioSyncEnabled()) {
 			codecConfig.extraTrans.put("audio-sync", "");
 		}
 		return codecConfig;
@@ -261,6 +253,7 @@ public class VLCVideo extends Player {
 		int channels = 2;
 		if (
 			!isXboxOneWebVideo &&
+			params.getAid() != null &&
 			params.getAid().getAudioProperties().getNumberOfChannels() > 2 &&
 			configuration.getAudioChannelCount() == 6 &&
 			!params.getMediaRenderer().isTranscodeToAC3()
@@ -289,7 +282,7 @@ public class VLCVideo extends Player {
 	}
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
-		int bitrates[] = new int[2];
+		int[] bitrates = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
@@ -320,8 +313,8 @@ public class VLCVideo extends Player {
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 
-		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
+		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int[] rendererMaxBitrates = new int[2];
 
 		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
@@ -471,11 +464,11 @@ public class VLCVideo extends Player {
 		CodecConfig config = genConfig(params.getMediaRenderer());
 
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
-		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
+		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
-		pipe_process.runInNewThread();
+		pipeProcess.runInNewThread();
 		tsPipe.deleteLater();
 
 		params.getInputPipes()[0] = tsPipe;
@@ -492,10 +485,10 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (BasicSystemUtils.INSTANCE.getVlcVersion() != null) {
+		if (BasicSystemUtils.instance.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (BasicSystemUtils.INSTANCE.getVlcVersion().compareTo(requiredVersion) > 0) {
+			if (BasicSystemUtils.instance.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
@@ -503,13 +496,13 @@ public class VLCVideo extends Player {
 			} else if (!configuration.isGPUAcceleration()) {
 				LOGGER.debug(
 					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
-					BasicSystemUtils.INSTANCE.getVlcVersion()
+					BasicSystemUtils.instance.getVlcVersion()
 				);
 			}
 		}
 
 		// Useful for the more esoteric codecs people use
-		if (experimentalCodecs.isSelected()) {
+		if (configuration.isVlcExperimentalCodecs()) {
 			cmdList.add("--sout-avcodec-strict=-2");
 		}
 
@@ -552,7 +545,7 @@ public class VLCVideo extends Player {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 				} else if (
 					!params.getMediaRenderer().streamSubsForTranscodedVideo() ||
-					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), media, dlna)
+					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), dlna)
 				) {
 					String externalSubtitlesFileName;
 
@@ -641,7 +634,7 @@ public class VLCVideo extends Player {
 		cmdList.toArray(cmdArray);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(pipe_process);
+		pw.attachProcess(pipeProcess);
 
 		// TODO: Why is this here?
 		try {
@@ -672,21 +665,15 @@ public class VLCVideo extends Player {
 
 		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
-		experimentalCodecs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		experimentalCodecs.addItemListener((ItemEvent e) -> {
+			configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
-		audioSyncEnabled.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		audioSyncEnabled.addItemListener((ItemEvent e) -> {
+			configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(audioSyncEnabled), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
@@ -730,8 +717,8 @@ public class VLCVideo extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.INSTANCE.getVlcPath())) {
-				result.version(BasicSystemUtils.INSTANCE.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
+				result.version(BasicSystemUtils.instance.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

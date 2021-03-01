@@ -58,7 +58,6 @@ public class DVDISOTitle extends DLNAResource {
 		"^subtitle \\( sid \\): (?<StreamNumber>\\d+) language: (?<Language>\\w*)$"
 	);
 
-
 	private File file;
 	private int title;
 	private long length;
@@ -92,7 +91,7 @@ public class DVDISOTitle extends DLNAResource {
 			}
 		}
 
-		String cmd[];
+		String[] cmd;
 		if (generateThumbnails) {
 			String outFolder = "jpeg:outdir=mplayer_thumbs:subdirs=\"" + this.hashCode() + "\"";
 			cmd = new String[] {
@@ -131,16 +130,14 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e) {
-				}
-				pw.stopProcess();
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
 			}
+			pw.stopProcess();
 		};
+
 		Thread failsafe = new Thread(r, "DVD ISO Title Failsafe");
 		failsafe.start();
 		pw.runInSameThread();
@@ -252,7 +249,7 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		getMedia().setAudioTracks(audioTracks);
-		getMedia().setSubtitleTracks(subtitles);
+		getMedia().setSubtitlesTracks(subtitles);
 
 		if (duration != null) {
 			getMedia().setDuration(d);
@@ -325,8 +322,8 @@ public class DVDISOTitle extends DLNAResource {
 	@Override
 	public long length(RendererConfiguration mediaRenderer) {
 		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
-		int cbr_video_bitrate = getDefaultRenderer().getCBRVideoBitrate();
-		return (cbr_video_bitrate > 0) ? (long) (((cbr_video_bitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
+		int cbrVideoBitrate = getDefaultRenderer().getCBRVideoBitrate();
+		return (cbrVideoBitrate > 0) ? (long) (((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
 	}
 
 	@Override

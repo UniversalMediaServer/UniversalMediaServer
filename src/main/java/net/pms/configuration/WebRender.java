@@ -70,9 +70,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private boolean isTouchDevice = false;
 	private String subLang;
 	private Gson gson;
-	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
-	private static final Format[] supportedFormats = {
+	private static final Format[] SUPPORTED_FORMATS = {
 		new GIF(),
 		new JPG(),
 		new M4A(),
@@ -82,7 +82,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		new BMP()
 	};
 
-	private static final Matcher umsInfo = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
+	private static final Matcher UMS_INFO = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
 
 	protected static final int CHROME = 1;
 	protected static final int MSIE = 2;
@@ -104,12 +104,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		port = 0;
 		ua = "";
 		fileless = true;
-		String userFmt = pmsconfiguration.getWebTranscode();
+		String userFmt = CONFIGURATION.getWebTranscode();
 		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
 		startStop = null;
 		subLang = "";
-		if (pmsConfiguration.useWebControl()) {
-			controls = BasicPlayer.PLAYCONTROL|BasicPlayer.VOLUMECONTROL;
+		if (CONFIGURATION.useWebControl()) {
+			controls = BasicPlayer.PLAYCONTROL | BasicPlayer.VOLUMECONTROL;
 		}
 		gson = new Gson();
 		push = new ArrayList<>();
@@ -158,24 +158,24 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	public static String getBrowserName(int browser) {
 		switch (browser) {
-			case CHROME:  return "Chrome";
-			case MSIE:    return "Internet Explorer";
-			case FIREFOX: return "Firefox";
-			case SAFARI:  return "Safari";
-			case PS4:     return "Playstation 4";
-			case XBOX1:   return "Xbox One";
-			case OPERA:   return "Opera";
-			case EDGE:    return "Edge";
-			case CHROMIUM:return "Chromium";
-			case VIVALDI: return "Vivaldi";
-			default:      return Messages.getString("PMS.142");
+			case CHROME:   return "Chrome";
+			case MSIE:     return "Internet Explorer";
+			case FIREFOX:  return "Firefox";
+			case SAFARI:   return "Safari";
+			case PS4:      return "Playstation 4";
+			case XBOX1:    return "Xbox One";
+			case OPERA:    return "Opera";
+			case EDGE:     return "Edge";
+			case CHROMIUM: return "Chromium";
+			case VIVALDI:  return "Vivaldi";
+			default:       return Messages.getString("PMS.142");
 		}
 	}
 
 	public static int getBrowser(String userAgent) {
 		String ua = userAgent.toLowerCase();
 		return
-			ua.contains("edge")          ? EDGE :
+			ua.contains("edg")           ? EDGE :
 			ua.contains("chrome")        ? CHROME :
 			(ua.contains("msie") ||
 			ua.contains("trident"))      ? MSIE :
@@ -193,11 +193,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		setUA(userAgent);
 		browser = getBrowser(userAgent);
 
-		if (info != null && umsInfo.reset(info).find()) {
-			platform = umsInfo.group(1).toLowerCase();
-			screenWidth = Integer.parseInt(umsInfo.group(2));
-			screenHeight = Integer.parseInt(umsInfo.group(3));
-			isTouchDevice = Boolean.parseBoolean(umsInfo.group(4));
+		if (info != null && UMS_INFO.reset(info).find()) {
+			platform = UMS_INFO.group(1).toLowerCase();
+			screenWidth = Integer.parseInt(UMS_INFO.group(2));
+			screenHeight = Integer.parseInt(UMS_INFO.group(3));
+			isTouchDevice = Boolean.parseBoolean(UMS_INFO.group(4));
 
 			LOGGER.debug("Setting {} browser info: platform:{}, screen:{}x{}, isTouchDevice:{}",
 				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
@@ -208,7 +208,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getRendererName() {
-		return (pmsconfiguration.isWebAuthenticate() ? user + "@" : "") + getBrowserName(browser);
+		return (CONFIGURATION.isWebAuthenticate() ? user + "@" : "") + getBrowserName(browser);
 	}
 
 	@Override
@@ -227,17 +227,17 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	@Override
 	public String getRendererIcon() {
 		switch (browser) {
-			case CHROME:  return "chrome.png";
-			case MSIE:    return "internetexplorer.png";
-			case FIREFOX: return "firefox.png";
-			case SAFARI:  return "safari.png";
-			case PS4:     return "ps4.png";
-			case XBOX1:   return "xbox-one.png";
-			case OPERA:   return "opera.png";
-			case EDGE:    return "edge.png";
-			case CHROMIUM:return "chromium.png";
-			case VIVALDI: return "vivaldi.png";
-			default:      return super.getRendererIcon();
+			case CHROME:   return "chrome.png";
+			case MSIE:     return "internetexplorer.png";
+			case FIREFOX:  return "firefox.png";
+			case SAFARI:   return "safari.png";
+			case PS4:      return "ps4.png";
+			case XBOX1:    return "xbox-one.png";
+			case OPERA:    return "opera.png";
+			case EDGE:     return "edge.png";
+			case CHROMIUM: return "chromium.png";
+			case VIVALDI:  return "vivaldi.png";
+			default:       return super.getRendererIcon();
 		}
 	}
 
@@ -321,17 +321,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 						case HTTPResource.WEBM_TYPEMIME:
 							ffWebmCmd(cmdList);
 							break;
+					default:
+						break;
 					}
 				}
 				if (isLowBitrate()) {
 					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(resource, media, params));
 				}
-			} else {
-				// nothing here yet
 			}
 			return true;
-//		} else if (player instanceof MEncoderVideo) {
-//			// nothing here yet
 		}
 		return false;
 	}
@@ -474,14 +472,18 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case TIFF:
 				return browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
 			case WEBP:
-				return browser == CHROME || browser == CHROMIUM || browser == OPERA;
+				return browser == EDGE || browser == FIREFOX || browser == CHROME || browser == CHROMIUM || browser == OPERA;
 			default:
 				return false;
 		}
 	}
 
 	public static boolean supportedFormat(Format f) {
-		for (Format f1 : supportedFormats) {
+		if (f == null) {
+			return false;
+		}
+
+		for (Format f1 : SUPPORTED_FORMATS) {
 			if (f.getIdentifier() == f1.getIdentifier() || f1.mimeType().equals(f.mimeType())) {
 				return true;
 			}
@@ -504,7 +506,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	 * libvorbis transcodes very slowly, so we scale the video down to
 	 * speed it up.
 	 *
-	 * @return 
+	 * @return
 	 */
 	@Override
 	public String getFFmpegVideoFilterOverride() {
@@ -558,7 +560,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getPushData() {
-		String json = "";
+		String json = "{}";
 		if (push.size() > 0) {
 			json = gson.toJson(push);
 			push.clear();
@@ -608,7 +610,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			if (item != null) {
 				DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
 				if (r != null) {
-					((WebRender)renderer).push("seturl", "/play/" + r.getId());
+					((WebRender) renderer).push("seturl", "/play/" + r.getId());
 					return;
 				}
 			}
@@ -617,32 +619,32 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 		@Override
 		public void pause() {
-			((WebRender)renderer).push("control", "pause");
+			((WebRender) renderer).push("control", "pause");
 		}
 
 		@Override
 		public void play() {
-			((WebRender)renderer).push("control", "play");
+			((WebRender) renderer).push("control", "play");
 		}
 
 		@Override
 		public void stop() {
-			((WebRender)renderer).push("control", "stop");
+			((WebRender) renderer).push("control", "stop");
 		}
 
 		@Override
 		public void mute() {
-			((WebRender)renderer).push("control", "mute");
+			((WebRender) renderer).push("control", "mute");
 		}
 
 		@Override
 		public void setVolume(int volume) {
-			((WebRender)renderer).push("control", "setvolume", "" + volume);
+			((WebRender) renderer).push("control", "setvolume", "" + volume);
 		}
 
 		@Override
 		public int getControls() {
-			return renderer.pmsConfiguration.useWebControl() ? PLAYCONTROL|VOLUMECONTROL : 0;
+			return renderer.pmsConfiguration.useWebControl() ? PLAYCONTROL | VOLUMECONTROL : 0;
 		}
 
 		@Override
@@ -678,7 +680,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
 			alert();
 			if (state.playback == STOPPED) {
-				((WebRender)renderer).stop();
+				((WebRender) renderer).stop();
 			}
 		}
 	}

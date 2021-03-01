@@ -22,7 +22,6 @@ package net.pms.image;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 
-
 /**
  * This interface represents an implementation that is able to perform an
  * operation (filter) a {@link BufferedImage}. In addition to extending
@@ -35,7 +34,6 @@ import java.awt.image.BufferedImageOp;
  * @author Nadahar
  */
 public interface BufferedImageFilter extends BufferedImageOp {
-
 	/**
 	 * @return The textual representation of this filter, should be the same as
 	 *         returned by {@link #toString()}.
