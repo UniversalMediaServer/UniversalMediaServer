@@ -2020,11 +2020,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				)
 			)
 		) {
+			LOGGER.trace("Resolution {}x{} is too high for this renderer, which supports up to {}x{}", width, height, getMaxVideoWidth(), getMaxVideoHeight());
 			return false;
 		}
 
 		// Check if the resolution is too low
 		if (!isRescaleByRenderer() && getMaxVideoWidth() < 720) {
+			LOGGER.trace("Resolution {}x{} is too low for this renderer");
 			return false;
 		}
 
