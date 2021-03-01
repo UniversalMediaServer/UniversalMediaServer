@@ -306,7 +306,7 @@ public class NetworkConfiguration {
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
 						try {
-							// Add network interface to the list of interfaces with associated address only 
+							// Add network interface to the list of interfaces with associated address only
 							// if interface is supporting multicast.
 							if (networkInterface.supportsMulticast()) {
 								interfacesWithAssociatedAddress.put(networkInterface.getDisplayName(), ia);
@@ -394,7 +394,7 @@ public class NetworkConfiguration {
 	 * has an address but is non-virtual interface. If the non-virtual interface
 	 * is not found the first virtual interface is returned. If no such interface
 	 * can be found or if no interfaces were discovered, <code>null</code> is returned.
-	 * 
+	 *
 	 * @return The interface.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
@@ -411,7 +411,7 @@ public class NetworkConfiguration {
 
 			return entry.getValue();
 		}
-		
+
 		// The non-virtual interface was not found so choose the first virtual one if exists
 		if (!virtualInterfaces.isEmpty()) {
 			for (Entry<String, InterfaceAssociation> entry : virtualInterfaces.entrySet()) {
