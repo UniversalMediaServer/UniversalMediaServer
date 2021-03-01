@@ -390,12 +390,13 @@ public class NetworkConfiguration {
 	}
 
 	/**
-	 * Returns the first interface from the list of discovered interfaces that
-	 * has an address but is non-virtual interface. If the non-virtual interface
-	 * is not found the first virtual interface is returned. If no such interface
-	 * can be found or if no interfaces were discovered, <code>null</code> is returned.
+	 * Returns the first interface from the list of discovered interfaces whose
+	 * have an IPV4 address and are supporting multicast. If the real interface
+	 * is not found the first virtual interface is returned.
+	 * If no such interface can be found or if no interfaces were discovered the
+	 * <code>null</code> is returned.
 	 *
-	 * @return The interface.
+	 * @return The first interface with the associated IP address.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
 		if (interfacesWithAssociatedAddress.isEmpty()) {
