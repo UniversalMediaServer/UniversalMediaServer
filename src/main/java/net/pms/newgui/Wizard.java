@@ -84,6 +84,7 @@ public class Wizard {
 
 		if (whetherToSelectDefaultOptions == JOptionPane.NO_OPTION || whetherToSelectDefaultOptions == JOptionPane.CLOSED_OPTION) {
 			configuration.setMinimized(false);
+			configuration.setAutomaticMaximumBitrate(true);
 			configuration.setMPEG2MainSettings("Automatic (Wired)");
 			configuration.setx264ConstantRateFactor("Automatic (Wired)");
 			configuration.setHideAdvancedOptions(true);

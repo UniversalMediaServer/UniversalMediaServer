@@ -588,7 +588,6 @@ public class TranscodingTab {
 		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setPreferredSize(getPreferredHeight(vq));
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
-		vq.setEditable(false);
 		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
 		vq.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		vq.addItemListener(new ItemListener() {
