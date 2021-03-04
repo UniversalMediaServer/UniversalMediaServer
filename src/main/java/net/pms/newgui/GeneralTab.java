@@ -378,6 +378,7 @@ public class GeneralTab {
 			adaptBitrate.addActionListener((ActionEvent e) -> {
 				configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
 				maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
+				looksFrame.getTr().enableVideoQualitySettings(configuration.isAutomaticMaximumBitrate());
 			});
 
 			builder.addLabel(Messages.getString("NetworkTab.20"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));

@@ -588,7 +588,9 @@ public class TranscodingTab {
 		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setPreferredSize(getPreferredHeight(vq));
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
+		vq.setEditable(false);
 		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
+		vq.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		vq.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -621,6 +623,7 @@ public class TranscodingTab {
 		x264Quality.setPreferredSize(getPreferredHeight(x264Quality));
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
 		x264QualityModel.setSelectedKey(configuration.getx264ConstantRateFactor());
+		x264Quality.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		x264Quality.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1154,5 +1157,17 @@ public class TranscodingTab {
 	// This is kind of a hack to give combo boxes a small preferred size
 	private static Dimension getPreferredHeight(JComponent component) {
 		return new Dimension(20, component.getPreferredSize().height);
+	}
+
+	/**
+	 * Enable the video quality settings for FFMpeg/Mencoder when the
+	 * automatic maximum bitrate is not used.
+	 * 
+	 * @param automatic when it is set <code>true</code> than the video
+	 * quality settings are disabled.
+	 */
+	public void enableVideoQualitySettings(boolean automatic) {
+		vq.setEnabled(!automatic);
+		x264Quality.setEnabled(!automatic);
 	}
 }
