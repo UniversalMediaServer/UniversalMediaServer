@@ -20,6 +20,7 @@ package net.pms.network;
 
 import java.net.*;
 import java.util.*;
+import java.util.Map.Entry;
 import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -146,7 +147,7 @@ public class NetworkConfiguration {
 	/**
 	 * The map of discovered default IP addresses belonging to a network interface.
 	 */
-	private Map<String, InterfaceAssociation> mainAddress = new HashMap<>();
+	private Map<String, InterfaceAssociation> interfacesWithAssociatedAddress = new HashMap<>();
 
 	/**
 	 * The map of IP addresses connected to an interface name.
@@ -297,15 +298,26 @@ public class NetworkConfiguration {
 		// Use networkInterface.getInetAddresses() instead
 		for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
 			if (address != null) {
-				LOGGER.trace("checking {} on {}", new Object[] {address, networkInterface.getName()});
-
+				LOGGER.trace("checking {} on {}", address, networkInterface.getName());
 				if (isRelevantAddress(address)) {
 					// Avoid adding duplicates
 					if (!subAddress.contains(address)) {
 						LOGGER.trace("found {} -> {}", networkInterface.getName(), address.getHostAddress());
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
-						mainAddress.put(networkInterface.getDisplayName(), ia);
+						try {
+							// Add network interface to the list of interfaces with associated address only
+							// if interface is supporting multicast.
+							if (networkInterface.supportsMulticast()) {
+								interfacesWithAssociatedAddress.put(networkInterface.getDisplayName(), ia);
+								LOGGER.trace("added interface {} with associated address {} supporting multicast to the list of relevant addresses", networkInterface.getName(), ia.getAddr());
+							} else {
+								LOGGER.trace("Ignoring interface {} with associated address {} because it does not seem to support multicast", networkInterface.getName(), ia.getAddr());
+							}
+						} catch (SocketException e) {
+							LOGGER.trace("Interface {} raised exception when checking the multicast capability", networkInterface.getName());
+						}
+
 						foundAddress = true;
 					}
 				} else {
@@ -381,16 +393,33 @@ public class NetworkConfiguration {
 	}
 
 	/**
-	 * Returns the first interface from the list of discovered interfaces that
-	 * has an address. If no such interface can be found or if no interfaces
-	 * were discovered, <code>null</code> is returned.
+	 * Returns the first interface from the list of discovered interfaces whose
+	 * have an IPV4 address and are supporting multicast. If the real interface
+	 * is not found the first virtual interface is returned.
+	 * If no such interface can be found or if no interfaces were discovered the
+	 * <code>null</code> is returned.
 	 *
-	 * @return The interface.
+	 * @return The first interface with the associated IP address.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
-		for (InterfaceAssociation ia : interfaces) {
-			if (ia.getAddr() != null) {
-				return ia;
+		if (interfacesWithAssociatedAddress.isEmpty()) {
+			return null;
+		}
+
+		Map<String, InterfaceAssociation> virtualInterfaces = new HashMap<>();
+		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
+			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
+				virtualInterfaces.put(entry.getKey(), entry.getValue());
+				continue;
+			}
+
+			return entry.getValue();
+		}
+
+		// We did not find any non-virtual interfaces, so choose the first virtual one if it exists
+		if (!virtualInterfaces.isEmpty()) {
+			for (Entry<String, InterfaceAssociation> entry : virtualInterfaces.entrySet()) {
+				return entry.getValue();
 			}
 		}
 
@@ -408,7 +437,7 @@ public class NetworkConfiguration {
 	public InterfaceAssociation getAddressForNetworkInterfaceName(String name) {
 		// for backwards-compatibility check if the short network interface name is used
 		name = replaceShortInterfaceNameByDisplayName(name);
-		return mainAddress.get(name);
+		return interfacesWithAssociatedAddress.get(name);
 	}
 
 	/**
