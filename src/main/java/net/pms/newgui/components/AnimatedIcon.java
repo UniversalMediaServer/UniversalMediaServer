@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -549,7 +550,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 
 		int idx = firstIdx;
 		for (int i = 0; i <= lastIdx - firstIdx; i++) {
-			Icon icon = LooksFrame.readImageIcon(String.format(resourceNamePattern, idx));
+			Icon icon = LooksFrame.readImageIcon(String.format(Locale.ROOT, resourceNamePattern, idx));
 			if (icon == null) {
 				throw new IllegalArgumentException(String.format(
 					"Resource \"%s\" not found, please check your pattern (%s) and indices (%d-%d)!",
