@@ -311,6 +311,8 @@ public class NetworkConfiguration {
 							if (networkInterface.supportsMulticast()) {
 								interfacesWithAssociatedAddress.put(networkInterface.getDisplayName(), ia);
 								LOGGER.trace("added interface {} with associated address {} supporting multicast to the list of relevant addresses", networkInterface.getName(), ia.getAddr());
+							} else {
+								LOGGER.trace("Ignoring interface {} with associated address {} because it does not seem to support multicast", networkInterface.getName(), ia.getAddr());
 							}
 						} catch (SocketException e) {
 							LOGGER.trace("Interface {} raised exception when checking the multicast capability", networkInterface.getName());
