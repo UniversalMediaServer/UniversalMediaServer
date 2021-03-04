@@ -1161,7 +1161,7 @@ public class TranscodingTab {
 	/**
 	 * Enable the video quality settings for FFMpeg/Mencoder when the
 	 * automatic maximum bitrate is not used.
-	 * 
+	 *
 	 * @param automatic when it is set <code>true</code> than the video
 	 * quality settings are disabled.
 	 */
