@@ -416,7 +416,7 @@ public class NetworkConfiguration {
 			return entry.getValue();
 		}
 
-		// The non-virtual interface was not found so choose the first virtual one if exists
+		// We did not find any non-virtual interfaces, so choose the first virtual one if it exists
 		if (!virtualInterfaces.isEmpty()) {
 			for (Entry<String, InterfaceAssociation> entry : virtualInterfaces.entrySet()) {
 				return entry.getValue();
