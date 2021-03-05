@@ -108,43 +108,6 @@ public class Wizard {
 				configuration.setMinimized(false);
 			}
 
-/*
-			// Ask if their network is wired, etc.
-			int networkType = JOptionPane.showOptionDialog(
-				null,
-				Messages.getString("Wizard.7"),
-				String.format(status, currentQuestionNumber++),
-				JOptionPane.YES_NO_CANCEL_OPTION,
-				JOptionPane.QUESTION_MESSAGE,
-				null,
-				networkTypeOptions,
-				networkTypeOptions[1]
-			);
-
-			switch (networkType) {
-				case JOptionPane.YES_OPTION:
-					// Wired (Gigabit)
-					configuration.setMaximumBitrate("0");
-					configuration.setMPEG2MainSettings("Automatic (Wired)");
-					configuration.setx264ConstantRateFactor("Automatic (Wired)");
-					break;
-				case JOptionPane.NO_OPTION:
-					// Wired (100 Megabit)
-					configuration.setMaximumBitrate("90");
-					configuration.setMPEG2MainSettings("Automatic (Wired)");
-					configuration.setx264ConstantRateFactor("Automatic (Wired)");
-					break;
-				case JOptionPane.CANCEL_OPTION:
-					// Wireless
-					configuration.setMaximumBitrate("30");
-					configuration.setMPEG2MainSettings("Automatic (Wireless)");
-					configuration.setx264ConstantRateFactor("Automatic (Wireless)");
-					break;
-				default:
-					break;
-			}
-*/
-
 			// Ask if they want to hide advanced options
 			int whetherToHideAdvancedOptions = JOptionPane.showOptionDialog(
 				null,
