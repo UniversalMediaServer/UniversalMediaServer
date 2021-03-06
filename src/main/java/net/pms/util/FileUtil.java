@@ -1029,6 +1029,14 @@ public class FileUtil {
 			}
 		}
 
+		// Clean up any unexpected ugliness
+		if (movieOrShowName != null) {
+			movieOrShowName = movieOrShowName.trim();
+			if (movieOrShowName.endsWith(" -")) {
+				movieOrShowName = movieOrShowName.substring(0, movieOrShowName.length() - 2);
+			}
+		}
+
 		// Retain the fact it is a sample clip
 		if (isSample) {
 			if (edition == null) {
