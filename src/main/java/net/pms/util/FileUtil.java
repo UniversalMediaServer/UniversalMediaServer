@@ -996,6 +996,10 @@ public class FileUtil {
 						tvEpisodeName = matcher.group(2).trim();
 						if (isEmpty(tvEpisodeName)) {
 							tvEpisodeName = null;
+						} else {
+							if (tvEpisodeName.startsWith("- ")) {
+								tvEpisodeName = tvEpisodeName.substring(2);
+							}
 						}
 					}
 				} else {
