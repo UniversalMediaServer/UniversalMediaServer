@@ -487,8 +487,8 @@ public class PMS {
 			// Ask if user wants to use automatic maximum bitrate
 			int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
 				null,
-				Messages.getString("InfoMessage"),
-				Messages.getString("InfoMessage.Title"),
+				Messages.getString("ImprovedFeatureOptIn.AutomaticVideoQuality"),
+				Messages.getString("ImprovedFeatureOptIn.Title"),
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE,
 				null,
