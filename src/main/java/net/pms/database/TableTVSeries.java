@@ -351,7 +351,9 @@ public final class TableTVSeries extends Tables {
 						rs.updateString("PLOT", (String) tvSeries.get("plot"));
 						rs.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
 						rs.updateString("TITLE", (String) tvSeries.get("title"));
-						rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
+						if (tvSeries.get("totalSeasons") != null) {
+							rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
+						}
 						rs.updateString("VOTES", (String) tvSeries.get("votes"));
 						rs.updateString("YEAR", (String) tvSeries.get("year"));
 						rs.updateRow();

@@ -30,18 +30,18 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.1.0</version>
-	<url>http://www.universalmediaserver.com/</url>
+	<version>10.2.1-SNAPSHOT</version>
+	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
 	<organization>
 		<name>Universal Media Server</name>
-		<url>http://www.universalmediaserver.com/</url>
+		<url>https://www.universalmediaserver.com/</url>
 	</organization>
 	<licenses>
 		<license>
 			<name>GNU General Public License version 2</name>
-			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+			<url>https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt</url>
 			<distribution>manual</distribution>
 		</license>
 	</licenses>
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.1.0</project.version.short>
+		<project.version.short>10.2.1</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -74,7 +74,7 @@
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.6.2</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.6.3</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -4165,6 +4165,13 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
 						<version>3.1.2</version>
+						<dependencies>
+							<dependency>
+								<groupId>com.puppycrawl.tools</groupId>
+								<artifactId>checkstyle</artifactId>
+								<version>8.41</version>
+							</dependency>
+						</dependencies>
 						<configuration>
 							<configLocation>CheckStyle.xml</configLocation>
 							<encoding>UTF-8</encoding>
