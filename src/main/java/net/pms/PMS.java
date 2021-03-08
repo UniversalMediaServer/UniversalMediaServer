@@ -475,7 +475,8 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 
-		// Show info that video automatic setting was improved and was not set in the wizard
+		// Show info that video automatic setting was improved and was not set in the wizard.
+		// This must be done before the frame is initialized to accept changes.
 		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting() && !configuration.isAutomaticMaximumBitrate()) {
 			// It will be shown only once
 			configuration.setShowInfoAboutVideoAutomaticSetting(false);
