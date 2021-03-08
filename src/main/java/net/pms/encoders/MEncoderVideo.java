@@ -794,7 +794,11 @@ public class MEncoderVideo extends Player {
 				);
 			}
 
-			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
+			if (mediaRenderer.isTranscodeToH264()) {
+				encodeSettings += ":vbv_maxrate=" + defaultMaxBitrates[0] + ":vbv_bufsize=" + bufSize;
+			} else {
+				encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
+			}
 		}
 
 		return encodeSettings;
@@ -1136,6 +1140,12 @@ public class MEncoderVideo extends Player {
 		if (ac3Remux) {
 			channels = params.getAid().getAudioProperties().getNumberOfChannels(); // AC-3 remux
 		} else if (dtsRemux || encodedAudioPassthrough || (!params.getMediaRenderer().isXbox360() && wmv)) {
+			channels = 2;
+		} else if (
+			params.getAid().getAudioProperties().getNumberOfChannels() == 8 ||
+			params.getAid().isAAC()
+		) {
+			// MEncoder crashes when trying to downmix 7.1 AAC to 5.1 AC-3
 			channels = 2;
 		} else if (pcm) {
 			channels = params.getAid().getAudioProperties().getNumberOfChannels();
