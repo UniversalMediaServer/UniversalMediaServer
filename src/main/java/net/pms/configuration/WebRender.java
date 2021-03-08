@@ -295,7 +295,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		try {
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
-			slow = getInt(calculatedSpeed(), 0) < pmsConfiguration.getWebLowSpeed();
+			slow = calculatedSpeed() < pmsConfiguration.getWebLowSpeed();
 		} catch (Exception e) {
 		}
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));

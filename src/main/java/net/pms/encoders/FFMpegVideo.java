@@ -491,8 +491,8 @@ public class FFMpegVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		if (StringUtils.isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
+		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -526,7 +526,7 @@ public class FFMpegVideo extends Player {
 				defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 			}
 
-			if (params.getMediaRenderer().isHalveBitrate()) {
+			if (params.getMediaRenderer().isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
@@ -607,29 +607,35 @@ public class FFMpegVideo extends Player {
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
-			} else if (mpeg2Options.contains("Automatic")) {
-				boolean isWireless = mpeg2Options.contains("Wireless");
-				mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+			} else if (configuration.isAutomaticMaximumBitrate()) {
+				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
+				mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
 
-				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-				if (params.getMediaRenderer().isPS3()) {
-					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-				}
-
-				if (isWireless || maximumBitrate < 70) {
+			if (mpeg2Options.contains("Automatic")) {
+				if (mpeg2Options.contains("Wireless")) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
 					} else if (media.getWidth() > 720) {
 						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
 					}
+				} else if (params.getMediaRenderer().isPS3()) {
+					// It has been reported that non-PS3 renderers prefer -g 5 but prefer 25 for PS3 because it lowers the average bitrate
+					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
+				} else { // set the wired quality
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 				}
 			}
+
 			String[] customOptions = StringUtils.split(mpeg2Options);
 			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		} else {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
+			if (configuration.isAutomaticMaximumBitrate()) {
+				x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
 
 			// Remove comment from the value
 			if (x264CRF.contains("/*")) {

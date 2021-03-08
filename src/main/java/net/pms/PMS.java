@@ -475,6 +475,34 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 
+		// Show info that video automatic setting was improved and was not set in the wizard.
+		// This must be done before the frame is initialized to accept changes.
+		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting() && !configuration.isAutomaticMaximumBitrate()) {
+			// It will be shown only once
+			configuration.setShowInfoAboutVideoAutomaticSetting(false);
+			Object[] yesNoOptions = {
+					Messages.getString("Dialog.YES"),
+					Messages.getString("Dialog.NO")
+			};
+			// Ask if user wants to use automatic maximum bitrate
+			int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
+				null,
+				Messages.getString("ImprovedFeatureOptIn.AutomaticVideoQuality"),
+				Messages.getString("ImprovedFeatureOptIn.Title"),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				yesNoOptions,
+				yesNoOptions[0]
+			);
+
+			if (whetherToUseAutomaticMaximumBitrate == JOptionPane.YES_OPTION) {
+				configuration.setAutomaticMaximumBitrate(true);
+			} else if (whetherToUseAutomaticMaximumBitrate == JOptionPane.NO_OPTION) {
+				configuration.setAutomaticMaximumBitrate(false);
+			}
+		}
+
 		if (!isHeadless()) {
 			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
 		} else {
@@ -733,6 +761,7 @@ public class PMS {
 		});
 
 		configuration.setAutoSave();
+
 		UPNPHelper.sendByeBye();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
