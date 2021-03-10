@@ -154,6 +154,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return generalSettingsTab;
 	}
 
+	public void showWebUiButton() {
+		webinterface.setVisible(true);
+	}
+
 	public static void initializeLookAndFeel() {
 		synchronized (lookAndFeelInitializedLock) {
 			if (lookAndFeelInitialized) {
@@ -514,6 +518,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			});
 			webinterface.setToolTipText(Messages.getString("LooksFrame.30"));
 			webinterface.setEnabled(configuration.useWebInterface());
+			webinterface.setVisible(false);
 			toolBar.add(webinterface);
 			toolBar.addSeparator(new Dimension(20, 1));
 		}

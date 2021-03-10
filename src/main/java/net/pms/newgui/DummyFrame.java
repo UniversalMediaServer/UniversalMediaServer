@@ -75,6 +75,9 @@ public class DummyFrame implements IFrame {
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
 	}
+	@Override
+	public void showWebUiButton() {
+	}
 
 	public String getLog() {
 		return StringUtils.join(log, "\n");

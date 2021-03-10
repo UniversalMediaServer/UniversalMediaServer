@@ -550,6 +550,7 @@ public class PMS {
 		if (configuration.useWebInterface()) {
 			try {
 				web = new RemoteWeb(configuration.getWebPort());
+				frame.showWebUiButton();
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
