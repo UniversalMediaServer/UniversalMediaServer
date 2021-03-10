@@ -550,7 +550,6 @@ public class PMS {
 		if (configuration.useWebInterface()) {
 			try {
 				web = new RemoteWeb(configuration.getWebPort());
-				frame.showWebUiButton();
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
@@ -770,6 +769,7 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
+		frame.enableWebUiButton();
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {

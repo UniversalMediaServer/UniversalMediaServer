@@ -154,9 +154,9 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return generalSettingsTab;
 	}
 
-	public void showWebUiButton() {
+	public void enableWebUiButton() {
 		if (PMS.getConfiguration().useWebInterface()) {
-			webinterface.setVisible(true);
+			webinterface.setEnabled(true);
 		}
 	}
 
@@ -518,8 +518,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 					}
 				}
 			});
-			webinterface.setEnabled(configuration.useWebInterface());
-			webinterface.setVisible(false);
+			webinterface.setEnabled(false);
 			toolBar.add(webinterface);
 			toolBar.addSeparator(new Dimension(20, 1));
 		}
