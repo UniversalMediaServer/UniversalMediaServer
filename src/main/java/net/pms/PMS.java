@@ -694,6 +694,8 @@ public class PMS {
 		frame.serverReady();
 
 		ready = true;
+		frame.enableWebUiButton();
+
 		UPNPHelper.getInstance().createMulticastSocket();
 
 		// UPNPHelper.sendByeBye();
@@ -769,7 +771,6 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
-		frame.enableWebUiButton();
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {
