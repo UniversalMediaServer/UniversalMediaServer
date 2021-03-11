@@ -677,6 +677,7 @@ public class PMS {
 		}
 
 		if (web != null && web.getServer() != null) {
+			frame.enableWebUiButton();
 			LOGGER.info("Web interface is available at: " + web.getUrl());
 		}
 
@@ -692,9 +693,7 @@ public class PMS {
 		getRootFolder(RendererConfiguration.getDefaultConf());
 
 		frame.serverReady();
-
 		ready = true;
-		frame.enableWebUiButton();
 
 		UPNPHelper.getInstance().createMulticastSocket();
 
