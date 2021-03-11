@@ -1,3 +1,20 @@
+10.3.0 - 2021-03-
+
+	General:
+		Improved automatic maximum bandwidth setting and enabled it by default
+		Improved performance of browsing folders
+		Fixed being able to click the web interface button before it is browsable
+		Fixed matching and prettifying some TV episodes
+		Fixed binding to virtual network interfaces by default (can still be forced)
+	Renderers:
+		Added support for foobar2000 mobile (thanks, jps92!)
+		Fixed audio support on Bravia EX 500
+	Dependency updates:
+		Bump checkstyle from 8.40 to 8.41
+		Bump FFmpeg to latest
+		Bump thumbnailator from 0.4.13 to 0.4.14
+		Bump twelvemonkeys-imageio-version from 3.6.2 to 3.6.4
+
 10.2.0 - 2021-02-28
 
 	General:
