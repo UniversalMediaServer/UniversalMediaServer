@@ -416,6 +416,7 @@ Section "Uninstall"
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-TV-VLC.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Apple-TV-4K-VLC.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-VLC.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-VLC32bit.conf"
