@@ -199,6 +199,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String VIDEO = "Video";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
+	protected static final String DISABLE_UMS_RESUME = "DisableUmsResume";
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -1222,6 +1223,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isDisableMencoderNoskip() {
 		return getBoolean(DISABLE_MENCODER_NOSKIP, false);
+	}
+
+	public boolean disableUmsResume() {
+		return getBoolean(DISABLE_UMS_RESUME, false);
 	}
 
 	/**
