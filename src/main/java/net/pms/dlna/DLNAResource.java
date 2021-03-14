@@ -527,11 +527,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				boolean addResumeFile = false;
 				ResumeObj r = ResumeObj.create(child);
+
 				if (r != null) {
 					resumeRes = child.clone();
 					resumeRes.resume = r;
 					resumeRes.resHash = child.resHash;
-					addResumeFile = true;
+					if (!defaultRenderer.disableUmsResume()) {
+						addResumeFile = true;
+					}
 				}
 
 				if (child.format != null) {
