@@ -586,7 +586,14 @@ public class MEncoderVideo extends Player {
 		defaultArgsList.add("format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64");
 
 		defaultArgsList.add("-ovc");
-		defaultArgsList.add(ovccopy ? "copy" : "lavc");
+		String ovc = "lavc";
+		if (ovccopy) {
+			ovc = "copy";
+		}
+		if (isTranscodeToH264) {
+			ovc = "x264";
+		}
+		defaultArgsList.add(ovc);
 
 		String[] defaultArgsArray = new String[defaultArgsList.size()];
 		defaultArgsList.toArray(defaultArgsArray);
@@ -787,7 +794,11 @@ public class MEncoderVideo extends Player {
 				);
 			}
 
-			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
+			if (mediaRenderer.isTranscodeToH264()) {
+				encodeSettings += ":vbv_maxrate=" + defaultMaxBitrates[0] + ":vbv_bufsize=" + bufSize;
+			} else {
+				encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
+			}
 		}
 
 		return encodeSettings;
@@ -1130,6 +1141,12 @@ public class MEncoderVideo extends Player {
 			channels = params.getAid().getAudioProperties().getNumberOfChannels(); // AC-3 remux
 		} else if (dtsRemux || encodedAudioPassthrough || (!params.getMediaRenderer().isXbox360() && wmv)) {
 			channels = 2;
+		} else if (
+			params.getAid().getAudioProperties().getNumberOfChannels() == 8 ||
+			params.getAid().isAAC()
+		) {
+			// MEncoder crashes when trying to downmix 7.1 AAC to 5.1 AC-3
+			channels = 2;
 		} else if (pcm) {
 			channels = params.getAid().getAudioProperties().getNumberOfChannels();
 		} else {
@@ -1361,17 +1378,10 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
+				encodeSettings = "-lavcopts " + aspectRatioLavcopts + acodec + abitrate +
 					":threads=" + configuration.getMencoderMaxThreads();
 
-				// The options for lavc to pass to libx264
-				String osVersionRaw = System.getProperty("os.version");
-				Version osVersion = new Version(osVersionRaw);
-				encodeSettings += ":o=qcomp=0.6";
-				boolean isMacOSPreCatalina = Platform.isMac() && osVersion != null && osVersion.isLessThan(new Version("10.15"));
-				if (!isMacOSPreCatalina) {
-					encodeSettings += ",preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
-				}
+				encodeSettings += " -x264encopts crf=" + x264CRF + ":preset=ultrafast:level=31:threads=auto";
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.getMediaRenderer(), audioType);
 			}
