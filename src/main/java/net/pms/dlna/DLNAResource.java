@@ -525,16 +525,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				DLNAResource resumeRes = null;
 
-				boolean addResumeFile = false;
-				ResumeObj r = ResumeObj.create(child);
-
-				if (r != null) {
+				ResumeObj resumeObject = ResumeObj.create(child);
+				if (resumeObject != null && !defaultRenderer.disableUmsResume() && !defaultRenderer.isSamsung()) {
 					resumeRes = child.clone();
-					resumeRes.resume = r;
+					resumeRes.resume = resumeObject;
 					resumeRes.resHash = child.resHash;
-					if (!defaultRenderer.disableUmsResume()) {
-						addResumeFile = true;
-					}
 				}
 
 				if (child.format != null) {
@@ -669,7 +664,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
-				if (addResumeFile && resumeRes != null) {
+				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes, isAddGlobally);
 				}
