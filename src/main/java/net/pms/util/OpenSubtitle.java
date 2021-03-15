@@ -4901,18 +4901,19 @@ public class OpenSubtitle {
 	 */
 	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
 		final boolean overTheTopLogging = true;
-		if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
-			if (overTheTopLogging) {
-				LOGGER.trace("Metadata already exists for {}", file.getName());
-			}
-			return;
-		}
-
-		if (TableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath())) {
-			return;
-		}
 
 		Runnable r = () -> {
+			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
+				if (overTheTopLogging) {
+					LOGGER.trace("Metadata already exists for {}", file.getName());
+				}
+				return;
+			}
+
+			if (TableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath())) {
+				return;
+			}
+
 			frame.setStatusLine(Messages.getString("StatusBar.GettingAPIInfoFor") + " " + file.getName());
 			HashMap metadataFromAPI;
 			try {
