@@ -68,7 +68,7 @@ public class ApiHandler {
 				output.setStatus(HttpResponseStatus.UNAUTHORIZED);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.error("comparing api key failed: ", e);
+			LOGGER.error("comparing api key failed: " + e.getMessage());
 		}
 	}
 
