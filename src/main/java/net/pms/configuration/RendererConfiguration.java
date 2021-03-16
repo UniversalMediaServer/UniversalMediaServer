@@ -2968,7 +2968,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (videoBitDepth != null) {
 			String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
 			for (String supportedBitDepth : supportedBitDepths) {
-				if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+				if (Integer.parseInt(supportedBitDepth.trim()) == videoBitDepth) {
 					return true;
 				}
 			}
@@ -2986,11 +2986,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return whether this renderer supports streaming this video bit depth
 	 *         for all video formats.
 	 */
-	public boolean isVideoBitDepthSupportedForAllFiletypes(String videoBitDepth) {
+	public boolean isVideoBitDepthSupportedForAllFiletypes(Integer videoBitDepth) {
 		if (videoBitDepth != null) {
 			String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
 			for (String supportedBitDepth : supportedBitDepths) {
-				if (videoBitDepth.equals(supportedBitDepth.trim())) {
+				if (Integer.parseInt(supportedBitDepth.trim()) == videoBitDepth) {
 					return true;
 				}
 			}

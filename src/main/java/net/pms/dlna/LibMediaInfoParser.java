@@ -213,7 +213,6 @@ public class LibMediaInfoParser {
 						value = mI.Get(video, i, "BitDepth");
 						if (!value.isEmpty()) {
 							try {
-								media.putExtra(FormatConfiguration.MI_VBD, value);
 								media.setVideoBitDepth(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
 								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
