@@ -199,6 +199,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String VIDEO = "Video";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
+	protected static final String DISABLE_UMS_RESUME = "DisableUmsResume";
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -1224,6 +1225,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(DISABLE_MENCODER_NOSKIP, false);
 	}
 
+	public boolean disableUmsResume() {
+		return getBoolean(DISABLE_UMS_RESUME, false);
+	}
+
 	/**
 	 * This is used to determine whether transcoding engines can safely remux
 	 * video streams into the transcoding container instead of re-encoding
@@ -1829,23 +1834,29 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	/**
 	 * Returns the maximum bitrate (in megabits-per-second) supported by the
 	 * media renderer as defined in the renderer configuration. The default
-	 * value is "0" (unlimited).
+	 * value is 0 (unlimited).
 	 *
 	 * @return The bitrate.
 	 */
-	// TODO this should return an integer and the units should be bits-per-second
-	public String getMaxVideoBitrate() {
+	public int getMaxVideoBitrate() {
 		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
 			try {
-				return calculatedSpeed();
+				int calculatedSpeed = calculatedSpeed();
+				if (calculatedSpeed >= 70) { // this should be a wired connection
+					setAutomaticVideoQuality("Automatic (Wired)");
+				} else {
+					setAutomaticVideoQuality("Automatic (Wireless)");
+				}
+
+				return calculatedSpeed;
 			} catch (InterruptedException e) {
-				return "0";
+				return 0;
 			} catch (ExecutionException e) {
 				LOGGER.debug("Automatic maximum bitrate calculation failed with: {}", e.getCause().getMessage());
 				LOGGER.trace("", e.getCause());
 			}
 		}
-		return getString(MAX_VIDEO_BITRATE, "0");
+		return getInt(MAX_VIDEO_BITRATE, 0);
 	}
 
 	/**
@@ -1872,9 +1883,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		String maxVideoBitrate = getMaxVideoBitrate();
-		if (StringUtils.isNotEmpty(maxVideoBitrate)) {
-			rendererMaxBitrates = getVideoBitrateConfig(maxVideoBitrate);
+		int maxVideoBitrate = getMaxVideoBitrate();
+		if (maxVideoBitrate > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(maxVideoBitrate));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -2020,11 +2031,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				)
 			)
 		) {
+			LOGGER.trace("Resolution {}x{} is too high for this renderer, which supports up to {}x{}", width, height, getMaxVideoWidth(), getMaxVideoHeight());
 			return false;
 		}
 
 		// Check if the resolution is too low
 		if (!isRescaleByRenderer() && getMaxVideoWidth() < 720) {
+			LOGGER.trace("Resolution {}x{} is too low for this renderer");
 			return false;
 		}
 
@@ -2543,28 +2556,33 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
 	}
 
-	public String calculatedSpeed() throws InterruptedException, ExecutionException {
-		String max = getString(MAX_VIDEO_BITRATE, "");
+	/**
+	 * Returns the actual renderer network speed in Mbits/sec calculated from
+	 * the Ping response.
+	 *
+	 * @return the actual speed or the default MAX_VIDEO_BITRATE when the calculation fails.
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public int calculatedSpeed() throws InterruptedException, ExecutionException {
+		int max = getInt(MAX_VIDEO_BITRATE, 0);
 		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey());
 				if (speed != null) {
-					if (max == null) {
-						return String.valueOf(speed.get());
+					if (max == 0) {
+						return speed.get();
 					}
-					try {
-						Integer i = Integer.parseInt(max);
-						if (speed.get() > i && i > 0) {
-							return max;
-						}
-						return String.valueOf(speed.get());
-					} catch (NumberFormatException e) {
-						return String.valueOf(speed.get());
+
+					if (speed.get() > max && max > 0) {
+						return max;
 					}
+
+					return speed.get();
 				}
 			}
 		}
-		return isBlank(max) ? "0" : max;
+		return max;
 	}
 
 	/**
@@ -2983,5 +3001,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isRemoveTagsFromSRTsubs() {
 		return getBoolean(REMOVE_TAGS_FROM_SRT_SUBS, true);
+	}
+
+	private String automaticVideoQuality;
+	private void setAutomaticVideoQuality(String value) {
+		automaticVideoQuality = value;
+	}
+
+	public String getAutomaticVideoQuality() {
+		return automaticVideoQuality;
 	}
 }
