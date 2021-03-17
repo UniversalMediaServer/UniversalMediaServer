@@ -483,7 +483,7 @@ public class FormatConfiguration {
 			}
 
 			if (videoBitDepth > 0) {
-				if (miExtras != null && !miExtras.get(MI_VBD).matcher(Integer.toString(videoBitDepth)).matches()) {
+				if (miExtras != null && miExtras.get(MI_VBD) != null && !miExtras.get(MI_VBD).matcher(Integer.toString(videoBitDepth)).matches()) {
 					LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", videoBitDepth, supportLine);
 					return false;
 				} else if (!(renderer != null && renderer.isVideoBitDepthSupportedForAllFiletypes(videoBitDepth))) {
@@ -709,9 +709,9 @@ public class FormatConfiguration {
 				audio.getAudioProperties().getNumberOfChannels(),
 				audio.getSampleRate(),
 				media.getBitrate(),
+				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				frameRate,
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
