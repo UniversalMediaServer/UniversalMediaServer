@@ -516,25 +516,24 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (extras != null) {
+			if (extras != null && miExtras != null) {
 				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();
 				while (keyIt.hasNext()) {
 					String key = keyIt.next().getKey();
 					String value = extras.get(key).toLowerCase();
 
-					if (key.equals(MI_QPEL) && miExtras != null && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
+					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
 						LOGGER.trace("QPel value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 
-					if (key.equals(MI_GMC) && miExtras != null && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
+					if (key.equals(MI_GMC) && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
 						LOGGER.trace("GMC value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 
 					if (
 						key.equals(MI_GOP) &&
-						miExtras != null &&
 						miExtras.get(MI_GOP) != null &&
 						miExtras.get(MI_GOP).matcher("static").matches() &&
 						value.equals("variable")
