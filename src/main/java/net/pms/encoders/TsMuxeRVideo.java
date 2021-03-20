@@ -158,7 +158,7 @@ public class TsMuxeRVideo extends Player {
 			height = -1;
 		}
 
-		String videoType = "V_MPEG4/ISO/AVC"; // default also for TsMuxerAudio
+		String videoType = "V_MPEG4/ISO/AVC";
 		String codecV = media.getCodecV();
 		if (codecV != null) {
 			if (codecV.startsWith("mpeg2")) {
@@ -195,6 +195,8 @@ public class TsMuxeRVideo extends Player {
 				"-y",
 				ffVideoPipe.getInputPipe()
 			};
+
+			videoType = "V_MPEG4/ISO/AVC";
 
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.setMaxBufferSize(1);
