@@ -161,8 +161,8 @@ public class TsMuxeRVideo extends Player {
 
 		String videoType = "V_MPEG4/ISO/AVC";
 		String codecV = media.getCodecV();
-		if (codecV != null) {
-			if (codecV.startsWith("mpeg2")) {
+		if (codecV != null && configuration.isUseMediaInfo()) {
+			if (codecV.equals(FormatConfiguration.MPEG2)) {
 				videoType = "V_MPEG-2";
 			} else if (codecV.equals(FormatConfiguration.H265)) {
 				videoType = "V_MPEGH/ISO/HEVC";
