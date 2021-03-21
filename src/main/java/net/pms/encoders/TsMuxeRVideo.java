@@ -44,6 +44,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.ExecutableInfo;
 import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.configuration.ExternalProgramInfo;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -159,8 +160,13 @@ public class TsMuxeRVideo extends Player {
 		}
 
 		String videoType = "V_MPEG4/ISO/AVC";
-		if (media.getCodecV() != null && media.getCodecV().startsWith("mpeg2")) {
-			videoType = "V_MPEG-2";
+		String codecV = media.getCodecV();
+		if (codecV != null) {
+			if (codecV.equals(FormatConfiguration.MPEG2)) {
+				videoType = "V_MPEG-2";
+			} else if (codecV.equals(FormatConfiguration.H265)) {
+				videoType = "V_MPEGH/ISO/HEVC";
+			}
 		}
 
 		boolean aacTranscode = false;
