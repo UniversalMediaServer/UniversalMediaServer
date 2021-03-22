@@ -182,31 +182,36 @@ public class SpeedStats {
 			Thread failsafe = new Thread(r, "SpeedStats Failsafe");
 			failsafe.start();
 			pw.runInSameThread();
-			List<String> ls = pw.getOtherResults();
 			double time = 0;
-			int c = 0;
-			String timeString;
+			if (pw.isSuccess()) { // return Ping time only when process wrapper error was not raised
+				List<String> ls = pw.getOtherResults();
+				int c = 0;
+				String timeString;
 
-			for (String line : ls) {
-				timeString = sysUtil.parsePingLine(line);
-				if (timeString == null) {
-					continue;
+				for (String line : ls) {
+					timeString = sysUtil.parsePingLine(line);
+					if (timeString == null) {
+						continue;
+					}
+					try {
+						time += Double.parseDouble(timeString);
+						c++;
+					} catch (NumberFormatException e) {
+						// no big deal
+						LOGGER.debug("Could not estimate network speed from time: \"" + timeString + "\"");
+					}
 				}
-				try {
-					time += Double.parseDouble(timeString);
-					c++;
-				} catch (NumberFormatException e) {
-					// no big deal
-					LOGGER.debug("Could not estimate network speed from time: \"" + timeString + "\"");
+
+				if (c > 0) {
+					time /= c;
+					int frags = sysUtil.getPingPacketFragments(size);
+					LOGGER.debug("Estimated speed from ICMP packet size {} in {} fragment(s) is {} bit/s", size, frags, ((size + 8 + (frags * 32)) * 8000 * 2) / time);
+					return ((size + 8 + (frags * 32)) * 8000 * 2) / time;
 				}
+
+				return time;
 			}
 
-			if (c > 0) {
-				time /= c;
-				int frags = sysUtil.getPingPacketFragments(size);
-				LOGGER.debug("Estimated speed from ICMP packet size {} in {} fragment(s) is {} bit/s", size, frags, ((size + 8 + (frags * 32)) * 8000 * 2) / time);
-				return ((size + 8 + (frags * 32)) * 8000 * 2) / time;
-			}
 			return time;
 		}
 	}
