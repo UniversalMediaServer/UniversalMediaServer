@@ -241,6 +241,22 @@ public class RendererConfigurationTest {
 			"Samsung QLED 4K 2019+",
 			"modelName=UE43RU7179UXZG"
 		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=GQ43LS03TAUXZG"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QE43LS03TAUXXH"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QE55LS03RAUXXH"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QN32LS03TBFXZA"
+		);
 
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
 
