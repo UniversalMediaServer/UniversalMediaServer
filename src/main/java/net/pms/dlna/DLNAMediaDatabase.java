@@ -661,10 +661,10 @@ public class DLNAMediaDatabase implements Runnable {
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
-	
+
 				// This needs to happen outside of the readLock because deleteRowsInTable has a writeLock
 				if (!externalFileReferencesToRemove.isEmpty()) {
-					for (String externalFileReferenceToRemove : externalFileReferencesToRemove) { 
+					for (String externalFileReferenceToRemove : externalFileReferencesToRemove) {
 						LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFileReferenceToRemove);
 						deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFileReferenceToRemove, false);
 						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
