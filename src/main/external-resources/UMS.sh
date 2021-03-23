@@ -38,8 +38,8 @@ if [ "x$JAVA" = "x" ]; then
 fi
 
 # Use our JVM if it exists
-if [ -f jre15/bin/java ]; then
-    JAVA="jre15/bin/java"
+if [ -f jre16/bin/java ]; then
+    JAVA="jre16/bin/java"
 fi
 
 # Setup the classpath
