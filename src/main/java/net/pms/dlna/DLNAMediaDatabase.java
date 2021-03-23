@@ -536,6 +536,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 */
 	public DLNAMediaInfo getData(String name, long modified) throws IOException, SQLException {
 		DLNAMediaInfo media = null;
+		ArrayList<String> externalFileReferencesToRemove = new ArrayList();
 		try (Connection conn = getConnection()) {
 			TABLE_LOCK.readLock().lock();
 			try (
@@ -632,8 +633,7 @@ public class DLNAMediaDatabase implements Runnable {
 								String fileName = elements.getString("EXTERNALFILE");
 								File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
 								if (externalFile != null && !externalFile.exists()) {
-									LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFile.getPath());
-									deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFile.getPath(), false);
+									externalFileReferencesToRemove.add(externalFile.getPath());
 									continue;
 								}
 
@@ -661,6 +661,15 @@ public class DLNAMediaDatabase implements Runnable {
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
+	
+				// This needs to happen outside of the readLock because deleteRowsInTable has a writeLock
+				if (!externalFileReferencesToRemove.isEmpty()) {
+					for (String externalFileReferenceToRemove : externalFileReferencesToRemove) { 
+						LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFileReferenceToRemove);
+						deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFileReferenceToRemove, false);
+						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
+					}
+				}
 			}
 		} catch (SQLException se) {
 			if (se.getCause() != null && se.getCause() instanceof IOException) {
