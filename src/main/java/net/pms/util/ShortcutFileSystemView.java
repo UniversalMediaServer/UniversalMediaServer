@@ -2,8 +2,8 @@ package net.pms.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import javax.swing.filechooser.FileSystemView;
-import sun.awt.shell.ShellFolder;
 
 public class ShortcutFileSystemView extends FileSystemView {
 	/**
@@ -15,11 +15,8 @@ public class ShortcutFileSystemView extends FileSystemView {
 	 */
 	@Override
 	public boolean isFileSystem(File file) {
-		if (file instanceof ShellFolder) {
-			ShellFolder sf = (ShellFolder) file;
-			if (sf.isLink()) {
-				return true;
-			}
+		if (file.isDirectory() && Files.isSymbolicLink(file.toPath())) {
+			return true;
 		}
 		return super.isFileSystem(file);
 	}
