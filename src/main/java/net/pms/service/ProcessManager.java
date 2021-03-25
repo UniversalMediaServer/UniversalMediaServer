@@ -323,25 +323,13 @@ public class ProcessManager {
 	 * @param process the {@link Process} for whose PID to retrieve.
 	 * @return The PID or zero if the PID couldn't be retrieved.
 	 */
-	public static int getProcessId(@Nullable Process process) {
+	public static long getProcessId(@Nullable Process process) {
 		if (process == null) {
 			return 0;
 		}
+
 		try {
-			Field field;
-			if (Platform.isWindows()) {
-				field = process.getClass().getDeclaredField("handle");
-				field.setAccessible(true);
-				int pid = Kernel32.INSTANCE.GetProcessId(new HANDLE(new Pointer(field.getLong(process))));
-				if (pid == 0 && LOGGER.isDebugEnabled()) {
-					int lastError = Kernel32.INSTANCE.GetLastError();
-					LOGGER.debug("KERNEL32.getProcessId() failed with error {}", lastError);
-				}
-				return pid;
-			}
-			field = process.getClass().getDeclaredField("pid");
-			field.setAccessible(true);
-			return field.getInt(process);
+			return process.pid();
 		} catch (Exception e) {
 			LOGGER.warn("Failed to get process id for process \"{}\": {}", process, e.getMessage());
 			LOGGER.trace("", e);
@@ -417,7 +405,7 @@ public class ProcessManager {
 			HANDLE hProc = Kernel32.INSTANCE.OpenProcess(
 				Kernel32.SYNCHRONIZE | Kernel32.PROCESS_TERMINATE,
 				false,
-				processInfo.getPID()
+				(int) processInfo.getPID()
 			);
 			if (hProc == null) {
 				if (LOGGER.isTraceEnabled()) {
@@ -432,7 +420,7 @@ public class ProcessManager {
 			final Memory posted = new Memory(1);
 			posted.setByte(0, (byte) 0);
 			Memory dwPID = new Memory(4);
-			dwPID.setInt(0, processInfo.getPID());
+			dwPID.setInt(0, (int) processInfo.getPID());
 			User32.INSTANCE.EnumWindows(new WNDENUMPROC() {
 
 				@Override
@@ -486,7 +474,7 @@ public class ProcessManager {
 			HANDLE hProc = Kernel32.INSTANCE.OpenProcess(
 				Kernel32.PROCESS_TERMINATE,
 				false,
-				processInfo.getPID()
+				(int) processInfo.getPID()
 			);
 			if (hProc == null) {
 				if (LOGGER.isTraceEnabled()) {
@@ -534,7 +522,7 @@ public class ProcessManager {
 			}
 			ProcessBuilder processBuilder = new ProcessBuilder(
 				PlatformProgramPaths.get().getCtrlSender().toString(),
-				Integer.toString(processInfo.getPID()),
+				Long.toString(processInfo.getPID()),
 				Integer.toString(ctrlEvent)
 			);
 			processBuilder.redirectErrorStream(true);
@@ -598,7 +586,7 @@ public class ProcessManager {
 			ProcessBuilder processBuilder = new ProcessBuilder(
 				PlatformProgramPaths.get().getTaskKill().toString(),
 				"/PID",
-				Integer.toString(processInfo.getPID())
+				Long.toString(processInfo.getPID())
 			);
 			processBuilder.redirectErrorStream(true);
 			try {
@@ -660,7 +648,7 @@ public class ProcessManager {
 			ProcessBuilder processBuilder = new ProcessBuilder(
 				"kill",
 				"-" + signal.getValue(),
-				Integer.toString(processInfo.getPID())
+				Long.toString(processInfo.getPID())
 			);
 			processBuilder.redirectErrorStream(true);
 			try {
@@ -1208,7 +1196,7 @@ public class ProcessManager {
 		protected final String processName;
 
 		/** The process ID for the {@link Process} */
-		protected final int pid;
+		protected final long pid;
 
 		/** The termination timeout in milliseconds */
 		protected long terminateTimeoutMS;
@@ -1256,7 +1244,7 @@ public class ProcessManager {
 		/**
 		 * @return The process ID.
 		 */
-		public int getPID() {
+		public long getPID() {
 			return pid;
 		}
 
