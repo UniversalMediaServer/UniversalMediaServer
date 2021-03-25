@@ -3376,7 +3376,7 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jre/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-16.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
@@ -3574,7 +3574,7 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-15.jre/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/adoptopenjdk-16.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
