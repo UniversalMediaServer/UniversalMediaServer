@@ -1,3 +1,20 @@
+10.4.1 - 2021-03-26
+
+	General:
+		Fixed broken transcoding for some users
+		Fixed file scanner freezing on some files with external subtitles
+		Fixed support for HEVC (H.265) via tsMuxeR
+	Renderers:
+		Fixed detection of some Samsung 4K (UHD) TVs (thanks, jkl16!)
+	Translation updates via Crowdin:
+		Dutch (100%) (thanks, johnnygood!)
+		German (100%) (thanks, pipin!)
+		Korean (99%) (thanks, VenusGirl!)
+		Norwegian (85%) (thanks, nhanssen88!)
+		Spanish (100%) (thanks, Julio Alberto García!)
+	Dependencies:
+		Bump spotbugs-maven-plugin from 4.2.0 to 4.2.2
+
 10.4.0 - 2021-03-19
 
 	General:
