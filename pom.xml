@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.4.1</version>
+	<version>10.4.2-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.4.1</project.version.short>
+		<project.version.short>10.4.2</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
