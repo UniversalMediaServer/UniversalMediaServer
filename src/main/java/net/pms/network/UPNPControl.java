@@ -160,6 +160,7 @@ public class UPNPControl {
 		public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
 		public volatile PanasonicDmpProfiles panasonicDmpProfiles;
 		public boolean isGetPositionInfoImplemented = true;
+		private int countGetPositionRequests = 0;
 
 		public Renderer(String uuid) {
 			this();
@@ -720,6 +721,7 @@ public class UPNPControl {
 			// Don't spam the log with the GetPositionInfo because it is not important.
 			// The UMS is using it only to show the current state of the media playing.
 			boolean isNotGetPositionInfoRequest = !action.equals("GetPositionInfo");
+			
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
 				a.setInput("InstanceID", instanceID);
@@ -729,6 +731,7 @@ public class UPNPControl {
 				if (isNotGetPositionInfoRequest) {
 					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
 				}
+
 				new ActionCallback(a, upnpService.getControlPoint()) {
 					@Override
 					public void success(ActionInvocation invocation) {
@@ -748,14 +751,17 @@ public class UPNPControl {
 							// Don't mark the renderer false when there is an error
 							// in the GetPositionInfo. It could be wrong implementation
 							// in the renderer.
-							if (isNotGetPositionInfoRequest) {
+							if (isNotGetPositionInfoRequest ) {
 								rendererMap.mark(uuid, ACTIVE, false);
 							}
 						}
 
 						if (!isNotGetPositionInfoRequest && renderer != null && renderer.isGetPositionInfoImplemented) {
-							renderer.isGetPositionInfoImplemented = false;
-							LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable checking it.", renderer);
+							renderer.countGetPositionRequests++;
+							if (renderer.countGetPositionRequests > 3) {
+								renderer.isGetPositionInfoImplemented = false;
+								LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable checking it.", renderer);
+							}
 						}
 					}
 				}.run();
