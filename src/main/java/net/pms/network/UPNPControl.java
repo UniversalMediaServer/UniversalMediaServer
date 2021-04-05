@@ -204,14 +204,15 @@ public class UPNPControl {
 				while (active && !"STOPPED".equals(data.get("TransportState"))) {
 					sleep(1000);
 					// if (DEBUG) LOGGER.debug("InstanceID: " + id);
-					for (ActionArgumentValue o : getPositionInfo(d, id, this)) {
-						if (isGetPositionInfoImplemented) {
+					// Don't send the GetPositionRequest when renderer doesn't support it
+					if (isGetPositionInfoImplemented) {
+						for (ActionArgumentValue o : getPositionInfo(d, id, this)) {
 							data.put(o.getArgument().getName(), o.toString());
 							// if (DEBUG) LOGGER.debug(o.getArgument().getName() +
 							// ": " + o.toString());
 						}
+						alert();
 					}
-					alert();
 				}
 				if (!active) {
 					data.put("TransportState", "STOPPED");
@@ -740,7 +741,7 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						// Show all failures and the GetPositionInfo first occurrence
+						// Show all failures and the GetPositionInfo first three occurrence
 						// and than set the isGetPositionInfoImplemented to false.
 						if (isNotGetPositionInfoRequest || (!isNotGetPositionInfoRequest && renderer != null && renderer.isGetPositionInfoImplemented)) {
 							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
@@ -758,9 +759,9 @@ public class UPNPControl {
 
 						if (!isNotGetPositionInfoRequest && renderer != null && renderer.isGetPositionInfoImplemented) {
 							renderer.countGetPositionRequests++;
-							if (renderer.countGetPositionRequests > 3) {
+							if (renderer.countGetPositionRequests > 2) { // check the renderer GetPositionRequest capability three times
 								renderer.isGetPositionInfoImplemented = false;
-								LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable checking it.", renderer);
+								LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable using it.", renderer);
 							}
 						}
 					}
