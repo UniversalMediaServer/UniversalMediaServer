@@ -721,7 +721,7 @@ public class UPNPControl {
 			// Don't spam the log with the GetPositionInfo because it is not important.
 			// The UMS is using it only to show the current state of the media playing.
 			boolean isNotGetPositionInfoRequest = !action.equals("GetPositionInfo");
-			
+
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
 				a.setInput("InstanceID", instanceID);
@@ -751,7 +751,7 @@ public class UPNPControl {
 							// Don't mark the renderer false when there is an error
 							// in the GetPositionInfo. It could be wrong implementation
 							// in the renderer.
-							if (isNotGetPositionInfoRequest ) {
+							if (isNotGetPositionInfoRequest) {
 								rendererMap.mark(uuid, ACTIVE, false);
 							}
 						}
