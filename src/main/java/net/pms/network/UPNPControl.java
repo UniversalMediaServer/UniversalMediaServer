@@ -204,7 +204,7 @@ public class UPNPControl {
 				while (active && !"STOPPED".equals(data.get("TransportState"))) {
 					sleep(1000);
 					// if (DEBUG) LOGGER.debug("InstanceID: " + id);
-					// Don't send the GetPositionRequest when renderer doesn't support it
+					// Send the GetPositionRequest only when renderer supports it
 					if (isGetPositionInfoImplemented) {
 						for (ActionArgumentValue o : getPositionInfo(d, id, this)) {
 							data.put(o.getArgument().getName(), o.toString());
