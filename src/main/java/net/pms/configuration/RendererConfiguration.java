@@ -2968,7 +2968,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (videoBitDepth != null) {
 			String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
 			for (String supportedBitDepth : supportedBitDepths) {
-				if (Integer.toString(videoBitDepth).equals(supportedBitDepth.trim())) {
+				if (Integer.parseInt(supportedBitDepth.trim()) == videoBitDepth) {
 					return true;
 				}
 			}
@@ -2976,6 +2976,27 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		LOGGER.trace("Checking whether the video bit depth " + (videoBitDepth != null ? videoBitDepth : "null") + " matches any 'vbd' entries in the 'Supported' lines");
 		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
+	}
+
+	/**
+	 * Note: This can return false even when the renderer config has defined
+	 * support for the bit depth for individual filetypes.
+	 *
+	 * @param videoBitDepth the video bit depth to check for.
+	 * @return whether this renderer supports streaming this video bit depth
+	 *         for all video formats.
+	 */
+	public boolean isVideoBitDepthSupportedForAllFiletypes(Integer videoBitDepth) {
+		if (videoBitDepth != null) {
+			String[] supportedBitDepths = getSupportedVideoBitDepths().split(",");
+			for (String supportedBitDepth : supportedBitDepths) {
+				if (Integer.parseInt(supportedBitDepth.trim()) == videoBitDepth) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public boolean isRemoveTagsFromSRTsubs() {

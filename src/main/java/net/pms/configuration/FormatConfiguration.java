@@ -347,7 +347,7 @@ public class FormatConfiguration {
 		}
 
 		public boolean match(String container, String videoCodec, String audioCodec) {
-			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, null, null, false, null);
+			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, 0, null, null, false, null);
 		}
 
 		public boolean match(DLNAResource dlna) {
@@ -363,6 +363,7 @@ public class FormatConfiguration {
 					0,
 					0,
 					iMaxBitrate,
+					media.getVideoBitDepth(),
 					null,
 					dlna.getMediaSubtitle().getType().getExtension(),
 					dlna.getMediaSubtitle().isExternal(),
@@ -375,10 +376,11 @@ public class FormatConfiguration {
 
 		/**
 		 * Determine whether or not the provided parameters match the
-		 * "Supported" lines for this configuration. If a parameter is null
-		 * or 0, its value is skipped for making the match. If any of the
-		 * non-null parameters does not match, false is returned. For example,
-		 * assume a configuration that contains only the following line:
+		 * "Supported" lines for this configuration, or the related settings.
+		 * If a parameter is null or 0, its value is skipped for making the
+		 * match. If any of the non-null parameters does not match, false is
+		 * returned.
+		 * For example, assume a configuration that contains only the following line:
 		 *
 		 * <blockquote><pre>
 		 * 	Supported = f:mp4 n:2 se:SUBRIP
@@ -400,9 +402,14 @@ public class FormatConfiguration {
 		 * @param framerate
 		 * @param videoWidth
 		 * @param videoHeight
-		 * @param extras
+		 * @param videoBitDepth
+		 * @param extras map containing 0 or more key/value pairs for:
+		 *               - qpel
+		 *               - gmc
+		 *               - gop
 		 * @param subsFormat
 		 * @param isExternalSubs
+		 * @param renderer
 		 * @return False if any of the provided non-null parameters is not a
 		 * 			match, true otherwise.
 		 */
@@ -416,6 +423,7 @@ public class FormatConfiguration {
 			int framerate,
 			int videoWidth,
 			int videoHeight,
+			int videoBitDepth,
 			Map<String, String> extras,
 			String subsFormat,
 			boolean isExternalSubs,
@@ -474,6 +482,16 @@ public class FormatConfiguration {
 				return false;
 			}
 
+			if (videoBitDepth > 0) {
+				if (miExtras != null && miExtras.get(MI_VBD) != null && !miExtras.get(MI_VBD).matcher(Integer.toString(videoBitDepth)).matches()) {
+					LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", videoBitDepth, supportLine);
+					return false;
+				} else if (!(renderer != null && renderer.isVideoBitDepthSupportedForAllFiletypes(videoBitDepth))) {
+					LOGGER.trace("The video bit depth \"{}\" is not supported for this filetype, or all filetypes", videoBitDepth);
+					return false;
+				}
+			}
+
 			if (subsFormat != null) {
 				if (isExternalSubs) {
 					if (supportedExternalSubtitlesFormats == null || !subsFormat.matches(supportedExternalSubtitlesFormats)) {
@@ -503,11 +521,6 @@ public class FormatConfiguration {
 				while (keyIt.hasNext()) {
 					String key = keyIt.next().getKey();
 					String value = extras.get(key).toLowerCase();
-
-					if (key.equals(MI_VBD) && miExtras.get(MI_VBD) != null && !miExtras.get(MI_VBD).matcher(value).matches()) {
-						LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", value, supportLine);
-						return false;
-					}
 
 					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
 						LOGGER.trace("QPel value \"{}\" failed to match support line {}", value, supportLine);
@@ -647,6 +660,7 @@ public class FormatConfiguration {
 				frameRate,
 				media.getWidth(),
 				media.getHeight(),
+				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
@@ -676,6 +690,7 @@ public class FormatConfiguration {
 				frameRate,
 				media.getWidth(),
 				media.getHeight(),
+				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
@@ -693,9 +708,10 @@ public class FormatConfiguration {
 				audio.getAudioProperties().getNumberOfChannels(),
 				audio.getSampleRate(),
 				media.getBitrate(),
+				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				frameRate,
+				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
@@ -715,6 +731,7 @@ public class FormatConfiguration {
 			container,
 			videoCodec,
 			audioCodec,
+			0,
 			0,
 			0,
 			0,
@@ -750,6 +767,7 @@ public class FormatConfiguration {
 			0,
 			0,
 			0,
+			media.getVideoBitDepth(),
 			null,
 			params.getSid().getType().name(),
 			params.getSid().isExternal(),
@@ -767,6 +785,7 @@ public class FormatConfiguration {
 		int framerate,
 		int videoWidth,
 		int videoHeight,
+		int videoBitDepth,
 		Map<String, String> extras,
 		String subsFormat,
 		boolean isInternal,
@@ -785,6 +804,7 @@ public class FormatConfiguration {
 				framerate,
 				videoWidth,
 				videoHeight,
+				videoBitDepth,
 				extras,
 				subsFormat,
 				isInternal,
