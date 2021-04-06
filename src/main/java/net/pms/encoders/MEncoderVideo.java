@@ -586,7 +586,14 @@ public class MEncoderVideo extends Player {
 		defaultArgsList.add("format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64");
 
 		defaultArgsList.add("-ovc");
-		defaultArgsList.add(ovccopy ? "copy" : "lavc");
+		String ovc = "lavc";
+		if (ovccopy) {
+			ovc = "copy";
+		}
+		if (isTranscodeToH264) {
+			ovc = "x264";
+		}
+		defaultArgsList.add(ovc);
 
 		String[] defaultArgsArray = new String[defaultArgsList.size()];
 		defaultArgsList.toArray(defaultArgsArray);
@@ -691,8 +698,8 @@ public class MEncoderVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		if (isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
+		if (mediaRenderer.getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(mediaRenderer.getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -716,7 +723,7 @@ public class MEncoderVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			if (mediaRenderer.isHalveBitrate()) {
+			if (mediaRenderer.isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
@@ -787,7 +794,11 @@ public class MEncoderVideo extends Player {
 				);
 			}
 
-			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
+			if (mediaRenderer.isTranscodeToH264()) {
+				encodeSettings += ":vbv_maxrate=" + defaultMaxBitrates[0] + ":vbv_bufsize=" + bufSize;
+			} else {
+				encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
+			}
 		}
 
 		return encodeSettings;
@@ -1130,6 +1141,12 @@ public class MEncoderVideo extends Player {
 			channels = params.getAid().getAudioProperties().getNumberOfChannels(); // AC-3 remux
 		} else if (dtsRemux || encodedAudioPassthrough || (!params.getMediaRenderer().isXbox360() && wmv)) {
 			channels = 2;
+		} else if (
+			params.getAid().getAudioProperties().getNumberOfChannels() == 8 ||
+			params.getAid().isAAC()
+		) {
+			// MEncoder crashes when trying to downmix 7.1 AAC to 5.1 AC-3
+			channels = 2;
 		} else if (pcm) {
 			channels = params.getAid().getAudioProperties().getNumberOfChannels();
 		} else {
@@ -1241,8 +1258,8 @@ public class MEncoderVideo extends Player {
 			int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 			int[] rendererMaxBitrates = new int[2];
 
-			if (isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
-				rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
+			if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
+				rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
 			}
 
 			if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
@@ -1302,23 +1319,29 @@ public class MEncoderVideo extends Player {
 						mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
 					}
 
-					// Determine a good quality setting based on video attributes
+					// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
+					if (configuration.isAutomaticMaximumBitrate()) {
+						mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
+					}
+
 					if (mpeg2Options.contains("Automatic")) {
-						mpeg2Options = "keyint=5:vqscale=1:vqmin=2:vqmax=3";
-
-						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-						if (params.getMediaRenderer().isPS3()) {
-							mpeg2Options = "keyint=25:vqscale=1:vqmin=2:vqmax=3";
-						}
-
-						if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
+						if (mpeg2Options.contains("Wireless")) {
 							// Lower quality for 720p+ content
 							if (media.getWidth() > 1280) {
-								mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
+								mpeg2Options = "keyint=25:vqmin=2:vqmax=7";
 							} else if (media.getWidth() > 720) {
-								mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
+								mpeg2Options = "keyint=25:vqmin=2:vqmax=5";
+							} else {
+								mpeg2Options = "keyint=25:vqmin=2:vqmax=3";
 							}
+						} else { // set the automatic wired quality
+							mpeg2Options = "keyint=5:vqscale=1:vqmin=2:vqmax=3";
 						}
+					}
+
+					if (params.getMediaRenderer().isPS3()) {
+						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer 25 for PS3 because it lowers the average bitrate
+						mpeg2Options = "keyint=25:vqscale=1:vqmin=2:vqmax=3";
 					}
 				}
 
@@ -1330,6 +1353,9 @@ public class MEncoderVideo extends Player {
 			} else if (configuration.getx264ConstantRateFactor() != null && isTranscodeToH264) {
 				// Set H.264 video quality
 				String x264CRF = configuration.getx264ConstantRateFactor();
+				if (configuration.isAutomaticMaximumBitrate()) {
+					x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
+				}
 
 				// Remove comment from the value
 				if (x264CRF.contains("/*")) {
@@ -1338,7 +1364,7 @@ public class MEncoderVideo extends Player {
 
 				// Determine a good quality setting based on video attributes
 				if (x264CRF.contains("Automatic")) {
-					if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
+					if (x264CRF.contains("Wireless")) {
 						x264CRF = "19";
 						// Lower quality for 720p+ content
 						if (media.getWidth() > 1280) {
@@ -1356,17 +1382,10 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				encodeSettings = "-lavcopts " + aspectRatioLavcopts + vcodecString + acodec + abitrate +
+				encodeSettings = "-lavcopts " + aspectRatioLavcopts + acodec + abitrate +
 					":threads=" + configuration.getMencoderMaxThreads();
 
-				// The options for lavc to pass to libx264
-				String osVersionRaw = System.getProperty("os.version");
-				Version osVersion = new Version(osVersionRaw);
-				encodeSettings += ":o=qcomp=0.6";
-				boolean isMacOSPreCatalina = Platform.isMac() && osVersion != null && osVersion.isLessThan(new Version("10.15"));
-				if (!isMacOSPreCatalina) {
-					encodeSettings += ",preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,level=3.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
-				}
+				encodeSettings += " -x264encopts crf=" + x264CRF + ":preset=ultrafast:level=31:threads=auto";
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.getMediaRenderer(), audioType);
 			}

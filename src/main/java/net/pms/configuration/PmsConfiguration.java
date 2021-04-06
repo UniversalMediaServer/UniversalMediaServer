@@ -362,6 +362,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_WIDTH = "web_width";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
+	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
 	protected static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
@@ -4705,7 +4707,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
-		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
+		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, true);
 	}
 
 	public void setAutomaticMaximumBitrate(boolean b) {
@@ -4905,6 +4907,18 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getAliveDelay() {
 		return getInt(KEY_ALIVE_DELAY, 0);
+	}
+
+	/**
+	 * This will show the info display informing user that automatic
+	 * video setting were updated and is highly recommended.
+	 */
+	public boolean showInfoAboutVideoAutomaticSetting() {
+		return getBoolean(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, true);
+	}
+
+	public void setShowInfoAboutVideoAutomaticSetting(boolean value) {
+		configuration.setProperty(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, value);
 	}
 
 	/**

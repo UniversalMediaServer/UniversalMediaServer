@@ -26,7 +26,6 @@ import com.sun.jna.Platform;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -198,15 +197,8 @@ public class VLCVideo extends Player {
 		}
 		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
-		/**
-		// Audio sample rate handling
-		if (sampleRateOverride.isSelected()) {
-			codecConfig.sampleRate = Integer.valueOf(sampleRate.getText());
-		}
-		*/
-
 		// This has caused garbled audio, so only enable when told to
-		if (audioSyncEnabled.isSelected()) {
+		if (configuration.isVlcAudioSyncEnabled()) {
 			codecConfig.extraTrans.put("audio-sync", "");
 		}
 		return codecConfig;
@@ -326,8 +318,8 @@ public class VLCVideo extends Player {
 
 		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		if (StringUtils.isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
+		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -346,7 +338,7 @@ public class VLCVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			if (params.getMediaRenderer().isHalveBitrate()) {
+			if (params.getMediaRenderer().isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 			}
 
@@ -416,28 +408,39 @@ public class VLCVideo extends Player {
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
-			} else if (mpeg2Options.contains("Automatic")) {
-				mpeg2Options = "--sout-x264-keyint 5 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
+			} else if (configuration.isAutomaticMaximumBitrate()) {
+				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
+				mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
 
-				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-				if (params.getMediaRenderer().isPS3()) {
-					mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
-				}
-
-				if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+			if (mpeg2Options.contains("Automatic")) {
+				if (mpeg2Options.contains("Wireless")) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qmin 2 --sout-avcodec-qmax 7";
 					} else if (media.getWidth() > 720) {
 						mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qmin 2 --sout-avcodec-qmax 5";
+					} else {
+						mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
 					}
+				} else { // set the automatic wired quality
+					mpeg2Options = "--sout-x264-keyint 5 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
 				}
 			}
+
+			if (params.getMediaRenderer().isPS3()) {
+				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer 25 for PS3 because it lowers the average bitrate
+				mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
+			}
+
 			String[] customOptions = StringUtils.split(mpeg2Options);
 			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		} else {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
+			if (configuration.isAutomaticMaximumBitrate()) {
+				x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
 
 			// Remove comment from the value
 			if (x264CRF.contains("/*")) {
@@ -510,7 +513,7 @@ public class VLCVideo extends Player {
 		}
 
 		// Useful for the more esoteric codecs people use
-		if (experimentalCodecs.isSelected()) {
+		if (configuration.isVlcExperimentalCodecs()) {
 			cmdList.add("--sout-avcodec-strict=-2");
 		}
 
@@ -673,21 +676,15 @@ public class VLCVideo extends Player {
 
 		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
-		experimentalCodecs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		experimentalCodecs.addItemListener((ItemEvent e) -> {
+			configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
-		audioSyncEnabled.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		audioSyncEnabled.addItemListener((ItemEvent e) -> {
+			configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(audioSyncEnabled), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 

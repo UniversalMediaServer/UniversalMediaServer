@@ -121,7 +121,13 @@ public final class TableTVSeries extends Tables {
 								insertStatement.setString(4, simplifiedTitle);
 								insertStatement.setString(5, (String) tvSeries.get("startYear"));
 								insertStatement.setString(6, (String) tvSeries.get("title"));
-								insertStatement.setDouble(7, (Double) tvSeries.get("totalSeasons"));
+
+								if (tvSeries.get("totalSeasons") != null) {
+									insertStatement.setDouble(7, (Double) tvSeries.get("totalSeasons"));
+								} else {
+									insertStatement.setDouble(7, 0.0);
+								}
+
 								insertStatement.setString(8, (String) tvSeries.get("votes"));
 								insertStatement.setString(9, (String) tvSeries.get("year"));
 							}
@@ -351,7 +357,9 @@ public final class TableTVSeries extends Tables {
 						rs.updateString("PLOT", (String) tvSeries.get("plot"));
 						rs.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
 						rs.updateString("TITLE", (String) tvSeries.get("title"));
-						rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
+						if (tvSeries.get("totalSeasons") != null) {
+							rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
+						}
 						rs.updateString("VOTES", (String) tvSeries.get("votes"));
 						rs.updateString("YEAR", (String) tvSeries.get("year"));
 						rs.updateRow();

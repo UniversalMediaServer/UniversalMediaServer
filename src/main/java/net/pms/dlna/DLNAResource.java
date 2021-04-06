@@ -525,13 +525,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				DLNAResource resumeRes = null;
 
-				boolean addResumeFile = false;
-				ResumeObj r = ResumeObj.create(child);
-				if (r != null) {
+				ResumeObj resumeObject = ResumeObj.create(child);
+				if (resumeObject != null && !defaultRenderer.disableUmsResume() && !defaultRenderer.isSamsung()) {
 					resumeRes = child.clone();
-					resumeRes.resume = r;
+					resumeRes.resume = resumeObject;
 					resumeRes.resHash = child.resHash;
-					addResumeFile = true;
 				}
 
 				if (child.format != null) {
@@ -666,7 +664,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
-				if (addResumeFile && resumeRes != null) {
+				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes, isAddGlobally);
 				}
@@ -803,9 +801,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), media.getBitrate(), maxBandwidth);
-				} else if (!renderer.isVideoBitDepthSupported(this)) {
-					isIncompatible = true;
-					LOGGER.debug(prependTranscodingReason + "the video bit depth ({}) is not supported.", getName(), media.getVideoBitDepth());
 				} else if (renderer.isH264Level41Limited() && media.isH264()) {
 					if (media.getAvcLevel() != null) {
 						double h264Level = 4.1;
@@ -2177,18 +2172,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (media != null && media.isTVEpisode()) {
-			if (isNotBlank(media.getTVSeason())) {
-				addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
+		if (media != null) {
+			if (media.isTVEpisode()) {
+				if (isNotBlank(media.getTVSeason())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
+				}
+				if (isNotBlank(media.getTVEpisodeNumber())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
+				}
+				if (isNotBlank(media.getMovieOrShowName())) {
+					addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(media.getMovieOrShowName()));
+				}
+				if (isNotBlank(media.getTVEpisodeName())) {
+					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(media.getTVEpisodeName()));
+				}
 			}
-			if (isNotBlank(media.getTVEpisodeNumber())) {
-				addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
+
+			addXMLTagAndAttribute(sb, "upnp:playbackCount", media.getPlaybackCount());
+			if (isNotBlank(media.getLastPlaybackTime())) {
+				addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(media.getLastPlaybackTime()));
 			}
-			if (isNotBlank(media.getMovieOrShowName())) {
-				addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(media.getMovieOrShowName()));
-			}
-			if (isNotBlank(media.getTVEpisodeName())) {
-				addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(media.getTVEpisodeName()));
+			if (isNotBlank(media.getLastPlaybackPositionForUPnP())) {
+				addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(media.getLastPlaybackPositionForUPnP()));
 			}
 		}
 
@@ -2314,6 +2319,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									addAttribute(sb, "nrAudioChannels", transcodeNumberOfChannels);
 								}
 							}
+							addAttribute(sb, "bitsPerSample", firstAudioTrack.getBitsperSample());
 						}
 
 						if (player == null) {

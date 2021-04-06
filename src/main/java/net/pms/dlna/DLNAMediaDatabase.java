@@ -536,12 +536,14 @@ public class DLNAMediaDatabase implements Runnable {
 	 */
 	public DLNAMediaInfo getData(String name, long modified) throws IOException, SQLException {
 		DLNAMediaInfo media = null;
+		ArrayList<String> externalFileReferencesToRemove = new ArrayList();
 		try (Connection conn = getConnection()) {
 			TABLE_LOCK.readLock().lock();
 			try (
 				PreparedStatement stmt = conn.prepareStatement(
-					"SELECT * FROM FILES LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON FILES.THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
-					"WHERE FILENAME = ? AND FILES.MODIFIED = ? " +
+					"SELECT * FROM " + TABLE_NAME + " " +
+					"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
+					"WHERE " + TABLE_NAME + ".FILENAME = ? AND " + TABLE_NAME + ".MODIFIED = ? " +
 					"LIMIT 1"
 				);
 			) {
@@ -551,6 +553,7 @@ public class DLNAMediaDatabase implements Runnable {
 					ResultSet rs = stmt.executeQuery();
 					PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
 					PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
+					PreparedStatement status = conn.prepareStatement("SELECT * FROM " + TableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
@@ -630,8 +633,7 @@ public class DLNAMediaDatabase implements Runnable {
 								String fileName = elements.getString("EXTERNALFILE");
 								File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
 								if (externalFile != null && !externalFile.exists()) {
-									LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFile.getPath());
-									deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFile.getPath(), false);
+									externalFileReferencesToRemove.add(externalFile.getPath());
 									continue;
 								}
 
@@ -646,10 +648,28 @@ public class DLNAMediaDatabase implements Runnable {
 								media.addSubtitlesTrack(sub);
 							}
 						}
+
+						status.setString(1, name);
+						try (ResultSet elements = status.executeQuery()) {
+							if (elements.next()) {
+								media.setPlaybackCount(elements.getInt("PLAYCOUNT"));
+								media.setLastPlaybackTime(elements.getString("DATELASTPLAY"));
+								media.setLastPlaybackPosition(elements.getDouble("LASTPLAYBACKPOSITION"));
+							}
+						}
 					}
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
+
+				// This needs to happen outside of the readLock because deleteRowsInTable has a writeLock
+				if (!externalFileReferencesToRemove.isEmpty()) {
+					for (String externalFileReferenceToRemove : externalFileReferencesToRemove) {
+						LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFileReferenceToRemove);
+						deleteRowsInTable("SUBTRACKS", "EXTERNALFILE", externalFileReferenceToRemove, false);
+						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
+					}
+				}
 			}
 		} catch (SQLException se) {
 			if (se.getCause() != null && se.getCause() instanceof IOException) {
