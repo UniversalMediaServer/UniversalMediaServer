@@ -616,16 +616,20 @@ public class FFMpegVideo extends Player {
 				if (mpeg2Options.contains("Wireless")) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
-						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+						mpeg2Options = "-g 25 -qmin 2 -qmax 7";
 					} else if (media.getWidth() > 720) {
-						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						mpeg2Options = "-g 25 -qmin 2 -qmax 5";
+					} else {
+						mpeg2Options = "-g 25 -qmin 2 -qmax 3";
 					}
-				} else if (params.getMediaRenderer().isPS3()) {
-					// It has been reported that non-PS3 renderers prefer -g 5 but prefer 25 for PS3 because it lowers the average bitrate
-					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-				} else { // set the wired quality
+				} else { // set the automatic wired quality
 					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 				}
+			}
+
+			if (params.getMediaRenderer().isPS3()) {
+				// It has been reported that non-PS3 renderers prefer -g 5 but prefer 25 for PS3 because it lowers the average bitrate
+				mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 			}
 
 			String[] customOptions = StringUtils.split(mpeg2Options);

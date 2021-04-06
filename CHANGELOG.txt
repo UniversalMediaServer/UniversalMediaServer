@@ -1,3 +1,42 @@
+10.4.1 - 2021-03-26
+
+	General:
+		Fixed broken transcoding for some users
+		Fixed file scanner freezing on some files with external subtitles
+		Fixed support for HEVC (H.265) via tsMuxeR
+	Renderers:
+		Fixed detection of some Samsung 4K (UHD) TVs (thanks, jkl16!)
+	Translation updates via Crowdin:
+		Dutch (100%) (thanks, johnnygood!)
+		German (100%) (thanks, pipin!)
+		Korean (99%) (thanks, VenusGirl!)
+		Norwegian (85%) (thanks, nhanssen88!)
+		Spanish (100%) (thanks, Julio Alberto García!)
+	Dependencies:
+		Bump spotbugs-maven-plugin from 4.2.0 to 4.2.2
+
+10.4.0 - 2021-03-19
+
+	General:
+		Added renderer config setting DisableUmsResume for renderers with their own resume support, like Samsung TVs
+		Improved speed of transcoding to H.264 by up to 3x
+		Fixed MEncoder crashing when trying to downmix 7.1 AAC to 5.1 AC-3
+		Fixed renderer SupportedVideoBitDepths setting
+		Improved memory use and speed when resume is disabled
+		Fixed renderer resolution and bitrate limiting
+		Fixed broken transcoding for some users since the previous release
+	Renderers:
+		Improved support for VC1 codec on Sony Blu-ray UBP-X800M2 (thanks, thechrisgregory!)
+		Improved support for many filetypes on Kodi (thanks, thechrisgregory!)
+		Improved support for 12-bit video on VLC
+	Translation updates via Crowdin:
+		Estonian (24%) (thanks, Tanel K!)
+		Japanese (97%) (thanks, Katsuhide.M!)
+		Russian (91%) (thanks, Dmitry Lavrentev!)
+	Dependencies:
+		Bump git-commit-id-plugin from 4.0.3 to 4.0.4
+		Rolled back FFmpeg
+
 10.3.0 - 2021-03-13
 
 	General:
