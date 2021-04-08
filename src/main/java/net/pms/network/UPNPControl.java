@@ -754,15 +754,13 @@ public class UPNPControl {
 							// in the renderer.
 							if (isNotGetPositionInfoRequest) {
 								rendererMap.mark(uuid, ACTIVE, false);
-							}
-						}
-
-						if (!isNotGetPositionInfoRequest && renderer != null && renderer.isGetPositionInfoImplemented) {
-							renderer.countGetPositionRequests++;
-							if (renderer.countGetPositionRequests > 2) { // check the renderer GetPositionRequest capability three times
-								renderer.isGetPositionInfoImplemented = false;
-								LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable using it.", renderer);
-							}
+							} else if (renderer != null && renderer.isGetPositionInfoImplemented) {
+								renderer.countGetPositionRequests++;
+								if (renderer.countGetPositionRequests > 2) { // check the renderer GetPositionRequest capability three times
+									renderer.isGetPositionInfoImplemented = false;
+									LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable using it.", renderer);
+								}	
+							}	
 						}
 					}
 				}.run();
