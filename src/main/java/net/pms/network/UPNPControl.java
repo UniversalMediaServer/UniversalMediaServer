@@ -759,8 +759,8 @@ public class UPNPControl {
 								if (renderer.countGetPositionRequests > 2) { // check the renderer GetPositionRequest capability three times
 									renderer.isGetPositionInfoImplemented = false;
 									LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable using it.", renderer);
-								}	
-							}	
+								}
+							}
 						}
 					}
 				}.run();
