@@ -659,6 +659,7 @@ public class NavigationShareTab {
 				FullyPlayedAction.MARK,
 				FullyPlayedAction.HIDE_MEDIA,
 				FullyPlayedAction.MOVE_FOLDER,
+				FullyPlayedAction.MOVE_FOLDER_AND_MARK,
 				FullyPlayedAction.MOVE_TRASH
 			},
 			new String[]{
@@ -666,6 +667,7 @@ public class NavigationShareTab {
 				Messages.getString("FoldTab.68"),
 				Messages.getString("FoldTab.69"),
 				Messages.getString("FoldTab.70"),
+				Messages.getString("FoldTab.MoveFolderAndMark"),
 				Messages.getString("FoldTab.71")
 			}
 		);
@@ -677,8 +679,14 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					configuration.setFullyPlayedAction(fullyPlayedActionModel.getSelectedKey());
-					fullyPlayedOutputDirectory.setEnabled(fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.MOVE_FOLDER);
-					selectFullyPlayedOutputDirectory.setEnabled(fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.MOVE_FOLDER);
+					fullyPlayedOutputDirectory.setEnabled(
+						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
+						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+					);
+					selectFullyPlayedOutputDirectory.setEnabled(
+						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
+						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+					);
 
 					if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
 						PMS.get().getDatabase().init(true);
@@ -695,7 +703,10 @@ public class NavigationShareTab {
 				configuration.setFullyPlayedOutputDirectory(fullyPlayedOutputDirectory.getText());
 			}
 		});
-		fullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER);
+		fullyPlayedOutputDirectory.setEnabled(
+			configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
+			configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+		);
 
 		// Watched video output directory selection button
 		selectFullyPlayedOutputDirectory = new CustomJButton("...");
@@ -716,6 +727,10 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		selectFullyPlayedOutputDirectory.setEnabled(configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER);
+
+		selectFullyPlayedOutputDirectory.setEnabled(
+			configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
+			configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+		);
 	}
 }

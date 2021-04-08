@@ -80,7 +80,10 @@ public class FullyPlayed {
 	public static boolean isFullyPlayedMark(File file) {
 		return
 			file != null &&
-			configuration.getFullyPlayedAction() == FullyPlayedAction.MARK &&
+			(
+				configuration.getFullyPlayedAction() == FullyPlayedAction.MARK ||
+			  configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+			) &&
 			MediaMonitor.isFullyPlayed(file.getAbsolutePath());
 	}
 
