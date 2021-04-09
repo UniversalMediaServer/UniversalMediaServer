@@ -17,14 +17,19 @@ import net.pms.dlna.virtual.MediaLibraryFolder;
 public class DbIdResourceLocator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
+
+	public static String dbidPrefix = "$DBID$";
+
 	private DLNAMediaDatabase database;
 
 	public DbIdResourceLocator() {
 		this.database = PMS.get().getDatabase();
 	}
 
-	public DLNAResource locateResource(Long id) {
-		return getDLNAResourceFromSQL(id);
+	public DLNAResource locateResource(String id) {
+		String dbId = id.substring(dbidPrefix.length());
+		DLNAResource resource = getDLNAResourceFromSQL(Long.valueOf(dbId));
+		return resource;
 	}
 
 	private DLNAResource getDLNAResourceFromSQL(Long id) {
@@ -42,6 +47,7 @@ public class DbIdResourceLocator {
 								break;
 						}
 						res.resolve();
+						res.refreshChildren();
 					}
 				}
 			}

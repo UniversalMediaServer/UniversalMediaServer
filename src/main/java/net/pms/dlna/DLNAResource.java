@@ -53,6 +53,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
+import net.pms.network.DbIdResourceLocator;
 import net.pms.network.HTTPResource;
 import net.pms.network.UPNPControl.Renderer;
 import net.pms.util.*;
@@ -77,6 +78,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private final SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private volatile ImageInfo thumbnailImageInfo = null;
 	protected PmsConfiguration configuration = PMS.getConfiguration();
+	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
+
 //	private boolean subsAreValidForStreaming = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
@@ -1041,12 +1044,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		DLNAResource dlna;
+		DLNAResource dlna = null;
 		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
-			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
+			if (objectId.startsWith(DbIdResourceLocator.dbidPrefix)) {
+				try {
+					dlna = dbIdResourceLocator.locateResource(objectId);
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			} else {
+				dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
+			}
 		}
 
 		if (dlna == null) {

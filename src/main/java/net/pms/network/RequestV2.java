@@ -298,21 +298,16 @@ public class RequestV2 extends HTTPResource {
 
 			// Retrieve the DLNAresource itself.
 			String fileName = null;
-			if (id.startsWith("$DBID$")) {
+			if (id.startsWith(DbIdResourceLocator.dbidPrefix)) {
 				try {
-					String dbId = id.substring("$DBID$".length(), id.indexOf('/'));
-					dlna = dbIdResourceLocator.locateResource(Long.valueOf(dbId));
-					if (dlna != null) {
-						dlna.resolve();
-						fileName = id.substring(id.indexOf('/') + 1);
-					}
+					dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}
 			} else {
 				dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
-				fileName = id.substring(id.indexOf('/') + 1);
 			}
+			fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);

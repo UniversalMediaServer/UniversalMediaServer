@@ -18,7 +18,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 	public VirtualFolderDbId(String name, String thumbnailIcon, String id) {
 		super(name, thumbnailIcon);
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
-		setId(id);
+		setId("$DBID$" + id);
 	}
 
 	@Override
