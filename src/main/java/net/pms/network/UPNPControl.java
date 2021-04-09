@@ -741,7 +741,7 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						// Show all failures and the GetPositionInfo first three occurrence
+						// Show all failures and the GetPositionInfo first three occurrences
 						// and than set the isGetPositionInfoImplemented to false.
 						if (isNotGetPositionInfoRequest || (!isNotGetPositionInfoRequest && renderer != null && renderer.isGetPositionInfoImplemented)) {
 							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
@@ -755,10 +755,15 @@ public class UPNPControl {
 							if (isNotGetPositionInfoRequest) {
 								rendererMap.mark(uuid, ACTIVE, false);
 							} else if (renderer != null && renderer.isGetPositionInfoImplemented) {
-								renderer.countGetPositionRequests++;
-								if (renderer.countGetPositionRequests > 2) { // check the renderer GetPositionRequest capability three times
+								if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPossitionInfo is not implemented.
 									renderer.isGetPositionInfoImplemented = false;
-									LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable using it.", renderer);
+									LOGGER.info("Renderer {} returns that the GetPositionInfo is not implemented.", renderer);
+								} else { // failure not clear so check the renderer GetPositionRequest capability three times before disable it.
+									renderer.countGetPositionRequests++;
+									if (renderer.countGetPositionRequests > 2) {
+										renderer.isGetPositionInfoImplemented = false;
+										LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {} so disable using it.", renderer);
+									}
 								}
 							}
 						}
