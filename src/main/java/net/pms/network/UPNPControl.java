@@ -755,10 +755,10 @@ public class UPNPControl {
 							if (isNotGetPositionInfoRequest) {
 								rendererMap.mark(uuid, ACTIVE, false);
 							} else if (renderer != null && renderer.isGetPositionInfoImplemented) {
-								if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPossitionInfo is not implemented.
+								if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPositionInfo is not implemented.
 									renderer.isGetPositionInfoImplemented = false;
-									LOGGER.info("Renderer {} returns that the GetPositionInfo is not implemented.", renderer);
-								} else { // failure not clear so check the renderer GetPositionRequest capability three times before disable it.
+									LOGGER.info("The renderer {} returns that the GetPositionInfo is not implemented.", renderer);
+								} else { // failure is not clear so check the renderer GetPositionRequest capability three times before disable it.
 									renderer.countGetPositionRequests++;
 									if (renderer.countGetPositionRequests > 2) {
 										renderer.isGetPositionInfoImplemented = false;
