@@ -109,6 +109,7 @@ public class RequestV2 extends HTTPResource {
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
+	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	/**
 	 * A {@link String} that contains the uri with which this {@link RequestV2} was
@@ -296,8 +297,22 @@ public class RequestV2 extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
-			String fileName = id.substring(id.indexOf('/') + 1);
+			String fileName = null;
+			if (id.startsWith("$DBID$")) {
+				try {
+					String dbId = id.substring("$DBID$".length(), id.indexOf('/'));
+					dlna = dbIdResourceLocator.locateResource(Long.valueOf(dbId));
+					if (dlna != null) {
+						dlna.resolve();
+						fileName = id.substring(id.indexOf('/') + 1);
+					}
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			} else {
+				dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+				fileName = id.substring(id.indexOf('/') + 1);
+			}
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);

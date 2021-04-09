@@ -1,13 +1,24 @@
 package net.pms.network;
 
+import java.io.File;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.MediaLibraryFolder;
+import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.network.message.SearchRequest;
 
 /**
@@ -22,6 +33,8 @@ import net.pms.network.message.SearchRequest;
  * </pre>
  */
 public class SearchRequestHandler {
+
+	private DLNAMediaDatabase database;
 
 	final static int TYPE_UNKNOWN = 0;
 	final static int TYPE_FILES = 1;
@@ -38,6 +51,10 @@ public class SearchRequestHandler {
 	private static Pattern tokenizerPattern = Pattern
 		.compile("(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
 
+	public SearchRequestHandler() {
+		this.database = PMS.get().getDatabase();
+	}
+
 	int getRequestType(String searchCriteria) {
 		Matcher matcher = classPattern.matcher(searchCriteria);
 		if (matcher.find()) {
@@ -52,7 +69,6 @@ public class SearchRequestHandler {
 				} else if (propertyValue.toLowerCase().startsWith("object.container.playlistcontainer")) {
 					return TYPE_PLAYLIST;
 				} else if (propertyValue.toLowerCase().startsWith("object.item.videoitem")) {
-					// TODO implement VIDEO search
 					return TYPE_VIDEO;
 				}
 			}
@@ -69,23 +85,27 @@ public class SearchRequestHandler {
 		try {
 			int requestType = getRequestType(requestMessage.getSearchCriteria());
 
-			MediaLibraryFolder folder = null;
+			VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", "");
 			int folderType = TYPE_FILES == requestType ? MediaLibraryFolder.FILES : MediaLibraryFolder.PLAYLISTS;
 			if (requestType == TYPE_FILES || requestType == TYPE_PLAYLIST) {
-				StringBuilder sqlFiles = new StringBuilder();
-				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, folderType));
-				folder = new MediaLibraryFolder("Search result", sqlFiles.toString(), folderType);
+				StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType, folderType);
+				for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+					folder.addChild(resource);
+				}
 			} else {
 				StringBuilder sqlText = new StringBuilder();
 				sqlText.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, MediaLibraryFolder.TEXTS));
 
 				StringBuilder sqlFiles = new StringBuilder();
 				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType, MediaLibraryFolder.FILES));
-				folder = new MediaLibraryFolder(Messages.getString("PMS.16"),
-					new String[] {sqlText.toString(), String.format(
-						"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND %s = '${0}'",
-						getTitlePropertyMapping(requestType)) },
-					new int[] {MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES });
+				// folder = new MediaLibraryFolder(Messages.getString("PMS.16"),
+				// new String[] {sqlText.toString(), String.format(
+				// "select FILENAME, MODIFIED, F.ID as FID from FILES F,
+				// AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND %s =
+				// '${0}'",
+				// getTitlePropertyMapping(requestType)) },
+				// new int[] {MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES
+				// });
 			}
 
 			folder.discoverChildren();
@@ -123,18 +143,18 @@ public class SearchRequestHandler {
 				case TYPE_FILES:
 				case TYPE_PERSON:
 				case TYPE_ALBUM:
-					return "select FILENAME, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+					return "select FILENAME, MODIFIED, F.ID as FID from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 				case TYPE_PLAYLIST:
 				case TYPE_VIDEO:
-					return "select FILENAME, MODIFIED from FILES as F where ";
+					return "select FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
 				default:
 					throw new RuntimeException("not implemented request type");
 			}
 		} else if (MediaLibraryFolder.TEXTS == mediaFolderType) {
-			return String.format("select %s from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ",
+			return String.format("select %s, F.ID as FID from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ",
 				getTitlePropertyMapping(requestType));
 		} else if (MediaLibraryFolder.PLAYLISTS == mediaFolderType) {
-			return "select FILENAME, MODIFIED from FILES F where ";
+			return "select FILENAME, MODIFIED, F.ID as FID from FILES F where ";
 		}
 		throw new RuntimeException("not implemented media folder type");
 	}
@@ -238,13 +258,43 @@ public class SearchRequestHandler {
 			case TYPE_FILES:
 			case TYPE_ALBUM:
 			case TYPE_PERSON:
-			return 1;
+				return 1;
 			case TYPE_VIDEO:
 				return 4;
 			case TYPE_PLAYLIST:
 				return 16;
 		}
-		throw new RuntimeException("unknown or unimplemented operator : " + "unknown or unimplemented mediafolder type : >" + mediaFolderType + "<");
+		throw new RuntimeException("unknown or unimplemented mediafolder type : >" + mediaFolderType + "<");
+	}
+
+	/**
+	 * Converts sql statements with FILENAME to RealFiles
+	 *
+	 * @param query
+	 * @return
+	 */
+	private List<DLNAResource> getDLNAResourceFromSQL(String query, int type) {
+		ArrayList<DLNAResource> filesList = new ArrayList<>();
+
+		try (Connection connection = database.getConnection()) {
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					while (resultSet.next()) {
+						switch (type) {
+							case TYPE_PLAYLIST:
+								filesList.add(new VirtualFolderDbId(FilenameUtils.getBaseName(resultSet.getString("FILENAME")), "",
+									resultSet.getString("FID")));
+							default:
+								filesList.add(new RealFileDbId(new File(resultSet.getString("FILENAME")), resultSet.getString("FID")));
+								break;
+						}
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.trace("", e);
+		}
+		return filesList;
 	}
 
 	/**
