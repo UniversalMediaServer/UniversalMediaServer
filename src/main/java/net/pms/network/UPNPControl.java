@@ -65,6 +65,12 @@ public class UPNPControl {
 	public static final int AVT = BasicPlayer.PLAYCONTROL;
 	public static final int RC = BasicPlayer.VOLUMECONTROL;
 	public static final int ANY = 0xff;
+	private static final String INSTANCE_ID = "InstanceID";
+	private static final String TRANSPORT_STATE = "TransportState";
+	private static final String STOPPED = "STOPPED";
+	private static final String PLAYING = "PLAYING";
+	private static final String RECORDING = "RECORDING";
+	private static final String TRANSITIONING = "TRANSITIONING";
 
 	private static final boolean DEBUG = true; // log upnp state vars
 
@@ -176,17 +182,18 @@ public class UPNPControl {
 			event = new ActionEvent(this, 0, null);
 			monitor = null;
 			renew = false;
-			data.put("TransportState", "STOPPED");
+			data.put(TRANSPORT_STATE, STOPPED);
 		}
 
 		public void alert() {
+			String transportState = data.get(TRANSPORT_STATE);
 			if (
 				isUpnpDevice(uuid) &&
 				(monitor == null || !monitor.isAlive()) &&
 				(
-					"PLAYING".equals(data.get("TransportState")) ||
-					"RECORDING".equals(data.get("TransportState")) ||
-					"TRANSITIONING".equals(data.get("TransportState"))
+					PLAYING.equals(transportState) ||
+					RECORDING.equals(transportState) ||
+					TRANSITIONING.equals(transportState)
 				)
 			) {
 				monitor();
@@ -208,13 +215,14 @@ public class UPNPControl {
 		public void monitor() {
 			final Device d = getDevice(uuid);
 			monitor = new Thread(() -> {
-				String id = data.get("InstanceID");
+				String id = data.get(INSTANCE_ID);
+				String transportState = data.get(TRANSPORT_STATE);
 				while (
 					active &&
 					(
-						"PLAYING".equals(data.get("TransportState")) ||
-						"RECORDING".equals(data.get("TransportState")) ||
-						"TRANSITIONING".equals(data.get("TransportState"))
+						PLAYING.equals(transportState) ||
+						RECORDING.equals(transportState) ||
+						TRANSITIONING.equals(transportState)
 					)
 				) {
 					sleep(1000);
@@ -230,7 +238,7 @@ public class UPNPControl {
 					}
 				}
 				if (!active) {
-					data.put("TransportState", "STOPPED");
+					data.put(TRANSPORT_STATE, STOPPED);
 					alert();
 				}
 			}, "UPNP-" + d.getDetails().getFriendlyName());
@@ -272,7 +280,7 @@ public class UPNPControl {
 		try {
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 //			doc.getDocumentElement().normalize();
-			NodeList ids = doc.getElementsByTagName("InstanceID");
+			NodeList ids = doc.getElementsByTagName(INSTANCE_ID);
 			int idsLength = ids.getLength();
 			for (int i = 0; i < idsLength; i++) {
 				NodeList c = ids.item(i).getChildNodes();
@@ -281,7 +289,7 @@ public class UPNPControl {
 				if (item == null) {
 					item = rendererMap.get(uuid, id);
 				}
-				item.data.put("InstanceID", id);
+				item.data.put(INSTANCE_ID, id);
 				for (int n = 0; n < c.getLength(); n++) {
 					if (c.item(n).getNodeType() != Node.ELEMENT_NODE) {
 //						LOGGER.debug("skip this " + c.item(n));
@@ -740,7 +748,7 @@ public class UPNPControl {
 
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
-				a.setInput("InstanceID", instanceID);
+				a.setInput(INSTANCE_ID, instanceID);
 				for (int i = 0; i < args.length; i += 2) {
 					a.setInput(args[i], args[i + 1]);
 				}
