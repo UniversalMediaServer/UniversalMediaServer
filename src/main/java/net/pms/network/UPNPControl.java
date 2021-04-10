@@ -180,7 +180,15 @@ public class UPNPControl {
 		}
 
 		public void alert() {
-			if (isUpnpDevice(uuid) && (monitor == null || !monitor.isAlive()) && !"STOPPED".equals(data.get("TransportState"))) {
+			if (
+				isUpnpDevice(uuid) &&
+				(monitor == null || !monitor.isAlive()) &&
+				(
+					"PLAYING".equals(data.get("TransportState")) ||
+					"RECORDING".equals(data.get("TransportState")) ||
+					"TRANSITIONING".equals(data.get("TransportState"))
+				)
+			) {
 				monitor();
 			}
 			for (ActionListener l : listeners) {
@@ -201,7 +209,14 @@ public class UPNPControl {
 			final Device d = getDevice(uuid);
 			monitor = new Thread(() -> {
 				String id = data.get("InstanceID");
-				while (active && !"STOPPED".equals(data.get("TransportState"))) {
+				while (
+					active &&
+					(
+						"PLAYING".equals(data.get("TransportState")) ||
+						"RECORDING".equals(data.get("TransportState")) ||
+						"TRANSITIONING".equals(data.get("TransportState"))
+					)
+				) {
 					sleep(1000);
 					// if (DEBUG) LOGGER.debug("InstanceID: " + id);
 					// Send the GetPositionRequest only when renderer supports it
