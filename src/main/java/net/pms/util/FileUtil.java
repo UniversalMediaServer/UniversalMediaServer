@@ -854,9 +854,34 @@ public class FileUtil {
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\s(\\d{1,2})x(\\d{1,})\\s", " S" + tvSeason + "E$2 - ");
-			formattedName = formattedName.replaceAll("(?i)\\s(\\d{1,2})x(\\d{1,})", " S" + tvSeason + "E$2");
-			formattedName = formattedName.replaceAll("\\s(\\d{1,2})x(\\d{1,})", " S" + tvSeason + "E$2");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d{1,2})[xX](\\d{1,})\\s", " S" + tvSeason + "E$2 - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d{1,2})[xX](\\d{1,})", " S" + tvSeason + "E$2");
+			formattedName = formattedName.replaceAll("\\s(\\d{1,2})[xX](\\d{1,})", " S" + tvSeason + "E$2");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*\\s-\\s(\\d{3})\\s-\\s.*")) {
+			// This matches other older scene (like .avi releases) and some p2p TV episodes
+			// e.g. Universal Media Server - 102 - Mysterious Wordplay.mkv
+			pattern = Pattern.compile("\\s-\\s(\\d{3})\\s-\\s");
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				String tvSeasonAndEpisode = matcher.group(1);
+				tvSeason = "0" + tvSeasonAndEpisode.substring(0, 1);
+				tvEpisodeNumber = tvSeasonAndEpisode.substring(1, 3);
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s-\\s(\\d{3})\\s-\\s", " S" + tvSeason + "E" + tvEpisodeNumber + " - ");
+			formattedName = formattedName.replaceAll("(?i)\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
+			formattedName = formattedName.replaceAll("\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d{2}\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
