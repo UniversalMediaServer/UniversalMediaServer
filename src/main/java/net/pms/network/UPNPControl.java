@@ -165,7 +165,7 @@ public class UPNPControl {
 		public volatile boolean active, renew;
 		public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
 		public volatile PanasonicDmpProfiles panasonicDmpProfiles;
-		public boolean isGetPositionInfoImplemented = true;
+		private boolean isGetPositionInfoImplemented = true;
 		private int countGetPositionRequests = 0;
 
 		public Renderer(String uuid) {
@@ -592,7 +592,7 @@ public class UPNPControl {
 	}
 
 	protected void rendererRemoved(Device d) {
-		LOGGER.debug(getFriendlyName(d) + " is now offline.");
+		LOGGER.debug("Renderer {} is now offline.", getFriendlyName(d));
 	}
 
 	public static String getUUID(String addr) {
@@ -764,29 +764,25 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						// Show all failures and the GetPositionInfo first three occurrences
-						// and than set the isGetPositionInfoImplemented to false.
-						if (isNotGetPositionInfoRequest || (!isNotGetPositionInfoRequest && renderer != null && renderer.isGetPositionInfoImplemented)) {
+						if (isNotGetPositionInfoRequest) { // Don't show the error in GetPositionInfo
 							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
 							if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
 								LOGGER.trace("", invocation.getFailure());
 							}
 
-							// Don't mark the renderer false when there is an error
-							// in the GetPositionInfo. It could be wrong implementation
-							// in the renderer.
-							if (isNotGetPositionInfoRequest) {
-								rendererMap.mark(uuid, ACTIVE, false);
-							} else if (renderer != null && renderer.isGetPositionInfoImplemented) {
-								if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPositionInfo is not implemented.
+							// Mark the renderer false when there is an error except
+							// the GetPositionInfo failure. It could be wrong
+							// implementation in the renderer.
+							rendererMap.mark(uuid, ACTIVE, false);
+						} else if (renderer != null && renderer.isGetPositionInfoImplemented) {
+							if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPositionInfo is not implemented.
+								renderer.isGetPositionInfoImplemented = false;
+								LOGGER.info("The renderer {} returns that the GetPositionInfo is not implemented. The UMS disabled this feature.", renderer);
+							} else { // failure is not clear so check the renderer GetPositionRequest capability three times before disable it.
+								renderer.countGetPositionRequests++;
+								if (renderer.countGetPositionRequests > 2) {
 									renderer.isGetPositionInfoImplemented = false;
-									LOGGER.info("The renderer {} returns that the GetPositionInfo is not implemented. The UMS disabled this feature", renderer);
-								} else { // failure is not clear so check the renderer GetPositionRequest capability three times before disable it.
-									renderer.countGetPositionRequests++;
-									if (renderer.countGetPositionRequests > 2) {
-										renderer.isGetPositionInfoImplemented = false;
-										LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {}. The UMS disabled this feature.", renderer);
-									}
+									LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {}. The UMS disabled this feature.", renderer);
 								}
 							}
 						}
