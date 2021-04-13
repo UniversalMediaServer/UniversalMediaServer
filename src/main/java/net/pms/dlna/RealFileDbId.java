@@ -4,6 +4,8 @@ import java.io.File;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.PLAYLIST;
+import net.pms.network.DbIdResourceLocator;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
 
 /**
  * This RealFile implementation uses database IDs as unique identifiers and does
@@ -11,18 +13,20 @@ import net.pms.formats.PLAYLIST;
  */
 public class RealFileDbId extends RealFile {
 
+	private DbIdResourceLocator dbid = new DbIdResourceLocator();
+
 	public RealFileDbId(File file) {
 		super(file);
 	}
 
-	public RealFileDbId(File file, String id) {
+	public RealFileDbId(DbidMediaType mediaType, File file, String id) {
 		super(file);
-		setId("$DBID$" + id);
+		setId(dbid.encodeDbid(id, mediaType));
 	}
 
-	public RealFileDbId(File file, String name, String id) {
+	public RealFileDbId(DbidMediaType mediaType, File file, String name, String id) {
 		super(file, name);
-		setId(id);
+		setId(dbid.encodeDbid(id, mediaType));
 	}
 
 	@Override

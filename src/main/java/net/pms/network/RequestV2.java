@@ -67,6 +67,7 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.message.BrowseRequest;
 import net.pms.network.message.BrowseSearchRequest;
 import net.pms.network.message.SamsungBookmark;
@@ -298,7 +299,7 @@ public class RequestV2 extends HTTPResource {
 
 			// Retrieve the DLNAresource itself.
 			String fileName = null;
-			if (id.startsWith(DbIdResourceLocator.dbidPrefix)) {
+			if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
 				try {
 					dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 				} catch (Exception e) {
