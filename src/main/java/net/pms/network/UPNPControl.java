@@ -778,7 +778,7 @@ public class UPNPControl {
 							if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPositionInfo is not implemented.
 								renderer.isGetPositionInfoImplemented = false;
 								LOGGER.info("The renderer {} returns that the GetPositionInfo is not implemented. The UMS disabled this feature.", renderer);
-							} else { // failure is not clear so check the renderer GetPositionRequest capability three times before disable it.
+							} else { // failure is not clear so check the renderer GetPositionInfo capability three times before disable it.
 								renderer.countGetPositionRequests++;
 								if (renderer.countGetPositionRequests > 2) {
 									renderer.isGetPositionInfoImplemented = false;
