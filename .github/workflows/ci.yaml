@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         # test against two different xcode version on MacOS
-        xcode: [ 9.4.1, 12 ]
+        xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 15
