@@ -667,7 +667,7 @@ public class RemoteUtil {
 			if (StringUtils.isNotBlank((String) row.get("STARTYEAR"))) {
 				startYear = (String) row.get("STARTYEAR");
 			}
-			if (row.get("TOTALSEASONS") != null) {
+			if (row.get("TOTALSEASONS") != null && (Double) row.get("TOTALSEASONS") != 0.0) {
 				totalSeasons = (Double) row.get("TOTALSEASONS");
 			}
 
