@@ -40,7 +40,10 @@ public enum FullyPlayedAction {
 	MOVE_FOLDER(3),
 
 	/** Move the file to the recycle/trash bin if possible when fully played. */
-	MOVE_TRASH(4);
+	MOVE_TRASH(4),
+
+	/** Move the file to a different folder when fully played, and mark media like option 1. */
+	MOVE_FOLDER_AND_MARK(5);
 
 	private final int value;
 
@@ -60,6 +63,8 @@ public enum FullyPlayedAction {
 				return "Mark";
 			case MOVE_FOLDER:
 				return "Move to folder";
+			case MOVE_FOLDER_AND_MARK:
+				return "Move to folder and mark";
 			case MOVE_TRASH:
 				return "Move to trash";
 			case NO_ACTION:
@@ -134,6 +139,9 @@ public enum FullyPlayedAction {
 			return defaultFullyPlayedAction;
 		}
 		sArg = sArg.toLowerCase(Locale.ROOT);
+		if (sArg.contains("folder") && sArg.contains("mark")) {
+			return FullyPlayedAction.MOVE_FOLDER_AND_MARK;
+		}
 		if (sArg.contains("action")) {
 			return FullyPlayedAction.NO_ACTION;
 		}
