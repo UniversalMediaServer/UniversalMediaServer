@@ -65,6 +65,12 @@ public class UPNPControl {
 	public static final int AVT = BasicPlayer.PLAYCONTROL;
 	public static final int RC = BasicPlayer.VOLUMECONTROL;
 	public static final int ANY = 0xff;
+	private static final String INSTANCE_ID = "InstanceID";
+	private static final String TRANSPORT_STATE = "TransportState";
+	private static final String STOPPED = "STOPPED";
+	private static final String PLAYING = "PLAYING";
+	private static final String RECORDING = "RECORDING";
+	private static final String TRANSITIONING = "TRANSITIONING";
 
 	private static final boolean DEBUG = true; // log upnp state vars
 
@@ -159,6 +165,8 @@ public class UPNPControl {
 		public volatile boolean active, renew;
 		public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
 		public volatile PanasonicDmpProfiles panasonicDmpProfiles;
+		private boolean isGetPositionInfoImplemented = true;
+		private int countGetPositionRequests = 0;
 
 		public Renderer(String uuid) {
 			this();
@@ -174,11 +182,20 @@ public class UPNPControl {
 			event = new ActionEvent(this, 0, null);
 			monitor = null;
 			renew = false;
-			data.put("TransportState", "STOPPED");
+			data.put(TRANSPORT_STATE, STOPPED);
 		}
 
 		public void alert() {
-			if (isUpnpDevice(uuid) && (monitor == null || !monitor.isAlive()) && !"STOPPED".equals(data.get("TransportState"))) {
+			String transportState = data.get(TRANSPORT_STATE);
+			if (
+				isUpnpDevice(uuid) &&
+				(monitor == null || !monitor.isAlive()) &&
+				(
+					PLAYING.equals(transportState) ||
+					RECORDING.equals(transportState) ||
+					TRANSITIONING.equals(transportState)
+				)
+			) {
 				monitor();
 			}
 			for (ActionListener l : listeners) {
@@ -198,19 +215,30 @@ public class UPNPControl {
 		public void monitor() {
 			final Device d = getDevice(uuid);
 			monitor = new Thread(() -> {
-				String id = data.get("InstanceID");
-				while (active && !"STOPPED".equals(data.get("TransportState"))) {
+				String id = data.get(INSTANCE_ID);
+				String transportState = data.get(TRANSPORT_STATE);
+				while (
+					active &&
+					(
+						PLAYING.equals(transportState) ||
+						RECORDING.equals(transportState) ||
+						TRANSITIONING.equals(transportState)
+					)
+				) {
 					sleep(1000);
 					// if (DEBUG) LOGGER.debug("InstanceID: " + id);
-					for (ActionArgumentValue o : getPositionInfo(d, id)) {
-						data.put(o.getArgument().getName(), o.toString());
-						// if (DEBUG) LOGGER.debug(o.getArgument().getName() +
-						// ": " + o.toString());
+					// Send the GetPositionRequest only when renderer supports it
+					if (isGetPositionInfoImplemented) {
+						for (ActionArgumentValue o : getPositionInfo(d, id, this)) {
+							data.put(o.getArgument().getName(), o.toString());
+							// if (DEBUG) LOGGER.debug(o.getArgument().getName() +
+							// ": " + o.toString());
+						}
+						alert();
 					}
-					alert();
 				}
 				if (!active) {
-					data.put("TransportState", "STOPPED");
+					data.put(TRANSPORT_STATE, STOPPED);
 					alert();
 				}
 			}, "UPNP-" + d.getDetails().getFriendlyName());
@@ -252,7 +280,7 @@ public class UPNPControl {
 		try {
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 //			doc.getDocumentElement().normalize();
-			NodeList ids = doc.getElementsByTagName("InstanceID");
+			NodeList ids = doc.getElementsByTagName(INSTANCE_ID);
 			int idsLength = ids.getLength();
 			for (int i = 0; i < idsLength; i++) {
 				NodeList c = ids.item(i).getChildNodes();
@@ -261,7 +289,7 @@ public class UPNPControl {
 				if (item == null) {
 					item = rendererMap.get(uuid, id);
 				}
-				item.data.put("InstanceID", id);
+				item.data.put(INSTANCE_ID, id);
 				for (int n = 0; n < c.getLength(); n++) {
 					if (c.item(n).getNodeType() != Node.ELEMENT_NODE) {
 //						LOGGER.debug("skip this " + c.item(n));
@@ -564,7 +592,7 @@ public class UPNPControl {
 	}
 
 	protected void rendererRemoved(Device d) {
-		LOGGER.debug(getFriendlyName(d) + " is now offline.");
+		LOGGER.debug("Renderer {} is now offline.", getFriendlyName(d));
 	}
 
 	public static String getUUID(String addr) {
@@ -703,23 +731,31 @@ public class UPNPControl {
 		}
 	}
 
-	// Convenience functions for sending various upnp service requests
 	public static ActionInvocation send(final Device dev, String instanceID, String service, final String action, String... args) {
+		return send(dev, instanceID, null, service, action, args);
+	}
+
+	// Convenience functions for sending various upnp service requests
+	public static ActionInvocation send(final Device dev, String instanceID, Renderer renderer, String service, final String action, String... args) {
 		Service svc = dev.findService(ServiceId.valueOf("urn:upnp-org:serviceId:" + service));
 		final String uuid = getUUID(dev);
 		if (svc != null) {
 			Action x = svc.getAction(action);
 			String name = getFriendlyName(dev);
-			boolean log = !action.equals("GetPositionInfo");
+			// Don't spam the log with the GetPositionInfo because it is not important.
+			// The UMS is using it only to show the current state of the media playing.
+			boolean isNotGetPositionInfoRequest = !action.equals("GetPositionInfo");
+
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
-				a.setInput("InstanceID", instanceID);
+				a.setInput(INSTANCE_ID, instanceID);
 				for (int i = 0; i < args.length; i += 2) {
 					a.setInput(args[i], args[i + 1]);
 				}
-				if (log) {
+				if (isNotGetPositionInfoRequest) {
 					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
 				}
+
 				new ActionCallback(a, upnpService.getControlPoint()) {
 					@Override
 					public void success(ActionInvocation invocation) {
@@ -728,15 +764,32 @@ public class UPNPControl {
 
 					@Override
 					public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
-						LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
-						if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
-							LOGGER.trace("", invocation.getFailure());
+						if (isNotGetPositionInfoRequest) { // Don't show the error in GetPositionInfo
+							LOGGER.error("Failed to send action \"{}\" to {}: {}", action, dev.getDetails().getFriendlyName(), defaultMsg);
+							if (LOGGER.isTraceEnabled() && invocation != null && invocation.getFailure() != null) {
+								LOGGER.trace("", invocation.getFailure());
+							}
+
+							// Mark the renderer false when there is an error except
+							// the GetPositionInfo failure. It could be wrong
+							// implementation in the renderer.
+							rendererMap.mark(uuid, ACTIVE, false);
+						} else if (renderer != null && renderer.isGetPositionInfoImplemented) {
+							if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPositionInfo is not implemented.
+								renderer.isGetPositionInfoImplemented = false;
+								LOGGER.info("The renderer {} returns that the GetPositionInfo is not implemented. The UMS disabled this feature.", renderer);
+							} else { // failure is not clear so check the renderer GetPositionInfo capability three times before disable it.
+								renderer.countGetPositionRequests++;
+								if (renderer.countGetPositionRequests > 2) {
+									renderer.isGetPositionInfoImplemented = false;
+									LOGGER.info("The GetPositionInfo seems to be not properly implemented in the {}. The UMS disabled this feature.", renderer);
+								}
+							}
 						}
-						rendererMap.mark(uuid, ACTIVE, false);
 					}
 				}.run();
 
-				if (log) {
+				if (isNotGetPositionInfoRequest) {
 					for (ActionArgumentValue arg : a.getOutput()) {
 						LOGGER.debug("Received from {}[{}]: {}={}", name, instanceID, arg.getArgument().getName(), arg.toString());
 					}
@@ -878,8 +931,8 @@ public class UPNPControl {
 		return argumentValue == null ? null : argumentValue.toString();
 	}
 
-	public static ActionArgumentValue[] getPositionInfo(Device dev, String instanceID) {
-		ActionInvocation invocation = send(dev, instanceID, "AVTransport", "GetPositionInfo");
+	public static ActionArgumentValue[] getPositionInfo(Device dev, String instanceID, Renderer renderer) {
+		ActionInvocation invocation = send(dev, instanceID, renderer, "AVTransport", "GetPositionInfo");
 		return invocation == null ? null : invocation.getOutput();
 	}
 
