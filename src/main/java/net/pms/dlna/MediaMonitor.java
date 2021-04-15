@@ -213,7 +213,11 @@ public class MediaMonitor extends VirtualFolder {
 		) {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null && isMonitored && !isFullyPlayed(fullPathToFile)) {
-				if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER && fullyPlayedAction != FullyPlayedAction.MOVE_TRASH) {
+				if (
+					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
+					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
+					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
+				) {
 					setFullyPlayed(fullPathToFile, true, elapsed);
 					if (realFile.getMedia() != null) {
 						realFile.getMedia().setThumbready(false);
@@ -225,7 +229,7 @@ public class MediaMonitor extends VirtualFolder {
 
 				File playedFile = new File(fullPathToFile);
 
-				if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
+				if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER || fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER_AND_MARK) {
 					String oldDirectory = FileUtil.appendPathSeparator(playedFile.getAbsoluteFile().getParent());
 					String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
 					if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
