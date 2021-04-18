@@ -157,26 +157,6 @@ public class DLNAMediaInfo implements Cloneable {
 	private String tvEpisodeName;
 	private String extraInformation;
 	private boolean isTVEpisode;
-
-	private HashSet<String> actors = new HashSet<>();
-	private String awards;
-	private String boxOffice;
-	private String country;
-	private HashSet<String> directors = new HashSet<>();
-	private HashSet<String> genres = new HashSet<>();
-	private String goofs;
-	private String metascore;
-	private String production;
-	private String poster;
-	private String rated;
-	private String imdbRating;
-	private HashSet<String> ratings = new HashSet<>();
-	private String released;
-	private String runtime;
-	private String tagline;
-	private String trivia;
-	private String votes;
-
 	private volatile ImageInfo imageInfo = null;
 	private String mimeType;
 	private final ReentrantReadWriteLock referenceFrameCountLock = new ReentrantReadWriteLock();

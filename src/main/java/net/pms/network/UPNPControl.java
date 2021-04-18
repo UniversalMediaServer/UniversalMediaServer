@@ -18,26 +18,42 @@ import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
-import org.fourthline.cling.DefaultUpnpServiceConfiguration;
-import org.fourthline.cling.UpnpService;
-import org.fourthline.cling.UpnpServiceImpl;
-import org.fourthline.cling.controlpoint.ActionCallback;
-import org.fourthline.cling.controlpoint.SubscriptionCallback;
-import org.fourthline.cling.model.ServerClientTokens;
-import org.fourthline.cling.model.action.*;
-import org.fourthline.cling.model.gena.*;
-import org.fourthline.cling.model.message.UpnpHeaders;
-import org.fourthline.cling.model.message.UpnpResponse;
-import org.fourthline.cling.model.message.header.DeviceTypeHeader;
-import org.fourthline.cling.model.message.header.UpnpHeader;
-import org.fourthline.cling.model.meta.*;
-import org.fourthline.cling.model.types.DeviceType;
-import org.fourthline.cling.model.types.ServiceId;
-import org.fourthline.cling.model.types.UDADeviceType;
-import org.fourthline.cling.model.types.UDN;
-import org.fourthline.cling.registry.DefaultRegistryListener;
-import org.fourthline.cling.registry.Registry;
-import org.fourthline.cling.registry.RegistryListener;
+import org.jupnp.DefaultUpnpServiceConfiguration;
+import org.jupnp.UpnpService;
+import org.jupnp.UpnpServiceImpl;
+import org.jupnp.controlpoint.ActionCallback;
+import org.jupnp.controlpoint.SubscriptionCallback;
+import org.jupnp.model.ServerClientTokens;
+import org.jupnp.model.action.ActionArgumentValue;
+import org.jupnp.model.action.ActionInvocation;
+import org.jupnp.model.gena.CancelReason;
+import org.jupnp.model.gena.GENASubscription;
+import org.jupnp.model.message.UpnpHeaders;
+import org.jupnp.model.message.UpnpResponse;
+import org.jupnp.model.message.header.DeviceTypeHeader;
+import org.jupnp.model.message.header.UpnpHeader;
+import org.jupnp.model.meta.Action;
+import org.jupnp.model.meta.Device;
+import org.jupnp.model.meta.DeviceDetails;
+import org.jupnp.model.meta.Icon;
+import org.jupnp.model.meta.ManufacturerDetails;
+import org.jupnp.model.meta.ModelDetails;
+import org.jupnp.model.meta.RemoteDevice;
+import org.jupnp.model.meta.RemoteDeviceIdentity;
+import org.jupnp.model.meta.RemoteService;
+import org.jupnp.model.meta.Service;
+import org.jupnp.model.Namespace;
+import org.jupnp.model.types.DeviceType;
+import org.jupnp.model.types.ServiceId;
+import org.jupnp.model.types.UDADeviceType;
+import org.jupnp.model.types.UDN;
+import org.jupnp.registry.DefaultRegistryListener;
+import org.jupnp.registry.Registry;
+import org.jupnp.registry.RegistryListener;
+import org.jupnp.transport.impl.jetty.JettyStreamClientImpl;
+import org.jupnp.transport.spi.NetworkAddressFactory;
+import org.jupnp.transport.spi.StreamClient;
+import org.jupnp.transport.spi.StreamServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -388,10 +404,11 @@ public class UPNPControl {
 				}
 			};
 
-			upnpService = new UpnpServiceImpl(sc, rl);
-			for (DeviceType t : MEDIA_RENDERER_TYPES) {
-				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-			}
+			upnpService = new UpnpServiceImpl(sc);
+//			upnpService.startup();
+//			for (DeviceType t : MEDIA_RENDERER_TYPES) {
+//				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+//			}
 
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
 		} catch (Exception ex) {

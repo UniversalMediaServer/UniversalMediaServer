@@ -20,7 +20,7 @@ package net.pms.dlna.protocolinfo;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
-import org.fourthline.cling.support.model.Protocol;
+import org.jupnp.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.ProfileName.DefaultGenericProfileName;
