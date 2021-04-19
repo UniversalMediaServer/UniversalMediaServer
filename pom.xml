@@ -467,16 +467,16 @@
 			<artifactId>jna-platform</artifactId>
 			<version>${jna-version}</version>
 		</dependency>
-<dependency>
-    <groupId>org.jupnp</groupId>
-    <artifactId>org.jupnp</artifactId>
-    <version>2.5.2</version>
-</dependency>
-<dependency>
-    <groupId>org.jupnp</groupId>
-    <artifactId>org.jupnp.support</artifactId>
-    <version>2.5.2</version>
-</dependency>
+		<dependency>
+			<groupId>org.jupnp</groupId>
+			<artifactId>org.jupnp</artifactId>
+			<version>2.5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jupnp</groupId>
+			<artifactId>org.jupnp.support</artifactId>
+			<version>2.5.2</version>
+		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-http</artifactId>
