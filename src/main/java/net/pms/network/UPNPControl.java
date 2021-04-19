@@ -42,7 +42,6 @@ import org.jupnp.model.meta.RemoteDevice;
 import org.jupnp.model.meta.RemoteDeviceIdentity;
 import org.jupnp.model.meta.RemoteService;
 import org.jupnp.model.meta.Service;
-import org.jupnp.model.Namespace;
 import org.jupnp.model.types.DeviceType;
 import org.jupnp.model.types.ServiceId;
 import org.jupnp.model.types.UDADeviceType;
@@ -50,10 +49,6 @@ import org.jupnp.model.types.UDN;
 import org.jupnp.registry.DefaultRegistryListener;
 import org.jupnp.registry.Registry;
 import org.jupnp.registry.RegistryListener;
-import org.jupnp.transport.impl.jetty.JettyStreamClientImpl;
-import org.jupnp.transport.spi.NetworkAddressFactory;
-import org.jupnp.transport.spi.StreamClient;
-import org.jupnp.transport.spi.StreamServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -405,10 +400,11 @@ public class UPNPControl {
 			};
 
 			upnpService = new UpnpServiceImpl(sc);
-//			upnpService.startup();
-//			for (DeviceType t : MEDIA_RENDERER_TYPES) {
-//				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-//			}
+			upnpService.startup();
+			upnpService.getRegistry().addListener(rl);
+			for (DeviceType t : MEDIA_RENDERER_TYPES) {
+				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
+			}
 
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
 		} catch (Exception ex) {
