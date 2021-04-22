@@ -1,3 +1,19 @@
+10.5.0 - 2021-04
+
+	General:
+		Added new option to mark a fully played video after moving it to a new folder
+		Implemented external API to allow users to perform actions on their UMS instance from an authorized external source, please see docs at https://support.universalmediaserver.com/books/configuration/page/external-api (thanks, ikrahne!)
+		Fixed TV series metadata not saving for some series
+		Improved episode detection from filenames
+		Optimized network use and handling of unimplemented UPnP actions for some renderers
+	Renderers:
+		Improved support for H.264 on Panasonic VT60
+	Dependencies:
+		Bump checkstyle from 8.41 to 8.41.1
+		Bump commons-lang3 from 3.11 to 3.12.0
+		Bump icu4j from 68.2 to 69.1
+		Bump spotbugs-maven-plugin from 4.2.2 to 4.2.3
+
 10.4.1 - 2021-03-26
 
 	General:
