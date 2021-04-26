@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,14 +34,10 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.function.ThrowingRunnable;
 
 public class RationalTest {
-
-	@Rule
-	public final ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void testStaticInstances() {
@@ -258,8 +255,14 @@ public class RationalTest {
 		assertEquals(-602.3090620625292, Rational.valueOf("1,936,122.48 :-3,214.5", NumberFormat.getInstance(Locale.US)).doubleValue(), 0.0);
 		assertEquals(602.3090620625292, Rational.valueOf("1.936.122,48: 3.214,5", Locale.GERMANY).doubleValue(), 0.0);
 		assertEquals(-602.3090620625292, Rational.valueOf("-1.936.122,48 / 3.214,5", NumberFormat.getInstance(Locale.GERMANY)).doubleValue(), 0.0);
-		exception.expect(NumberFormatException.class);
-		assertNull(Rational.valueOf(" - 3/ 0"));
+		assertThrows(
+			NumberFormatException.class,
+			new ThrowingRunnable() {
+				@Override
+				public void run() throws Throwable {
+					assertNull(Rational.valueOf(" - 3/ 0"));
+				}
+			});
 	}
 
 	@Test
