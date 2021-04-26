@@ -62,6 +62,11 @@ public class LibMediaInfoParser {
 				VERSION = null;
 			}
 
+			if (VERSION != null && VERSION.isGreaterThan(new Version("18.03"))) {
+				mI.Option("Language", "raw");
+				mI.Option("Cover_Data", "base64");
+			}
+
 			if (VERSION != null && VERSION.isGreaterThan(new Version("18.5"))) {
 				mI.Option("LegacyStreamDisplay", "1");
 				mI.Option("File_HighestFormat", "0");
