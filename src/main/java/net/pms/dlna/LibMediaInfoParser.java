@@ -62,16 +62,18 @@ public class LibMediaInfoParser {
 				VERSION = null;
 			}
 
-			if (VERSION != null && VERSION.isGreaterThan(new Version("18.03"))) {
-				mI.Option("Language", "raw");
-				mI.Option("Cover_Data", "base64");
-			}
+			if (VERSION != null)  {
+				if (VERSION.isGreaterThan(new Version("18.03"))) {
+					mI.Option("Language", "raw");
+					mI.Option("Cover_Data", "base64");
+				}
 
-			if (VERSION != null && VERSION.isGreaterThan(new Version("18.5"))) {
-				mI.Option("LegacyStreamDisplay", "1");
-				mI.Option("File_HighestFormat", "0");
-				mI.Option("File_ChannelLayout", "1");
-				mI.Option("Legacy", "1");
+				if (VERSION.isGreaterThan(new Version("18.5"))) {
+					mI.Option("LegacyStreamDisplay", "1");
+					mI.Option("File_HighestFormat", "0");
+					mI.Option("File_ChannelLayout", "1");
+					mI.Option("Legacy", "1");
+				}
 			}
 
 //			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
