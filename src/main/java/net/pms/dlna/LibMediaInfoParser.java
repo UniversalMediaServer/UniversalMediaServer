@@ -10,7 +10,11 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -69,7 +73,7 @@ public class LibMediaInfoParser {
 				mI.Option("Legacy", "1");
 			}
 
-//			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
+//			LOGGER.debug(mI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		} else {
 			VERSION = null;
 		}
@@ -153,9 +157,15 @@ public class LibMediaInfoParser {
 			}
 
 			// set Video
-			media.setVideoTrackCount(mI.Count_Get(video));
-			if (media.getVideoTrackCount() > 0) {
-				for (int i = 0; i < media.getVideoTrackCount(); i++) {
+			int videoTrackCount = 0;
+			value = mI.Get(video, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				videoTrackCount = Integer.parseInt(value);
+			}
+ 
+			media.setVideoTrackCount(videoTrackCount);
+			if (videoTrackCount > 0) {
+				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
 					if (mI.Get(video, i, "Title").startsWith("Subtitle")) {
 						currentSubTrack = new DLNAMediaSubtitle();
@@ -233,7 +243,12 @@ public class LibMediaInfoParser {
 			}
 
 			// set Audio
-			int audioTracks = mI.Count_Get(audio);
+			int audioTracks = 0;
+			value = mI.Get(audio, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				audioTracks = Integer.parseInt(value);
+			}
+
 			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new DLNAMediaAudio();
@@ -325,8 +340,14 @@ public class LibMediaInfoParser {
 			}
 
 			// set Image
-			media.setImageCount(mI.Count_Get(image));
-			if (media.getImageCount() > 0 || type == Format.IMAGE) {
+			int imageCount = 0;
+			value = mI.Get(image, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				imageCount = Integer.parseInt(value);
+			}
+
+			media.setImageCount(imageCount);
+			if (imageCount > 0 || type == Format.IMAGE) {
 				boolean parseByMediainfo = false;
 				// For images use our own parser instead of MediaInfo which doesn't provide enough information
 				try {
@@ -360,7 +381,12 @@ public class LibMediaInfoParser {
 			}
 
 			// set Subs in text format
-			int subTracks = mI.Count_Get(text);
+			int subTracks = 0;
+			value = mI.Get(text, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				subTracks = Integer.parseInt(value);
+			}
+
 			if (subTracks > 0) {
 				for (int i = 0; i < subTracks; i++) {
 					currentSubTrack = new DLNAMediaSubtitle();
