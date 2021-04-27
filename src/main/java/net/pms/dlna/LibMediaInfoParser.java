@@ -158,7 +158,7 @@ public class LibMediaInfoParser {
 			if (!value.isEmpty()) {
 				videoTrackCount = Integer.parseInt(value);
 			}
- 
+
 			media.setVideoTrackCount(videoTrackCount);
 			if (videoTrackCount > 0) {
 				for (int i = 0; i < videoTrackCount; i++) {
