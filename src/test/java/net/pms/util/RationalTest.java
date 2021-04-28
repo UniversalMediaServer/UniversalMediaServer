@@ -255,7 +255,7 @@ public class RationalTest {
 		assertEquals(602.3090620625292, Rational.valueOf("1.936.122,48: 3.214,5", Locale.GERMANY).doubleValue(), 0.0);
 		assertEquals(-602.3090620625292, Rational.valueOf("-1.936.122,48 / 3.214,5", NumberFormat.getInstance(Locale.GERMANY)).doubleValue(), 0.0);
 		assertThrows(NumberFormatException.class, () -> {
-			assertNull(Rational.valueOf(" - 3/ 0"));
+			Rational.valueOf(" - 3/ 0"); // wrong number format "- 3" instead of "-3"
 		});
 	}
 
