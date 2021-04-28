@@ -35,7 +35,6 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
 
 public class RationalTest {
 
