@@ -255,14 +255,9 @@ public class RationalTest {
 		assertEquals(-602.3090620625292, Rational.valueOf("1,936,122.48 :-3,214.5", NumberFormat.getInstance(Locale.US)).doubleValue(), 0.0);
 		assertEquals(602.3090620625292, Rational.valueOf("1.936.122,48: 3.214,5", Locale.GERMANY).doubleValue(), 0.0);
 		assertEquals(-602.3090620625292, Rational.valueOf("-1.936.122,48 / 3.214,5", NumberFormat.getInstance(Locale.GERMANY)).doubleValue(), 0.0);
-		assertThrows(
-			NumberFormatException.class,
-			new ThrowingRunnable() {
-				@Override
-				public void run() throws Throwable {
-					assertNull(Rational.valueOf(" - 3/ 0"));
-				}
-			});
+		assertThrows(NumberFormatException.class, () -> {
+			assertNull(Rational.valueOf(" - 3/ 0"));
+		});
 	}
 
 	@Test
