@@ -548,7 +548,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.5.0</version>
+			<version>5.7.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
