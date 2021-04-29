@@ -116,7 +116,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.7.1</junit5.version>
-		<com.sun.xml.bind-version>3.0.0</com.sun.xml.bind-version>
+		<com.sun.xml.bind-version>3.0.1</com.sun.xml.bind-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -564,12 +564,7 @@
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
-			<version>2.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>3.0.0</version>
+			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
