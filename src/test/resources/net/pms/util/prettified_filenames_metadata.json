@@ -103,6 +103,17 @@
 		}
 	},
 	{
+		"comment": "Video of a TV episode titled Mysterious Wordplay with 1x23 format",
+		"filename": "Universal Media Server - 1x23 - Mysterious Wordplay.mkv",
+		"prettified": "Universal Media Server S01E23 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [23]
+		}
+	},
+	{
 		"comment": "Video of an uncut TV episode",
 		"filename": "Universal.Media.Server.S01E02.UNCUT.720p.mkv",
 		"prettified": "Universal Media Server S01E02 (Uncut)",
