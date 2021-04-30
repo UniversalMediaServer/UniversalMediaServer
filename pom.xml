@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.4.2-SNAPSHOT</version>
+	<version>10.5.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.4.2</project.version.short>
+		<project.version.short>10.5.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -74,7 +74,7 @@
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.6.4</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.7.0</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -107,7 +107,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>5.6.0</jna-version>
+		<jna-version>5.7.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -116,7 +116,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.7.1</junit5.version>
-		<com.sun.xml.bind-version>3.0.0</com.sun.xml.bind-version>
+		<com.sun.xml.bind-version>3.0.1</com.sun.xml.bind-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -548,7 +548,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.4.1</version>
+			<version>5.5.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -564,12 +564,7 @@
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
-			<version>2.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>3.0.0</version>
+			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
@@ -1018,7 +1013,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.2.2</version>
+				<version>4.2.3</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
@@ -4175,7 +4170,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>8.41.1</version>
+								<version>8.42</version>
 							</dependency>
 						</dependencies>
 						<configuration>
