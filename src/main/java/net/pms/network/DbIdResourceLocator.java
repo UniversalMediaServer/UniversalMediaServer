@@ -108,7 +108,7 @@ public class DbIdResourceLocator {
 						break;
 					case TYPE_ALBUM:
 						sql = String.format(
-							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  A.ALBUM  regexp '.*%s.*')",
+							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  A.ALBUM  = '%s')",
 							typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident, "");
@@ -122,7 +122,7 @@ public class DbIdResourceLocator {
 						break;
 					case TYPE_PERSON:
 						sql = String.format(
-							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  (A.ALBUMARTIST regexp '.*%s.*' or A.ARTIST regexp '.*%s.*'))",
+							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  (A.ALBUMARTIST = '%s' or A.ARTIST = '%s'))",
 							typeAndIdent.ident, typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident, "");
