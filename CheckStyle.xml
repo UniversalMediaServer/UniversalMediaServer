@@ -29,7 +29,6 @@ Checkstyle configuration for Universal Media Server.
 		<module name="SuppressWarningsHolder" />
 		<module name="JavadocMethod">
 			<property name="severity" value="warning"/>
-			<property name="scope" value="protected"/>
 		</module>
 		<module name="JavadocType">
 			<property name="severity" value="warning"/>
