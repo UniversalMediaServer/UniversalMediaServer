@@ -19,6 +19,7 @@
  */
 package net.pms.database;
 
+import static org.apache.commons.lang3.StringUtils.left;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,7 +29,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.util.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
 import net.pms.util.StringUtil;
-import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -41,17 +41,15 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  *
  * @author Nadahar
  */
-
-public final class TableMusicBrainzReleases extends Tables{
-
+public final class TableMusicBrainzReleases extends Tables {
 	/**
-	 * tableLock is used to synchronize database access on table level.
+	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
 	 * described as experimental. This lock therefore used in addition to SQL
 	 * transaction locks. All access to this table must be guarded with this
 	 * lock. The lock allows parallel reads.
 	 */
-	private static final ReadWriteLock tableLock = new ReentrantReadWriteLock();
+	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableMusicBrainzReleases.class);
 	private static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASES";
 
@@ -60,7 +58,7 @@ public final class TableMusicBrainzReleases extends Tables{
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	// No instantiation
 	private TableMusicBrainzReleases() {
@@ -90,7 +88,7 @@ public final class TableMusicBrainzReleases extends Tables{
 
 	private static String constructTagWhere(final CoverArtArchiveTagInfo tagInfo, final boolean includeAll) {
 		StringBuilder where = new StringBuilder(" WHERE ");
-		final String AND = " AND ";
+		final String and = " AND ";
 		boolean added = false;
 
 		if (includeAll || StringUtil.hasValue(tagInfo.album)) {
@@ -99,14 +97,14 @@ public final class TableMusicBrainzReleases extends Tables{
 		}
 		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("ARTIST_ID").append(sqlNullIfBlank(tagInfo.artistId, true, false));
 			added = true;
 		}
 		if (includeAll || (!StringUtil.hasValue(tagInfo.artistId) && StringUtil.hasValue(tagInfo.artist))) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("ARTIST").append(sqlNullIfBlank(tagInfo.artist, true, false));
 			added = true;
@@ -123,10 +121,10 @@ public final class TableMusicBrainzReleases extends Tables{
 			)
 		) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
-			 where.append("TRACK_ID").append(sqlNullIfBlank(tagInfo.trackId, true, false));
-			 added = true;
+			where.append("TRACK_ID").append(sqlNullIfBlank(tagInfo.trackId, true, false));
+			added = true;
 		}
 		if (
 			includeAll || (
@@ -141,7 +139,7 @@ public final class TableMusicBrainzReleases extends Tables{
 			)
 		) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("TITLE").append(sqlNullIfBlank(tagInfo.title, true, false));
 			added = true;
@@ -149,10 +147,9 @@ public final class TableMusicBrainzReleases extends Tables{
 
 		if (StringUtil.hasValue(tagInfo.year)) {
 			if (added) {
-				where.append(AND);
+				where.append(and);
 			}
 			where.append("YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
-			added = true;
 		}
 
 		return where.toString();
@@ -162,22 +159,22 @@ public final class TableMusicBrainzReleases extends Tables{
 	 * Stores the MBID with information from this {@link Tag} in the database
 	 *
 	 * @param mBID the MBID to store
-	 * @param tag the {@link Tag} who's information should be associated with
+	 * @param tagInfo the {@link Tag} who's information should be associated with
 	 *        the given MBID
 	 */
 	public static void writeMBID(final String mBID, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = database.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true);
+		try (Connection connection = DATABASE.getConnection()) {
+			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
 
-			tableLock.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)){
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)){
+				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
 						if (StringUtil.hasValue(mBID) || !StringUtil.hasValue(result.getString("MBID"))) {
 							if (trace) {
@@ -215,16 +212,16 @@ public final class TableMusicBrainzReleases extends Tables{
 							result.updateString("MBID", mBID);
 						}
 						if (StringUtil.hasValue(tagInfo.album)) {
-							result.updateString("ALBUM", tagInfo.album);
+							result.updateString("ALBUM", left(tagInfo.album, 1000));
 						}
 						if (StringUtil.hasValue(tagInfo.artist)) {
-							result.updateString("ARTIST", tagInfo.artist);
+							result.updateString("ARTIST", left(tagInfo.artist, 1000));
 						}
 						if (StringUtil.hasValue(tagInfo.title)) {
-							result.updateString("TITLE", tagInfo.title);
+							result.updateString("TITLE", left(tagInfo.title, 1000));
 						}
 						if (StringUtil.hasValue(tagInfo.year)) {
-							result.updateString("YEAR", tagInfo.year.substring(0, Math.min(4, tagInfo.year.length())));
+							result.updateString("YEAR", left(tagInfo.year, 20));
 						}
 						if (StringUtil.hasValue(tagInfo.artistId)) {
 							result.updateString("ARTIST_ID", tagInfo.artistId);
@@ -238,7 +235,7 @@ public final class TableMusicBrainzReleases extends Tables{
 					connection.commit();
 				}
 			} finally {
-				tableLock.writeLock().unlock();
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -255,7 +252,7 @@ public final class TableMusicBrainzReleases extends Tables{
 	 * Looks up MBID in the table based on the given {@link Tag}. Never returns
 	 * <code>null</code>
 	 *
-	 * @param tag the {@link Tag} for whose values should be used in the search
+	 * @param tagInfo the {@link Tag} for whose values should be used in the search
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
@@ -263,14 +260,14 @@ public final class TableMusicBrainzReleases extends Tables{
 		boolean trace = LOGGER.isTraceEnabled();
 		MusicBrainzReleasesResult result;
 
-		try (Connection connection = database.getConnection()) {
-			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false);
+		try (Connection connection = DATABASE.getConnection()) {
+			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\"", query);
 			}
 
-			tableLock.readLock().lock();
+			TABLE_LOCK.readLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
@@ -280,7 +277,7 @@ public final class TableMusicBrainzReleases extends Tables{
 					}
 				}
 			} finally {
-				tableLock.readLock().unlock();
+				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error while looking up Music Brainz ID for \"{}\": {}", tagInfo, e.getMessage());
@@ -299,7 +296,7 @@ public final class TableMusicBrainzReleases extends Tables{
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		tableLock.writeLock().lock();
+		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = getTableVersion(connection, TABLE_NAME);
@@ -307,10 +304,10 @@ public final class TableMusicBrainzReleases extends Tables{
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						throw new SQLException(
+						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. Please move, rename or delete database file \"" +
-							database.getDatabaseFilename() +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
+							DATABASE.getDatabaseFilename() +
 							"\" before starting UMS"
 						);
 					}
@@ -325,7 +322,7 @@ public final class TableMusicBrainzReleases extends Tables{
 				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
-			tableLock.writeLock().unlock();
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -339,14 +336,29 @@ public final class TableMusicBrainzReleases extends Tables{
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressWarnings("unused")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
-		tableLock.writeLock().lock();
+		TABLE_LOCK.writeLock().lock();
 		try {
-			for (int version = currentVersion;version < TABLE_VERSION; version++) {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
-					//case 1: Alter table to version 2
+					case 1:
+						// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
+						Statement statement = connection.createStatement();
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN YEAR VARCHAR(20)"
+						);
+						break;
 					default:
 						throw new IllegalStateException(
 							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
@@ -356,12 +368,12 @@ public final class TableMusicBrainzReleases extends Tables{
 			}
 			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} finally {
-			tableLock.writeLock().unlock();
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
 	/**
-	 * Must be called in inside a table lock
+	 * Must be called from inside a table lock
 	 */
 	private static void createMusicBrainzReleasesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
@@ -371,10 +383,10 @@ public final class TableMusicBrainzReleases extends Tables{
 					"ID IDENTITY PRIMARY KEY, " +
 					"MODIFIED DATETIME, " +
 					"MBID VARCHAR(36), " +
-					"ARTIST VARCHAR(100), " +
-					"ALBUM VARCHAR(100), " +
-					"TITLE VARCHAR(100), " +
-					"YEAR VARCHAR(4), " +
+					"ARTIST VARCHAR(1000), " +
+					"ALBUM VARCHAR(1000), " +
+					"TITLE VARCHAR(1000), " +
+					"YEAR VARCHAR(20), " +
 					"ARTIST_ID VARCHAR(36), " +
 					"TRACK_ID VARCHAR(36)" +
 				")");

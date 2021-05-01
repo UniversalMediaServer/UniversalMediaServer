@@ -282,6 +282,4 @@ public class JPEGSubsamplingNotation implements Serializable {
 		}
 		return true;
 	}
-
-
 }

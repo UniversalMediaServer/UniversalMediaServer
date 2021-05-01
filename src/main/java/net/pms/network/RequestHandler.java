@@ -257,7 +257,7 @@ public class RequestHandler implements Runnable {
 			}
 
 			if (receivedContentLength > 0) {
-				char buf[] = new char[receivedContentLength];
+				char[] buf = new char[receivedContentLength];
 				br.read(buf);
 				if (request != null) {
 					String textContent = new String(buf);
@@ -265,7 +265,7 @@ public class RequestHandler implements Runnable {
 					if (LOGGER.isTraceEnabled()) {
 						logMessageReceived(headerLines, textContent, socket.getRemoteSocketAddress(), renderer);
 					}
-				} else if (LOGGER.isTraceEnabled() ){
+				} else if (LOGGER.isTraceEnabled()) {
 					logMessageReceived(headerLines, null, socket.getRemoteSocketAddress(), renderer);
 				}
 			}
@@ -332,7 +332,7 @@ public class RequestHandler implements Runnable {
 		String formattedContent = null;
 		if (StringUtils.isNotBlank(content)) {
 			try {
-				formattedContent = StringUtil.prettifyXML(content, 4);
+				formattedContent = StringUtil.prettifyXML(content, StandardCharsets.UTF_8, 2);
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";

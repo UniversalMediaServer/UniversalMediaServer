@@ -8,6 +8,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import com.sun.jna.Memory;
+import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
 
@@ -132,7 +133,7 @@ public class JNATypesTest {
 	public void testPointerArrayByReference() throws Throwable {
 		assertNull(new PointerArrayByReference(0L).getArray());
 		assertEquals("NULL", new PointerArrayByReference().toString());
-		assertEquals(Pointer.SIZE, new PointerArrayByReference().getElementSize());
+		assertEquals(Native.POINTER_SIZE, new PointerArrayByReference().getElementSize());
 		assertEquals(0L, new PointerArrayByReference().getSize());
 		assertEquals(5L, new PointerArrayByReference(5).getSize());
 		assertEquals(0L, new PointerArrayByReference(-9).getSize());

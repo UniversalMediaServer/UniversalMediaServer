@@ -96,7 +96,7 @@ public interface CoreFoundation extends Library {
 	/**
 	 * The static {@link CoreFoundation} instance.
 	 */
-	CoreFoundation INSTANCE = (CoreFoundation) Native.loadLibrary("CoreFoundation", CoreFoundation.class, options);
+	CoreFoundation INSTANCE = Native.load("CoreFoundation", CoreFoundation.class, options);
 
 	/**
 	 * The default {@code CFAllocator} as a static {@link CFAllocatorRef}.
@@ -782,6 +782,23 @@ public interface CoreFoundation extends Library {
 		public CFArrayRef(Pointer p) {
 			super(p);
 		}
+
+		/**
+		 * Use this as a substitute for cast from any {@link CFTypeRef} instance
+		 * that is natively a {@code CFArrayRef}.
+		 * <p>
+		 * {@link CFTypeRef} can't be cast to {@link CFArrayRef} if gotten from
+		 * native code because {@link PointerType#fromNative} don't know the
+		 * "real" type and thus calls {@link CFTypeRef}'s constructor instead of
+		 * {@link CFArrayRef}'s constructor. This method instantiates a new
+		 * {@link CFArrayRef} and transfers the {@link Pointer} to achieve the
+		 * same result.
+		 *
+		 * @param cfArray the {@link CFTypeRef} to "cast" to {@link CFArrayRef}.
+		 */
+		public CFArrayRef(CFTypeRef cfArray) {
+			super(cfArray == null ? null : cfArray.getPointer());
+		}
 	}
 
 	/**
@@ -1173,8 +1190,8 @@ public interface CoreFoundation extends Library {
 		}
 
 		/**
-		 * Use this as a substitute for cast from any {@link CFTypeRef}
-		 * instance.
+		 * Use this as a substitute for cast from any {@link CFTypeRef} instance
+		 * that is natively a {@code CFStringRef}.
 		 * <p>
 		 * {@link CFTypeRef} can't be cast to {@link CFStringRef} if gotten from
 		 * native code because {@link PointerType#fromNative} don't know the
@@ -1194,8 +1211,7 @@ public interface CoreFoundation extends Library {
 		 * Creates a new {@code CFString} from the given {@link String}.
 		 *
 		 * @param string the source {@link String}.
-		 * @return A reference to a {@code CFString} representing {@code string}
-		 *         .
+		 * @return A reference to a {@code CFString} representing {@code string}.
 		 */
 		public static CFStringRef toCFStringRef(String string) {
 			if (string == null) {

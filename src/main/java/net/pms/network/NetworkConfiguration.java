@@ -20,8 +20,9 @@ package net.pms.network;
 
 import java.net.*;
 import java.util.*;
+import java.util.Map.Entry;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,11 +85,12 @@ public class NetworkConfiguration {
 		}
 
 		/**
-		 * Returns the display name of the interface association.
+		 * Returns the display name of the interface association
+		 * with IP address if exists.
 		 *
 		 * @return The name.
 		 */
-		public String getDisplayName() {
+		public String getDisplayNameWithAddress() {
 			String displayName = iface.getDisplayName();
 
 			if (displayName != null) {
@@ -103,7 +105,24 @@ public class NetworkConfiguration {
 
 			return displayName;
 		}
-		
+
+		/**
+		 * Returns the display name of the interface association.
+		 *
+		 * @return The name.
+		 */
+		public String getDisplayName() {
+			String displayName = iface.getDisplayName();
+
+			if (displayName != null) {
+				displayName = displayName.trim();
+			} else {
+				displayName = iface.getName();
+			}
+
+			return displayName;
+		}
+
 		@Override
 		public String toString() {
 			return "InterfaceAssociation(addr=" + addr + ", iface=" + iface + ", parent=" + parentName + ')';
@@ -128,7 +147,7 @@ public class NetworkConfiguration {
 	/**
 	 * The map of discovered default IP addresses belonging to a network interface.
 	 */
-	private Map<String, InterfaceAssociation> mainAddress = new HashMap<>();
+	private Map<String, InterfaceAssociation> interfacesWithAssociatedAddress = new HashMap<>();
 
 	/**
 	 * The map of IP addresses connected to an interface name.
@@ -137,7 +156,7 @@ public class NetworkConfiguration {
 
 	/**
 	 * The list of configured network interface names that should be skipped.
-	 * 
+	 *
 	 * @see PmsConfiguration#getSkipNetworkInterfaces()
 	 */
 	private List<String> skipNetworkInterfaces = PMS.getConfiguration().getSkipNetworkInterfaces();
@@ -155,7 +174,7 @@ public class NetworkConfiguration {
 	/**
 	 * Collect all of the relevant addresses for the given network interface,
 	 * add them to the global address map and return them.
-	 * 
+	 *
 	 * @param networkInterface
 	 *            The network interface.
 	 * @return The available addresses.
@@ -165,7 +184,7 @@ public class NetworkConfiguration {
 		LOGGER.trace("available addresses for {} is: {}", networkInterface.getName(), Collections.list(networkInterface.getInetAddresses()));
 
 		/**
-		 * networkInterface.getInterfaceAddresses() returns 'null' on some adapters if 
+		 * networkInterface.getInterfaceAddresses() returns 'null' on some adapters if
 		 * the parameter 'java.net.preferIPv4Stack=true' is passed to the JVM
 		 * Use networkInterface.getInetAddresses() instead
 		 */
@@ -188,7 +207,7 @@ public class NetworkConfiguration {
 	/**
 	 * Returns true if the provided address is relevant, i.e. when the address
 	 * is not an IPv6 address or a loopback address.
-	 * 
+	 *
 	 * @param address
 	 *            The address to test.
 	 * @return True when the address is relevant, false otherwise.
@@ -201,7 +220,7 @@ public class NetworkConfiguration {
 	 * Discovers the list of relevant network interfaces based on the provided
 	 * list of network interfaces. The parent name is passed on for logging and
 	 * identification purposes, it can be <code>null</code>.
-	 * 
+	 *
 	 * @param networkInterfaces
 	 *            The network interface list to check.
 	 * @param parentName
@@ -222,7 +241,7 @@ public class NetworkConfiguration {
 				checkNetworkInterface(ni, parentName);
 			} else {
 				LOGGER.trace("child network interface ({},{}) skipped, because skip_network_interfaces='{}'",
-					new Object[] { ni.getName(), ni.getDisplayName(), skipNetworkInterfaces });
+					new Object[] {ni.getName(), ni.getDisplayName(), skipNetworkInterfaces});
 			}
 		}
 
@@ -232,7 +251,7 @@ public class NetworkConfiguration {
 	/**
 	 * Returns the list of discovered available addresses for the provided list
 	 * of network interfaces.
-	 * 
+	 *
 	 * @param networkInterfaces
 	 *            The list of network interfaces.
 	 * @return The list of addresses.
@@ -258,14 +277,14 @@ public class NetworkConfiguration {
 	 * might also have relevant addresses. Discovery is therefore handled
 	 * recursively. The parent name is passed on for identification and logging
 	 * purposes, it can be <code>null</code>.
-	 * 
+	 *
 	 * @param networkInterface
 	 *            The network interface to check.
 	 * @param parentName
 	 *            The name of the parent interface.
 	 */
 	private void checkNetworkInterface(NetworkInterface networkInterface, String parentName) {
-		LOGGER.trace("checking {}, display name: {}",networkInterface.getName(), networkInterface.getDisplayName());
+		LOGGER.trace("checking {}, display name: {}", networkInterface.getName(), networkInterface.getDisplayName());
 		addAvailableAddresses(networkInterface);
 		checkNetworkInterface(networkInterface.getSubInterfaces(), networkInterface.getName());
 
@@ -279,20 +298,31 @@ public class NetworkConfiguration {
 		// Use networkInterface.getInetAddresses() instead
 		for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
 			if (address != null) {
-				LOGGER.trace("checking {} on {}", new Object[] { address, networkInterface.getName() });
-
+				LOGGER.trace("checking {} on {}", address, networkInterface.getName());
 				if (isRelevantAddress(address)) {
 					// Avoid adding duplicates
 					if (!subAddress.contains(address)) {
 						LOGGER.trace("found {} -> {}", networkInterface.getName(), address.getHostAddress());
 						final InterfaceAssociation ia = new InterfaceAssociation(address, networkInterface, parentName);
 						interfaces.add(ia);
-						mainAddress.put(networkInterface.getName(), ia);
+						try {
+							// Add network interface to the list of interfaces with associated address only
+							// if interface is supporting multicast.
+							if (networkInterface.supportsMulticast()) {
+								interfacesWithAssociatedAddress.put(networkInterface.getDisplayName(), ia);
+								LOGGER.trace("added interface {} with associated address {} supporting multicast to the list of relevant addresses", networkInterface.getName(), ia.getAddr());
+							} else {
+								LOGGER.trace("Ignoring interface {} with associated address {} because it does not seem to support multicast", networkInterface.getName(), ia.getAddr());
+							}
+						} catch (SocketException e) {
+							LOGGER.trace("Interface {} raised exception when checking the multicast capability", networkInterface.getName());
+						}
+
 						foundAddress = true;
 					}
 				} else {
 					LOGGER.trace("has {}, which is skipped, because loopback={}, ipv6={}", new Object[] {
-						address, address.isLoopbackAddress(), (address instanceof Inet6Address)} );
+						address, address.isLoopbackAddress(), (address instanceof Inet6Address)});
 				}
 			}
 		}
@@ -303,16 +333,18 @@ public class NetworkConfiguration {
 		}
 	}
 
+
 	/**
-	 * Returns the list of discovered interface names.
+	 * Returns the list of user friendly names of interfaces with their IP
+	 * address.
 	 *
-	 * @return The interface names.
+	 * @return The list of names.
 	 */
-	public List<String> getKeys() {
+	public List<String> getDisplayNamesWithAddress() {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-			result.add(i.getShortName());
+			result.add(i.getDisplayNameWithAddress());
 		}
 
 		return result;
@@ -328,7 +360,7 @@ public class NetworkConfiguration {
 		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
-				result.add(i.getDisplayName());
+			result.add(i.getDisplayName());
 		}
 
 		return result;
@@ -361,16 +393,33 @@ public class NetworkConfiguration {
 	}
 
 	/**
-	 * Returns the first interface from the list of discovered interfaces that
-	 * has an address. If no such interface can be found or if no interfaces
-	 * were discovered, <code>null</code> is returned.
-	 * 
-	 * @return The interface.
+	 * Returns the first interface from the list of discovered interfaces whose
+	 * have an IPV4 address and are supporting multicast. If the real interface
+	 * is not found the first virtual interface is returned.
+	 * If no such interface can be found or if no interfaces were discovered the
+	 * <code>null</code> is returned.
+	 *
+	 * @return The first interface with the associated IP address.
 	 */
 	private InterfaceAssociation getFirstInterfaceWithAddress() {
-		for (InterfaceAssociation ia : interfaces) {
-			if (ia.getAddr() != null) {
-				return ia;
+		if (interfacesWithAssociatedAddress.isEmpty()) {
+			return null;
+		}
+
+		Map<String, InterfaceAssociation> virtualInterfaces = new HashMap<>();
+		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
+			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
+				virtualInterfaces.put(entry.getKey(), entry.getValue());
+				continue;
+			}
+
+			return entry.getValue();
+		}
+
+		// We did not find any non-virtual interfaces, so choose the first virtual one if it exists
+		if (!virtualInterfaces.isEmpty()) {
+			for (Entry<String, InterfaceAssociation> entry : virtualInterfaces.entrySet()) {
+				return entry.getValue();
 			}
 		}
 
@@ -380,19 +429,21 @@ public class NetworkConfiguration {
 	/**
 	 * Returns the default IP address associated with the the given interface
 	 * name, or <code>null</code> if it has not been discovered.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the interface.
 	 * @return The IP address.
 	 */
 	public InterfaceAssociation getAddressForNetworkInterfaceName(String name) {
-		return mainAddress.get(name);
+		// for backwards-compatibility check if the short network interface name is used
+		name = replaceShortInterfaceNameByDisplayName(name);
+		return interfacesWithAssociatedAddress.get(name);
 	}
 
 	/**
 	 * Returns true if the name or displayname match the configured interfaces
 	 * to skip, false otherwise.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the interface.
 	 * @param displayName
@@ -408,7 +459,7 @@ public class NetworkConfiguration {
 				if (name != null && name.toLowerCase().startsWith(current.toLowerCase())) {
 					return true;
 				}
-	
+
 				if (displayName != null && displayName.toLowerCase().startsWith(current.toLowerCase())) {
 					return true;
 				}
@@ -421,7 +472,7 @@ public class NetworkConfiguration {
 	/**
 	 * Returns the network interface for the servername configured in PMS, or
 	 * <code>null</code> if no servername is configured.
-	 * 
+	 *
 	 * @return The network interface.
 	 * @throws SocketException
 	 *             If an I/O error occurs.
@@ -462,5 +513,22 @@ public class NetworkConfiguration {
 	 */
 	public static synchronized void forgetConfiguration() {
 		config = null;
+	}
+
+	/**
+	 * for backwards-compatibility check if the short network interface name is used
+	 *
+	 * @return the standard display name
+	 */
+	public String replaceShortInterfaceNameByDisplayName(String interfaceName) {
+		if (StringUtils.isNotBlank(interfaceName)) {
+			for (InterfaceAssociation netInterface : interfaces) {
+				if (netInterface.getShortName().equals(interfaceName)) {
+					interfaceName = netInterface.getDisplayName();
+					break;
+				}
+			}
+		}
+		return interfaceName;
 	}
 }

@@ -26,9 +26,8 @@ import java.util.List;
 import jwbroek.cuelib.*;
 import net.pms.PMS;
 import net.pms.dlna.Range.Time;
-import net.pms.encoders.FFmpegAudio;
-import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,6 +40,7 @@ public class CueFolder extends DLNAResource {
 	public File getPlaylistfile() {
 		return playlistfile;
 	}
+
 	private boolean valid = true;
 
 	public CueFolder(File f) {
@@ -125,7 +125,7 @@ public class CueFolder extends DLNAResource {
 							realFile.setMedia(new DLNAMediaInfo());
 							realFile.getMedia().setMediaparsed(true);
 						}
-						realFile.resolve();
+						realFile.syncResolve();
 						if (i == 0) {
 							originalMedia = realFile.getMedia();
 							if (originalMedia == null) {
@@ -139,32 +139,7 @@ public class CueFolder extends DLNAResource {
 						// Assign a splitter engine if file is natively supported by renderer
 						if (realFile.getPlayer() == null) {
 							if (defaultPlayer == null) {
-								/*
-									XXX why are we creating new player instances? aren't they
-									supposed to be singletons?
-
-									TODO don't hardwire the player here; leave it to the
-									player factory to select the right player for the
-									resource's format e.g:
-
-										defaultPlayer = PlayerFactory.getPlayer(realFile);
-								*/
-								if (realFile.getFormat() == null) {
-									LOGGER.error("No file format known for file \"{}\", assuming it is a video for now.", realFile.getName());
-									/*
-										TODO (see above):
-
-											r.resolveFormat(); // sets the format based on the filename
-											defaultPlayer = PlayerFactory.getPlayer(realFile);
-									*/
-									defaultPlayer = new MEncoderVideo();
-								} else {
-									if (realFile.getFormat().isAudio()) {
-										defaultPlayer = new FFmpegAudio();
-									} else {
-										defaultPlayer = new MEncoderVideo();
-									}
-								}
+								defaultPlayer = PlayerFactory.getPlayer(realFile);
 							}
 
 							realFile.setPlayer(defaultPlayer);
@@ -172,7 +147,7 @@ public class CueFolder extends DLNAResource {
 
 						if (realFile.getMedia() != null) {
 							try {
-								realFile.setMedia((DLNAMediaInfo) originalMedia.clone());
+								realFile.setMedia(originalMedia.clone());
 							} catch (CloneNotSupportedException e) {
 								LOGGER.info("Error in cloning media info: " + e.getMessage());
 							}

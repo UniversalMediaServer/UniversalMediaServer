@@ -38,7 +38,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		if (playIcon == null) {
 			loadIcons();
 		}
-		this.player = (BasicPlayer.Logical)player;
+		this.player = (BasicPlayer.Logical) player;
 		player.connect(this);
 		int controls = player.getControls();
 		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
@@ -60,7 +60,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 		c.gridx = 0;
 		c.gridy = 0;
-		c.weightx = c.weighty = 1.0;
+		c.weighty = 1.0;
+		c.weightx = c.weighty;
 
 		Toolbar ctrl = new Toolbar();
 		ctrl.setLayout(new BoxLayout(ctrl, BoxLayout.X_AXIS));
@@ -81,9 +82,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			addStatus(ctrl);
 			add(ctrl, c);
 			c.gridy++;
-			Toolbar uri = new Toolbar();
-			addUriControls(uri);
-			add(uri, c);
+			Toolbar toolbar = new Toolbar();
+			addUriControls(toolbar);
+			add(toolbar, c);
 		}
 
 		player.alert();
@@ -99,66 +100,73 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public void addPlayControls(Container parent) {
-		parent.add(new Button(36, prev = new AbstractAction("", prevIcon) {
-			private static final long serialVersionUID = 7558487023838124078L;
+		prev = new AbstractAction("", prevIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.prev();
 			}
-		}));
-		parent.add(new Button(36, rewind = new AbstractAction("", rewIcon) {
-			private static final long serialVersionUID = -1520355550308740828L;
+		};
+		parent.add(new Button(36, prev));
+		rewind = new AbstractAction("", rewIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.rewind();
 			}
-		}));
-		parent.add(new Button(36, play = new AbstractAction("", playIcon) {
-			private static final long serialVersionUID = -5492279549624322429L;
+		};
+		parent.add(new Button(36, rewind));
+		play = new AbstractAction("", playIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setEdited(false);
 				player.pressPlay(uri.getText(), null);
 			}
-		}));
-		parent.add(new Button(36, stop = new AbstractAction("", stopIcon) {
-			private static final long serialVersionUID = 8389133040373106061L;
+		};
+		parent.add(new Button(36, play));
+		stop = new AbstractAction("", stopIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.pressStop();
 			}
-		}));
-		parent.add(new Button(36, forward = new AbstractAction("", fwdIcon) {
-			private static final long serialVersionUID = 9017731678937164070L;
+		};
+		parent.add(new Button(36, stop));
+		forward = new AbstractAction("", fwdIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.forward();
 			}
-		}));
-		parent.add(new Button(36, next = new AbstractAction("", nextIcon) {
-			private static final long serialVersionUID = -2100492235066666555L;
+		};
+		parent.add(new Button(36, forward));
+		next = new AbstractAction("", nextIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.next();
 			}
-		}));
+		};
+		parent.add(new Button(36, next));
 	}
 
 	public void addStatus(final Container parent) {
-		parent.add(position = new Button(new AbstractAction("") {
-			private static final long serialVersionUID = 2L;
+		position = new Button(new AbstractAction("") {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				toggleView(parent);
 			}
-		}));
+		});
+		parent.add(position);
 		position.setHorizontalAlignment(SwingConstants.RIGHT);
 		position.setToolTipText(Messages.getString("PlayerControlPanel.0"));
 	}
@@ -196,14 +204,15 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		defaults.put("Slider.horizontalThumbIcon", hti);
 		defaults.put("Slider.trackBorder", tb);
 
-		Button muteButton = new Button(mute = new AbstractAction("", volumeIcon) {
-			private static final long serialVersionUID = 4263195311825852854L;
+		mute = new AbstractAction("", volumeIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.mute();
 			}
-		});
+		};
+		Button muteButton = new Button(mute);
 		parent.add(muteButton);
 	}
 
@@ -216,11 +225,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		uri = (JTextField) uris.getEditor().getEditorComponent();
 		uri.addFocusListener(new java.awt.event.FocusAdapter() {
 			public void focusGained(java.awt.event.FocusEvent evt) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						uri.select(0, 0);
-					}
+				SwingUtilities.invokeLater(() -> {
+					uri.select(0, 0);
 				});
 			}
 		});
@@ -245,7 +251,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		});
 
 		parent.add(uris);
-		Button a = new Button(add = new AbstractAction("", addIcon) {
+		add = new AbstractAction("", addIcon) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -253,27 +259,30 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				setEdited(false);
 				player.add(-1, uri.getText(), null, null, true);
 			}
-		});
+		};
+		Button a = new Button(add);
 		a.setToolTipText(Messages.getString("PlayerControlPanel.1"));
 		parent.add(a);
-		Button r = new Button(remove = new AbstractAction("", removeIcon) {
-			private static final long serialVersionUID = 8732700198165912103L;
+		remove = new AbstractAction("", removeIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.remove(uri.getText());
 			}
-		});
+		};
+		Button r = new Button(remove);
 		r.setToolTipText(Messages.getString("PlayerControlPanel.2"));
 		parent.add(r);
-		Button c = new Button(clear = new AbstractAction("", clearIcon) {
-			private static final long serialVersionUID = -2484978035031713948L;
+		clear = new AbstractAction("", clearIcon) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				player.clear();
 			}
-		});
+		};
+		Button c = new Button(clear);
 		c.setToolTipText(Messages.getString("PlayerControlPanel.3"));
 		parent.add(c);
 		parent.add(new Button(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
@@ -309,8 +318,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	public void updatePlaylist() {
 		boolean empty = uris.getModel().getSize() == 0;
 		add.setEnabled((edited || empty) && StringUtils.isNotBlank(uri.getText()));
-		remove.setEnabled(! empty);
-		clear.setEnabled(! empty);
+		remove.setEnabled(!empty);
+		clear.setEnabled(!empty);
 		boolean more = uris.getModel().getSize() > 1;
 		next.setEnabled(more);
 		prev.setEnabled(more);
@@ -353,11 +362,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	@Override
 	public void actionPerformed(final ActionEvent e) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				refresh(((BasicPlayer) e.getSource()).getState());
-			}
+		SwingUtilities.invokeLater(() -> {
+			refresh(((BasicPlayer) e.getSource()).getState());
 		});
 	}
 

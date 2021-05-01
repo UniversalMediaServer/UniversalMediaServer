@@ -34,6 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class AboutTab {
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
 
 		final LinkMouseListener pms3Link = new LinkMouseListener(projectName + " " + PMS.getVersion(),
-			"http://www.universalmediaserver.com/");
+			"https://www.universalmediaserver.com/");
 		JLabel lPms3Link = builder.addLabel(pms3Link.getLabel(), cc.xy(2, 1, "center, fill"));
 		lPms3Link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lPms3Link.addMouseListener(pms3Link);
@@ -166,7 +167,7 @@ public class AboutTab {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			try {
-				PMS.get().getRegistry().browseURI(link);
+				BasicSystemUtils.instance.browseURI(link);
 			} catch (Exception e1) {
 				LOGGER.debug("Caught exception", e1);
 			}

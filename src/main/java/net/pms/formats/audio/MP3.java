@@ -32,7 +32,7 @@ public class MP3 extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "mp3" };
+		return new String[] {"mp3"};
 	}
 
 	@Override

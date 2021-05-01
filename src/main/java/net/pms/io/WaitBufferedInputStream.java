@@ -33,7 +33,7 @@ class WaitBufferedInputStream extends InputStream {
 	public long getReadCount() {
 		return readCount;
 	}
-	
+
 	WaitBufferedInputStream(BufferedOutputFile outputStream) {
 		this.outputStream = outputStream;
 		firstRead = true;

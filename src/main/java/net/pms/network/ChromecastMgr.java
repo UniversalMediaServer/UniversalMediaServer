@@ -57,6 +57,8 @@ public class ChromecastMgr implements ServiceListener {
 		} catch (IOException | GeneralSecurityException | ConfigurationException e) {
 			LOGGER.error("Chromecast registration failed with the following error: {}", e);
 			LOGGER.trace("", e);
+		} catch (InterruptedException e) {
+			LOGGER.info("Chromecast registration was interrupted");
 		}
 	}
 
@@ -94,7 +96,7 @@ public class ChromecastMgr implements ServiceListener {
 			ChromeCast chromeCast,
 			RendererConfiguration renderer,
 			InetAddress inetAddress
-		) throws ConfigurationException {
+		) throws ConfigurationException, InterruptedException {
 			super(renderer, inetAddress);
 			this.chromeCast = chromeCast;
 			uuid = chromeCast.getAddress();
@@ -121,7 +123,7 @@ public class ChromecastMgr implements ServiceListener {
 		public BasicPlayer getPlayer() {
 			if (player == null) {
 				player = new ChromecastPlayer(this, chromeCast);
-				((ChromecastPlayer)player).startPoll();
+				((ChromecastPlayer) player).startPoll();
 			}
 			return player;
 		}

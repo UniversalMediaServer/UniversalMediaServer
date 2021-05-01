@@ -47,7 +47,7 @@ public class FreedesktopTrash {
 	private static Object homeFolderLock = new Object();
 	private static final String INFO = "info";
 	private static final String FILES = "files";
-	private static final SecureRandom random = new SecureRandom();
+	private static final SecureRandom RANDOM = new SecureRandom();
 
 	private static String generateRandomFileName(String fileName) {
 		if (fileName.contains("/") || fileName.contains("\\")) {
@@ -65,7 +65,7 @@ public class FreedesktopTrash {
 			suffix = "";
 		}
 
-		long n = random.nextLong();
+		long n = RANDOM.nextLong();
 		n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n);
 		String newName = prefix + Long.toString(n) + suffix;
 		return newName;
@@ -142,12 +142,12 @@ public class FreedesktopTrash {
 		} catch (InvalidFileSystemException e) {
 			throw new InvalidFileSystemException("Invalid file system for file: " + path.toAbsolutePath(), e);
 		}
-		Path homeFolder = getHomeFolder();
+		Path folder = getHomeFolder();
 		Path trashFolder;
-		if (homeFolder != null) {
+		if (folder != null) {
 			UnixMountPoint homeMountPoint = null;
 			try {
-				homeMountPoint = FileUtil.getMountPoint(homeFolder);
+				homeMountPoint = FileUtil.getMountPoint(folder);
 			} catch (InvalidFileSystemException e) {
 				LOGGER.trace(e.getMessage(), e);
 				// homeMountPoint == null is ok, fails on .equals()
@@ -155,10 +155,10 @@ public class FreedesktopTrash {
 			if (pathMountPoint.equals(homeMountPoint)) {
 				// The file is on the same partition as the home folder,
 				// use home folder Trash
-				trashFolder = Paths.get(homeFolder.toString(), ".Trash");
+				trashFolder = Paths.get(folder.toString(), ".Trash");
 				if (!Files.exists(trashFolder)) {
 					// This is outside specification but follows convention
-					trashFolder = Paths.get(homeFolder.toString(), ".local/share/Trash");
+					trashFolder = Paths.get(folder.toString(), ".local/share/Trash");
 				}
 				if (verifyTrashFolder(trashFolder, true)) {
 					return trashFolder;
@@ -226,7 +226,7 @@ public class FreedesktopTrash {
 			throw new NullPointerException("path cannot be null");
 		}
 
-		final int LIMIT = 10;
+		final int limit = 10;
 		path = path.toAbsolutePath();
 		FilePermissions pathPermissions = new FilePermissions(path);
 		if (!pathPermissions.isReadable() || !pathPermissions.isWritable()) {
@@ -254,7 +254,7 @@ public class FreedesktopTrash {
 		String fileName = infoFile != null ? infoFile.toString() : "";
 		int count = 0;
 		boolean created = false;
-		while (!created && count < LIMIT) {
+		while (!created && count < limit) {
 			infoFile = infoFolder.resolve(fileName + ".trashinfo");
 			try {
 				Files.write(infoFile, infoContent, Charset.defaultCharset(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);

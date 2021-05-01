@@ -29,6 +29,7 @@ class HTTPXMLHelper {
 	static final String BROWSERESPONSE_FOOTER = "</u:BrowseResponse>";
 	static final String SEARCHRESPONSE_HEADER = "<u:SearchResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\">";
 	static final String SEARCHRESPONSE_FOOTER = "</u:SearchResponse>";
+	static final String SETBOOKMARK_RESPONSE = "<u:X_SetBookmarkResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"></u:X_SetBookmarkResponse>";
 	static final String SORTCAPS_RESPONSE = "<u:GetSortCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SortCaps></SortCaps></u:GetSortCapabilitiesResponse>";
 	static final String SEARCHCAPS_RESPONSE = "<u:GetSearchCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SearchCaps></SearchCaps></u:GetSearchCapabilitiesResponse>";
 	static final String PROTOCOLINFO_RESPONSE =
@@ -84,7 +85,7 @@ class HTTPXMLHelper {
 		return eventProp(prop, "");
 	}
 
-	public static String eventProp(String prop,String val) {
+	public static String eventProp(String prop, String val) {
 		return "<e:property><" + prop + ">" + val + "</" + prop + "></e:property>";
 	}
 

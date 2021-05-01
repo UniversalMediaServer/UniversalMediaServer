@@ -23,8 +23,8 @@ import java.awt.color.ColorSpace;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.imageio.ImageIO;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ColorSpaceType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -38,7 +38,10 @@ import net.pms.image.ImagesUtil.ScaleType;
  */
 public class DLNAImageInputStream extends ByteArrayInputStream {
 
+	/** The {@link ImageInfo} instance describing this {@link DLNAImageInputStream} */
 	protected final ImageInfo imageInfo;
+
+	/** The {@link DLNAImageProfile} for this {@link DLNAImageInputStream} */
 	protected final DLNAImageProfile profile;
 
 	/**
@@ -216,7 +219,7 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
-    /**
+	/**
 	 * Creates a {@link DLNAImageInputStream} where it uses {@code image}'s
 	 * buffer as its buffer array. The buffer array is not copied.
 	 *
@@ -238,11 +241,11 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 *
 	 * @throws NullPointerException if {@code image} is {@code null}.
 	 */
-    protected DLNAImageInputStream(DLNAImage image) {
-    	super(image.getBytes(false));
-    	this.imageInfo = image.getImageInfo();
-    	this.profile = image.getDLNAImageProfile();
-    }
+	protected DLNAImageInputStream(DLNAImage image) {
+		super(image.getBytes(false));
+		this.imageInfo = image.getImageInfo();
+		this.profile = image.getDLNAImageProfile();
+	}
 
 	/**
 	 * Converts and scales a image according to the given
@@ -252,24 +255,33 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	 * @param outputProfile the DLNA media profile to adhere to for the output.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted image, {@code null} if the
 	 *         source is {@code null}.
 	 * @exception IOException if the operation fails.
 	 */
 	public DLNAImageInputStream transcode(
 		DLNAImageProfile outputProfile,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		DLNAImage image;
 		image = (DLNAImage) ImagesUtil.transcodeImage(
 			this.getBytes(false),
 			outputProfile,
 			false,
-			padToSize);
+			padToSize,
+			filterChain
+		);
 		return image != null ? new DLNAImageInputStream(image) : null;
 	}
 
 	/**
+	 * Returns the byte array with the image data.
+	 *
+	 * @param copy if {@code true} a copy of the array is returned, if
+	 *            {@code false} a reference to the existing array is returned.
 	 * @return The bytes of this image.
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP")
@@ -278,15 +290,13 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 			byte[] result = new byte[buf.length];
 			System.arraycopy(buf, 0, result, 0, buf.length);
 			return result;
-		} else {
-			return buf;
 		}
+		return buf;
 	}
-
 
 	/**
 	 * @return A {@link DLNAImage} sharing the the underlying buffer.
-	 * @throws DLNAProfileException
+	 * @throws DLNAProfileException If the image isn't compliant.
 	 */
 	public DLNAImage getDLNAImage() throws DLNAProfileException {
 		return new DLNAImage(buf, imageInfo, profile, false);
@@ -306,14 +316,12 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this image.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
-
 
 	/**
 	 * @return The {@link ImageFormat} for this image.
@@ -398,10 +406,10 @@ public class DLNAImageInputStream extends ByteArrayInputStream {
 	}
 
 	/**
-     * Resets the buffer to the start position and clears any marks.
-     */
-    public synchronized void fullReset() {
-        pos = 0;
-        mark = 0;
-    }
+	 * Resets the buffer to the start position and clears any marks.
+	 */
+	public synchronized void fullReset() {
+		pos = 0;
+		mark = 0;
+	}
 }

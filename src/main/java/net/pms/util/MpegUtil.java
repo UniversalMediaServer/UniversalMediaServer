@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class MpegUtil {
 	public static int getDurationFromMpeg(File f) throws IOException {
@@ -15,12 +15,10 @@ public class MpegUtil {
 				if (ptsStart != null) {
 					Map<Integer, Integer> ptsEnd = checkRange(raf, 0, 250000, true);
 					if (ptsEnd != null) {
-						Iterator<Integer> iterator = ptsStart.keySet().iterator();
-						while (iterator.hasNext()) {
-							Integer id = iterator.next();
+						for (Entry<Integer, Integer> entry : ptsStart.entrySet()) {
+							Integer id = entry.getKey();
 							if (ptsEnd.get(id) != null) {
-								int dur = ptsEnd.get(id)
-									- ptsStart.get(id);
+								int dur = ptsEnd.get(id) - entry.getValue();
 								dur /= 90000;
 								return dur;
 							}
@@ -32,12 +30,10 @@ public class MpegUtil {
 		return 0;
 	}
 
-	private static Map<Integer, Integer> checkRange(RandomAccessFile raf, long startingPos,
-		int range, boolean end) throws IOException {
+	private static Map<Integer, Integer> checkRange(RandomAccessFile raf, long startingPos, int range, boolean end) throws IOException {
 		Map<Integer, Integer> pts = new HashMap<>();
-		byte buffer[] = new byte[range];
-		if (end) // statringPos not applicable for end==true
-		{
+		byte[] buffer = new byte[range];
+		if (end) { // statringPos not applicable for end==true
 			raf.seek(raf.length() - range);
 		} else {
 			raf.seek(0 + startingPos);
@@ -66,8 +62,7 @@ public class MpegUtil {
 			if (buffer[i + 7] == -32 && buffer[i + 6] == 1) {
 				int diff = i + 7 + 4; // 47 50 11 11 00 00 01 E0 00 00 84 C0
 				// check pts
-				if ((buffer[diff] & 128) == 128 && (buffer[diff + 2] & 32) == 32
-						&& (pts.get(id) == null || (pts.get(id) != null && end))) {
+				if ((buffer[diff] & 128) == 128 && (buffer[diff + 2] & 32) == 32 && (pts.get(id) == null || (pts.get(id) != null && end))) {
 					pts.put(id, getTS(buffer, diff + 3));
 				}
 			}
@@ -75,26 +70,14 @@ public class MpegUtil {
 		return pts;
 	}
 
-	private static int getTS(byte buffer[], int diff) {
-		return (((((buffer[diff + 0] & 0xff) << 8) + (buffer[diff + 1] & 0xff)) >> 1) << 15)
-			+ ((((buffer[diff + 2] & 0xff) << 8) + (buffer[diff + 3] & 0xff)) >> 1);
-	}
-
-	/**
-	 * @deprecated Use {@link #getPositionForTimeInMpeg(File, int)} instead.
-	 * gets position for specified time in MPEG stream (M2TS, TS)
-	 * @param f - file to check
-	 * @param timeS - time (in seconds) to find
-	 * @return position in stream (in bytes).
-	 * @throws IOException
-	 */
-	@Deprecated
-	public static long getPossitionForTimeInMpeg(File f, int timeS) throws IOException {
-	    return getPositionForTimeInMpeg(f, timeS);
+	private static int getTS(byte[] buffer, int diff) {
+		return (((((buffer[diff + 0] & 0xff) << 8) + (buffer[diff + 1] & 0xff)) >> 1) << 15) +
+			((((buffer[diff + 2] & 0xff) << 8) + (buffer[diff + 3] & 0xff)) >> 1);
 	}
 
 	/**
 	 * gets position for specified time in MPEG stream (M2TS, TS)
+	 *
 	 * @param f - file to check
 	 * @param timeS - time (in seconds) to find
 	 * @return position in stream (in bytes).
@@ -114,14 +97,12 @@ public class MpegUtil {
 				currentPos = minRangePos + (maxRangePos - minRangePos) / 2;
 				Map<Integer, Integer> ptsEnd = checkRange(raf, currentPos, 250000, false);
 				if (ptsEnd != null) {
-					Iterator<Integer> iterator = ptsStart.keySet().iterator();
-					while (iterator.hasNext()) {
-						Integer id = iterator.next();
+					for (Entry<Integer, Integer> entry : ptsStart.entrySet()) {
+						Integer id = entry.getKey();
 						if (ptsEnd.get(id) != null) {
-							int time = (ptsEnd.get(id) - ptsStart.get(id)) / 90000;
+							int time = (ptsEnd.get(id) - entry.getValue()) / 90000;
 
-							if (time == timeS) // found it
-							{
+							if (time == timeS) { // found it
 								return currentPos;
 							}
 

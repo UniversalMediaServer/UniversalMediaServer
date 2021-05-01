@@ -35,7 +35,7 @@ public class ICNS extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "icns" };
+		return new String[] {"icns"};
 	}
 
 	@Override

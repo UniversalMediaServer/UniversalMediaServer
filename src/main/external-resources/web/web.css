@@ -9,13 +9,12 @@ html {
 }
 
 body {
-	background: url('/files/background.jpg');
-	font-family: "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
-	color: #333;
-}
-
-body#ContentPage {
-	background: url('/files/background-blank.jpg');
+	font-family: "Roboto", "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #bbb;
+	background-color: #212121;
+	-webkit-transition: background-color 1000ms linear;
+	-ms-transition: background-color 1000ms linear;
+	transition: background-color 1000ms linear;
 }
 
 body#ContentPage.browsePage {
@@ -27,10 +26,6 @@ body#ContentPage.browsePage {
 #FrontPage #Container {
 	width: 700px;
 	margin: 0 auto;
-	position: relative;
-}
-
-#ContentPage #Container {
 	position: relative;
 }
 
@@ -80,28 +75,21 @@ body#ContentPage.browsePage {
 	display: block;
 }
 
-
-#VideoContainer {
-	max-width: 720px;
-	margin: 100px auto 0 auto;
-}
-
 /* Menu */
 
 #Logo {
 	position: absolute;
-	left: 243px;
+	left: 237px;
 	top: 29px;
-	background: url('/files/logo.png') !important;
-	width: 217px;
+	background: url('/files/logo.png') center no-repeat;
+	width: 230px;
 	height: 220px !important;
 	display: block;
 }
 
-#FrontPage #Menu a h3 {
+#FrontPage #Menu a h1 {
 	margin-top: 240px;
 	text-align: center;
-	font-family: Arial, Verdana, Tahoma, sans-serif;
 	color: #5a5a5a;
 	font-size: 22px;
 	text-decoration: none;
@@ -121,25 +109,75 @@ ul li a {
 	text-decoration: none;
 }
 
-ul#Folders li a {
-	color: #aaa;
-	font-size: 14px;
+#FoldersContainer {
+	background: rgba(18, 18, 18, 0.8);
 }
 
-ul#Folders li a:hover {
-	color: #fff !important;
+#FoldersContainer .category {
+	display: block;
+	padding: 15px 0 0 15px;
+}
+
+#Folders {
+	padding: 15px 0 0 0;
+}
+
+.is-not-front-page #Folders li:first-child span {
+	margin-bottom: 12px;
+	margin: 5px 0 6px;
+	padding-top: 3px;
+	padding-bottom: 1px;
+}
+
+@media screen and (max-width: 1080px) {
+	#FoldersContainer {
+		margin-top: 50px;
+		width: 100%;
+	}
+
+	.is-front-page {
+		padding-top: 15px;
+	}
+
+	#FoldersContainer .category {
+		display: block;
+		padding: 0 0 0 15px;
+	}
+}
+
+ul#Folders li a {
+	color: #aaa;
+	font-size: 16px;
 }
 
 ul#Folders li span {
 	display: block;
-	margin-bottom: 5px;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
+	line-height: 18px;
 }
 
-ul#Media {
+#Folders .folder-thumbnail {
+	width: 16px;
+	height: 16px;
+	margin-right: 10px;
+	background-size: contain;
+	float: left;
+}
+
+#Folders a:hover .folder-thumbnail {
+	filter: invert(1);
+}
+
+#MediaContainer {
 	overflow-y: auto;
+	padding: 20px 0 20px 20px;
+}
+
+#Media {
+	overflow-y: hidden;
+	padding-right: 0;
 }
 
 ul#Media li {
@@ -155,6 +193,40 @@ ul#Media li {
 	display: block;
 }
 
+ul#Media .thumb {
+	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
+	max-width: 308px;
+	max-height: 173px;
+	height: 173px;
+	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
+	width: auto;
+	display: block;
+	margin: 0 auto;
+	object-fit: contain;
+}
+
+ul#Media .caption {
+	display: block;
+	max-width: 263px;
+	height: 16px;
+	overflow: hidden;
+	float: left;
+	font-size: 12px;
+	color: #ddd;
+	margin: 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	line-height: 16px;
+}
+
+ul#Media li:hover .caption {
+	color: #fafafa;
+}
+
+ul#Media .caption:hover {
+	text-decoration: underline;
+}
+
 .PadBlack {
 	background-color: rgba(0, 0, 0, 1);
 }
@@ -165,31 +237,6 @@ ul#Media li {
 
 .PadNone {
 	background-color: transparent;
-}
-
-ul#Media .thumb {
-	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
-	max-width: 308px;
-	max-height: 173px;
-	height: 173px;
-	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
-	width: auto;
-	display: block;
-	margin: 0 auto;
-}
-
-ul#Media .caption {
-	display: block;
-	max-width: 263px;
-	height: 16px;
-	overflow: hidden;
-	float: left;
-	font-size: 12px;
-	color: #444;
-	margin: 0;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	line-height: 16px;
 }
 
 .playlist_add {
@@ -228,10 +275,6 @@ ul#Media .caption {
 	margin-right:1px;
 }
 
-ul#Media li:hover .caption {
-	color: #000 !important;
-}
-
 #ViewGrid,
 #ViewDynamic,
 #ViewPadColor {
@@ -252,10 +295,6 @@ ul#Media li:hover .caption {
 	background-image: url('/files/view-padcolor.png');
 }
 
-ul#Media .caption:hover {
-	text-decoration: underline;
-}
-
 .bumpIcon {
 	width: 24px;
 	height: 16px;
@@ -270,22 +309,6 @@ ul#Media .caption:hover {
 .floatRight {
 	float: right;
 	clear: left;
-}
-
-#DownloadLink {
-	margin: 20px auto 0 auto;
-	background: url('/files/download.png');
-	display: block;
-	height: 48px;
-	width: 48px;
-}
-
-#DownloadLink:hover {
-	background-position: 0 -48px;
-}
-
-#Folders li:first-child span {
-	margin-bottom: 12px;
 }
 
 #OptionsMenu {
@@ -336,7 +359,6 @@ ul#Media .caption:hover {
 }
 
 #SettingsMenu li:nth-child(2) span {
-	background: url('/files/background.jpg');
 	display: inline-block;
 }
 
@@ -499,3 +521,68 @@ form#SearchForm {
 	left: 45%;
 }
 
+.navbar {
+	background: rgba(18, 18, 18, 0.8);
+}
+
+#navbar > ul > li:hover {
+	background-color: #666;
+}
+
+.mediaInfo h1 {
+	margin-bottom: 30px;
+	overflow-wrap: break-word;
+}
+
+.mediaInfo h1 > a {
+	margin-left: 20px;
+	color: #e0ac00;
+}
+
+.mediaInfoText {
+	padding: 30px 50px;
+	background-color: rgba(0, 0, 0, 0.1);
+	border-radius: 4px;
+}
+
+.browsePage .mediaInfo {
+	display: flex;
+}
+
+body.dark .mediaInfoText {
+	background-color: rgba(255, 255, 255, 0.1);
+	color: rgba(18, 18, 18, 1);
+}
+
+body .mediaInfoText .badge {
+	margin: 0 5px;
+	font-weight: 400;
+	background-color: rgba(51, 51, 51, 1);
+}
+
+body .mediaInfoText a {
+	color: rgba(217, 217, 217, 1);
+}
+
+body .mediaInfoText a:hover {
+	color: rgba(255, 255, 255, 1);
+}
+
+.videoPage .posterContainer {
+	display: none;
+}
+
+/* Bootstrap overrides */
+
+.breadcrumb {
+	background-color: rgba(51, 51, 51, 0.8);
+	margin-right: 20px;
+}
+
+.breadcrumb li a {
+	color: #bbb;
+}
+
+.breadcrumb li.active {
+	color: #ddd;
+}

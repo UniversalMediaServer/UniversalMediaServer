@@ -22,6 +22,7 @@ package net.pms.newgui;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,7 +36,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.util.tree.CheckTreeManager;
-import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +43,11 @@ public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
 	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static List<String> selectedRenderers = configuration.getSelectedRenderers();
+	private static List<String> savedSelectedRenderers = configuration.getSelectedRenderers();
 	private CheckTreeManager checkTreeManager;
-	private JTree SrvTree;
+	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
-	private static final String allRenderersTreeName = configuration.ALL_RENDERERS;
+	private static final String ALL_RENDERERS_TREE_NAME = configuration.allRenderers;
 	private boolean init = false;
 
 	public SelectRenderers() {
@@ -67,12 +67,14 @@ public class SelectRenderers extends JPanel {
 				// Find or create group or single name renderer
 				SearchableMutableTreeNode node = null;
 				try {
-					 node = allRenderers.findChild(match.group(1));
+					node = allRenderers.findChild(match.group(1));
 				} catch (IllegalChildException e) {}
+
 				if (node == null) {
 					node = new SearchableMutableTreeNode(match.group(1));
 					allRenderers.add(node);
 				}
+
 				// Find or create subgroup/name
 				if (match.groupCount() > 1 && match.group(2) != null) {
 					SearchableMutableTreeNode subNode = null;
@@ -91,9 +93,9 @@ public class SelectRenderers extends JPanel {
 			}
 		}
 
-		SrvTree = new JTree(new DefaultTreeModel(allRenderers));
-		checkTreeManager = new CheckTreeManager(SrvTree);
-		checkPanel.add(new JScrollPane(SrvTree));
+		srvTree = new JTree(new DefaultTreeModel(allRenderers));
+		checkTreeManager = new CheckTreeManager(srvTree);
+		checkPanel.add(new JScrollPane(srvTree));
 		checkPanel.setSize(400, 500);
 	}
 
@@ -106,23 +108,25 @@ public class SelectRenderers extends JPanel {
 			build();
 			init = true;
 		}
-		SrvTree.validate();
+
+		srvTree.validate();
 		// Refresh setting if modified
-		selectedRenderers = configuration.getSelectedRenderers();
+		savedSelectedRenderers = configuration.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
-		if (selectedRenderers.isEmpty() || (selectedRenderers.size() == 1 && selectedRenderers.get(0) == null)) {
+		if (savedSelectedRenderers.isEmpty() || (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
-		} else if (selectedRenderers.size() == 1 && selectedRenderers.get(0).equals(allRenderersTreeName)) {
+		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
 			checkTreeManager.getSelectionModel().setSelectionPath(root);
 		} else {
 			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode) {
 				SearchableMutableTreeNode rootNode = (SearchableMutableTreeNode) root.getLastPathComponent();
 				SearchableMutableTreeNode node = null;
-				List<TreePath> selectedRenderersPath = new ArrayList<>(selectedRenderers.size());
-				for (String selectedRenderer : selectedRenderers) {
+				List<TreePath> selectedRenderersPath = new ArrayList<>(savedSelectedRenderers.size());
+				for (String selectedRenderer : savedSelectedRenderers) {
 					try {
 						node = rootNode.findInBranch(selectedRenderer, true);
 					} catch (IllegalChildException e) {}
+
 					if (node != null) {
 						selectedRenderersPath.add(new TreePath(node.getPath()));
 					}
@@ -154,7 +158,7 @@ public class SelectRenderers extends JPanel {
 				selected.length == 1 && selected[0].getLastPathComponent() instanceof SearchableMutableTreeNode &&
 				((SearchableMutableTreeNode) selected[0].getLastPathComponent()).getNodeName().equals(allRenderers.getNodeName())
 			) {
-				if (configuration.setSelectedRenderers(allRenderersTreeName)) {
+				if (configuration.setSelectedRenderers(ALL_RENDERERS_TREE_NAME)) {
 					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
 				}
 			} else {
@@ -167,11 +171,13 @@ public class SelectRenderers extends JPanel {
 								if (!rendererName.isEmpty()) {
 									rendererName += " ";
 								}
+
 								rendererName += ((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName();
 							} else {
 								LOGGER.error("Invalid tree node component class {}", path.getPathComponent(i).getClass().getSimpleName());
 							}
 						}
+
 						if (!rendererName.isEmpty()) {
 							selectedRenderers.add(rendererName);
 						}
@@ -179,6 +185,8 @@ public class SelectRenderers extends JPanel {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());
 					}
 				}
+
+				Collections.sort(selectedRenderers);
 				if (configuration.setSelectedRenderers(selectedRenderers)) {
 					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
 				}

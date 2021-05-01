@@ -20,10 +20,15 @@ package net.pms.util;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -33,7 +38,7 @@ import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Fail;
 import static org.junit.Assert.*;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,28 +46,24 @@ import org.slf4j.LoggerFactory;
 public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
 
-	/**
-	 * Set up testing conditions before running the tests.
-	 * @throws ConfigurationException
-	 */
-	@Before
-	public final void setUp() throws ConfigurationException {
-		// Silence all log messages from the PMS code that is being tested
+	@BeforeClass
+	public static void SetUPClass() throws ConfigurationException, InterruptedException {
+		// Silence all log messages from the code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);;
+		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
 		PMS.get();
 		PMS.setConfiguration(new PmsConfiguration(false));
 	}
 
 	@Test
 	public void testIsUrl() throws Exception {
-		assertThat(FileUtil.isUrl("universalmediaserver.com")).isFalse();
-		assertThat(FileUtil.isUrl("http://www.universalmediaserver.com")).isTrue();
+		assertFalse(FileUtil.isUrl("universalmediaserver.com"));
+		assertTrue(FileUtil.isUrl("http://www.universalmediaserver.com"));
 	}
 
 	@Test
 	public void testGetProtocol() throws Exception {
-		assertThat(FileUtil.getProtocol("universalmediaserver.com")).isNull();
+		assertNull(FileUtil.getProtocol("universalmediaserver.com"));
 		assertThat(FileUtil.getProtocol("http://www.universalmediaserver.com")).isEqualTo("http");
 	}
 
@@ -74,7 +75,7 @@ public class FileUtilTest {
 
 	@Test
 	public void testGetUrlExtension() throws Exception {
-		assertThat(FileUtil.getUrlExtension("filename")).isNull();
+		assertNull(FileUtil.getUrlExtension("filename"));
 		assertThat(FileUtil.getUrlExtension("http://www.universalmediaserver.com/file.html?foo=bar")).isEqualTo("html");
 	}
 
@@ -84,48 +85,285 @@ public class FileUtilTest {
 	}
 
 	/**
-	 * Note: The method this is testing handles numerous inputs, so this test
-	 * could get very large. It should get much larger than it is now.
+	 * Note: The method this is testing handles numerous inputs, so this
+	 * test could get very large. It should get much larger than it is now.
 	 *
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testGetFileNameWithRewriting() throws Exception {
-		// Video of a TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.720p.mkv", null)).isEqualTo("Universal Media Server - 102");
+		try {
+			JsonElement tree = JsonParser.parseReader(
+				new java.io.FileReader(
+					FileUtils.toFile(
+						CLASS.getResource("prettified_filenames_metadata.json")
+					)
+				)
+			);
 
-		// Video of a TV episode in double-digit seasons
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S12E03.720p.mkv", null)).isEqualTo("Universal Media Server - 1203");
+			JsonArray tests = tree.getAsJsonArray();
+			for (JsonElement test : tests) {
+				JsonObject o = test.getAsJsonObject();
+				String original = o.get("filename").getAsString();
+				String prettified = o.get("prettified").getAsString();
+				assertThat(FileUtil.getFileNamePrettified(original)).isEqualTo(prettified);
+			}
+		} catch (Exception ex) {
+			throw (new AssertionError(ex));
+		}
+	}
 
-		// Video spanning two TV episodes
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02E03.720p.mkv", null)).isEqualTo("Universal Media Server - 102-03");
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02-E03.720p.mkv", null)).isEqualTo("Universal Media Server - 102-03");
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S12E03-E04.720p.mkv", null)).isEqualTo("Universal Media Server - 1203-04");
+	/**
+	 * Note: The method this is testing handles numerous inputs, so this
+	 * test could get very large. It should get much larger than it is now.
+	 *
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testGetFileNameMetadata() throws Exception {
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
+		try {
+			JsonElement tree = JsonParser.parseReader(
+				new java.io.FileReader(
+					FileUtils.toFile(
+						CLASS.getResource("prettified_filenames_metadata.json")
+					)
+				)
+			);
 
-		// Video of an extended TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.EXTENDED.720p.mkv", null)).isEqualTo("Universal Media Server - 102");
+			JsonArray tests = tree.getAsJsonArray();
+			for (JsonElement test : tests) {
+				JsonObject o = test.getAsJsonObject();
+				String original = o.get("filename").getAsString();
+				JsonObject metadata = o.get("metadata").getAsJsonObject();
+				boolean todo = false;
+				if (o.has("todo")) {
+					todo = o.get("todo").getAsBoolean();
+				}
 
-		// Video of a TV episode with the "Mysterious Wordplay" title
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.Mysterious.Wordplay.720p.mkv", null)).isEqualTo("Universal Media Server - 102 - Mysterious Wordplay");
+				String[] extracted_metadata = FileUtil.getFileNameMetadata(original);
+				assert extracted_metadata.length == 6;
+				String movieOrShowName = extracted_metadata[0];
+				int year = -1;
+				try {
+					if (extracted_metadata[1] != null) {
+						year = Integer.parseInt(extracted_metadata[1]);
+					}
+				} catch (NumberFormatException ex) {
+					throw (new AssertionError(ex));
+				}
+				String extraInformation = extracted_metadata[2];
+				int tvSeason = -1;
+				try {
+					if (extracted_metadata[3] != null) {
+						tvSeason = Integer.parseInt(extracted_metadata[3]);
+					}
+				} catch (NumberFormatException ex) {
+					throw (new AssertionError(ex));
+				}
+				// tvEpisodeNumber might be a single episode, but might also be
+				// a hyphen-separated range, so cannot always parse as int
+				String tvEpisodeNumber = extracted_metadata[4];
+				String tvEpisodeName = extracted_metadata[5];
 
-		// Video of an uncut TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.UNCUT.720p.mkv", null)).isEqualTo("Universal Media Server - 102 (Uncut)");
+				JsonElement elem;
 
-		// Video of an extended cut of a TV episode
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.S01E02.Extended.Cut.720p.mkv", null)).isEqualTo("Universal Media Server - 102 (Extended Cut)");
-
-		// Video of a TV episode that airs very regularly
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.01.23.720p.mkv", null)).isEqualTo("Universal Media Server - 2015/01/23");
-
-		// Video of a TV episode that airs very regularly and has an episode title
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.01.23.Mysterious.Wordplay.720p.mkv", null)).isEqualTo("Universal Media Server - 2015/01/23 - Mysterious Wordplay");
-
-		// Video of a movie
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.720p.mkv", null)).isEqualTo("Universal Media Server (2015)");
-
-		// Video of a special edition of a movie
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.Special.Edition.2015.720p.mkv", null)).isEqualTo("Universal Media Server (2015) (Special Edition)");
-		assertThat(FileUtil.getFileNamePrettified("Universal.Media.Server.2015.Special.Edition.720p.mkv", null)).isEqualTo("Universal Media Server (2015) (Special Edition)");
+				elem = metadata.get("extra");
+				if (elem != null) {
+					for (JsonElement extra : elem.getAsJsonArray()) {
+						try {
+							assertThat(extraInformation.indexOf(extra.getAsString()) > -1).isTrue();
+						} catch (NullPointerException ex) {
+							// There is no extraInformation extracted
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/extra would fail for TODO test " + original);
+							} else {
+								throw (new AssertionError(ex));
+							}
+						} catch (AssertionError err) {
+							// extraInformation is extracted, but is wrong
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/extra would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+				}
+				if ("tv-series-episode".equals(metadata.get("type").getAsString())) {
+					logger.debug("Doing tv-series-episode " + original);
+					// A single episode, might have episode title and date
+					elem = metadata.get("series");
+					if (elem != null) {
+						try {
+							assertThat(movieOrShowName).isEqualTo(elem.getAsString());
+						} catch (NullPointerException ex) {
+							// There is no movieOrShowName extracted
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/series would fail for TODO test " + original);
+							} else {
+								throw (new AssertionError(ex));
+							}
+						} catch (AssertionError err) {
+							// movieOrShowName is extracted, but is wrong
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/series would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+					elem = metadata.get("season");
+					if (elem != null) {
+						try {
+							assertThat(tvSeason).isEqualTo(elem.getAsInt());
+						} catch (NullPointerException ex) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/season would fail for TODO test " + original);
+							} else {
+								throw (new AssertionError(ex));
+							}
+						} catch (AssertionError err) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/season would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+					elem = metadata.get("episode");
+					if (elem != null) {
+						try {
+							assertThat(tvEpisodeNumber).isEqualTo(String.format("%02d", elem.getAsInt()));
+						} catch (NumberFormatException | NullPointerException ex) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/episode would fail for TODO test " + original);
+							} else {
+								throw (new AssertionError(ex));
+							}
+						} catch (AssertionError err) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/episode would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+					if (metadata.has("released")) {
+						JsonObject metadata_rel = metadata.get("released").getAsJsonObject();
+						String rel_date = Integer.toString(metadata_rel.get("year").getAsInt());
+						if (metadata_rel.has("month")) {
+							rel_date = rel_date + "-" + Integer.toString(metadata_rel.get("month").getAsInt());
+						}
+						if (metadata_rel.has("date")) {
+							rel_date = rel_date + "-" + Integer.toString(metadata_rel.get("date").getAsInt());
+						}
+					}
+					elem = metadata.get("title");
+					if (elem != null) {
+						try {
+							assertThat(tvEpisodeName).isEqualTo(elem.getAsString());
+						} catch (NullPointerException ex) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/title would fail for TODO test " + original);
+							} else {
+								throw (new AssertionError(ex));
+							}
+						} catch (AssertionError err) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/title would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+				} else if ("tv-series-episodes".equals(metadata.get("type").getAsString())) {
+					logger.debug("Doing tv-series-episodes " + original);
+					// A single episode or an episode range, cannot have episode title or date
+					elem = metadata.get("series");
+					if (elem != null) {
+						try {
+							assertThat(movieOrShowName).isEqualTo(elem.getAsString());
+						} catch (NullPointerException ex) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/series would fail for TODO test " + original);
+							} else {
+								throw (new AssertionError(ex));
+							}
+						} catch (AssertionError err) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/series would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+					elem = metadata.get("season");
+					if (elem != null) {
+						assertThat(tvSeason).isEqualTo(elem.getAsInt());
+					}
+					elem = metadata.get("episodes");
+					if (elem != null) {
+						String range = "";
+						for (JsonElement elem2 : elem.getAsJsonArray()) {
+							range = range + "-" + String.format("%02d", elem2.getAsInt());
+						}
+						try {
+							assertThat(tvEpisodeNumber).isEqualTo(range.substring(1));
+						} catch (AssertionError err) {
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/episodes would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+				} else if ("movie".equals(metadata.get("type").getAsString())) {
+					logger.debug("Doing movie " + original);
+					elem = metadata.get("title");
+					if (elem != null) {
+						try {
+							assertThat(movieOrShowName).isEqualTo(elem.getAsString());
+						} catch (NullPointerException ex) {
+							// There is no movieOrShowName extracted
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/title would fail for TODO test " + original);
+							} else {
+								throw (new AssertionError(ex));
+							}
+						} catch (AssertionError err) {
+							// movieOrShowName is extracted, but is wrong
+							if (todo) {
+								logger.warn("testGetFileNameMetadata/title would fail for TODO test " + original);
+							} else {
+								throw (err);
+							}
+						}
+					}
+					if (metadata.has("released")) {
+						JsonObject metadata_rel = metadata.get("released").getAsJsonObject();
+						elem = metadata_rel.get("year");
+						if (elem != null) {
+							try {
+								assertThat(year).isEqualTo(elem.getAsInt());
+							} catch (AssertionError err) {
+								if (todo) {
+									logger.warn("testGetFileNameMetadata/released would fail for TODO test " + original);
+								} else {
+									throw (err);
+								}
+							}
+						}
+					}
+				} else {
+					logger.error("Unknown content type in " + original);
+				}
+			} // for all test cases
+		} catch (Exception ex) {
+			ex.printStackTrace(System.err);
+			throw (new AssertionError(ex));
+		}
 	}
 
 	@Test
@@ -191,91 +429,91 @@ public class FileUtilTest {
 	@Test
 	public void testIsFileUTF8() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8));
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8_2)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8_2));
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8_3)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8_3));
 		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf_16)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_utf_16));
 		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf_16_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_utf_16_2));
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.isFileUTF8(file_cp1251)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_cp1251));
 		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.isFileUTF8(file_ch)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_ch));
 		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.isFileUTF8(file_ch_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_ch_2));
 	}
 
 	@Test
 	public void testIsCharsetUTF8() throws Exception {
-		assertThat(FileUtil.isCharsetUTF8("UTF-8")).isTrue();
-		assertThat(FileUtil.isCharsetUTF8("uTf-8")).isTrue();
-		assertThat(FileUtil.isCharsetUTF8("uTf-88")).isFalse();
+		assertTrue(FileUtil.isCharsetUTF8(StandardCharsets.UTF_8));
+		assertTrue(FileUtil.isCharsetUTF8("uTf-8"));
+		assertFalse(FileUtil.isCharsetUTF8("uTf-88"));
 	}
 
 	@Test
 	public void testIsCharsetUTF18_withNullOrEmptyCharset() throws Exception {
 		String s = null;
-		assertThat(FileUtil.isCharsetUTF8(s)).isFalse();
+		assertFalse(FileUtil.isCharsetUTF8(s));
 		Charset c = null;
-		assertThat(FileUtil.isCharsetUTF8(c)).isFalse();
-		assertThat(FileUtil.isCharsetUTF8("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF8(c));
+		assertFalse(FileUtil.isCharsetUTF8(""));
 	}
 
 	@Test
 	public void testIsFileUTF16() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8));
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8_2));
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8_3)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8_3));
 		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf_16)).isTrue();
+		assertTrue(FileUtil.isFileUTF16(file_utf_16));
 		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf_16_2)).isTrue();
+		assertTrue(FileUtil.isFileUTF16(file_utf_16_2));
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.isFileUTF16(file_cp1251)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_cp1251));
 		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.isFileUTF16(file_ch)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_ch));
 		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.isFileUTF16(file_ch_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_ch_2));
 	}
 
 	@Test
 	public void testIsCharsetUTF16() throws Exception {
-		assertThat(FileUtil.isCharsetUTF16("UTF-8")).isFalse();
-		assertThat(FileUtil.isCharsetUTF16("UTF-16BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16("UTF-16LE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16("utF-16le")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16(" utF-16le")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(StandardCharsets.UTF_8));
+		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16BE));
+		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16LE));
+		assertTrue(FileUtil.isCharsetUTF16("utF-16le"));
+		assertFalse(FileUtil.isCharsetUTF16(" utF-16le"));
 	}
 
 	@Test
 	public void testIsCharsetUTF16_withNullOrEmptyCharset() throws Exception {
 		String s = null;
-		assertThat(FileUtil.isCharsetUTF16(s)).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(s));
 		Charset c = null;
-		assertThat(FileUtil.isCharsetUTF16(c)).isFalse();
-		assertThat(FileUtil.isCharsetUTF16("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(c));
+		assertFalse(FileUtil.isCharsetUTF16(""));
 	}
 
 	@Test
 	public void testIsCharsetUTF32() throws Exception {
-		assertThat(FileUtil.isCharsetUTF32("UTF-8")).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("UTF-16BE")).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("utF-32Be")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("utF-332Be")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF32("UTF-8"));
+		assertFalse(FileUtil.isCharsetUTF32("UTF-16BE"));
+		assertTrue(FileUtil.isCharsetUTF32("UTF-32BE"));
+		assertTrue(FileUtil.isCharsetUTF32("UTF-32BE"));
+		assertTrue(FileUtil.isCharsetUTF32("utF-32Be"));
+		assertFalse(FileUtil.isCharsetUTF32("utF-332Be"));
 	}
 
 	@Test
 	public void testIsCharsetUTF32_withNullOrEmptyCharset() throws Exception {
-		assertThat(FileUtil.isCharsetUTF32(null)).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF32(null));
+		assertFalse(FileUtil.isCharsetUTF32(""));
 	}
 
 	@Test
@@ -285,7 +523,7 @@ public class FileUtilTest {
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8le, outputFile);
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
 
@@ -296,7 +534,7 @@ public class FileUtilTest {
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8be, outputFile);
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
 
@@ -306,7 +544,7 @@ public class FileUtilTest {
 		FileUtil.convertFileFromUtf16ToUtf8(file_cp1251, new File("output.srt"));
 	}
 
-	@Test(expected = FileNotFoundException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testConvertFileFromUtf16ToUtf8_inputFileNotFound() throws Exception {
 		FileUtil.convertFileFromUtf16ToUtf8(new File("no-such-file.xyz"), new File("output.srt"));
 	}
@@ -349,12 +587,12 @@ public class FileUtilTest {
 		assertTrue("ParentIsFolder", FileUtil.getFilePermissions(file.getParentFile()).isFolder());
 		assertTrue("ParentIsBrowsable", FileUtil.getFilePermissions(file.getParentFile()).isBrowsable());
 		try {
-			FileUtil.getFilePermissions(new File(file.getParentFile(),"No such file"));
+			FileUtil.getFilePermissions(new File(file.getParentFile(), "No such file"));
 			Fail.fail("Expected FileNotFoundException");
 		} catch (FileNotFoundException e) {
 			// As expected
 		}
-		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow(new File(file.getParentFile(),"No such file")));
+		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow(new File(file.getParentFile(), "No such file")));
 
 		path = String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000));
 		file = new File(System.getProperty("java.io.tmpdir"), path);
@@ -383,11 +621,11 @@ public class FileUtilTest {
 
 	@Test
 	public void testAppendPathSeparator() {
-		assertEquals("AppendEmptyString", FileUtil.appendPathSeparator(""), "/");
-		assertEquals("AppendSlash", FileUtil.appendPathSeparator("/"), "/");
-		assertEquals("AppendMissingBackslash", FileUtil.appendPathSeparator("foo\\bar"), "foo\\bar\\");
-		assertEquals("DontAppendBackslash", FileUtil.appendPathSeparator("foo\\bar\\"), "foo\\bar\\");
-		assertEquals("AppendMissingSlash", FileUtil.appendPathSeparator("foo/bar"), "foo/bar/");
-		assertEquals("DontAppendSlash", FileUtil.appendPathSeparator("foo/bar/"), "foo/bar/");
+		assertEquals("AppendEmptyString", File.separator, FileUtil.appendPathSeparator(""));
+		assertEquals("AppendSlash", "/", FileUtil.appendPathSeparator("/"));
+		assertEquals("AppendMissingBackslash", "foo\\bar\\", FileUtil.appendPathSeparator("foo\\bar"));
+		assertEquals("DontAppendBackslash", "foo\\bar\\", FileUtil.appendPathSeparator("foo\\bar\\"));
+		assertEquals("AppendMissingSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar"));
+		assertEquals("DontAppendSlash", "foo/bar/", FileUtil.appendPathSeparator("foo/bar/"));
 	}
 }

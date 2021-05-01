@@ -36,9 +36,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class IpFilter {
-
-	private final static String IP_FILTER_RULE_CHAR = "0123456789-.* ";
-	private final static Pattern PATTERN = Pattern.compile("(([0-9]*)(-([0-9]*))?)");
+	private static final String IP_FILTER_RULE_CHAR = "0123456789-.* ";
+	private static final Pattern PATTERN = Pattern.compile("(([0-9]*)(-([0-9]*))?)");
 	private static final Logger LOGGER = LoggerFactory.getLogger(IpFilter.class);
 
 	interface Predicate {

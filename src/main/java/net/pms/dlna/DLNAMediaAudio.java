@@ -27,96 +27,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of the audio properties of media.
- *
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
  */
 public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaAudio.class);
 	private AudioProperties audioProperties = new AudioProperties();
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int bitsperSample = 16;
-
+	private int bitsperSample = 16;
 	private int bitRate;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String sampleFrequency;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int nrAudioChannels;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String codecA;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String album;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String artist;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String songname;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String genre;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int year;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int track;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int delay;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String audioTrackTitleFromMetadata;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String muxingModeAudio;
+	private String sampleFrequency;
+	private String codecA;
+	private String album;
+	private String artist;
+	private String songname;
+	private String genre;
+	private int year;
+	private int track;
+	private String audioTrackTitleFromMetadata;
+	private String muxingModeAudio;
+	private String albumartist;
+	private String mbidRecord;
+	private String mbidTrack;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -133,13 +62,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			}
 		}
 		return sr;
-	}
-
-	/**
-	 * @return True if the audio codec is 3GA.
-	 */
-	public boolean is3GA() {
-		return FormatConfiguration.THREEGA.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -220,10 +142,24 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return True if the audio codec is Dolby E.
+	 */
+	public boolean isDolbyE() {
+		return FormatConfiguration.DOLBYE.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is DSD Audio.
 	 */
-	public boolean isDSDAudio() {
-		return FormatConfiguration.DSD.equalsIgnoreCase(getCodecA());
+	public boolean isDFF() {
+		return FormatConfiguration.DFF.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is DSF.
+	 */
+	public boolean isDSF() {
+		return FormatConfiguration.DSF.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -248,6 +184,13 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return whether the audio codec is ER BSAC.
+	 */
+	public boolean isERBSAC() {
+		return FormatConfiguration.ER_BSAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
 	 * @return True if the audio codec is FLAC.
 	 */
 	public boolean isFLAC() {
@@ -266,13 +209,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isHEAAC() {
 		return FormatConfiguration.HE_AAC.equalsIgnoreCase(getCodecA());
-	}
-
-	/**
-	 * @return True if the audio codec is Matroska Audio.
-	 */
-	public boolean isMKA() {
-		return FormatConfiguration.MKA.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
@@ -341,14 +277,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @return True if the audio codec is RealAudio 14.4.
 	 */
-	public boolean isRealAudio14_4() {
+	public boolean isRealAudio144() {
 		return FormatConfiguration.REALAUDIO_14_4.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
 	 * @return True if the audio codec is RealAudio 28.8.
 	 */
-	public boolean isRealAudio28_8() {
+	public boolean isRealAudio288() {
 		return FormatConfiguration.REALAUDIO_28_8.equalsIgnoreCase(getCodecA());
 	}
 
@@ -469,9 +405,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return The standardized name.
 	 */
 	public String getAudioCodec() {
-		if (is3GA()) {
-			return "3GA";
-		} else if (isAACLC()) {
+		if (isAACLC()) {
 			return "AAC-LC";
 		} else if (isAC3()) {
 			return "AC3";
@@ -491,22 +425,26 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "ATRAC";
 		} else if (isCook()) {
 			return "Cook";
-		} else if (isDSDAudio()) {
-			return "DSD Audio";
+		} else if (isDFF()) {
+			return "DFF";
+		} else if (isDSF()) {
+			return "DSF";
+		} else if (isDolbyE()) {
+			return "Dolby E";
 		} else if (isDTS()) {
 			return "DTS";
 		} else if (isDTSHD()) {
 			return "DTS HD";
 		} else if (isEAC3()) {
 			return "Enhanced AC-3";
+		} else if (isERBSAC()) {
+			return "ER BSAC";
 		} else if (isFLAC()) {
 			return "FLAC";
 		} else if (isG729()) {
 			return "G.729";
 		} else if (isHEAAC()) {
 			return "HE-AAC";
-		} else if (isMKA()) {
-			return "Matroska Audio";
 		} else if (isMLP()) {
 			return "MLP";
 		} else if (isMonkeysAudio()) {
@@ -523,9 +461,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "LPCM";
 		} else if (isQDesign()) {
 			return "QDesign";
-		} else if (isRealAudio14_4()) {
+		} else if (isRealAudio144()) {
 			return "RealAudio 14.4";
-		} else if (isRealAudio28_8()) {
+		} else if (isRealAudio288()) {
 			return "RealAudio 28.8";
 		} else if (isRALF()) {
 			return "RealAudio Lossless";
@@ -597,6 +535,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		}
 		if (isNotBlank(getAlbum())) {
 			result.append(", Album: ").append(getAlbum());
+		}
+		if (isNotBlank(getAlbumArtist())) {
+			result.append(", Album Artist: ").append(getAlbumArtist());
 		}
 		if (isNotBlank(getSongname())) {
 			result.append(", Track Name: ").append(getSongname());
@@ -689,31 +630,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns the number of channels for the audio.
-	 *
-	 * @return The number of channels
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().getNumberOfChannels() instead
-	 */
-	@Deprecated
-	public int getNrAudioChannels() {
-		return audioProperties.getNumberOfChannels();
-	}
-
-	/**
-	 * Sets the number of channels for the audio.
-	 *
-	 * @param numberOfChannels The number of channels to set.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().setNumberOfChannels(int numberOfChannels) instead
-	 */
-	@Deprecated
-	public void setNrAudioChannels(int numberOfChannels) {
-		this.nrAudioChannels = numberOfChannels;
-		audioProperties.setNumberOfChannels(numberOfChannels);
-	}
-
-	/**
 	 * Returns the name of the audio codec that is being used.
 	 *
 	 * @return The name of the audio codec.
@@ -754,6 +670,42 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Sets the MB record ID for this track.
+	 *
+	 * @param mbidRecord The MB record ID.
+	 */
+	public void setMbidRecord(String mbidRecord) {
+		this.mbidRecord = mbidRecord;
+	}
+
+	/**
+	 * Returns the MB record ID for this track
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidRecord() {
+		return this.mbidRecord;
+	}
+
+	/**
+	 * Sets the MB track ID for this track.
+	 *
+	 * @param mbidTrack The MB track ID.
+	 */
+	public void setMbidTrack(String mbidTrack) {
+		this.mbidTrack = mbidTrack;
+	}
+
+	/**
+	 * Returns MB track id for this track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidTrack() {
+		return this.mbidTrack;
+	}
+
+	/**
 	 * Returns the name of the artist performing the audio track.
 	 *
 	 * @return The artist name.
@@ -761,6 +713,25 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public String getArtist() {
 		return artist;
+	}
+
+	/**
+	 * Sets the name of the main artist of the album of the audio track.
+	 * This field is often used for the compilation type albums or "featuring..." songs.
+	 *
+	 * @param artist The album artist name to set.
+	 */
+	public void setAlbumArtist(String artist) {
+		this.albumartist = artist;
+	}
+
+	/**
+	 * Returns the name of the main artist of the album of the audio track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getAlbumArtist() {
+		return albumartist;
 	}
 
 	/**
@@ -851,47 +822,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setTrack(int track) {
 		this.track = track;
-	}
-
-	/**
-	 * Returns the delay for the audio.
-	 *
-	 * @return The delay.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().getAudioDelay() instead
-	 */
-	@Deprecated
-	public int getDelay() {
-		return audioProperties.getAudioDelay();
-	}
-
-	/**
-	 * Sets the delay for the audio.
-	 *
-	 * @param audioDelay The delay to set.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().setAudioDelay(int audioDelay) instead
-	 */
-	@Deprecated
-	public void setDelay(int audioDelay) {
-		this.delay = audioDelay;
-		audioProperties.setAudioDelay(audioDelay);
-	}
-
-	/**
-	 * @deprecated use getAudioTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public String getFlavor() {
-		return getAudioTrackTitleFromMetadata();
-	}
-
-	/**
-	 * @deprecated use setAudioTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public void setFlavor(String value) {
-		setAudioTrackTitleFromMetadata(value);
 	}
 
 	public String getAudioTrackTitleFromMetadata() {

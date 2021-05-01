@@ -25,9 +25,9 @@ import java.nio.channels.ServerSocketChannel;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.newgui.StatusTab.ConnectionState;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class HTTPServer implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPServer.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private final int port;
 	private String hostname;
 	private ServerSocketChannel serverSocketChannel;
@@ -55,20 +55,8 @@ public class HTTPServer implements Runnable {
 	private NetworkInterface networkInterface;
 	private ChannelGroup group;
 
-	// XXX not used
-	@Deprecated
-	public InetAddress getIafinal() {
-		return iafinal;
-	}
-
 	public NetworkInterface getNetworkInterface() {
 		return networkInterface;
-	}
-
-	// use getNetworkInterface()
-	@Deprecated
-	public NetworkInterface getNi() {
-		return getNetworkInterface();
 	}
 
 	public HTTPServer(int port) {
@@ -88,7 +76,7 @@ public class HTTPServer implements Runnable {
 	}
 
 	public boolean start() throws IOException {
-		hostname = configuration.getServerHostname();
+		hostname = CONFIGURATION.getServerHostname();
 		InetSocketAddress address;
 
 		if (StringUtils.isNotBlank(hostname)) {
@@ -100,7 +88,7 @@ public class HTTPServer implements Runnable {
 			} else {
 				address = new InetSocketAddress(hostname, port);
 			}
-		} else if (isAddressFromInterfaceFound(configuration.getNetworkInterface())) { // XXX sets iafinal and networkInterface
+		} else if (isAddressFromInterfaceFound(CONFIGURATION.getNetworkInterface())) { // XXX sets iafinal and networkInterface
 			LOGGER.info("Using address {} found on network interface: {}", iafinal, networkInterface.toString().trim().replace('\n', ' '));
 			address = new InetSocketAddress(iafinal, port);
 		} else {
@@ -110,7 +98,7 @@ public class HTTPServer implements Runnable {
 
 		LOGGER.info("Created socket: {}", address);
 
-		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
+		if (CONFIGURATION.isHTTPEngineV2()) { // HTTP Engine V2
 			ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
 			group = new DefaultChannelGroup("HTTPServer");
 			factory = new NioServerSocketChannelFactory(
@@ -136,7 +124,7 @@ public class HTTPServer implements Runnable {
 				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
 				LOGGER.trace("The error was: " + e);
-				PMS.get().getFrame().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
+				PMS.get().getFrame().setConnectionState(ConnectionState.BLOCKED);
 			}
 
 			if (hostname == null && iafinal != null) {
@@ -234,7 +222,7 @@ public class HTTPServer implements Runnable {
 				// basic IP filter: solntcev at gmail dot com
 				boolean ignore = false;
 
-				if (!configuration.getIpFiltering().allowed(inetAddress)) {
+				if (!CONFIGURATION.getIpFiltering().allowed(inetAddress)) {
 					ignore = true;
 					socket.close();
 					LOGGER.trace("Ignoring request from {}:{}" + ip, socket.getPort());
@@ -243,8 +231,7 @@ public class HTTPServer implements Runnable {
 				if (!ignore) {
 					if (count == Integer.MAX_VALUE) {
 						count = 1;
-					} else
-					{
+					} else {
 						count++;
 					}
 					RequestHandler request = new RequestHandler(socket);
