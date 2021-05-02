@@ -73,7 +73,7 @@ public class TableAudiotracks extends Tables {
 			} catch (SQLException e) {
 				LOGGER.error("");
 			}
-		} // XXX what sould be done for version not null? Is the code for version null correct?
+		} // XXX what should be done for version not null? Is the code for version null correct?
 
 		try {
 			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
