@@ -32,7 +32,7 @@ public class TableAudiotracks extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -67,18 +67,21 @@ public class TableAudiotracks extends Tables {
 	}
 
 	private static void upgradeTable(Connection connection, Integer version) {
+		// XXX there must be something wrong
 		if (version == null) {
 			try (Statement statement = connection.createStatement()) {
 				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
 			} catch (SQLException e) {
 				LOGGER.error("");
 			}
+		} else {
 			try (Statement statement = connection.createStatement()) {
 				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
 			} catch (SQLException e) {
 				LOGGER.error("");
 			}
 		}
+
 		try {
 			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} catch (SQLException e) {
