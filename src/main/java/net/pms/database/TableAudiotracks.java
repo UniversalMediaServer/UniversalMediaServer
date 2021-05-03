@@ -73,7 +73,7 @@ public class TableAudiotracks extends Tables {
 				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
 			} catch (SQLException e) {
 				LOGGER.error("Failed upgrading table {} for {}", TABLE_NAME, e.getMessage());
-				LOGGER.error("Please delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
+				LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
 			}
 		}
 
