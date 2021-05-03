@@ -32,7 +32,7 @@ public class TableAudiotracks extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 1;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -71,14 +71,14 @@ public class TableAudiotracks extends Tables {
 				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
 				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
 			} catch (SQLException e) {
-				LOGGER.error("");
+				LOGGER.error("Failed upgrading table {} for {}", TABLE_NAME, e.getMessage());
 			}
-		} // XXX what should be done for version not null? Is the code for version null correct?
+		}
 
 		try {
 			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 		}
 	}
 
