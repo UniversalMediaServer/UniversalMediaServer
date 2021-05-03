@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
 
 /**
  * This class is responsible for managing the Audiotracks releases table. It
@@ -72,6 +73,7 @@ public class TableAudiotracks extends Tables {
 				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
 			} catch (SQLException e) {
 				LOGGER.error("Failed upgrading table {} for {}", TABLE_NAME, e.getMessage());
+				LOGGER.error("Please delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
 			}
 		}
 
