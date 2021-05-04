@@ -33,7 +33,7 @@ public class TableAudiotracks extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -63,6 +63,8 @@ public class TableAudiotracks extends Tables {
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
+			checkAddedColumn(TABLE_NAME, "MBID_RECORD");
+			checkAddedColumn(TABLE_NAME, "MBID_TRACK");
 		}
 	}
 
