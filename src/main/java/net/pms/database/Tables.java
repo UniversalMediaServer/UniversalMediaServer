@@ -383,12 +383,7 @@ public class Tables {
 	 */
 	protected static void checkAddedColumn(String table, String column) throws SQLException {
 		Connection connection = PMS.get().getDatabase().getConnection();
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
-		} catch (SQLException e) {
-			LOGGER.error("Failed upgrading table {} for {}", table, e.getMessage());
-			LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
-		}
-
+		Statement statement = connection.createStatement();
+		statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
 	}
 }
