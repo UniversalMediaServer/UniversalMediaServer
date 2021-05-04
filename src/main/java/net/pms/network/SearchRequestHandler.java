@@ -189,6 +189,8 @@ public class SearchRequestHandler {
 			return " A.GENRE";
 		} else if ("dc:creator".equalsIgnoreCase(property)) {
 			return " A.ALBUMARTIST ";
+		} else if ("upnp:album".equalsIgnoreCase(property)) {
+			return " A.ALBUM ";
 		}
 		throw new RuntimeException("unknown or unimplemented property: >" + property + "<");
 	}
