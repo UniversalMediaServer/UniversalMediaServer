@@ -68,7 +68,7 @@ public class TableAudiotracks extends Tables {
 		}
 	}
 
-	private static void upgradeTable(Connection connection, Integer version) {
+	private static void upgradeTable(Connection connection, Integer version) throws SQLException {
 		if (version == null) {
 			try (Statement statement = connection.createStatement()) {
 				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
@@ -76,6 +76,7 @@ public class TableAudiotracks extends Tables {
 			} catch (SQLException e) {
 				LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
 				LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
+				throw new SQLException(e); 
 			}
 		}
 
@@ -83,6 +84,7 @@ public class TableAudiotracks extends Tables {
 			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} catch (SQLException e) {
 			LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+			throw new SQLException(e);
 		}
 	}
 
