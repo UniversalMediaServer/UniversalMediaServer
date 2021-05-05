@@ -68,23 +68,29 @@ public class TableAudiotracks extends Tables {
 		}
 	}
 
-	private static void upgradeTable(Connection connection, Integer version) throws SQLException {
-		if (version == null) {
-			try (Statement statement = connection.createStatement()) {
-				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
-				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
+	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
+		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (currentVersion == null) {
+				try (Statement statement = connection.createStatement()) {
+					statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
+					statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
+				} catch (SQLException e) {
+					LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+					LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
+					throw new SQLException(e);
+				}
+			}
+
+			try {
+				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
-				LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
-				LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				throw new SQLException(e);
 			}
-		}
-
-		try {
-			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-		} catch (SQLException e) {
-			LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
-			throw new SQLException(e);
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
