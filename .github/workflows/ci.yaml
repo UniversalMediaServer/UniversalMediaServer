@@ -38,6 +38,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 15
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
@@ -61,6 +65,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
@@ -72,10 +80,10 @@ jobs:
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_20.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/20.09/libmediainfo0v5_20.09-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libmediainfo0v5_20.09-1_amd64.xUbuntu_20.04.deb
+          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
           mvn verify -B -V -P testing
 
   linux-xenial:
@@ -90,6 +98,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
@@ -101,10 +113,10 @@ jobs:
       - name: Run tests ( Ubuntu Xenial, Java ${{ matrix.java }} )
         run: |
           sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
-          sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_16.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/20.09/libmediainfo0v5_20.09-1_amd64.xUbuntu_16.04.deb
-          sudo dpkg -i libmediainfo0v5_20.09-1_amd64.xUbuntu_16.04.deb
+          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_16.04.deb
+          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_16.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_16.04.deb
+          sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_16.04.deb
           mvn verify -B -V -P testing
 
   linter:
@@ -115,6 +127,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 15
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
