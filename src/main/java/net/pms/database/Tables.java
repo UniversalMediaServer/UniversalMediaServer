@@ -347,8 +347,8 @@ public class Tables {
 	 * @return the rows of the first column of a result set
 	 * @throws SQLException
 	 */
-	public static HashSet convertResultSetToHashSet(ResultSet rs) throws SQLException {
-		HashSet list = new HashSet();
+	public static HashSet<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
+		HashSet<String> list = new HashSet<String>();
 
 		while (rs.next()) {
 			list.add(rs.getString(1));
