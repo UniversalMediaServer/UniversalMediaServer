@@ -107,7 +107,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
 		-->
-		<jna-version>5.7.0</jna-version>
+		<jna-version>5.8.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
