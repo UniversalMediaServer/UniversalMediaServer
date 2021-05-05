@@ -16,7 +16,6 @@ import net.pms.PMS;
  * done with this class.
  */
 public class TableAudiotracks extends Tables {
-
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
@@ -63,8 +62,6 @@ public class TableAudiotracks extends Tables {
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
-			checkAddedColumn(TABLE_NAME, "MBID_RECORD");
-			checkAddedColumn(TABLE_NAME, "MBID_TRACK");
 		}
 	}
 
@@ -72,10 +69,18 @@ public class TableAudiotracks extends Tables {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
-			if (currentVersion == null) {
+			if (currentVersion == null || currentVersion == 1) {
 				try (Statement statement = connection.createStatement()) {
-					statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
-					statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
+					try {
+						checkColumnExists(TABLE_NAME, "MBID_RECORD");
+					} catch (SQLException e) {
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
+					}
+					try {
+						checkColumnExists(TABLE_NAME, "MBID_TRACK");
+					} catch (SQLException e) {
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
+					}
 				} catch (SQLException e) {
 					LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
 					LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
