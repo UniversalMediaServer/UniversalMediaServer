@@ -374,19 +374,27 @@ public class Tables {
 	}
 
 	/**
-	 * Check if the added column exists in the database. If adding
-	 * failed the SQLException is raised.
+	 * Check if the column name exists in the database.
 	 *
 	 * Must be called from inside a table lock.
 	 *
-	 * @param table The table name where the column was added.
+	 * @param table The table name where the column name should exist.
 	 * @param column The name of the column.
 	 *
-	 * @throws SQLException
+	 * @return <code>true</code> if the column name exists in
+	 * the database <code>false</code> otherwise.
 	 */
-	protected static void checkColumnExists(String table, String column) throws SQLException {
-		Connection connection = PMS.get().getDatabase().getConnection();
-		Statement statement = connection.createStatement();
-		statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
+	protected static boolean isColumnExist(String table, String column) {
+		Boolean result = true;
+		try  {
+			Connection connection = PMS.get().getDatabase().getConnection();
+			Statement statement = connection.createStatement();
+			statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
+		} catch (SQLException e) {
+			LOGGER.trace("The column {} doesn't exists in the database", column);
+			result = false;
+		}
+
+		return result;
 	}
 }
