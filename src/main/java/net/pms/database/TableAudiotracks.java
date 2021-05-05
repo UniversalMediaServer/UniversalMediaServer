@@ -71,10 +71,10 @@ public class TableAudiotracks extends Tables {
 		try {
 			if (currentVersion == null || currentVersion == 1) {
 				try (Statement statement = connection.createStatement()) {
-					if (!isColumnExist(TABLE_NAME, "MBID_RECORD")) {
+					if (!isColumnExist(statement, TABLE_NAME, "MBID_RECORD")) {
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
 					}
-					if (!isColumnExist(TABLE_NAME, "MBID_TRACK")) {
+					if (!isColumnExist(statement, TABLE_NAME, "MBID_TRACK")) {
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
 					}
 				} catch (SQLException e) {

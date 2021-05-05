@@ -384,11 +384,9 @@ public class Tables {
 	 * @return <code>true</code> if the column name exists in
 	 * the database <code>false</code> otherwise.
 	 */
-	protected static boolean isColumnExist(String table, String column) {
+	protected static boolean isColumnExist(Statement statement, String table, String column) {
 		Boolean result = true;
 		try  {
-			Connection connection = PMS.get().getDatabase().getConnection();
-			Statement statement = connection.createStatement();
 			statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
 		} catch (SQLException e) {
 			LOGGER.trace("The column {} doesn't exists in the database", column);
