@@ -378,6 +378,8 @@ public class Tables {
 	 *
 	 * Must be called from inside a table lock.
 	 *
+	 * @param statement The Statement used for executing a static SQL statement
+	 * and returning the results it produces. 
 	 * @param table The table name where the column name should exist.
 	 * @param column The name of the column.
 	 *
