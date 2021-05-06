@@ -390,8 +390,9 @@ public class Tables {
 		Boolean result = true;
 		try  {
 			statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
+			result = statement.getResultSet().first();
 		} catch (SQLException e) {
-			LOGGER.trace("The column {} doesn't exist in the database", column);
+			LOGGER.trace("The SQL statement was wrong. {}", e.getMessage());
 			result = false;
 		}
 

@@ -19,7 +19,8 @@ public class TableAudiotracks extends Tables {
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
-
+	private static final String MBID_RECORD = "MBID_RECORD";
+	private static final String MBID_TRACK = "MBID_TRACK";
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
@@ -71,11 +72,11 @@ public class TableAudiotracks extends Tables {
 		try {
 			if (currentVersion == null || currentVersion == 1) {
 				try (Statement statement = connection.createStatement()) {
-					if (!isColumnExist(statement, TABLE_NAME, "MBID_RECORD")) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
+					if (!isColumnExist(statement, TABLE_NAME, MBID_RECORD)) {
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
 					}
-					if (!isColumnExist(statement, TABLE_NAME, "MBID_TRACK")) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
+					if (!isColumnExist(statement, TABLE_NAME, MBID_TRACK)) {
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
 					}
 				} catch (SQLException e) {
 					LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
