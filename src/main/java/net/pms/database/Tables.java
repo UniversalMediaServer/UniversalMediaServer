@@ -378,24 +378,32 @@ public class Tables {
 	 *
 	 * Must be called from inside a table lock.
 	 *
-	 * @param statement The Statement used for executing a static SQL statement
-	 * and returning the results it produces.
+	 * @param connection the {@link Connection} to use.
 	 * @param table The table name where the column name should exist.
 	 * @param column The name of the column.
 	 *
 	 * @return <code>true</code> if the column name exists in
 	 * the database <code>false</code> otherwise.
+	 *
+	 * @throws SQLException
 	 */
-	protected static boolean isColumnExist(Statement statement, String table, String column) {
-		Boolean result = true;
-		try  {
-			statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
-			result = statement.getResultSet().first();
-		} catch (SQLException e) {
-			LOGGER.trace("The SQL statement was wrong. {}", e.getMessage());
-			result = false;
+	protected static boolean isColumnExist(Connection connection, String table, String column) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(
+			"SELECT * FROM INFORMATION_SCHEMA.COLUMNS " +
+			"WHERE TABLE_NAME = ? " +
+			"AND COLUMN_NAME = ?"
+		)) {
+			statement.setString(1, table);
+			statement.setString(2, column);
+			try (ResultSet result = statement.executeQuery()) {
+				if (result.first()) {
+					LOGGER.trace("Column \"{}\" found", column);
+					return true;
+				} else {
+					LOGGER.trace("Column \"{}\" not found", column);
+					return false;
+				}
+			}
 		}
-
-		return result;
 	}
 }
