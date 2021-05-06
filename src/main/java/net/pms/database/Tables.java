@@ -397,10 +397,10 @@ public class Tables {
 			statement.setString(2, column);
 			try (ResultSet result = statement.executeQuery()) {
 				if (result.first()) {
-					LOGGER.trace("Column \"{}\" found", column);
+					LOGGER.trace("Column \"{}\" found in table \"{}\"", column, table);
 					return true;
 				} else {
-					LOGGER.trace("Column \"{}\" not found", column);
+					LOGGER.trace("Column \"{}\" not found in table \"{}\"", column, table);
 					return false;
 				}
 			}
