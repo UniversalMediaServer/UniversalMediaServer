@@ -379,7 +379,7 @@ public class Tables {
 	 * Must be called from inside a table lock.
 	 *
 	 * @param statement The Statement used for executing a static SQL statement
-	 * and returning the results it produces. 
+	 * and returning the results it produces.
 	 * @param table The table name where the column name should exist.
 	 * @param column The name of the column.
 	 *
@@ -391,7 +391,7 @@ public class Tables {
 		try  {
 			statement.execute("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'");
 		} catch (SQLException e) {
-			LOGGER.trace("The column {} doesn't exists in the database", column);
+			LOGGER.trace("The column {} doesn't exist in the database", column);
 			result = false;
 		}
 
