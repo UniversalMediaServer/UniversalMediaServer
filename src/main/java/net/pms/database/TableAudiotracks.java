@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
 
 /**
  * This class is responsible for managing the Audiotracks releases table. It
@@ -15,11 +16,11 @@ import org.slf4j.LoggerFactory;
  * done with this class.
  */
 public class TableAudiotracks extends Tables {
-
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
-
+	private static final String MBID_RECORD = "MBID_RECORD";
+	private static final String MBID_TRACK = "MBID_TRACK";
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
@@ -32,7 +33,7 @@ public class TableAudiotracks extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -55,7 +56,6 @@ public class TableAudiotracks extends Tables {
 				} else {
 					// Moving sql from DLNAMediaDatabase to this class.
 					upgradeTable(connection, null);
-					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
@@ -66,23 +66,33 @@ public class TableAudiotracks extends Tables {
 		}
 	}
 
-	private static void upgradeTable(Connection connection, Integer version) {
-		if (version == null) {
-			try (Statement statement = connection.createStatement()) {
-				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_RECORD UUID");
-			} catch (SQLException e) {
-				LOGGER.error("");
-			}
-			try (Statement statement = connection.createStatement()) {
-				statement.execute("ALTER TABLE " + TABLE_NAME + " ADD MBID_TRACK UUID");
-			} catch (SQLException e) {
-				LOGGER.error("");
-			}
-		}
+	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
+		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
 		try {
-			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-		} catch (SQLException e) {
-			e.printStackTrace();
+			if (currentVersion == null || currentVersion == 1) {
+				try (Statement statement = connection.createStatement()) {
+					if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
+					}
+					if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
+					}
+				} catch (SQLException e) {
+					LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+					LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
+					throw new SQLException(e);
+				}
+			}
+
+			try {
+				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			} catch (SQLException e) {
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+				throw new SQLException(e);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
