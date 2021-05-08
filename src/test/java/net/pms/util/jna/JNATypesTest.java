@@ -28,13 +28,13 @@ public class JNATypesTest {
 	@Test
 	public void testUTF16StringByReference() throws Throwable {
 		assertEquals(0, UTF16StringByReference.getNumberOfBytes(""));
-//		assertEquals("", new UTF16StringByReference("").toString());
+		assertEquals("", new UTF16StringByReference("").toString());
 		assertEquals(-1L, new UTF16StringByReference().getAllocatedSize());
 		assertEquals(-1L, new UTF16StringByReference(-5).getAllocatedSize());
 		assertEquals("null", new UTF16StringByReference().toString());
 		assertEquals(10L, new UTF16StringByReference(10).getAllocatedSize());
 		assertEquals(0L, new UTF16StringByReference("").getAllocatedSize());
-//		assertEquals("\uFFFD", new UTF16StringByReference("\uFFFD").getValue());
+		assertEquals("\uFFFD", new UTF16StringByReference("\uFFFD").getValue());
 		assertNull(new UTF16StringByReference().getValue());
 		assertNull(new UTF16StringByReference().getPointer());
 		assertNotNull(new UTF16StringByReference("foo").getPointer());
@@ -42,7 +42,7 @@ public class JNATypesTest {
 		UTF16StringByReference utf16StringByReference = new UTF16StringByReference();
 		utf16StringByReference.setValue("foo");
 		assertEquals(6L, utf16StringByReference.getAllocatedSize());
-//		assertEquals("foo", utf16StringByReference.getValue());
+		assertEquals("foo", utf16StringByReference.getValue());
 		assertEquals("foo", utf16StringByReference.toString());
 		assertEquals(6, utf16StringByReference.getAllocatedSize());
 	}
