@@ -1,4 +1,4 @@
-10.5.0 - 2021-04
+10.5.0 - 2021-05-08
 
 	General:
 		Added new option to mark a fully played video after moving it to a new folder
@@ -6,13 +6,35 @@
 		Fixed TV series metadata not saving for some series
 		Improved episode detection from filenames
 		Optimized network use and handling of unimplemented UPnP actions for some renderers
+		Fixed audio cover art extraction (thanks, ik666!)
+		Fixed database upgrade for some users
+		Fixed recognition of some renderers
 	Renderers:
 		Improved support for H.264 on Panasonic VT60
+	Translation updates via Crowdin:
+		Danish (99%) (thanks, NCAA and GurliGebis!)
+		Finnish (99%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		Italian (98%) (thanks, tiwi90!)
+		Korean (99%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (96%) (thanks, Mauro.A!)
+		Serbian (97%) (thanks, Slobodan Simić (Слободан Симић)!)
+		Spanish (100%) (thanks, Gerardo Ruiz, fafranco82, Eduardo Martin, and manuel fernandez!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+		Ukrainian (17%) (thanks, Paul Furlet!)
 	Dependencies:
-		Bump checkstyle from 8.41 to 8.41.1
+		Bump checkstyle from 8.41 to 8.42
+		Bump com.sun.xml.bind-version from 3.0.0 to 3.0.1
 		Bump commons-lang3 from 3.11 to 3.12.0
 		Bump icu4j from 68.2 to 69.1
+		Bump JRE from 15 to 8u292
+		Bump maven-project-info-reports-plugin from 3.1.1 to 3.1.2
+		Bump MediaInfo from 20.09 to 21.03
+		Bump metadata-extractor from 2.15.0 to 2.16.0
 		Bump spotbugs-maven-plugin from 4.2.2 to 4.2.3
+		Bump twelvemonkeys-imageio-version from 3.6.4 to 3.7.0
 
 10.4.1 - 2021-03-26
 
