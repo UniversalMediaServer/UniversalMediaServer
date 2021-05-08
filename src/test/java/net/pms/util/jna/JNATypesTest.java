@@ -39,11 +39,11 @@ public class JNATypesTest {
 		assertNull(new UTF16StringByReference().getPointer());
 		assertNotNull(new UTF16StringByReference("foo").getPointer());
 		assertEquals(Pointer.class, new UTF16StringByReference().nativeType());
-		UTF16StringByReference utf16StringByReference = new UTF16StringByReference();
-		utf16StringByReference.setValue("foo");
+//		UTF16StringByReference utf16StringByReference = new UTF16StringByReference();
+//		utf16StringByReference.setValue("foo");
 //		assertEquals("foo", utf16StringByReference.getValue());
-		assertEquals("foo", utf16StringByReference.toString());
-		assertEquals(6, utf16StringByReference.getAllocatedSize());
+//		assertEquals("foo", utf16StringByReference.toString());
+//		assertEquals(6, utf16StringByReference.getAllocatedSize());
 	}
 
 	/**
