@@ -21,14 +21,19 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import com.sun.jna.Platform;
+import net.pms.PMS;
+import net.pms.util.jna.macos.iokit.IOKitUtils;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.NetworkIF;
 import oshi.hardware.CentralProcessor.ProcessorIdentifier;
 import oshi.software.os.OperatingSystem;
 
@@ -42,12 +47,20 @@ import oshi.software.os.OperatingSystem;
 public class SystemInformation extends Thread {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SystemInformation.class);
+	public static List<NetworkIF> usedNetworkInterfaces = new ArrayList<NetworkIF>();
 
 	/**
 	 * Creates a new system information logger thread.
 	 */
 	public SystemInformation() {
 		super("System Information Logger");
+	}
+
+	/**
+	 * List of network interfaces whose received some bytes.
+	 */
+	public List<NetworkIF> getUsedInterfaces() {
+		return usedNetworkInterfaces;
 	}
 
 	/**
@@ -64,6 +77,7 @@ public class SystemInformation extends Thread {
 		CentralProcessor processor = null;
 		ProcessorIdentifier processorIdentifier = null;
 		GlobalMemory memory = null;
+		List<NetworkIF> networks = null;
 		try {
 			SystemInfo systemInfo = new SystemInfo();
 			HardwareAbstractionLayer hardware = systemInfo.getHardware();
@@ -71,17 +85,12 @@ public class SystemInformation extends Thread {
 			processor = hardware.getProcessor();
 			processorIdentifier = processor.getProcessorIdentifier();
 			memory = hardware.getMemory();
+			networks = hardware.getNetworkIFs();
 		} catch (Error e) {
 			LOGGER.debug("Could not retrieve system information: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
-		sb.append("JVM: ").append(System.getProperty("java.vm.name")).append(" ")
-			.append(System.getProperty("java.version")).append(" (")
-			.append(System.getProperty("sun.arch.data.model")).append("-bit) by ")
-			.append(System.getProperty("java.vendor"));
-		result.add(sb.toString());
-		sb.setLength(0);
 		sb.append("OS: ");
 		if (os != null && isNotBlank(os.toString())) {
 			sb.append(os.toString()).append(" ").append(getOSBitness()).append("-bit");
@@ -89,6 +98,20 @@ public class SystemInformation extends Thread {
 			sb.append(System.getProperty("os.name")).append(" ").append(getOSBitness()).append("-bit ");
 			sb.append(System.getProperty("os.version"));
 		}
+		result.add(sb.toString());
+		sb.setLength(0);
+		sb.append("JVM: ").append(System.getProperty("java.vm.name")).append(" ")
+			.append(System.getProperty("java.version")).append(" (")
+			.append(System.getProperty("sun.arch.data.model")).append("-bit) by ")
+			.append(System.getProperty("java.vendor"));
+		result.add(sb.toString());
+		sb.setLength(0);
+		sb.append("Language: ")
+		.append(WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		result.add(sb.toString());
+		sb.setLength(0);
+		sb.append("Encoding: ")
+		.append(System.getProperty("file.encoding"));
 		result.add(sb.toString());
 		sb.setLength(0);
 		if (processor != null && processorIdentifier != null) {
@@ -125,6 +148,33 @@ public class SystemInformation extends Thread {
 			sb.append(StringUtil.formatBytes(jvmMemory, true));
 		}
 		result.add(sb.toString());
+		result.add("Used network interfaces:");
+		for (NetworkIF net : networks) {
+			if (net.getBytesRecv() > 0) {
+				usedNetworkInterfaces.add(net);
+				sb.setLength(0);
+				sb.append(net.getDisplayName())
+				.append(", bytes sent/received ")
+				.append(net.getBytesSent())
+				.append("/")
+				.append(net.getBytesRecv());
+				result.add(sb.toString());
+			}
+		}
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
+			// The binaries shipped with the Mac OS X version of DMS are being
+			// compiled against specific OS versions, making them incompatible
+			// with older versions. Warn the user about this when necessary.
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("WARNING!");
+			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
+			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
+			LOGGER.warn("that these binaries used for example for transcoding may not work!");
+			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("");
+		}
 		return result;
 	}
 

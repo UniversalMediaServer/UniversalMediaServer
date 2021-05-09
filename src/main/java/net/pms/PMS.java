@@ -278,9 +278,6 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		// Log system properties
-		logSystemInfo();
-
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: {}", cwd);
 
@@ -1190,50 +1187,6 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
-	}
-
-	/**
-	 * Log system properties identifying Java, the OS and encoding and log
-	 * warnings where appropriate.
-	 */
-	private static void logSystemInfo() {
-		long jvmMemory = Runtime.getRuntime().maxMemory();
-
-		LOGGER.info(
-			"Java: {} {} ({}-bit) by {}",
-			System.getProperty("java.vm.name"),
-			System.getProperty("java.version"),
-			System.getProperty("sun.arch.data.model"),
-			System.getProperty("java.vendor")
-		);
-		LOGGER.info(
-			"OS: {} {}-bit {}",
-			System.getProperty("os.name"),
-			SystemInformation.getOSBitness(),
-			System.getProperty("os.version")
-		);
-		LOGGER.info(
-			"Maximum JVM Memory: {}",
-			jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true)
-		);
-		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
-		LOGGER.info("Encoding: {}", System.getProperty("file.encoding"));
-		LOGGER.info("");
-
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of DMS are being
-			// compiled against specific OS versions, making them incompatible
-			// with older versions. Warn the user about this when necessary.
-			LOGGER.warn("-----------------------------------------------------------------");
-			LOGGER.warn("WARNING!");
-			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
-			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
-			LOGGER.warn("that these binaries used for example for transcoding may not work!");
-			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
-			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
-			LOGGER.warn("-----------------------------------------------------------------");
-			LOGGER.warn("");
-		}
 	}
 
 	/**
