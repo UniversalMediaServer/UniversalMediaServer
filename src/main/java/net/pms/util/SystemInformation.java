@@ -68,7 +68,7 @@ public class SystemInformation extends Thread {
 		CentralProcessor processor = null;
 		ProcessorIdentifier processorIdentifier = null;
 		GlobalMemory memory = null;
-		List<NetworkIF> networks = null;
+		List<NetworkIF> networkInterfaces = null;
 		try {
 			SystemInfo systemInfo = new SystemInfo();
 			HardwareAbstractionLayer hardware = systemInfo.getHardware();
@@ -76,7 +76,7 @@ public class SystemInformation extends Thread {
 			processor = hardware.getProcessor();
 			processorIdentifier = processor.getProcessorIdentifier();
 			memory = hardware.getMemory();
-			networks = hardware.getNetworkIFs();
+			networkInterfaces = hardware.getNetworkIFs();
 		} catch (Error e) {
 			LOGGER.debug("Could not retrieve system information: {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -141,7 +141,7 @@ public class SystemInformation extends Thread {
 		result.add(sb.toString());
 		result.add("Used network interfaces:");
 		// count only real interfaces whose received some bytes not the logical ones
-		for (NetworkIF net : networks) {
+		for (NetworkIF net : networkInterfaces) {
 			if (net.getBytesRecv() > 0) {
 				sb.setLength(0);
 				sb.append(net.getDisplayName())
