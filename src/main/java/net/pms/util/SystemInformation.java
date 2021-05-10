@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import com.sun.jna.Platform;
 import net.pms.PMS;
-import net.pms.util.jna.macos.iokit.IOKitUtils;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
@@ -161,20 +160,7 @@ public class SystemInformation extends Thread {
 				result.add(sb.toString());
 			}
 		}
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of DMS are being
-			// compiled against specific OS versions, making them incompatible
-			// with older versions. Warn the user about this when necessary.
-			LOGGER.warn("-----------------------------------------------------------------");
-			LOGGER.warn("WARNING!");
-			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
-			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
-			LOGGER.warn("that these binaries used for example for transcoding may not work!");
-			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
-			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
-			LOGGER.warn("-----------------------------------------------------------------");
-			LOGGER.warn("");
-		}
+
 		return result;
 	}
 
