@@ -146,7 +146,7 @@ public class SystemInformation extends Thread {
 				sb.setLength(0);
 				sb.append(net.getDisplayName())
 				.append(", speed ")
-				.append(net.getSpeed()/1000000)
+				.append(net.getSpeed() / 1000000)
 				.append(" Mb/s");
 				result.add(sb.toString());
 			}
