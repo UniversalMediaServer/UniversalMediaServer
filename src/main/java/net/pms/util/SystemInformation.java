@@ -46,20 +46,12 @@ import oshi.software.os.OperatingSystem;
 public class SystemInformation extends Thread {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SystemInformation.class);
-	public static List<NetworkIF> usedNetworkInterfaces = new ArrayList<NetworkIF>();
 
 	/**
 	 * Creates a new system information logger thread.
 	 */
 	public SystemInformation() {
 		super("System Information Logger");
-	}
-
-	/**
-	 * List of network interfaces whose received some bytes.
-	 */
-	public List<NetworkIF> getUsedInterfaces() {
-		return usedNetworkInterfaces;
 	}
 
 	/**
@@ -148,15 +140,14 @@ public class SystemInformation extends Thread {
 		}
 		result.add(sb.toString());
 		result.add("Used network interfaces:");
+		// count only real interfaces whose received some bytes not the logical ones
 		for (NetworkIF net : networks) {
 			if (net.getBytesRecv() > 0) {
-				usedNetworkInterfaces.add(net);
 				sb.setLength(0);
 				sb.append(net.getDisplayName())
-				.append(", bytes sent/received ")
-				.append(net.getBytesSent())
-				.append("/")
-				.append(net.getBytesRecv());
+				.append(", speed ")
+				.append(net.getSpeed()/1000000)
+				.append(" Mb/s");
 				result.add(sb.toString());
 			}
 		}
