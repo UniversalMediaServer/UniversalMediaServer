@@ -11,11 +11,10 @@ jobs:
         xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - name: Set up JDK 15
+        uses: actions/setup-java@v1
         with:
-          distribution: 'adopt'
-          java-version: 8
+          java-version: 15
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -35,11 +34,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - name: Set up JDK 15
+        uses: actions/setup-java@v1
         with:
-          distribution: 'adopt'
-          java-version: 8
+          java-version: 15
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -64,9 +62,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java }}
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v1
         with:
-          distribution: 'adopt'
           java-version: ${{ matrix.java }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
@@ -98,9 +95,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java }}
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v1
         with:
-          distribution: 'adopt'
           java-version: ${{ matrix.java }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
@@ -127,11 +123,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - name: Set up JDK 15
+        uses: actions/setup-java@v1
         with:
-          distribution: 'adopt'
-          java-version: 8
+          java-version: 15
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
