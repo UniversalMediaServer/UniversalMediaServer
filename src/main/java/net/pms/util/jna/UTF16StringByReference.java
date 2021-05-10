@@ -92,11 +92,8 @@ public class UTF16StringByReference extends PointerType {
 		if (getPointer() == null) {
 			return null;
 		}
-		int length = 0;
-		while (getPointer().getChar(length) != 0) {
-			length += 2;
-		}
-		char[] value = new char[length / 2];
+		int length = (int) getAllocatedSize();
+		char[] value = new char[(length / 2)];
 		for (int i = 0; i < length; i += 2) {
 			value[i / 2] = getPointer().getChar(i);
 		}
