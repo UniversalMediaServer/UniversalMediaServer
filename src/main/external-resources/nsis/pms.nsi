@@ -55,7 +55,7 @@ Section ""
 	; Change for your purpose (-jar etc.)
 	${GetParameters} $1
 
-	StrCpy $R0 "jre15\bin\${JAVAEXE}"
+	StrCpy $R0 "jre8\bin\${JAVAEXE}"
 
 	StrCpy $0 '"$R0" -classpath update.jar;ums.jar $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
 	SetOutPath $EXEDIR

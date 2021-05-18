@@ -47,7 +47,6 @@ import net.pms.util.jna.JnaIntEnumConverter;
 import net.pms.util.jna.JnaLongEnum;
 import net.pms.util.jna.JnaLongEnumConverter;
 import net.pms.util.jna.StringByReference;
-import net.pms.util.jna.UTF16StringByReference;
 import net.pms.util.jna.macos.kernreturn.KernReturnT;
 import net.pms.util.jna.macos.kernreturn.KernReturnTConverter;
 
@@ -1668,29 +1667,6 @@ public interface CoreFoundation extends Library {
 	 *         efficiently.
 	 */
 	StringByReference CFStringGetCStringPtr(CFStringRef theString, int encoding);
-
-	/**
-	 * Quickly obtains a pointer to the contents of a string as a buffer of
-	 * Unicode characters.
-	 * <p>
-	 * This function either returns the requested pointer immediately, with no
-	 * memory allocations and no copying, or it returns {@code null}. If the
-	 * latter is the result, call an alternative function such as
-	 * {@code CFStringGetCharacters} function to extract the characters. Whether
-	 * or not this function returns a valid pointer or {@code null} depends on
-	 * many factors, all of which depend on how the string was created and its
-	 * properties. In addition, the function result might change between
-	 * different releases and on different platforms. So do not count on
-	 * receiving a non-{@code null} result from this function under any
-	 * circumstances (except when the object is created with
-	 * {@code CFStringCreateMutableWithExternalCharactersNoCopy}).
-	 *
-	 * @param theString the {@code CFString} whose contents you wish to access.
-	 * @return A pointer to a buffer of {@code Unicode} character, or
-	 *         {@code null} if the internal storage of {@code theString} does
-	 *         not allow this to be returned efficiently.
-	 */
-	UTF16StringByReference CFStringGetCharactersPtr(CFStringRef theString);
 
 	/**
 	 * Returns the smallest encoding on the current system for the character

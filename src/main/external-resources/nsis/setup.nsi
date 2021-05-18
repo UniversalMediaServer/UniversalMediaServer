@@ -209,16 +209,16 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
-	RMDir /R /REBOOTOK "$INSTDIR\jre15"
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
 
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre15-x64"
-		File /r /x "ffmpeg.exe" /x "jre15-x64" /x "jre15-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre15-x64 jre15
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x64"
+		File /r /x "ffmpeg.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre8-x64 jre8
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre15-x86"
-		File /r /x "ffmpeg64.exe" /x "jre15-x64" /x "jre15-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre15-x86 jre15
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x86"
+		File /r /x "ffmpeg64.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre8-x86 jre8
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -370,8 +370,8 @@ Section "Program Files"
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
 	; Add firewall rules
-	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre15\bin\java.exe" enable=yes profile=public,private'
-	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre15\bin\javaw.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre8\bin\java.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre8\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -404,7 +404,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
-	RMDir /R /REBOOTOK "$INSTDIR\jre15"
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
@@ -412,6 +412,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre15"
 
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
