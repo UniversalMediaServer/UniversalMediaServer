@@ -67,6 +67,7 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.api.ApiHandler;
 import net.pms.network.message.BrowseRequest;
 import net.pms.network.message.BrowseSearchRequest;
@@ -109,6 +110,8 @@ public class RequestV2 extends HTTPResource {
 	private static final int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
+	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
+	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	/**
 	 * A {@link String} that contains the uri with which this {@link RequestV2} was
@@ -303,8 +306,17 @@ public class RequestV2 extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
-			String fileName = id.substring(id.indexOf('/') + 1);
+			String fileName = null;
+			if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+				try {
+					dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			} else {
+				dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+			}
+			fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -1087,7 +1099,7 @@ public class RequestV2 extends HTTPResource {
 
 	private StringBuilder searchHandler() {
 		SearchRequest requestMessage = getPayload(SearchRequest.class);
-		return this.browseSearchHandler(requestMessage);
+		return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
 	}
 
 	/**
