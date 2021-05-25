@@ -42,7 +42,7 @@ public class XmlUtils {
 	 */
 	public static DocumentBuilderFactory xxeDisabledDocumentBuilderFactory() {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		if (!configuration.disableExternalEntities()) {
+		if (configuration.disableExternalEntities()) {
 			String feature = null;
 			try {
 				feature = "http://apache.org/xml/features/disallow-doctype-decl";
@@ -74,7 +74,7 @@ public class XmlUtils {
 	 */
 	public static TransformerFactory xxeDisabledTransformerFactory() {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		if (!configuration.disableExternalEntities()) {
+		if (configuration.disableExternalEntities()) {
 			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 		}
@@ -92,7 +92,7 @@ public class XmlUtils {
 	 */
 	public static XMLInputFactory xxeDisabledXMLInputFactory() {
 		XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
-		if (!configuration.disableExternalEntities()) {
+		if (configuration.disableExternalEntities()) {
 			xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
 			xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
 		}
