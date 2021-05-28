@@ -363,6 +363,7 @@ public class NavigationShareTab {
 
 		// Show Media Library folder
 		isShowFolderMediaLibrary = new JCheckBox(Messages.getString("FoldTab.ShowMediaLibraryFolder"), configuration.isShowMediaLibraryFolder());
+		isShowFolderMediaLibrary.setToolTipText(Messages.getString("NavigationSettingsTab.ShowMediaLibraryFolderTooltip"));
 		isShowFolderMediaLibrary.setContentAreaFilled(false);
 		isShowFolderMediaLibrary.addItemListener(new ItemListener() {
 			@Override
@@ -381,9 +382,9 @@ public class NavigationShareTab {
 			}
 		});
 
-		// Enable the Media Library
-		cacheenable = new JCheckBox(Messages.getString("NetworkTab.EnableMediaLibrary"), configuration.getUseCache());
-		cacheenable.setToolTipText(Messages.getString("FoldTab.ShowMediaLibraryFolderTooltip"));
+		// Enable the cache
+		cacheenable = new JCheckBox(Messages.getString("NavigationSettingsTab.EnableCache"), configuration.getUseCache());
+		cacheenable.setToolTipText(Messages.getString("NavigationSettingsTab.EnableCacheTooltip"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.addItemListener(new ItemListener() {
 			@Override
