@@ -270,9 +270,23 @@ public class RendererConfigurationTest {
 
 		testHeaders("Sony Bravia HX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";");
 
-		testHeaders("Sony Bravia W",
+		testHeaders(
+			"Sony Bravia W",
 			"X-AV-Physical-Unit-Info: pa=\"BRAVIA KDL-48W600B\";",
 			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-48W600B\"; mv=\"1.7\";"
+		);
+
+		testHeaders(
+			"Sony Bravia XBR",
+			"User-Agent: UPnP/1.0, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55X900A\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55X900A\"; mv=\"1.7\";",
+			"User-Agent: UPnP/1.0 DLNADOC/1.50, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55X900A\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55X900A\"; mv=\"1.7\";",
+			"User-Agent: UPnP/1.0, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55HX929\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55HX929\"; mv=\"1.7\";",
+			"User-Agent: UPnP/1.0 DLNADOC/1.50, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55HX929\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55HX929\"; mv=\"1.7\";"
+		);
+
+		testUPNPDetails(
+			"Sony Bravia XBR OLED",
+			"modelName=XBR-65A1E"
 		);
 
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
