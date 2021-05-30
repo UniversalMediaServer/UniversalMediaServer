@@ -593,10 +593,14 @@ public class FileUtil {
 	 * one of these strings, the string and everything after them will be
 	 * removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+
+	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*";
+	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*";
 
 	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,})";
+	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
 	 * false-positive by being case-sensitive.
@@ -609,7 +613,7 @@ public class FileUtil {
 	private static final String COMMON_FILE_EDITIONS = "(?i)(?!\\()(Special\\sEdition|Unrated|Final\\sCut|Remastered|Extended\\sCut|IMAX\\sEdition|Uncensored|Directors\\sCut|Uncut)(?!\\))";
 	private static final Pattern COMMON_FILE_EDITIONS_PATTERN = Pattern.compile(COMMON_FILE_EDITIONS);
 
-	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S\\d{1,2}\\sE)(?:[pP]|)(\\d{1,4})(?:[\\s']|v\\d)";
+	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S\\d{1,2}\\sE|\\s-\\s)(?:[pP]|)(\\d{1,4})(?:[\\s']|v\\d)?";
 	private static final Pattern COMMON_ANIME_EPISODE_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
 
 	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S\\d{1,2}\\sE)(?:[pP]|)(\\d{1,}-\\d{1,})(?:[\\s']|v\\d)";
@@ -679,14 +683,16 @@ public class FileUtil {
 		// Build the prettified filename from the metadata
 		if (isTVEpisode) {
 			tvSeasonPadded = tvSeason;
+			boolean isEpisodeWithDate = false;
 			if (tvSeason.matches("(19|20)\\d{2}")) {
 				// If the season is a year, anticipate a "/" for a date
 				tvSeasonPadded += "/";
+				isEpisodeWithDate = true;
 			} else {
 				if (tvSeason.length() == 1) {
 					tvSeasonPadded = "0" + tvSeasonPadded;
 				}
-				tvSeasonPadded = "S" + tvSeasonPadded + "E";
+				tvSeasonPadded = "S" + tvSeasonPadded;
 			}
 
 			// Make sure the episode number has a leading zero
@@ -701,7 +707,10 @@ public class FileUtil {
 			 * number and title.
 			 */
 			if (isEpisodeWithinSeasonFolder) {
-				formattedName = tvEpisodeNumber + " - ";
+				formattedName = "";
+				if (isNotBlank(tvEpisodeNumber)) {
+					formattedName = tvEpisodeNumber + " - ";
+				}
 
 				if (isBlank(tvEpisodeName)) {
 					formattedName += "Episode " + tvEpisodeNumber;
@@ -709,7 +718,11 @@ public class FileUtil {
 					formattedName += tvEpisodeName;
 				}
 			} else if (isEpisodeWithinTVSeriesFolder) {
-				formattedName = tvSeasonPadded + tvEpisodeNumber + " - ";
+				formattedName = tvSeasonPadded;
+				if (!isEpisodeWithDate) {
+					formattedName += "E";
+				}
+				formattedName += tvEpisodeNumber + " - ";
 
 				if (isBlank(tvEpisodeName)) {
 					formattedName += "Episode " + tvEpisodeNumber;
@@ -718,8 +731,14 @@ public class FileUtil {
 				}
 			} else {
 				formattedName = title;
-				if (isNotBlank(tvSeasonPadded) && isNotBlank(tvEpisodeNumber)) {
-					formattedName += " " + tvSeasonPadded + tvEpisodeNumber;
+				if (isNotBlank(tvSeasonPadded)) {
+					formattedName += " " + tvSeasonPadded;
+				}
+				if (isNotBlank(tvEpisodeNumber)) {
+					if (!isEpisodeWithDate) {
+						formattedName += "E";
+					}
+					formattedName += tvEpisodeNumber;
 				}
 
 				if (isNotBlank(tvEpisodeName)) {
@@ -833,6 +852,29 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(SCENE_P2P_EPISODE_REGEX, " S" + tvSeason + "E$2");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(".*" + SCENE_P2P_EPISODE_SPECIAL_REGEX + ".*")) {
+			// This matches scene and most p2p TV special episodes, e.g. episodes that have no episode number in the filename
+			pattern = Pattern.compile(SCENE_P2P_EPISODE_SPECIAL_REGEX);
+			matcher = pattern.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = matcher.group(1);
+				if (tvSeason.length() == 1) {
+					tvSeason = "0" + tvSeason;
+				}
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll("(?i)\\s" + SCENE_P2P_EPISODE_SPECIAL_REGEX, " S" + tvSeason + " - $2");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*[\\s-\\.](\\d{1,2})[xX]\\d\\d.*")) {
 			// This matches older scene (like .avi releases) and some p2p TV episodes
 			// e.g. Universal Media Server - 1x02 - Mysterious Wordplay.mkv
@@ -935,8 +977,8 @@ public class FileUtil {
 			formattedName = removeFilenameEndMetadata(formattedName);
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
-			// This matches a single episode anime with a hash at the end of the name
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || formattedName.matches(COMMON_ANIME_FILE_ENDS_MATCH)) {
+			// This matches anime episodes that end with a hash or an episode number, or no quality/resolution
 			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = "1";
@@ -961,28 +1003,7 @@ public class FileUtil {
 			}
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll(
-				"(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|" +
-				"\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*",
-				""
-			);
-
-			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
-			// This matches anime without a hash in the name
-			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
-			if (matcher.find()) {
-				tvSeason = "1";
-				tvEpisodeNumber = matcher.group(1);
-
-				int showNameIndex = indexOf(COMMON_ANIME_EPISODE_NUMBERS_PATTERN, formattedName);
-				if (showNameIndex != -1) {
-					movieOrShowName = formattedName.substring(0, showNameIndex);
-				}
-			}
-
-			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*|\\[h264.*", "");
+			formattedName = formattedName.replaceAll(COMMON_ANIME_FILE_ENDS, "");
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(COMMON_FILE_ENDS_MATCH)) {
 			// This is probably a movie that doesn't specify a year
@@ -1011,7 +1032,7 @@ public class FileUtil {
 		if (tvSeason != null) {
 			// Remove leading 0 from the season if it exists
 			tvSeason = stripStart(tvSeason, "0");
-			pattern = Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
+			pattern = Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
 			int showNameIndex = indexOf(pattern, formattedName);
 			if (isEmpty(movieOrShowName)) {
 				if (showNameIndex != -1) {

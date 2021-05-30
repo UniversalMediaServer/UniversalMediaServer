@@ -35,6 +35,7 @@ import net.pms.configuration.PmsConfiguration;
 import static net.pms.util.Constants.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Fail;
 import static org.junit.Assert.*;
@@ -106,7 +107,7 @@ public class FileUtilTest {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
 				String prettified = o.get("prettified").getAsString();
-				assertThat(FileUtil.getFileNamePrettified(original)).isEqualTo(prettified);
+				assertThat(FileUtil.getFileNamePrettified(original)).as(o.get("comment").getAsString()).isEqualTo(prettified);
 			}
 		} catch (Exception ex) {
 			throw (new AssertionError(ex));
@@ -309,13 +310,15 @@ public class FileUtilTest {
 						for (JsonElement elem2 : elem.getAsJsonArray()) {
 							range = range + "-" + String.format("%02d", elem2.getAsInt());
 						}
-						try {
-							assertThat(tvEpisodeNumber).isEqualTo(range.substring(1));
-						} catch (AssertionError err) {
-							if (todo) {
-								logger.warn("testGetFileNameMetadata/episodes would fail for TODO test " + original);
-							} else {
-								throw (err);
+						if (isNotBlank(range)) {
+							try {
+								assertThat(tvEpisodeNumber).isEqualTo(range.substring(1));
+							} catch (AssertionError err) {
+								if (todo) {
+									logger.warn("testGetFileNameMetadata/episodes would fail for TODO test " + original);
+								} else {
+									throw err;
+								}
 							}
 						}
 					}
