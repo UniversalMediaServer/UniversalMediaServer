@@ -297,7 +297,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
 	protected static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
-	protected static final String KEY_SHOW_NEW_MEDIA_FOLDER = "show_new_media_folder";
 	protected static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
 	protected static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
 	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
@@ -3964,24 +3963,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setScanSharedFoldersOnStartup(final boolean value) {
 		this.configuration.setProperty(KEY_SCAN_SHARED_FOLDERS_ON_STARTUP, value);
-	}
-
-	/**
-	 * Whether to show the "New Media" folder on the renderer.
-	 *
-	 * @return whether the folder is shown
-	 */
-	public boolean isShowNewMediaFolder() {
-		return getBoolean(KEY_SHOW_NEW_MEDIA_FOLDER, false);
-	}
-
-	/**
-	 * Whether to show the "New Media" folder on the renderer.
-	 *
-	 * @param value whether the folder is shown
-	 */
-	public void setShowNewMediaFolder(final boolean value) {
-		this.configuration.setProperty(KEY_SHOW_NEW_MEDIA_FOLDER, value);
 	}
 
 	/**
