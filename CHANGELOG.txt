@@ -1,3 +1,23 @@
+10.6.0 - 2021-06-
+
+	General:
+		Added support for UPnP searching (thanks, sf666!)
+		Removed broken New Media folder, as that functionality exists in the Media Library
+		Improved episode detection and prettifying
+		Fixed failed database connections with hanging processes
+		Fixed description of media library/cache settings
+	Renderers:
+		Improved support for Sony XBR OLED TVs
+	Dependencies:
+		Bump checkstyle from 8.42 to 8.43
+		Bump commons-io from 2.8.0 to 2.9.0
+		Bump FLAC and bump tsMuxeR on macOS
+		Bump gson from 2.8.6 to 2.8.7
+		Bump jna-version from 5.7.0 to 5.8.0
+		Bump junit5.version from 5.7.1 to 5.7.2
+		Bump maven-javadoc-plugin from 3.2.0 to 3.3.0
+		Bump oshi-core from 5.5.0 to 5.7.4
+
 10.5.0 - 2021-05-08
 
 	General:
