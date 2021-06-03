@@ -1,4 +1,4 @@
-10.6.0 - 2021-06-
+10.6.0 - 2021-06-03
 
 	General:
 		Added support for UPnP searching (thanks, sf666!)
@@ -8,6 +8,20 @@
 		Fixed description of media library/cache settings
 	Renderers:
 		Improved support for Sony XBR OLED TVs
+	Translation updates via Crowdin:
+		Chinese (Simplified) (98%) (thanks, QI wolong!)
+		Danish (100%) (thanks, NCAA and GurliGebis!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		German (98%) (thanks, pipin!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (96%) (thanks, Mauro.A!)
+		Serbian (Cyrillic) (96%) (thanks, Slobodan Simić (Слободан Симић)!)
+		Spanish (100%) (thanks, edwardalvarez2011 and fafranco82!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+		Ukrainian (18%) (thanks, Paul Furlet!)
 	Dependencies:
 		Bump checkstyle from 8.42 to 8.43
 		Bump commons-io from 2.8.0 to 2.9.0
