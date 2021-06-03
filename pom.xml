@@ -138,7 +138,7 @@
 		</repository>
 		<repository>
 			<id>jaudiotagger-repository</id>
-			<url>https://dl.bintray.com/ijabz/maven</url>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/public/</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -347,9 +347,9 @@
 			<version>2.16.0</version>
 		</dependency>
 		<dependency>
-			<groupId>net.jthink</groupId>
+			<groupId>com.github.goxr3plus</groupId>
 			<artifactId>jaudiotagger</artifactId>
-			<version>2.2.5</version>
+			<version>2.2.7</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>
