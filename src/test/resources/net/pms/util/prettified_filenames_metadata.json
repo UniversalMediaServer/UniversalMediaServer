@@ -11,6 +11,18 @@
 		}
 	},
 	{
+		"comment": "Video of a special TV episode",
+		"filename": "Universal.Media.Server.S01.Special.720p.mkv",
+		"prettified": "Universal Media Server S01 - Special",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [],
+			"title": "special"
+		}
+	},
+	{
 		"comment": "Video of a TV episode with a year in the series title",
 		"filename": "Universal.Media.Server.2019.S01E02.720p.mkv",
 		"prettified": "Universal Media Server (2019) S01E02",
@@ -170,6 +182,17 @@
 		}
 	},
 	{
+		"comment": "Video of an anime episode with no extra details",
+		"filename": "Universal Media Server - 02",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
 		"comment": "Video of an anime episode",
 		"filename": "Universal Media Server - 02 [BD.1080p] [700D423E].mkv",
 		"prettified": "Universal Media Server S01E02",
@@ -203,7 +226,7 @@
 		}
 	},
 	{
-		"comment": "Video of an anime episode",
+		"comment": "Video of an anime episode with a messy mix of conventions",
 		"filename": "[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv",
 		"prettified": "Universal Media Server S01E02",
 		"metadata": {

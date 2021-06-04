@@ -4840,7 +4840,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String titleFromDatabaseSimplified;
 
 		// Apply the metadata from the filename.
-		if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename) && isNotBlank(tvEpisodeNumberFromFilename)) {
+		if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
 			/**
 			 * Overwrite the title from the filename if it's very similar to one
 			 * we already have in our database. This is to avoid minor
@@ -4854,7 +4854,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			media.setTVSeason(tvSeasonFromFilename);
-			media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+			if (isNotBlank(tvEpisodeNumberFromFilename)) {
+				media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+			}
 			if (isNotBlank(tvEpisodeNameFromFilename)) {
 				media.setTVEpisodeName(tvEpisodeNameFromFilename);
 			}

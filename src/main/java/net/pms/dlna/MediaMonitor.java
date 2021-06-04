@@ -37,7 +37,7 @@ public class MediaMonitor extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
-		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
+		super(Messages.getString("Unused"), "images/thumbnail-folder-256.png");
 		this.dirs = new File[dirs.length];
 		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
 		config = PMS.getConfiguration();

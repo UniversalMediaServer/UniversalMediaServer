@@ -138,10 +138,6 @@ public class RootFolder extends DLNAResource {
 					i++;
 				}
 				mon = new MediaMonitor(dirs);
-
-				if (configuration.isShowNewMediaFolder()) {
-					addChild(mon, true, isAddGlobally);
-				}
 			}
 		}
 

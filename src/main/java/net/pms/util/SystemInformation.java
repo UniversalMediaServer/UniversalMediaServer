@@ -21,14 +21,18 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import com.sun.jna.Platform;
+import net.pms.PMS;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.NetworkIF;
 import oshi.hardware.CentralProcessor.ProcessorIdentifier;
 import oshi.software.os.OperatingSystem;
 
@@ -64,6 +68,7 @@ public class SystemInformation extends Thread {
 		CentralProcessor processor = null;
 		ProcessorIdentifier processorIdentifier = null;
 		GlobalMemory memory = null;
+		List<NetworkIF> networkInterfaces = null;
 		try {
 			SystemInfo systemInfo = new SystemInfo();
 			HardwareAbstractionLayer hardware = systemInfo.getHardware();
@@ -71,17 +76,12 @@ public class SystemInformation extends Thread {
 			processor = hardware.getProcessor();
 			processorIdentifier = processor.getProcessorIdentifier();
 			memory = hardware.getMemory();
+			networkInterfaces = hardware.getNetworkIFs();
 		} catch (Error e) {
 			LOGGER.debug("Could not retrieve system information: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
-		sb.append("JVM: ").append(System.getProperty("java.vm.name")).append(" ")
-			.append(System.getProperty("java.version")).append(" (")
-			.append(System.getProperty("sun.arch.data.model")).append("-bit) by ")
-			.append(System.getProperty("java.vendor"));
-		result.add(sb.toString());
-		sb.setLength(0);
 		sb.append("OS: ");
 		if (os != null && isNotBlank(os.toString())) {
 			sb.append(os.toString()).append(" ").append(getOSBitness()).append("-bit");
@@ -89,6 +89,20 @@ public class SystemInformation extends Thread {
 			sb.append(System.getProperty("os.name")).append(" ").append(getOSBitness()).append("-bit ");
 			sb.append(System.getProperty("os.version"));
 		}
+		result.add(sb.toString());
+		sb.setLength(0);
+		sb.append("JVM: ").append(System.getProperty("java.vm.name")).append(" ")
+			.append(System.getProperty("java.version")).append(" (")
+			.append(System.getProperty("sun.arch.data.model")).append("-bit) by ")
+			.append(System.getProperty("java.vendor"));
+		result.add(sb.toString());
+		sb.setLength(0);
+		sb.append("Language: ")
+		.append(WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
+		result.add(sb.toString());
+		sb.setLength(0);
+		sb.append("Encoding: ")
+		.append(System.getProperty("file.encoding"));
 		result.add(sb.toString());
 		sb.setLength(0);
 		if (processor != null && processorIdentifier != null) {
@@ -125,6 +139,19 @@ public class SystemInformation extends Thread {
 			sb.append(StringUtil.formatBytes(jvmMemory, true));
 		}
 		result.add(sb.toString());
+		result.add("Used network interfaces:");
+		// count only real interfaces whose received some bytes not the logical ones
+		for (NetworkIF net : networkInterfaces) {
+			if (net.getBytesRecv() > 0) {
+				sb.setLength(0);
+				sb.append(net.getDisplayName())
+				.append(", speed ")
+				.append(net.getSpeed() / 1000000)
+				.append(" Mb/s");
+				result.add(sb.toString());
+			}
+		}
+
 		return result;
 	}
 
