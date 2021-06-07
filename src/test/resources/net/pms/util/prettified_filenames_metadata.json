@@ -227,6 +227,17 @@
 	},
 	{
 		"comment": "Video of an anime episode 4",
+		"filename": "[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode 5",
 		"filename": "[FanSubbers] Universal Media Server - 02 [1080p][Multiple Subtitle].mkv",
 		"prettified": "Universal Media Server S01E02",
 		"metadata": {
