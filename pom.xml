@@ -685,7 +685,7 @@
 				<plugin>
 					<groupId>org.digitalmediaserver</groupId>
 					<artifactId>crowdin-maven-plugin</artifactId>
-					<version>0.4.1</version>
+					<version>1.1.1</version>
 					<configuration>
 						<project>${project}</project>
 						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
