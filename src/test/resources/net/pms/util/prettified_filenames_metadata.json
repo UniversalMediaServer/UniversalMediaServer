@@ -259,6 +259,17 @@
 		}
 	},
 	{
+		"comment": "Video of an anime episode with the season number in the series name",
+		"filename": "[FanSubbers] Universal Media Server S2 - 01v2 (1080p) [700D423E].mkv",
+		"prettified": "Universal Media Server S02E01",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 2,
+			"episodes": [1]
+		}
+	},
+	{
 		"comment": "Video of an episode with a mixed convention",
 		"filename": "Universal Media Server - S01 E02 - Mysterious Wordplay.mkv",
 		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
@@ -350,6 +361,16 @@
 		"metadata": {
 			"type": "movie",
 			"title": "UMS-47",
+			"released": { "year": 2018 }
+		}
+	},
+		{
+		"comment": "Video of a movie with a year at the end of title",
+		"filename": "UMS.2018.mp4",
+		"prettified": "UMS (2018)",
+		"metadata": {
+			"type": "movie",
+			"title": "UMS",
 			"released": { "year": 2018 }
 		}
 	}
