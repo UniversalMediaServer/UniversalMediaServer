@@ -596,8 +596,8 @@ public class FileUtil {
 	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*|\\sTVNZ.*";
 	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*|.*\\sTVNZ.*";
 
-	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*";
-	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*";
+	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|\\s\\(Dual\\sAudio.*";
+	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s\\[720p.*|.*\\s\\[1080p.*|.*\\s\\[480p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*\\s\\(Dual\\sAudio.*";
 
 	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,})";
 	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
@@ -615,6 +615,8 @@ public class FileUtil {
 
 	private static final String COMMON_ANIME_EPISODE_NUMBERS = "(?:[\\s']|S\\d{1,2}\\sE|\\s-\\s)(?:[pP]|)(\\d{1,4})(?:[\\s']|v\\d)?";
 	private static final Pattern COMMON_ANIME_EPISODE_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_EPISODE_NUMBERS);
+
+	private static final Pattern SEASON_NUMBER_IN_SERIES_TITLE_PATTERN = Pattern.compile(".*\\sS(\\d)$");
 
 	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S\\d{1,2}\\sE)(?:[pP]|)(\\d{1,}-\\d{1,})(?:[\\s']|v\\d)";
 	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
@@ -951,7 +953,7 @@ public class FileUtil {
 
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*\\s(19|20)\\d{2}\\s.*")) {
+		} else if (formattedName.matches(".*\\s(19|20)\\d{2}.*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
@@ -999,6 +1001,16 @@ public class FileUtil {
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
+				}
+			}
+
+			// Attempt to extract the season number from the series title
+			if (movieOrShowName != null && isNotBlank(movieOrShowName)) {
+				movieOrShowName = movieOrShowName.trim();
+				matcher = SEASON_NUMBER_IN_SERIES_TITLE_PATTERN.matcher(movieOrShowName);
+				if (matcher.find()) {
+					tvSeason = matcher.group(1);
+					movieOrShowName = movieOrShowName.substring(0, movieOrShowName.length() - 3);
 				}
 			}
 

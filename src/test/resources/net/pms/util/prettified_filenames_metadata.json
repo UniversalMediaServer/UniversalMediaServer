@@ -204,7 +204,7 @@
 		}
 	},
 	{
-		"comment": "Video of an anime episode",
+		"comment": "Video of an anime episode 2",
 		"filename": "[FanSubbers]_Universal_Media_Server_02_[700D423E].mp4",
 		"prettified": "Universal Media Server S01E02",
 		"metadata": {
@@ -215,7 +215,7 @@
 		}
 	},
 	{
-		"comment": "Video of an anime episode",
+		"comment": "Video of an anime episode 3",
 		"filename": "[FanSubbers]_Universal_Media_Server_-_02_[720p][700D423E].mkv",
 		"prettified": "Universal Media Server S01E02",
 		"metadata": {
@@ -226,7 +226,7 @@
 		}
 	},
 	{
-		"comment": "Video of an anime episode with a messy mix of conventions",
+		"comment": "Video of an anime episode 4",
 		"filename": "[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv",
 		"prettified": "Universal Media Server S01E02",
 		"metadata": {
@@ -234,6 +234,39 @@
 			"series": "Universal Media Server",
 			"season": 1,
 			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode 5",
+		"filename": "[FanSubbers] Universal Media Server - 02 [1080p][Multiple Subtitle].mkv",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode 6",
+		"filename": "[FanSubbers]Universal Media Server_-_02_(Dual Audio_10bit_1080p_x265).mkv",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode with the season number in the series name",
+		"filename": "[FanSubbers] Universal Media Server S2 - 01v2 (1080p) [700D423E].mkv",
+		"prettified": "Universal Media Server S02E01",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 2,
+			"episodes": [1]
 		}
 	},
 	{
@@ -328,6 +361,16 @@
 		"metadata": {
 			"type": "movie",
 			"title": "UMS-47",
+			"released": { "year": 2018 }
+		}
+	},
+		{
+		"comment": "Video of a movie with a year at the end of title",
+		"filename": "UMS.2018.mp4",
+		"prettified": "UMS (2018)",
+		"metadata": {
+			"type": "movie",
+			"title": "UMS",
 			"released": { "year": 2018 }
 		}
 	}
