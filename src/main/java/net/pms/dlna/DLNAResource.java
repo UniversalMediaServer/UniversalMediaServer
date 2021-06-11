@@ -69,6 +69,7 @@ import net.pms.database.TableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
@@ -2434,6 +2435,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else if (isFolder) {
 			if (this instanceof PlaylistFolder) {
 				uclass = "object.container.playlistContainer";
+			} else if (this instanceof VirtualFolderDbId) {
+				uclass = ((VirtualFolderDbId) this).getMediaTypeUclass();
 			} else {
 				uclass = "object.container.storageFolder";
 			}
