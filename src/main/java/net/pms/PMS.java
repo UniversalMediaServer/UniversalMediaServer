@@ -434,7 +434,7 @@ public class PMS {
 
 		// Initialize database
 		try {
-			Tables.checkTables();
+			Tables.checkTables(false);
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
 			LOGGER.trace("Error was: {}", e1);
