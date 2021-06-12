@@ -222,4 +222,18 @@ public final class TableVideoMetadataRated extends Tables {
 			statement.execute("CREATE UNIQUE INDEX FILENAME_RATED_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATING, TVSERIESID)");
 		}
 	}
+
+	/**
+	 * Drops (deletes) the current table. Use with caution, there is no undo.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static final void dropTable(final Connection connection) throws SQLException {
+		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
+		try (Statement statement = connection.createStatement()) {
+			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
+		}
+	}
 }

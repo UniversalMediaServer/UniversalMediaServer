@@ -61,6 +61,10 @@ import net.pms.database.TableVideoMetadataReleased;
 import static net.pms.database.Tables.convertResultSetToList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.database.TableAudiotracks;
+import net.pms.database.TableCoverArtArchive;
+import net.pms.database.TableFailedLookups;
+import net.pms.database.TableMusicBrainzReleases;
 import net.pms.database.TableTVSeries;
 import net.pms.database.TableVideoMetadataIMDbRating;
 import static net.pms.database.Tables.sqlQuote;
@@ -433,6 +437,10 @@ public class DLNAMediaDatabase implements Runnable {
 				for (int i = 0; i < chars.length; i++) {
 					// Create regexp rules for characters with a sort order based on the property value
 					executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");
+				}
+
+				if (force) {
+					Tables.reInitTablesExceptFilesStatus();
 				}
 
 				LOGGER.debug("Database initialized");
