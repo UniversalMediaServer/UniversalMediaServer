@@ -435,6 +435,10 @@ public class DLNAMediaDatabase implements Runnable {
 					executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");
 				}
 
+				if (force) {
+					Tables.reInitTablesExceptFilesStatus();
+				}
+
 				LOGGER.debug("Database initialized");
 			} catch (SQLException se) {
 				LOGGER.error("Error creating tables: " + se.getMessage());
