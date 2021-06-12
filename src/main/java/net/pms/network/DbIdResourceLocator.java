@@ -27,13 +27,17 @@ public class DbIdResourceLocator {
 
 	public enum DbidMediaType {
 
-		TYPE_FILES("FID$"), TYPE_ALBUM("ALBUM$"), TYPE_PERSON("PERSON$"), TYPE_PLAYLIST("PLAYLIST$"), TYPE_VIDEO("VIDEO$");
+		TYPE_FILES("FID$", "object.item"), TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"), TYPE_PERSON("PERSON$",
+			"object.container.person.musicArtist"), TYPE_PLAYLIST("PLAYLIST$",
+				"object.container.playlistContainer"), TYPE_VIDEO("VIDEO$", "object.container.storageFolder");
 
 		public final static String GENERAL_PREFIX = "$DBID$";
 		public final String dbidPrefix;
+		public final String uclass;
 
-		DbidMediaType(String dbidPrefix) {
+		DbidMediaType(String dbidPrefix, String uclass) {
 			this.dbidPrefix = dbidPrefix;
+			this.uclass = uclass;
 		}
 
 		public static DbidTypeAndIdent getTypeIdentByDbid(String id) {
