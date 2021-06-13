@@ -80,7 +80,7 @@ public class TableAudiotracks extends Tables {
 					}
 				} catch (SQLException e) {
 					LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
-					LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
+					LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 					throw new SQLException(e);
 				}
 			}
