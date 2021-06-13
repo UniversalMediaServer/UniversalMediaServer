@@ -61,7 +61,7 @@ public final class TableFilesStatus extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 11;
+	private static final int TABLE_VERSION = 12;
 
 	// No instantiation
 	private TableFilesStatus() {
@@ -515,10 +515,17 @@ public final class TableFilesStatus extends Tables {
 						version = 10;
 						break;
 					case 10:
+					case 11:
 						try (Statement statement = connection.createStatement()) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
+							if (!isColumnExist(connection, TABLE_NAME, "LASTPLAYBACKPOSITION")) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
+							}
+						} catch (SQLException e) {
+							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+							throw new SQLException(e);
 						}
-						version = 11;
+						version = 12;
 						break;
 					default:
 						throw new IllegalStateException(
@@ -527,7 +534,13 @@ public final class TableFilesStatus extends Tables {
 						);
 				}
 			}
-			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+
+			try {
+				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			} catch (SQLException e) {
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+				throw new SQLException(e);
+			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
 		}
@@ -548,7 +561,7 @@ public final class TableFilesStatus extends Tables {
 					"BOOKMARK               INTEGER                          DEFAULT 0, " +
 					"DATELASTPLAY           DATETIME, " +
 					"PLAYCOUNT              INTEGER                          DEFAULT 0, " +
-					"LASTPLAYBACKPOSITION   DOUBLE                           DEFAULT 0.0, " +
+					"LASTPLAYBACKPOSITION   DOUBLE                           DEFAULT 0.0" +
 				")"
 			);
 
