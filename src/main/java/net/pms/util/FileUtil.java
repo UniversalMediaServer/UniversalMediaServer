@@ -982,7 +982,6 @@ public class FileUtil {
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || formattedName.matches(COMMON_ANIME_FILE_ENDS_MATCH)) {
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll(COMMON_ANIME_FILE_ENDS, "");
-			System.out.println("11 " + formattedName);
 			// This matches anime episodes that end with a hash or an episode number, or no quality/resolution
 			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
 			if (matcher.find()) {
