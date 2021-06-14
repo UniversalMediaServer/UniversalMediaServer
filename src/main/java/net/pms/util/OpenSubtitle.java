@@ -264,14 +264,17 @@ public class OpenSubtitle {
 					} catch (Exception e) {
 						LOGGER.info("API lookup error for {}, {}", connection.getURL(), e.getMessage());
 					}
+					LOGGER.debug("API URL was {}", connection.getURL());
 					break;
 				default:
-					StringBuilder errorMessage;
-					BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
-					errorMessage = new StringBuilder();
-					String str;
-					while ((str = in.readLine()) != null) {
-						errorMessage.append(str.trim()).append("\n");
+					StringBuilder errorMessage = new StringBuilder();
+					if (connection.getErrorStream() != null) {
+						InputStreamReader inputStreamReader = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
+						BufferedReader in = new BufferedReader(inputStreamReader);
+						String str;
+						while ((str = in.readLine()) != null) {
+							errorMessage.append(str.trim()).append("\n");
+						}
 					}
 
 					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());

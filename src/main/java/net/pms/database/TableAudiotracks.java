@@ -7,7 +7,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
 
 /**
  * This class is responsible for managing the Audiotracks releases table. It
@@ -80,7 +79,7 @@ public class TableAudiotracks extends Tables {
 					}
 				} catch (SQLException e) {
 					LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
-					LOGGER.error("Please stop the UMS and delete the database at {}, restat the UMS and let it to create new one", PMS.get().getDatabase().getDatabasePath());
+					LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 					throw new SQLException(e);
 				}
 			}
@@ -154,6 +153,20 @@ public class TableAudiotracks extends Tables {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.executeUpdate(sql);
 			}
+		}
+	}
+
+	/**
+	 * Drops (deletes) the current table. Use with caution, there is no undo.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static final void dropTable(final Connection connection) throws SQLException {
+		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
+		try (Statement statement = connection.createStatement()) {
+			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
 		}
 	}
 }

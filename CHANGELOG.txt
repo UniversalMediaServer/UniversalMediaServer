@@ -1,3 +1,17 @@
+10.6.1 - 2021-06-
+
+	General:
+		Improved detection of movies and anime episodes
+		Fixed upnp:class in UPnP search results (thanks, ik666!)
+		Fixed the "Reset the cache" button not resetting API metadata too
+		Fixed failed database upgrade for fully played statuses
+	Renderers:
+		Improved support for VLC on iPhone
+	Dependencies:
+		Bump git-commit-id-plugin from 4.0.4 to 4.0.5
+		Bump jaudiotagger from 2.2.5 to 2.2.7
+		Bump maven-idea-plugin from 2.2.1 to 2.3-atlassian-10
+
 10.6.0 - 2021-06-03
 
 	General:

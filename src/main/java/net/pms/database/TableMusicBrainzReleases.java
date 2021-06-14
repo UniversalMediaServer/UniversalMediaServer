@@ -394,4 +394,18 @@ public final class TableMusicBrainzReleases extends Tables {
 			statement.execute("CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)");
 		}
 	}
+
+	/**
+	 * Drops (deletes) the current table. Use with caution, there is no undo.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static final void dropTable(final Connection connection) throws SQLException {
+		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
+		try (Statement statement = connection.createStatement()) {
+			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
+		}
+	}
 }

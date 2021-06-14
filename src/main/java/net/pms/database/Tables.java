@@ -50,6 +50,7 @@ public class Tables {
 	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static boolean tablesChecked = false;
 	private static final String ESCAPE_CHARACTER = "\\";
+	public static final String TABLE_NAME = "TABLES";
 
 	// No instantiation
 	protected Tables() {
@@ -57,18 +58,19 @@ public class Tables {
 
 	/**
 	 * Checks all child tables for their existence and version and creates or
-	 * upgrades as needed. Access to this method is serialized.
+	 * upgrades as needed.Access to this method is serialized.
 	 *
+	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public static final void checkTables() throws SQLException {
+	public static final void checkTables(boolean force) throws SQLException {
 		synchronized (CHECK_TABLES_LOCK) {
-			if (tablesChecked) {
+			if (tablesChecked && !force) {
 				LOGGER.debug("Database tables have already been checked, aborting check");
 			} else {
 				LOGGER.debug("Starting check of database tables");
 				try (Connection connection = DATABASE.getConnection()) {
-					if (!tableExists(connection, "TABLES")) {
+					if (!tableExists(connection, TABLE_NAME)) {
 						createTablesTable(connection);
 					}
 
@@ -99,6 +101,40 @@ public class Tables {
 				tablesChecked = true;
 			}
 		}
+	}
+
+	/**
+	 * Re-initializes all child tables except files status.
+	 *
+	 * @throws SQLException
+	 */
+	public static final void reInitTablesExceptFilesStatus() throws SQLException {
+		try (Connection connection = DATABASE.getConnection()) {
+			TableMusicBrainzReleases.dropTable(connection);
+			TableCoverArtArchive.dropTable(connection);
+			TableThumbnails.dropTable(connection);
+
+			TableTVSeries.dropTable(connection);
+			TableFailedLookups.dropTable(connection);
+
+			// Video metadata tables
+			TableVideoMetadataActors.dropTable(connection);
+			TableVideoMetadataAwards.dropTable(connection);
+			TableVideoMetadataCountries.dropTable(connection);
+			TableVideoMetadataDirectors.dropTable(connection);
+			TableVideoMetadataIMDbRating.dropTable(connection);
+			TableVideoMetadataGenres.dropTable(connection);
+			TableVideoMetadataPosters.dropTable(connection);
+			TableVideoMetadataProduction.dropTable(connection);
+			TableVideoMetadataRated.dropTable(connection);
+			TableVideoMetadataRatings.dropTable(connection);
+			TableVideoMetadataReleased.dropTable(connection);
+
+			// Audio Metadata
+			TableAudiotracks.dropTable(connection);
+		}
+
+		checkTables(true);
 	}
 
 	/**

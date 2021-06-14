@@ -369,11 +369,12 @@ public class NavigationShareTab {
 		});
 
 		// Reset cache
-		cacheReset = new CustomJButton(Messages.getString("NetworkTab.EmptyMediaLibrary"));
+		cacheReset = new CustomJButton(Messages.getString("NavigationSettingsTab.ResetCache"));
+		cacheReset.setToolTipText(Messages.getString("NavigationSettingsTab.CacheEmptiedExceptFullyPlayed"));
 		cacheReset.addActionListener((ActionEvent e) -> {
 			int option = JOptionPane.showConfirmDialog(
 				looksFrame,
-				Messages.getString("NetworkTab.MediaLibraryEmptiedExceptFullyPlayed") + "\n" + Messages.getString("NetworkTab.19"),
+				Messages.getString("NavigationSettingsTab.CacheEmptiedExceptFullyPlayed") + "\n" + Messages.getString("NetworkTab.19"),
 				Messages.getString("Dialog.Question"),
 				JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {
