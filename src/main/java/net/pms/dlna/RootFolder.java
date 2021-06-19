@@ -1562,4 +1562,45 @@ public class RootFolder extends DLNAResource {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
 	}
+
+	/**
+	 * Starts partial rescan
+	 *
+	 * @param filename This is the partial root of the scan. If a file is given,
+	 *            the parent folder will be scanned.
+	 */
+	public static void rescanLibraryFileOrFolder(String filename) {
+		if (
+			hasSameBasePath(PMS.getConfiguration().getSharedFolders(), filename) ||
+			hasSameBasePath(RootFolder.getDefaultFolders(), filename)
+		) {
+			LOGGER.debug("rescanning file or folder : " + filename);
+
+			if (!PMS.get().getDatabase().isScanLibraryRunning()) {
+				Runnable scan = () -> {
+					File file = new File(filename);
+					if (file.isFile()) {
+						file = file.getParentFile();
+					}
+					DLNAResource dir = new RealFile(file);
+					dir.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					dir.doRefreshChildren();
+					PMS.get().getRootFolder(null).scan(dir);
+				};
+				Thread scanThread = new Thread(scan, "rescanLibraryFileOrFolder");
+				scanThread.start();
+			}
+		} else {
+			LOGGER.warn("given file or folder doesn't share same base path as this server : " + filename);
+		}
+	}
+
+	public static boolean hasSameBasePath(List<Path> dirs, String content) {
+		for (Path path : dirs) {
+			if (content.startsWith(path.toString())) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

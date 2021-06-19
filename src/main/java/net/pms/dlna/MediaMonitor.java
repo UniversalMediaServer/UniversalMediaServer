@@ -213,15 +213,13 @@ public class MediaMonitor extends VirtualFolder {
 		) {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null && isMonitored && !isFullyPlayed(fullPathToFile)) {
+				// Only set fully played if the file will stay where it is
 				if (
 					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
 					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
 					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
 				) {
 					setFullyPlayed(fullPathToFile, true, elapsed);
-					if (realFile.getMedia() != null) {
-						realFile.getMedia().setThumbready(false);
-					}
 				}
 
 				setDiscovered(false);
@@ -359,7 +357,9 @@ public class MediaMonitor extends VirtualFolder {
 		try {
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
-			TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			if (lastPlaybackPosition != null) {
+				TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			}
 		} finally {
 			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
