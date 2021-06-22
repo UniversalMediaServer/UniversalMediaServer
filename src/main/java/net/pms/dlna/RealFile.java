@@ -40,7 +40,9 @@ public class RealFile extends MapFile {
 		System.out.println("1 ");
 		System.out.println("2 " + file);
 		addFileToConfFiles(file);
+		System.out.println("3 ");
 		setLastModified(file.lastModified());
+		System.out.println("4 ");
 	}
 
 	public RealFile(File file, String name) {
