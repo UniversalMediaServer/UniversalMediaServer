@@ -37,6 +37,8 @@ public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	public RealFile(File file) {
+		System.out.println("1 ");
+		System.out.println("2 " + file);
 		addFileToConfFiles(file);
 		setLastModified(file.lastModified());
 	}
