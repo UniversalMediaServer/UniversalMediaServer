@@ -194,8 +194,13 @@ public class FFMpegVideo extends Player {
 			if (params.getSid() != null && params.getSid().getType().isText()) {
 				boolean isSubsASS = params.getSid().getType() == SubtitleType.ASS;
 				String originalSubsFilename = null;
+				boolean isSubsConverted = false;
+				if (convertedSubs != null && convertedSubs.getConvertedFile() != null) {
+					isSubsConverted = true;
+				}
+
 				if (is3D) {
-					if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
+					if (isSubsConverted) { // subs are already converted to 3D so use them
 						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
 					} else if (!isSubsASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
 						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
@@ -224,12 +229,21 @@ public class FFMpegVideo extends Player {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 					}
 				} else {
-					originalSubsFilename = dlna.getFileName();
+					if (isSubsConverted) {
+						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
+					} else {
+						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+						if (subtitlesFile != null) {
+							originalSubsFilename = subtitlesFile.getAbsolutePath();
+						} else {
+							LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
+						}
+					}
 				}
 
 				if (originalSubsFilename != null) {
 					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
-					if (params.getSid().isEmbedded()) {
+					if (params.getSid().isEmbedded() && !isSubsConverted) {
 						subsFilter.append(":si=").append(params.getSid().getId());
 					}
 
@@ -956,7 +970,7 @@ public class FFMpegVideo extends Player {
 		 * Defer to MEncoder for subtitles if:
 		 * - MEncoder is enabled and available
 		 * - The setting is enabled
-		 * - There are subtitles to transcode
+		 * - There are VOBSUB subtitles to transcode
 		 * - The file is not being played via the transcode folder
 		 */
 		if (
@@ -970,10 +984,7 @@ public class FFMpegVideo extends Player {
 			) &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
-			(
-				params.getSid().getType().isText() ||
-				params.getSid().getType() == SubtitleType.VOBSUB
-			)
+			params.getSid().getType() == SubtitleType.VOBSUB
 		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);

@@ -32,8 +32,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -43,11 +49,13 @@ import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFile;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.newgui.IFrame;
 import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
@@ -66,6 +74,17 @@ public class SubtitleUtils {
 	private final static char[] SUBTITLES_UPPER_CASE;
 	private final static char[] SUBTITLES_LOWER_CASE;
 	private final static File ALTERNATIVE_SUBTITLES_FOLDER;
+
+	// Minimum number of threads in pool
+	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(
+		0,
+		5, // Maximum number of threads in pool
+		30, // Number of seconds before an idle thread is terminated
+		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), // The queue holding the tasks waiting to be processed
+		new SubtitleUtils.SubtitlesExtractionBackgroundWorkerThreadFactory() // The ThreadFactory
+	);
+
+	private static IFrame frame = PMS.get().getFrame();
 
 	static {
 		String subtitles = "Subtitles";
@@ -150,7 +169,7 @@ public class SubtitleUtils {
 		}
 	};
 
-	private static final String SUB_DIR = "subs";
+	public static final String SUB_DIR = "subs";
 
 	/**
 	 * Returns value for -subcp option for non UTF-8 external subtitles based on
@@ -208,6 +227,7 @@ public class SubtitleUtils {
 	 * @param media DLNAMediaInfo
 	 * @param params Output parameters
 	 * @param configuration
+	 * @param subtitleType
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
@@ -227,151 +247,158 @@ public class SubtitleUtils {
 			return null;
 		}
 
-		String dir = configuration.getDataFile(SUB_DIR);
-		File subsPath = new File(dir);
-		if (!subsPath.exists()) {
-			if (!subsPath.mkdirs()) {
-				LOGGER.error("Could not create subtitles conversion folder \"{}\" - subtitles operation aborted!", dir);
-				return null;
-			}
-		}
+		try {
+			LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), dlna.getName());
+			frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
 
-		if (params.getSid().isExternal() && params.getSid().getExternalFile() == null) {
-			// This happens when for example OpenSubtitles fail to download
-			return null;
-		}
-
-		boolean applyFontConfig = configuration.isFFmpegFontConfig();
-		boolean isEmbeddedSource = params.getSid().isEmbedded();
-		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
-		File convertedFile = params.getSid().getConvertedFile();
-
-		if (convertedFile != null && convertedFile.canRead()) {
-			// subs are already converted and exists
-			params.getSid().setType(SubtitleType.ASS);
-			params.getSid().setSubCharacterSet(CHARSET_UTF_8);
-			return convertedFile;
-		}
-
-		String filename = isEmbeddedSource ? dlna.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
-
-		String basename;
-
-		long modId = new File(filename).lastModified();
-		if (modId != 0) {
-			// We have a real file
-			basename = FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
-		} else {
-			// It's something else, e.g. a url or psuedo-url without meaningful
-			// lastmodified and (maybe) basename characteristics.
-			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
-			modId = filename.hashCode();
-		}
-
-		File convertedSubs;
-		StringBuilder nameBuilder = new StringBuilder(subsPath.getAbsolutePath());
-		nameBuilder.append(File.separator).append(basename);
-		if (isEmbeddedSource) {
-			nameBuilder.append("_ID").append(params.getSid().getId());
-		}
-		if (applyFontConfig) {
-			nameBuilder.append("_FB");
-		}
-		if (is3D) {
-			nameBuilder.append("_3D");
-		}
-		nameBuilder.append("_").append(modId);
-		String extension;
-		if (subtitleType != null && isNotBlank(subtitleType.getExtension())) {
-			extension = subtitleType.getExtension();
-		} else {
-			extension = FileUtil.getExtension(basename);
-		}
-		if (isNotBlank(extension)) {
-			nameBuilder.append(".").append(extension);
-		}
-		convertedSubs = new File(nameBuilder.toString());
-
-		File converted3DSubs = new File(FileUtil.getFileNameWithoutExtension(convertedSubs.getAbsolutePath()) + "_3D.ass");
-		if (convertedSubs.canRead() || converted3DSubs.canRead()) {
-			// subs are already converted
-			if (applyFontConfig || isEmbeddedSource || is3D) {
-				params.getSid().setType(SubtitleType.ASS);
-				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
-				if (converted3DSubs.canRead()) {
-					convertedSubs = converted3DSubs;
+			String dir = configuration.getDataFile(SUB_DIR);
+			File subsPath = new File(dir);
+			if (!subsPath.exists()) {
+				if (!subsPath.mkdirs()) {
+					LOGGER.error("Could not create subtitles conversion folder \"{}\" - subtitles operation aborted!", dir);
+					return null;
 				}
 			}
 
-			params.getSid().setConvertedFile(convertedSubs);
-			return convertedSubs;
-		}
-
-		boolean isExternalAss = false;
-		if (params.getSid().getType() == SubtitleType.ASS && params.getSid().isExternal() && !isEmbeddedSource) {
-			isExternalAss = true;
-		}
-
-		File tempSubs;
-		if (
-			isExternalAss ||
-			(
-				!applyFontConfig &&
-				!isEmbeddedSource &&
-				(params.getSid().getType() == subtitleType) &&
-				(params.getSid().getType() == SubtitleType.SUBRIP || params.getSid().getType() == SubtitleType.WEBVTT) &&
-				!is3D
-			)
-		) {
-			tempSubs = params.getSid().getExternalFile();
-		} else {
-			tempSubs = convertSubsToSubtitleType(filename, media, params, configuration, subtitleType);
-		}
-
-		if (tempSubs == null) {
-			return null;
-		}
-
-		if (!FileUtil.isFileUTF8(tempSubs)) {
-			try {
-				tempSubs = applyCodepageConversion(tempSubs, convertedSubs);
-				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
-			} catch (IOException ex) {
-				params.getSid().setSubCharacterSet(null);
-				LOGGER.warn("Exception during external file charset detection.", ex);
-			}
-		} else {
-			FileUtils.copyFile(tempSubs, convertedSubs);
-			tempSubs = convertedSubs;
-		}
-
-		// Now we're sure we actually have our own modifiable file
-		if (applyFontConfig && !(configuration.isUseEmbeddedSubtitlesStyle() && params.getSid().getType() == SubtitleType.ASS)) {
-			try {
-				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
-				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
-			} catch (IOException e) {
-				LOGGER.debug("Applying subs setting ends with error: " + e);
+			if (params.getSid().isExternal() && params.getSid().getExternalFile() == null) {
+				// This happens when for example OpenSubtitles fail to download
 				return null;
 			}
-		}
 
-		if (is3D) {
-			try {
-				tempSubs = convertASSToASS3D(tempSubs, media, params);
-			} catch (IOException | NullPointerException e) {
-				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+			boolean applyFontConfig = configuration.isFFmpegFontConfig();
+			boolean isEmbeddedSource = params.getSid().isEmbedded();
+			boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+			File convertedFile = params.getSid().getConvertedFile();
+
+			if (convertedFile != null && convertedFile.canRead()) {
+				// subs are already converted and exists
+				params.getSid().setType(SubtitleType.ASS);
+				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
+				return convertedFile;
+			}
+
+			String filename = isEmbeddedSource ? dlna.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
+
+			String basename;
+
+			long modId = new File(filename).lastModified();
+			if (modId != 0) {
+				// We have a real file
+				basename = FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			} else {
+				// It's something else, e.g. a url or psuedo-url without meaningful
+				// lastmodified and (maybe) basename characteristics.
+				basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+				modId = filename.hashCode();
+			}
+
+			File convertedSubs;
+			StringBuilder nameBuilder = new StringBuilder(subsPath.getAbsolutePath());
+			nameBuilder.append(File.separator).append(basename);
+			if (isEmbeddedSource) {
+				nameBuilder.append("_ID").append(params.getSid().getId());
+			}
+			if (applyFontConfig) {
+				nameBuilder.append("_FB");
+			}
+			if (is3D) {
+				nameBuilder.append("_3D");
+			}
+			nameBuilder.append("_").append(modId);
+			String extension;
+			if (subtitleType != null && isNotBlank(subtitleType.getExtension())) {
+				extension = subtitleType.getExtension();
+			} else {
+				extension = FileUtil.getExtension(basename);
+			}
+			if (isNotBlank(extension)) {
+				nameBuilder.append(".").append(extension);
+			}
+			convertedSubs = new File(nameBuilder.toString());
+
+			File converted3DSubs = new File(FileUtil.getFileNameWithoutExtension(convertedSubs.getAbsolutePath()) + "_3D.ass");
+			if (convertedSubs.canRead() || converted3DSubs.canRead()) {
+				// subs are already converted
+				if (applyFontConfig || isEmbeddedSource || is3D) {
+					params.getSid().setType(SubtitleType.ASS);
+					params.getSid().setSubCharacterSet(CHARSET_UTF_8);
+					if (converted3DSubs.canRead()) {
+						convertedSubs = converted3DSubs;
+					}
+				}
+
+				params.getSid().setConvertedFile(convertedSubs);
+				return convertedSubs;
+			}
+
+			boolean isExternalAss = false;
+			if (params.getSid().getType() == SubtitleType.ASS && params.getSid().isExternal() && !isEmbeddedSource) {
+				isExternalAss = true;
+			}
+
+			File tempSubs;
+			if (
+				isExternalAss ||
+				(
+					!applyFontConfig &&
+					!isEmbeddedSource &&
+					(params.getSid().getType() == subtitleType) &&
+					(params.getSid().getType() == SubtitleType.SUBRIP || params.getSid().getType() == SubtitleType.WEBVTT) &&
+					!is3D
+				)
+			) {
+				tempSubs = params.getSid().getExternalFile();
+			} else {
+				tempSubs = convertSubsToSubtitleType(filename, media, params, configuration, subtitleType);
+			}
+
+			if (tempSubs == null) {
 				return null;
 			}
-		}
 
-		if (isEmbeddedSource) {
-			params.getSid().setType(SubtitleType.ASS);
-		}
+			if (!FileUtil.isFileUTF8(tempSubs)) {
+				try {
+					tempSubs = applyCodepageConversion(tempSubs, convertedSubs);
+					params.getSid().setSubCharacterSet(CHARSET_UTF_8);
+				} catch (IOException ex) {
+					params.getSid().setSubCharacterSet(null);
+					LOGGER.warn("Exception during external file charset detection.", ex);
+				}
+			} else {
+				FileUtils.copyFile(tempSubs, convertedSubs);
+				tempSubs = convertedSubs;
+			}
 
-		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
-		params.getSid().setConvertedFile(tempSubs);
-		return tempSubs;
+			// Now we're sure we actually have our own modifiable file
+			if (applyFontConfig && !(configuration.isUseEmbeddedSubtitlesStyle() && params.getSid().getType() == SubtitleType.ASS)) {
+				try {
+					tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
+					params.getSid().setSubCharacterSet(CHARSET_UTF_8);
+				} catch (IOException e) {
+					LOGGER.debug("Applying subs setting ends with error: " + e);
+					return null;
+				}
+			}
+
+			if (is3D) {
+				try {
+					tempSubs = convertASSToASS3D(tempSubs, media, params);
+				} catch (IOException | NullPointerException e) {
+					LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+					return null;
+				}
+			}
+
+			if (isEmbeddedSource) {
+				params.getSid().setType(SubtitleType.ASS);
+			}
+
+			PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
+			params.getSid().setConvertedFile(tempSubs);
+			return tempSubs;
+		} finally {
+			frame.setStatusLine("");
+		}
 	}
 
 	/**
@@ -455,7 +482,6 @@ public class SubtitleUtils {
 			return null;
 		}
 
-		tempSubsFile.deleteOnExit();
 		return tempSubsFile;
 	}
 
@@ -1166,5 +1192,50 @@ public class SubtitleUtils {
 		}
 		LOGGER.trace("Returning subtitles with priority {}: {}", result);
 		return result;
+	}
+
+	/**
+	 * Extracts all internal subtitles in this file to the subs folder.
+	 *
+	 * @param realFile
+	 */
+	public static void backgroundExtractAllSubtitles(final RealFile realFile) {
+		Runnable r = () -> {
+			DLNAMediaInfo mediaInfo = realFile.getMedia();
+			for (DLNAMediaSubtitle subtitleTrack : mediaInfo.getSubtitlesTracks()) {
+				OutputParams tempParams = new OutputParams(PMS.getConfiguration());
+				tempParams.setSid(subtitleTrack);
+				try {
+					SubtitleUtils.getSubtitles(realFile, realFile.getMedia(), tempParams, PMS.getConfiguration(), SubtitleType.ASS);
+				} catch (IOException ex) {
+					LOGGER.error("An error occurred when extracting subtitles: {}", ex);
+				}
+			}
+		};
+		BACKGROUND_EXECUTOR.execute(r);
+	}
+
+	/**
+	 * A {@link ThreadFactory} that creates threads for the OpenSubtitles
+	 * background workers
+	 */
+	static class SubtitlesExtractionBackgroundWorkerThreadFactory implements ThreadFactory {
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+
+		SubtitlesExtractionBackgroundWorkerThreadFactory() {
+			group = new ThreadGroup("SubtitlesExtraction background workers group");
+			group.setDaemon(false);
+			group.setMaxPriority(Thread.NORM_PRIORITY - 1);
+		}
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(group, runnable, "SubtitlesExtraction background worker " + threadNumber.getAndIncrement());
+			if (thread.isDaemon()) {
+				thread.setDaemon(false);
+			}
+			return thread;
+		}
 	}
 }

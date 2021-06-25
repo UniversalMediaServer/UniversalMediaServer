@@ -131,7 +131,6 @@ import net.pms.util.XMLRPCUtil.ValueStruct;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
 	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
@@ -140,7 +139,7 @@ public class OpenSubtitle {
 	private static final double MIN_IMDB_GUESS_JW_DISTANCE = 0.65;
 
 	/** The {@link Path} where downloaded OpenSubtitles subtitles are stored */
-	public static final Path SUBTITLES_FOLDER = Paths.get(PMS.getConfiguration().getDataFile(SUB_DIR));
+	public static final Path SUBTITLES_FOLDER = Paths.get(PMS.getConfiguration().getDataFile(SubtitleUtils.SUB_DIR));
 
 	/**
 	 * Size of the chunks that will be hashed in bytes (64 KB)

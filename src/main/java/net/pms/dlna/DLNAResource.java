@@ -1435,6 +1435,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (this instanceof RealFile && ((RealFile) this).getFile() != null) {
 				setMetadataFromFileName(((RealFile) this).getFile());
 			}
+
+			// Now that we have parsed the file, add to the subtitles extraction factory
+			SubtitleUtils.backgroundExtractAllSubtitles((RealFile) this);
 		}
 	}
 
