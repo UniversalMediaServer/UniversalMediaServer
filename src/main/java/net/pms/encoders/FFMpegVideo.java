@@ -963,11 +963,7 @@ public class FFMpegVideo extends Player {
 			PlayerFactory.isPlayerActive(MEncoderVideo.ID) &&
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			params.getSid() != null &&
-			!(
-				configuration.isShowTranscodeFolder() &&
-				dlna.isNoName() &&
-				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
-			) &&
+			!dlna.isInsideTranscodeFolder() &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
 			(
@@ -987,9 +983,9 @@ public class FFMpegVideo extends Player {
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "the video codec is not the same as the transcoding goal.");
-			} else if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			} else if (dlna.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (params.getSid() != null) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
@@ -1015,9 +1011,9 @@ public class FFMpegVideo extends Player {
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			if (dlna.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (!params.getMediaRenderer().isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
