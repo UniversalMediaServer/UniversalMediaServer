@@ -1605,7 +1605,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public boolean isInsideTranscodeFolder() {
-		return parent != null && parent instanceof FileTranscodeVirtualFolder;
+		return parent instanceof FileTranscodeVirtualFolder;
 	}
 
 	/**
