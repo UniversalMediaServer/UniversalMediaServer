@@ -46,8 +46,7 @@ public class PlayerUtilTest {
 	public static void setUpClass() {
 		// initialise the fixtures
 		// XXX we need to call isValid to call checktype(), which is needed to initialise the format
-		File imageFile = getNonExistingFile("test.jpg");
-		image = new RealFile(imageFile);
+		image = new RealFile(getNonExistingFile("test.jpg"));
 		image.isValid();
 		audio = new RealFile(getNonExistingFile("test.mp3"));
 		audio.isValid();
@@ -64,8 +63,8 @@ public class PlayerUtilTest {
 	@Before
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
-//		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-//		context.reset();
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.reset();
 	}
 
 	@Test
