@@ -83,11 +83,17 @@ jobs:
           sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
           wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
           sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
-          mvn verify -B -V -P testing
+          mvn verify -P testing
 
   linux-xenial:
     runs-on: ubuntu-16.04
     steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '8'
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -100,14 +106,14 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Install dependencies from Maven
         run: mvn external:install
-      - name: Run tests ( Ubuntu Xenial, Java ${{ matrix.java }} )
+      - name: Run tests
         run: |
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_16.04.deb
           sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_16.04.deb
           wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_16.04.deb
           sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_16.04.deb
-          mvn verify -B -V -P testing
+          mvn verify -P testing
 
   linter:
     runs-on: windows-latest
