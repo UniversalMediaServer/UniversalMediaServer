@@ -1206,7 +1206,7 @@ public class SubtitleUtils {
 				OutputParams tempParams = new OutputParams(PMS.getConfiguration());
 				tempParams.setSid(subtitleTrack);
 				try {
-					SubtitleUtils.getSubtitles(realFile, realFile.getMedia(), tempParams, PMS.getConfiguration(), SubtitleType.ASS);
+					SubtitleUtils.getSubtitles(realFile, mediaInfo, tempParams, PMS.getConfiguration(), SubtitleType.ASS);
 				} catch (IOException ex) {
 					LOGGER.error("An error occurred when extracting subtitles: {}", ex);
 				}
