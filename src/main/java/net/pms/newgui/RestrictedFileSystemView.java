@@ -47,8 +47,8 @@ public class RestrictedFileSystemView extends FileSystemView {
 		this(null);
 	}
 
-	public RestrictedFileSystemView(File defaultDirectory) {
-		defaultDirectory = defaultDirectory;
+	public RestrictedFileSystemView(File directory) {
+		defaultDirectory = directory;
 	}
 
 	/**

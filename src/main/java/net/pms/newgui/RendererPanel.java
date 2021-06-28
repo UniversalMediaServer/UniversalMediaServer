@@ -98,7 +98,7 @@ public class RendererPanel extends JPanel {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				DeviceConfiguration d = (DeviceConfiguration) renderer;
-				File f = chooseConf(d.getDeviceDir(), d.getDefaultFilename(d));
+				File f = chooseConf(DeviceConfiguration.getDeviceDir(), RendererConfiguration.getDefaultFilename(d));
 				if (f != null) {
 					File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
 					buildEditBar(true);
@@ -155,7 +155,7 @@ public class RendererPanel extends JPanel {
 					if (f != null) {
 						File ref = chooseReferenceConf();
 						if (ref != null) {
-							renderer.createNewFile(renderer, f, true, ref);
+							RendererConfiguration.createNewFile(renderer, f, true, ref);
 							open.setText(f.getName());
 							exists = true;
 						}

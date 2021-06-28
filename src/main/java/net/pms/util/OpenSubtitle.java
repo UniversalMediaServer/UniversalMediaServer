@@ -5112,7 +5112,9 @@ public class OpenSubtitle {
 					}
 					TableVideoMetadataPosters.set(file.getAbsolutePath(), (String) metadataFromAPI.get("poster"), -1);
 					TableVideoMetadataProduction.set(file.getAbsolutePath(), (String) metadataFromAPI.get("production"), -1);
-					TableVideoMetadataRated.set(file.getAbsolutePath(), (String) metadataFromAPI.get("rated"), -1);
+					if (metadataFromAPI.get("rated") != null) {
+						TableVideoMetadataRated.set(file.getAbsolutePath(), (String) metadataFromAPI.get("rated"), -1);
+					}
 					if (metadataFromAPI.get("ratings") != null) {
 						TableVideoMetadataRatings.set(file.getAbsolutePath(), new HashSet((ArrayList) metadataFromAPI.get("ratings")), -1);
 					}

@@ -80,7 +80,8 @@ public class SubtitleUtils {
 		0,
 		5, // Maximum number of threads in pool
 		30, // Number of seconds before an idle thread is terminated
-		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), // The queue holding the tasks waiting to be processed
+		TimeUnit.SECONDS,
+		new LinkedBlockingQueue<Runnable>(), // The queue holding the tasks waiting to be processed
 		new SubtitleUtils.SubtitlesExtractionBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
 
@@ -248,9 +249,6 @@ public class SubtitleUtils {
 		}
 
 		try {
-			LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), dlna.getName());
-			frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
-
 			String dir = configuration.getDataFile(SUB_DIR);
 			File subsPath = new File(dir);
 			if (!subsPath.exists()) {
@@ -276,6 +274,9 @@ public class SubtitleUtils {
 				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
 				return convertedFile;
 			}
+
+			LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), dlna.getName());
+			frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
 
 			String filename = isEmbeddedSource ? dlna.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
 

@@ -102,6 +102,8 @@ public class UPNPHelper extends UPNPControl {
 	private static SocketAddress socketAddress;
 	private static NetworkInterface networkInterface;
 
+	private static final Random RANDOM = new Random();
+
 	/**
 	 * This utility class is not meant to be instantiated.
 	 */
@@ -362,7 +364,6 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message, boolean sendOnce) throws IOException {
 		String msg = buildMsg(nt, message);
-		Random rand = new Random();
 
 		// LOGGER.trace( "Sending this SSDP packet: " + CRLF +
 		// StringUtils.replace(msg, CRLF, "<CRLF>")));
@@ -375,7 +376,7 @@ public class UPNPHelper extends UPNPControl {
 		 * after acquiring a new IP address, before sending advertisements or
 		 * initiating searches on a new IP interface.
 		 */
-		sleep(rand.nextInt(101));
+		sleep(RANDOM.nextInt(101));
 		socket.send(ssdpPacket);
 
 		// Repeat the message as recommended by the standard
