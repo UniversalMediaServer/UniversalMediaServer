@@ -1,8 +1,16 @@
 name: Universal Media Server CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'
+      - '!master'
+  pull_request_target:
 
 jobs:
+  if: |
+    (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
+    (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]')
   macos:
     runs-on: macos-latest
     strategy:
