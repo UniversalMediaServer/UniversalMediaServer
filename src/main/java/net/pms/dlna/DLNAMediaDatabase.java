@@ -66,6 +66,7 @@ import net.pms.database.TableVideoMetadataIMDbRating;
 import static net.pms.database.Tables.sqlQuote;
 import net.pms.newgui.SharedContentTab;
 import net.pms.util.FileUtil;
+import net.pms.util.SubtitleUtils;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -1422,6 +1423,11 @@ public class DLNAMediaDatabase implements Runnable {
 		return list;
 	}
 
+	/**
+	 * Cleans up the database and filesystem by:
+	 * - Removing rows that relate to files that do not exist
+	 * - Removing extracted subtitles from the subs directory
+	 */
 	public synchronized void cleanup() {
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -1464,6 +1470,7 @@ public class DLNAMediaDatabase implements Runnable {
 					if (!file.exists() || file.lastModified() != modified) {
 						LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
 						rs.deleteRow();
+						SubtitleUtils.removeExtractedSubtitles(filename);
 					} else {
 						// the file exists on the hard drive, but now check if we are still sharing it
 						for (Path folder : sharedFolders) {

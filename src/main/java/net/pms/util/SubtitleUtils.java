@@ -403,6 +403,36 @@ public class SubtitleUtils {
 	}
 
 	/**
+	 * Removes extracted subtitles for the file.
+	 *
+	 * @param filename
+	 */
+	public static void removeExtractedSubtitles(String filename) {
+		if (isBlank(filename)) {
+			return;
+		}
+
+		LOGGER.debug("Searching for extracted subtitles for {}", filename);
+
+		String basename;
+		basename = FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+
+		// from https://stackoverflow.com/a/4852599/2049714
+		String subsDir = PMS.getConfiguration().getDataFile(SUB_DIR);
+		File subsPath = new File(subsDir);
+		File[] matches = subsPath.listFiles(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return name.startsWith(basename) && name.endsWith(".ass");
+			}
+		});
+
+		for (File file : matches) {
+			LOGGER.debug("Removing extracted subtitles {}", file.getName());
+			file.delete();
+		}
+	}
+
+	/**
 	 * Converts external subtitles or extract embedded subs to the requested
 	 * subtitle type
 	 *
