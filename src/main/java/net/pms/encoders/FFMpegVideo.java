@@ -604,10 +604,9 @@ public class FFMpegVideo extends Player {
 				);
 			}
 
-			videoBitrateOptions.add("-bufsize");
-			videoBitrateOptions.add(String.valueOf(bufSize) + "k");
-
 			if (defaultMaxBitrates[0] > 0) {
+				videoBitrateOptions.add("-bufsize");
+				videoBitrateOptions.add(String.valueOf(bufSize) + "k");
 				videoBitrateOptions.add("-maxrate");
 				videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]) + "k");
 			}
