@@ -4905,6 +4905,10 @@ public class OpenSubtitle {
 		final boolean overTheTopLogging = true;
 
 		Runnable r = () -> {
+			// wait until the realtime lock is released before starting
+			PMS.REALTIME_LOCK.lock();
+			PMS.REALTIME_LOCK.unlock();
+
 			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
 				if (overTheTopLogging) {
 					LOGGER.trace("Metadata already exists for {}", file.getName());

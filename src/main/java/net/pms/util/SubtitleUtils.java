@@ -248,6 +248,10 @@ public class SubtitleUtils {
 			return null;
 		}
 
+		// wait until the realtime lock is released before starting
+		PMS.REALTIME_LOCK.lock();
+		PMS.REALTIME_LOCK.unlock();
+
 		try {
 			String dir = configuration.getDataFile(SUB_DIR);
 			File subsPath = new File(dir);

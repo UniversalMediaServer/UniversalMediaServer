@@ -37,7 +37,9 @@ import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
@@ -132,8 +134,20 @@ public class PMS {
 	private JmDNS jmDNS;
 
 	/**
-	 * Returns a pointer to the DMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main DMS window.
+	 * A lock to prevent heavy IO tasks from causing browsing to be less
+	 * responsive.
+	 *
+	 * When a task has a high priority (needs to run in realtime), it should
+	 * implement this lock for the duration of their operation. When a task
+	 * has a lower priority, it should use this lock to wait for any
+	 * realtime task to finish, and then immediately unlock, to prevent
+	 * blocking the next realtime task from starting.
+	 */
+	public final static Lock REALTIME_LOCK = new ReentrantLock();
+
+	/**
+	 * Returns a pointer to the GUI's main window.
+	 * @return {@link net.pms.newgui.IFrame} Main window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -167,7 +181,7 @@ public class PMS {
 	private static PMS instance = null;
 
 	/**
-	 * An array of {@link RendererConfiguration}s that have been found by DMS.
+	 * An array of {@link RendererConfiguration}s that have been found.
 	 * <p>
 	 * Important! If iteration is done on this list it's not thread safe unless
 	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
