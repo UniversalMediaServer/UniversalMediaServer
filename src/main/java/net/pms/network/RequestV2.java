@@ -55,7 +55,6 @@ import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.MediaType;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
@@ -1193,7 +1192,7 @@ public class RequestV2 extends HTTPResource {
 					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).getParent() instanceof FileTranscodeVirtualFolder
+					files.get(0).isInsideTranscodeFolder()
 				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {
