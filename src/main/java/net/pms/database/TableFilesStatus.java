@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.dlna.MediaMonitor;
 
 /**
  * This class is responsible for managing the FilesStatus table. It
@@ -218,7 +219,7 @@ public final class TableFilesStatus extends Tables {
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet result = statement.executeQuery(query)) {
 					while (result.next()) {
-						setFullyPlayed(result.getString("FILENAME"), isFullyPlayed);
+						MediaMonitor.setFullyPlayed(result.getString("FILENAME"), isFullyPlayed, null);
 					}
 				}
 			} finally {

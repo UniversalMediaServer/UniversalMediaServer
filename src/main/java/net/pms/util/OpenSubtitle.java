@@ -5133,7 +5133,6 @@ public class OpenSubtitle {
 	 * background workers
 	 */
 	static class OpenSubtitlesBackgroundWorkerThreadFactory implements ThreadFactory {
-
 		private final ThreadGroup group;
 		private final AtomicInteger threadNumber = new AtomicInteger(1);
 
