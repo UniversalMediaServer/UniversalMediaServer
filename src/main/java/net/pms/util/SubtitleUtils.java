@@ -279,9 +279,6 @@ public class SubtitleUtils {
 				return convertedFile;
 			}
 
-			LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), dlna.getName());
-			frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
-
 			String filename = isEmbeddedSource ? dlna.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
 
 			String basename;
@@ -289,6 +286,8 @@ public class SubtitleUtils {
 			long modId = new File(filename).lastModified();
 			if (modId != 0) {
 				// We have a real file
+				LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), filename);
+				frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + filename);
 				basename = getSanitizedFilename(filename);
 			} else {
 				// It's something else, e.g. a url or psuedo-url without meaningful
