@@ -748,7 +748,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// Check if we're a transcode folder item
-		if (isNoName() && (getParent() instanceof FileTranscodeVirtualFolder)) {
+		if (isInsideTranscodeFolder()) {
 			// Yes, leave everything as-is
 			resolvedPlayer = getPlayer();
 			LOGGER.trace("Selecting player {} based on transcode item settings", resolvedPlayer);
@@ -1533,7 +1533,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				SubtitlesInfoLevel subsInfoLevel;
 				if (parent instanceof ChapterFileTranscodeVirtualFolder) {
 					subsInfoLevel = SubtitlesInfoLevel.NONE;
-				} else if (parent instanceof FileTranscodeVirtualFolder) {
+				} else if (isInsideTranscodeFolder()) {
 					subsInfoLevel = SubtitlesInfoLevel.FULL;
 				} else {
 					subsInfoLevel = configuration.getSubtitlesInfoLevel();
@@ -1607,6 +1607,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getDisplayName(mediaRenderer, true);
 	}
 
+	public boolean isInsideTranscodeFolder() {
+		return parent instanceof FileTranscodeVirtualFolder;
+	}
+
 	/**
 	 * Returns the display name for the specified renderer with or without
 	 * additional information suffix.
@@ -1633,14 +1637,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (withSuffix) {
 			String displayNamesuffix = getDisplayNameSuffix(mediaRenderer, configurationSpecificToRenderer);
 			if (isNotBlank(displayNamesuffix)) {
-				sb.append(" ").append(displayNamesuffix);
+				if (isInsideTranscodeFolder()) {
+					sb.setLength(0);
+					sb.append(displayNamesuffix);
+				} else {
+					sb.append(" ").append(displayNamesuffix);
+				}
 			}
+		} else if (isInsideTranscodeFolder()) {
+			// This matches the [No transcoding] entry in the TRANSCODE folder
+			sb.setLength(0);
 		}
 
 		// Engine name
 		String engineName = getDisplayNameEngine(configurationSpecificToRenderer);
 		if (engineName != null) {
-			sb.append(" ").append(engineName);
+			if (sb.length() > 0) {
+				sb.append(" ");
+			}
+			sb.append(engineName);
 		}
 
 		// Truncate
@@ -3413,7 +3428,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public BufferedImageFilterChain addFlagFilters(BufferedImageFilterChain filterChain) {
 		// Show audio and subtitles language flags in the TRANSCODE folder only
 		// for video files
-		if ((parent instanceof FileTranscodeVirtualFolder || parent instanceof SubSelFile) &&
+		if ((isInsideTranscodeFolder() || parent instanceof SubSelFile) &&
 			(mediaAudio != null || mediaSubtitle != null)) {
 			if ((media != null && media.isVideo()) || (media == null && format != null && format.isVideo())) {
 				filterChain = addAudioFlagFilter(filterChain);

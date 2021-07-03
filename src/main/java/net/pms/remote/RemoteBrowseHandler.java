@@ -251,6 +251,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			mustacheVars.put("hasRecentlyPlayed", false);
 			mustacheVars.put("inProgress", "");
 			mustacheVars.put("inProgressLink", "");
+			mustacheVars.put("isTVSeriesWithAPIData", false);
 			mustacheVars.put("hasInProgress", false);
 			mustacheVars.put("recentlyAdded", "");
 			mustacheVars.put("recentlyAddedLink", "");

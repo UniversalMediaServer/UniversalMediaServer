@@ -893,9 +893,9 @@ public class MEncoderVideo extends Player {
 		if (!configuration.isMencoderMuxWhenCompatible()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the user setting is disabled");
-		} else if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+		} else if (dlna.isInsideTranscodeFolder()) {
 			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the transcode folder.");
+			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the TRANSCODE folder.");
 		} else if (!params.getMediaRenderer().isMuxH264MpegTS()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
