@@ -289,11 +289,11 @@ public class SubtitleUtils {
 			long modId = new File(filename).lastModified();
 			if (modId != 0) {
 				// We have a real file
-				basename = FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+				basename = getSanitizedFilename(filename);
 			} else {
 				// It's something else, e.g. a url or psuedo-url without meaningful
 				// lastmodified and (maybe) basename characteristics.
-				basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+				basename = getSanitizedFilename(dlna.getName());
 				modId = filename.hashCode();
 			}
 
@@ -407,6 +407,45 @@ public class SubtitleUtils {
 	}
 
 	/**
+	 * @param filename
+	 * @return the sanitised filename
+	 */
+	public static String getSanitizedFilename(String filename) {
+		if (isBlank(filename)) {
+			return null;
+		}
+
+		return FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+	}
+
+	/**
+	 * @param filename the media filename (not the subtitles filename)
+	 * @param subtitlesId the ID of the subtitles
+	 * @return whether we have extracted the embedded subtitles for this file
+	 */
+	public static Boolean hasExtractedSubtitles(String filename, int subtitlesId) {
+		if (isBlank(filename)) {
+			return false;
+		}
+
+		LOGGER.debug("Searching for extracted subtitles for {}", filename);
+
+		String basename = getSanitizedFilename(filename) + "_ID" + subtitlesId;
+
+		// from https://stackoverflow.com/a/4852599/2049714
+		String subsDir = PMS.getConfiguration().getDataFile(SUB_DIR);
+		File subsPath = new File(subsDir);
+		File[] matches = subsPath.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith(basename) && name.endsWith(".ass");
+			}
+		});
+
+		return matches.length > 0;
+	}
+
+	/**
 	 * Removes extracted subtitles for the file.
 	 *
 	 * @param filename
@@ -418,13 +457,13 @@ public class SubtitleUtils {
 
 		LOGGER.debug("Searching for extracted subtitles for {}", filename);
 
-		String basename;
-		basename = FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+		String basename = getSanitizedFilename(filename);
 
 		// from https://stackoverflow.com/a/4852599/2049714
 		String subsDir = PMS.getConfiguration().getDataFile(SUB_DIR);
 		File subsPath = new File(subsDir);
 		File[] matches = subsPath.listFiles(new FilenameFilter() {
+			@Override
 			public boolean accept(File dir, String name) {
 				return name.startsWith(basename) && name.endsWith(".ass");
 			}

@@ -968,6 +968,7 @@ public class FFMpegVideo extends Player {
 		 * Defer to MEncoder for subtitles if:
 		 * - MEncoder is enabled and available
 		 * - The setting is enabled
+		 * - There are embedded subtitles to transcode that have not been extracted
 		 * - There are VOBSUB subtitles to transcode
 		 * - The file is not being played via the transcode folder
 		 */
@@ -978,11 +979,22 @@ public class FFMpegVideo extends Player {
 			!dlna.isInsideTranscodeFolder() &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
-			params.getSid().getType() == SubtitleType.VOBSUB
+			(
+				(
+					params.getSid().getType().isText() &&
+					!SubtitleUtils.hasExtractedSubtitles(filename, params.getSid().getId())
+				) ||
+				params.getSid().getType() == SubtitleType.VOBSUB
+			)
 		) {
-			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);
-			return mv.launchTranscode(dlna, media, params);
+			
+			if (mv != null) {
+				LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
+				return mv.launchTranscode(dlna, media, params);
+			} else {
+				LOGGER.trace("Not switching from FFmpeg to MEncoder to transcode subtitles because the MEncoder player was null.");
+			}
 		}
 
 		boolean deferToTsmuxer = true;
