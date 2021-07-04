@@ -1,16 +1,38 @@
-10.6.1 - 2021-06-
+10.7.0 - 2021-07-04
 
 	General:
 		Improved detection of movies and anime episodes
+		Increased default max memory on Windows machines with 8+ GB RAM
+		Removed filename from entries inside the TRANSCODE folder
 		Fixed upnp:class in UPnP search results (thanks, ik666!)
 		Fixed the "Reset the cache" button not resetting API metadata too
 		Fixed failed database upgrade for fully played statuses
+		Fixed FFmpeg crash
+		Fixed marking a directory as fully played not changing cached thumbnails
 	Renderers:
 		Improved support for VLC on iPhone
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%) (thanks, NCAA!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		Hungarian (94%) (thanks, Zatamon!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (96%) (thanks, Mauro.A!)
+		Romanian (100%) (thanks, FlorinT!)
+		Russian (89%) (thanks, Dmitry Lavrentev!)
+		Turkish (100%) (thanks, Burak Yavuz!)
 	Dependencies:
+		Bump assertj-core from 3.19.0 to 3.20.2
+		Bump checkstyle from 8.43 to 8.44
+		Bump commons-io from 2.9.0 to 2.10.0
+		Bump doxia-module-docbook-simple from 1.9.1 to 1.10
 		Bump git-commit-id-plugin from 4.0.4 to 4.0.5
 		Bump jaudiotagger from 2.2.5 to 2.2.7
 		Bump maven-idea-plugin from 2.2.1 to 2.3-atlassian-10
+		Bump oshi-core from 5.7.4 to 5.7.5
 
 10.6.0 - 2021-06-03
 
