@@ -248,7 +248,7 @@
 
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 			-->
-			<version>1.15.0</version>
+			<version>1.16.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
