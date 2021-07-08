@@ -30,7 +30,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * [Source code][10]
 * [Offical Releases][11]
 * [Issue tracker][12]
-* [FAQ][13]
+* [Knowledge Base][13]
 * [Wiki][14]
 
 ## Thanks
@@ -87,9 +87,9 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [8]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=1194
   [9]: https://www.universalmediaserver.com/forum
   [10]: https://github.com/UniversalMediaServer/UniversalMediaServer
-  [11]: https://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
+  [11]: https://www.universalmediaserver.com/downloads/
   [12]: https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open
-  [13]: https://www.universalmediaserver.com/faq/
+  [13]: https://support.universalmediaserver.com
   [14]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki
   [15]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=4025
   [16]: https://github.com/josepma
