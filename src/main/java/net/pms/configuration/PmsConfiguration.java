@@ -1183,6 +1183,23 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for youtube-dl.
+	 */
+	@Nullable
+	public ExternalProgramInfo getYoutubeDlPaths() {
+		return programPaths.getYoutubeDl();
+	}
+
+	/**
+	 * @return The configured path to the FLAC executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getYoutubeDlPath() {
+		return getYoutubeDlPaths().getDefaultPath().toString();
+	}
+
+	/**
 	 * If the framerate is not recognized correctly and the video runs too fast or too
 	 * slow, tsMuxeR can be forced to parse the fps from FFmpeg. Default value is true.
 	 * @return True if tsMuxeR should parse fps from FFmpeg.
