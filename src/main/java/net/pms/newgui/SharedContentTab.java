@@ -785,7 +785,7 @@ public class SharedContentTab {
 	 *
 	 * @param webConf
 	 */
-	public static void parseWebConf(File webConf) {
+	public static synchronized void parseWebConf(File webConf) {
 		try {
 			// Remove any existing rows
 			((WebContentTableModel) webContentList.getModel()).setRowCount(0);

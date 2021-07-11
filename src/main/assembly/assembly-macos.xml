@@ -30,7 +30,6 @@
 				<include>mplayer</include>
 				<include>tsMuxeR</include>
 				<include>tsMuxeR-new</include>
-				<include>youtube-dl</include>
 			</includes>
 		</fileSet>
 
@@ -44,6 +43,7 @@
 				<include>dcraw</include>
 				<include>ffmpeg</include>
 				<include>libmediainfo.dylib</include>
+				<include>youtube-dl</include>
 			</includes>
 		</fileSet>
 

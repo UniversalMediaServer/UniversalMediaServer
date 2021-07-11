@@ -18,7 +18,6 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,7 +41,6 @@ import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -54,7 +52,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	public static final PlayerId ID = StandardPlayerId.FFMPEG_WEB_VIDEO;
 
-	/** The {@link Configuration} key for the FFmpeg Audio executable type. */
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
 	public static final String NAME = "FFmpeg Web Video";
 
@@ -166,7 +163,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
-		// Use device-specific pms conf
+		// Use device-specific conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		RendererConfiguration renderer = params.getMediaRenderer();
@@ -221,29 +218,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		String ffmpegOptions = renderer.getCustomFFmpegOptions();
 		if (StringUtils.isNotEmpty(ffmpegOptions)) {
 			customOptions.addAll(parseOptions(ffmpegOptions));
-		}
-
-		// Detect YouTube and pass through youtube-dl
-		PipeIPCProcess youtubeDlPipe;
-		String[] youtubeDlCommands;
-		youtubeDlPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegwebvideo", System.currentTimeMillis() + "youtube-dl", false, true);
-
-		youtubeDlCommands = new String[] {
-			configuration.getYoutubeDlPath(),
-			"-f", "best",
-			"-g", filename,
-			"-o", youtubeDlPipe.getInputPipe()
-		};
-
-		OutputParams youtubeDlParams = new OutputParams(configuration);
-		youtubeDlParams.setMaxBufferSize(1);
-		youtubeDlParams.setStdIn(params.getStdIn());
-		ProcessWrapperImpl youtubeDlProcessWrapper = new ProcessWrapperImpl(youtubeDlCommands, youtubeDlParams);
-
-		boolean isUsingYoutubeDl = false;
-		if (isYouTubeURL(filename)) {
-			isUsingYoutubeDl = true;
-			filename = youtubeDlPipe.getOutputPipe();
 		}
 
 		// Build the command line
@@ -365,11 +339,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		parseMediaInfo(filename, dlna, pw); // Better late than never
 		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
-		
-		if (isUsingYoutubeDl) {
-			pw.attachProcess(youtubeDlProcessWrapper);
-			youtubeDlProcessWrapper.runInNewThread();
-		}
 
 		// Give the mkfifo process a little time
 		try {
@@ -418,6 +387,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				);
 				return false;
 			}
+
+			// FFmpeg does not natively support YouTube videos
+			if (isYouTubeURL(url)) {
+				return false;
+			}
+
 			FILTERS_LOCK.readLock().lock();
 			try {
 				if (EXCLUDES.match(url) == null) {
@@ -461,7 +436,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		pw.setStderrConsumer(ffParser);
 	}
 
-	private boolean isYouTubeURL(String youTubeUrl) {
+	public static boolean isYouTubeURL(String youTubeUrl) {
 		String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed\\/)[^#\\&\\?]*";
 		Pattern compiledPattern = Pattern.compile(pattern);
 		Matcher matcher = compiledPattern.matcher(youTubeUrl);

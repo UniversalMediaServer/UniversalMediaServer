@@ -470,7 +470,7 @@ public class RootFolder extends DLNAResource {
 	 * Removes all web folders, re-parses the web config file, and adds a
 	 * file watcher for the file.
 	 */
-	public void loadWebConf() {
+	public synchronized void loadWebConf() {
 		for (DLNAResource d : webFolders) {
 			getChildren().remove(d);
 		}
@@ -489,7 +489,7 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @param webConf
 	 */
-	private void parseWebConf(File webConf) {
+	private synchronized void parseWebConf(File webConf) {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;

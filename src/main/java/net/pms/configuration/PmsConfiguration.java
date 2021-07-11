@@ -2881,22 +2881,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets a {@link UniqueList} of the {@link PlayerId}s ordered by priority.
-	 * Returns a new instance, any modifications won't affect priority list.
-	 *
-	 * @return A copy of the priority list.
-	 */
-	public UniqueList<PlayerId> getEnginesPriority() {
-		buildEnginesPriority();
-		ENGINES_PRIORITY_LOCK.readLock().lock();
-		try {
-			return new UniqueList<PlayerId>(enginesPriority);
-		} finally {
-			ENGINES_PRIORITY_LOCK.readLock().unlock();
-		}
-	}
-
-	/**
 	 * Returns the priority index according to the rules of {@link List#indexOf}.
 	 *
 	 * @param id the {@link PlayerId} whose position to return.
