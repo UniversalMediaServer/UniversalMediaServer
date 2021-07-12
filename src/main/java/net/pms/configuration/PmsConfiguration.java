@@ -363,6 +363,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+	protected static final String WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -4906,6 +4907,21 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setShowInfoAboutVideoAutomaticSetting(boolean value) {
 		configuration.setProperty(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, value);
+	}
+
+	/**
+	 * @return whether youtube-dl has been enabled once.
+	 */
+	public boolean wasYoutubeDlEnabledOnce() {
+		return getBoolean(WAS_YOUTUBE_DL_ENABLED_ONCE, false);
+	}
+
+	/**
+	 * Records whether youtube-dl has been enabled on program
+	 * initialization one time, to prevent it enabling again.
+	 */
+	public void setYoutubeDlEnabledOnce() {
+		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
 	}
 
 	/**
