@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("serial")
 public abstract class ImageInfo implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 4247040093720562338L;
 
 	/*
 	 * Please note: This class is packed and stored in the database. Any changes

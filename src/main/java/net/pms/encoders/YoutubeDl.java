@@ -18,6 +18,7 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,44 +97,52 @@ public class YoutubeDl extends FFMpegVideo {
 			cmdList.add("" + (int) params.getTimeSeek());
 		}
 
-		cmdList.add("-f");
-		cmdList.add("best");
-
-		// Set up the process
-
-		// basename of the named pipe:
-		String fifoName = String.format(
-			"youtubedl_%d_%d",
-			Thread.currentThread().getId(),
-			System.currentTimeMillis()
-		);
+		cmdList.add("--verbose");
+		cmdList.add("--hls-use-mpegts");
 
 		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = new PipeProcess(fifoName);
-		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
-		ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
+		PipeProcess pipe = null;
 
-		/**
-		 * It can take a long time for Windows to create a named pipe (and
-		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
-		 * the current thread.
-		 */
-		mkfifoProcess.runInSameThread();
-
-		params.getInputPipes()[0] = pipe;
+		boolean directPipe = Platform.isWindows();
+		if (directPipe) {
+			cmdList.add("-o");
+			cmdList.add("-");
+			params.setInputPipes(new PipeProcess[2]);
+		} else {
+			// basename of the named pipe:
+			String fifoName = String.format(
+				"youtubedl_%d_%d",
+				Thread.currentThread().getId(),
+				System.currentTimeMillis()
+			);
+			pipe = new PipeProcess(fifoName);
+			params.getInputPipes()[0] = pipe;
+			cmdList.add("-o");
+			cmdList.add(pipe.getInputPipe());
+		}
 
 		// Output file
-		cmdList.add("-o");
-		cmdList.add(pipe.getInputPipe());
 		cmdList.add(filename);
 
 		// Convert the command list to an array
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 
-		// Now launch FFmpeg
+		// Now launch youtube-dl
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
+		
+		if (!directPipe) {
+			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
+			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
+
+			/**
+			 * It can take a long time for Windows to create a named pipe (and
+			 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+			 * the current thread.
+			 */
+			mkfifoProcess.runInSameThread();
+			pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
+		}
 
 		// Give the mkfifo process a little time
 		try {
