@@ -130,7 +130,7 @@ public class YoutubeDl extends FFMpegVideo {
 
 		// Now launch youtube-dl
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		
+
 		if (!directPipe) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
