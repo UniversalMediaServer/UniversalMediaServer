@@ -477,6 +477,9 @@ public class RootFolder extends DLNAResource {
 		webFolders.clear();
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
 		if (webConf.exists() && configuration.getExternalNetwork()) {
 			parseWebConf(webConf);
 			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));

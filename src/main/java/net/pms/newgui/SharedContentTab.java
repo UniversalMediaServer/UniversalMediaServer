@@ -179,6 +179,9 @@ public class SharedContentTab {
 		// Load WEB.conf after we are sure the GUI has initialized
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
 		if (webConf.exists() && configuration.getExternalNetwork()) {
 			parseWebConf(webConf);
 		}

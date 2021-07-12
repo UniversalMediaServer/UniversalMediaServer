@@ -5000,9 +5000,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			"#                                                                                                        #",
 			"# WEB.conf: configure support for web feeds and streams                                                  #",
 			"#                                                                                                        #",
-			"# NOTE: This file must be placed in the profile directory to work:                                       #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"# NOTE: This file must be placed in the profile directory to work                                        #",
 			"#                                                                                                        #",
 			"# Supported types:                                                                                       #",
 			"#                                                                                                        #",
@@ -5015,11 +5013,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			"# Format for streams:                                                                                    #",
 			"#                                                                                                        #",
 			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
-			"#                                                                                                        #",
-			"# For more web feed/stream options, see:                                                                 #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
 			"#                                                                                                        #",
 			"##########################################################################################################"
 		);
@@ -5065,7 +5058,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		writeWebConfigurationFile(defaultWebConfContents);
 	}
 
-	public void writeWebConfigurationFile(List<String> fileContents) {
+	public synchronized void writeWebConfigurationFile(List<String> fileContents) {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);
