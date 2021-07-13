@@ -183,7 +183,7 @@ public class SharedContentTab {
 			configuration.writeWebConfigurationFile();
 		}
 		if (webConf.exists() && configuration.getExternalNetwork()) {
-			parseWebConf(webConf);
+			parseWebConf(webConf, webContentList.getSelectedRow());
 		}
 
 		builder.add(sharedFoldersPanel,    FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
@@ -787,8 +787,9 @@ public class SharedContentTab {
 	 * This parses the web config and populates the web section of this tab.
 	 *
 	 * @param webConf
+	 * @param previouslySelectedRow the row that was selected before this parsing
 	 */
-	public static synchronized void parseWebConf(File webConf) {
+	public static synchronized void parseWebConf(File webConf, Integer previouslySelectedRow) {
 		try {
 			// Remove any existing rows
 			((WebContentTableModel) webContentList.getModel()).setRowCount(0);
@@ -846,6 +847,11 @@ public class SharedContentTab {
 						}
 					}
 				}
+			}
+
+			// Re-select any row that was selected before we (re)parsed the config
+			if (previouslySelectedRow != null) {
+				webContentList.changeSelection(previouslySelectedRow, 1, false, false);
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
