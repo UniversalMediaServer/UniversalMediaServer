@@ -286,8 +286,10 @@ public class SubtitleUtils {
 			long modId = new File(filename).lastModified();
 			if (modId != 0) {
 				// We have a real file
-				LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), filename);
-				frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + filename);
+				if (!isBlank(dlna.getName())) {
+					LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), dlna.getName());
+					frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
+				}
 				basename = getSanitizedFilename(filename);
 			} else {
 				// It's something else, e.g. a url or psuedo-url without meaningful
