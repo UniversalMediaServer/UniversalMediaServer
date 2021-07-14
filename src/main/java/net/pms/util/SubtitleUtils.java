@@ -1282,6 +1282,8 @@ public class SubtitleUtils {
 				tempParams.setSid(subtitleTrack);
 				try {
 					SubtitleUtils.getSubtitles(realFile, mediaInfo, tempParams, PMS.getConfiguration(), SubtitleType.ASS);
+				} catch (FileNotFoundException ex) {
+					LOGGER.debug("File not found when extracting subtitles, it has likely been moved since it was queued: {}", ex);
 				} catch (IOException ex) {
 					LOGGER.error("An error occurred when extracting subtitles: {}", ex);
 				}
