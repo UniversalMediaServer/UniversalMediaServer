@@ -1519,7 +1519,7 @@ public class RootFolder extends DLNAResource {
 								for (File file : files) {
 									if (file.isFile()) {
 										LOGGER.trace("File {} found in {}", file.getName(), filename);
-										parseFileForDatabase(file);
+//										parseFileForDatabase(file);
 									}
 								}
 							} else {
@@ -1536,7 +1536,7 @@ public class RootFolder extends DLNAResource {
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);
 							File file = new File(filename);
-							parseFileForDatabase(file);
+//							parseFileForDatabase(file);
 						}
 					}
 				}
