@@ -154,6 +154,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return generalSettingsTab;
 	}
 
+	public void enableWebUiButton() {
+		if (PMS.getConfiguration().useWebInterface()) {
+			webinterface.setEnabled(true);
+		}
+	}
+
 	public static void initializeLookAndFeel() {
 		synchronized (lookAndFeelInitializedLock) {
 			if (lookAndFeelInitialized) {
@@ -480,7 +486,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebInterface()) {
-			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png");
+			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png", Messages.getString("LooksFrame.30"));
 			webinterface.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -512,8 +518,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 					}
 				}
 			});
-			webinterface.setToolTipText(Messages.getString("LooksFrame.30"));
-			webinterface.setEnabled(configuration.useWebInterface());
+			webinterface.setEnabled(false);
 			toolBar.add(webinterface);
 			toolBar.addSeparator(new Dimension(20, 1));
 		}

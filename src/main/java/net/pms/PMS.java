@@ -61,7 +61,9 @@ import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.YoutubeDl;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
@@ -81,7 +83,6 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.lang.WordUtils;
 import org.fest.util.Files;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.util.Profiler;
@@ -278,8 +279,20 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		// Log system properties
-		logSystemInfo();
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
+			// The binaries shipped with the Mac OS X version of DMS are being
+			// compiled against specific OS versions, making them incompatible
+			// with older versions. Warn the user about this when necessary.
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("WARNING!");
+			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
+			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
+			LOGGER.warn("that these binaries used for example for transcoding may not work!");
+			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
+			LOGGER.warn("-----------------------------------------------------------------");
+			LOGGER.warn("");
+		}
 
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: {}", cwd);
@@ -423,7 +436,7 @@ public class PMS {
 
 		// Initialize database
 		try {
-			Tables.checkTables();
+			Tables.checkTables(false);
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
 			LOGGER.trace("Error was: {}", e1);
@@ -473,6 +486,51 @@ public class PMS {
 		if (Build.isUpdatable()) {
 			String serverURL = Build.getUpdateServerURL();
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
+		}
+
+		// Show info that video automatic setting was improved and was not set in the wizard.
+		// This must be done before the frame is initialized to accept changes.
+		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting()) {
+			if (!configuration.isAutomaticMaximumBitrate()) {
+				Object[] yesNoOptions = {
+						Messages.getString("Dialog.YES"),
+						Messages.getString("Dialog.NO")
+				};
+
+				// Ask if user wants to use automatic maximum bitrate
+				int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
+					null,
+					Messages.getString("ImprovedFeatureOptIn.AutomaticVideoQuality"),
+					Messages.getString("ImprovedFeatureOptIn.Title"),
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					yesNoOptions,
+					yesNoOptions[0]
+				);
+
+				if (whetherToUseAutomaticMaximumBitrate == JOptionPane.YES_OPTION) {
+					configuration.setAutomaticMaximumBitrate(true);
+				} else if (whetherToUseAutomaticMaximumBitrate == JOptionPane.NO_OPTION) {
+					configuration.setAutomaticMaximumBitrate(false);
+				}
+			}
+
+			// It will be shown only once
+			configuration.setShowInfoAboutVideoAutomaticSetting(false);
+		}
+
+		/*
+		 * Enable youtube-dl once, to ensure that if it is
+		 * disabled, that was done by the user.
+		 */
+		if (!configuration.wasYoutubeDlEnabledOnce()) {
+			if (!PlayerFactory.isPlayerActive(YoutubeDl.ID)) {
+				configuration.setEngineEnabled(YoutubeDl.ID, true);
+				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
+			}
+
+			configuration.setYoutubeDlEnabledOnce();
 		}
 
 		if (!isHeadless()) {
@@ -649,6 +707,7 @@ public class PMS {
 		}
 
 		if (web != null && web.getServer() != null) {
+			frame.enableWebUiButton();
 			LOGGER.info("Web interface is available at: " + web.getUrl());
 		}
 
@@ -664,8 +723,8 @@ public class PMS {
 		getRootFolder(RendererConfiguration.getDefaultConf());
 
 		frame.serverReady();
-
 		ready = true;
+
 		UPNPHelper.getInstance().createMulticastSocket();
 
 		// UPNPHelper.sendByeBye();
@@ -733,6 +792,7 @@ public class PMS {
 		});
 
 		configuration.setAutoSave();
+
 		UPNPHelper.sendByeBye();
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
@@ -1156,50 +1216,6 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
-	}
-
-	/**
-	 * Log system properties identifying Java, the OS and encoding and log
-	 * warnings where appropriate.
-	 */
-	private static void logSystemInfo() {
-		long jvmMemory = Runtime.getRuntime().maxMemory();
-
-		LOGGER.info(
-			"Java: {} {} ({}-bit) by {}",
-			System.getProperty("java.vm.name"),
-			System.getProperty("java.version"),
-			System.getProperty("sun.arch.data.model"),
-			System.getProperty("java.vendor")
-		);
-		LOGGER.info(
-			"OS: {} {}-bit {}",
-			System.getProperty("os.name"),
-			SystemInformation.getOSBitness(),
-			System.getProperty("os.version")
-		);
-		LOGGER.info(
-			"Maximum JVM Memory: {}",
-			jvmMemory == Long.MAX_VALUE ? "Unlimited" : StringUtil.formatBytes(jvmMemory, true)
-		);
-		LOGGER.info("Language: {}", WordUtils.capitalize(PMS.getLocale().getDisplayName(Locale.ENGLISH)));
-		LOGGER.info("Encoding: {}", System.getProperty("file.encoding"));
-		LOGGER.info("");
-
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of DMS are being
-			// compiled against specific OS versions, making them incompatible
-			// with older versions. Warn the user about this when necessary.
-			LOGGER.warn("-----------------------------------------------------------------");
-			LOGGER.warn("WARNING!");
-			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
-			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
-			LOGGER.warn("that these binaries used for example for transcoding may not work!");
-			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
-			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
-			LOGGER.warn("-----------------------------------------------------------------");
-			LOGGER.warn("");
-		}
 	}
 
 	/**

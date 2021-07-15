@@ -50,7 +50,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -491,8 +490,8 @@ public class FFMpegVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		if (StringUtils.isNotEmpty(params.getMediaRenderer().getMaxVideoBitrate())) {
-			rendererMaxBitrates = getVideoBitrateConfig(params.getMediaRenderer().getMaxVideoBitrate());
+		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -526,7 +525,7 @@ public class FFMpegVideo extends Player {
 				defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 			}
 
-			if (params.getMediaRenderer().isHalveBitrate()) {
+			if (params.getMediaRenderer().isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
@@ -590,10 +589,9 @@ public class FFMpegVideo extends Player {
 				);
 			}
 
-			videoBitrateOptions.add("-bufsize");
-			videoBitrateOptions.add(String.valueOf(bufSize) + "k");
-
 			if (defaultMaxBitrates[0] > 0) {
+				videoBitrateOptions.add("-bufsize");
+				videoBitrateOptions.add(String.valueOf(bufSize) + "k");
 				videoBitrateOptions.add("-maxrate");
 				videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]) + "k");
 			}
@@ -607,29 +605,39 @@ public class FFMpegVideo extends Player {
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
-			} else if (mpeg2Options.contains("Automatic")) {
-				boolean isWireless = mpeg2Options.contains("Wireless");
-				mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+			} else if (configuration.isAutomaticMaximumBitrate()) {
+				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
+				mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
 
-				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-				if (params.getMediaRenderer().isPS3()) {
-					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-				}
-
-				if (isWireless || maximumBitrate < 70) {
+			if (mpeg2Options.contains("Automatic")) {
+				if (mpeg2Options.contains("Wireless")) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
-						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+						mpeg2Options = "-g 25 -qmin 2 -qmax 7";
 					} else if (media.getWidth() > 720) {
-						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						mpeg2Options = "-g 25 -qmin 2 -qmax 5";
+					} else {
+						mpeg2Options = "-g 25 -qmin 2 -qmax 3";
 					}
+				} else { // set the automatic wired quality
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 				}
 			}
+
+			if (params.getMediaRenderer().isPS3()) {
+				// It has been reported that non-PS3 renderers prefer -g 5 but prefer 25 for PS3 because it lowers the average bitrate
+				mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
+			}
+
 			String[] customOptions = StringUtils.split(mpeg2Options);
 			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		} else {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
+			if (configuration.isAutomaticMaximumBitrate()) {
+				x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
+			}
 
 			// Remove comment from the value
 			if (x264CRF.contains("/*")) {
@@ -953,11 +961,7 @@ public class FFMpegVideo extends Player {
 			PlayerFactory.isPlayerActive(MEncoderVideo.ID) &&
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			params.getSid() != null &&
-			!(
-				configuration.isShowTranscodeFolder() &&
-				dlna.isNoName() &&
-				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
-			) &&
+			!dlna.isInsideTranscodeFolder() &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
 			(
@@ -977,9 +981,9 @@ public class FFMpegVideo extends Player {
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "the video codec is not the same as the transcoding goal.");
-			} else if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			} else if (dlna.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (params.getSid() != null) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
@@ -1005,9 +1009,9 @@ public class FFMpegVideo extends Player {
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			if (dlna.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (!params.getMediaRenderer().isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");

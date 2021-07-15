@@ -82,6 +82,9 @@ public class StandardPlayerId extends PlayerId {
 	/** The identifier for {@link VLCWebVideo} */
 	public static final PlayerId VLC_WEB_VIDEO = new StandardPlayerId("VLCWebVideo");
 
+	/** The identifier for {@link YoutubeDl} */
+	public static final PlayerId YOUTUBE_DL = new StandardPlayerId("youtubeDl");
+
 	/** A static list of all {@link StandardPlayerId}s */
 	public static final List<PlayerId> ALL;
 
@@ -106,6 +109,7 @@ public class StandardPlayerId extends PlayerId {
 		allPlayers.add(MENCODER_WEB_VIDEO);
 		allPlayers.add(VLC_AUDIO_STREAMING);
 		allPlayers.add(DCRAW);
+		allPlayers.add(YOUTUBE_DL);
 		ALL = Collections.unmodifiableList(allPlayers);
 	}
 
@@ -173,6 +177,8 @@ public class StandardPlayerId extends PlayerId {
 				return VLC_VIDEO;
 			case "VLCWEBVIDEO":
 				return VLC_WEB_VIDEO;
+			case "YOUTUBEDL":
+				return YOUTUBE_DL;
 			default:
 				LOGGER.warn("Could not parse player id \"{}\"", playerIdString);
 				return null;

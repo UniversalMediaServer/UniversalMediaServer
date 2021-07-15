@@ -138,10 +138,6 @@ public class RootFolder extends DLNAResource {
 					i++;
 				}
 				mon = new MediaMonitor(dirs);
-
-				if (configuration.isShowNewMediaFolder()) {
-					addChild(mon, true, isAddGlobally);
-				}
 			}
 		}
 
@@ -255,7 +251,7 @@ public class RootFolder extends DLNAResource {
 		running = false;
 	}
 
-	private void scan(DLNAResource resource) {
+	public void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
@@ -474,15 +470,19 @@ public class RootFolder extends DLNAResource {
 	 * Removes all web folders, re-parses the web config file, and adds a
 	 * file watcher for the file.
 	 */
-	public void loadWebConf() {
+	public synchronized void loadWebConf() {
+		Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
 		for (DLNAResource d : webFolders) {
 			getChildren().remove(d);
 		}
 		webFolders.clear();
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
 		if (webConf.exists() && configuration.getExternalNetwork()) {
-			parseWebConf(webConf);
+			parseWebConf(webConf, currentlySelectedPosition);
 			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
 		}
 		setLastModified(1);
@@ -493,7 +493,7 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @param webConf
 	 */
-	private void parseWebConf(File webConf) {
+	private synchronized void parseWebConf(File webConf, Integer currentlySelectedPosition) {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
@@ -588,7 +588,7 @@ public class RootFolder extends DLNAResource {
 			LOGGER.debug("", e);
 		} finally {
 			if (SharedContentTab.webContentList != null) {
-				SharedContentTab.parseWebConf(webConf);
+				SharedContentTab.parseWebConf(webConf, currentlySelectedPosition);
 			}
 		}
 	}
@@ -1565,5 +1565,46 @@ public class RootFolder extends DLNAResource {
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
+	}
+
+	/**
+	 * Starts partial rescan
+	 *
+	 * @param filename This is the partial root of the scan. If a file is given,
+	 *            the parent folder will be scanned.
+	 */
+	public static void rescanLibraryFileOrFolder(String filename) {
+		if (
+			hasSameBasePath(PMS.getConfiguration().getSharedFolders(), filename) ||
+			hasSameBasePath(RootFolder.getDefaultFolders(), filename)
+		) {
+			LOGGER.debug("rescanning file or folder : " + filename);
+
+			if (!PMS.get().getDatabase().isScanLibraryRunning()) {
+				Runnable scan = () -> {
+					File file = new File(filename);
+					if (file.isFile()) {
+						file = file.getParentFile();
+					}
+					DLNAResource dir = new RealFile(file);
+					dir.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					dir.doRefreshChildren();
+					PMS.get().getRootFolder(null).scan(dir);
+				};
+				Thread scanThread = new Thread(scan, "rescanLibraryFileOrFolder");
+				scanThread.start();
+			}
+		} else {
+			LOGGER.warn("given file or folder doesn't share same base path as this server : " + filename);
+		}
+	}
+
+	public static boolean hasSameBasePath(List<Path> dirs, String content) {
+		for (Path path : dirs) {
+			if (content.startsWith(path.toString())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

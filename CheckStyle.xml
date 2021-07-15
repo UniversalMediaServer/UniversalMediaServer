@@ -29,7 +29,6 @@ Checkstyle configuration for Universal Media Server.
 		<module name="SuppressWarningsHolder" />
 		<module name="JavadocMethod">
 			<property name="severity" value="warning"/>
-			<property name="scope" value="protected"/>
 		</module>
 		<module name="JavadocType">
 			<property name="severity" value="warning"/>
@@ -162,9 +161,6 @@ Checkstyle configuration for Universal Media Server.
 	<module name="JavadocPackage">
 		<property name="severity" value="ignore"/>
 		<metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
-	</module>
-	<module name="NewlineAtEndOfFile">
-		<property name="lineSeparator" value="lf"/>
 	</module>
 	<module name="Translation"/>
 	<module name="FileLength">

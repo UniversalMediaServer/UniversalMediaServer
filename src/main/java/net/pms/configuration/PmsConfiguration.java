@@ -136,6 +136,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
 	protected static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
+	protected static final String KEY_API_KEY = "api_key";
 	protected static final String KEY_BUFFER_MAX = "buffer_max";
 	protected static final String KEY_BUMP_ADDRESS = "bump";
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
@@ -296,7 +297,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
 	protected static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
-	protected static final String KEY_SHOW_NEW_MEDIA_FOLDER = "show_new_media_folder";
 	protected static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
 	protected static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
 	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
@@ -361,6 +361,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_WIDTH = "web_width";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+
+	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+	protected static final String WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -1181,6 +1184,23 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for youtube-dl.
+	 */
+	@Nullable
+	public ExternalProgramInfo getYoutubeDlPaths() {
+		return programPaths.getYoutubeDl();
+	}
+
+	/**
+	 * @return The configured path to the FLAC executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getYoutubeDlPath() {
+		return getYoutubeDlPaths().getDefaultPath().toString();
+	}
+
+	/**
 	 * If the framerate is not recognized correctly and the video runs too fast or too
 	 * slow, tsMuxeR can be forced to parse the fps from FFmpeg. Default value is true.
 	 * @return True if tsMuxeR should parse fps from FFmpeg.
@@ -1196,6 +1216,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 448);
+	}
+
+	public String getApiKey() {
+		return getString(KEY_API_KEY, "");
 	}
 
 	/**
@@ -2858,22 +2882,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets a {@link UniqueList} of the {@link PlayerId}s ordered by priority.
-	 * Returns a new instance, any modifications won't affect priority list.
-	 *
-	 * @return A copy of the priority list.
-	 */
-	public UniqueList<PlayerId> getEnginesPriority() {
-		buildEnginesPriority();
-		ENGINES_PRIORITY_LOCK.readLock().lock();
-		try {
-			return new UniqueList<PlayerId>(enginesPriority);
-		} finally {
-			ENGINES_PRIORITY_LOCK.readLock().unlock();
-		}
-	}
-
-	/**
 	 * Returns the priority index according to the rules of {@link List#indexOf}.
 	 *
 	 * @param id the {@link PlayerId} whose position to return.
@@ -3960,24 +3968,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Whether to show the "New Media" folder on the renderer.
-	 *
-	 * @return whether the folder is shown
-	 */
-	public boolean isShowNewMediaFolder() {
-		return getBoolean(KEY_SHOW_NEW_MEDIA_FOLDER, false);
-	}
-
-	/**
-	 * Whether to show the "New Media" folder on the renderer.
-	 *
-	 * @param value whether the folder is shown
-	 */
-	public void setShowNewMediaFolder(final boolean value) {
-		this.configuration.setProperty(KEY_SHOW_NEW_MEDIA_FOLDER, value);
-	}
-
-	/**
 	 * Whether to show the "Recently Played" folder on the renderer.
 	 *
 	 * @return whether the folder is shown
@@ -4705,7 +4695,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
-		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
+		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, true);
 	}
 
 	public void setAutomaticMaximumBitrate(boolean b) {
@@ -4908,6 +4898,33 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * This will show the info display informing user that automatic
+	 * video setting were updated and is highly recommended.
+	 */
+	public boolean showInfoAboutVideoAutomaticSetting() {
+		return getBoolean(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, true);
+	}
+
+	public void setShowInfoAboutVideoAutomaticSetting(boolean value) {
+		configuration.setProperty(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, value);
+	}
+
+	/**
+	 * @return whether youtube-dl has been enabled once.
+	 */
+	public boolean wasYoutubeDlEnabledOnce() {
+		return getBoolean(WAS_YOUTUBE_DL_ENABLED_ONCE, false);
+	}
+
+	/**
+	 * Records whether youtube-dl has been enabled on program
+	 * initialization one time, to prevent it enabling again.
+	 */
+	public void setYoutubeDlEnabledOnce() {
+		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
+	}
+
+	/**
 	 * This {@code enum} represents the available "levels" for subtitles
 	 * information display that is to be appended to the video name.
 	 */
@@ -4983,9 +5000,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			"#                                                                                                        #",
 			"# WEB.conf: configure support for web feeds and streams                                                  #",
 			"#                                                                                                        #",
-			"# NOTE: This file must be placed in the profile directory to work:                                       #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"# NOTE: This file must be placed in the profile directory to work                                        #",
 			"#                                                                                                        #",
 			"# Supported types:                                                                                       #",
 			"#                                                                                                        #",
@@ -4998,11 +5013,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			"# Format for streams:                                                                                    #",
 			"#                                                                                                        #",
 			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
-			"#                                                                                                        #",
-			"# For more web feed/stream options, see:                                                                 #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
 			"#                                                                                                        #",
 			"##########################################################################################################"
 		);
@@ -5048,7 +5058,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		writeWebConfigurationFile(defaultWebConfContents);
 	}
 
-	public void writeWebConfigurationFile(List<String> fileContents) {
+	public synchronized void writeWebConfigurationFile(List<String> fileContents) {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);

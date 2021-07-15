@@ -37,7 +37,7 @@ public class MediaMonitor extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
-		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
+		super(Messages.getString("Unused"), "images/thumbnail-folder-256.png");
 		this.dirs = new File[dirs.length];
 		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
 		config = PMS.getConfiguration();
@@ -76,7 +76,7 @@ public class MediaMonitor extends VirtualFolder {
 						}
 
 						entry = entry.trim();
-						MediaMonitor.setFullyPlayed(entry, true);
+						setFullyPlayed(entry, true, null);
 					}
 				}
 			}
@@ -97,7 +97,7 @@ public class MediaMonitor extends VirtualFolder {
 							continue;
 						}
 						RealFile rf = (RealFile) r;
-						MediaMonitor.setFullyPlayed(rf.getFile().getAbsolutePath(), true);
+						setFullyPlayed(rf.getFile().getAbsolutePath(), true, null);
 					}
 					mm.setDiscovered(false);
 					mm.getChildren().clear();
@@ -213,11 +213,13 @@ public class MediaMonitor extends VirtualFolder {
 		) {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null && isMonitored && !isFullyPlayed(fullPathToFile)) {
-				if (fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER && fullyPlayedAction != FullyPlayedAction.MOVE_TRASH) {
-					setFullyPlayed(fullPathToFile, true);
-					if (realFile.getMedia() != null) {
-						realFile.getMedia().setThumbready(false);
-					}
+				// Only set fully played if the file will stay where it is
+				if (
+					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
+					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
+					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
+				) {
+					setFullyPlayed(fullPathToFile, true, elapsed);
 				}
 
 				setDiscovered(false);
@@ -225,7 +227,7 @@ public class MediaMonitor extends VirtualFolder {
 
 				File playedFile = new File(fullPathToFile);
 
-				if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
+				if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER || fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER_AND_MARK) {
 					String oldDirectory = FileUtil.appendPathSeparator(playedFile.getAbsoluteFile().getParent());
 					String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
 					if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
@@ -261,7 +263,7 @@ public class MediaMonitor extends VirtualFolder {
 
 						if (moved) {
 							RootFolder.parseFileForDatabase(newFile);
-							setFullyPlayed(newDirectory + playedFile.getName(), true);
+							setFullyPlayed(newDirectory + playedFile.getName(), true, elapsed);
 						}
 					} else if (StringUtils.isBlank(newDirectory)) {
 						LOGGER.warn(
@@ -294,7 +296,7 @@ public class MediaMonitor extends VirtualFolder {
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
-			TableFilesStatus.setLastPlayed(fullPathToFile);
+			TableFilesStatus.setLastPlayed(fullPathToFile, elapsed);
 			LOGGER.trace("final decision: not fully played");
 		}
 	}
@@ -348,13 +350,16 @@ public class MediaMonitor extends VirtualFolder {
 	 * @param fullPathToFile the full path to the file in question.
 	 * @param isFullyPlayed {@code true} if {@code fullPathToFile} is fully
 	 *            played, {@code false} otherwise.
+	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed) {
+	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, Double lastPlaybackPosition) {
 		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
-			TableFilesStatus.setLastPlayed(fullPathToFile);
+			if (lastPlaybackPosition != null) {
+				TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			}
 		} finally {
 			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}

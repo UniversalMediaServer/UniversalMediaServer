@@ -24,8 +24,12 @@
 			<useDefaultExcludes>true</useDefaultExcludes>
 			<fileMode>0755</fileMode>
 			<includes>
+				<include>builds.txt</include>
+				<include>flac</include>
 				<include>mencoder</include>
 				<include>mplayer</include>
+				<include>tsMuxeR</include>
+				<include>tsMuxeR-new</include>
 			</includes>
 		</fileSet>
 
@@ -36,13 +40,10 @@
 			<useDefaultExcludes>true</useDefaultExcludes>
 			<fileMode>0755</fileMode>
 			<includes>
-				<include>builds.txt</include>
 				<include>dcraw</include>
 				<include>ffmpeg</include>
-				<include>flac</include>
 				<include>libmediainfo.dylib</include>
-				<include>tsMuxeR</include>
-				<include>tsMuxeR-new</include>
+				<include>youtube-dl</include>
 			</includes>
 		</fileSet>
 

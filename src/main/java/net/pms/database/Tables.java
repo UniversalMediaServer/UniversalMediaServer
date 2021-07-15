@@ -50,6 +50,7 @@ public class Tables {
 	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static boolean tablesChecked = false;
 	private static final String ESCAPE_CHARACTER = "\\";
+	public static final String TABLE_NAME = "TABLES";
 
 	// No instantiation
 	protected Tables() {
@@ -57,18 +58,19 @@ public class Tables {
 
 	/**
 	 * Checks all child tables for their existence and version and creates or
-	 * upgrades as needed. Access to this method is serialized.
+	 * upgrades as needed.Access to this method is serialized.
 	 *
+	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public static final void checkTables() throws SQLException {
+	public static final void checkTables(boolean force) throws SQLException {
 		synchronized (CHECK_TABLES_LOCK) {
-			if (tablesChecked) {
+			if (tablesChecked && !force) {
 				LOGGER.debug("Database tables have already been checked, aborting check");
 			} else {
 				LOGGER.debug("Starting check of database tables");
 				try (Connection connection = DATABASE.getConnection()) {
-					if (!tableExists(connection, "TABLES")) {
+					if (!tableExists(connection, TABLE_NAME)) {
 						createTablesTable(connection);
 					}
 
@@ -99,6 +101,40 @@ public class Tables {
 				tablesChecked = true;
 			}
 		}
+	}
+
+	/**
+	 * Re-initializes all child tables except files status.
+	 *
+	 * @throws SQLException
+	 */
+	public static final void reInitTablesExceptFilesStatus() throws SQLException {
+		try (Connection connection = DATABASE.getConnection()) {
+			TableMusicBrainzReleases.dropTable(connection);
+			TableCoverArtArchive.dropTable(connection);
+			TableThumbnails.dropTable(connection);
+
+			TableTVSeries.dropTable(connection);
+			TableFailedLookups.dropTable(connection);
+
+			// Video metadata tables
+			TableVideoMetadataActors.dropTable(connection);
+			TableVideoMetadataAwards.dropTable(connection);
+			TableVideoMetadataCountries.dropTable(connection);
+			TableVideoMetadataDirectors.dropTable(connection);
+			TableVideoMetadataIMDbRating.dropTable(connection);
+			TableVideoMetadataGenres.dropTable(connection);
+			TableVideoMetadataPosters.dropTable(connection);
+			TableVideoMetadataProduction.dropTable(connection);
+			TableVideoMetadataRated.dropTable(connection);
+			TableVideoMetadataRatings.dropTable(connection);
+			TableVideoMetadataReleased.dropTable(connection);
+
+			// Audio Metadata
+			TableAudiotracks.dropTable(connection);
+		}
+
+		checkTables(true);
 	}
 
 	/**
@@ -347,8 +383,8 @@ public class Tables {
 	 * @return the rows of the first column of a result set
 	 * @throws SQLException
 	 */
-	public static HashSet convertResultSetToHashSet(ResultSet rs) throws SQLException {
-		HashSet list = new HashSet();
+	public static HashSet<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
+		HashSet<String> list = new HashSet<String>();
 
 		while (rs.next()) {
 			list.add(rs.getString(1));
@@ -371,5 +407,39 @@ public class Tables {
 			row.put(md.getColumnName(i), rs.getObject(i));
 		}
 		return row;
+	}
+
+	/**
+	 * Check if the column name exists in the database.
+	 *
+	 * Must be called from inside a table lock.
+	 *
+	 * @param connection the {@link Connection} to use.
+	 * @param table The table name where the column name should exist.
+	 * @param column The name of the column.
+	 *
+	 * @return <code>true</code> if the column name exists in
+	 * the database <code>false</code> otherwise.
+	 *
+	 * @throws SQLException
+	 */
+	protected static boolean isColumnExist(Connection connection, String table, String column) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(
+			"SELECT * FROM INFORMATION_SCHEMA.COLUMNS " +
+			"WHERE TABLE_NAME = ? " +
+			"AND COLUMN_NAME = ?"
+		)) {
+			statement.setString(1, table);
+			statement.setString(2, column);
+			try (ResultSet result = statement.executeQuery()) {
+				if (result.first()) {
+					LOGGER.trace("Column \"{}\" found in table \"{}\"", column, table);
+					return true;
+				} else {
+					LOGGER.trace("Column \"{}\" not found in table \"{}\"", column, table);
+					return false;
+				}
+			}
+		}
 	}
 }

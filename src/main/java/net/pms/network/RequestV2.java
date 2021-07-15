@@ -55,7 +55,6 @@ import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.MediaType;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
@@ -67,6 +66,8 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
+import net.pms.network.api.ApiHandler;
 import net.pms.network.message.BrowseRequest;
 import net.pms.network.message.BrowseSearchRequest;
 import net.pms.network.message.SamsungBookmark;
@@ -108,6 +109,8 @@ public class RequestV2 extends HTTPResource {
 	private static final int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
+	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
+	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	/**
 	 * A {@link String} that contains the uri with which this {@link RequestV2} was
@@ -276,7 +279,14 @@ public class RequestV2 extends HTTPResource {
 			uri = uri.substring(1);
 		}
 
-		if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("console/")) {
+		if (uri.startsWith("api/")) {
+			ApiHandler api = new ApiHandler();
+			api.handleApiRequest(method, content, output, uri.substring(4), event);
+			ChannelFuture future = event.getChannel().write(output);
+			if (close) {
+				future.addListener(ChannelFutureListener.CLOSE);
+			}
+		} else if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("console/")) {
 			// Request to output a page to the HTML console.
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.append(HTMLConsole.servePage(uri.substring(8)));
@@ -300,8 +310,17 @@ public class RequestV2 extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
-			String fileName = id.substring(id.indexOf('/') + 1);
+			String fileName = null;
+			if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+				try {
+					dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			} else {
+				dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+			}
+			fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -1078,7 +1097,7 @@ public class RequestV2 extends HTTPResource {
 
 	private StringBuilder searchHandler() {
 		SearchRequest requestMessage = getPayload(SearchRequest.class);
-		return this.browseSearchHandler(requestMessage);
+		return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
 	}
 
 	/**
@@ -1172,7 +1191,7 @@ public class RequestV2 extends HTTPResource {
 					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).getParent() instanceof FileTranscodeVirtualFolder
+					files.get(0).isInsideTranscodeFolder()
 				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {

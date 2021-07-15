@@ -126,6 +126,7 @@ public final class PlayerFactory {
 		registerPlayer(new VideoLanAudioStreaming());
 		registerPlayer(new VideoLanVideoStreaming());
 		registerPlayer(new DCRaw());
+		registerPlayer(new YoutubeDl());
 	}
 
 	/**

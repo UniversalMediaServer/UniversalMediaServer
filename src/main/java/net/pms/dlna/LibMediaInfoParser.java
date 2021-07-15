@@ -1,5 +1,11 @@
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +14,13 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import org.apache.commons.codec.binary.Base64;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.MediaInfo.StreamType;
@@ -21,10 +34,6 @@ import net.pms.util.Iso639;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.Version;
-import org.apache.commons.codec.binary.Base64;
-import static org.apache.commons.lang3.StringUtils.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LibMediaInfoParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
@@ -53,14 +62,21 @@ public class LibMediaInfoParser {
 				VERSION = null;
 			}
 
-			if (VERSION != null && VERSION.isGreaterThan(new Version("18.5"))) {
-				mI.Option("LegacyStreamDisplay", "1");
-				mI.Option("File_HighestFormat", "0");
-				mI.Option("File_ChannelLayout", "1");
-				mI.Option("Legacy", "1");
+			if (VERSION != null)  {
+				if (VERSION.isGreaterThan(new Version("18.03"))) {
+					mI.Option("Language", "raw");
+					mI.Option("Cover_Data", "base64");
+				}
+
+				if (VERSION.isGreaterThan(new Version("18.5"))) {
+					mI.Option("LegacyStreamDisplay", "1");
+					mI.Option("File_HighestFormat", "0");
+					mI.Option("File_ChannelLayout", "1");
+					mI.Option("Legacy", "1");
+				}
 			}
 
-//			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
+//			LOGGER.debug(mI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
 		} else {
 			VERSION = null;
 		}
@@ -144,9 +160,15 @@ public class LibMediaInfoParser {
 			}
 
 			// set Video
-			media.setVideoTrackCount(mI.Count_Get(video));
-			if (media.getVideoTrackCount() > 0) {
-				for (int i = 0; i < media.getVideoTrackCount(); i++) {
+			int videoTrackCount = 0;
+			value = mI.Get(video, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				videoTrackCount = Integer.parseInt(value);
+			}
+
+			media.setVideoTrackCount(videoTrackCount);
+			if (videoTrackCount > 0) {
+				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
 					if (mI.Get(video, i, "Title").startsWith("Subtitle")) {
 						currentSubTrack = new DLNAMediaSubtitle();
@@ -204,7 +226,6 @@ public class LibMediaInfoParser {
 						value = mI.Get(video, i, "BitDepth");
 						if (!value.isEmpty()) {
 							try {
-								media.putExtra(FormatConfiguration.MI_VBD, value);
 								media.setVideoBitDepth(Integer.parseInt(value));
 							} catch (NumberFormatException nfe) {
 								LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
@@ -225,7 +246,12 @@ public class LibMediaInfoParser {
 			}
 
 			// set Audio
-			int audioTracks = mI.Count_Get(audio);
+			int audioTracks = 0;
+			value = mI.Get(audio, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				audioTracks = Integer.parseInt(value);
+			}
+
 			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new DLNAMediaAudio();
@@ -268,6 +294,7 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setAlbumArtist(mI.Get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
+					addMusicBrainzIDs(file, currentAudioTrack);
 
 					value = mI.Get(general, 0, "Track/Position");
 					if (!value.isEmpty()) {
@@ -316,8 +343,14 @@ public class LibMediaInfoParser {
 			}
 
 			// set Image
-			media.setImageCount(mI.Count_Get(image));
-			if (media.getImageCount() > 0 || type == Format.IMAGE) {
+			int imageCount = 0;
+			value = mI.Get(image, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				imageCount = Integer.parseInt(value);
+			}
+
+			media.setImageCount(imageCount);
+			if (imageCount > 0 || type == Format.IMAGE) {
 				boolean parseByMediainfo = false;
 				// For images use our own parser instead of MediaInfo which doesn't provide enough information
 				try {
@@ -351,7 +384,12 @@ public class LibMediaInfoParser {
 			}
 
 			// set Subs in text format
-			int subTracks = mI.Count_Get(text);
+			int subTracks = 0;
+			value = mI.Get(text, 0, "StreamCount");
+			if (!value.isEmpty()) {
+				subTracks = Integer.parseInt(value);
+			}
+
 			if (subTracks > 0) {
 				for (int i = 0; i < subTracks; i++) {
 					currentSubTrack = new DLNAMediaSubtitle();
@@ -505,6 +543,23 @@ public class LibMediaInfoParser {
 			}
 
 			media.setMediaparsed(true);
+		}
+	}
+
+	private static void addMusicBrainzIDs(File file, DLNAMediaAudio currentAudioTrack) {
+		try {
+			AudioFile af;
+			if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
+				af = AudioFileIO.readAs(file, "mp3");
+			} else {
+				af = AudioFileIO.read(file);
+			}
+			Tag t = af.getTag();
+			if (t != null) {
+				currentAudioTrack.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
+				currentAudioTrack.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+			}
+		} catch (Exception e) {
 		}
 	}
 

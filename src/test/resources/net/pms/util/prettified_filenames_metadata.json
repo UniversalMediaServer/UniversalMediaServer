@@ -11,6 +11,18 @@
 		}
 	},
 	{
+		"comment": "Video of a special TV episode",
+		"filename": "Universal.Media.Server.S01.Special.720p.mkv",
+		"prettified": "Universal Media Server S01 - Special",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [],
+			"title": "special"
+		}
+	},
+	{
 		"comment": "Video of a TV episode with a year in the series title",
 		"filename": "Universal.Media.Server.2019.S01E02.720p.mkv",
 		"prettified": "Universal Media Server (2019) S01E02",
@@ -103,6 +115,28 @@
 		}
 	},
 	{
+		"comment": "Video of a TV episode titled Mysterious Wordplay with 1x23 format",
+		"filename": "Universal Media Server - 1x23 - Mysterious Wordplay.mkv",
+		"prettified": "Universal Media Server S01E23 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [23]
+		}
+	},
+	{
+		"comment": "Video of a TV episode titled Mysterious Wordplay with 1x23 format, with missing spaces",
+		"filename": "Universal Media Server-1x23-Mysterious Wordplay.mkv",
+		"prettified": "Universal Media Server S01E23 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [23]
+		}
+	},
+	{
 		"comment": "Video of an uncut TV episode",
 		"filename": "Universal.Media.Server.S01E02.UNCUT.720p.mkv",
 		"prettified": "Universal Media Server S01E02 (Uncut)",
@@ -148,6 +182,17 @@
 		}
 	},
 	{
+		"comment": "Video of an anime episode with no extra details",
+		"filename": "Universal Media Server - 02",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
 		"comment": "Video of an anime episode",
 		"filename": "Universal Media Server - 02 [BD.1080p] [700D423E].mkv",
 		"prettified": "Universal Media Server S01E02",
@@ -159,7 +204,7 @@
 		}
 	},
 	{
-		"comment": "Video of an anime episode",
+		"comment": "Video of an anime episode 2",
 		"filename": "[FanSubbers]_Universal_Media_Server_02_[700D423E].mp4",
 		"prettified": "Universal Media Server S01E02",
 		"metadata": {
@@ -170,7 +215,7 @@
 		}
 	},
 	{
-		"comment": "Video of an anime episode",
+		"comment": "Video of an anime episode 3",
 		"filename": "[FanSubbers]_Universal_Media_Server_-_02_[720p][700D423E].mkv",
 		"prettified": "Universal Media Server S01E02",
 		"metadata": {
@@ -181,9 +226,75 @@
 		}
 	},
 	{
-		"comment": "Video of an anime episode",
+		"comment": "Video of an anime episode 4",
 		"filename": "[FanSubbers] Universal Media Server S1 EP02 (BD 1280x720 x264 AAC ASS(EN)) [700D423E].mkv",
 		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode 5",
+		"filename": "[FanSubbers] Universal Media Server - 02 [1080p][Multiple Subtitle].mkv",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode 6",
+		"filename": "[FanSubbers]Universal Media Server_-_02_(Dual Audio_10bit_1080p_x265).mkv",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode 7",
+		"filename": "[FanSubbers] Universal Media Server - Ep02 [BD x264 Hi10P 1080p FLAC].mkv",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an anime episode with the season number in the series name",
+		"filename": "[FanSubbers] Universal Media Server S2 - 01v2 (1080p) [700D423E].mkv",
+		"prettified": "Universal Media Server S02E01",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 2,
+			"episodes": [1]
+		}
+	},
+	{
+		"comment": "Video of an episode with a mixed convention",
+		"filename": "Universal Media Server - S01 E02 - Mysterious Wordplay.mkv",
+		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2]
+		}
+	},
+	{
+		"comment": "Video of an episode with a mixed convention",
+		"filename": "Universal Media Server - 102 - Mysterious Wordplay.mkv",
+		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
 		"metadata": {
 			"type": "tv-series-episodes",
 			"series": "Universal Media Server",
@@ -261,6 +372,16 @@
 		"metadata": {
 			"type": "movie",
 			"title": "UMS-47",
+			"released": { "year": 2018 }
+		}
+	},
+		{
+		"comment": "Video of a movie with a year at the end of title",
+		"filename": "UMS.2018.mp4",
+		"prettified": "UMS (2018)",
+		"metadata": {
+			"type": "movie",
+			"title": "UMS",
 			"released": { "year": 2018 }
 		}
 	}

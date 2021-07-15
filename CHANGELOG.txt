@@ -1,3 +1,225 @@
+10.7.0 - 2021-07-04
+
+	General:
+		Improved detection of movies and anime episodes
+		Increased default max memory on Windows machines with 8+ GB RAM
+		Removed filename from entries inside the TRANSCODE folder
+		Fixed upnp:class in UPnP search results (thanks, ik666!)
+		Fixed the "Reset the cache" button not resetting API metadata too
+		Fixed failed database upgrade for fully played statuses
+		Fixed FFmpeg crash
+		Fixed marking a directory as fully played not changing cached thumbnails
+	Renderers:
+		Improved support for VLC on iPhone
+	Translation updates via Crowdin:
+		Czech (100%)
+		Danish (100%) (thanks, NCAA!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		Hungarian (94%) (thanks, Zatamon!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (96%) (thanks, Mauro.A!)
+		Romanian (100%) (thanks, FlorinT!)
+		Russian (89%) (thanks, Dmitry Lavrentev!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+	Dependencies:
+		Bump assertj-core from 3.19.0 to 3.20.2
+		Bump checkstyle from 8.43 to 8.44
+		Bump commons-io from 2.9.0 to 2.10.0
+		Bump doxia-module-docbook-simple from 1.9.1 to 1.10
+		Bump git-commit-id-plugin from 4.0.4 to 4.0.5
+		Bump jaudiotagger from 2.2.5 to 2.2.7
+		Bump maven-idea-plugin from 2.2.1 to 2.3-atlassian-10
+		Bump oshi-core from 5.7.4 to 5.7.5
+
+10.6.0 - 2021-06-03
+
+	General:
+		Added support for UPnP searching (thanks, sf666!)
+		Removed broken New Media folder, as that functionality exists in the Media Library
+		Improved episode detection and prettifying
+		Fixed failed database connections with hanging processes
+		Fixed description of media library/cache settings
+	Renderers:
+		Improved support for Sony XBR OLED TVs
+	Translation updates via Crowdin:
+		Chinese (Simplified) (98%) (thanks, QI wolong!)
+		Danish (100%) (thanks, NCAA and GurliGebis!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		German (98%) (thanks, pipin!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (96%) (thanks, Mauro.A!)
+		Serbian (Cyrillic) (96%) (thanks, Slobodan Simić (Слободан Симић)!)
+		Spanish (100%) (thanks, edwardalvarez2011 and fafranco82!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+		Ukrainian (18%) (thanks, Paul Furlet!)
+	Dependencies:
+		Bump checkstyle from 8.42 to 8.43
+		Bump commons-io from 2.8.0 to 2.9.0
+		Bump FLAC on macOS to 1.3.3
+		Bump tsMuxeR (justdan96 release) on macOS to 2021-04-30-02-13-20
+		Bump gson from 2.8.6 to 2.8.7
+		Bump jna-version from 5.7.0 to 5.8.0
+		Bump junit5.version from 5.7.1 to 5.7.2
+		Bump maven-javadoc-plugin from 3.2.0 to 3.3.0
+		Bump oshi-core from 5.5.0 to 5.7.4
+
+10.5.0 - 2021-05-08
+
+	General:
+		Added new option to mark a fully played video after moving it to a new folder
+		Implemented external API to allow users to perform actions on their UMS instance from an authorized external source, please see docs at https://support.universalmediaserver.com/books/configuration/page/external-api (thanks, ikrahne!)
+		Fixed TV series metadata not saving for some series
+		Improved episode detection from filenames
+		Optimized network use and handling of unimplemented UPnP actions for some renderers
+		Fixed audio cover art extraction (thanks, ik666!)
+		Fixed database upgrade for some users
+		Fixed recognition of some renderers
+	Renderers:
+		Improved support for H.264 on Panasonic VT60
+	Translation updates via Crowdin:
+		Danish (99%) (thanks, NCAA and GurliGebis!)
+		Finnish (99%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		Italian (98%) (thanks, tiwi90!)
+		Korean (99%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (96%) (thanks, Mauro.A!)
+		Serbian (97%) (thanks, Slobodan Simić (Слободан Симић)!)
+		Spanish (100%) (thanks, Gerardo Ruiz, fafranco82, Eduardo Martin, and manuel fernandez!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+		Ukrainian (17%) (thanks, Paul Furlet!)
+	Dependencies:
+		Bump checkstyle from 8.41 to 8.42
+		Bump com.sun.xml.bind-version from 3.0.0 to 3.0.1
+		Bump commons-lang3 from 3.11 to 3.12.0
+		Bump icu4j from 68.2 to 69.1
+		Bump JRE from 15 to 8u292
+		Bump maven-project-info-reports-plugin from 3.1.1 to 3.1.2
+		Bump MediaInfo from 20.09 to 21.03
+		Bump metadata-extractor from 2.15.0 to 2.16.0
+		Bump spotbugs-maven-plugin from 4.2.2 to 4.2.3
+		Bump twelvemonkeys-imageio-version from 3.6.4 to 3.7.0
+
+10.4.1 - 2021-03-26
+
+	General:
+		Fixed broken transcoding for some users
+		Fixed file scanner freezing on some files with external subtitles
+		Fixed support for HEVC (H.265) via tsMuxeR
+	Renderers:
+		Fixed detection of some Samsung 4K (UHD) TVs (thanks, jkl16!)
+	Translation updates via Crowdin:
+		Dutch (100%) (thanks, johnnygood!)
+		German (100%) (thanks, pipin!)
+		Korean (99%) (thanks, VenusGirl!)
+		Norwegian (85%) (thanks, nhanssen88!)
+		Spanish (100%) (thanks, Julio Alberto García!)
+	Dependencies:
+		Bump spotbugs-maven-plugin from 4.2.0 to 4.2.2
+
+10.4.0 - 2021-03-19
+
+	General:
+		Added renderer config setting DisableUmsResume for renderers with their own resume support, like Samsung TVs
+		Improved speed of transcoding to H.264 by up to 3x
+		Fixed MEncoder crashing when trying to downmix 7.1 AAC to 5.1 AC-3
+		Fixed renderer SupportedVideoBitDepths setting
+		Improved memory use and speed when resume is disabled
+		Fixed renderer resolution and bitrate limiting
+		Fixed broken transcoding for some users since the previous release
+	Renderers:
+		Improved support for VC1 codec on Sony Blu-ray UBP-X800M2 (thanks, thechrisgregory!)
+		Improved support for many filetypes on Kodi (thanks, thechrisgregory!)
+		Improved support for 12-bit video on VLC
+	Translation updates via Crowdin:
+		Estonian (24%) (thanks, Tanel K!)
+		Japanese (97%) (thanks, Katsuhide.M!)
+		Russian (91%) (thanks, Dmitry Lavrentev!)
+	Dependencies:
+		Bump git-commit-id-plugin from 4.0.3 to 4.0.4
+		Rolled back FFmpeg
+
+10.3.0 - 2021-03-13
+
+	General:
+		Improved automatic maximum bandwidth setting and enabled it by default
+		Improved performance of browsing folders
+		Fixed being able to click the web interface button before it is browsable
+		Fixed matching and prettifying some TV episodes
+		Fixed binding to virtual network interfaces by default (can still be forced)
+	Renderers:
+		Added support for foobar2000 mobile (thanks, jps92!)
+		Improved support for Apple TV 4K
+		Fixed audio support on Bravia EX 500
+	Translation updates via Crowdin:
+		Arabic (96%) (thanks, خليل مراطلة !)
+		Chinese (Traditional) (thanks, Austin Zhang!)
+		Czech (100%)
+		Danish (100%) (thanks, NCAA!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		Italian (96%) (thanks, Roberto crescia and tiwi90!)
+		Korean (99%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (100%) (thanks, mariopinto!)
+		Russian (91%) (thanks, Artem4ik and Dmitry Lavrentev!)
+		Slovak (96%) (thanks, Lukáš Praznovec!)
+		Swedish (100%) (thanks, Erik Karlsson!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+	Dependency updates:
+		Bump checkstyle from 8.40 to 8.41
+		Bump FFmpeg to latest
+		Bump thumbnailator from 0.4.13 to 0.4.14
+		Bump twelvemonkeys-imageio-version from 3.6.2 to 3.6.4
+
+10.2.0 - 2021-02-28
+
+	General:
+		Added option to skip the first-run wizard (thanks, Ahmed Adan!)
+		Improved speed of API lookups by up to 3x
+		Improved support for MusicBrainz (thanks, ik666!)
+		Fixed support for some languages, e.g. Arabic
+		Fixed and secured some URLs in the code and docs
+	Renderers:
+		Added support for MediaPlayer by PeteManchester
+		Added support for nextCP/2
+		Fix auto loading for Sony UBP-X800
+	Translation updates via Crowdin:
+		Arabic (100%) (thanks, خليل مراطلة !)
+		Catalan (100%) (thanks, nikodeimos!)
+		French (100%) (thanks, Archaos!)
+		Hungarian (100%) (thanks, Viktor Kozma!)
+		Slovak (99%) (thanks, Dušan!)
+		Swedish (100%) (thanks, Erik Karlsson!)
+	Dependency updates:
+		Bump CheckStyle to 8.40
+
+10.1.0 - 2021-02-16
+
+	General:
+		Added lastPlaybackPosition, lastPlaybackDate, and playbackCount to UPnP responses
+		Added bitsPerSample to UPnP responses (thanks, sf666!)
+		Fixed VLC transcoding bugs
+		Fixed SkipExtensions setting not supporting spaces (thanks, ik666!)
+		Fixed tsMuxeR on 64-bit Linux (including Docker) and macOS systems
+		Fixed MPlayer/MEncoder on macOS 10.15+
+	Translation updates via Crowdin:
+		Arabic (100%) (thanks,خليل مراطلة (meratkha)!)
+		Catalan (93%) (thanks, nikodeimos!)
+		Dutch (100%) (thanks, DJ_eMPe!)
+		Korean (99%) (thanks, VenusGirl!)
+		Serbian (Cyrillic) (100%) (thanks, Slobodan Simić (Слободан Симић) (slsimic)!)
+	Dependency updates:
+		Bump junit5.version from 5.7.0 to 5.7.1
+		Bump maven-checkstyle-plugin from 3.1.1 to 3.1.2
+		Bump MPlayer/MEncoder for macOS to SB67
+
 10.0.1 - 2021-01-29
 
 	General:

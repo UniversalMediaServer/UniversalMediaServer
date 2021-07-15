@@ -33,13 +33,13 @@
 
 		<!-- Include the tsMuxeR binaries -->
 		<file>
-			<source>${project.binaries}/linux/tsMuxeR</source>
+			<source>${project.binaries}/linux/x86/tsMuxeR</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
 		</file>
 		<file>
-			<source>${project.binaries}/linux/tsMuxeR-new</source>
+			<source>${project.binaries}/linux/x86/tsMuxeR-new</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
@@ -52,6 +52,14 @@
 			<fileMode>0755</fileMode>
 			<lineEnding>unix</lineEnding>
 		</file>
+
+		<!-- Include the youtube-dl binary -->
+		<file>
+			<source>${project.binaries}/linux/youtube-dl</source>
+			<outputDirectory>./linux</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
+		</file>
 	</files>
 	<fileSets>
 		<fileSet>
@@ -60,7 +68,7 @@
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 			<includes>
-				<include>/jre15/**</include>
+				<include>/jre8/**</include>
 			</includes>
 		</fileSet>
 

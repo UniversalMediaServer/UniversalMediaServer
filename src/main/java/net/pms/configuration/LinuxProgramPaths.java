@@ -43,6 +43,7 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo tsMuxeRNewInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
+	private final ExternalProgramInfo youtubeDlInfo;
 
 	/**
 	 * Not to be instantiated, call {@link PlatformProgramPaths#get()} instead.
@@ -140,6 +141,21 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 		} else {
 			dcRawInfo = new ExternalProgramInfo("DCRaw", null);
 		}
+
+		// youtube-dl
+		Path youtubeDl = null;
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			youtubeDl = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("youtube-dl");
+		}
+		if (youtubeDl == null || !Files.exists(youtubeDl)) {
+			youtubeDl = PLATFORM_BINARIES_FOLDER.resolve("youtube-dl");
+		}
+		youtubeDlInfo = new ExternalProgramInfo("youtube-dl", ProgramExecutableType.BUNDLED);
+		youtubeDlInfo.setPath(ProgramExecutableType.BUNDLED, youtubeDl);
+		youtubeDl = FileUtil.findExecutableInOSPath(Paths.get("youtube-dl"));
+		if (youtubeDl != null) {
+			youtubeDlInfo.setPath(ProgramExecutableType.INSTALLED, youtubeDl);
+		}
 	}
 
 	@Override
@@ -185,5 +201,10 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getInterFrame() {
 		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getYoutubeDl() {
+		return youtubeDlInfo;
 	}
 }

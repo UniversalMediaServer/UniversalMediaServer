@@ -94,7 +94,7 @@ public class DLNAMediaInfo implements Cloneable {
 	protected static final Map<String, AudioVariantInfo> AUDIO_OR_VIDEO_CONTAINERS;
 
 	static {
-		Map<String, AudioVariantInfo> mutableAudioOrVideoContainers = new HashMap<String, AudioVariantInfo>();
+		Map<String, AudioVariantInfo> mutableAudioOrVideoContainers = new HashMap<>();
 
 		// Map container formats to their "audio variant".
 		mutableAudioOrVideoContainers.put(FormatConfiguration.MP4, new AudioVariantInfo(new M4A(), FormatConfiguration.M4A));
@@ -129,6 +129,9 @@ public class DLNAMediaInfo implements Cloneable {
 	private String pixelAspectRatio;
 	private ScanType scanType;
 	private ScanOrder scanOrder;
+	private Double lastPlaybackPosition = null;
+	private String lastPlaybackTime;
+	private int playbackCount = 0;
 
 	/**
 	 * The frame rate mode as read from the parser
@@ -154,25 +157,6 @@ public class DLNAMediaInfo implements Cloneable {
 	private String tvEpisodeName;
 	private String extraInformation;
 	private boolean isTVEpisode;
-
-	private HashSet<String> actors = new HashSet<>();
-	private String awards;
-	private String boxOffice;
-	private String country;
-	private HashSet<String> directors = new HashSet<>();
-	private HashSet<String> genres = new HashSet<>();
-	private String goofs;
-	private String metascore;
-	private String production;
-	private String poster;
-	private String rated;
-	private String imdbRating;
-	private HashSet<String> ratings = new HashSet<>();
-	private String released;
-	private String runtime;
-	private String tagline;
-	private String trivia;
-	private String votes;
 
 	private volatile ImageInfo imageInfo = null;
 	private String mimeType;
@@ -2165,6 +2149,57 @@ public class DLNAMediaInfo implements Cloneable {
 		this.videoBitDepth = value;
 	}
 
+	public int getPlaybackCount() {
+		return playbackCount;
+	}
+
+	public void setPlaybackCount(int value) {
+		this.playbackCount = value;
+	}
+
+	public Double getLastPlaybackPosition() {
+		return lastPlaybackPosition;
+	}
+
+	public String getLastPlaybackPositionForUPnP() {
+		if (lastPlaybackPosition == null) {
+			return null;
+		}
+
+		int secondsValue = lastPlaybackPosition.intValue();
+
+		int seconds = secondsValue % 60;
+		int hours = secondsValue / 60;
+		int minutes = hours % 60;
+		hours = hours / 60;
+
+		String hoursString = String.valueOf(hours);
+		String minutesString = String.valueOf(minutes);
+		String secondsString = String.valueOf(seconds);
+
+		if (minutesString.length() == 1) {
+			minutesString = "0" + minutesString;
+		}
+
+		if (secondsString.length() == 1) {
+			secondsString = "0" + secondsString;
+		}
+
+		return hoursString + ":" + minutesString + ":" + secondsString + ".000";
+	}
+
+	public void setLastPlaybackPosition(double value) {
+		this.lastPlaybackPosition = value;
+	}
+
+	public String getLastPlaybackTime() {
+		return lastPlaybackTime;
+	}
+
+	public void setLastPlaybackTime(String value) {
+		this.lastPlaybackTime = value;
+	}
+
 	public String getIMDbID() {
 		return imdbID;
 	}
@@ -2210,7 +2245,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getTVEpisodeNumberUnpadded() {
-		if (tvEpisodeNumber.length() > 1 && tvEpisodeNumber.startsWith("0")) {
+		if (isNotBlank(tvEpisodeNumber) && tvEpisodeNumber.length() > 1 && tvEpisodeNumber.startsWith("0")) {
 			return tvEpisodeNumber.substring(1);
 		}
 		return tvEpisodeNumber;
