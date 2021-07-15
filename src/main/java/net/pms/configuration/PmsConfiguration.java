@@ -363,6 +363,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+	protected static final String WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -1180,6 +1181,23 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for youtube-dl.
+	 */
+	@Nullable
+	public ExternalProgramInfo getYoutubeDlPaths() {
+		return programPaths.getYoutubeDl();
+	}
+
+	/**
+	 * @return The configured path to the FLAC executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getYoutubeDlPath() {
+		return getYoutubeDlPaths().getDefaultPath().toString();
 	}
 
 	/**
@@ -2860,22 +2878,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			enginesPriorityBuilt = true;
 		} finally {
 			ENGINES_PRIORITY_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Gets a {@link UniqueList} of the {@link PlayerId}s ordered by priority.
-	 * Returns a new instance, any modifications won't affect priority list.
-	 *
-	 * @return A copy of the priority list.
-	 */
-	public UniqueList<PlayerId> getEnginesPriority() {
-		buildEnginesPriority();
-		ENGINES_PRIORITY_LOCK.readLock().lock();
-		try {
-			return new UniqueList<PlayerId>(enginesPriority);
-		} finally {
-			ENGINES_PRIORITY_LOCK.readLock().unlock();
 		}
 	}
 
@@ -4908,6 +4910,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * @return whether youtube-dl has been enabled once.
+	 */
+	public boolean wasYoutubeDlEnabledOnce() {
+		return getBoolean(WAS_YOUTUBE_DL_ENABLED_ONCE, false);
+	}
+
+	/**
+	 * Records whether youtube-dl has been enabled on program
+	 * initialization one time, to prevent it enabling again.
+	 */
+	public void setYoutubeDlEnabledOnce() {
+		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
+	}
+
+	/**
 	 * This {@code enum} represents the available "levels" for subtitles
 	 * information display that is to be appended to the video name.
 	 */
@@ -4983,9 +5000,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			"#                                                                                                        #",
 			"# WEB.conf: configure support for web feeds and streams                                                  #",
 			"#                                                                                                        #",
-			"# NOTE: This file must be placed in the profile directory to work:                                       #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"# NOTE: This file must be placed in the profile directory to work                                        #",
 			"#                                                                                                        #",
 			"# Supported types:                                                                                       #",
 			"#                                                                                                        #",
@@ -4998,11 +5013,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			"# Format for streams:                                                                                    #",
 			"#                                                                                                        #",
 			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
-			"#                                                                                                        #",
-			"# For more web feed/stream options, see:                                                                 #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
 			"#                                                                                                        #",
 			"##########################################################################################################"
 		);
@@ -5048,7 +5058,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		writeWebConfigurationFile(defaultWebConfContents);
 	}
 
-	public void writeWebConfigurationFile(List<String> fileContents) {
+	public synchronized void writeWebConfigurationFile(List<String> fileContents) {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);

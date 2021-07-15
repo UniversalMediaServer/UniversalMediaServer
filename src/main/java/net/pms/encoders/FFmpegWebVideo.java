@@ -51,7 +51,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	public static final PlayerId ID = StandardPlayerId.FFMPEG_WEB_VIDEO;
 
-	/** The {@link Configuration} key for the FFmpeg Audio executable type. */
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
 	public static final String NAME = "FFmpeg Web Video";
 
@@ -163,7 +162,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
-		// Use device-specific pms conf
+		// Use device-specific conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		RendererConfiguration renderer = params.getMediaRenderer();
@@ -387,6 +386,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				);
 				return false;
 			}
+
+			// FFmpeg does not natively support YouTube videos
+			if (isYouTubeURL(url)) {
+				return false;
+			}
+
 			FILTERS_LOCK.readLock().lock();
 			try {
 				if (EXCLUDES.match(url) == null) {
@@ -428,6 +433,16 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		};
 		ffParser.setFiltered(true);
 		pw.setStderrConsumer(ffParser);
+	}
+
+	public static boolean isYouTubeURL(String youTubeUrl) {
+		String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed\\/)[^#\\&\\?]*";
+		Pattern compiledPattern = Pattern.compile(pattern);
+		Matcher matcher = compiledPattern.matcher(youTubeUrl);
+		if (matcher.find()) {
+			return true;
+		}
+		return false;
 	}
 }
 

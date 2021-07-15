@@ -61,7 +61,9 @@ import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.YoutubeDl;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
@@ -516,6 +518,19 @@ public class PMS {
 
 			// It will be shown only once
 			configuration.setShowInfoAboutVideoAutomaticSetting(false);
+		}
+
+		/*
+		 * Enable youtube-dl once, to ensure that if it is
+		 * disabled, that was done by the user.
+		 */
+		if (!configuration.wasYoutubeDlEnabledOnce()) {
+			if (!PlayerFactory.isPlayerActive(YoutubeDl.ID)) {
+				configuration.setEngineEnabled(YoutubeDl.ID, true);
+				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
+			}
+
+			configuration.setYoutubeDlEnabledOnce();
 		}
 
 		if (!isHeadless()) {

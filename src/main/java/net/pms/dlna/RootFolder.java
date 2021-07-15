@@ -470,15 +470,19 @@ public class RootFolder extends DLNAResource {
 	 * Removes all web folders, re-parses the web config file, and adds a
 	 * file watcher for the file.
 	 */
-	public void loadWebConf() {
+	public synchronized void loadWebConf() {
+		Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
 		for (DLNAResource d : webFolders) {
 			getChildren().remove(d);
 		}
 		webFolders.clear();
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
 		if (webConf.exists() && configuration.getExternalNetwork()) {
-			parseWebConf(webConf);
+			parseWebConf(webConf, currentlySelectedPosition);
 			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
 		}
 		setLastModified(1);
@@ -489,7 +493,7 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @param webConf
 	 */
-	private void parseWebConf(File webConf) {
+	private synchronized void parseWebConf(File webConf, Integer currentlySelectedPosition) {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
@@ -584,7 +588,7 @@ public class RootFolder extends DLNAResource {
 			LOGGER.debug("", e);
 		} finally {
 			if (SharedContentTab.webContentList != null) {
-				SharedContentTab.parseWebConf(webConf);
+				SharedContentTab.parseWebConf(webConf, currentlySelectedPosition);
 			}
 		}
 	}

@@ -43,6 +43,7 @@
 				<include>dcraw</include>
 				<include>ffmpeg</include>
 				<include>libmediainfo.dylib</include>
+				<include>youtube-dl</include>
 			</includes>
 		</fileSet>
 
