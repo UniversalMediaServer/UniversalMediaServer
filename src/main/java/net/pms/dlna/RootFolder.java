@@ -558,6 +558,11 @@ public class RootFolder extends DLNAResource {
 										parent.addChild(new ImagesFeed(uri));
 										break;
 									case "videofeed":
+										// Convert YouTube channel URIs to their feed URIs
+										if (uri.contains("youtube.com/channel/")) {
+											uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+										}
+
 										parent.addChild(new VideosFeed(uri));
 										break;
 									case "audiofeed":
