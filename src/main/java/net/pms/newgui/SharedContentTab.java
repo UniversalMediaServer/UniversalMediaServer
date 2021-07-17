@@ -22,14 +22,20 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.*;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -51,6 +57,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.network.HTTPResource;
 import static net.pms.dlna.RootFolder.parseFeedKey;
 import static net.pms.dlna.RootFolder.parseFeedValue;
 import net.pms.newgui.components.AnimatedIcon;
@@ -58,6 +65,7 @@ import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ShortcutFileSystemView;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,6 +119,8 @@ public class SharedContentTab {
 		this.looksFrame = looksFrame;
 	}
 
+	public static long lastWebContentUpdate = 1L;
+
 	private void updateWebContentModel() {
 		if (webContentTableModel.getRowCount() == 0) {
 			configuration.writeWebConfigurationFile();
@@ -118,8 +128,8 @@ public class SharedContentTab {
 			List<String> entries = new ArrayList<>();
 
 			for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
-				String readableType = (String) webContentTableModel.getValueAt(i, 0);
-				String folders = (String) webContentTableModel.getValueAt(i, 1);
+				String readableType = (String) webContentTableModel.getValueAt(i, 1);
+				String folders = (String) webContentTableModel.getValueAt(i, 2);
 				String configType;
 
 				String readableTypeImageFeed   = TYPES_READABLE[2];
@@ -143,14 +153,34 @@ public class SharedContentTab {
 					continue;
 				}
 
-				String source = (String) webContentTableModel.getValueAt(i, 2);
+				String source = (String) webContentTableModel.getValueAt(i, 3);
+				String resourceName = (String) webContentTableModel.getValueAt(i, 0);
 
 				StringBuilder entryToAdd = new StringBuilder();
-				entryToAdd.append(configType).append(".").append(folders).append("=").append(source);
+				entryToAdd.append(configType).append(".").append(folders).append("=");
+
+				switch (configType) {
+					case "imagefeed":
+					case "videofeed":
+					case "audiofeed":
+						entryToAdd.append(source);
+
+						if (resourceName != null) {
+							entryToAdd.append(",,,").append(resourceName);
+						}
+						break;
+					default:
+						if (resourceName != null) {
+							entryToAdd.append(resourceName).append(",").append(source);
+						}
+						break;
+				}
+
 				entries.add(entryToAdd.toString());
 			}
 
 			configuration.writeWebConfigurationFile(entries);
+			lastWebContentUpdate = System.currentTimeMillis();
 		}
 	}
 
@@ -423,7 +453,7 @@ public class SharedContentTab {
 
 		webContentTableModel = new WebContentTableModel();
 		webContentList = new JTable(webContentTableModel);
-		TableColumn column = webContentList.getColumnModel().getColumn(2);
+		TableColumn column = webContentList.getColumnModel().getColumn(3);
 		column.setMinWidth(500);
 
 		webContentList.addMouseListener(new TableMouseListener(webContentList));
@@ -504,8 +534,39 @@ public class SharedContentTab {
 
 			int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 			if (result == JOptionPane.OK_OPTION) {
-				((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
-				updateWebContentModel();
+				SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+				SharedContentTab.webContentList.setEnabled(false);
+		
+				try {
+					String resourceName = null;
+					if (!isBlank(newEntrySource.getText())) {
+						try {
+							switch (newEntryType.getSelectedItem().toString()) {
+								case "Image feed":
+								case "Podcast":
+								case "Video feed":
+									String temporarySource = newEntrySource.getText();
+									// Convert YouTube channel URIs to their feed URIs
+									if (temporarySource.contains("youtube.com/channel/")) {
+										temporarySource = temporarySource.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+									}
+
+									resourceName = getFeedTitle(temporarySource);
+									break;
+								default:
+									break;
+							}
+						} catch (Exception e2) {
+							LOGGER.debug("Error while getting feed title on add: " + e);
+						}
+					}
+					((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{resourceName, newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
+					webContentList.changeSelection(((WebContentTableModel) webContentList.getModel()).getRowCount() - 1, 1, false, false);
+					updateWebContentModel();
+				} finally {
+					SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					SharedContentTab.webContentList.setEnabled(true);
+				}
 			}
 		});
 		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
@@ -513,9 +574,12 @@ public class SharedContentTab {
 		JImageButton but2 = new JImageButton("button-remove-folder.png");
 		but2.setToolTipText(Messages.getString("SharedContentTab.RemoveSelectedWebContent"));
 		but2.addActionListener((ActionEvent e) -> {
-			if (webContentList.getSelectedRow() > -1) {
-				PMS.get().getDatabase().removeMediaEntriesInFolder((String) webContentList.getValueAt(webContentList.getSelectedRow(), 0));
-				((WebContentTableModel) webContentList.getModel()).removeRow(webContentList.getSelectedRow());
+			int currentlySelectedRow = webContentList.getSelectedRow();
+			if (currentlySelectedRow > -1) {
+				if (currentlySelectedRow > 0) {
+					webContentList.changeSelection(currentlySelectedRow - 1, 1, false, false);
+				}
+				((WebContentTableModel) webContentList.getModel()).removeRow(currentlySelectedRow);
 				updateWebContentModel();
 			}
 		});
@@ -526,16 +590,19 @@ public class SharedContentTab {
 		but3.addActionListener((ActionEvent e) -> {
 			for (int i = 0; i < webContentList.getRowCount() - 1; i++) {
 				if (webContentList.isRowSelected(i)) {
-					Object type   = webContentList.getValueAt(i, 0);
-					Object folder = webContentList.getValueAt(i, 1);
-					Object source = webContentList.getValueAt(i, 2);
+					Object name   = webContentList.getValueAt(i, 0);
+					Object type   = webContentList.getValueAt(i, 1);
+					Object folder = webContentList.getValueAt(i, 2);
+					Object source = webContentList.getValueAt(i, 3);
 
 					webContentList.setValueAt(webContentList.getValueAt(i + 1, 0), i, 0);
-					webContentList.setValueAt(type, i + 1, 0);
+					webContentList.setValueAt(name, i + 1, 0);
 					webContentList.setValueAt(webContentList.getValueAt(i + 1, 1), i, 1);
-					webContentList.setValueAt(folder, i + 1, 1);
+					webContentList.setValueAt(type, i + 1, 1);
 					webContentList.setValueAt(webContentList.getValueAt(i + 1, 2), i, 2);
-					webContentList.setValueAt(source, i + 1, 2);
+					webContentList.setValueAt(folder, i + 1, 2);
+					webContentList.setValueAt(webContentList.getValueAt(i + 1, 3), i, 3);
+					webContentList.setValueAt(source, i + 1, 3);
 					webContentList.changeSelection(i + 1, 1, false, false);
 
 					break;
@@ -549,16 +616,19 @@ public class SharedContentTab {
 		but4.addActionListener((ActionEvent e) -> {
 			for (int i = 1; i < webContentList.getRowCount(); i++) {
 				if (webContentList.isRowSelected(i)) {
-					Object type   = webContentList.getValueAt(i, 0);
-					Object folder = webContentList.getValueAt(i, 1);
-					Object source = webContentList.getValueAt(i, 2);
+					Object name   = webContentList.getValueAt(i, 0);
+					Object type   = webContentList.getValueAt(i, 1);
+					Object folder = webContentList.getValueAt(i, 2);
+					Object source = webContentList.getValueAt(i, 3);
 
 					webContentList.setValueAt(webContentList.getValueAt(i - 1, 0), i, 0);
-					webContentList.setValueAt(type, i - 1, 0);
+					webContentList.setValueAt(name, i - 1, 0);
 					webContentList.setValueAt(webContentList.getValueAt(i - 1, 1), i, 1);
-					webContentList.setValueAt(folder, i - 1, 1);
+					webContentList.setValueAt(type, i - 1, 1);
 					webContentList.setValueAt(webContentList.getValueAt(i - 1, 2), i, 2);
-					webContentList.setValueAt(source, i - 1, 2);
+					webContentList.setValueAt(folder, i - 1, 2);
+					webContentList.setValueAt(webContentList.getValueAt(i - 1, 3), i, 3);
+					webContentList.setValueAt(source, i - 1, 3);
 					webContentList.changeSelection(i - 1, 1, false, false);
 
 					break;
@@ -662,8 +732,9 @@ public class SharedContentTab {
 		public WebContentTableModel() {
 			// Column headings
 			super(new String[]{
+				Messages.getString("SharedContentTab.Name"),
 				Messages.getString("SharedContentTab.Type"),
-				Messages.getString("SharedContentTab.FolderName"),
+				Messages.getString("SharedContentTab.VirtualFolders"),
 				Messages.getString("SharedContentTab.Source"),
 			}, 0);
 		}
@@ -703,9 +774,9 @@ public class SharedContentTab {
 
 			// more than one click in the same event triggers edit mode
 			if (event.getClickCount() == 2) {
-				String currentType    = (String) webContentList.getValueAt(currentRow, 0);
-				String currentFolders = (String) webContentList.getValueAt(currentRow, 1);
-				String currentSource  = (String) webContentList.getValueAt(currentRow, 2);
+				String currentType    = (String) webContentList.getValueAt(currentRow, 1);
+				String currentFolders = (String) webContentList.getValueAt(currentRow, 2);
+				String currentSource  = (String) webContentList.getValueAt(currentRow, 3);
 
 				int currentTypeIndex = Arrays.asList(TYPES_READABLE).indexOf(currentType);
 
@@ -774,9 +845,9 @@ public class SharedContentTab {
 
 				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
-					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 0);
-					webContentList.setValueAt(newEntryFolders.getText(),      currentRow, 1);
-					webContentList.setValueAt(newEntrySource.getText(),       currentRow, 2);
+					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 1);
+					webContentList.setValueAt(newEntryFolders.getText(),      currentRow, 2);
+					webContentList.setValueAt(newEntrySource.getText(),       currentRow, 3);
 					updateWebContentModel();
 				}
 			}
@@ -790,6 +861,9 @@ public class SharedContentTab {
 	 * @param previouslySelectedRow the row that was selected before this parsing
 	 */
 	public static synchronized void parseWebConf(File webConf, Integer previouslySelectedRow) {
+		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		SharedContentTab.webContentList.setEnabled(false);
+
 		try {
 			// Remove any existing rows
 			((WebContentTableModel) webContentList.getModel()).setRowCount(0);
@@ -838,7 +912,29 @@ public class SharedContentTab {
 										break;
 								}
 
-								webContentTableModel.addRow(new Object[]{readableType, folderName, uri});
+								// If the resource does not yet have a name, attempt to get one now
+								String resourceName = values.length > 2 && values[3] != null ? values[3] : null;
+								if (isBlank(resourceName)) {
+									try {
+										switch (sourceType) {
+											case "imagefeed":
+											case "videofeed":
+											case "audiofeed":
+												// Convert YouTube channel URIs to their feed URIs
+												if (uri.contains("youtube.com/channel/")) {
+													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+												}
+												resourceName = getFeedTitle(uri);
+												break;
+											default:
+												break;
+										}
+									} catch (Exception e) {
+										LOGGER.debug("Error while getting feed title: " + e);
+									}
+								}
+
+								webContentTableModel.addRow(new Object[]{resourceName, readableType, folderName, uri});
 							}
 						} catch (ArrayIndexOutOfBoundsException e) {
 							// catch exception here and go with parsing
@@ -852,12 +948,34 @@ public class SharedContentTab {
 			// Re-select any row that was selected before we (re)parsed the config
 			if (previouslySelectedRow != null) {
 				webContentList.changeSelection(previouslySelectedRow, 1, false, false);
+				Rectangle selectionToScrollTo = webContentList.getCellRect(previouslySelectedRow, 1, true);
+				if (!selectionToScrollTo.isEmpty()) {
+					webContentList.scrollRectToVisible(selectionToScrollTo);
+				}
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
 		} catch (IOException e) {
 			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
 			LOGGER.debug("", e);
+		} finally {
+			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			SharedContentTab.webContentList.setEnabled(true);
 		}
+	}
+
+	/**
+	 * @param url feed URL
+	 * @return a feed title from its URL
+	 * @throws Exception
+	 */
+	public static String getFeedTitle(String url) throws Exception {
+		SyndFeedInput input = new SyndFeedInput();
+		byte[] b = HTTPResource.downloadAndSendBinary(url);
+		if (b != null) {
+			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
+			return feed.getTitle();
+		}
+		return null;
 	}
 }
