@@ -536,7 +536,7 @@ public class SharedContentTab {
 			if (result == JOptionPane.OK_OPTION) {
 				SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 				SharedContentTab.webContentList.setEnabled(false);
-		
+
 				try {
 					String resourceName = null;
 					if (!isBlank(newEntrySource.getText())) {
