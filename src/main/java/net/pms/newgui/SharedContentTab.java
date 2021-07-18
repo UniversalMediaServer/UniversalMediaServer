@@ -107,6 +107,12 @@ public class SharedContentTab {
 		Messages.getString("SharedContentTab.VideoStream"),
 	};
 
+	private static final String readableTypeImageFeed   = TYPES_READABLE[2];
+	private static final String readableTypeVideoFeed   = TYPES_READABLE[1];
+	private static final String readableTypeAudioFeed   = TYPES_READABLE[0];
+	private static final String readableTypeAudioStream = TYPES_READABLE[3];
+	private static final String readableTypeVideoStream = TYPES_READABLE[4];
+
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
 	}
@@ -131,12 +137,6 @@ public class SharedContentTab {
 				String readableType = (String) webContentTableModel.getValueAt(i, 1);
 				String folders = (String) webContentTableModel.getValueAt(i, 2);
 				String configType;
-
-				String readableTypeImageFeed   = TYPES_READABLE[2];
-				String readableTypeVideoFeed   = TYPES_READABLE[1];
-				String readableTypeAudioFeed   = TYPES_READABLE[0];
-				String readableTypeAudioStream = TYPES_READABLE[3];
-				String readableTypeVideoStream = TYPES_READABLE[4];
 
 				if (readableType.equals(readableTypeImageFeed)) {
 					configType = "imagefeed";
@@ -471,8 +471,31 @@ public class SharedContentTab {
 		JImageButton but = new JImageButton("button-add-webcontent.png");
 		but.setToolTipText(Messages.getString("SharedContentTab.AddNewWebContent"));
 		but.addActionListener((ActionEvent e) -> {
+			JTextField newEntryName = new JTextField(25);
+			newEntryName.setEnabled(false);
+			newEntryName.setText(Messages.getString("SharedContentTab.NamesSetAutomaticallyFeeds"));
+
 			JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 			newEntryType.setEditable(false);
+			newEntryType.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (
+						e.getItem().toString() == readableTypeAudioFeed ||
+						e.getItem().toString() == readableTypeVideoFeed ||
+						e.getItem().toString() == readableTypeImageFeed
+					) {
+						newEntryName.setEnabled(false);
+						newEntryName.setText(Messages.getString("SharedContentTab.NamesSetAutomaticallyFeeds"));
+					} else if (
+						e.getItem().toString() == readableTypeAudioStream ||
+						e.getItem().toString() == readableTypeVideoStream
+					) {
+						newEntryName.setEnabled(true);
+						newEntryName.setText("");
+					}
+				}
+			});
 
 			JTextField newEntryFolders = new JTextField(25);
 			newEntryFolders.setText("Web,");
@@ -481,10 +504,12 @@ public class SharedContentTab {
 
 			JPanel addNewWebContentPanel = new JPanel();
 
+			JLabel labelName = new JLabel(Messages.getString("SharedContentTab.NameColon"));
 			JLabel labelType = new JLabel(Messages.getString("SharedContentTab.TypeColon"));
 			JLabel labelFolders = new JLabel(Messages.getString("SharedContentTab.FoldersColon"));
 			JLabel labelSource = new JLabel(Messages.getString("SharedContentTab.SourceURLColon"));
 
+			labelName.setLabelFor(newEntryName);
 			labelType.setLabelFor(newEntryType);
 			labelFolders.setLabelFor(newEntryFolders);
 			labelSource.setLabelFor(newEntrySource);
@@ -502,6 +527,8 @@ public class SharedContentTab {
 							.addGroup(
 								layout
 									.createParallelGroup()
+									.addComponent(labelName)
+									.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 									.addComponent(labelType)
 									.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 									.addComponent(labelFolders)
@@ -520,6 +547,9 @@ public class SharedContentTab {
 						layout
 							.createSequentialGroup()
 							.addContainerGap()
+							.addComponent(labelName)
+							.addComponent(newEntryName)
+							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 							.addComponent(labelType)
 							.addComponent(newEntryType)
 							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
@@ -541,20 +571,23 @@ public class SharedContentTab {
 					String resourceName = null;
 					if (!isBlank(newEntrySource.getText())) {
 						try {
-							switch (newEntryType.getSelectedItem().toString()) {
-								case "Image feed":
-								case "Podcast":
-								case "Video feed":
-									String temporarySource = newEntrySource.getText();
-									// Convert YouTube channel URIs to their feed URIs
-									if (temporarySource.contains("youtube.com/channel/")) {
-										temporarySource = temporarySource.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-									}
+							if (
+								newEntryType.getSelectedItem().toString() == readableTypeImageFeed ||
+								newEntryType.getSelectedItem().toString() == readableTypeAudioFeed ||
+								newEntryType.getSelectedItem().toString() == readableTypeVideoFeed
+							) {
+								String temporarySource = newEntrySource.getText();
+								// Convert YouTube channel URIs to their feed URIs
+								if (temporarySource.contains("youtube.com/channel/")) {
+									temporarySource = temporarySource.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+								}
 
-									resourceName = getFeedTitle(temporarySource);
-									break;
-								default:
-									break;
+								resourceName = getFeedTitle(temporarySource);
+							} else if (
+								newEntryType.getSelectedItem().toString() == readableTypeVideoStream ||
+								newEntryType.getSelectedItem().toString() == readableTypeAudioStream
+							) {
+								resourceName = newEntryName.getText();
 							}
 						} catch (Exception e2) {
 							LOGGER.debug("Error while getting feed title on add: " + e);
@@ -894,19 +927,19 @@ public class SharedContentTab {
 								String readableType = "";
 								switch (sourceType) {
 									case "imagefeed":
-										readableType = "Image feed";
+										readableType = readableTypeImageFeed;
 										break;
 									case "videofeed":
-										readableType = "Video feed";
+										readableType = readableTypeVideoFeed;
 										break;
 									case "audiofeed":
-										readableType = "Podcast";
+										readableType = readableTypeAudioFeed;
 										break;
 									case "audiostream":
-										readableType = "Audio stream";
+										readableType = readableTypeAudioStream;
 										break;
 									case "videostream":
-										readableType = "Video stream";
+										readableType = readableTypeVideoStream;
 										break;
 									default:
 										break;
@@ -920,11 +953,18 @@ public class SharedContentTab {
 											case "imagefeed":
 											case "videofeed":
 											case "audiofeed":
+												resourceName = values.length > 2 && values[3] != null ? values[3] : null;
+
 												// Convert YouTube channel URIs to their feed URIs
 												if (uri.contains("youtube.com/channel/")) {
 													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 												}
 												resourceName = getFeedTitle(uri);
+												break;
+											case "videostream":
+											case "audiostream":
+												resourceName = values.length > -1 && values[0] != null ? values[0] : null;
+												uri = values.length > 1 && values[1] != null ? values[1] : null;
 												break;
 											default:
 												break;

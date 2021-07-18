@@ -488,8 +488,10 @@ public class RootFolder extends DLNAResource {
 			if (
 				webConf.exists() &&
 				configuration.getExternalNetwork() &&
-				SharedContentTab.lastWebContentUpdate != 1L &&
-				SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
+				(
+					SharedContentTab.lastWebContentUpdate == 1L ||
+					SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
+				)
 			) {
 				/**
 				 * If the GUI last updated less than 2 seconds ago, chances are good
@@ -563,6 +565,7 @@ public class RootFolder extends DLNAResource {
 									parent = this;
 								}
 
+								// Handle web playlists
 								if (sourceType.endsWith("stream")) {
 									int type = sourceType.startsWith("audio") ? Format.AUDIO : Format.VIDEO;
 									DLNAResource playlist = PlaylistFolder.getPlaylist(uri, values[1], type);
@@ -571,6 +574,8 @@ public class RootFolder extends DLNAResource {
 										continue;
 									}
 								}
+
+								String optionalStreamThumbnail = values.length > 2 ? values[2] : null;
 
 								switch (sourceType) {
 									case "imagefeed":
@@ -588,10 +593,10 @@ public class RootFolder extends DLNAResource {
 										parent.addChild(new AudiosFeed(uri));
 										break;
 									case "audiostream":
-										parent.addChild(new WebAudioStream(uri, values[1], values[2]));
+										parent.addChild(new WebAudioStream(uri, values[1], optionalStreamThumbnail));
 										break;
 									case "videostream":
-										parent.addChild(new WebVideoStream(uri, values[1], values[2]));
+										parent.addChild(new WebVideoStream(uri, values[1], optionalStreamThumbnail));
 										break;
 									default:
 										break;
