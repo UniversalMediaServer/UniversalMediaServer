@@ -826,7 +826,7 @@ public class SharedContentTab {
 					newEntryName.setEnabled(true);
 					newEntryName.setText(currentName);
 				}
-	
+
 				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 				newEntryType.setEditable(false);
 				newEntryType.setSelectedIndex(currentTypeIndex);
@@ -862,7 +862,7 @@ public class SharedContentTab {
 				JLabel labelType = new JLabel(Messages.getString("SharedContentTab.TypeColon"));
 				JLabel labelFolders = new JLabel(Messages.getString("SharedContentTab.FoldersColon"));
 				JLabel labelSource = new JLabel(Messages.getString("SharedContentTab.SourceURLColon"));
-	
+
 				labelName.setLabelFor(newEntryName);
 				labelType.setLabelFor(newEntryType);
 				labelFolders.setLabelFor(newEntryFolders);
