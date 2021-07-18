@@ -107,11 +107,11 @@ public class SharedContentTab {
 		Messages.getString("SharedContentTab.VideoStream"),
 	};
 
-	private static final String readableTypeImageFeed   = TYPES_READABLE[2];
-	private static final String readableTypeVideoFeed   = TYPES_READABLE[1];
-	private static final String readableTypeAudioFeed   = TYPES_READABLE[0];
-	private static final String readableTypeAudioStream = TYPES_READABLE[3];
-	private static final String readableTypeVideoStream = TYPES_READABLE[4];
+	private static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[2];
+	private static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[1];
+	private static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[0];
+	private static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[3];
+	private static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[4];
 
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
@@ -138,15 +138,15 @@ public class SharedContentTab {
 				String folders = (String) webContentTableModel.getValueAt(i, 2);
 				String configType;
 
-				if (readableType.equals(readableTypeImageFeed)) {
+				if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
 					configType = "imagefeed";
-				} else if (readableType.equals(readableTypeVideoFeed)) {
+				} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
 					configType = "videofeed";
-				} else if (readableType.equals(readableTypeAudioFeed)) {
+				} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
 					configType = "audiofeed";
-				} else if (readableType.equals(readableTypeAudioStream)) {
+				} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
 					configType = "audiostream";
-				} else if (readableType.equals(readableTypeVideoStream)) {
+				} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
 					configType = "videostream";
 				} else {
 					// Skip the whole row if another value was used
@@ -481,15 +481,15 @@ public class SharedContentTab {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					if (
-						e.getItem().toString() == readableTypeAudioFeed ||
-						e.getItem().toString() == readableTypeVideoFeed ||
-						e.getItem().toString() == readableTypeImageFeed
+						e.getItem().toString() == READABLE_TYPE_AUDIO_FEED ||
+						e.getItem().toString() == READABLE_TYPE_VIDEO_FEED ||
+						e.getItem().toString() == READABLE_TYPE_IMAGE_FEED
 					) {
 						newEntryName.setEnabled(false);
 						newEntryName.setText(Messages.getString("SharedContentTab.NamesSetAutomaticallyFeeds"));
 					} else if (
-						e.getItem().toString() == readableTypeAudioStream ||
-						e.getItem().toString() == readableTypeVideoStream
+						e.getItem().toString() == READABLE_TYPE_AUDIO_STREAM ||
+						e.getItem().toString() == READABLE_TYPE_VIDEO_STREAM
 					) {
 						newEntryName.setEnabled(true);
 						newEntryName.setText("");
@@ -572,9 +572,9 @@ public class SharedContentTab {
 					if (!isBlank(newEntrySource.getText())) {
 						try {
 							if (
-								newEntryType.getSelectedItem().toString() == readableTypeImageFeed ||
-								newEntryType.getSelectedItem().toString() == readableTypeAudioFeed ||
-								newEntryType.getSelectedItem().toString() == readableTypeVideoFeed
+								newEntryType.getSelectedItem().toString() == READABLE_TYPE_IMAGE_FEED ||
+								newEntryType.getSelectedItem().toString() == READABLE_TYPE_AUDIO_FEED ||
+								newEntryType.getSelectedItem().toString() == READABLE_TYPE_VIDEO_FEED
 							) {
 								String temporarySource = newEntrySource.getText();
 								// Convert YouTube channel URIs to their feed URIs
@@ -584,8 +584,8 @@ public class SharedContentTab {
 
 								resourceName = getFeedTitle(temporarySource);
 							} else if (
-								newEntryType.getSelectedItem().toString() == readableTypeVideoStream ||
-								newEntryType.getSelectedItem().toString() == readableTypeAudioStream
+								newEntryType.getSelectedItem().toString() == READABLE_TYPE_VIDEO_STREAM ||
+								newEntryType.getSelectedItem().toString() == READABLE_TYPE_AUDIO_STREAM
 							) {
 								resourceName = newEntryName.getText();
 							}
@@ -927,19 +927,19 @@ public class SharedContentTab {
 								String readableType = "";
 								switch (sourceType) {
 									case "imagefeed":
-										readableType = readableTypeImageFeed;
+										readableType = READABLE_TYPE_IMAGE_FEED;
 										break;
 									case "videofeed":
-										readableType = readableTypeVideoFeed;
+										readableType = READABLE_TYPE_VIDEO_FEED;
 										break;
 									case "audiofeed":
-										readableType = readableTypeAudioFeed;
+										readableType = READABLE_TYPE_AUDIO_FEED;
 										break;
 									case "audiostream":
-										readableType = readableTypeAudioStream;
+										readableType = READABLE_TYPE_AUDIO_STREAM;
 										break;
 									case "videostream":
-										readableType = readableTypeVideoStream;
+										readableType = READABLE_TYPE_VIDEO_STREAM;
 										break;
 									default:
 										break;
