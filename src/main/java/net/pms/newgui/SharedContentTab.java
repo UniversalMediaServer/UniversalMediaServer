@@ -807,15 +807,48 @@ public class SharedContentTab {
 
 			// more than one click in the same event triggers edit mode
 			if (event.getClickCount() == 2) {
+				String currentName    = (String) webContentList.getValueAt(currentRow, 0);
 				String currentType    = (String) webContentList.getValueAt(currentRow, 1);
 				String currentFolders = (String) webContentList.getValueAt(currentRow, 2);
 				String currentSource  = (String) webContentList.getValueAt(currentRow, 3);
 
 				int currentTypeIndex = Arrays.asList(TYPES_READABLE).indexOf(currentType);
 
+				JTextField newEntryName = new JTextField(25);
+				if (
+					currentType == READABLE_TYPE_AUDIO_FEED ||
+					currentType == READABLE_TYPE_VIDEO_FEED ||
+					currentType == READABLE_TYPE_IMAGE_FEED
+				) {
+					newEntryName.setEnabled(false);
+					newEntryName.setText(Messages.getString("SharedContentTab.NamesSetAutomaticallyFeeds"));
+				} else {
+					newEntryName.setEnabled(true);
+					newEntryName.setText(currentName);
+				}
+	
 				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 				newEntryType.setEditable(false);
 				newEntryType.setSelectedIndex(currentTypeIndex);
+				newEntryType.addItemListener(new ItemListener() {
+					@Override
+					public void itemStateChanged(ItemEvent e) {
+						if (
+							e.getItem().toString() == READABLE_TYPE_AUDIO_FEED ||
+							e.getItem().toString() == READABLE_TYPE_VIDEO_FEED ||
+							e.getItem().toString() == READABLE_TYPE_IMAGE_FEED
+						) {
+							newEntryName.setEnabled(false);
+							newEntryName.setText(Messages.getString("SharedContentTab.NamesSetAutomaticallyFeeds"));
+						} else if (
+							e.getItem().toString() == READABLE_TYPE_AUDIO_STREAM ||
+							e.getItem().toString() == READABLE_TYPE_VIDEO_STREAM
+						) {
+							newEntryName.setEnabled(true);
+							newEntryName.setText("");
+						}
+					}
+				});
 
 				JTextField newEntryFolders = new JTextField(25);
 				newEntryFolders.setText(currentFolders);
@@ -825,10 +858,12 @@ public class SharedContentTab {
 
 				JPanel addNewWebContentPanel = new JPanel();
 
+				JLabel labelName = new JLabel(Messages.getString("SharedContentTab.NameColon"));
 				JLabel labelType = new JLabel(Messages.getString("SharedContentTab.TypeColon"));
 				JLabel labelFolders = new JLabel(Messages.getString("SharedContentTab.FoldersColon"));
 				JLabel labelSource = new JLabel(Messages.getString("SharedContentTab.SourceURLColon"));
-
+	
+				labelName.setLabelFor(newEntryName);
 				labelType.setLabelFor(newEntryType);
 				labelFolders.setLabelFor(newEntryFolders);
 				labelSource.setLabelFor(newEntrySource);
@@ -846,6 +881,8 @@ public class SharedContentTab {
 								.addGroup(
 									layout
 										.createParallelGroup()
+										.addComponent(labelName)
+										.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelType)
 										.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelFolders)
@@ -864,6 +901,9 @@ public class SharedContentTab {
 							layout
 								.createSequentialGroup()
 								.addContainerGap()
+								.addComponent(labelName)
+								.addComponent(newEntryName)
+								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelType)
 								.addComponent(newEntryType)
 								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
@@ -878,6 +918,7 @@ public class SharedContentTab {
 
 				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("SharedContentTab.AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
+					webContentList.setValueAt(newEntryName.getText(),         currentRow, 0);
 					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 1);
 					webContentList.setValueAt(newEntryFolders.getText(),      currentRow, 2);
 					webContentList.setValueAt(newEntrySource.getText(),       currentRow, 3);
