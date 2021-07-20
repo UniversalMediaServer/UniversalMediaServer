@@ -617,7 +617,7 @@ public class RootFolder extends DLNAResource {
 			LOGGER.debug("", e);
 		} finally {
 			if (SharedContentTab.webContentList != null) {
-				SharedContentTab.parseWebConf(webConf, currentlySelectedPosition);
+				SharedContentTab.setWebContentGUIFromWebConfFile(webConf, currentlySelectedPosition);
 			}
 		}
 	}

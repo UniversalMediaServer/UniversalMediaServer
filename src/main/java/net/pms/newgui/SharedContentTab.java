@@ -213,7 +213,7 @@ public class SharedContentTab {
 			configuration.writeWebConfigurationFile();
 		}
 		if (webConf.exists() && configuration.getExternalNetwork()) {
-			parseWebConf(webConf, webContentList.getSelectedRow());
+			setWebContentGUIFromWebConfFile(webConf, webContentList.getSelectedRow());
 		}
 
 		builder.add(sharedFoldersPanel,    FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
@@ -934,7 +934,7 @@ public class SharedContentTab {
 	 * @param webConf
 	 * @param previouslySelectedRow the row that was selected before this parsing
 	 */
-	public static synchronized void parseWebConf(File webConf, Integer previouslySelectedRow) {
+	public static synchronized void setWebContentGUIFromWebConfFile(File webConf, Integer previouslySelectedRow) {
 		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		SharedContentTab.webContentList.setEnabled(false);
 
@@ -987,14 +987,14 @@ public class SharedContentTab {
 								}
 
 								// If the resource does not yet have a name, attempt to get one now
-								String resourceName = values.length > 2 && values[3] != null ? values[3] : null;
+								String resourceName = values.length > 3 && values[3] != null ? values[3] : null;
 								if (isBlank(resourceName)) {
 									try {
 										switch (sourceType) {
 											case "imagefeed":
 											case "videofeed":
 											case "audiofeed":
-												resourceName = values.length > 2 && values[3] != null ? values[3] : null;
+												resourceName = values.length > 3 && values[3] != null ? values[3] : null;
 
 												// Convert YouTube channel URIs to their feed URIs
 												if (uri.contains("youtube.com/channel/")) {

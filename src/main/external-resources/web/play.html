@@ -88,11 +88,11 @@
 						{{^isVideo}}
 						<div class="well {{^isVideo}}full-card{{/isVideo}}">
 							<h2>{{name}}</h2>
+							{{#isNativeAudio}}
+								<img id="poster" src="/thumb/{{id1}}" style="max-width:100%;" />
+							{{/isNativeAudio}}
 						</div>
 						{{/isVideo}}
-						{{#isNativeAudio}}
-							<img id="poster" src="/thumb/{{id1}}" />
-						{{/isNativeAudio}}
 						{{^isNativeAudio}}
 						<div id="toolbar" class=" {{^isVideo}}full-card{{/isVideo}}">
 							<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-prev"></span></button>
