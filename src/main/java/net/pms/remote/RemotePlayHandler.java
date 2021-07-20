@@ -23,6 +23,7 @@ import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
+import net.pms.network.HTTPResource;
 import net.pms.util.SubtitleUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -186,6 +187,17 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 		}
 		mustacheVars.put("isVideo", isVideo);
+
+		// Controls whether to use the browser's native audio player
+		mustacheVars.put("isNativeAudio", false);
+		if (
+			isAudio &&
+			// Audio types that are natively supported by all major browsers:
+			mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME)
+		) {
+			mustacheVars.put("isNativeAudio", true);
+		}
+
 		mustacheVars.put("name", name);
 		mustacheVars.put("id1", id1);
 		mustacheVars.put("autoContinue", CONFIGURATION.getWebAutoCont(format));
