@@ -98,7 +98,7 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<logback-version>1.2.3</logback-version>
+		<logback-version>1.2.4</logback-version>
 		<surefire-version>3.0.0-M5</surefire-version>
 
 		<!--
