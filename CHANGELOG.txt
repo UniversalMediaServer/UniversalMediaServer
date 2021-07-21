@@ -1,10 +1,11 @@
-10.8.0 - 2021-07-
+10.8.0 - 2021-07-22
 
 	General:
 		Added youtube-dl engine which fixes support for YouTube channel feeds
 		Added automatic names for web feeds in the user interface, and the ability to add/edit manual names for web streams
 		Added sample web radio stream
 		Added support for pasting YouTube channels directly, instead of needing the feed URLs
+		Improved performance and logging for unmonitored files
 		Fixed several web content user interface bugs
 		Fixed sample web feeds and streams not being loaded on macOS
 		Fixed broken sample web feeds
@@ -24,6 +25,7 @@
 		Turkish (100%) (thanks, Burak Yavuz!)
 	Dependencies:
 		Bump commons-io from 2.10.0 to 2.11.0
+		Bump FFmpeg to latest Git versions
 		Bump logback-version from 1.2.3 to 1.2.4
 		Bump oshi-core from 5.7.5 to 5.8.0
 		Bump rome from 1.15.0 to 1.16.0
