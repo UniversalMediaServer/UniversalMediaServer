@@ -134,7 +134,8 @@ public class FileWatcher {
 	}
 
 	/**
-	 * Add a file watchpoint to the Watch Service.
+	 * Add a file watchpoint to the Watch Service. Will not
+	 * add duplicates.
 	 *
 	 * @param w The watch object.
 	 */

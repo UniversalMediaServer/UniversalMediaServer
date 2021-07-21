@@ -1657,11 +1657,13 @@ public class ImagesUtil {
 			.append(", Re-encode = ").append(reencode ? "True" : "False");
 
 			LOGGER.trace(
-				"Finished converting {} {} image{}. Output image resolution: {}, {}. Flags: {}",
-				inputResult.width + "×" + inputResult.height,
+				"Finished converting {}x{} {} image{}. Output image resolution: {}x{}, {}. Flags: {}",
+				inputResult.width,
+				inputResult.height,
 				inputResult.imageFormat,
 				orientation != ExifOrientation.TOP_LEFT ? " with orientation " + orientation : "",
-				bufferedImage.getWidth() + "×" + bufferedImage.getHeight(),
+				bufferedImage.getWidth(),
+				bufferedImage.getHeight(),
 				dlnaCompliant && outputProfile != null ? "profile: " + outputProfile : "format: " + outputFormat,
 				sb
 			);
