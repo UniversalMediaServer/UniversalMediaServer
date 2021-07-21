@@ -96,7 +96,7 @@ public class RendererPanel extends JPanel {
 		open.setFocusPainted(false);
 		open.addActionListener((final ActionEvent e) -> {
 			DeviceConfiguration d = (DeviceConfiguration) renderer;
-			File f = chooseConf(DeviceConfiguration.getDeviceDir(), DeviceConfiguration.getDefaultFilename(d));
+			File f = chooseConf(DeviceConfiguration.getDeviceDir(), RendererConfiguration.getDefaultFilename(d));
 			if (f != null) {
 				File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
 				buildEditBar(true);
