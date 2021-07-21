@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.7.1-SNAPSHOT</version>
+	<version>10.8.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.7.1</project.version.short>
+		<project.version.short>10.8.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -81,7 +81,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>134</binary-revision>
+		<binary-revision>137</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -184,7 +184,7 @@
 
 				Check the commons-io:commons-io version of the library before upgrading
 			-->
-			<version>2.10.0</version>
+			<version>2.11.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -550,7 +550,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.7.5</version>
+			<version>5.8.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -875,7 +875,7 @@
 
 			<plugin>
 				<artifactId>maven-idea-plugin</artifactId>
-				<version>2.3-atlassian-10</version>
+				<version>2.2.1</version>
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
@@ -1015,7 +1015,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.2.3</version>
+				<version>4.3.0</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
@@ -1182,6 +1182,7 @@
 										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR-new.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/win32/vcomp100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/win32/youtube-dl.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv43260.dll" usetimestamp="true" />
@@ -1630,6 +1631,7 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1735,6 +1737,7 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1840,6 +1843,7 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1966,6 +1970,7 @@
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 
 										<get src="${project.binaries-base}/linux/x86/jre8/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/release?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/release" usetimestamp="true" />
@@ -2205,6 +2210,7 @@
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
 
 										<get src="${project.binaries-base}/linux/x86_64/jre8/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre8/release?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/release" usetimestamp="true" />
@@ -2482,6 +2488,7 @@
 										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
@@ -2681,6 +2688,7 @@
 										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/flac?p=${binary-revision}" dest="${project.binaries}/osx/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />

@@ -11,6 +11,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
+import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.util.FileUtil;
@@ -90,8 +91,13 @@ public class RemoteMediaHandler implements HttpHandler {
 					mimeType = "video/flash";
 				} else if (!RemoteUtil.directmime(mimeType) || RemoteUtil.transMp4(mimeType, media)) {
 					mimeType = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
+					// TODO: Use normal engine priorities instead of the following hacks
 					if (FileUtil.isUrl(resource.getSystemName())) {
-						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_WEB_VIDEO, false, false));
+						if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
+							resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.YOUTUBE_DL, false, false));
+						} else {
+							resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_WEB_VIDEO, false, false));
+						}
 					} else if (!(resource instanceof DVDISOTitle)) {
 						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_VIDEO, false, false));
 					}

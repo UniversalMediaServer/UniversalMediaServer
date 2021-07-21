@@ -323,6 +323,10 @@ public class RemoteWeb {
 				} else {
 					r.checkThumbnail();
 					in = r.fetchThumbnailInputStream();
+					if (in == null) {
+						// if r is null for some reason, default to generic thumb
+						in = r.getGenericThumbnailInputStream(null);
+					}
 				}
 				BufferedImageFilterChain filterChain = null;
 				if (r instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) r).getFile())) {

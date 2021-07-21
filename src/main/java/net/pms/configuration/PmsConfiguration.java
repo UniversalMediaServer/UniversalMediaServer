@@ -363,6 +363,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+	protected static final String WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -1180,6 +1181,23 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for youtube-dl.
+	 */
+	@Nullable
+	public ExternalProgramInfo getYoutubeDlPaths() {
+		return programPaths.getYoutubeDl();
+	}
+
+	/**
+	 * @return The configured path to the FLAC executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getYoutubeDlPath() {
+		return getYoutubeDlPaths().getDefaultPath().toString();
 	}
 
 	/**
@@ -2860,22 +2878,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			enginesPriorityBuilt = true;
 		} finally {
 			ENGINES_PRIORITY_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Gets a {@link UniqueList} of the {@link PlayerId}s ordered by priority.
-	 * Returns a new instance, any modifications won't affect priority list.
-	 *
-	 * @return A copy of the priority list.
-	 */
-	public UniqueList<PlayerId> getEnginesPriority() {
-		buildEnginesPriority();
-		ENGINES_PRIORITY_LOCK.readLock().lock();
-		try {
-			return new UniqueList<PlayerId>(enginesPriority);
-		} finally {
-			ENGINES_PRIORITY_LOCK.readLock().unlock();
 		}
 	}
 
@@ -4908,6 +4910,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * @return whether youtube-dl has been enabled once.
+	 */
+	public boolean wasYoutubeDlEnabledOnce() {
+		return getBoolean(WAS_YOUTUBE_DL_ENABLED_ONCE, false);
+	}
+
+	/**
+	 * Records whether youtube-dl has been enabled on program
+	 * initialization one time, to prevent it enabling again.
+	 */
+	public void setYoutubeDlEnabledOnce() {
+		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
+	}
+
+	/**
 	 * This {@code enum} represents the available "levels" for subtitles
 	 * information display that is to be appended to the video name.
 	 */
@@ -4983,9 +5000,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			"#                                                                                                        #",
 			"# WEB.conf: configure support for web feeds and streams                                                  #",
 			"#                                                                                                        #",
-			"# NOTE: This file must be placed in the profile directory to work:                                       #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"# NOTE: This file must be placed in the profile directory to work                                        #",
 			"#                                                                                                        #",
 			"# Supported types:                                                                                       #",
 			"#                                                                                                        #",
@@ -4993,16 +5008,11 @@ public class PmsConfiguration extends RendererConfiguration {
 			"#                                                                                                        #",
 			"# Format for feeds:                                                                                      #",
 			"#                                                                                                        #",
-			"#     type.folders,separated,by,commas=URL                                                               #",
+			"#     type.folders,separated,by,commas=URL,,,name                                                        #",
 			"#                                                                                                        #",
 			"# Format for streams:                                                                                    #",
 			"#                                                                                                        #",
-			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
-			"#                                                                                                        #",
-			"# For more web feed/stream options, see:                                                                 #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
+			"#     type.folders,separated,by,commas=name,URL,optional thumbnail URL                                   #",
 			"#                                                                                                        #",
 			"##########################################################################################################"
 		);
@@ -5014,23 +5024,20 @@ public class PmsConfiguration extends RendererConfiguration {
 		defaultWebConfContents.addAll(Arrays.asList(
 			"",
 			"# image feeds",
-			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?format=rss2",
-			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=39453068@N05&format=rss2",
-			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=14362684@N08&format=rss2",
-			"imagefeed.Web,Pictures=http://picasaweb.google.fr/data/feed/base/user/nefuisalbum/albumid/5218433104757705489?alt=rss&kind=photo&hl=en_US",
-			"imagefeed.Web,Pictures=http://picasaweb.google.com/data/feed/base/user/FenderStratRocker?alt=rss&kind=album&hl=en_US&access=public",
+			"imagefeed.Web,Pictures=https://api.flickr.com/services/feeds/photos_public.gne?format=rss2",
+			"imagefeed.Web,Pictures=https://api.flickr.com/services/feeds/photos_public.gne?id=39453068@N05&format=rss2",
+			"imagefeed.Web,Pictures=https://api.flickr.com/services/feeds/photos_public.gne?id=14362684@N08&format=rss2",
 			"",
 			"# audio feeds",
 			"audiofeed.Web,Podcasts=https://rss.art19.com/caliphate",
 			"audiofeed.Web,Podcasts=https://www.nasa.gov/rss/dyn/Gravity-Assist.rss",
 			"audiofeed.Web,Podcasts=http://podcasts.joerogan.net/feed",
-			"audiofeed.Web,Podcasts=http://wakingup.libsyn.com/rss",
+			"audiofeed.Web,Podcasts=https://wakingup.libsyn.com/rss",
 			"audiofeed.Web,Podcasts=https://rss.art19.com/wolverine-the-long-night",
 			"",
 			"# video feeds",
-			"videofeed.Web,Vodcasts=http://feeds.feedburner.com/tedtalks_video",
+			"videofeed.Web,Vodcasts=https://feeds.feedburner.com/tedtalks_video",
 			"videofeed.Web,Vodcasts=https://www.nasa.gov/rss/dyn/nasax_vodcast.rss",
-			"videofeed.Web,Vodcasts=https://www.unicef.org/rss/unicef_television_vodcast.xml",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC0PEAMcRK7Mnn2G1bCBXOWQ",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCccjdJEay2hpb5scz61zY6Q",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCOiUKJ6lMU3yHbVNtNXJyfw",
@@ -5038,6 +5045,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCfAOh2t5DpxVrgS9NQKjC7A",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC8-Th83bH_thdKZDJCrn88g",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCzRBkt4a2hy6HObM3cl-x7g",
+			"",
+			"# audio streams",
+			"audiostream.Web,Radio=RNZ,http://radionz-ice.streamguys.com/national.mp3,https://www.rnz.co.nz/assets/cms_uploads/000/000/159/RNZ_logo-Te-Reo-NEG-500.png",
 			"",
 			"# video streams",
 			"# videostream.Web,TV=France 24,mms://stream1.france24.yacast.net/f24_liveen,http://www.france24.com/en/sites/france24.com.en/themes/france24/logo-fr.png",
@@ -5048,7 +5058,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		writeWebConfigurationFile(defaultWebConfContents);
 	}
 
-	public void writeWebConfigurationFile(List<String> fileContents) {
+	public synchronized void writeWebConfigurationFile(List<String> fileContents) {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);
