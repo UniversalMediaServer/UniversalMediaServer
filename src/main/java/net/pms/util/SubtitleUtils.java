@@ -85,6 +85,15 @@ public class SubtitleUtils {
 		new SubtitleUtils.SubtitlesExtractionBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
 
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread("SubtitleUtils Executor Shutdown Hook") {
+			@Override
+			public void run() {
+				BACKGROUND_EXECUTOR.shutdownNow();
+			}
+		});
+	}
+
 	private static IFrame frame = PMS.get().getFrame();
 
 	static {
