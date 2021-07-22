@@ -135,7 +135,7 @@ public class DbIdResourceLocator {
 							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (A.ALBUMARTIST = '%s' or A.ARTIST = '%s')",
 							typeAndIdent.ident, typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
-							res = new VirtualFolderDbId("All files", new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
+							res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
 								"");
 							while (resultSet.next()) {
 								DLNAResource item = new RealFileDbId(
@@ -147,7 +147,7 @@ public class DbIdResourceLocator {
 						}
 						break;
 					case TYPE_PERSON:
-						res = new VirtualFolderDbId("", new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON, typeAndIdent.ident), "");
+						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON, typeAndIdent.ident), "");
 						DLNAResource allFiles = new VirtualFolderDbId("All files",
 							new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 						res.addChild(allFiles);
@@ -158,7 +158,7 @@ public class DbIdResourceLocator {
 					case TYPE_PERSON_ALBUM:
 						sql = String.format("SELECT DISTINCT(album) FROM AUDIOTRACKS A where COALESCE(A.ALBUMARTIST, A.ARTIST) = '%s'",
 							typeAndIdent.ident);
-						res = new VirtualFolderDbId("Albums", new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							while (resultSet.next()) {
 								String album = resultSet.getString(1);
