@@ -43,6 +43,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1124,6 +1125,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
 						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
 
+					if (hasAudioFiles(dlna)) {
+						sortChildrenWithAudioElements(dlna);
+					}
 					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
 						final DLNAResource child = dlna.getChildren().get(i);
 						if (child != null) {
@@ -1147,6 +1151,40 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return resources;
+	}
+
+	private boolean hasAudioFiles(DLNAResource dlna) {
+		for (DLNAResource res : dlna.getChildren()) {
+			if (res.getFormat() == null || !res.getFormat().isAudio()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void sortChildrenWithAudioElements(DLNAResource dlna) {
+		Collections.sort(dlna.getChildren(), new Comparator<DLNAResource>() {
+
+			@Override
+			public int compare(DLNAResource o1, DLNAResource o2) {
+				if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
+					if (o2 != null && o2.getFormat() != null && o2.getFormat().isAudio()) {
+						return getTrackNum(o1).compareTo(getTrackNum(o2));
+					} else {
+						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+					}
+				} else {
+					return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+				}
+			}
+		});
+	}
+
+	private Integer getTrackNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getTrack();
+		}
+		return 0;
 	}
 
 	protected void refreshChildrenIfNeeded(String search) {
