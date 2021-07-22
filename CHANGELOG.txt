@@ -10,7 +10,7 @@
 		Fixed sample web feeds and streams not being loaded on macOS
 		Fixed broken sample web feeds
 		Fixed/updated readme links
-		Fixed web bump interface
+		Fixed web bump interface (thanks, Pikarobbi!)
 		Fixed broken thumbnail caching on macOS
 		Fixed support for mp3 radio streams on the web interface
 		Fixed support for radio streams without thumbnails on the web interface
@@ -26,7 +26,6 @@
 	Dependencies:
 		Bump commons-io from 2.10.0 to 2.11.0
 		Bump FFmpeg to latest Git versions
-		Bump logback-version from 1.2.3 to 1.2.4
 		Bump oshi-core from 5.7.5 to 5.8.0
 		Bump rome from 1.15.0 to 1.16.0
 		Bump spotbugs-maven-plugin from 4.2.3 to 4.3.0
