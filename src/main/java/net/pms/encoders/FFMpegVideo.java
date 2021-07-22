@@ -50,7 +50,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -962,11 +961,7 @@ public class FFMpegVideo extends Player {
 			PlayerFactory.isPlayerActive(MEncoderVideo.ID) &&
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			params.getSid() != null &&
-			!(
-				configuration.isShowTranscodeFolder() &&
-				dlna.isNoName() &&
-				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
-			) &&
+			!dlna.isInsideTranscodeFolder() &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
 			(
@@ -986,9 +981,9 @@ public class FFMpegVideo extends Player {
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "the video codec is not the same as the transcoding goal.");
-			} else if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			} else if (dlna.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (params.getSid() != null) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
@@ -1014,9 +1009,9 @@ public class FFMpegVideo extends Player {
 		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (configuration.isShowTranscodeFolder() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			if (dlna.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (!params.getMediaRenderer().isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
@@ -1603,32 +1598,6 @@ public class FFMpegVideo extends Player {
 				};
 				ffParser.setFiltered(true);
 				pw.setStderrConsumer(ffParser);
-			}
-		}
-	}
-
-	private static void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
-		String line;
-		boolean resolved = false;
-		while ((line = input.readLine()) != null) {
-			if (line.contains("[Script Info]")) {
-				while ((line = input.readLine()) != null) {
-					if (isNotBlank(line)) {
-						if (line.contains("PlayResX:")) {
-							subtitlesWidth = Integer.parseInt(line.substring(9).trim());
-						} else if (line.contains("PlayResY:")) {
-							subtitlesHeight = Integer.parseInt(line.substring(9).trim());
-						}
-					} else {
-						resolved = true;
-						break;
-					}
-				}
-			}
-			if (resolved) {
-				input.close();
-				break;
 			}
 		}
 	}

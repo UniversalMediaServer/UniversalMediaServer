@@ -69,6 +69,9 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	/** The {@link Configuration} key for the custom InterFrame path. */
 	public static final String KEY_INTERFRAME_PATH  = "interframe_path";
 
+	/** The {@link Configuration} key for the custom youtube-dl path. */
+	public static final String KEY_YOUTUBEDL_PATH  = "youtubedl_path";
+
 	private final Configuration configuration;
 	private final PlatformProgramPaths platformPaths = PlatformProgramPaths.get();
 
@@ -86,6 +89,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 		setCustomPathFromConfiguration(getTsMuxeRNew(), KEY_TSMUXER_NEW_PATH);
 		setCustomPathFromConfiguration(getFLAC(), KEY_FLAC_PATH);
 		setCustomPathFromConfiguration(getInterFrame(), KEY_INTERFRAME_PATH);
+		setCustomPathFromConfiguration(getYoutubeDl(), KEY_YOUTUBEDL_PATH);
 	}
 
 	@Override
@@ -133,6 +137,11 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 		return platformPaths.getInterFrame();
 	}
 
+	@Override
+	public ExternalProgramInfo getYoutubeDl() {
+		return platformPaths.getYoutubeDl();
+	}
+
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for MPlayer
 	 * both in {@link #configuration} and the {@link ExternalProgramInfo}.
@@ -173,6 +182,16 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 */
 	public void setCustomInterFramePath(@Nullable Path path) {
 		setCustomProgramPath(path, platformPaths.getInterFrame(), KEY_INTERFRAME_PATH, true);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for youtube-dl
+	 * both in {@link #configuration} and the {@link ExternalProgramInfo}.
+	 *
+	 * @param path the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomYoutubeDlPath(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getYoutubeDl(), KEY_YOUTUBEDL_PATH, true);
 	}
 
 	/**

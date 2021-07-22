@@ -33,6 +33,7 @@
 				<include>mplayer</include>
 				<include>tsMuxeR</include>
 				<include>tsMuxeR-new</include>
+				<include>youtube-dl</include>
 			</includes>
 		</fileSet>
 

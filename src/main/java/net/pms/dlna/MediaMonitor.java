@@ -163,12 +163,18 @@ public class MediaMonitor extends VirtualFolder {
 
 		boolean isMonitored = false;
 		List<Path> foldersMonitored = configuration.getMonitoredFolders();
-		if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+		if (!foldersMonitored.isEmpty()) {
 			for (Path folderMonitored : foldersMonitored) {
 				if (fullPathToFile.contains(folderMonitored.toAbsolutePath().toString())) {
 					isMonitored = true;
+					break;
 				}
 			}
+		}
+
+		if (!isMonitored) {
+			LOGGER.trace("File {} is not within a monitored directory, so not calculating fully played status", realFile.getName());
+			return;
 		}
 
 		// The total video duration in seconds
@@ -212,16 +218,14 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
 			DLNAResource fileParent = realFile.getParent();
-			if (fileParent != null && isMonitored && !isFullyPlayed(fullPathToFile)) {
+			if (fileParent != null && !isFullyPlayed(fullPathToFile)) {
+				// Only set fully played if the file will stay where it is
 				if (
 					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
 					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
 					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
 				) {
 					setFullyPlayed(fullPathToFile, true, elapsed);
-					if (realFile.getMedia() != null) {
-						realFile.getMedia().setThumbready(false);
-					}
 				}
 
 				setDiscovered(false);
@@ -359,7 +363,9 @@ public class MediaMonitor extends VirtualFolder {
 		try {
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
 			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
-			TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			if (lastPlaybackPosition != null) {
+				TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			}
 		} finally {
 			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}

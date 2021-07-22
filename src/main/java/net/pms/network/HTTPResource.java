@@ -197,7 +197,7 @@ public class HTTPResource {
 	 * @return byte array.
 	 * @throws IOException
 	 */
-	protected static byte[] downloadAndSendBinary(String u) throws IOException {
+	public static byte[] downloadAndSendBinary(String u) throws IOException {
 		return downloadAndSendBinary(u, false, null);
 	}
 

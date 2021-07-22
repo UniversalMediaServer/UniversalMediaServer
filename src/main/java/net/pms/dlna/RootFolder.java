@@ -22,6 +22,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.Win32Exception;
+import java.awt.Cursor;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -470,18 +471,42 @@ public class RootFolder extends DLNAResource {
 	 * Removes all web folders, re-parses the web config file, and adds a
 	 * file watcher for the file.
 	 */
-	public void loadWebConf() {
-		for (DLNAResource d : webFolders) {
-			getChildren().remove(d);
+	public synchronized void loadWebConf() {
+		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		SharedContentTab.webContentList.setEnabled(false);
+		try {
+			Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
+			for (DLNAResource d : webFolders) {
+				getChildren().remove(d);
+			}
+			webFolders.clear();
+			String webConfPath = configuration.getWebConfPath();
+			File webConf = new File(webConfPath);
+			if (!webConf.exists()) {
+				configuration.writeWebConfigurationFile();
+			}
+			if (
+				webConf.exists() &&
+				configuration.getExternalNetwork() &&
+				(
+					SharedContentTab.lastWebContentUpdate == 1L ||
+					SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
+				)
+			) {
+				/**
+				 * If the GUI last updated less than 2 seconds ago, chances are good
+				 * that this method was triggered by changes in the GUI, which means
+				 * we can skip updating the GUI here (avoiding the peakaboo effect)
+				 */
+				LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
+				parseWebConf(webConf, currentlySelectedPosition);
+				FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
+			}
+			setLastModified(1);
+		} finally {
+			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			SharedContentTab.webContentList.setEnabled(true);
 		}
-		webFolders.clear();
-		String webConfPath = configuration.getWebConfPath();
-		File webConf = new File(webConfPath);
-		if (webConf.exists() && configuration.getExternalNetwork()) {
-			parseWebConf(webConf);
-			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
-		}
-		setLastModified(1);
 	}
 
 	/**
@@ -489,7 +514,7 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @param webConf
 	 */
-	private void parseWebConf(File webConf) {
+	private synchronized void parseWebConf(File webConf, Integer currentlySelectedPosition) {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
@@ -540,6 +565,7 @@ public class RootFolder extends DLNAResource {
 									parent = this;
 								}
 
+								// Handle web playlists
 								if (sourceType.endsWith("stream")) {
 									int type = sourceType.startsWith("audio") ? Format.AUDIO : Format.VIDEO;
 									DLNAResource playlist = PlaylistFolder.getPlaylist(uri, values[1], type);
@@ -549,21 +575,28 @@ public class RootFolder extends DLNAResource {
 									}
 								}
 
+								String optionalStreamThumbnail = values.length > 2 ? values[2] : null;
+
 								switch (sourceType) {
 									case "imagefeed":
 										parent.addChild(new ImagesFeed(uri));
 										break;
 									case "videofeed":
+										// Convert YouTube channel URIs to their feed URIs
+										if (uri.contains("youtube.com/channel/")) {
+											uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+										}
+
 										parent.addChild(new VideosFeed(uri));
 										break;
 									case "audiofeed":
 										parent.addChild(new AudiosFeed(uri));
 										break;
 									case "audiostream":
-										parent.addChild(new WebAudioStream(uri, values[1], values[2]));
+										parent.addChild(new WebAudioStream(uri, values[1], optionalStreamThumbnail));
 										break;
 									case "videostream":
-										parent.addChild(new WebVideoStream(uri, values[1], values[2]));
+										parent.addChild(new WebVideoStream(uri, values[1], optionalStreamThumbnail));
 										break;
 									default:
 										break;
@@ -584,7 +617,7 @@ public class RootFolder extends DLNAResource {
 			LOGGER.debug("", e);
 		} finally {
 			if (SharedContentTab.webContentList != null) {
-				SharedContentTab.parseWebConf(webConf);
+				SharedContentTab.setWebContentGUIFromWebConfFile(webConf, currentlySelectedPosition);
 			}
 		}
 	}
@@ -612,21 +645,14 @@ public class RootFolder extends DLNAResource {
 
 	/**
 	 * Splits the second part of a WEB.conf spec into a triple of Strings
-	 * representing the DLNA path, resource URI and optional thumbnail URI.
+	 * representing the DLNA path, resource URI, optional thumbnail URI
+	 * and name.
 	 *
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
 	public static String[] parseFeedValue(String spec) {
-		StringTokenizer st = new StringTokenizer(spec, ",");
-		String[] triple = new String[3];
-		int i = 0;
-
-		while (st.hasMoreTokens()) {
-			triple[i++] = st.nextToken();
-		}
-
-		return triple;
+		return spec.split(",");
 	}
 
 	/**
@@ -1561,5 +1587,46 @@ public class RootFolder extends DLNAResource {
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
+	}
+
+	/**
+	 * Starts partial rescan
+	 *
+	 * @param filename This is the partial root of the scan. If a file is given,
+	 *            the parent folder will be scanned.
+	 */
+	public static void rescanLibraryFileOrFolder(String filename) {
+		if (
+			hasSameBasePath(PMS.getConfiguration().getSharedFolders(), filename) ||
+			hasSameBasePath(RootFolder.getDefaultFolders(), filename)
+		) {
+			LOGGER.debug("rescanning file or folder : " + filename);
+
+			if (!PMS.get().getDatabase().isScanLibraryRunning()) {
+				Runnable scan = () -> {
+					File file = new File(filename);
+					if (file.isFile()) {
+						file = file.getParentFile();
+					}
+					DLNAResource dir = new RealFile(file);
+					dir.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					dir.doRefreshChildren();
+					PMS.get().getRootFolder(null).scan(dir);
+				};
+				Thread scanThread = new Thread(scan, "rescanLibraryFileOrFolder");
+				scanThread.start();
+			}
+		} else {
+			LOGGER.warn("given file or folder doesn't share same base path as this server : " + filename);
+		}
+	}
+
+	public static boolean hasSameBasePath(List<Path> dirs, String content) {
+		for (Path path : dirs) {
+			if (content.startsWith(path.toString())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
