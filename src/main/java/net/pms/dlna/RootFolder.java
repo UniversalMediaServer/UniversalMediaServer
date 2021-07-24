@@ -472,7 +472,12 @@ public class RootFolder extends DLNAResource {
 	 * file watcher for the file.
 	 */
 	public synchronized void loadWebConf() {
-		Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
+		Integer currentlySelectedPosition = -1;
+
+		if (SharedContentTab.webContentList != null) {
+			currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
+		}
+
 		for (DLNAResource d : webFolders) {
 			getChildren().remove(d);
 		}
