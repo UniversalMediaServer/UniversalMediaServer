@@ -22,7 +22,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.Win32Exception;
-import java.awt.Cursor;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;

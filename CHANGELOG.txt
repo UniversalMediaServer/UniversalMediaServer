@@ -1,3 +1,10 @@
+10.8.2 - 2021-07-
+
+	General:
+		Fixed a crash on headless environments like Docker
+	Translation updates via Crowdin:
+		Polish (100%) (thanks, Karol Szastok!)
+
 10.8.1 - 2021-07-24
 
 	General:
