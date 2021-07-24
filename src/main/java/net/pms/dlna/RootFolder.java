@@ -472,41 +472,34 @@ public class RootFolder extends DLNAResource {
 	 * file watcher for the file.
 	 */
 	public synchronized void loadWebConf() {
-		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		SharedContentTab.webContentList.setEnabled(false);
-		try {
-			Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
-			for (DLNAResource d : webFolders) {
-				getChildren().remove(d);
-			}
-			webFolders.clear();
-			String webConfPath = configuration.getWebConfPath();
-			File webConf = new File(webConfPath);
-			if (!webConf.exists()) {
-				configuration.writeWebConfigurationFile();
-			}
-			if (
-				webConf.exists() &&
-				configuration.getExternalNetwork() &&
-				(
-					SharedContentTab.lastWebContentUpdate == 1L ||
-					SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
-				)
-			) {
-				/**
-				 * If the GUI last updated less than 2 seconds ago, chances are good
-				 * that this method was triggered by changes in the GUI, which means
-				 * we can skip updating the GUI here (avoiding the peakaboo effect)
-				 */
-				LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
-				parseWebConf(webConf, currentlySelectedPosition);
-				FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
-			}
-			setLastModified(1);
-		} finally {
-			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			SharedContentTab.webContentList.setEnabled(true);
+		Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
+		for (DLNAResource d : webFolders) {
+			getChildren().remove(d);
 		}
+		webFolders.clear();
+		String webConfPath = configuration.getWebConfPath();
+		File webConf = new File(webConfPath);
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
+		if (
+			webConf.exists() &&
+			configuration.getExternalNetwork() &&
+			(
+				SharedContentTab.lastWebContentUpdate == 1L ||
+				SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
+			)
+		) {
+			/**
+			 * If the GUI last updated less than 2 seconds ago, chances are good
+			 * that this method was triggered by changes in the GUI, which means
+			 * we can skip updating the GUI here (avoiding the peakaboo effect)
+			 */
+			LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
+			parseWebConf(webConf, currentlySelectedPosition);
+			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
+		}
+		setLastModified(1);
 	}
 
 	/**
