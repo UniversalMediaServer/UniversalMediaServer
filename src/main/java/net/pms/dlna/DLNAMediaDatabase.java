@@ -44,6 +44,7 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.CharMatcher;
+import com.sun.jna.Platform;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -142,15 +143,29 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
-		boolean logDB = CONFIGURATION.getDatabaseLogging();
-		url = Constants.START_URL + dbDir + File.separator + dbName + (logDB ? ";TRACE_LEVEL_FILE=3" : "");
-		LOGGER.debug("Using database URL: {}", url);
-		LOGGER.info("Using database located at: \"{}\"", dbDir);
-		if (logDB) {
+		url = Constants.START_URL + dbDir + File.separator + dbName;
+
+		if (!Platform.isLinux()) {
+			/**
+			 * This enables multiple database connections, which is useful for
+			 * debugging (can run UMS and H2 debug tool at the same time) and 
+			 * also makes it less bad when there is a hung process.
+			 *
+			 * Disabled on Linux because of a connection error seen on SUSE.
+			 * @see https://www.universalmediaserver.com/forum/viewtopic.php?f=10&t=14774
+			 */
+			url += ";AUTO_SERVER=TRUE";
+		}
+
+		if (CONFIGURATION.getDatabaseLogging()) {
+			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");
 		} else if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Database logging is disabled");
 		}
+
+		LOGGER.debug("Using database URL: {}", url);
+		LOGGER.info("Using database located at: \"{}\"", dbDir);
 
 		try {
 			Class.forName("org.h2.Driver");
