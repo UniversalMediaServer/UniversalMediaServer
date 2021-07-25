@@ -148,7 +148,7 @@ public class DLNAMediaDatabase implements Runnable {
 		if (!Platform.isLinux()) {
 			/**
 			 * This enables multiple database connections, which is useful for
-			 * debugging (can run UMS and H2 debug tool at the same time) and 
+			 * debugging (can run UMS and H2 debug tool at the same time) and
 			 * also makes it less bad when there is a hung process.
 			 *
 			 * Disabled on Linux because of a connection error seen on SUSE.
