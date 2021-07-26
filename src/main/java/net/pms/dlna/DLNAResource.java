@@ -1641,7 +1641,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					sb.append(" ").append(displayNamesuffix);
 				}
 			}
-		} else if (isInsideTranscodeFolder()) {
+		} else if (isInsideTranscodeFolder() && !(this instanceof ChapterFileTranscodeVirtualFolder)) {
 			// This matches the [No transcoding] entry in the TRANSCODE folder
 			sb.setLength(0);
 		}
