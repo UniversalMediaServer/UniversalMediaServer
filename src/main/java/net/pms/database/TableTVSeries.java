@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.util.FileUtil;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public final class TableTVSeries extends Tables {
 	/**
@@ -75,9 +76,12 @@ public final class TableTVSeries extends Tables {
 		if (seriesName != null) {
 			simplifiedTitle = FileUtil.getSimplifiedShowName(seriesName);
 			condition = "SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle);
-		} else {
+		} else if (isNotBlank((String) tvSeries.get("title"))) {
 			simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 			condition = "IMDBID = " + sqlQuote((String) tvSeries.get("imdbID"));
+		} else {
+			LOGGER.debug("Attempted to set TV series info with no series title: {}", (!tvSeries.isEmpty() ? tvSeries.toString() : "Nothing provided"));
+			return -1;
 		}
 
 		try (Connection connection = DATABASE.getConnection()) {
