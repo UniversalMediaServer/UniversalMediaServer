@@ -294,7 +294,7 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 				String url = null;
 
-				if (! FileUtil.isUrl(dlna.getSystemName())) {
+				if (!FileUtil.isUrl(dlna.getSystemName())) {
 					// Get the resource url
 					boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
 					// If the resource is not a transcode folder item, tag its url for forced streaming

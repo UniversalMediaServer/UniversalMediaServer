@@ -178,6 +178,7 @@ ul#Folders li span {
 #Media {
 	overflow-y: hidden;
 	padding-right: 0;
+	position: relative;
 }
 
 ul#Media li {
@@ -283,10 +284,6 @@ ul#Media .caption:hover {
 	margin-right:1px;
 }
 
-#MediaContainer {
-	position: relative;
-}
-
 #M3uFolder {
 	background: url('/files/folderdown16.png') no-repeat;
 	position: absolute;
@@ -295,14 +292,6 @@ ul#Media .caption:hover {
 	display: block;
 	top: -20px;
 	left: 1px;
-}
-
-ul#Media {
-	margin: 0;
-}
-
-ul#Media li:hover .caption {
-	color: #000 !important;
 }
 
 #ViewGrid,

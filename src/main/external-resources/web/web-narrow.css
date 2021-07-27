@@ -4,7 +4,7 @@ ul#Folders {
 	z-index: 1;
 }
 
-#MediaContainer,
+ul#Media,
 #TVSeriesContainer {
 	margin: 0 -20px 0 0;
 	padding: 20px 20px 20px 0;

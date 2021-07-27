@@ -54,7 +54,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static DeviceConfiguration streamingConf;
-	public static String NOTRANSCODE = "_NOTRANSCODE_";
+	public static final String NOTRANSCODE = "_NOTRANSCODE_";
 	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
 
 	protected RootFolder rootFolder;

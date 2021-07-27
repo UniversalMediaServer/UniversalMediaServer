@@ -1,27 +1,3 @@
-ul#Folders {
-	width: 200px;
-	background-color: #222;
-	overflow: auto;
-	display: block;
-	padding: 20px;
-	position: absolute;
-	top: 94px;
-	bottom: 0;
-	left: 0;
-	z-index: 1;
-}
-
-#MediaContainer {
-	margin: 115px -20px 0 240px;
-	padding: 0px 0 20px 20px;
-	position: relative;
-	float: left;
-}
-
-#MediaContainer.noFolders {
-	margin: 115px -20px 0 0 !important;
-}
-
 #ContentPage #Menu {
 	background: url('/files/menu-background-content.png');
 	background-repeat: repeat-x;
