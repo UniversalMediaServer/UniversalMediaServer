@@ -3,36 +3,11 @@ package net.pms.dlna;
 import java.io.File;
 
 public class InputFile {
-	/**
-	 * TODO: Change all instance variables to private. For backwards compatibility
-	 * with external plugin code the variables have all been marked as deprecated
-	 * rather than being changed to private, but this will change in the future.
-	 * When everything has been changed to private, this note can be removed.
-	 */
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public File file;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public IPushOutput push;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String filename;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public Long size = null;
+	private File file;
+	private IPushOutput push;
+	private String filename;
+	private Long size = null;
 
 	/**
 	 * Return the string representation of this InputFile.

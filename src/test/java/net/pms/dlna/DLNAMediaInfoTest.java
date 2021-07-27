@@ -39,6 +39,7 @@ public class DLNAMediaInfoTest {
 		"video-h264-heaac.mp4",
 		"video-h264-eac3.mkv",
 		"audio-flac24.flac",
+		"video-xvid-mp3.avi",
 	};
 
 	@Test
@@ -75,6 +76,12 @@ public class DLNAMediaInfoTest {
 		// Create a new PMS instance
 		PMS.getNewInstance();
 
+		// Check if the MediaInfo library is properly installed and initialized
+		// especially on Linux which needs users to be involved.
+		assertThat(LibMediaInfoParser.isValid())
+			.withFailMessage("\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n")
+			.isTrue();
+
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
 		DLNAResource parent = new VirtualFolder("test", "test");
@@ -102,7 +109,7 @@ public class DLNAMediaInfoTest {
 					break;
 				case 2:
 					assertThat(mediaInfo.toString()).isEqualTo(
-						"Container: MKV, Size: 5291494, Overall Bitrate: 2619552, Video Tracks: 1, Video Codec: h265, Duration: 0:00:16.160, Video Resolution: 1920 x 960, Display Aspect Ratio: 2.00:1, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.709, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: Stereo, Audio Codec: AAC-LC, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+						"Container: MKV, Size: 5291494, Overall Bitrate: 2619551, Video Tracks: 1, Video Codec: h265, Duration: 0:00:16.160, Video Resolution: 1920 x 960, Display Aspect Ratio: 2.00:1, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.709, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: Stereo, Audio Codec: AAC-LC, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
 					);
 					break;
 				case 3:
@@ -152,7 +159,7 @@ public class DLNAMediaInfoTest {
 					break;
 				case 12:
 					assertThat(mediaInfo.toString()).isEqualTo(
-						"Container: WAV, Size: 1073218, Overall Bitrate: 256069, Bitrate: 256069, Duration: 0:00:33.529, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
+						"Container: WAV, Size: 1073218, Overall Bitrate: 256062, Bitrate: 256062, Duration: 0:00:33.530, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
 					);
 					break;
 				case 13:
@@ -193,6 +200,11 @@ public class DLNAMediaInfoTest {
 				case 20:
 					assertThat(mediaInfo.toString()).isEqualTo(
 						"Container: FLAC, Size: 3208022, Overall Bitrate: 1231959, Bitrate: 1231959, Duration: 0:00:20.832, Audio Tracks: 1 [Audio Codec: FLAC, Bitrate: 1231916, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: audio/x-flac"
+					);
+					break;
+				case 21:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: AVI, Size: 1282694, Overall Bitrate: 793255, Video Tracks: 1, Video Codec: divx, Duration: 0:00:12.936, Video Resolution: 720 x 400, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 25.000, Audio Tracks: 1 [Audio Track Title From Metadata: video-mpeg4-aac, Audio Codec: MP3, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi"
 					);
 					break;
 				default:

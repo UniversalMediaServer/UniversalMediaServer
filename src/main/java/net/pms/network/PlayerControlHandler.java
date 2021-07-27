@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class PlayerControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private int port;
 	private String protocol;
@@ -53,10 +53,10 @@ public class PlayerControlHandler implements HttpHandler {
 		protocol = server instanceof HttpsServer ? "https://" : "http://";
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
-		String basepath = configuration.getWebPath().getPath();
-		bumpjs = new File(FilenameUtils.concat(basepath, configuration.getBumpJS("bump/bump.js")));
-		skindir = new File(FilenameUtils.concat(basepath, configuration.getBumpSkinDir("bump/skin")));
-		bumpAddress = configuration.getBumpAddress();
+		String basepath = CONFIGURATION.getWebPath().getPath();
+		bumpjs = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpJS("bump/bump.js")));
+		skindir = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpSkinDir("bump/skin")));
+		bumpAddress = CONFIGURATION.getBumpAddress();
 		defaultRenderer = null;
 	}
 
@@ -228,10 +228,10 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public String getBumpJS() {
 		RemoteUtil.ResourceManager resources = parent.getResources();
-		return resources.read("bump/bump.js")
-			+ "\nvar bumpskin = function() {\n"
-			+ resources.read("bump/skin/skin.js")
-			+ "\n}";
+		return resources.read("bump/bump.js") +
+			"\nvar bumpskin = function() {\n" +
+			resources.read("bump/skin/skin.js") +
+			"\n}";
 	}
 
 	public static Map<String, String> parseQuery(HttpExchange x) {
@@ -251,8 +251,8 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public static String translate(String uri) {
-		return uri.startsWith("/play/")
-			? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
+		return uri.startsWith("/play/") ?
+			(PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
 	@SuppressWarnings("unused")

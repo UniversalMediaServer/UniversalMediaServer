@@ -24,7 +24,6 @@ import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import javax.imageio.ImageIO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

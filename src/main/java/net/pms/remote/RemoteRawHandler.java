@@ -24,7 +24,6 @@ import net.pms.io.ProcessWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
 public class RemoteRawHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRawHandler.class);
 	private RemoteWeb parent;
@@ -71,7 +70,7 @@ public class RemoteRawHandler implements HttpHandler {
 					root.getDefaultRenderer().getMimeType(dlna);
 
 				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : dlna.length();
-				range = new Range.Byte(0l, len);
+				range = new Range.Byte(0L, len);
 				if (supported) {
 					in = dlna.getInputStream();
 				} else {

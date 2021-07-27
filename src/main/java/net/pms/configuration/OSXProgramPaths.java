@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import net.pms.util.FileUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 /**
  * This class keeps track of paths to external programs on macOS.
  *
@@ -40,6 +39,7 @@ public class OSXProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo tsMuxeRNewInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
+	private final ExternalProgramInfo youtubeDlInfo;
 
 	/**
 	 * Not to be instantiated, call {@link PlatformProgramPaths#get()} instead.
@@ -161,6 +161,21 @@ public class OSXProgramPaths extends PlatformProgramPaths {
 		if (dcRaw != null) {
 			dcRawInfo.setPath(ProgramExecutableType.INSTALLED, dcRaw);
 		}
+
+		// youtube-dl
+		Path youtubeDl = null;
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			youtubeDl = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("youtube-dl");
+		}
+		if (youtubeDl == null || !Files.exists(youtubeDl)) {
+			youtubeDl = PLATFORM_BINARIES_FOLDER.resolve("youtube-dl");
+		}
+		youtubeDlInfo = new ExternalProgramInfo("youtube-dl", ProgramExecutableType.BUNDLED);
+		youtubeDlInfo.setPath(ProgramExecutableType.BUNDLED, youtubeDl);
+		youtubeDl = FileUtil.findExecutableInOSPath(Paths.get("youtube-dl"));
+		if (youtubeDl != null) {
+			flacInfo.setPath(ProgramExecutableType.INSTALLED, youtubeDl);
+		}
 	}
 
 	@Override
@@ -206,5 +221,10 @@ public class OSXProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getInterFrame() {
 		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getYoutubeDl() {
+		return youtubeDlInfo;
 	}
 }

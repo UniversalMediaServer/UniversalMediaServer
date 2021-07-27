@@ -1,116 +1,97 @@
 name: Universal Media Server CI
 
-on: [push]
+on: [push, pull_request_target]
 
 jobs:
   macos:
+    if: |
+      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
+      (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]')
     runs-on: macos-latest
     strategy:
       matrix:
         # test against two different xcode version on MacOS
-        xcode: [ 9.4.1, 11 ]
-
+        xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 14
-        uses: actions/setup-java@v1
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
         with:
-          java-version: 14
-      # Step that does that actual cache save and restore
-      - uses: actions/cache@v1
+          distribution: 'adopt'
+          java-version: 8
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          maven-version: 3.6.3
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Install dependencies from Maven
         run: mvn external:install
-
       - name: Run tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
   windows:
+    if: |
+      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
+      (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]')
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 14
-        uses: actions/setup-java@v1
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
         with:
-          java-version: 14
-      # Step that does that actual cache save and restore
-      - uses: actions/cache@v1
+          distribution: 'adopt'
+          java-version: 8
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          maven-version: 3.6.3
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Install dependencies from Maven
         run: mvn external:install
-
       - name: Run tests
         run: mvn verify -P testing-windows
+      - name: Run linter
+        run: mvn verify -P linter
 
-  linux-bionic:
-    runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        # test against multiple major Java versions
-        java: [ 8, 14 ]
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK ${{ matrix.java }}
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java }}
-      # Step that does that actual cache save and restore
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Install dependencies from Maven
-        run: mvn external:install
-
-      - name: Run tests (Ubuntu Bionic)
-        run: |
-          sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.38/libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libzen0v5_0.4.38-1_amd64.xUbuntu_18.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libmediainfo0v5_18.12-1_amd64.xUbuntu_18.04.deb
-          mvn verify -B -V -P testing
-
-  linux-trusty:
+  linux:
+    if: |
+      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
+      (github.event_name == 'pull_request_target' && github.actor == 'dependabot[bot]')
     runs-on: ubuntu-16.04
-    strategy:
-      matrix:
-        # test against multiple major Java versions
-        java: [ 8, 14 ]
-
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK ${{ matrix.java }}
-        uses: actions/setup-java@v1
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
         with:
-          java-version: ${{ matrix.java }}
-      # Step that does that actual cache save and restore
-      - uses: actions/cache@v1
+          distribution: 'adopt'
+          java-version: '8'
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          maven-version: 3.6.3
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Install dependencies from Maven
         run: mvn external:install
-
-      - name: Run tests ( Ubuntu Trusty, Java ${{ matrix.java }} )
+      - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.37/libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
-          sudo dpkg -i libzen0_0.4.37-1_amd64.xUbuntu_14.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
-          sudo dpkg -i libmediainfo0_18.12-1_amd64.xUbuntu_14.04.deb
-          mvn verify -B -V -P testing
+          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_16.04.deb
+          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_16.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_16.04.deb
+          sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_16.04.deb
+          mvn verify -P testing

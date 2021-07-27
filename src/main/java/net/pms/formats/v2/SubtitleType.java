@@ -28,6 +28,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
  *
  * @since 1.60.0
  */
+@SuppressWarnings("checkstyle:MethodParamPad")
 public enum SubtitleType {
 	// MediaInfo database of codec signatures https://github.com/MediaArea/MediaInfoLib/blob/master/Source/Resource/Text/DataBase/Codec.csv
 
@@ -68,9 +69,9 @@ public enum SubtitleType {
 	private final List<String> libMediaInfoCodecs;
 	private final Category category;
 
-	private final static Map<Integer, SubtitleType> stableIndexToSubtitleTypeMap;
-	private final static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
-	private final static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
+	private final static Map<Integer, SubtitleType> STABLE_INDEX_TO_SUBTITLE_TYPE_MAP;
+	private final static Map<String, SubtitleType> FILE_EXTENSION_TO_SUBTITLE_TYPE_MAP;
+	private final static Map<String, SubtitleType> LIBMEDIAINFO_CODEC_TO_SUBTITLE_TYPE_MAP;
 
 	/**
 	 * A constant {@link Set} of lower-case file extensions for supported
@@ -82,56 +83,40 @@ public enum SubtitleType {
 	}
 
 	static {
-		stableIndexToSubtitleTypeMap = new HashMap<>();
-		fileExtensionToSubtitleTypeMap = new HashMap<>();
-		libmediainfoCodecToSubtitleTypeMap = new HashMap<>();
+		STABLE_INDEX_TO_SUBTITLE_TYPE_MAP = new HashMap<>();
+		FILE_EXTENSION_TO_SUBTITLE_TYPE_MAP = new HashMap<>();
+		LIBMEDIAINFO_CODEC_TO_SUBTITLE_TYPE_MAP = new HashMap<>();
 		for (SubtitleType subtitleType : values()) {
-			stableIndexToSubtitleTypeMap.put(subtitleType.getStableIndex(), subtitleType);
+			STABLE_INDEX_TO_SUBTITLE_TYPE_MAP.put(subtitleType.getStableIndex(), subtitleType);
 			for (String fileExtension : subtitleType.fileExtensions) {
-				fileExtensionToSubtitleTypeMap.put(fileExtension.toLowerCase(Locale.ROOT), subtitleType);
+				FILE_EXTENSION_TO_SUBTITLE_TYPE_MAP.put(fileExtension.toLowerCase(Locale.ROOT), subtitleType);
 			}
 			for (String codec : subtitleType.libMediaInfoCodecs) {
-				libmediainfoCodecToSubtitleTypeMap.put(codec.toLowerCase(Locale.ROOT), subtitleType);
+				LIBMEDIAINFO_CODEC_TO_SUBTITLE_TYPE_MAP.put(codec.toLowerCase(Locale.ROOT), subtitleType);
 			}
 		}
 		SUPPORTED_FILE_EXTENSIONS = Collections.unmodifiableSet(
-			new LinkedHashSet<>(fileExtensionToSubtitleTypeMap.keySet())
+			new LinkedHashSet<>(FILE_EXTENSION_TO_SUBTITLE_TYPE_MAP.keySet())
 		);
 	}
 
 	public static SubtitleType valueOfStableIndex(int stableIndex) {
-		SubtitleType subtitleType = stableIndexToSubtitleTypeMap.get(stableIndex);
+		SubtitleType subtitleType = STABLE_INDEX_TO_SUBTITLE_TYPE_MAP.get(stableIndex);
 		if (subtitleType == null) {
 			subtitleType = UNKNOWN;
 		}
 		return subtitleType;
-	}
-
-	/**
-	 * @deprecated use getSubtitleTypeByFileExtension(String fileExtension) instead
-	 */
-	@Deprecated
-	public static SubtitleType getSubtitleTypeByFileExtension(String fileExtension) {
-		return valueOfFileExtension(fileExtension);
 	}
 
 	public static SubtitleType valueOfFileExtension(String fileExtension) {
 		if (isBlank(fileExtension)) {
 			return UNKNOWN;
 		}
-		SubtitleType subtitleType = fileExtensionToSubtitleTypeMap.get(fileExtension.toLowerCase());
+		SubtitleType subtitleType = FILE_EXTENSION_TO_SUBTITLE_TYPE_MAP.get(fileExtension.toLowerCase());
 		if (subtitleType == null) {
 			subtitleType = UNKNOWN;
 		}
 		return subtitleType;
-	}
-
-	/**
-	 * @deprecated use SubtitleType {@link #valueOfMediaInfoValue} instead.
-	 */
-	@Deprecated
-	public static SubtitleType getSubtitleTypeByLibMediaInfoCodec(String codec) {
-		return valueOfMediaInfoValue(codec);
 	}
 
 	public static SubtitleType valueOfMediaInfoValue(String value) {
@@ -142,7 +127,7 @@ public enum SubtitleType {
 		if (isBlank(value)) {
 			return defaultType;
 		}
-		SubtitleType subtitleType = libmediainfoCodecToSubtitleTypeMap.get(
+		SubtitleType subtitleType = LIBMEDIAINFO_CODEC_TO_SUBTITLE_TYPE_MAP.get(
 			trim(value).toLowerCase(Locale.ROOT)
 		);
 		if (subtitleType == null) {

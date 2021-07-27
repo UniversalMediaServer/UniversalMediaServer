@@ -102,6 +102,7 @@ public class FFmpegProgramInfo extends ExternalProgramInfo {
 	protected FFmpegExecutableInfo createExecutableInfo(@Nonnull Path executablePath) {
 		return FFmpegExecutableInfo.build(executablePath).build();
 	}
+
 	/**
 	 * Returns a "deep-clone" of this instance where mutable objects are copied.
 	 *

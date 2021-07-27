@@ -27,101 +27,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of the audio properties of media.
- *
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
  */
 public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaAudio.class);
 	private AudioProperties audioProperties = new AudioProperties();
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int bitsperSample = 16;
-
+	private int bitsperSample = 16;
 	private int bitRate;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String sampleFrequency;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int nrAudioChannels;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String codecA;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String album;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String artist;
-
-	/**
-	 * Global artist of an album.
-	 */
+	private String sampleFrequency;
+	private String codecA;
+	private String album;
+	private String artist;
+	private String songname;
+	private String genre;
+	private int year;
+	private int track;
+	private String audioTrackTitleFromMetadata;
+	private String muxingModeAudio;
 	private String albumartist;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String songname;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String genre;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int year;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int track;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public int delay;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String audioTrackTitleFromMetadata;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String muxingModeAudio;
+	private String mbidRecord;
+	private String mbidTrack;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -353,14 +277,14 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @return True if the audio codec is RealAudio 14.4.
 	 */
-	public boolean isRealAudio14_4() {
+	public boolean isRealAudio144() {
 		return FormatConfiguration.REALAUDIO_14_4.equalsIgnoreCase(getCodecA());
 	}
 
 	/**
 	 * @return True if the audio codec is RealAudio 28.8.
 	 */
-	public boolean isRealAudio28_8() {
+	public boolean isRealAudio288() {
 		return FormatConfiguration.REALAUDIO_28_8.equalsIgnoreCase(getCodecA());
 	}
 
@@ -537,9 +461,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "LPCM";
 		} else if (isQDesign()) {
 			return "QDesign";
-		} else if (isRealAudio14_4()) {
+		} else if (isRealAudio144()) {
 			return "RealAudio 14.4";
-		} else if (isRealAudio28_8()) {
+		} else if (isRealAudio288()) {
 			return "RealAudio 28.8";
 		} else if (isRALF()) {
 			return "RealAudio Lossless";
@@ -706,31 +630,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns the number of channels for the audio.
-	 *
-	 * @return The number of channels
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().getNumberOfChannels() instead
-	 */
-	@Deprecated
-	public int getNrAudioChannels() {
-		return audioProperties.getNumberOfChannels();
-	}
-
-	/**
-	 * Sets the number of channels for the audio.
-	 *
-	 * @param numberOfChannels The number of channels to set.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().setNumberOfChannels(int numberOfChannels) instead
-	 */
-	@Deprecated
-	public void setNrAudioChannels(int numberOfChannels) {
-		this.nrAudioChannels = numberOfChannels;
-		audioProperties.setNumberOfChannels(numberOfChannels);
-	}
-
-	/**
 	 * Returns the name of the audio codec that is being used.
 	 *
 	 * @return The name of the audio codec.
@@ -771,6 +670,42 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Sets the MB record ID for this track.
+	 *
+	 * @param mbidRecord The MB record ID.
+	 */
+	public void setMbidRecord(String mbidRecord) {
+		this.mbidRecord = mbidRecord;
+	}
+
+	/**
+	 * Returns the MB record ID for this track
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidRecord() {
+		return this.mbidRecord;
+	}
+
+	/**
+	 * Sets the MB track ID for this track.
+	 *
+	 * @param mbidTrack The MB track ID.
+	 */
+	public void setMbidTrack(String mbidTrack) {
+		this.mbidTrack = mbidTrack;
+	}
+
+	/**
+	 * Returns MB track id for this track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getMbidTrack() {
+		return this.mbidTrack;
+	}
+
+	/**
 	 * Returns the name of the artist performing the audio track.
 	 *
 	 * @return The artist name.
@@ -781,7 +716,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Sets the name of the main artist of the album of the audio track. 
+	 * Sets the name of the main artist of the album of the audio track.
 	 * This field is often used for the compilation type albums or "featuring..." songs.
 	 *
 	 * @param artist The album artist name to set.
@@ -887,47 +822,6 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setTrack(int track) {
 		this.track = track;
-	}
-
-	/**
-	 * Returns the delay for the audio.
-	 *
-	 * @return The delay.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().getAudioDelay() instead
-	 */
-	@Deprecated
-	public int getDelay() {
-		return audioProperties.getAudioDelay();
-	}
-
-	/**
-	 * Sets the delay for the audio.
-	 *
-	 * @param audioDelay The delay to set.
-	 * @since 1.50
-	 * @deprecated Use getAudioProperties().setAudioDelay(int audioDelay) instead
-	 */
-	@Deprecated
-	public void setDelay(int audioDelay) {
-		this.delay = audioDelay;
-		audioProperties.setAudioDelay(audioDelay);
-	}
-
-	/**
-	 * @deprecated use getAudioTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public String getFlavor() {
-		return getAudioTrackTitleFromMetadata();
-	}
-
-	/**
-	 * @deprecated use setAudioTrackTitleFromMetadata()
-	 */
-	@Deprecated
-	public void setFlavor(String value) {
-		setAudioTrackTitleFromMetadata(value);
 	}
 
 	public String getAudioTrackTitleFromMetadata() {

@@ -37,9 +37,11 @@ ul#Folders {
 div#FoldersContainer {
 	position: fixed;
 	left: 0;
-	width: 200px;
+	width: 250px;
 	height: 100%;
 	display: block;
+	margin-top: 50px;
+	overflow-y: auto;
 }
 
 div#FoldersContainer div {
@@ -47,3 +49,26 @@ div#FoldersContainer div {
 	position: relative;
 }
 
+.posterContainer {
+	margin-right: 50px;
+}
+
+#MediaContainer {
+	margin-left: 250px;
+	margin-top: 50px;
+}
+
+.mediaInfo {
+	margin: 50px 50px 20px 50px;
+}
+
+.videoPage .mediaInfoText {
+	width: calc(50% - 50px);
+	margin-left: 50px;
+	float: left;
+}
+
+#VideoContainer {
+	float: left;
+	width: calc(50% - 25px);
+}

@@ -33,3 +33,4 @@ docker/logback.headless.xml
 docker/linux*
 docker/jre*
 /src/main/java/net/pms/Test.java
+.yarn-integrity

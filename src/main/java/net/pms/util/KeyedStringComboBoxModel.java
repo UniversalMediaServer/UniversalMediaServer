@@ -1,26 +1,23 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * Universal Media Server, for streaming any media to DLNA compatible renderers
+ * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
+ * developers.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
-import javax.swing.ComboBoxModel;
-import javax.swing.JComboBox;
 import javax.swing.event.ListDataEvent;
 import net.pms.Messages;
 
@@ -42,30 +39,14 @@ public class KeyedStringComboBoxModel extends KeyedComboBoxModel<String, String>
 	}
 
 	/**
-	 * Creates a new keyed {@link ComboBoxModel} for the given keys and values. Keys
-	 * and values must have the same number of items.
+	 * Creates a new keyed {@link ComboBoxModel} for the given keys and values.
+	 * Keys and values must have the same number of items.
 	 *
-	 * @param keys   the keys
+	 * @param keys the keys
 	 * @param values the values
 	 */
 	public KeyedStringComboBoxModel(final String[] keys, final String[] values) {
 		super(keys, values);
-	}
-
-	/**
-	 * Set the selected item. The implementation of this  method should notify
-	 * all registered <code>ListDataListener</code>s that the contents have
-	 * changed.
-	 *
-	 * @param anItem the list object to select or <code>null</code> to clear the
-	 *               selection
-	 *
-	 * @deprecated Inherited method. Use {@link #setSelectedKey(String)} or
-	 * {@link #setSelectedValue(String)} instead.
-	 */
-	@Override
-	public void setSelectedItem(final Object anItem) {
-		setSelectedValue((String) anItem);
 	}
 
 	/**
@@ -105,8 +86,8 @@ public class KeyedStringComboBoxModel extends KeyedComboBoxModel<String, String>
 	}
 
 	/**
-	 * Sets the selected key. If the {@link String} is not in the list of
-	 * keys, a new custom entry is generated.
+	 * Sets the selected key. If the {@link String} is not in the list of keys,
+	 * a new custom entry is generated.
 	 *
 	 * @param aKey the new selected item.
 	 */
@@ -130,14 +111,6 @@ public class KeyedStringComboBoxModel extends KeyedComboBoxModel<String, String>
 			}
 		}
 		fireListDataEvent(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, -1, -1));
-	}
-
-	/**
-	 * @deprecated Inherited method with no function.
-	 */
-	@Override
-	public void setAllowOtherValue(final boolean allowOtherValue) {
-		throw new IllegalArgumentException("AllowOtherValue is implicit in KeyedStringComboBoxModel");
 	}
 
 	private String generateCustomValue(String key) {

@@ -142,9 +142,8 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			return;
 		}
 
-		int chapterInterval = configuration.isChapterSupport()
-			? configuration.getChapterInterval()
-			: -1;
+		int chapterInterval = configuration.isChapterSupport() ?
+			configuration.getChapterInterval() : -1;
 
 		if ((chapterInterval > 0) && isSeekable(dlna)) {
 			// don't add a chapter folder if the duration of the video
@@ -185,7 +184,6 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	 * This populates the file-specific transcode folder with all combinations of players,
 	 * audio tracks and subtitles.
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void resolveOnce() {
 		if (getChildren().isEmpty()) { // OK
@@ -203,11 +201,11 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			// modifications to them
 			List<DLNAMediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracksList());
 			List<DLNAMediaSubtitle> subtitlesTracks;
-			if (media_subtitle != null) {
+			if (getMediaSubtitle() != null) {
 				// Transcode folder of live subtitles folder
-				subtitlesTracks = Collections.singletonList(media_subtitle);
+				subtitlesTracks = Collections.singletonList(getMediaSubtitle());
 			} else {
-				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitleTracksList());
+				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitlesTracks());
 			}
 
 			// If there is a single audio track, set that as audio track
@@ -265,7 +263,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				audioTracks.add(null);
 			}
 
-			if (media_subtitle == null) {
+			if (getMediaSubtitle() == null) {
 				if (subtitlesTracks.isEmpty()) {
 					subtitlesTracks.add(null);
 				} else {
@@ -300,13 +298,12 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				for (DLNAMediaSubtitle subtitlesTrack : subtitlesTracks) {
 					if (
 						subtitlesTrack != null && subtitlesTrack.isExternal() &&
-						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource.getMedia(), originalResource)
+						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource)
 					) {
 						DLNAResource copy = createResourceWithAudioSubtitlePlayer(originalResource, singleAudioTrack, subtitlesTrack, null);
 						entries.add(copy);
 					}
 
-					
 				}
 			}
 
@@ -317,11 +314,10 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			for (DLNAResource dlna : entries) {
 				LOGGER.trace(
 					"Adding {}: audio: {}, subtitle: {}, player: {}",
-					new Object[]{
 					dlna.getName(),
 					dlna.getMediaAudio(),
 					dlna.getMediaSubtitle(),
-					(dlna.getPlayer() != null ? dlna.getPlayer().name() : null),});
+					dlna.getPlayer() != null ? dlna.getPlayer().name() : null);
 
 				addChildInternal(dlna);
 				addChapterFolder(dlna);

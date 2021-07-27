@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,7 +51,6 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.newgui.SharedContentTab.SharedFoldersTableModel;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.util.CoverSupplier;
@@ -95,11 +93,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 
 	private static volatile boolean enabledEnginesBuilt = false;
-	private static final ReentrantReadWriteLock enabledEnginesLock = new ReentrantReadWriteLock();
+	private static final ReentrantReadWriteLock ENABLED_ENGINES_LOCK = new ReentrantReadWriteLock();
 	private static UniqueList<PlayerId> enabledEngines;
 
 	private static volatile boolean enginesPriorityBuilt = false;
-	private static final ReentrantReadWriteLock enginesPriorityLock = new ReentrantReadWriteLock();
+	private static final ReentrantReadWriteLock ENGINES_PRIORITY_LOCK = new ReentrantReadWriteLock();
 	private static UniqueList<PlayerId> enginesPriority;
 
 	/*
@@ -138,6 +136,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
 	protected static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
+	protected static final String KEY_API_KEY = "api_key";
 	protected static final String KEY_BUFFER_MAX = "buffer_max";
 	protected static final String KEY_BUMP_ADDRESS = "bump";
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
@@ -194,9 +193,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
+	protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-	
+
 	/**
 	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
 	 */
@@ -264,22 +264,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
-	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL= "playlist_auto_add_all";
+	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL = "playlist_auto_add_all";
 	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
-	protected static final String KEY_PLAYLIST_AUTO_PLAY= "playlist_auto_play";
+	protected static final String KEY_PLAYLIST_AUTO_PLAY = "playlist_auto_play";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
-
-	/**
-	 * This key was used in older versions, only supports {@code true} or
-	 * {@code false}. Kept for backwards-compatibility for now.
-	 *
-	 * @deprecated Use {@link #KEY_PREVENT_SLEEP} instead.
-	 */
-	@Deprecated
-	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
-
 	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
 	protected static final String KEY_PROFILE_NAME = "name";
 	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
@@ -307,7 +297,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
 	protected static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
-	protected static final String KEY_SHOW_NEW_MEDIA_FOLDER = "show_new_media_folder";
 	protected static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
 	protected static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
 	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
@@ -373,26 +362,28 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_WIDTH = "web_width";
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
-	// Deprecated settings
-	@Deprecated
-	protected static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
+	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+	protected static final String WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
 	protected static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
 
 	// The default profile name displayed on the renderer
-	protected static String HOSTNAME;
+	protected static String hostName;
 
-	protected static String DEFAULT_AVI_SYNTH_SCRIPT;
+	protected static String defaultAviSynthScript;
 	protected static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
 	protected static final int BUFFER_MEMORY_FACTOR = 368;
-	protected static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
+	protected static int maxMaxMemoryBufferSize = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	protected static final char LIST_SEPARATOR = ',';
-	public final String ALL_RENDERERS = "All renderers";
+	public final String allRenderers = "All renderers";
 
 	// Path to default logfile directory
 	protected String defaultLogFileDir = null;
+
+	// Path to default zipped logfile directory
+	protected String defaultZippedLogFileDir = null;
 
 	public TempFolder tempFolder;
 	@Nonnull
@@ -494,7 +485,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String PROFILE_PATH;
 
 	// Absolute path to WEB.conf file e.g. /path/to/WEB.conf
-	protected static String WEB_CONF_PATH;
+	protected static String webConfPath;
 
 	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
 	// "project.skelprofile.dir" project property
@@ -591,7 +582,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			File pmsConfFile = new File(PROFILE_PATH);
 
 			try {
-				((PropertiesConfiguration)configuration).load(pmsConfFile);
+				((PropertiesConfiguration) configuration).load(pmsConfFile);
 			} catch (ConfigurationException e) {
 				if (Platform.isLinux() && SKEL_PROFILE_PATH != null) {
 					LOGGER.debug("Failed to load {} ({}) - attempting to load skel profile", PROFILE_PATH, e.getMessage());
@@ -599,7 +590,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 					try {
 						// Load defaults from skel profile, save them later to PROFILE_PATH
-						((PropertiesConfiguration)configuration).load(skelConfigFile);
+						((PropertiesConfiguration) configuration).load(skelConfigFile);
 						LOGGER.info("Default configuration loaded from {}", SKEL_PROFILE_PATH);
 					} catch (ConfigurationException ce) {
 						LOGGER.warn("Can't load neither {}: {} nor {}: {}", PROFILE_PATH, e.getMessage(), SKEL_PROFILE_PATH, ce.getMessage());
@@ -610,7 +601,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 		}
 
-		((PropertiesConfiguration)configuration).setPath(PROFILE_PATH);
+		((PropertiesConfiguration) configuration).setPath(PROFILE_PATH);
 
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = new ConfigurableProgramPaths(configuration);
@@ -620,11 +611,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		Locale.setDefault(getLanguageLocale());
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
-		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
+		defaultAviSynthScript = "<movie>\n<sub>\n";
 
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
-			MAX_MAX_MEMORY_BUFFER_SIZE = (int) usableMemory;
+			maxMaxMemoryBufferSize = (int) usableMemory;
 		}
 	}
 
@@ -667,15 +658,18 @@ public class PmsConfiguration extends RendererConfiguration {
 					LOGGER.trace("getDefaultLogFileFolder: \"{}\" is not writable, falling back to {} for logging", folder.getAbsolutePath(), fallbackTo);
 				}
 			}
+
 			if (permissions.isFolder() && permissions.isBrowsable() && permissions.isWritable()) {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Default logfile folder set to: {}", folder.getAbsolutePath());
 				}
+
 				return folder.getAbsolutePath();
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.trace("getDefaultLogFileFolder: \"{}\" not found, falling back to {} for logging: {}", folder.getAbsolutePath(), fallbackTo, e.getMessage());
 		}
+
 		return null;
 	}
 
@@ -704,11 +698,13 @@ public class PmsConfiguration extends RendererConfiguration {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("getDefaultLogFileFolder: System is Linux, trying \"/var/log/UMS/{}/\"", System.getProperty("user.name"));
 				}
+
 				final File logDirectory = new File("/var/log/UMS/" + System.getProperty("user.name") + "/");
 				if (!logDirectory.exists()) {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", logDirectory.getAbsolutePath());
 					}
+
 					try {
 						FileUtils.forceMkdir(logDirectory);
 						if (LOGGER.isTraceEnabled()) {
@@ -718,6 +714,7 @@ public class PmsConfiguration extends RendererConfiguration {
 						LOGGER.debug("Could not create \"{}\": {}", logDirectory.getAbsolutePath(), e.getMessage());
 					}
 				}
+
 				defaultLogFileDir = verifyLogFolder(logDirectory, "profile folder");
 			}
 
@@ -746,11 +743,54 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (FileUtil.isValidFileName(s)) {
 			return s;
 		}
+
 		return "debug.log";
 	}
 
 	public String getDefaultLogFilePath() {
 		return FileUtil.appendPathSeparator(getDefaultLogFileFolder()) + getDefaultLogFileName();
+	}
+
+	/**
+	 * @return Path to desktop folder ({@code ~/Desktop/UMS-log} on Linux, {@code %USERPROFILE%/Desktop/UMS-log} on Windows and
+	 *     {@code ~/Desktop/UMS-log} on Mac). If desktop path is not writable then fall back to UMS log file path.
+	 */
+	public String getDefaultZippedLogFileFolder() {
+		if (defaultZippedLogFileDir == null) {
+			final File zippedLogDir = new File(
+					System.getProperty("user.home") +
+							File.separator + "Desktop" +
+							File.separator + "UMS-log"
+			);
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("getDefaultLogFileFolder: Trying \"{}\"", zippedLogDir.getAbsolutePath());
+			}
+
+			if (!zippedLogDir.exists()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("getDefaultLogFileFolder: Trying to create: \"{}\"", zippedLogDir.getAbsolutePath());
+				}
+
+				try {
+					FileUtils.forceMkdir(zippedLogDir);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("getDefaultLogFileFolder: \"{}\" created", zippedLogDir.getAbsolutePath());
+					}
+				} catch (IOException e) {
+					LOGGER.debug("Could not create \"{}\": {}", zippedLogDir.getAbsolutePath(), e.getMessage());
+				}
+			}
+
+			defaultZippedLogFileDir = verifyLogFolder(zippedLogDir, "UMS log file path");
+		}
+
+		if (defaultZippedLogFileDir == null) {
+			// default to UMS log file path
+			defaultZippedLogFileDir = getDefaultLogFilePath();
+		}
+
+		return defaultZippedLogFileDir;
 	}
 
 	public File getTempFolder() throws IOException {
@@ -794,6 +834,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
 			getString(player.getExecutableTypeKey(), null),
 			player.getProgramInfo().getDefault()
@@ -816,9 +857,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		if (executableType == null) {
 			throw new IllegalArgumentException("executableType cannot be null");
 		}
+
 		String key = player.getExecutableTypeKey();
 		if (key != null) {
 			String currentValue = configuration.getString(key);
@@ -826,10 +869,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (newValue.equals(currentValue)) {
 				return false;
 			}
+
 			configuration.setProperty(key, newValue);
 			player.determineCurrentExecutableType(executableType);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -848,6 +893,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (playerId == null) {
 			return null;
 		}
+
 		return getPlayerCustomPath(PlayerFactory.getPlayer(playerId, false, false));
 	}
 
@@ -902,14 +948,17 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		if (isBlank(player.getConfigurablePathKey())) {
 			throw new IllegalStateException(
 				"Can't set custom executable path for player " + player + "because it has no configurable path key"
 			);
 		}
+
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		return ((ConfigurableProgramPaths) programPaths).setCustomProgramPathConfiguration(
 			path,
 			player.getConfigurablePathKey()
@@ -970,9 +1019,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getMPlayerPaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getMPlayerPaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -986,6 +1037,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomMPlayerPath(customPath);
 	}
 
@@ -1019,9 +1071,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getTsMuxeRNewPaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getTsMuxeRNewPaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -1036,6 +1090,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomTsMuxeRNewPath(customPath);
 	}
 
@@ -1061,9 +1116,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getFLACPaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getFLACPaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -1077,6 +1134,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomFlacPath(customPath);
 	}
 
@@ -1102,9 +1160,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (executableType != null) {
 			executable = getInterFramePaths().getPath(executableType);
 		}
+
 		if (executable == null) {
 			executable = getInterFramePaths().getDefaultPath();
 		}
+
 		return executable == null ? null : executable.toString();
 	}
 
@@ -1119,7 +1179,25 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!isCustomProgramPathsSupported()) {
 			throw new IllegalStateException("The program paths aren't configurable");
 		}
+
 		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for youtube-dl.
+	 */
+	@Nullable
+	public ExternalProgramInfo getYoutubeDlPaths() {
+		return programPaths.getYoutubeDl();
+	}
+
+	/**
+	 * @return The configured path to the FLAC executable. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getYoutubeDlPath() {
+		return getYoutubeDlPaths().getDefaultPath().toString();
 	}
 
 	/**
@@ -1138,6 +1216,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 448);
+	}
+
+	public String getApiKey() {
+		return getString(KEY_API_KEY, "");
 	}
 
 	/**
@@ -1185,8 +1267,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (isAppendProfileName()) {
 			return String.format("%s [%s]", getString(KEY_SERVER_NAME, PMS.NAME), getProfileName());
 		}
+
 		return getString(KEY_SERVER_NAME, PMS.NAME);
 	}
+
 	/**
 	 * The name of the server.
 	 *
@@ -1203,17 +1287,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setServerName(String value) {
 		configuration.setProperty(KEY_SERVER_NAME, value);
-	}
-
-	/**
-	 * The TCP/IP port number for a proxy server. Default value is -1.
-	 *
-	 * @return The proxy port number.
-	 */
-	// no longer used
-	@Deprecated
-	public int getProxyServerPort() {
-		return getInt(KEY_PROXY_SERVER_PORT, DEFAULT_PROXY_SERVER_PORT);
 	}
 
 	/**
@@ -1239,6 +1312,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (log && locale == null) {
 				LOGGER.error("Invalid or unsupported language tag \"{}\", defaulting to OS language.", languageCode);
 			}
+
 		} else if (log) {
 			LOGGER.info("Language not specified, defaulting to OS language.");
 		}
@@ -1253,6 +1327,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (locale == null) {
 			locale = Locale.forLanguageTag("en-US"); // Default
 		}
+
 		return locale;
 	}
 
@@ -1273,15 +1348,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public String getLanguageTag() {
 		return getLanguageLocale().toLanguageTag();
-	}
-
-	/**
-	 * @deprecated Use {@link #getLanguageTag} or {@link #getLanguageLocale} instead
-	 * @since 5.2.3
-	 */
-	@Deprecated
-	public String getLanguage() {
-		return getLanguageTag();
 	}
 
 	/**
@@ -1332,7 +1398,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The maximum memory buffer size.
 	 */
 	public int getMaxMemoryBufferSize() {
-		return Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 200)));
+		return Math.max(0, Math.min(maxMaxMemoryBufferSize, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 200)));
 	}
 
 	/**
@@ -1342,7 +1408,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value The maximum buffer size.
 	 */
 	public void setMaxMemoryBufferSize(int value) {
-		configuration.setProperty(KEY_MAX_MEMORY_BUFFER_SIZE, Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, value)));
+		configuration.setProperty(KEY_MAX_MEMORY_BUFFER_SIZE, Math.max(0, Math.min(maxMaxMemoryBufferSize, value)));
 	}
 
 	/**
@@ -2010,6 +2076,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if ("0".equals(maximumBitrate)) {
 			maximumBitrate = "1000";
 		}
+
 		return maximumBitrate;
 	}
 
@@ -2037,7 +2104,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The selected renderers as a list.
 	 */
 	public List<String> getSelectedRenderers() {
-		return getStringList(KEY_SELECTED_RENDERERS, ALL_RENDERERS);
+		return getStringList(KEY_SELECTED_RENDERERS, allRenderers);
 	}
 
 	/**
@@ -2049,10 +2116,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value.isEmpty()) {
 			value = "None";
 		}
+
 		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
 			configuration.setProperty(KEY_SELECTED_RENDERERS, value);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -2065,11 +2134,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value == null) {
 			return setSelectedRenderers("");
 		}
+
 		List<String> currentValue = getStringList(KEY_SELECTED_RENDERERS, null);
 		if (currentValue == null || value.size() != currentValue.size() || !value.containsAll(currentValue)) {
 			setStringList(KEY_SELECTED_RENDERERS, value);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -2118,6 +2189,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (nbcores < 1) {
 			nbcores = 1;
 		}
+
 		return getInt(KEY_NUMBER_OF_CPU_CORES, nbcores);
 	}
 
@@ -2193,6 +2265,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				} else {
 					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
 				}
+
 			} catch (IOException e) {
 				if (!FileUtil.isAdmin()) {
 					try {
@@ -2202,6 +2275,7 @@ public class PmsConfiguration extends RendererConfiguration {
 							Messages.getString("Dialog.PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);
+
 					} catch (NullPointerException e2) {
 						// This happens on the initial program load, ignore it
 					}
@@ -2390,7 +2464,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The AviSynth script template.
 	 */
 	public String getAvisynthScript() {
-		return getString(KEY_AVISYNTH_SCRIPT, DEFAULT_AVI_SYNTH_SCRIPT);
+		return getString(KEY_AVISYNTH_SCRIPT, defaultAviSynthScript);
 	}
 
 	/**
@@ -2473,7 +2547,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getFFmpegGPUDecodingAccelerationThreadNumber() {
-		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER,"1");
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, "1");
 	}
 
 	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
@@ -2616,6 +2690,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value.trim().length() == 0) {
 			value = "0";
 		}
+
 		configuration.setProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH, value);
 	}
 
@@ -2627,6 +2702,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value.trim().length() == 0) {
 			value = "0";
 		}
+
 		configuration.setProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT, value);
 	}
 
@@ -2637,12 +2713,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (enabledEnginesBuilt) {
 			return;
 		}
-		enabledEnginesLock.writeLock().lock();
+
+		ENABLED_ENGINES_LOCK.writeLock().lock();
 		try {
 			// Not a bug, using double checked locking
 			if (enabledEnginesBuilt) {
 				return;
 			}
+
 			String engines = configuration.getString(KEY_ENGINES);
 			enabledEngines = stringToPlayerIdSet(engines);
 			if (isBlank(engines)) {
@@ -2651,7 +2729,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 			enabledEnginesBuilt = true;
 		} finally {
-			enabledEnginesLock.writeLock().unlock();
+			ENABLED_ENGINES_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2664,11 +2742,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public List<PlayerId> getEnabledEngines() {
 		buildEnabledEngines();
-		enabledEnginesLock.readLock().lock();
+		ENABLED_ENGINES_LOCK.readLock().lock();
 		try {
 			return new ArrayList<PlayerId>(enabledEngines);
 		} finally {
-			enabledEnginesLock.readLock().unlock();
+			ENABLED_ENGINES_LOCK.readLock().unlock();
 		}
 	}
 
@@ -2683,12 +2761,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (id == null) {
 			throw new NullPointerException("id cannot be null");
 		}
+
 		buildEnabledEngines();
-		enabledEnginesLock.readLock().lock();
+		ENABLED_ENGINES_LOCK.readLock().lock();
 		try {
 			return enabledEngines.contains(id);
 		} finally {
-			enabledEnginesLock.readLock().unlock();
+			ENABLED_ENGINES_LOCK.readLock().unlock();
 		}
 	}
 
@@ -2718,7 +2797,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
 
-		enabledEnginesLock.writeLock().lock();
+		ENABLED_ENGINES_LOCK.writeLock().lock();
 		try {
 			buildEnabledEngines();
 			if (enabledEngines.contains(id)) {
@@ -2732,7 +2811,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 			configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
 		} finally {
-			enabledEnginesLock.writeLock().unlock();
+			ENABLED_ENGINES_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2783,36 +2862,22 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (enginesPriorityBuilt) {
 			return;
 		}
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			// Not a bug, using double checked locking
 			if (enginesPriorityBuilt) {
 				return;
 			}
+
 			String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
 			enginesPriority = stringToPlayerIdSet(enginesPriorityString);
 			if (isBlank(enginesPriorityString)) {
 				configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 			}
+
 			enginesPriorityBuilt = true;
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Gets a {@link UniqueList} of the {@link PlayerId}s ordered by priority.
-	 * Returns a new instance, any modifications won't affect priority list.
-	 *
-	 * @return A copy of the priority list.
-	 */
-	public UniqueList<PlayerId> getEnginesPriority() {
-		buildEnginesPriority();
-		enginesPriorityLock.readLock().lock();
-		try {
-			return new UniqueList<PlayerId>(enginesPriority);
-		} finally {
-			enginesPriorityLock.readLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2829,23 +2894,23 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		buildEnginesPriority();
-		enginesPriorityLock.readLock().lock();
+		ENGINES_PRIORITY_LOCK.readLock().lock();
 		try {
 			int index = enginesPriority.indexOf(id);
 			if (index >= 0) {
 				return index;
 			}
 		} finally {
-			enginesPriorityLock.readLock().unlock();
+			ENGINES_PRIORITY_LOCK.readLock().unlock();
 		}
 
 		// The engine isn't listed, add it last
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			enginesPriority.add(id);
 			return enginesPriority.indexOf(id);
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -2860,6 +2925,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new NullPointerException("player cannot be null");
 		}
+
 		return getEnginePriority(player.id());
 	}
 
@@ -2877,6 +2943,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		setEnginePriorityAbove(player.id(), abovePlayer == null ? null : abovePlayer.id());
 	}
 
@@ -2894,7 +2961,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
 
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			buildEnginesPriority();
 
@@ -2914,8 +2981,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			enginesPriority.add(newPosition, id);
 			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
+
 		PlayerFactory.sortPlayers();
 	}
 
@@ -2932,6 +3000,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (player == null) {
 			throw new IllegalArgumentException("player cannot be null");
 		}
+
 		setEnginePriorityBelow(player.id(), belowPlayer == null ? null : belowPlayer.id());
 	}
 
@@ -2948,7 +3017,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
 
-		enginesPriorityLock.writeLock().lock();
+		ENGINES_PRIORITY_LOCK.writeLock().lock();
 		try {
 			buildEnginesPriority();
 
@@ -2965,10 +3034,11 @@ public class PmsConfiguration extends RendererConfiguration {
 					newPosition = enginesPriority.size();
 				}
 			}
+
 			enginesPriority.add(newPosition, id);
 			configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 		} finally {
-			enginesPriorityLock.writeLock().unlock();
+			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 		PlayerFactory.sortPlayers();
 	}
@@ -2990,10 +3060,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			output.addAll(StandardPlayerId.ALL);
 			return output;
 		}
+
 		input = input.trim().toLowerCase(Locale.ROOT);
 		if ("none".equals(input)) {
 			return output;
 		}
+
 		for (String s : StringUtils.split(input, LIST_SEPARATOR)) {
 			PlayerId playerId = StandardPlayerId.toPlayerID(s);
 			if (playerId != null) {
@@ -3002,6 +3074,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				LOGGER.warn("Unknown transcoding engine \"{}\"", s);
 			}
 		}
+
 		return output;
 	}
 
@@ -3066,6 +3139,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (isSharedFoldersEmpty()) {
 				setSharedFoldersToDefault();
 			}
+
 			readSharedFolders();
 			return new ArrayList<>(sharedFolders);
 		}
@@ -3080,10 +3154,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (isSharedFoldersEmpty()) {
 				setSharedFoldersToDefault();
 			}
+
 			if (!monitoredFoldersRead) {
 				monitoredFolders = getFolders(KEY_FOLDERS_MONITORED);
 				monitoredFoldersRead = true;
 			}
+
 			return new ArrayList<>(monitoredFolders);
 		}
 	}
@@ -3098,6 +3174,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				ignoredFolders = getFolders(KEY_FOLDERS_IGNORED);
 				ignoredFoldersRead = true;
 			}
+
 			return ignoredFolders;
 		}
 	}
@@ -3114,6 +3191,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
 				return folders;
 			}
+
 			String[] foldersArray = ignoredFolderNamesString.trim().split("\\s*,\\s*");
 			ignoredFolderNames = new ArrayList<>();
 
@@ -3150,6 +3228,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (foldersString == null || foldersString.length() == 0) {
 			return folders;
 		}
+
 		String[] foldersArray = foldersString.trim().split("\\s*,\\s*");
 
 		for (String folder : foldersArray) {
@@ -3199,7 +3278,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * This just preserves wizard functionality of offering the user a choice
 	 * to share a directory.
 	 *
-	 * @param directoryPath 
+	 * @param directoryPath
 	 */
 	public void setOnlySharedDirectory(String directoryPath) {
 		synchronized (sharedFoldersLock) {
@@ -3231,6 +3310,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					sharedFolders = new ArrayList<>();
 					sharedFoldersRead = true;
 				}
+
 				if (!monitoredFoldersRead || !monitoredFolders.isEmpty()) {
 					configuration.setProperty(KEY_FOLDERS_MONITORED, "");
 					monitoredFolders = new ArrayList<>();
@@ -3252,6 +3332,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				if (folderPath.contains(listSeparator)) {
 					folderPath = folderPath.replace(listSeparator, "&comma;");
 				}
+
 				Path folder = Paths.get(folderPath);
 				tmpSharedfolders.add(folder);
 				if ((boolean) rowVector.get(1)) {
@@ -3268,6 +3349,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				sharedFolders = tmpSharedfolders;
 				sharedFoldersRead = true;
 			}
+
 			if (!monitoredFoldersRead || !monitoredFolders.equals(tmpMonitoredFolders)) {
 				configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(tmpMonitoredFolders, LIST_SEPARATOR));
 				monitoredFolders = tmpMonitoredFolders;
@@ -3316,11 +3398,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (subtitlesInfoLevel != null) {
 			return subtitlesInfoLevel;
 		}
+
 		// Check the old parameter for backwards compatibility
 		Boolean value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
 		if (value != null) {
 			return value.booleanValue() ? SubtitlesInfoLevel.NONE : SubtitlesInfoLevel.FULL;
 		}
+
 		return SubtitlesInfoLevel.BASIC; // Default
 	}
 
@@ -3412,34 +3496,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
-	 * be followed (true) or overridden by our style rules (false) when
-	 * using MEncoder.
-	 *
-	 * @see #setUseEmbeddedSubtitlesStyle(boolean)
-	 * @param value whether to use the embedded styles or ours
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setMencoderAssDefaultStyle(boolean value) {
-		configuration.setProperty(KEY_MENCODER_ASS_DEFAULTSTYLE, value);
-	}
-
-	/**
-	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
-	 * be followed (true) or overridden by our style rules (false) when
-	 * using MEncoder.
-	 *
-	 * @see #isUseEmbeddedSubtitlesStyle()
-	 * @return whether to use the embedded styles or ours
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isMencoderAssDefaultStyle() {
-		return getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
-	}
-
-	/**
-	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
 	 * be followed (true) or overridden by our style rules (false).
 	 *
 	 * @param value whether to use the embedded styles or ours
@@ -3480,27 +3536,19 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	private static int findPathSort(String[] paths, String path) throws NumberFormatException{
+	private static int findPathSort(String[] paths, String path) throws NumberFormatException {
 		for (String path1 : paths) {
 			String[] kv = path1.split(",");
 			if (kv.length < 2) {
 				continue;
 			}
+
 			if (kv[0].equals(path)) {
 				return Integer.parseInt(kv[1]);
 			}
 		}
-		return -1;
-	}
 
-	/**
-	 * @see #getSortMethod(java.io.File)
-	 * @deprecated
-	 * @return
-	 */
-	@Deprecated
-	public int mediaLibrarySort() {
-		return getSortMethod(null);
+		return -1;
 	}
 
 	public int getSortMethod(File path) {
@@ -3509,10 +3557,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (StringUtils.isEmpty(raw)) {
 			return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 		}
+
 		if (Platform.isWindows()) {
 			// windows is crap
 			raw = raw.toLowerCase();
 		}
+
 		String[] paths = raw.split(" ");
 
 		while (path != null && (cnt++ < 100)) {
@@ -3520,6 +3570,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (Platform.isWindows()) {
 				key = key.toLowerCase();
 			}
+
 			try {
 				int ret = findPathSort(paths, key);
 				if (ret != -1) {
@@ -3528,8 +3579,10 @@ public class PmsConfiguration extends RendererConfiguration {
 			} catch (NumberFormatException e) {
 				// just ignore
 			}
+
 			path = path.getParentFile();
 		}
+
 		return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 	}
 
@@ -3615,24 +3668,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @see #setFFmpegDeferToMEncoderForEmbeddedSubtitles(boolean)
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setFFmpegDeferToMEncoderForSubtitles(boolean value) {
-		setFFmpegDeferToMEncoderForProblematicSubtitles(value);
-	}
-
-	/**
-	 * @see #isFFmpegDeferToMEncoderForEmbeddedSubtitles()
-	 * @deprecated
-	 */
-	@Deprecated
-	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return isFFmpegDeferToMEncoderForProblematicSubtitles();
-	}
-
-	/**
 	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
 	 * subtitles that need to be transcoded which FFmpeg will need to
 	 * initially parse, which can cause timeouts.
@@ -3683,8 +3718,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public synchronized IpFilter getIpFiltering() {
-	    filter.setRawFilter(getIpFilter());
-	    return filter;
+		filter.setRawFilter(getIpFilter());
+		return filter;
 	}
 
 	public void setIpFilter(String value) {
@@ -3695,22 +3730,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (value == null) {
 			throw new NullPointerException("value cannot be null");
 		}
+
 		configuration.setProperty(KEY_PREVENT_SLEEP, value.getValue());
 		Services.sleepManager().setMode(value);
 	}
 
 	public PreventSleepMode getPreventSleep() {
-		PreventSleepMode sleepMode = null;
-		String value = getString(KEY_PREVENT_SLEEP, null);
-		if (value == null && configuration.containsKey(KEY_PREVENTS_SLEEP)) {
-			// Backwards compatibility
-			sleepMode = getBoolean(KEY_PREVENTS_SLEEP, true) ? PreventSleepMode.PLAYBACK : PreventSleepMode.NEVER;
-			configuration.clearProperty(KEY_PREVENTS_SLEEP);
-			configuration.setProperty(KEY_PREVENT_SLEEP, sleepMode.getValue());
-		} else if (value != null) {
-			sleepMode = PreventSleepMode.typeOf(value);
-		}
-		return sleepMode != null ? sleepMode : PreventSleepMode.PLAYBACK; // Default
+		return PreventSleepMode.typeOf(getString(KEY_PREVENT_SLEEP, PreventSleepMode.PLAYBACK.getValue()));
 	}
 
 	public void setHTTPEngineV2(boolean value) {
@@ -3763,6 +3789,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setHideEmptyFolders(final boolean value) {
 		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, value);
+	}
+
+	public boolean isUseSymlinksTargetFile() {
+		return getBoolean(PmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, false);
+	}
+
+	public void setUseSymlinksTargetFile(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, value);
 	}
 
 	/**
@@ -3843,6 +3877,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				LOGGER.trace("", e);
 			}
 		}
+
 		return new SubtitleColor(0xFF, 0xFF, 0xFF);
 	}
 
@@ -3899,7 +3934,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isUseInfoFromIMDb() {
-		return getBoolean(KEY_USE_IMDB_INFO, false) && isPrettifyFilenames();
+		return getBoolean(KEY_USE_IMDB_INFO, true);
 	}
 
 	public void setUseInfoFromIMDb(boolean value) {
@@ -3930,24 +3965,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setScanSharedFoldersOnStartup(final boolean value) {
 		this.configuration.setProperty(KEY_SCAN_SHARED_FOLDERS_ON_STARTUP, value);
-	}
-
-	/**
-	 * Whether to show the "New Media" folder on the renderer.
-	 *
-	 * @return whether the folder is shown
-	 */
-	public boolean isShowNewMediaFolder() {
-		return getBoolean(KEY_SHOW_NEW_MEDIA_FOLDER, false);
-	}
-
-	/**
-	 * Whether to show the "New Media" folder on the renderer.
-	 *
-	 * @param value whether the folder is shown
-	 */
-	public void setShowNewMediaFolder(final boolean value) {
-		this.configuration.setProperty(KEY_SHOW_NEW_MEDIA_FOLDER, value);
 	}
 
 	/**
@@ -4050,15 +4067,15 @@ public class PmsConfiguration extends RendererConfiguration {
 		// Initialise this here rather than in the constructor
 		// or statically so that custom settings are logged
 		// to the logfile/Logs tab.
-		if (WEB_CONF_PATH == null) {
-			WEB_CONF_PATH = FileUtil.getFileLocation(
+		if (webConfPath == null) {
+			webConfPath = FileUtil.getFileLocation(
 				getString(KEY_WEB_CONF_PATH, null),
 				PROFILE_DIRECTORY,
 				DEFAULT_WEB_CONF_FILENAME
 			).getFilePath();
 		}
 
-		return getString(KEY_WEB_CONF_PATH, WEB_CONF_PATH);
+		return getString(KEY_WEB_CONF_PATH, webConfPath);
 	}
 
 	public String getPluginDirectory() {
@@ -4070,16 +4087,16 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getProfileName() {
-		if (HOSTNAME == null) { // Initialise this lazily
+		if (hostName == null) { // Initialise this lazily
 			try {
-				HOSTNAME = InetAddress.getLocalHost().getHostName();
+				hostName = InetAddress.getLocalHost().getHostName();
 			} catch (UnknownHostException e) {
 				LOGGER.info("Can't determine hostname");
-				HOSTNAME = "unknown host";
+				hostName = "unknown host";
 			}
 		}
 
-		return getString(KEY_PROFILE_NAME, HOSTNAME);
+		return getString(KEY_PROFILE_NAME, hostName);
 	}
 
 	public boolean isAutoUpdate() {
@@ -4098,16 +4115,16 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_UUID, null);
 	}
 
-	public void setUuid(String value){
+	public void setUuid(String value) {
 		configuration.setProperty(KEY_UUID, value);
 	}
 
 	public void addConfigurationListener(ConfigurationListener l) {
-		((PropertiesConfiguration)configuration).addConfigurationListener(l);
+		((PropertiesConfiguration) configuration).addConfigurationListener(l);
 	}
 
 	public void removeConfigurationListener(ConfigurationListener l) {
-		((PropertiesConfiguration)configuration).removeConfigurationListener(l);
+		((PropertiesConfiguration) configuration).removeConfigurationListener(l);
 	}
 
 	public boolean getFolderLimit() {
@@ -4132,12 +4149,12 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getSearchDepth() {
 		int ret = (getBoolean(KEY_SEARCH_RECURSE, true) ? 100 : 2);
-	   	return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
+		return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
 	}
 
 	public void reload() {
 		try {
-			((PropertiesConfiguration)configuration).refresh();
+			((PropertiesConfiguration) configuration).refresh();
 		} catch (ConfigurationException e) {
 			LOGGER.error(null, e);
 		}
@@ -4253,22 +4270,15 @@ public class PmsConfiguration extends RendererConfiguration {
 				writer.write("# channels.xxx=name,secret");
 				writer.newLine();
 			}
+
 			// Save the path if we got here
 			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
-				((PropertiesConfiguration)configuration).save();
+				((PropertiesConfiguration) configuration).save();
 			} catch (ConfigurationException e) {
 				LOGGER.warn("An error occurred while saving configuration: {}", e.getMessage());
 			}
 		}
-	}
-
-	/**
-	 * @deprecated Use {@link #getCredFile()} instead.
-	 */
-	@Deprecated
-	public String getCredPath() {
-		return getCredFile().getAbsolutePath();
 	}
 
 	public File getCredFile() {
@@ -4276,6 +4286,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (path != null && !path.trim().isEmpty()) {
 			return new File(path);
 		}
+
 		return new File(getProfileDirectory(), DEFAULT_CREDENTIALS_FILENAME);
 	}
 
@@ -4285,6 +4296,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// this is silly, ignore
 			tmp = 10000;
 		}
+
 		return tmp;
 	}
 
@@ -4294,6 +4306,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			configuration.clearProperty(KEY_ATZ_LIMIT);
 			return;
 		}
+
 		configuration.setProperty(KEY_ATZ_LIMIT, val);
 	}
 
@@ -4313,7 +4326,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getDataDir() + File.separator + str;
 	}
 
-	private String KEY_URL_RES_ORDER = "url_resolve_order";
+	private static final String KEY_URL_RES_ORDER = "url_resolve_order";
 
 	public String[] getURLResolveOrder() {
 		return getString(KEY_URL_RES_ORDER, "").split(",");
@@ -4372,7 +4385,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public Level getLoggingFilterConsole() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"),Level.INFO);
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_CONSOLE, "INFO"), Level.INFO);
 	}
 
 	public void setLoggingFilterConsole(Level value) {
@@ -4380,7 +4393,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public Level getLoggingFilterLogsTab() {
-		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"),Level.INFO);
+		return Level.toLevel(getString(KEY_LOGGING_FILTER_LOGS_TAB, "INFO"), Level.INFO);
 	}
 
 	public void setLoggingFilterLogsTab(Level value) {
@@ -4388,11 +4401,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public int getLoggingLogsTabLinebuffer() {
-		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN), LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 	}
 
 	public void setLoggingLogsTabLinebuffer(int value) {
-		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN),LOGGING_LOGS_TAB_LINEBUFFER_MAX);
+		value = Math.min(Math.max(value, LOGGING_LOGS_TAB_LINEBUFFER_MIN), LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 		configuration.setProperty(KEY_LOGGING_LOGS_TAB_LINEBUFFER, value);
 	}
 
@@ -4421,6 +4434,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (i < 1 || i > 65535) {
 			return 514;
 		}
+
 		return i;
 	}
 
@@ -4521,11 +4535,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RESUME, value);
 	}
 
-	@Deprecated
-	public int getMinPlayTime() {
-		return getMinimumWatchedPlayTime();
-	}
-
 	public int getMinimumWatchedPlayTime() {
 		return getInt(KEY_MIN_PLAY_TIME, 30000);
 	}
@@ -4551,9 +4560,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (percent > 97) {
 			percent = 97;
 		}
+
 		if (percent < 10) {
 			percent = 10;
 		}
+
 		return (percent / 100.0);
 	}
 
@@ -4590,15 +4601,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @deprecated
-	 * @see #setRunSingleInstance(boolean)
-	 */
-	@Deprecated
-	public void setSingle(boolean value) {
-		setRunSingleInstance(value);
-	}
-
-	/**
 	 * Set whether UMS should allow only one instance by shutting down
 	 * the first one when a second one is launched.
 	 *
@@ -4606,15 +4608,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setRunSingleInstance(boolean value) {
 		configuration.setProperty(KEY_SINGLE, value);
-	}
-
-	/**
-	 * @deprecated
-	 * @see #isRunSingleInstance()
-	 */
-	@Deprecated
-	public boolean getSingle() {
-		return isRunSingleInstance();
 	}
 
 	/**
@@ -4639,6 +4632,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (tag == null) {
 			return getBoolean(KEY_NO_FOLDERS, false);
 		}
+
 		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
 		return getBoolean(x, false);
 	}
@@ -4652,6 +4646,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (!path.exists()) {
 			path.mkdirs();
 		}
+
 		return path;
 	}
 
@@ -4689,7 +4684,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Default port for the WEB interface.
+	 * Default port for the web interface.
 	 */
 	public int getWebPort() {
 		return getInt(KEY_WEB_PORT, 9001);
@@ -4700,7 +4695,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
-		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
+		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, true);
 	}
 
 	public void setAutomaticMaximumBitrate(boolean b) {
@@ -4708,6 +4703,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// get all bitrates from renderers
 			RendererConfiguration.calculateAllSpeeds();
 		}
+
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
 	}
 
@@ -4726,10 +4722,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			key = KEY_WEB_CONT_AUDIO;
 			def = true;
 		}
+
 		if (f.isImage()) {
 			key = KEY_WEB_CONT_IMAGE;
 			def = false;
 		}
+
 		return getBoolean(key, def);
 	}
 
@@ -4738,9 +4736,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		if (f.isAudio()) {
 			key = KEY_WEB_LOOP_AUDIO;
 		}
+
 		if (f.isImage()) {
 			key = KEY_WEB_LOOP_IMAGE;
 		}
+
 		return getBoolean(key, false);
 	}
 
@@ -4810,6 +4810,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// ensure we go a legal value
 			cs = CodeEnter.DIGITS;
 		}
+
 		return cs;
 	}
 
@@ -4818,7 +4819,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isDynamicPlsAutoSave() {
-	   	return getBoolean(KEY_DYNAMIC_PLS_AUTO_SAVE, false);
+		return getBoolean(KEY_DYNAMIC_PLS_AUTO_SAVE, false);
 	}
 
 	public String getDynamicPlsSavePath() {
@@ -4828,6 +4829,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			// ensure that this path exists
 			new File(path).mkdirs();
 		}
+
 		return path;
 	}
 
@@ -4893,6 +4895,33 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getAliveDelay() {
 		return getInt(KEY_ALIVE_DELAY, 0);
+	}
+
+	/**
+	 * This will show the info display informing user that automatic
+	 * video setting were updated and is highly recommended.
+	 */
+	public boolean showInfoAboutVideoAutomaticSetting() {
+		return getBoolean(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, true);
+	}
+
+	public void setShowInfoAboutVideoAutomaticSetting(boolean value) {
+		configuration.setProperty(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, value);
+	}
+
+	/**
+	 * @return whether youtube-dl has been enabled once.
+	 */
+	public boolean wasYoutubeDlEnabledOnce() {
+		return getBoolean(WAS_YOUTUBE_DL_ENABLED_ONCE, false);
+	}
+
+	/**
+	 * Records whether youtube-dl has been enabled on program
+	 * initialization one time, to prevent it enabling again.
+	 */
+	public void setYoutubeDlEnabledOnce() {
+		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
 	}
 
 	/**
@@ -4971,9 +5000,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			"#                                                                                                        #",
 			"# WEB.conf: configure support for web feeds and streams                                                  #",
 			"#                                                                                                        #",
-			"# NOTE: This file must be placed in the profile directory to work:                                       #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731                        #",
+			"# NOTE: This file must be placed in the profile directory to work                                        #",
 			"#                                                                                                        #",
 			"# Supported types:                                                                                       #",
 			"#                                                                                                        #",
@@ -4981,16 +5008,11 @@ public class PmsConfiguration extends RendererConfiguration {
 			"#                                                                                                        #",
 			"# Format for feeds:                                                                                      #",
 			"#                                                                                                        #",
-			"#     type.folders,separated,by,commas=URL                                                               #",
+			"#     type.folders,separated,by,commas=URL,,,name                                                        #",
 			"#                                                                                                        #",
 			"# Format for streams:                                                                                    #",
 			"#                                                                                                        #",
-			"#     type.folders,separated,by,commas=name for audio/video stream,URL,optional thumbnail URL            #",
-			"#                                                                                                        #",
-			"# For more web feed/stream options, see:                                                                 #",
-			"#                                                                                                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=37084#p37084                        #",
-			"#     http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696                        #",
+			"#     type.folders,separated,by,commas=name,URL,optional thumbnail URL                                   #",
 			"#                                                                                                        #",
 			"##########################################################################################################"
 		);
@@ -5002,23 +5024,20 @@ public class PmsConfiguration extends RendererConfiguration {
 		defaultWebConfContents.addAll(Arrays.asList(
 			"",
 			"# image feeds",
-			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?format=rss2",
-			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=39453068@N05&format=rss2",
-			"imagefeed.Web,Pictures=http://api.flickr.com/services/feeds/photos_public.gne?id=14362684@N08&format=rss2",
-			"imagefeed.Web,Pictures=http://picasaweb.google.fr/data/feed/base/user/nefuisalbum/albumid/5218433104757705489?alt=rss&kind=photo&hl=en_US",
-			"imagefeed.Web,Pictures=http://picasaweb.google.com/data/feed/base/user/FenderStratRocker?alt=rss&kind=album&hl=en_US&access=public",
+			"imagefeed.Web,Pictures=https://api.flickr.com/services/feeds/photos_public.gne?format=rss2",
+			"imagefeed.Web,Pictures=https://api.flickr.com/services/feeds/photos_public.gne?id=39453068@N05&format=rss2",
+			"imagefeed.Web,Pictures=https://api.flickr.com/services/feeds/photos_public.gne?id=14362684@N08&format=rss2",
 			"",
 			"# audio feeds",
 			"audiofeed.Web,Podcasts=https://rss.art19.com/caliphate",
 			"audiofeed.Web,Podcasts=https://www.nasa.gov/rss/dyn/Gravity-Assist.rss",
 			"audiofeed.Web,Podcasts=http://podcasts.joerogan.net/feed",
-			"audiofeed.Web,Podcasts=http://wakingup.libsyn.com/rss",
+			"audiofeed.Web,Podcasts=https://wakingup.libsyn.com/rss",
 			"audiofeed.Web,Podcasts=https://rss.art19.com/wolverine-the-long-night",
 			"",
 			"# video feeds",
-			"videofeed.Web,Vodcasts=http://feeds.feedburner.com/tedtalks_video",
+			"videofeed.Web,Vodcasts=https://feeds.feedburner.com/tedtalks_video",
 			"videofeed.Web,Vodcasts=https://www.nasa.gov/rss/dyn/nasax_vodcast.rss",
-			"videofeed.Web,Vodcasts=https://www.unicef.org/rss/unicef_television_vodcast.xml",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC0PEAMcRK7Mnn2G1bCBXOWQ",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCccjdJEay2hpb5scz61zY6Q",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCOiUKJ6lMU3yHbVNtNXJyfw",
@@ -5026,6 +5045,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCfAOh2t5DpxVrgS9NQKjC7A",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC8-Th83bH_thdKZDJCrn88g",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCzRBkt4a2hy6HObM3cl-x7g",
+			"",
+			"# audio streams",
+			"audiostream.Web,Radio=RNZ,http://radionz-ice.streamguys.com/national.mp3,https://www.rnz.co.nz/assets/cms_uploads/000/000/159/RNZ_logo-Te-Reo-NEG-500.png",
 			"",
 			"# video streams",
 			"# videostream.Web,TV=France 24,mms://stream1.france24.yacast.net/f24_liveen,http://www.france24.com/en/sites/france24.com.en/themes/france24/logo-fr.png",
@@ -5036,14 +5058,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		writeWebConfigurationFile(defaultWebConfContents);
 	}
 
-	public void writeWebConfigurationFile(List<String> fileContents) {
+	public synchronized void writeWebConfigurationFile(List<String> fileContents) {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);
 
 		try {
 			Path webConfFilePath = Paths.get(getWebConfPath());
-			Files.write(webConfFilePath, contentsToWrite, Charset.forName("UTF-8"));
+			Files.write(webConfFilePath, contentsToWrite, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.debug("An error occurred while writing the web config file: {}", e);
 		}

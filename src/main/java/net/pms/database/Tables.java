@@ -22,8 +22,13 @@ package net.pms.database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaDatabase;
 import org.slf4j.Logger;
@@ -41,10 +46,11 @@ import org.slf4j.LoggerFactory;
  */
 public class Tables {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tables.class);
-	private static final Object checkTablesLock = new Object();
-	protected static final DLNAMediaDatabase database = PMS.get().getDatabase();
+	private static final Object CHECK_TABLES_LOCK = new Object();
+	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
 	private static boolean tablesChecked = false;
-	private static final String EscapeCharacter = "\\";
+	private static final String ESCAPE_CHARACTER = "\\";
+	public static final String TABLE_NAME = "TABLES";
 
 	// No instantiation
 	protected Tables() {
@@ -52,18 +58,19 @@ public class Tables {
 
 	/**
 	 * Checks all child tables for their existence and version and creates or
-	 * upgrades as needed. Access to this method is serialized.
+	 * upgrades as needed.Access to this method is serialized.
 	 *
+	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public final static void checkTables() throws SQLException {
-		synchronized (checkTablesLock) {
-			if (tablesChecked) {
+	public static final void checkTables(boolean force) throws SQLException {
+		synchronized (CHECK_TABLES_LOCK) {
+			if (tablesChecked && !force) {
 				LOGGER.debug("Database tables have already been checked, aborting check");
 			} else {
 				LOGGER.debug("Starting check of database tables");
-				try (Connection connection = database.getConnection()) {
-					if (!tableExists(connection, "TABLES")) {
+				try (Connection connection = DATABASE.getConnection()) {
+					if (!tableExists(connection, TABLE_NAME)) {
 						createTablesTable(connection);
 					}
 
@@ -71,10 +78,63 @@ public class Tables {
 					TableCoverArtArchive.checkTable(connection);
 					TableFilesStatus.checkTable(connection);
 					TableThumbnails.checkTable(connection);
+
+					TableTVSeries.checkTable(connection);
+					TableFailedLookups.checkTable(connection);
+
+					// Video metadata tables
+					TableVideoMetadataActors.checkTable(connection);
+					TableVideoMetadataAwards.checkTable(connection);
+					TableVideoMetadataCountries.checkTable(connection);
+					TableVideoMetadataDirectors.checkTable(connection);
+					TableVideoMetadataIMDbRating.checkTable(connection);
+					TableVideoMetadataGenres.checkTable(connection);
+					TableVideoMetadataPosters.checkTable(connection);
+					TableVideoMetadataProduction.checkTable(connection);
+					TableVideoMetadataRated.checkTable(connection);
+					TableVideoMetadataRatings.checkTable(connection);
+					TableVideoMetadataReleased.checkTable(connection);
+
+					// Audio Metadata
+					TableAudiotracks.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
 		}
+	}
+
+	/**
+	 * Re-initializes all child tables except files status.
+	 *
+	 * @throws SQLException
+	 */
+	public static final void reInitTablesExceptFilesStatus() throws SQLException {
+		try (Connection connection = DATABASE.getConnection()) {
+			TableMusicBrainzReleases.dropTable(connection);
+			TableCoverArtArchive.dropTable(connection);
+			TableThumbnails.dropTable(connection);
+
+			TableTVSeries.dropTable(connection);
+			TableFailedLookups.dropTable(connection);
+
+			// Video metadata tables
+			TableVideoMetadataActors.dropTable(connection);
+			TableVideoMetadataAwards.dropTable(connection);
+			TableVideoMetadataCountries.dropTable(connection);
+			TableVideoMetadataDirectors.dropTable(connection);
+			TableVideoMetadataIMDbRating.dropTable(connection);
+			TableVideoMetadataGenres.dropTable(connection);
+			TableVideoMetadataPosters.dropTable(connection);
+			TableVideoMetadataProduction.dropTable(connection);
+			TableVideoMetadataRated.dropTable(connection);
+			TableVideoMetadataRatings.dropTable(connection);
+			TableVideoMetadataReleased.dropTable(connection);
+
+			// Audio Metadata
+			TableAudiotracks.dropTable(connection);
+		}
+
+		checkTables(true);
 	}
 
 	/**
@@ -89,13 +149,13 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static boolean tableExists(final Connection connection, final String tableName, final String tableSchema) throws SQLException {
+	protected static final boolean tableExists(final Connection connection, final String tableName, final String tableSchema) throws SQLException {
 		LOGGER.trace("Checking if database table \"{}\" in schema \"{}\" exists", tableName, tableSchema);
 
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-                 "WHERE TABLE_SCHEMA = ? "+
-                 "AND  TABLE_NAME = ?"
+			"WHERE TABLE_SCHEMA = ? " +
+			"AND  TABLE_NAME = ?"
 		)) {
 			statement.setString(1, tableSchema);
 			statement.setString(2, tableName);
@@ -122,7 +182,7 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static boolean tableExists(final Connection connection, final String tableName) throws SQLException {
+	protected static final boolean tableExists(final Connection connection, final String tableName) throws SQLException {
 		return tableExists(connection, tableName, "PUBLIC");
 	}
 
@@ -137,7 +197,7 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static Integer getTableVersion(final Connection connection, final String tableName) throws SQLException {
+	protected static final Integer getTableVersion(final Connection connection, final String tableName) throws SQLException {
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT VERSION FROM TABLES " +
 				"WHERE NAME = ?"
@@ -167,7 +227,7 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static void setTableVersion(final Connection connection, final String tableName, final int version) throws SQLException {
+	protected static final void setTableVersion(final Connection connection, final String tableName, final int version) throws SQLException {
 		try (PreparedStatement statement = connection.prepareStatement(
 			"SELECT VERSION FROM TABLES WHERE NAME = ?"
 		)) {
@@ -209,14 +269,14 @@ public class Tables {
 	 *
 	 * @throws SQLException
 	 */
-	protected final static void dropTable(final Connection connection, final String tableName) throws SQLException {
+	protected static final void dropTable(final Connection connection, final String tableName) throws SQLException {
 		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
 		try (Statement statement = connection.createStatement()) {
 			statement.execute("DROP TABLE IF EXISTS " + tableName);
 		}
 	}
 
-	protected final static void createTablesTable(final Connection connection) throws SQLException {
+	protected static final void createTablesTable(final Connection connection) throws SQLException {
 		LOGGER.debug("Creating database table \"TABLES\"");
 		try (Statement statement = connection.createStatement()) {
 			statement.execute("CREATE TABLE TABLES(NAME VARCHAR(50) PRIMARY KEY, VERSION INT NOT NULL)");
@@ -239,7 +299,7 @@ public class Tables {
 	 * @return The SQL formatted string including the <code>=</code>,
 	 * <code>LIKE</code> or <code>IS</code> operator.
 	 */
-	public final static String sqlNullIfBlank(final String s, boolean quote, boolean like) {
+	public static final String sqlNullIfBlank(final String s, boolean quote, boolean like) {
 		if (s == null || s.trim().isEmpty()) {
 			return " IS NULL ";
 		} else if (like) {
@@ -260,7 +320,7 @@ public class Tables {
 	 * @param s the {@link String} to escape and quote.
 	 * @return The escaped and quoted {@code s}.
 	 */
-	public final static String sqlQuote(final String s) {
+	public static final String sqlQuote(final String s) {
 		return s == null ? null : "'" + s.replace("'", "''") + "'";
 	}
 
@@ -289,10 +349,97 @@ public class Tables {
 	 * @param s the {@link String} to be SQL escaped.
 	 * @return The escaped {@link String}.
 	 */
-	public final static String sqlLikeEscape(final String s) {
+	public static final String sqlLikeEscape(final String s) {
 		return s == null ? null : s.
-			replace(EscapeCharacter, EscapeCharacter + EscapeCharacter).
-			replace("%", EscapeCharacter + "%").
-			replace("_", EscapeCharacter + "_");
+			replace(ESCAPE_CHARACTER, ESCAPE_CHARACTER + ESCAPE_CHARACTER).
+			replace("%", ESCAPE_CHARACTER + "%").
+			replace("_", ESCAPE_CHARACTER + "_");
+	}
+
+	/**
+	 * @see https://stackoverflow.com/a/10213258/2049714
+	 * @param rs
+	 * @return
+	 * @throws SQLException
+	 */
+	public static List<HashMap<String, Object>> convertResultSetToList(ResultSet rs) throws SQLException {
+		ResultSetMetaData md = rs.getMetaData();
+		int columns = md.getColumnCount();
+		List<HashMap<String, Object>> list = new ArrayList<>();
+
+		while (rs.next()) {
+			HashMap<String, Object> row = new HashMap<>(columns);
+			for (int i = 1; i <= columns; ++i) {
+				row.put(md.getColumnName(i), rs.getObject(i));
+			}
+			list.add(row);
+		}
+
+		return list;
+	}
+
+	/**
+	 * @param rs
+	 * @return the rows of the first column of a result set
+	 * @throws SQLException
+	 */
+	public static HashSet<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
+		HashSet<String> list = new HashSet<String>();
+
+		while (rs.next()) {
+			list.add(rs.getString(1));
+		}
+
+		return list;
+	}
+
+	/**
+	 * @see https://stackoverflow.com/a/10213258/2049714
+	 * @param rs
+	 * @return
+	 * @throws SQLException
+	 */
+	public static HashMap<String, Object> convertSingleResultSetToList(ResultSet rs) throws SQLException {
+		ResultSetMetaData md = rs.getMetaData();
+		int columns = md.getColumnCount();
+		HashMap<String, Object> row = new HashMap<>(columns);
+		for (int i = 1; i <= columns; ++i) {
+			row.put(md.getColumnName(i), rs.getObject(i));
+		}
+		return row;
+	}
+
+	/**
+	 * Check if the column name exists in the database.
+	 *
+	 * Must be called from inside a table lock.
+	 *
+	 * @param connection the {@link Connection} to use.
+	 * @param table The table name where the column name should exist.
+	 * @param column The name of the column.
+	 *
+	 * @return <code>true</code> if the column name exists in
+	 * the database <code>false</code> otherwise.
+	 *
+	 * @throws SQLException
+	 */
+	protected static boolean isColumnExist(Connection connection, String table, String column) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(
+			"SELECT * FROM INFORMATION_SCHEMA.COLUMNS " +
+			"WHERE TABLE_NAME = ? " +
+			"AND COLUMN_NAME = ?"
+		)) {
+			statement.setString(1, table);
+			statement.setString(2, column);
+			try (ResultSet result = statement.executeQuery()) {
+				if (result.first()) {
+					LOGGER.trace("Column \"{}\" found in table \"{}\"", column, table);
+					return true;
+				} else {
+					LOGGER.trace("Column \"{}\" not found in table \"{}\"", column, table);
+					return false;
+				}
+			}
+		}
 	}
 }

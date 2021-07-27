@@ -23,7 +23,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.drew.metadata.Metadata;

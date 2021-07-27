@@ -142,7 +142,9 @@ Function AdvancedSettings
 	Pop $4
 
 	; Choose the maximum amount of RAM we want to use based on installed RAM
-	${If} $4 > 4000 
+	${If} $4 > 8000 
+		StrCpy $MaximumMemoryJava "2048"
+	${ElseIf} $4 > 4000 
 		StrCpy $MaximumMemoryJava "1280"
 	${Else}
 		StrCpy $MaximumMemoryJava "768"
@@ -209,16 +211,16 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
-	RMDir /R /REBOOTOK "$INSTDIR\jre14"
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
 
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x64"
-		File /r /x "ffmpeg.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre14-x64 jre14
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x64"
+		File /r /x "ffmpeg.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre8-x64 jre8
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre14-x86"
-		File /r /x "ffmpeg64.exe" /x "jre14-x64" /x "jre14-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre14-x86 jre14
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x86"
+		File /r /x "ffmpeg64.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre8-x86 jre8
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -328,6 +330,9 @@ Section "Program Files"
 	RMDir /R /REBOOTOK "$INSTDIR\jre"
 	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
@@ -362,7 +367,13 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
-	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre14\bin\javaw.exe" enable=yes profile=public,private'
+	; Remove existing firewall rules in case they need updating
+	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
+	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
+
+	; Add firewall rules
+	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre8\bin\java.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre8\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -390,22 +401,25 @@ SectionEnd
 Section "Uninstall"
 	SetShellVarContext all
 
+	; Current files/folders
 	Delete /REBOOTOK "$INSTDIR\uninst.exe"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
+	RMDir /R /REBOOTOK "$INSTDIR\web"
+	RMDir /R /REBOOTOK "$INSTDIR\win32"
+
+	; Old folders
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
-	RMDir /R /REBOOTOK "$INSTDIR\web"
-	RMDir /R /REBOOTOK "$INSTDIR\win32"
-	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
-	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
-	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre15"
 
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-TV-VLC.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Apple-TV-4K-VLC.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-VLC.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-VLC32bit.conf"
@@ -417,6 +431,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\DLink-DSM510.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\FetchTV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Free-Freebox.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\foobar2000-mobile.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Freecom-MusicPal.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Google-Android-Chromecast.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Google-Android.conf"
@@ -474,6 +489,8 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraVT60.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-AureaAndNetTV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PFL.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PUS.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PUS-6500Series.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-Streamium.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Pioneer-BDP.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Pioneer-Kuro.conf"
@@ -528,6 +545,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime4.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bluray.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bluray2013.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bluray-UBP-X800M2.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bravia4500.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bravia5500.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaBX305.conf"
@@ -541,6 +559,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaW.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaX.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaXBR.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaXBR-OLED.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaXD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-HomeTheatreSystem.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-PlayStation3.conf"
@@ -672,6 +691,7 @@ Section "Uninstall"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
+	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
 	nsSCM::Stop "${PROJECT_NAME}"
 	nsSCM::Remove "${PROJECT_NAME}"

@@ -113,6 +113,41 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
+		testHeaders    ("LG Blu-Ray Player", "User-Agent: LG-BP350");
+		testUPNPDetails("LG Blu-Ray Player", "friendlyName=LG-BP350");
+
+		testHeaders    ("LG BP550", "User-Agent: LG-BP550-1");
+		testUPNPDetails("LG BP550", "friendlyName=LG-BP550-1");
+
+		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
+
+		testUPNPDetails("LG LCD TV (2014)", "friendlyName=[TV][LG]42LB5700-ZB");
+
+		testUPNPDetails("LG LM660", "friendlyName=[TV]42LM660S-ZA");
+
+		testUPNPDetails("LG LS5700", "friendlyName=[TV]42LS5700-SB");
+
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
+		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED65C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55E9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55C9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65E9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65E9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65C9AUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED65B9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77C9PUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77C9AUB");
+		testUPNPDetails("LG OLED", "modelNumber=OLED77B9PUA");
+		testUPNPDetails("LG OLED", "modelNumber=OLED55B9SLA");
+		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED55B9SLA");
+
+		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
+
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
 
 		testHeaders    ("LG WebOS TV", "User-Agent: Linux/3.10.19-32.afro.4 UPnP/1.0 LGE WebOS TV LGE_DLNA_SDK/1.6.0/04.30.13 DLNADOC/1.50");
@@ -123,10 +158,18 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
+		testUPNPDetails(
+			"Panasonic DX",
+			"friendlyName=55DX640_Series, address=192.168.1.7, udn=uuid:4D454930-0100-1000-8001-A81374A2AA5D, manufacturer=Panasonic, modelName=Panasonic VIErA, modelNumber=TH-55DX640Z"
+		);
+
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
 
 		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
 		testUPNPDetails("Philips PUS TV", "friendlyName=49PUS8503/12");
+
+		testHeaders("Philips 6500 Series TV", "User-Agent: 50PUS6523/12");
+		testUPNPDetails("Philips 6500 Series TV", "friendlyName=50PUS6523/12");
 
 		testHeaders(
 			"Philips TV",
@@ -190,8 +233,10 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
+		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
 		
+		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
@@ -206,6 +251,22 @@ public class RendererConfigurationTest {
 			"Samsung QLED 4K 2019+",
 			"modelName=UE43RU7179UXZG"
 		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=GQ43LS03TAUXZG"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QE43LS03TAUXXH"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QE55LS03RAUXXH"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=QN32LS03TBFXZA"
+		);
 
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
 
@@ -213,13 +274,29 @@ public class RendererConfigurationTest {
 
 		testHeaders("Showtime 4", "User-Agent: Showtime PS3 4.2");
 
+		testHeaders("Sony Bluray UBP-X800M2", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"UBP-X800M2\"; mv=\"2.0\";");
+
 		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");
 
 		testHeaders("Sony Bravia HX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";");
 
-		testHeaders("Sony Bravia W",
+		testHeaders(
+			"Sony Bravia W",
 			"X-AV-Physical-Unit-Info: pa=\"BRAVIA KDL-48W600B\";",
 			"X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-48W600B\"; mv=\"1.7\";"
+		);
+
+		testHeaders(
+			"Sony Bravia XBR",
+			"User-Agent: UPnP/1.0, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55X900A\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55X900A\"; mv=\"1.7\";",
+			"User-Agent: UPnP/1.0 DLNADOC/1.50, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55X900A\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55X900A\"; mv=\"1.7\";",
+			"User-Agent: UPnP/1.0, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55HX929\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55HX929\"; mv=\"1.7\";",
+			"User-Agent: UPnP/1.0 DLNADOC/1.50, X-AV-Physical-Unit-Info: pa=\"BRAVIA XBR-55HX929\";, X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XBR-55HX929\"; mv=\"1.7\";"
+		);
+
+		testUPNPDetails(
+			"Sony Bravia XBR OLED",
+			"modelName=XBR-65A1E"
 		);
 
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
@@ -228,6 +305,10 @@ public class RendererConfigurationTest {
 		testHeaders("Telstra T-Box", "User-Agent: telstra");
 
 		testHeaders("VideoWeb TV", "friendlyName.dlna.org: VideoWeb");
+
+		testHeaders("VLC for desktop", "User-Agent: 6.2.9200 2/, UPnP/1.0, Portable SDK for UPnP devices/1.6.19");
+		testHeaders("VLC for desktop", "User-Agent: Linux/3.13.0-68-generic, UPnP/1.0, Portable SDK for UPnP devices/1.6.6");
+		testHeaders("VLC for desktop", "User-Agent: 6.1.7601 2/Service Pack 1, UPnP/1.0, Portable SDK for UPnP devices/1.6.19 for VLC 64-bit version 2.2.4");
 
 		testHeaders("WD TV Live", "User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423");
 

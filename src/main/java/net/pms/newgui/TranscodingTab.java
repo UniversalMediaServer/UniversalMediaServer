@@ -79,7 +79,7 @@ public class TranscodingTab {
 	private JTextField notranscode;
 	private JTextField maxbuffer;
 	private JComboBox<Integer> nbcores;
-	private DefaultMutableTreeNode parent[];
+	private DefaultMutableTreeNode[] parent;
 	private JPanel tabbedPanel;
 	private CardLayout cardLayout;
 	private JTextField abitrate;
@@ -92,8 +92,8 @@ public class TranscodingTab {
 	private JComboBox<String> x264Quality;
 	private JCheckBox ac3remux;
 	private JCheckBox mpeg2remux;
-	private JCheckBox chapter_support;
-	private JTextField chapter_interval;
+	private JCheckBox chapterSupport;
+	private JTextField chapterInterval;
 	private JCheckBox videoHWacceleration;
 	private JTextField langs;
 	private JTextField defaultsubs;
@@ -127,9 +127,9 @@ public class TranscodingTab {
 	private JImageButton arrowUpButton;
 	private JImageButton toggleButton;
 	private static enum ToggleButtonState {
-		Unknown ("button-toggle-on_disabled.png"),
-		On ("button-toggle-on.png"),
-		Off ("button-toggle-off.png");
+		Unknown("button-toggle-on_disabled.png"),
+		On("button-toggle-on.png"),
+		Off("button-toggle-off.png");
 
 		private final String iconName;
 		private ToggleButtonState(String name) {
@@ -181,8 +181,8 @@ public class TranscodingTab {
 		if (
 			path == null ||
 			!(path.getLastPathComponent() instanceof TreeNodeSettings) ||
-			((TreeNodeSettings) path.getLastPathComponent()).getPlayer() == null)
-		{
+			((TreeNodeSettings) path.getLastPathComponent()).getPlayer() == null
+		) {
 			arrowDownButton.setEnabled(false);
 			arrowUpButton.setEnabled(false);
 			toggleButton.setIconName(ToggleButtonState.Unknown.getIconName());
@@ -288,8 +288,8 @@ public class TranscodingTab {
 				if (
 					path != null &&
 					path.getLastPathComponent() instanceof TreeNodeSettings &&
-					((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null)
-				{
+					((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null
+				) {
 					((TreeNodeSettings) path.getLastPathComponent()).getPlayer().toggleEnabled(true);
 					tree.updateUI();
 					setButtonsState();
@@ -416,7 +416,7 @@ public class TranscodingTab {
 
 		disableSubs = new JCheckBox(Messages.getString("TrTab2.51"), configuration.isDisableSubtitles());
 		disableSubs.setContentAreaFilled(false);
- 		disableSubs.addItemListener(new ItemListener() {
+		disableSubs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED));
@@ -464,31 +464,31 @@ public class TranscodingTab {
 			});
 			builder.add(nbcores, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
 
-			chapter_support = new JCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
-			chapter_support.setContentAreaFilled(false);
-			chapter_support.addItemListener(new ItemListener() {
+			chapterSupport = new JCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
+			chapterSupport.setContentAreaFilled(false);
+			chapterSupport.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
 					configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
-					chapter_interval.setEnabled(configuration.isChapterSupport());
+					chapterInterval.setEnabled(configuration.isChapterSupport());
 				}
 			});
-			builder.add(GuiUtil.getPreferredSizeComponent(chapter_support), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(chapterSupport), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 
-			chapter_interval = new JTextField("" + configuration.getChapterInterval());
-			chapter_interval.setEnabled(configuration.isChapterSupport());
-			chapter_interval.addKeyListener(new KeyAdapter() {
+			chapterInterval = new JTextField("" + configuration.getChapterInterval());
+			chapterInterval.setEnabled(configuration.isChapterSupport());
+			chapterInterval.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
 					try {
-						int ab = Integer.parseInt(chapter_interval.getText());
+						int ab = Integer.parseInt(chapterInterval.getText());
 						configuration.setChapterInterval(ab);
 					} catch (NumberFormatException nfe) {
-						LOGGER.debug("Could not parse chapter interval from \"" + chapter_interval.getText() + "\"");
+						LOGGER.debug("Could not parse chapter interval from \"" + chapterInterval.getText() + "\"");
 					}
 				}
 			});
-			builder.add(chapter_interval, FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+			builder.add(chapterInterval, FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(disableSubs), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 		} else {
 			builder.add(GuiUtil.getPreferredSizeComponent(disableSubs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
@@ -559,27 +559,27 @@ public class TranscodingTab {
 			Messages.getString("TrTab2.92"), // Automatic (Wired)
 			Messages.getString("TrTab2.93"), // Automatic (Wireless)
 			String.format(
-				Messages.getString("TrTab2.61")+"%s", // Lossless
+				Messages.getString("TrTab2.61") + "%s", // Lossless
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=1:vqmin=1)" : ""
 			),
 			String.format(
-				Messages.getString("TrTab2.60")+"%s", // Great
+				Messages.getString("TrTab2.60") + "%s", // Great
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=1:vqmin=2)" : ""
 			),
 			String.format(
-				Messages.getString("TrTab2.62")+"%s", // Good (wired)
+				Messages.getString("TrTab2.62") + "%s", // Good (wired)
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=2:vqmin=3)" : ""
 			),
 			String.format(
-				Messages.getString("TrTab2.63")+"%s", // Good (wireless)
+				Messages.getString("TrTab2.63") + "%s", // Good (wireless)
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=5:vqmin=2)" : ""
 			),
 			String.format(
-				Messages.getString("TrTab2.64")+"%s", // Medium (wireless)
+				Messages.getString("TrTab2.64") + "%s", // Medium (wireless)
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=7:vqmin=2)" : ""
 			),
 			String.format(
-				Messages.getString("TrTab2.65")+"%s", // Low
+				Messages.getString("TrTab2.65") + "%s", // Low
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=25:vqmax=8:vqmin=3)" : ""
 			)
 		};
@@ -589,6 +589,7 @@ public class TranscodingTab {
 		vq.setPreferredSize(getPreferredHeight(vq));
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
 		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
+		vq.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		vq.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -611,7 +612,7 @@ public class TranscodingTab {
 			Messages.getString("TrTab2.92"),
 			Messages.getString("TrTab2.93"),
 			String.format(
-				Messages.getString("TrTab2.61")+"%s", // Lossless
+				Messages.getString("TrTab2.61") + "%s", // Lossless
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (16)" : ""
 			)
 		};
@@ -621,6 +622,7 @@ public class TranscodingTab {
 		x264Quality.setPreferredSize(getPreferredHeight(x264Quality));
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
 		x264QualityModel.setSelectedKey(configuration.getx264ConstantRateFactor());
+		x264Quality.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		x264Quality.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1154,5 +1156,17 @@ public class TranscodingTab {
 	// This is kind of a hack to give combo boxes a small preferred size
 	private static Dimension getPreferredHeight(JComponent component) {
 		return new Dimension(20, component.getPreferredSize().height);
+	}
+
+	/**
+	 * Enable the video quality settings for FFMpeg/Mencoder/VLC when the
+	 * automatic maximum bitrate is not used.
+	 *
+	 * @param automatic when it is set <code>true</code> than the video
+	 * quality settings are disabled.
+	 */
+	public void enableVideoQualitySettings(boolean automatic) {
+		vq.setEnabled(!automatic);
+		x264Quality.setEnabled(!automatic);
 	}
 }

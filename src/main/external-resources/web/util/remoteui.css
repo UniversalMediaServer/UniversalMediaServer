@@ -1,10 +1,11 @@
 /***********************************
 TV - REMOTE CONTROL
  ***********************************/
-@font-face {font-family: "youtube-icons";src: url("fonts/youtube-icons.ttf") format("truetype");}
-@font-face{font-family:'Roboto';src:local("Roboto-Regular"),url("fonts/Roboto-Regular-20140804.ttf") format("truetype")}
-@font-face{font-family:'Roboto Bold';src:local("Roboto-Bold"),url("fonts/Roboto-Bold.ttf") format("truetype")}
-@font-face {font-family: "Material Icons Extended";src: url(fonts/kabuki-material-icons.ttf) format("truetype");}
+@font-face {font-family: "youtube-icons"; src: url("fonts/youtube-icons.ttf") format("truetype");}
+@font-face {font-family: 'Roboto'; src: url("fonts/Roboto-Regular.ttf") format('truetype'); font-weight: normal; }
+@font-face {font-family: 'Roboto'; src: url("fonts/Roboto-Medium.ttf") format('truetype'); font-weight: 600; }
+@font-face {font-family: 'Roboto'; src: url("fonts/Roboto-Bold.ttf") format('truetype'); font-weight: bold; }
+@font-face {font-family: "Material Icons Extended"; src: url("fonts/kabuki-material-icons.ttf") format('truetype'); }
 .icon-4k::before{font-family:'youtube-icons';content:'\00e900'}
 .icon-account-circle::before{font-family:'youtube-icons';content:'\00e901'}
 .icon-account-full-circle::before{font-family:'youtube-icons';content:'\00e902'}
@@ -447,7 +448,7 @@ a#HomeButton {
 }
 
 .box-meta {
-	background-color: #212121 !important; /*Android TV Official Color*/
+	background-color: #181818 !important; /*Android TV Official Color*/
 	border-bottom-left-radius: 3px;
 	border-bottom-right-radius: 3px;
 	height: 40px;
@@ -472,23 +473,17 @@ a#HomeButton {
 /***********************************
 REWRITE DEFAULT STYLE
  ***********************************/
-body{
-	color: #FFFFFF;
-	background: #212121;/*Loading screen starting color*/
-}
+
 #toolbar{
 	color: #000000;
-    background-color: #212121;
-    padding: 5px 2px;
+	background-color: #212121;
+	padding: 5px 2px;
 	border-bottom-left-radius: 4px;
 	border-bottom-right-radius: 4px;
 }
 #toolbar button{
-    font-weight: 600;
-    height: 30px;
-}
-.navbar{
-	/*background: url('/files/menu-background-content.png'); TODO: REMOVE USE OF IMAGE*/
+	font-weight: 600;
+	height: 30px;
 }
 .dropdown-menu .onFocus {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
@@ -497,18 +492,18 @@ body{
 }
 /*Frontpage logo and button*/
 #FrontPage{
-    width: 100%;
-    min-height: 500px;
-    height: auto;
-    position: relative;
+	width: 100%;
+	min-height: 500px;
+	height: auto;
+	position: relative;
 }
 #FrontPage #Container{
 	width: 640px; /*can be in percentage also.*/
-    min-height: 500px;
-    height: inherit;
-    margin: 0 auto;
-    padding: 0 10px;
-    position: relative;
+	min-height: 500px;
+	height: inherit;
+	margin: 0 auto;
+	padding: 0 10px;
+	position: relative;
 }
 #FrontPage #Container a button {
 	color: #FFFFFF;
@@ -517,13 +512,13 @@ body{
 }
 #FrontPage #Container #LogoContainer {
 	position: relative;
-    top: 29px;
+	top: 29px;
 }
 #Logo {
 	position: relative;
-    margin: 0 auto;
-    left: auto;
-    top: auto;
+	margin: 0 auto;
+	left: auto;
+	top: auto;
 }
 /*END Frontpage logo and button*/
 #ContentPage .fa-cog{
@@ -572,42 +567,20 @@ body{
 Sticky footer styles
 ******************************/
 html {
-  position: relative;
-  min-height: 100%;
+	position: relative;
+	min-height: 100%;
 }
 /******END Sticky footer styles******/
 
-#Folders li:first-child span {
-	margin: 5px 0 6px;
-	padding-top: 3px;
-    padding-bottom: 1px;
-}
-ul#Folders {
-	padding: 15px 0px 0px 0px;
-	top: 50px;
-	width: 260px;
-	background-color: #212121;
-}
-@media screen and (max-width: 1080px) {
-	ul#Folders {
-		padding: 15px 0px 0px 0px;
-		margin-top: 50px;
-		width: 100%;
-	}
-}
-ul#Folders>li>a{
-	/*padding: 2px 15px 2px 15px;*/
+ul#Folders > li > a {
 	font-weight: 600;
-	cursor: pointer;
-	color: #969696;
 	vertical-align: bottom;
-	font-family: Roboto, sans-serif;
 	border: 0;
-	padding-top: 2px;
-    padding-bottom: 1px;
+	padding-top: 3px;
+	padding-bottom: 3px;
 }
-ul#Folders>li>a:hover{
-	background-color:#ebebeb;
+ul#Folders > li > a:hover {
+	background-color: #ddd;
 	color:#2f2f2f !important;
 	-moz-transform:scale(1.1);
 	-webkit-transform:scale(1.1);
@@ -623,7 +596,7 @@ ul#Folders>li>a:hover{
 	overflow: hidden;
 }
 @media screen and (max-width: 1080px) {
-	ul#Folders>li>a:hover {
+	ul#Folders > li > a:hover {
 		-moz-transform: scale(1.02);
 		-webkit-transform: scale(1.02);
 		-o-transform: scale(1.02);
@@ -690,13 +663,11 @@ ul#Folders li span {
 
 @media screen and (max-width: 1080px) {
 	ul#Media{
-		padding-top: 0px;
-		margin: 0px -20px 0px -20px;
+		margin: 0px -20px 0px -10px;
 	}
 }
 @media screen and (min-width: 1081px) {
 	ul#Media {
-		padding-top: 50px; /*50 if no bumplist, 0 stead*/
 		margin-top: 0px;
 	}
 }
@@ -718,7 +689,6 @@ ul#Media li {
 	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
 	height: 100% !important;
 	border-radius: 3px;
-	margin: 10px;
 }
 ul#Media li:hover {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
@@ -777,21 +747,7 @@ ul#Media .caption:hover {
 	border: none;
 	outline: none;
 }
-/*
-* VIDEOJS CSS REWRITE, TODO: REVIEW THIS IN ALL BROWSERS
-*/
-.video-js .vjs-big-play-button {
-	margin: 0 auto;
-	font-size: 5em !important;
-	top: 31% !important;
-	left: 0 !important;
-	height: 3em !important;
-	line-height: 3em !important;
-	-webkit-border-radius: 3em !important;
-	-moz-border-radius: 3em !important;
-	border-radius: 3em !important;
-	position: relative !important;
-}
+
 /********OVERLAY********/
 #trigger-overlay{
 	border: 0;

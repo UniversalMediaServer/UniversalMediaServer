@@ -30,7 +30,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * [Source code][10]
 * [Offical Releases][11]
 * [Issue tracker][12]
-* [FAQ][13]
+* [Knowledge Base][13]
 * [Wiki][14]
 
 ## Thanks
@@ -77,34 +77,34 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * ...And you!
 
 
-  [1]: http://www.universalmediaserver.com
-  [2]: http://www.universalmediaserver.com/comparison/
-  [3]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=2
-  [4]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=62
-  [5]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=683
-  [6]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=171
+  [1]: https://www.universalmediaserver.com
+  [2]: https://www.universalmediaserver.com/comparison/
+  [3]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=2
+  [4]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=62
+  [5]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=683
+  [6]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=171
   [7]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=10450
   [8]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=1194
-  [9]: http://www.universalmediaserver.com/forum
+  [9]: https://www.universalmediaserver.com/forum
   [10]: https://github.com/UniversalMediaServer/UniversalMediaServer
-  [11]: http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
+  [11]: https://www.universalmediaserver.com/downloads/
   [12]: https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open
-  [13]: http://www.universalmediaserver.com/faq/
+  [13]: https://support.universalmediaserver.com
   [14]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki
-  [15]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=4025
+  [15]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=4025
   [16]: https://github.com/josepma
   [17]: https://github.com/kirvx
   [18]: https://github.com/ler0y
   [19]: https://github.com/AlfredoRamos
-  [20]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=573
+  [20]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=573
   [21]: https://github.com/squadjot
   [22]: https://crowdin.com/profile/OnarEngincan
   [23]: https://github.com/K4r0lSz
   [24]: https://github.com/prescott66
-  [25]: http://www.opensubtitles.org/
+  [25]: https://www.opensubtitles.org/
   [26]: http://www.mplayerhq.hu/
   [27]: https://www.ffmpeg.org/
   [28]: https://mediaarea.net/en/MediaInfo
   [29]: https://crowdin.com/
-  [30]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=55
+  [30]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=55
   [31]: https://github.com/js-kyle
