@@ -8,6 +8,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.xml.parsers.DocumentBuilder;
 import net.pms.PMS;
 import static net.pms.network.UPNPHelper.sleep;
@@ -340,7 +344,7 @@ public class UPNPControl {
 			umsHeaders = new UpnpHeaders();
 			umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 
-			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
+			DefaultUpnpServiceConfiguration serviceConfiguration = new DefaultUpnpServiceConfiguration() {
 				@Override
 				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
 					return umsHeaders;
@@ -350,9 +354,22 @@ public class UPNPControl {
 				public int getAliveIntervalMillis() {
 					return 10000;
 				}
+
+				@Override
+				protected ExecutorService createDefaultExecutorService() {
+					return new ThreadPoolExecutor(
+						10,
+						60,
+						60L,
+						TimeUnit.SECONDS,
+						new SynchronousQueue<>(),
+						new ClingThreadFactory(),
+						new ThreadPoolExecutor.DiscardPolicy()
+					);
+				}
 			};
 
-			RegistryListener rl = new DefaultRegistryListener() {
+			RegistryListener registryListener = new DefaultRegistryListener() {
 				@Override
 				public void remoteDeviceAdded(Registry registry, RemoteDevice device) {
 					super.remoteDeviceAdded(registry, device);
@@ -388,7 +405,7 @@ public class UPNPControl {
 				}
 			};
 
-			upnpService = new UpnpServiceImpl(sc, rl);
+			upnpService = new UpnpServiceImpl(serviceConfiguration, registryListener);
 			for (DeviceType t : MEDIA_RENDERER_TYPES) {
 				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 			}
