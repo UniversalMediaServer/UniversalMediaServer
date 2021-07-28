@@ -16,7 +16,7 @@ function changeMargins() {
 	var row_h = 180;
 	var row_start = 0;
 	var spaces = 1;
-	var TITLE_GAP_RIGHT = 52;
+	var TITLE_GAP_RIGHT = 82;
 
 	if (viewType === 'grid') {
 		for (var i = 0; i < cells.length; i++) {

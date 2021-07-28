@@ -84,6 +84,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 			// ensure that we got a string
 			bumpHTML.append("");
 		}
+
+		bumpHTML.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
+			.append(RemoteUtil.getMsgString("Web.DownloadAsPlaylist", t)).append("\"></a>");
+
 		item.put("actions", bumpHTML.toString());
 
 		if (resource.isFolder() || WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
@@ -422,7 +426,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 		if (hasFile) {
 			mustacheVars.put("folderId", id);
-			mustacheVars.put("downloadFolderTooltip", RemoteUtil.getMsgString("Web.12", t));
+			mustacheVars.put("downloadFolderTooltip", RemoteUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
 		}
 
 		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));

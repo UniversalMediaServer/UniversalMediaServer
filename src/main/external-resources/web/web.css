@@ -173,12 +173,12 @@ ul#Folders li span {
 #MediaContainer {
 	overflow-y: auto;
 	padding: 20px 0 20px 20px;
+	position: relative;
 }
 
 #Media {
 	overflow-y: hidden;
 	padding-right: 0;
-	position: relative;
 }
 
 ul#Media li {
@@ -218,6 +218,11 @@ ul#Media .caption {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	line-height: 16px;
+}
+
+ul#Media .actions {
+	padding: 0;
+	float: right;
 }
 
 ul#Media li:hover .caption {
@@ -290,8 +295,8 @@ ul#Media .caption:hover {
 	width: 16px;
 	height: 16px;
 	display: block;
-	top: -20px;
-	left: 1px;
+	top: 29px;
+	right: 32px;
 }
 
 #ViewGrid,
