@@ -16,7 +16,6 @@ function changeMargins() {
 	var row_h = 180;
 	var row_start = 0;
 	var spaces = 1;
-	var TITLE_GAP_RIGHT = 82;
 
 	if (viewType === 'grid') {
 		for (var i = 0; i < cells.length; i++) {
@@ -34,11 +33,6 @@ function changeMargins() {
 
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
-					var caption_w = cell_w - TITLE_GAP_RIGHT;
-					$(cells[c]).find('.caption').css({
-						width: caption_w + 'px',
-						maxWidth: caption_w + 'px',
-					});
 					$(cells[c]).find('.thumb').css({
 						width: 'auto',
 						height: row_h + 'px',
@@ -82,11 +76,6 @@ function changeMargins() {
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
 					var cell_w = row_h * aspect[c];
-					var caption_w = cell_w - TITLE_GAP_RIGHT;
-					$(cells[c]).find('.caption').css({
-						width: caption_w + 'px',
-						maxWidth: caption_w + 'px',
-					});
 					$(cells[c]).find('.thumb').css({
 						width: 'auto',
 						height: row_h + 'px',

@@ -672,9 +672,8 @@ ul#Folders li span {
 	}
 }
 ul#Media .caption {
-	color: #eeeeee;
+	color: #eee;
 	font-weight: 300;
-	padding-right: 20px;
 	line-height: 20px;
 	height: 22px;
 }

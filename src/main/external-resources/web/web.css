@@ -185,13 +185,13 @@ ul#Media li {
 	float: left;
 	margin-right: 20px;
 	margin-bottom: 20px;
-}
+	position: relative;
+	display: block;
+	overflow: hidden;
 
-ul#Media li {
 	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
 	width: 308px;
 	height: 173px;
-	display: block;
 }
 
 ul#Media .thumb {
@@ -208,7 +208,7 @@ ul#Media .thumb {
 
 ul#Media .caption {
 	display: block;
-	max-width: 263px;
+	max-width: 100%;
 	height: 16px;
 	overflow: hidden;
 	float: left;
@@ -221,8 +221,25 @@ ul#Media .caption {
 }
 
 ul#Media .actions {
-	padding: 0;
-	float: right;
+	position: absolute;
+	top: -32px;
+	right: 8px;
+	background-color: #111;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+	padding: 8px;
+	opacity: 0.7;
+	transition: transform 250ms;
+}
+
+ul#Media li:hover .actions,
+ul#Media li:focus .actions {
+	transform: translateY(100%);
+}
+
+ul#Media .actions:hover,
+ul#Media .actions:focus {
+	opacity: 1;
 }
 
 ul#Media li:hover .caption {
