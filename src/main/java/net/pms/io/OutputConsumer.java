@@ -20,7 +20,6 @@ package net.pms.io;
 
 import java.io.InputStream;
 import java.util.List;
-import org.apache.commons.io.IOUtils;
 
 public abstract class OutputConsumer extends Thread {
 	protected InputStream inputStream;
@@ -29,12 +28,6 @@ public abstract class OutputConsumer extends Thread {
 	public OutputConsumer(InputStream inputStream) {
 		this.inputStream = inputStream;
 		this.filtered = false;
-	}
-
-	@Deprecated
-	@Override
-	public void destroy() {
-		IOUtils.closeQuietly(inputStream);
 	}
 
 	public void setInputStream(InputStream inputStream) {

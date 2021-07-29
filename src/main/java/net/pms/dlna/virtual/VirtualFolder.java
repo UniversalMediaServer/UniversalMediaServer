@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a container (folder). This is widely used by the UPNP ContentBrowser service. Child objects are expected in this folder.
@@ -86,18 +86,6 @@ public class VirtualFolder extends DLNAResource {
 	 */
 	@Override
 	public long length() {
-		return 0;
-	}
-
-	/**
-	 * Containers are likely not to be modified, so this one returns zero.
-	 * TODO: (botijo) When is this used then? Is this a prototype?
-	 *
-	 * @return Zero
-	 */
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
 		return 0;
 	}
 

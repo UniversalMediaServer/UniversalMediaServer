@@ -40,14 +40,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	private boolean b2;
 	private FileOutputStream debug;
 	private BufferedOutputFile directBuffer;
-
-	/**
-	 * @deprecated Use {@link #setLoop(boolean)} instead.
-	 *
-	 * This field will be made private in a future version.
-	 */
-	@Deprecated
-	public static boolean loop = true;
+	private static boolean loop = true;
 
 	/**
 	 * Size for the buffer used in defining pipes for Windows in bytes. The buffer is used
@@ -56,8 +49,14 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	 */
 	private static final int BUFSIZE = 500000;
 
+	@SuppressWarnings({
+		"checkstyle:ConstantName",
+		"checkstyle:MethodName",
+		"checkstyle:ParameterName",
+		"checkstyle:TypeName"
+	})
 	public interface Kernel32 extends StdCallLibrary {
-		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32",
+		Kernel32 INSTANCE = Native.load("kernel32",
 			Kernel32.class
 		);
 
@@ -198,15 +197,9 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 				start();
 
 				if (forceReconnect) {
-					forced = new Thread(
-						new Runnable() {
-							@Override
-							public void run() {
-								b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
-							}
-						},
-						"Forced Reconnector"
-					);
+					forced = new Thread(() -> {
+						b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
+					}, "Forced Reconnector");
 
 					forced.start();
 				}

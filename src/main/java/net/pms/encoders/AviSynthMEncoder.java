@@ -51,16 +51,12 @@ import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
+	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_MENCODER;
+	public static final String NAME = "AviSynth/MEncoder";
 
-	@Deprecated
-	public AviSynthMEncoder(PmsConfiguration configuration) {
-		this();
+	// Not to be instantiated by anything but PlayerFactory
+	AviSynthMEncoder() {
 	}
-
-	public AviSynthMEncoder() {
-	}
-
-	public static final String ID = "avsmencoder";
 
 	private JTextArea textArea;
 	private JCheckBox convertfps;
@@ -201,7 +197,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
 	}
 
@@ -212,7 +208,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 	@Override
 	public String name() {
-		return "AviSynth/MEncoder";
+		return NAME;
 	}
 
 	@Override
@@ -271,12 +267,12 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			String interframeLines = null;
 			String interframePath  = configuration.getInterFramePath();
 
-			int Cores = 1;
+			int cores = 1;
 			if (configuration.getAvisynthMultiThreading()) {
-				Cores = configuration.getNumberOfCpuCores();
+				cores = configuration.getNumberOfCpuCores();
 
 				// Goes at the start of the file to initiate multithreading
-				mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
+				mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + cores + ")\n";
 
 				// Goes after the input line to make multithreading more efficient
 				mtLine2 = "SetMTMode(2)";
@@ -287,12 +283,12 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 			// True Motion
 			if (configuration.getAvisynthInterFrame()) {
-				String GPU = "";
+				String gpu = "";
 				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){
-					GPU = ", GPU=true";
+				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()) {
+					gpu = ", GPU=true";
 				}
 
 				interframeLines = "\n" +
@@ -300,18 +296,25 @@ public class AviSynthMEncoder extends MEncoderVideo {
 					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
 					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
 					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Faster\")\n";
+					"InterFrame(Cores=" + cores + gpu + ", Preset=\"Faster\")\n";
 			}
 
 			String subLine = null;
-			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
+			if (
+				subTrack != null &&
+				subTrack.isExternal() &&
+				configuration.isAutoloadExternalSubtitles() &&
+				!configuration.isDisableSubtitles()
+			) {
 				if (subTrack.getExternalFile() != null) {
-					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
+					LOGGER.info("AviSynth script: Using subtitle track: {}", subTrack);
 					String function = "TextSub";
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+				} else {
+					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}
 			}
 
@@ -361,9 +364,6 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		return file;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
@@ -380,7 +380,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		// Uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// This engine only supports external subtitles
-			if (subtitle.getExternalFile() != null) {
+			if (subtitle.isExternal()) {
 				return true;
 			}
 

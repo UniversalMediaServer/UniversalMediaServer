@@ -10,9 +10,9 @@ public class H264AnnexBInputStream extends InputStream {
 	private InputStream source;
 	private int nextTarget;
 	private boolean firstHeader;
-	private byte header[];
+	private byte[] header;
 
-	public H264AnnexBInputStream(InputStream source, byte header[]) {
+	public H264AnnexBInputStream(InputStream source, byte[] header) {
 		this.source = source;
 		this.header = header;
 		firstHeader = true;
@@ -26,7 +26,7 @@ public class H264AnnexBInputStream extends InputStream {
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-		byte h[] = null;
+		byte[] h = null;
 		boolean insertHeader = false;
 
 		if (nextTarget == -1) {
@@ -53,7 +53,7 @@ public class H264AnnexBInputStream extends InputStream {
 		}
 
 		if (insertHeader) {
-			byte defHeader[] = header;
+			byte[] defHeader = header;
 			if (!firstHeader) {
 				defHeader = new byte[header.length + 1];
 				System.arraycopy(header, 0, defHeader, 0, header.length);
@@ -110,7 +110,7 @@ public class H264AnnexBInputStream extends InputStream {
 			LOGGER.trace("Negative array ?");
 			return null;
 		}
-		byte bb[] = new byte[length];
+		byte[] bb = new byte[length];
 		int n = source.read(bb);
 		if (n == -1) {
 			return null;

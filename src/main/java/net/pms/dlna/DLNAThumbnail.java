@@ -23,7 +23,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.drew.metadata.Metadata;
@@ -231,7 +230,8 @@ public class DLNAThumbnail extends DLNAImage {
 			inputImage,
 			outputProfile,
 			true,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -268,7 +268,8 @@ public class DLNAThumbnail extends DLNAImage {
 			inputStream,
 			outputProfile,
 			true,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -302,7 +303,8 @@ public class DLNAThumbnail extends DLNAImage {
 			inputByteArray,
 			outputProfile,
 			true,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -345,7 +347,8 @@ public class DLNAThumbnail extends DLNAImage {
 			outputFormat,
 			true,
 			true,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -391,7 +394,8 @@ public class DLNAThumbnail extends DLNAImage {
 			outputFormat,
 			true,
 			true,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -430,7 +434,8 @@ public class DLNAThumbnail extends DLNAImage {
 			outputFormat,
 			true,
 			true,
-			padToSize
+			padToSize,
+			null
 		);
 	}
 
@@ -454,7 +459,9 @@ public class DLNAThumbnail extends DLNAImage {
 			this,
 			outputProfile,
 			true,
-			padToSize);
+			padToSize,
+			null
+		);
 	}
 
 	@Override

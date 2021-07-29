@@ -24,7 +24,7 @@ import java.io.InputStream;
 /**
  * An input stream wrapper that will read only a set number of bytes from the
  * underlying stream.
- * 
+ *
  * @author Stephen Ostermiller
  *         http://ostermiller.org/contact.pl?regarding=Java+Utilities
  * @since ostermillerutils 1.04.00
@@ -34,7 +34,7 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * The input stream that is being protected. All methods should be forwarded
 	 * to it, after checking the size that has been read.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	protected InputStream in;
@@ -42,7 +42,7 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * The number of bytes to read at most from this Stream. Read methods should
 	 * check to ensure that bytesRead never exceeds maxBytesToRead.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	protected long maxBytesToRead = 0;
@@ -50,7 +50,7 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * The number of bytes that have been read from this stream. Read methods
 	 * should check to ensure that bytesRead never exceeds maxBytesToRead.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	protected long bytesRead = 0;
@@ -58,23 +58,23 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * The number of bytes that have been read from this stream since mark() was
 	 * called.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	protected long bytesReadSinceMark = 0;
 
 	/**
 	 * The number of bytes the user has request to have been marked for reset.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	protected long markReadLimitBytes = -1;
 
 	/**
 	 * Get the number of bytes actually read from this stream.
-	 * 
+	 *
 	 * @return number of bytes that have already been taken from this stream.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	public long getBytesRead() {
@@ -84,10 +84,10 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * Get the maximum number of bytes left to read before the limit (set in the
 	 * constructor) is reached.
-	 * 
+	 *
 	 * @return The number of bytes that (at a maximum) are left to be taken from
 	 *         this stream.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	public long getBytesLeft() {
@@ -97,9 +97,9 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * Tell whether the number of bytes specified in the constructor have been
 	 * read yet.
-	 * 
+	 *
 	 * @return true iff the specified number of bytes have all been read.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	public boolean allBytesRead() {
@@ -109,9 +109,9 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * Get the number of total bytes (including bytes already read) that can be
 	 * read from this stream (as set in the constructor).
-	 * 
+	 *
 	 * @return Maximum bytes that can be read until the size limit runs out
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	public long getMaxBytesToRead() {
@@ -121,13 +121,13 @@ public class SizeLimitInputStream extends InputStream {
 	/**
 	 * Create a new size limit input stream from another stream given a size
 	 * limit.
-	 * 
+	 *
 	 * @param in
 	 *            The input stream.
 	 * @param maxBytesToRead
 	 *            the max number of bytes to allow to be read from the
 	 *            underlying stream.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	public SizeLimitInputStream(InputStream in, long maxBytesToRead) {
@@ -211,7 +211,7 @@ public class SizeLimitInputStream extends InputStream {
 	 * <p>
 	 * Consider wrapping this stream in a NoCloseStream so that clients can call
 	 * close() with no effect.
-	 * 
+	 *
 	 * @since ostermillerutils 1.04.00
 	 */
 	@Override

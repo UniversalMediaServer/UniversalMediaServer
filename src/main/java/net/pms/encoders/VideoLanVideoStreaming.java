@@ -18,32 +18,52 @@
  */
 package net.pms.encoders;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.JComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.ExecutableInfo;
+import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.io.BasicSystemUtils;
+import net.pms.io.ListProcessWrapperResult;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.SimpleProcessWrapper;
 import net.pms.util.PlayerUtil;
+import net.pms.util.Version;
 
 /* XXX this is the old/obsolete VLC web video streaming engine */
 public class VideoLanVideoStreaming extends Player {
-	public static final String ID = "vlcvideo";
+	private static final Logger LOGGER = LoggerFactory.getLogger(VideoLanVideoStreaming.class);
+	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO_STREAMING;
 
-	@Deprecated
-	public VideoLanVideoStreaming(PmsConfiguration configuration) {
-		this();
-	}
+	/** The {@link Configuration} key for the custom VLC path. */
+	public static final String KEY_VLC_PATH = "vlc_path";
 
-	public VideoLanVideoStreaming() {
+	/** The {@link Configuration} key for the VLC Legacy Web executable type. */
+	public static final String KEY_VLC_LEGACY_EXECUTABLE_TYPE = "vlc_legacy_executable_type";
+	public static final String NAME = "VLC Web Video (Legacy)";
+
+	// Not to be instantiated by anything but PlayerFactory
+	VideoLanVideoStreaming() {
 	}
 
 	@Override
@@ -52,8 +72,18 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getConfigurablePathKey() {
+		return KEY_VLC_PATH;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_VLC_LEGACY_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -63,7 +93,7 @@ public class VideoLanVideoStreaming extends Player {
 
 	@Override
 	public String name() {
-		return "VLC Web Video (Legacy)";
+		return NAME;
 	}
 
 	@Override
@@ -77,8 +107,8 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	@Override
-	public String executable() {
-		return configuration.getVlcPath();
+	protected ExternalProgramInfo programInfo() {
+		return configuration.getVLCPaths();
 	}
 
 	protected String getEncodingArgs() {
@@ -112,23 +142,23 @@ public class VideoLanVideoStreaming extends Player {
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
-		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
+		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
-		pipe_process.runInNewThread();
+		pipeProcess.runInNewThread();
 		tsPipe.deleteLater();
 
-		params.input_pipes[0] = tsPipe;
-		params.minBufferSize = params.minFileSize;
-		params.secondread_minsize = 100000;
+		params.getInputPipes()[0] = tsPipe;
+		params.setMinBufferSize(params.getMinFileSize());
+		params.setSecondReadMinSize(100000);
 
 		List<String> cmdList = new ArrayList<>();
-		cmdList.add(executable());
+		cmdList.add(getExecutable());
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
@@ -174,15 +204,8 @@ public class VideoLanVideoStreaming extends Player {
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 
-		cmdArray = finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArray);
-
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(pipe_process);
+		pw.attachProcess(pipeProcess);
 
 		try {
 			Thread.sleep(150);
@@ -199,11 +222,83 @@ public class VideoLanVideoStreaming extends Player {
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebVideo(resource);
+	}
+
+	@Override
+	public boolean excludeFormat(Format extension) {
+		return false;
+	}
+
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+		return true;
+	}
+
+	@Override
+	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		executableInfo = testExecutableFile(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		ExecutableInfoBuilder result = executableInfo.modify();
+		if (Platform.isWindows()) {
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
+				result.version(BasicSystemUtils.instance.getVlcVersion());
+			}
+			result.available(Boolean.TRUE);
+		} else {
+			final String arg = "--version";
+			try {
+				ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+					30000,
+					1000,
+					executableInfo.getPath().toString(),
+					arg
+				);
+				if (output.getError() != null) {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+					result.available(Boolean.FALSE);
+					LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
+					return result.build();
+				}
+				if (output.getExitCode() == 0) {
+					if (output.getOutput() != null && output.getOutput().size() > 0) {
+						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
+						Matcher matcher = pattern.matcher(output.getOutput().get(0));
+						if (matcher.find() && isNotBlank(matcher.group(1))) {
+							result.version(new Version(matcher.group(1)));
+						}
+					}
+					result.available(Boolean.TRUE);
+				} else {
+					result.errorType(ExecutableErrorType.GENERAL);
+					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.available(Boolean.FALSE);
+				}
+			} catch (InterruptedException e) {
+				return null;
+			}
+		}
+		if (result.version() != null) {
+			Version requiredVersion = new Version("2.0.2");
+			if (result.version().compareTo(requiredVersion) <= 0) {
+				result.errorType(ExecutableErrorType.GENERAL);
+				result.errorText(String.format(Messages.getString("Engine.VersionTooLow"), requiredVersion, this));
+				result.available(Boolean.FALSE);
+				LOGGER.warn(String.format(Messages.getRootString("Engine.VersionTooLow"), requiredVersion, this));
+			}
+		} else if (result.available() != null && result.available().booleanValue()) {
+			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");
+		}
+		return result.build();
+	}
+
+	@Override
+	protected boolean isSpecificTest() {
+		return false;
 	}
 }

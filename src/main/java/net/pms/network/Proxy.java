@@ -144,39 +144,39 @@ public class Proxy extends Thread {
 				baos = toBrowser;
 			}
 
-			long total_read = 0;
+			long totalRead = 0;
 
-			int bytes_read;
-			long CL = 10000000000L;
+			int bytesRead;
+			long cL = 10000000000L;
 
-			while (total_read < CL && (bytes_read = sockWebInputStream.read(buffer)) != -1) {
+			while (totalRead < cL && (bytesRead = sockWebInputStream.read(buffer)) != -1) {
 				if (!resourceExists) {
-					if (10000000000L == CL) {
-						String s = new String(buffer, 0, bytes_read);
+					if (10000000000L == cL) {
+						String s = new String(buffer, 0, bytesRead);
 						int clPos = s.indexOf("Content-Length: ");
 
 						if (clPos > -1) {
-							CL = Integer.parseInt(s.substring(clPos + 16, s.indexOf('\n', clPos)).trim());
-							LOGGER.trace("Found Content Length: " + CL);
+							cL = Integer.parseInt(s.substring(clPos + 16, s.indexOf('\n', clPos)).trim());
+							LOGGER.trace("Found Content Length: " + cL);
 						}
 					}
 
-					if (bytes_read >= 7) {
-						byte end[] = new byte[7];
-						System.arraycopy(buffer, bytes_read - 7, end, 0, 7);
+					if (bytesRead >= 7) {
+						byte[] end = new byte[7];
+						System.arraycopy(buffer, bytesRead - 7, end, 0, 7);
 						if (new String(end).equals("\r\n0\r\n\r\n")) {
 							LOGGER.trace("end of transfer chunked");
-							CL = -1;
+							cL = -1;
 						}
 					}
 
 					if (writeCache) {
-						fOUT.write(buffer, 0, bytes_read);
+						fOUT.write(buffer, 0, bytesRead);
 					}
 				}
 
-				baos.write(buffer, 0, bytes_read);
-				total_read += bytes_read;
+				baos.write(buffer, 0, bytesRead);
+				totalRead += bytesRead;
 			}
 
 			sockWebInputStream.close();

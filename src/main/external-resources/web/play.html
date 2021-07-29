@@ -1,17 +1,41 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+		<meta charset="utf-8">
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<script src="/files/jquery.min.js"></script>
+		<script src="/files/js.cookie.min.js"></script>
+		<script src="/files/jquery.ums.js"></script>
+		<!-- New webUI -->
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<script src="/files/util/modernizr.custom.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<!--TV - REMOTE CONTROL-->
+		<script src="/files/util/keycode.js"></script>
+		<script src="/files/util/keycontroller.js"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" type="text/css">
+
+		{{^isNativeAudio}}
+			<link href="/files/util/video-js/video-js.min.css" type="text/css" rel="stylesheet">
+			<script src="/files/util/video-js/video.min.js"></script>
+		{{/isNativeAudio}}
+
 		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
 		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
 		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
-		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
-		<script src="/files/jquery.min.js"></script>
-		<script src="/files/jquery.ums.js"></script>
-		<script src="/files/js.cookie-2.1.0.min.js"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>{{name}}</title>
 	</head>
-	<body id="ContentPage">
+	<body id="ContentPage" class="videoPage">
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a id="HomeButton" class="navbar-brand" href="/browse/0" title="UMS"></a>
+				</div>
+			</div>
+		</nav>
 		<script>
 {{#prevId}}
 			function prev() {window.location.replace('/play/{{prevId}}?html5=1');}
@@ -23,92 +47,200 @@
 			function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 {{/isVideo}}
 		</script>
-		<div id="Container">
-			<div id="Menu">
-				<a href="/browse/0" id="HomeButton"></a>
-				<a href="/doc" id="DocButton" title="Documentation"></a>
+		<div id="Container" class="noHzScroll">
+			<div id="FoldersContainer">
+				<ul id="Folders" class="nav nav-sidebar">
+					{{#folders}}
+						<li>{{this}}</li>
+					{{/folders}}
+				</ul>
 			</div>
+			<div id="MediaContainer">
+				{{#isShowBreadcrumbs}}
+					<ol id="Breadcrumbs" class="breadcrumb">
+						{{#breadcrumbs}}
+							{{this}}
+						{{/breadcrumbs}}
+					</ol>
+				{{/isShowBreadcrumbs}}
 
-			<div id="VideoContainer">
-{{^isVideo}}
-				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
-				<h2>{{name}}</h2><br>
-{{/isVideo}}
-				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
-					<source src="/media/{{id1}}" type="{{mime}}">
-{{#sub}}
-					<track kind="subtitles" src="/files/{{this}}" default>
-{{/sub}}
-				</{{mediaType}}>
-				<div id="toolbar">
-					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
-					<button id="next" onclick="next()"{{nextAttr}}>>></button>
-{{#plsSign}}
-                    <button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;">{{plsSign}}</button>
-{{/plsSign}}
-{{#isVideo}}
-					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
-{{/isVideo}}
-				</div>
+				{{^isVideoWithAPIData}}
+					<div id="VideoContainer">
+						{{^isVideo}}
+						<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
+						{{/isVideo}}
+						<{{mediaType}}
+							id="player"
+							class="video-js vjs-default-skin vjs-fluid vjs-big-play-centered{{^isVideo}}{{^isNativeAudio}} full-card card{{/isNativeAudio}}{{/isVideo}}"
+							controls
+							{{auto}}
+							fullscreen
+							{{^isNativeAudio}}width="{{width}}" height="{{height}}" {{/isNativeAudio}}
+							data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+							poster="/thumb/{{id1}}"
+						>
+							<source src="/media/{{id1}}" type="{{mime}}">
+							{{#sub}}
+								<track kind="captions" src="/files/{{this}}" default>
+							{{/sub}}
+							<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+						</{{mediaType}}>
+						{{^isVideo}}
+						<div class="well {{^isVideo}}full-card{{/isVideo}}">
+							<h2>{{name}}</h2>
+							{{#isNativeAudio}}
+								<img id="poster" src="/thumb/{{id1}}" style="max-width:100%;" />
+							{{/isNativeAudio}}
+						</div>
+						{{/isVideo}}
+						{{^isNativeAudio}}
+						<div id="toolbar" class=" {{^isVideo}}full-card{{/isVideo}}">
+							<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-prev"></span></button>
+							<button id="play" onclick="play()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-play"></span></button>
+							<button id="pause" onclick="pause()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-pause"></span></button>
+							<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-next"></span></button>
+							{{#plsSign}}
+							<button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;" type="button" class="btn btn-sm btn-playbar">{{plsSign}}</button>
+							{{/plsSign}}
+							{{#isVideo}}
+							<button id="flash" onclick="flash()" title="Switch to flash player" type="button" class="btn btn-sm btn-playbar"><span>Flash</span></button>
+							{{/isVideo}}
+							<a href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}" class="btn btn-sm btn-playbar"><span class="fa fa-download"></span></a>
+							<button id="fullscreen" onclick="GoInFullscreen(videojs('player'));" title="Fullscreen Mode" class="btn btn-sm btn-playbar"><span class="icon-player-size-fullscreen"></span></button>
+						</div>
+						{{/isNativeAudio}}
+					</div>
+				{{/isVideoWithAPIData}}
+
+				{{#isVideoWithAPIData}}
+					<script type="text/javascript">
+						{{javascriptVarsScript}}
+						$(function() {
+							populateMetadataDisplayFromGlobalVars();
+						});
+					</script>
+					<div class="mediaInfo">
+						<div id="VideoContainer">
+							{{^isVideo}}
+							<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
+							{{/isVideo}}
+							<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-fluid vjs-big-play-centered{{^isVideo}} full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
+								data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+								poster="/thumb/{{id1}}"
+							>
+								<source src="/media/{{id1}}" type="{{mime}}">
+								{{#sub}}
+									<track kind="captions" src="/files/{{this}}" default>
+								{{/sub}}
+								<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
+							</{{mediaType}}>
+							<script type="text/javascript">
+								if (poster) {
+									var mediaPlayer = document.getElementById("player");
+									mediaPlayer.setAttribute("poster", poster);
+								}
+							</script>
+							{{^isVideo}}
+								<div class="well full-card">
+									<h2>{{name}}</h2>
+								</div>
+							{{/isVideo}}
+							<div id="toolbar" class=" {{^isVideo}}full-card{{/isVideo}}">
+								<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-prev"></span></button>
+								<button id="play" onclick="play()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-play"></span></button>
+								<button id="pause" onclick="pause()" type="button" class="btn btn-sm btn-playbar"><span class="icon-player-pause"></span></button>
+								<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-next"></span></button>
+								{{#plsSign}}
+									<button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;" type="button" class="btn btn-sm btn-playbar">{{plsSign}}</button>
+								{{/plsSign}}
+								{{#isVideo}}
+									<button id="flash" onclick="flash()" title="Switch to flash player" type="button" class="btn btn-sm btn-playbar"><span>Flash</span></button>
+								{{/isVideo}}
+								<a href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}" class="btn btn-sm btn-playbar"><span class="fa fa-download"></span></a>
+								<button id="fullscreen" onclick="GoInFullscreen(videojs('player'));" title="Fullscreen Mode" class="btn btn-sm btn-playbar"><span class="icon-player-size-fullscreen"></span></button>
+							</div>
+						</div>
+						<div class="mediaInfoText">
+							<h1>{{name}}</h1>
+							<p class="actors"></p>
+							<p class="awards"></p>
+							<p class="country"></p>
+							<p class="director"></p>
+							<p class="genres"></p>
+							<p class="plot"></p>
+							<p class="rated"></p>
+							<p class="ratings"></p>
+							<p class="startYear"></p>
+							<p class="totalSeasons"></p>
+						</div>
+						<div class="posterContainer">
+							<img id="poster" crossorigin="" />
+						</div>
+						<br style="clear: left" />
+					</div>
+				{{/isVideoWithAPIData}}
 			</div>
-			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 		</div>
-		<script>
-			var state = {};
-			var player = document.getElementById('player');
-
-			function status(k, v, wait) {
-				//console.log('status '+JSON.stringify(arguments));
-				state[k] = v;
-				if (! wait) {
-					$.post('/playerstatus/', JSON.stringify(state));
-				}
-			}
-
-			function volumeStatus() {
-				status('mute', player.muted ? '1' : '0', true);
-				status('volume', (player.volume * 100).toFixed(0));
-			}
-
-			player.addEventListener('playing', function(){status('playback', 'PLAYING');});
-			player.addEventListener('play', function(){status('playback', 'PLAYING');});
-			player.addEventListener('pause', function(){status('playback', 'PAUSED');});
-			player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
-			player.addEventListener('ended', function(){status('playback', 'STOPPED');});
-			player.addEventListener('error', function(){status('playback', 'STOPPED');});
-			player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
-			player.addEventListener('volumechange', volumeStatus);
-{{#autoContinue}}
-			player.addEventListener('ended', next, false);
-{{/autoContinue}}
-			window.onbeforeunload = function(){status('playback','STOPPED');}
-			// Send initial status
-			volumeStatus();
-
-{{#push}}
-			function control(op, arg) {
-				//console.log('control '+JSON.stringify(arguments));
+		{{^isNativeAudio}}
+			<script>
+				var state = {};
 				var player = document.getElementById('player');
-				switch (op) {
-					case 'play':
-						player.play();
-						break;
-					case 'pause':
-						player.pause(!player.paused);
-						break;
-					case 'stop':
-						player.pause();
-						break;
-					case 'setvolume':
-						player.volume = arg/100;
-						break;
-					case 'mute':
-						player.muted = !player.muted;
-						break;
+
+				function status(k, v, wait) {
+					//console.log('status '+JSON.stringify(arguments));
+					state[k] = v;
+					if (! wait) {
+						$.post('/playerstatus/', JSON.stringify(state));
+					}
 				}
-			}
-{{/push}}			
-		</script>
+
+				function volumeStatus() {
+					status('mute', player.muted ? '1' : '0', true);
+					status('volume', (player.volume * 100).toFixed(0));
+				}
+
+				player.addEventListener('playing', function(){status('playback', 'PLAYING');});
+				player.addEventListener('play', function(){status('playback', 'PLAYING');});
+				player.addEventListener('pause', function(){status('playback', 'PAUSED');});
+				player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
+				player.addEventListener('ended', function(){status('playback', 'STOPPED');});
+				player.addEventListener('error', function(){status('playback', 'STOPPED');});
+				player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
+				player.addEventListener('volumechange', volumeStatus);
+				{{#autoContinue}}
+					player.addEventListener('ended', next, false);
+				{{/autoContinue}}
+				window.onbeforeunload = function(){status('playback','STOPPED');}
+				// Send initial status
+				volumeStatus();
+
+				{{#push}}
+					function control(op, arg) {
+						//console.log('control '+JSON.stringify(arguments));
+						var player = document.getElementById('player');
+						switch (op) {
+							case 'play':
+								player.play();
+								break;
+							case 'pause':
+								player.pause(!player.paused);
+								break;
+							case 'stop':
+								player.pause();
+								break;
+							case 'setvolume':
+								player.volume = arg/100;
+								break;
+							case 'mute':
+								player.muted = !player.muted;
+								break;
+						}
+					}
+				{{/push}}			
+			</script>
+		{{/isNativeAudio}}
+		<input type="hidden" class="jQKeyboard" name="dummy">
+		<script src="/files/util/fontawesome/js/all.min.js"></script>
 	</body>
 </html>
 

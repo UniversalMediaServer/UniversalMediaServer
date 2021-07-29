@@ -19,23 +19,25 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * This is an immutable class for holding a rational without loss of precision.
- * As a consequence, a new instance is generated for every mathematical
- * operation. The reduced rationale and most string values are generated during
+ * This is an immutable class for holding a rational number without loss of
+ * precision. As a consequence, a new instance is generated for every
+ * mathematical operation. The reduced rationale is generated during
  * construction and cached for later retrieval.
  * <p>
  * This class has methods for doing basic operations mathematical operations,
@@ -46,12 +48,17 @@ import java.util.regex.Pattern;
  * {@link #compareTo} methods that accepts most primitive number types and any
  * class implementing {@link Number}.
  * <p>
- * All the {@link #compareTo} can be used as a "replacement" for the six boolean comparison operators ({@literal <}, ==, {@literal >},
- * {@literal >=}, !=, {@literal <=}) since these are not supported for "custom" number types.
- * The suggested idiom for performing
- * these comparisons is: {@code (x.compareTo(y)} &lt;<i>op</i>&gt;
- * {@code 0)}, where &lt;<i>op</i>&gt; is one of the six comparison
- * operators.
+ * All the {@link #compareTo} methods can be used as a "replacement" for the six
+ * boolean comparison operators ({@literal <}, ==, {@literal >}, {@literal >=},
+ * !=, {@literal <=}) since these are not supported for "custom" number types.
+ * The suggested idiom for performing these comparisons is:
+ * {@code (x.compareTo(y)} &lt;<i>op</i>&gt; {@code 0)}, where &lt;<i>op</i>&gt;
+ * is one of the six comparison operators.
+ * <p>
+ * {@link Rational} supports {@link #NaN} (Not a Number) and positive and
+ * negative infinity. Arithmetic operations involving these special values
+ * follow the rules defined in <cite>IEEE Standard 754 Floating Point
+ * Numbers</cite> for "special operations".
  * <p>
  * Static methods for finding the greatest common divisor and the least common
  * multiple for two integers are also provided with
@@ -71,21 +78,7 @@ import java.util.regex.Pattern;
  * @author Nadahar
  */
 public class Rational extends Number implements Comparable<Rational> {
-
-	/** The static instance representing the value 0 */
-	public static final Rational ZERO = new Rational();
-
-	/** The static instance representing the value 1 */
-	public static final Rational ONE = new Rational(1L);
-
-	/** Internal static string for 0 */
-	protected static final String STRING_ZERO = "0";
-
-	/** Internal static string for 1 */
-	protected static final String STRING_ONE = "1";
-
-	/** Internal regex pattern for validation of strings for parsing */
-	protected static final Pattern STRING_PATTERN = Pattern.compile("^\\s*(-?\\d+)\\s*(?:/\\s*(-?\\d+))?\\s*$");
+	private static final long serialVersionUID = 3L;
 
 	/**
 	 * The locale-insensitive {@link DecimalFormat} used for
@@ -96,12 +89,56 @@ public class Rational extends Number implements Comparable<Rational> {
 		DecimalFormatSymbols.getInstance(Locale.ROOT)
 	);
 
-	private static final long serialVersionUID = 1L;
+	/** The static instance representing the value 0 */
+	public static final Rational ZERO = new Rational(
+		BigInteger.ZERO,
+		BigInteger.ONE,
+		BigInteger.ONE,
+		BigInteger.ZERO,
+		BigInteger.ONE
+	);
+
+	/** The static instance representing the value 1 */
+	public static final Rational ONE = new Rational(
+		BigInteger.ONE,
+		BigInteger.ONE,
+		BigInteger.ONE,
+		BigInteger.ONE,
+		BigInteger.ONE
+	);
+
+	/** The static instance representing positive infinity */
+	public static final Rational POSITIVE_INFINITY = new Rational(
+		BigInteger.ONE,
+		BigInteger.ZERO,
+		BigInteger.ZERO,
+		BigInteger.ONE,
+		BigInteger.ZERO
+	);
+
+	/** The static instance representing negative infinity */
+	public static final Rational NEGATIVE_INFINITY = new Rational(
+		BigInteger.ONE.negate(),
+		BigInteger.ZERO,
+		BigInteger.ZERO,
+		BigInteger.ONE.negate(),
+		BigInteger.ZERO
+	);
+
+	/** The static instance representing negative infinity */
+	@SuppressWarnings("checkstyle:ConstantName")
+	public static final Rational NaN = new Rational(
+		BigInteger.ZERO,
+		BigInteger.ZERO,
+		BigInteger.ZERO,
+		BigInteger.ZERO,
+		BigInteger.ZERO
+	);
 
 	/** The numerator, which also holds the sign of this {@link Rational}. */
 	protected final BigInteger numerator;
 
-	/** The denominator, which is positive by definition. */
+	/** The denominator, which is never negative by definition. */
 	protected final BigInteger denominator;
 
 	/**
@@ -109,7 +146,10 @@ public class Rational extends Number implements Comparable<Rational> {
 	 */
 	protected final BigInteger reducedNumerator;
 
-	/** The denominator of the reduced {@link Rational}, always positive. */
+	/**
+	 * The denominator of the reduced {@link Rational}, which is never negative
+	 * by definition.
+	 */
 	protected final BigInteger reducedDenominator;
 
 	/**
@@ -119,257 +159,403 @@ public class Rational extends Number implements Comparable<Rational> {
 	 */
 	protected final BigInteger greatestCommonDivisor;
 
-	/** The cached string value */
-	protected final String stringValue;
-
-	/** The cached reduced string value */
-	protected final String reducedStringValue;
-
-	/** The cached decimal string value */
-	protected final String decimalStringValue;
-
 	/** The cached hashCode */
 	protected final int hashCode;
 
 	/**
-	 * Creates a new instance that represents the value zero. Use {@link #ZERO}
-	 * instead.
+	 * Creates a new instance with the specified parameters.
+	 *
+	 * @param numerator the numerator.
+	 * @param denominator the denominator.
+	 * @param greatestCommonDivisor the greatest common divisor of numerator and
+	 *            denominator.
+	 * @param reducedNumerator the reduced numerator.
+	 * @param reducedDenominator the reduced denominator.
 	 */
-	protected Rational() {
-		numerator = BigInteger.ZERO;
-		denominator = BigInteger.ONE;
-		greatestCommonDivisor = BigInteger.ONE;
-		reducedNumerator = numerator;
-		reducedDenominator = denominator;
-		stringValue = STRING_ZERO;
-		reducedStringValue = STRING_ZERO;
-		decimalStringValue = STRING_ZERO;
+	protected Rational(
+		BigInteger numerator,
+		BigInteger denominator,
+		BigInteger greatestCommonDivisor,
+		BigInteger reducedNumerator,
+		BigInteger reducedDenominator
+	) {
+		this.numerator = numerator;
+		this.denominator = denominator;
+		this.greatestCommonDivisor = greatestCommonDivisor;
+		this.reducedNumerator = reducedNumerator;
+		this.reducedDenominator = reducedDenominator;
 		hashCode = calculateHashCode();
 	}
 
 	/**
-	 * Creates a new instance that represents the value of {@code value}.
+	 * Returns an instance that represents the value of {@code value}.
 	 *
 	 * @param value the value.
+	 * @return An instance that represents the value of {@code value}.
 	 */
-	public Rational(double value) {
-		this(BigDecimal.valueOf(value));
-	}
-
-	/**
-	 * Creates a new instance that represents the value of {@code value}.
-	 *
-	 * @param value the value.
-	 */
-	public Rational(BigDecimal value) {
-		if (value.signum() == 0) {
-			this.numerator = BigInteger.ZERO;
-			denominator = BigInteger.ONE;
-		} else {
-			if (value.scale() > 0) {
-				BigInteger unscaled = value.unscaledValue();
-				BigInteger tmpDenominator = BigInteger.TEN.pow(value.scale());
-				BigInteger tmpGreatestCommonDivisor = unscaled.gcd(tmpDenominator);
-				numerator = unscaled.divide(tmpGreatestCommonDivisor);
-				denominator = tmpDenominator.divide(tmpGreatestCommonDivisor);
-			} else {
-				numerator = value.toBigIntegerExact();
-				denominator = BigInteger.ONE;
-			}
+	@Nonnull
+	public static Rational valueOf(double value) {
+		if (value == Double.POSITIVE_INFINITY) {
+			return POSITIVE_INFINITY;
 		}
-		greatestCommonDivisor = BigInteger.ONE;
-		reducedNumerator = numerator;
-		reducedDenominator = denominator;
-		stringValue = generateRationalString(numerator, denominator);
-		reducedStringValue = stringValue;
-		decimalStringValue = generateDecimalString(numerator, denominator);
-		hashCode = calculateHashCode();
+		if (value == Double.NEGATIVE_INFINITY) {
+			return NEGATIVE_INFINITY;
+		}
+		if (Double.isNaN(value)) {
+			return NaN;
+		}
+		return valueOf(BigDecimal.valueOf(value));
 	}
 
 	/**
-	 * Creates a new instance by parsing {@code value}. The format must be
-	 * either {@code integer numerator/integer denominator} or
-	 * {@code integer numerator} for the parsing to succeed. Signs are
-	 * understood for both numerator and denominator. If {@code value} is blank
-	 * or {@code null}, a {@link Rational} instance representing zero is
-	 * created. If {@code value} can't be parsed, a
+	 * Returns an instance that represents the value of {@code value}.
+	 *
+	 * @param value the value.
+	 * @return An instance that represents the value of {@code value}.
+	 */
+	@Nonnull
+	public static Rational valueOf(float value) {
+		if (value == Float.POSITIVE_INFINITY) {
+			return POSITIVE_INFINITY;
+		}
+		if (value == Float.NEGATIVE_INFINITY) {
+			return NEGATIVE_INFINITY;
+		}
+		if (Float.isNaN(value)) {
+			return NaN;
+		}
+		return valueOf(BigDecimal.valueOf(value));
+	}
+
+	/**
+	 * Returns an instance that represents the value of {@code value}.
+	 *
+	 * @param value the value.
+	 * @return An instance that represents the value of {@code value}.
+	 */
+	@Nullable
+	public static Rational valueOf(@Nullable BigDecimal value) {
+		if (value == null) {
+			return null;
+		}
+		BigInteger numerator;
+		BigInteger denominator;
+		if (value.signum() == 0) {
+			return ZERO;
+		}
+		if (BigDecimal.ONE.equals(value)) {
+			return ONE;
+		}
+		if (value.scale() > 0) {
+			BigInteger unscaled = value.unscaledValue();
+			BigInteger tmpDenominator = BigInteger.TEN.pow(value.scale());
+			BigInteger tmpGreatestCommonDivisor = unscaled.gcd(tmpDenominator);
+			numerator = unscaled.divide(tmpGreatestCommonDivisor);
+			denominator = tmpDenominator.divide(tmpGreatestCommonDivisor);
+		} else {
+			numerator = value.toBigIntegerExact();
+			denominator = BigInteger.ONE;
+		}
+		return new Rational(
+			numerator,
+			denominator,
+			BigInteger.ONE,
+			numerator,
+			denominator
+		);
+	}
+
+	/**
+	 * Returns an instance by parsing the specified {@link String}. The format
+	 * must be either {@code number/number}, {@code number:number} or
+	 * {@code number}. Signs are understood for both numerator and denominator.
+	 * If {@code value} is blank or {@code null}, {@code null} is returned.
+	 * "Standard formatted" numbers are expected (no grouping, {@code .} as
+	 * decimal separator etc.). If {@code value} can't be parsed, a
 	 * {@link NumberFormatException} is thrown.
 	 *
 	 * @param value the {@link String} value to parse.
+	 * @return An instance that represents the value of {@code value}.
 	 * @throws NumberFormatException If {@code value} cannot be parsed.
 	 */
-	public Rational(String value) {
-		if (isBlank(value)) {
-			numerator = BigInteger.ZERO;
-			denominator = BigInteger.ONE;
-			greatestCommonDivisor = BigInteger.ONE;
-			reducedNumerator = numerator;
-			reducedDenominator = denominator;
-			stringValue = STRING_ZERO;
-			reducedStringValue = STRING_ZERO;
-			decimalStringValue = STRING_ZERO;
-		} else {
-			Matcher matcher = STRING_PATTERN.matcher(value);
-			if (!matcher.find()) {
-				throw new NumberFormatException(
-					"Invalid value \"" + value +
-					"\". The value must be either \"integer/integer\" or \"integer\""
-				);
-			}
-			if (value.indexOf("/") > 0) {
-				if (matcher.group(2).startsWith("-")) {
-					// Keep the signum in the numerator
-					numerator = new BigInteger(matcher.group(1)).negate();
-					denominator = new BigInteger(matcher.group(2)).negate();
-				} else {
-					numerator = new BigInteger(matcher.group(1));
-					denominator = new BigInteger(matcher.group(2));
-				}
-				greatestCommonDivisor = calculateGreatestCommonDivisor(numerator, denominator);
-				reducedNumerator = numerator.divide(greatestCommonDivisor);
-				reducedDenominator = denominator.divide(greatestCommonDivisor);
-				stringValue = generateRationalString(numerator, denominator);
-				reducedStringValue = generateRationalString(reducedNumerator, reducedDenominator);
-			} else {
-				numerator = new BigInteger(matcher.group(1));
-				denominator = BigInteger.ONE;
-				greatestCommonDivisor = BigInteger.ONE;
-				reducedNumerator = numerator;
-				reducedDenominator = denominator;
-				stringValue = generateRationalString(numerator, denominator);
-				reducedStringValue = stringValue;
-			}
-			decimalStringValue = generateDecimalString(reducedNumerator, reducedDenominator);
+	@Nullable
+	public static Rational valueOf(@Nullable String value) {
+		return valueOf(value, (NumberFormat) null);
+	}
+
+	/**
+	 * Returns an instance by parsing the specified {@link String}. The format
+	 * must be either {@code number/number}, {@code number:number} or
+	 * {@code number}. Signs are understood for both numerator and denominator.
+	 * If {@code value} is blank or {@code null}, {@code null} is returned. If
+	 * {@code value} can't be parsed, a {@link NumberFormatException} is thrown.
+	 *
+	 * @param value the {@link String} value to parse.
+	 * @param locale the {@link Locale} to use when parsing numbers. If
+	 *            {@code null}, "standard formatted" numbers are expected (no
+	 *            grouping, {@code .} as decimal separator etc.).
+	 * @return An instance that represents the value of {@code value}.
+	 * @throws NumberFormatException If {@code value} cannot be parsed.
+	 */
+	@Nullable
+	public static Rational valueOf(@Nullable String value, @Nullable Locale locale) {
+		return valueOf(value, locale == null ? null : NumberFormat.getInstance(locale));
+	}
+
+	/**
+	 * Returns an instance by parsing the specified {@link String}. The format
+	 * must be either {@code number/number}, {@code number:number} or
+	 * {@code number}. Signs are understood for both numerator and denominator.
+	 * If {@code value} is blank or {@code null}, {@code null} is returned. If
+	 * {@code value} can't be parsed, a {@link NumberFormatException} is thrown.
+	 *
+	 * @param value the {@link String} value to parse.
+	 * @param numberFormat the {@link NumberFormat} to use when parsing numbers.
+	 *            If {@code null} or not an instance of {@link DecimalFormat},
+	 *            "standard formatted" numbers are expected (no grouping,
+	 *            {@code .} as decimal separator etc.).
+	 * @return An instance that represents the value of {@code value}.
+	 * @throws NumberFormatException If {@code value} cannot be parsed.
+	 */
+	@Nullable
+	public static Rational valueOf(@Nullable String value, @Nullable NumberFormat numberFormat) {
+		if (StringUtils.isBlank(value)) {
+			return null;
 		}
-		hashCode = calculateHashCode();
+		String[] numbers = value.trim().split("\\s*(?:/|:)\\s*", 2);
+		DecimalFormat decimalFormat = numberFormat instanceof DecimalFormat ? (DecimalFormat) numberFormat : null;
+
+		BigDecimal decimalNumerator = parseBigDecimal(numbers[0], decimalFormat);
+		if (decimalNumerator == null) {
+			return null;
+		}
+		BigDecimal decimalDenominator;
+		if (numbers.length > 1) {
+			decimalDenominator = parseBigDecimal(numbers[1], decimalFormat);
+		} else {
+			decimalDenominator = BigDecimal.ONE;
+		}
+		if (decimalDenominator == null) {
+			return null;
+		}
+		return valueOf(decimalNumerator, decimalDenominator);
 	}
 
 	/**
-	 * Creates a new instance that represents the value of {@code value}.
+	 * Returns an instance that represents the value of {@code value}.
 	 *
 	 * @param value the value.
+	 * @return An instance that represents the value of {@code value}.
 	 */
-	public Rational(int value) {
-		this((long) value);
+	@Nonnull
+	public static Rational valueOf(int value) {
+		return valueOf((long) value);
 	}
 
 	/**
-	 * Creates a new instance that represents the value of {@code value}.
+	 * Returns an instance that represents the value of {@code value}.
 	 *
 	 * @param value the value.
+	 * @return An instance that represents the value of {@code value}.
 	 */
-	public Rational(long value) {
-		numerator = BigInteger.valueOf(value);
-		denominator = BigInteger.ONE;
-		greatestCommonDivisor = BigInteger.ONE;
-		reducedNumerator = numerator;
-		reducedDenominator = denominator;
-		stringValue = Long.toString(value);
-		reducedStringValue = stringValue;
-		decimalStringValue = stringValue;
-		hashCode = calculateHashCode();
+	@Nonnull
+	public static Rational valueOf(long value) {
+		BigInteger numerator = BigInteger.valueOf(value);
+		return new Rational(
+			numerator,
+			BigInteger.ONE,
+			BigInteger.ONE,
+			numerator,
+			BigInteger.ONE
+		);
 	}
 
 	/**
-	 * Creates a new instance that represents the value of {@code value}.
+	 * Returns an instance that represents the value of {@code value}.
 	 *
 	 * @param value the value.
+	 * @return An instance that represents the value of {@code value}.
 	 */
-	public Rational(BigInteger value) {
-		numerator = value;
-		denominator = BigInteger.ONE;
-		greatestCommonDivisor = BigInteger.ONE;
-		reducedNumerator = numerator;
-		reducedDenominator = denominator;
-		stringValue = generateRationalString(numerator, denominator);
-		reducedStringValue = stringValue;
-		decimalStringValue = stringValue;
-		hashCode = calculateHashCode();
+	@Nullable
+	public static Rational valueOf(@Nullable BigInteger value) {
+		if (value == null) {
+			return null;
+		}
+		return new Rational(value, BigInteger.ONE, BigInteger.ONE, value, BigInteger.ONE);
 	}
 
 	/**
-	 * Creates a new instance with the given {@code numerator} and
+	 * Returns an instance with the given {@code numerator} and
 	 * {@code denominator}.
 	 *
 	 * @param numerator the numerator.
 	 * @param denominator the denominator.
+	 * @return An instance that represents the value of {@code numerator}/
+	 *         {@code denominator}.
 	 */
-	public Rational(int numerator, int denominator) {
-		this((long) numerator, (long) denominator);
+	@Nonnull
+	public static Rational valueOf(int numerator, int denominator) {
+		return valueOf((long) numerator, (long) denominator);
 	}
 
 	/**
-	 * Creates a new instance with the given {@code numerator} and
+	 * Returns an instance with the given {@code numerator} and
 	 * {@code denominator}.
 	 *
 	 * @param numerator the numerator.
 	 * @param denominator the denominator.
+	 * @return An instance that represents the value of {@code numerator}/
+	 *         {@code denominator}.
 	 */
-	public Rational(long numerator, long denominator) {
+	@Nonnull
+	public static Rational valueOf(long numerator, long denominator) {
+		if (numerator == 0 && denominator == 0) {
+			return NaN;
+		}
 		if (denominator == 0) {
-			throw new IllegalArgumentException("denominator can't be zero");
+			return numerator > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
 		}
 		if (numerator == 0) {
-			this.numerator = BigInteger.ZERO;
-			this.denominator = BigInteger.ONE;
-		} else if (denominator < 0) {
-			this.numerator = BigInteger.valueOf(-numerator);
-			this.denominator = BigInteger.valueOf(-denominator);
-		} else {
-			this.numerator = BigInteger.valueOf(numerator);
-			this.denominator = BigInteger.valueOf(denominator);
+			return ZERO;
 		}
-		stringValue = generateRationalString(this.numerator, this.denominator);
+		if (numerator == denominator) {
+			return ONE;
+		}
+		BigInteger biNumerator;
+		BigInteger biDenominator;
+		if (denominator < 0) {
+			biNumerator = BigInteger.valueOf(-numerator);
+			biDenominator = BigInteger.valueOf(-denominator);
+		} else {
+			biNumerator = BigInteger.valueOf(numerator);
+			biDenominator = BigInteger.valueOf(denominator);
+		}
 		long gcd = calculateGreatestCommonDivisor(numerator, denominator);
-		this.greatestCommonDivisor = BigInteger.valueOf(gcd);
+		BigInteger greatestCommonDivisor = BigInteger.valueOf(gcd);
+		BigInteger reducedNumerator;
+		BigInteger reducedDenominator;
 		if (gcd == 1) {
-			this.reducedNumerator = this.numerator;
-			this.reducedDenominator = this.denominator;
-			reducedStringValue = stringValue;
+			reducedNumerator = biNumerator;
+			reducedDenominator = biDenominator;
 		} else {
-			this.reducedNumerator = this.numerator.divide(this.greatestCommonDivisor);
-			this.reducedDenominator = this.denominator.divide(this.greatestCommonDivisor);
-			reducedStringValue = generateRationalString(this.reducedNumerator, this.reducedDenominator);
+			reducedNumerator = biNumerator.divide(greatestCommonDivisor);
+			reducedDenominator = biDenominator.divide(greatestCommonDivisor);
 		}
-		decimalStringValue = generateDecimalString(this.reducedNumerator, this.reducedDenominator);
-		hashCode = calculateHashCode();
+		return new Rational(
+			biNumerator,
+			biDenominator,
+			greatestCommonDivisor,
+			reducedNumerator,
+			reducedDenominator
+		);
 	}
 
 	/**
-	 * Creates a new instance with the given {@code numerator} and
+	 * Returns an instance with the given {@code numerator} and
 	 * {@code denominator}.
 	 *
 	 * @param numerator the numerator.
 	 * @param denominator the denominator.
+	 * @return An instance that represents the value of {@code numerator}/
+	 *         {@code denominator}.
 	 */
-	public Rational(BigInteger numerator, BigInteger denominator) {
-		if (denominator == null || denominator.signum() == 0) {
-			throw new IllegalArgumentException("denominator can't be zero");
+	@Nullable
+	public static Rational valueOf(@Nullable BigInteger numerator, @Nullable BigInteger denominator) {
+		if (numerator == null || denominator == null) {
+			return null;
 		}
-		if (numerator == null || numerator.signum() == 0) {
-			this.numerator = BigInteger.ZERO;
-			this.denominator = BigInteger.ONE;
-		} else if (denominator.signum() < 0) {
-			this.numerator = numerator.negate();
-			this.denominator = denominator.negate();
-		} else {
-			this.numerator = numerator;
-			this.denominator = denominator;
+		if (numerator.signum() == 0 && denominator.signum() == 0) {
+			return NaN;
 		}
-		stringValue = generateRationalString(this.numerator, this.denominator);
+		if (denominator.signum() == 0) {
+			return numerator.signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+		if (numerator.signum() == 0) {
+			return ZERO;
+		}
+		if (numerator.equals(denominator)) {
+			return ONE;
+		}
+		if (denominator.signum() < 0) {
+			numerator = numerator.negate();
+			denominator = denominator.negate();
+		}
 
-		this.greatestCommonDivisor = calculateGreatestCommonDivisor(this.numerator, this.denominator);
-		if (BigInteger.ONE.equals(this.greatestCommonDivisor)) {
-			this.reducedNumerator = this.numerator;
-			this.reducedDenominator = this.denominator;
-			reducedStringValue = stringValue;
+		BigInteger reducedNumerator;
+		BigInteger reducedDenominator;
+		BigInteger greatestCommonDivisor = calculateGreatestCommonDivisor(numerator, denominator);
+		if (BigInteger.ONE.equals(greatestCommonDivisor)) {
+			reducedNumerator = numerator;
+			reducedDenominator = denominator;
 		} else {
-			this.reducedNumerator = this.numerator.divide(this.greatestCommonDivisor);
-			this.reducedDenominator = this.denominator.divide(this.greatestCommonDivisor);
-			reducedStringValue = generateRationalString(this.reducedNumerator, this.reducedDenominator);
+			reducedNumerator = numerator.divide(greatestCommonDivisor);
+			reducedDenominator = denominator.divide(greatestCommonDivisor);
 		}
-		decimalStringValue = generateDecimalString(this.reducedNumerator, this.reducedDenominator);
-		hashCode = calculateHashCode();
+		return new Rational(
+			numerator,
+			denominator,
+			greatestCommonDivisor,
+			reducedNumerator,
+			reducedDenominator
+		);
+	}
+
+	/**
+	 * Returns an instance with the given {@code numerator} and
+	 * {@code denominator}.
+	 *
+	 * @param numerator the numerator.
+	 * @param denominator the denominator.
+	 * @return An instance that represents the value of {@code numerator}/
+	 *         {@code denominator}.
+	 */
+	@Nullable
+	public static Rational valueOf(@Nullable BigDecimal numerator, @Nullable BigDecimal denominator) {
+		if (numerator == null || denominator == null) {
+			return null;
+		}
+		if (numerator.signum() == 0 && denominator.signum() == 0) {
+			return NaN;
+		}
+		if (denominator.signum() == 0) {
+			return numerator.signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+		if (numerator.signum() == 0) {
+			return ZERO;
+		}
+		if (numerator.equals(denominator)) {
+			return ONE;
+		}
+		if (denominator.signum() < 0) {
+			numerator = numerator.negate();
+			denominator = denominator.negate();
+		}
+
+		int scale = Math.max(numerator.scale(), denominator.scale());
+		if (scale > 0) {
+			numerator = numerator.scaleByPowerOfTen(scale);
+			denominator = denominator.scaleByPowerOfTen(scale);
+		}
+		BigInteger biNumerator = numerator.toBigIntegerExact();
+		BigInteger biDenominator = denominator.toBigIntegerExact();
+
+		BigInteger reducedNumerator;
+		BigInteger reducedDenominator;
+		BigInteger greatestCommonDivisor = calculateGreatestCommonDivisor(biNumerator, biDenominator);
+		if (BigInteger.ONE.equals(greatestCommonDivisor)) {
+			reducedNumerator = biNumerator;
+			reducedDenominator = biDenominator;
+		} else {
+			reducedNumerator = biNumerator.divide(greatestCommonDivisor);
+			reducedDenominator = biDenominator.divide(greatestCommonDivisor);
+		}
+		return new Rational(
+			biNumerator,
+			biDenominator,
+			greatestCommonDivisor,
+			reducedNumerator,
+			reducedDenominator
+		);
 	}
 
 
@@ -382,6 +568,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be multiplied by this {@link Rational}.
 	 * @return The multiplication result.
 	 */
+	@Nonnull
 	public Rational multiply(int value) {
 		return multiply(BigInteger.valueOf(value));
 	}
@@ -392,6 +579,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be multiplied by this {@link Rational}.
 	 * @return The multiplication result.
 	 */
+	@Nonnull
 	public Rational multiply(long value) {
 		return multiply(BigInteger.valueOf(value));
 	}
@@ -402,15 +590,29 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be multiplied by this {@link Rational}.
 	 * @return The multiplication result.
 	 */
-	public Rational multiply(BigInteger value) {
-		if (value == null || value.signum() == 0) {
+	@Nullable
+	public Rational multiply(@Nullable BigInteger value) {
+		if (value == null) {
+			return null;
+		}
+		if (isNaN()) {
+			return NaN;
+		}
+		if (isInfinite()) {
+			if (value.signum() == 0) {
+				return NaN; // Infinity by zero
+			}
+			return numerator.signum() == value.signum() ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+		if (value.signum() == 0) {
 			return ZERO;
 		}
+
 		if (BigInteger.ONE.equals(value.abs())) {
 			return value.signum() < 0 ? negate() : this;
 		}
 
-		return new Rational(reducedNumerator.multiply(value), reducedDenominator);
+		return valueOf(reducedNumerator.multiply(value), reducedDenominator);
 	}
 
 	/**
@@ -419,38 +621,99 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be multiplied by this {@link Rational}.
 	 * @return The multiplication result.
 	 */
-	public Rational multiply(double value) {
-		return multiply(new Rational(value));
-	}
-
-	/**
-	 * Returns a {@link Rational} whose value is {@code (this * value)}.
-	 *
-	 * @param value the value to be multiplied by this {@link Rational}.
-	 * @return The multiplication result.
-	 */
-	public Rational multiply(BigDecimal value) {
-		return multiply(new Rational(value));
-	}
-
-	/**
-	 * Returns a {@link Rational} whose value is {@code (this * value)}.
-	 *
-	 * @param value the value to be multiplied by this {@link Rational}.
-	 * @return The multiplication result.
-	 */
-	public Rational multiply(Rational value) {
-		if (value == null || value.numerator.signum() == 0) {
+	@Nonnull
+	public Rational multiply(float value) {
+		if (isNaN() || Float.isNaN(value)) {
+			return NaN;
+		}
+		if (isInfinite() || Float.isInfinite(value)) {
+			if (signum() == 0 || value == 0f) {
+				return NaN; // Infinity by zero
+			}
+			if (value > 0) {
+				return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+			}
+			return signum() < 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+		if (value == 0f) {
 			return ZERO;
 		}
-		if (value.numerator.equals(value.denominator)) {
-			return value.numerator.signum() < 0 ? this.negate() : this;
+
+		return multiply(valueOf(value));
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this * value)}.
+	 *
+	 * @param value the value to be multiplied by this {@link Rational}.
+	 * @return The multiplication result.
+	 */
+	@Nonnull
+	public Rational multiply(double value) {
+		if (isNaN() || Double.isNaN(value)) {
+			return NaN;
+		}
+		if (isInfinite() || Double.isInfinite(value)) {
+			if (signum() == 0 || value == 0f) {
+				return NaN; // Infinity by zero
+			}
+			if (value > 0) {
+				return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+			}
+			return signum() < 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+		if (value == 0f) {
+			return ZERO;
+		}
+		return multiply(valueOf(value));
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this * value)}.
+	 *
+	 * @param value the value to be multiplied by this {@link Rational}.
+	 * @return The multiplication result.
+	 */
+	@Nullable
+	public Rational multiply(@Nullable BigDecimal value) {
+		if (value == null) {
+			return null;
+		}
+		return multiply(valueOf(value));
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this * value)}.
+	 *
+	 * @param value the value to be multiplied by this {@link Rational}.
+	 * @return The multiplication result.
+	 */
+	@Nullable
+	public Rational multiply(@Nullable Rational value) {
+		if (value == null) {
+			return null;
+		}
+		if (isNaN() || value.isNaN()) {
+			return NaN;
+		}
+		if (isInfinite() || value.isInfinite()) {
+			if (signum() == 0 || value.signum() == 0) {
+				return NaN; // Infinity by zero
+			}
+			return numerator.signum() == value.signum() ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+		if (value.signum() == 0) {
+			return ZERO;
+		}
+
+		if (value.numerator.abs().equals(value.denominator)) {
+			return value.signum() < 0 ? this.negate() : this;
 		}
 
 		BigInteger newNumerator = reducedNumerator.multiply(value.reducedNumerator);
 		BigInteger newDenominator = reducedDenominator.multiply(value.reducedDenominator);
 		BigInteger gcd = newNumerator.gcd(newDenominator);
-		return new Rational(newNumerator.divide(gcd), newDenominator.divide(gcd));
+		return valueOf(newNumerator.divide(gcd), newDenominator.divide(gcd));
 	}
 
 	/**
@@ -459,6 +722,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be subtracted from this {@link Rational}.
 	 * @return The subtraction result.
 	 */
+	@Nonnull
 	public Rational subtract(int value) {
 		return add(-value);
 	}
@@ -469,6 +733,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be subtracted from this {@link Rational}.
 	 * @return The subtraction result.
 	 */
+	@Nonnull
 	public Rational subtract(long value) {
 		return add(-value);
 	}
@@ -479,7 +744,12 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be subtracted from this {@link Rational}.
 	 * @return The subtraction result.
 	 */
-	public Rational subtract(BigInteger value) {
+	@Nullable
+	public Rational subtract(@Nullable BigInteger value) {
+		if (value == null) {
+			return null;
+		}
+
 		return add(value.negate());
 	}
 
@@ -489,7 +759,12 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be subtracted from this {@link Rational}.
 	 * @return The subtraction result.
 	 */
-	public Rational subtract(double value) {
+	@Nonnull
+	public Rational subtract(float value) {
+		if (isNaN() || Float.isNaN(value)) {
+			return NaN;
+		}
+
 		return add(-value);
 	}
 
@@ -499,7 +774,25 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be subtracted from this {@link Rational}.
 	 * @return The subtraction result.
 	 */
-	public Rational subtract(BigDecimal value) {
+	@Nonnull
+	public Rational subtract(double value) {
+		if (isNaN() || Double.isNaN(value)) {
+			return NaN;
+		}
+		return add(-value);
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this - value)}.
+	 *
+	 * @param value the value to be subtracted from this {@link Rational}.
+	 * @return The subtraction result.
+	 */
+	@Nullable
+	public Rational subtract(@Nullable BigDecimal value) {
+		if (value == null) {
+			return null;
+		}
 		return add(value.negate());
 	}
 
@@ -509,8 +802,17 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be subtracted from this {@link Rational}.
 	 * @return The subtraction result.
 	 */
-	public Rational subtract(Rational value) {
-		if (value == null || value.numerator.signum() == 0) {
+	@Nullable
+	public Rational subtract(@Nullable Rational value) {
+		if (value == null) {
+			return null;
+		}
+
+		if (isNaN() || value.isNaN()) {
+			return NaN;
+		}
+
+		if (value.signum() == 0) {
 			return this;
 		}
 		return add(value.negate());
@@ -522,6 +824,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be added to this {@link Rational}.
 	 * @return The addition result.
 	 */
+	@Nonnull
 	public Rational add(int value) {
 		return add((long) value);
 	}
@@ -532,6 +835,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be added to this {@link Rational}.
 	 * @return The addition result.
 	 */
+	@Nonnull
 	public Rational add(long value) {
 		return add(BigInteger.valueOf(value));
 	}
@@ -542,14 +846,23 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be added to this {@link Rational}.
 	 * @return The addition result.
 	 */
-	public Rational add(BigInteger value) {
-		if (value == null || value.signum() == 0) {
+	@Nullable
+	public Rational add(@Nullable BigInteger value) {
+		if (value == null) {
+			return null;
+		}
+
+		if (isNaN()) {
+			return NaN;
+		}
+		if (isInfinite() || value.signum() == 0) {
 			return this;
 		}
+
 		if (BigInteger.ONE.equals(denominator)) {
-			return new Rational(numerator.add(value), denominator);
+			return valueOf(numerator.add(value), denominator);
 		}
-		return new Rational(numerator.add(value.multiply(denominator)), denominator);
+		return valueOf(numerator.add(value.multiply(denominator)), denominator);
 	}
 
 	/**
@@ -558,35 +871,105 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param value the value to be added to this {@link Rational}.
 	 * @return The addition result.
 	 */
-	public Rational add(double value) {
-		return add(new Rational(value));
-	}
+	@Nonnull
+	public Rational add(float value) {
+		if (isNaN() || Float.isNaN(value)) {
+			return NaN;
+		}
 
-	/**
-	 * Returns a {@link Rational} whose value is {@code (this + value)}.
-	 *
-	 * @param value the value to be added to this {@link Rational}.
-	 * @return The addition result.
-	 */
-	public Rational add(BigDecimal value) {
-		return add(new Rational(value));
-	}
-
-	/**
-	 * Returns a {@link Rational} whose value is {@code (this + value)}.
-	 *
-	 * @param value the value to be added to this {@link Rational}.
-	 * @return The addition result.
-	 */
-	public Rational add(Rational value) {
-		if (value == null || value.numerator.signum() == 0) {
+		if (value == 0f) {
 			return this;
 		}
+
+		if (isInfinite()) {
+			if (Float.isInfinite(value) && signum() != Math.signum(value)) {
+				return NaN; // Infinity minus infinity
+			}
+			return this;
+		}
+
+		return add(valueOf(value));
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this + value)}.
+	 *
+	 * @param value the value to be added to this {@link Rational}.
+	 * @return The addition result.
+	 */
+	@Nonnull
+	public Rational add(double value) {
+		if (isNaN() || Double.isNaN(value)) {
+			return NaN;
+		}
+
+		if (value == 0d) {
+			return this;
+		}
+
+		if (isInfinite()) {
+			if (Double.isInfinite(value) && signum() != Math.signum(value)) {
+				return NaN; // Infinity minus infinity
+			}
+			return this;
+		}
+		return add(valueOf(value));
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this + value)}.
+	 *
+	 * @param value the value to be added to this {@link Rational}.
+	 * @return The addition result.
+	 */
+	@Nullable
+	public Rational add(@Nullable BigDecimal value) {
+		if (value == null) {
+			return null;
+		}
+		if (isNaN()) {
+			return NaN;
+		}
+		if (isInfinite() || value.signum() == 0) {
+			return this;
+		}
+
+		return add(valueOf(value));
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this + value)}.
+	 *
+	 * @param value the value to be added to this {@link Rational}.
+	 * @return The addition result.
+	 */
+	@Nullable
+	public Rational add(@Nullable Rational value) {
+		if (value == null) {
+			return null;
+		}
+
+		if (isNaN() || value.isNaN()) {
+			return NaN;
+		}
+
+		if (value.numerator.signum() == 0) {
+			return this;
+		}
+
 		if (this.numerator.signum() == 0) {
 			return value;
 		}
+
+		if (isInfinite()) {
+			if (value.isInfinite() && signum() != value.signum()) {
+				return NaN; // Infinity minus infinity
+			}
+			return this;
+		}
+
 		BigInteger lcm = calculateLeastCommonMultiple(denominator, value.denominator);
-		return new Rational(numerator.multiply(lcm.divide(denominator)).add(
+		return valueOf(numerator.multiply(lcm.divide(denominator)).add(
 			value.numerator.multiply(lcm.divide(value.denominator))), lcm);
 	}
 
@@ -596,8 +979,18 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @return The reciprocal result.
 	 */
+	@Nonnull
 	public Rational reciprocal() {
-		return numerator.signum() == 0 ? this : new Rational(denominator, numerator);
+		if (isNaN()) {
+			return NaN;
+		}
+		if (isInfinite()) {
+			return ZERO;
+		}
+		if (numerator.signum() == 0) {
+			return NaN;
+		}
+		return valueOf(denominator, numerator);
 	}
 
 	/**
@@ -605,8 +998,9 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @param value the value by which this {@link Rational} is to be divided.
 	 * @return The division result.
-	 * @throws IllegalArgumentException if {@code value} is zero.
+	 * @throws ArithmeticException if {@code value} is zero.
 	 */
+	@Nonnull
 	public Rational divide(int value) {
 		return divide((long) value);
 	}
@@ -616,24 +1010,29 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @param value the value by which this {@link Rational} is to be divided.
 	 * @return The division result.
-	 * @throws IllegalArgumentException if {@code value} is zero.
 	 */
+	@Nonnull
 	public Rational divide(long value) {
+		if (isNaN()) {
+			return NaN;
+		}
+
 		if (value == 0) {
-			throw new IllegalArgumentException("value cannot be zero/divison by zero");
+			if (signum() == 0) {
+				return NaN;
+			}
+			return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
 		}
-		if (numerator.signum() == 0 || value == 1) {
-			return this;
-		}
-		if (value == -1) {
-			return negate();
+
+		if (signum() == 0 || isInfinite() || 1 == Math.abs(value)) {
+			return value < 0 ? negate() : this;
 		}
 
 		// Keep the sign in the numerator and the denominator positive
 		if (value < 0) {
-			return new Rational(reducedNumerator.negate(), reducedDenominator.multiply(BigInteger.valueOf(-value)));
+			return valueOf(reducedNumerator.negate(), reducedDenominator.multiply(BigInteger.valueOf(-value)));
 		}
-		return new Rational(reducedNumerator, reducedDenominator.multiply(BigInteger.valueOf(value)));
+		return valueOf(reducedNumerator, reducedDenominator.multiply(BigInteger.valueOf(value)));
 	}
 
 	/**
@@ -641,24 +1040,32 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @param value the value by which this {@link Rational} is to be divided.
 	 * @return The division result.
-	 * @throws IllegalArgumentException if {@code value} is zero.
 	 */
-	public Rational divide(BigInteger value) {
-		if (value == null || value.signum() == 0) {
-			throw new IllegalArgumentException("value cannot be zero/divison by zero");
+	@Nullable
+	public Rational divide(@Nullable BigInteger value) {
+		if (value == null) {
+			return null;
 		}
-		if (numerator.signum() == 0) {
-			return this;
+		if (isNaN()) {
+			return NaN;
 		}
-		if (BigInteger.ONE.equals(value.abs())) {
+
+		if (value.signum() == 0) {
+			if (signum() == 0) {
+				return NaN;
+			}
+			return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+
+		if (signum() == 0 || isInfinite() || BigInteger.ONE.equals(value.abs())) {
 			return value.signum() < 0 ? negate() : this;
 		}
 
 		// Keep the sign in the numerator and the denominator positive
 		if (value.signum() < 0) {
-			return new Rational(reducedNumerator.negate(), reducedDenominator.multiply(value.negate()));
+			return valueOf(reducedNumerator.negate(), reducedDenominator.multiply(value.negate()));
 		}
-		return new Rational(reducedNumerator, reducedDenominator.multiply(value));
+		return valueOf(reducedNumerator, reducedDenominator.multiply(value));
 	}
 
 	/**
@@ -666,19 +1073,65 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @param value the value by which this {@link Rational} is to be divided.
 	 * @return The division result.
-	 * @throws IllegalArgumentException if {@code value} is zero.
 	 */
+	@Nonnull
+	public Rational divide(float value) {
+		if (
+			isNaN() ||
+			Float.isNaN(value) ||
+			isInfinite() && Float.isInfinite(value)
+		) {
+			return NaN;
+		}
+
+		if (value == 0f) {
+			if (signum() == 0) {
+				return NaN;
+			}
+			return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+
+		if (Float.isInfinite(value)) {
+			return ZERO;
+		}
+		if (signum() == 0 || isInfinite() || 1f == Math.abs(value)) {
+			return value < 0f ? negate() : this;
+		}
+
+		return divide(valueOf(value));
+	}
+
+	/**
+	 * Returns a {@link Rational} whose value is {@code (this / value)}.
+	 *
+	 * @param value the value by which this {@link Rational} is to be divided.
+	 * @return The division result.
+	 */
+	@Nonnull
 	public Rational divide(double value) {
-		if (value == 0) {
-			throw new IllegalArgumentException("value cannot be zero/divison by zero");
+		if (
+			isNaN() ||
+			Double.isNaN(value) ||
+			isInfinite() && Double.isInfinite(value)
+		) {
+			return NaN;
 		}
-		if (numerator.signum() == 0 || value == 1) {
-			return this;
+
+		if (value == 0d) {
+			if (signum() == 0) {
+				return NaN;
+			}
+			return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
 		}
-		if (value == -1) {
-			return negate();
+
+		if (Double.isInfinite(value)) {
+			return ZERO;
 		}
-		return divide(new Rational(value));
+		if (signum() == 0 || isInfinite() || 1d == Math.abs(value)) {
+			return value < 0d ? negate() : this;
+		}
+
+		return divide(valueOf(value));
 	}
 
 	/**
@@ -686,16 +1139,28 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @param value the value by which this {@link Rational} is to be divided.
 	 * @return The division result.
-	 * @throws IllegalArgumentException if {@code value} is zero.
 	 */
-	public Rational divide(BigDecimal value) {
-		if (value == null || value.signum() == 0) {
-			throw new IllegalArgumentException("value cannot be zero/divison by zero");
+	@Nullable
+	public Rational divide(@Nullable BigDecimal value) {
+		if (value == null) {
+			return null;
 		}
-		if (numerator.signum() == 0 ||  BigDecimal.ONE.equals(value.abs())) {
+		if (isNaN()) {
+			return NaN;
+		}
+
+		if (value.signum() == 0) {
+			if (signum() == 0) {
+				return NaN;
+			}
+			return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+
+		if (signum() == 0 || isInfinite() || BigDecimal.ONE.equals(value.abs())) {
 			return value.signum() < 0 ? negate() : this;
 		}
-		return divide(new Rational(value));
+
+		return divide(valueOf(value));
 	}
 
 	/**
@@ -703,12 +1168,34 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @param value the value by which this {@link Rational} is to be divided.
 	 * @return The division result.
-	 * @throws IllegalArgumentException if {@code value} is zero.
 	 */
-	public Rational divide(Rational value) {
-		if (value == null || value.numerator.signum() == 0) {
-			throw new IllegalArgumentException("value cannot be zero/divison by zero");
+	@Nullable
+	public Rational divide(@Nullable Rational value) {
+		if (value == null) {
+			return null;
 		}
+		if (
+			isNaN() ||
+			value.isNaN() ||
+			isInfinite() && value.isInfinite()
+		) {
+			return NaN;
+		}
+
+		if (value.signum() == 0) {
+			if (signum() == 0) {
+				return NaN;
+			}
+			return signum() > 0 ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+		}
+
+		if (value.isInfinite()) {
+			return ZERO;
+		}
+		if (signum() == 0 || isInfinite() || ONE.equals(value.abs())) {
+			return value.signum() < 0 ? negate() : this;
+		}
+
 		return numerator.signum() == 0 ? this : multiply(value.reciprocal());
 	}
 
@@ -717,11 +1204,12 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @return The negated result.
 	 */
+	@Nonnull
 	public Rational negate() {
 		if (numerator.signum() == 0) {
 			return this;
 		}
-		return new Rational(numerator.negate(), denominator);
+		return valueOf(numerator.negate(), denominator);
 	}
 
 	/**
@@ -730,8 +1218,9 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @return The absolute result.
 	 */
+	@Nonnull
 	public Rational abs() {
-		return numerator.signum() < 0 ? new Rational(numerator.negate(), denominator) : this;
+		return numerator.signum() < 0 ? valueOf(numerator.negate(), denominator) : this;
 	}
 
 	/**
@@ -741,21 +1230,35 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param exponent exponent to which this {@link Rational} is to be raised.
 	 * @return <tt>this<sup>exponent</sup></tt>
 	 */
+	@Nonnull
 	public Rational pow(int exponent) {
+		if (isNaN()) {
+			return NaN;
+		}
 		if (exponent == 0) {
-			return ONE;
+			return signum() == 0 || denominator.signum() == 0 ? NaN : ONE;
 		}
 		if (exponent == 1) {
 			return this;
 		}
+		if (isInfinite()) {
+			if (exponent < 0) {
+				return ZERO;
+			}
+			return (exponent & 1) == 0 ? abs() : this;
+		}
+		if (signum() == 0) {
+			return exponent > 0 ? ZERO : POSITIVE_INFINITY;
+		}
+
 		if (exponent < 0) {
 			if (exponent == Integer.MIN_VALUE) {
-				return this.reciprocal().pow(2).pow(-(exponent / 2));
+				return reciprocal().pow(2).pow(-(exponent / 2));
 			}
-			return this.reciprocal().pow(-exponent);
+			return reciprocal().pow(-exponent);
 		}
 		Rational result = multiply(this);
-		if ((exponent % 2) == 0) {
+		if ((exponent & 1) == 0) {
 			return result.pow(exponent / 2);
 		}
 		return result.pow(exponent / 2).multiply(this);
@@ -765,18 +1268,67 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * Returns the signum function of this {@link Rational}.
 	 *
 	 * @return -1, 0 or 1 as the value of this {@link Rational} is negative,
-	 *         zero or positive.
+	 *         zero or positive. As a special case, signum also returns 0 for
+	 *         {@code NaN} which means that <b>{@link #isNaN()} must always be
+	 *         checked before {@link #signum()}</b> is used to determine if the
+	 *         value is {@link #ZERO}.
 	 */
 	public int signum() {
 		return numerator.signum();
 	}
 
 	/**
-	 * @return Whether the value of this {@link Rational} can be expressed as an
-	 *         integer value.
+	 * Returns {@code true} if this {@link Rational} can be expressed as an
+	 * integer value, {@code false} otherwise.
+	 *
+	 * @return {@code true} if this can be expressed as an integer value,
+	 *         {@code false} otherwise.
 	 */
 	public boolean isInteger() {
-		return BigInteger.ONE.equals(reducedDenominator);
+		return !isNaN() && !isInfinite() && BigInteger.ONE.equals(reducedDenominator);
+	}
+
+	/**
+	 * Returns {@code true} if this is a Not-a-Number (NaN) value, {@code false}
+	 * otherwise.
+	 *
+	 * @return {@code true} if this is {@code NaN}, {@code false} otherwise.
+	 */
+	public boolean isNaN() {
+		return numerator.signum() == 0 && denominator.signum() == 0;
+	}
+
+	/**
+	 * Returns {@code true} if this is infinitely large in magnitude,
+	 * {@code false} otherwise.
+	 *
+	 * @return {@code true} if this is positive infinity or negative infinity,
+	 *         {@code false} otherwise.
+	 */
+	public boolean isInfinite() {
+		return numerator.signum() != 0 && denominator.signum() == 0;
+	}
+
+	/**
+	 * Returns {@code true} if this is infinitely positive, {@code false}
+	 * otherwise.
+	 *
+	 * @return {@code true} if this is positive infinity, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isInfinitePositive() {
+		return numerator.signum() > 0 && denominator.signum() == 0;
+	}
+
+	/**
+	 * Returns {@code true} if this is infinitely negative, {@code false}
+	 * otherwise.
+	 *
+	 * @return {@code true} if this is negative infinity, {@code false}
+	 *         otherwise.
+	 */
+	public boolean isInfiniteNegative() {
+		return numerator.signum() < 0 && denominator.signum() == 0;
 	}
 
 
@@ -785,15 +1337,23 @@ public class Rational extends Number implements Comparable<Rational> {
 
 	/**
 	 * @return The numerator.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite.
 	 */
 	public BigInteger getNumerator() {
+		if (isNaN() || isInfinite()) {
+			throw new ArithmeticException("Numerator is undefined");
+		}
 		return numerator;
 	}
 
 	/**
 	 * @return The denominator.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite.
 	 */
 	public BigInteger getDenominator() {
+		if (isNaN() || isInfinite()) {
+			throw new ArithmeticException("Denominator is undefined");
+		}
 		return denominator;
 	}
 
@@ -802,8 +1362,12 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * {@link #getGreatestCommonDivisor}.
 	 *
 	 * @return The reduced numerator.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite.
 	 */
 	public BigInteger getReducedNumerator() {
+		if (isNaN() || isInfinite()) {
+			throw new ArithmeticException("Numerator is undefined");
+		}
 		return reducedNumerator;
 	}
 
@@ -812,15 +1376,23 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * {@link #getGreatestCommonDivisor}.
 	 *
 	 * @return The reduced denominator.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite.
 	 */
 	public BigInteger getReducedDenominator() {
+		if (isNaN() || isInfinite()) {
+			throw new ArithmeticException("Denominator is undefined");
+		}
 		return reducedDenominator;
 	}
 
 	/**
-	 * @return the greatest common divisor of the numerator and the denominator.
+	 * @return The greatest common divisor of the numerator and the denominator.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite.
 	 */
 	public BigInteger getGreatestCommonDivisor() {
+		if (isNaN() || isInfinite()) {
+			throw new ArithmeticException("Greatest common divisor is undefined");
+		}
 		return greatestCommonDivisor;
 	}
 
@@ -829,27 +1401,27 @@ public class Rational extends Number implements Comparable<Rational> {
 
 
 	/**
-	 * Returns a string representation of this {@link Rational} in it's rational
-	 * form {@code (1/2, 4 or 16/9)}.
-	 *
-	 * @return The {@link String} representation.
-	 */
-	@Override
-	public String toString() {
-		return stringValue;
-	}
-
-
-	/**
-	 * Returns a string representation of this {@link Rational} in it's reduced
+	 * Returns a string representation of this {@link Rational} in its reduced
 	 * rational form {@code (1/2, 4 or 16/9)}. The reduced form is when both
 	 * numerator and denominator have been divided by the greatest common
 	 * divisor.
 	 *
 	 * @return The reduced {@link String} representation.
 	 */
-	public String toReducedString() {
-		return reducedStringValue;
+	@Override
+	public String toString() {
+		return generateRationalString(reducedNumerator, reducedDenominator);
+	}
+
+	/**
+	 * Returns a string representation of this {@link Rational} in its original
+	 * rational form (not reduced) {@code (2/4, 4 or 32/18)}.
+	 *
+	 * @return The {@link String} representation.
+	 */
+	@Nonnull
+	public String toUnreducedString() {
+		return generateRationalString(numerator, denominator);
 	}
 
 	/**
@@ -860,8 +1432,26 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @return The decimal {@link String} representation.
 	 */
+	@Nonnull
 	public String toDecimalString() {
-		return decimalStringValue;
+		return toDecimalString(null);
+	}
+
+	/**
+	 * Returns a decimal representation of this {@link Rational}. The decimal
+	 * representation is limited to 20 decimals using
+	 * {@link RoundingMode#HALF_EVEN} and is formatted with the specified
+	 * {@link DecimalFormat}.
+	 *
+	 * @param decimalFormat the {@link DecimalFormat} to use.
+	 * @return The decimal {@link String} representation.
+	 */
+	@Nonnull
+	public String toDecimalString(@Nullable DecimalFormat decimalFormat) {
+		if (decimalFormat == null) {
+			decimalFormat = DECIMALFORMAT;
+		}
+		return generateDecimalString(reducedNumerator, reducedDenominator, decimalFormat);
 	}
 
 	/**
@@ -871,32 +1461,37 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @return The debug {@link String} representation.
 	 */
+	@Nonnull
 	public String toDebugString() {
-		StringBuilder sb = new StringBuilder("Value: ");
-		sb.append(stringValue).append(", Reduced: ").append(reducedStringValue).append(", Decimal: ").append(decimalStringValue);
+		StringBuilder sb = new StringBuilder();
+		sb.append("Value: ").append(generateRationalString(numerator, denominator))
+			.append(", Reduced: ").append(generateRationalString(reducedNumerator, reducedDenominator))
+			.append(", Decimal: ").append(generateDecimalString(reducedNumerator, reducedDenominator, DECIMALFORMAT));
 		return sb.toString();
 	}
 
 	/**
 	 * Returns a hexadecimal string representation of this {@link Rational} in
-	 * it's rational form {@code (a/2, ff or 16/c)}.
-	 *
-	 * @return The hexadecimal {@link String} representation.
-	 */
-	public String toHexString() {
-		return generateRationalHexString(numerator, denominator);
-	}
-
-	/**
-	 * Returns a hexadecimal string representation of this {@link Rational} in it's reduced
-	 * rational form {@code (5, ff or 16/c)}. The reduced form is when both
-	 * numerator and denominator have been divided by the greatest common
-	 * divisor.
+	 * its reduced rational form {@code (5, ff or 16/c)}. The reduced form is
+	 * when both numerator and denominator have been divided by the greatest
+	 * common divisor.
 	 *
 	 * @return The reduced hexadecimal {@link String} representation.
 	 */
-	public String toReducedHexString() {
+	@Nonnull
+	public String toHexString() {
 		return generateRationalHexString(reducedNumerator, reducedDenominator);
+	}
+
+	/**
+	 * Returns a hexadecimal string representation of this {@link Rational} in
+	 * its original rational form (not reduced) {@code (a/2, ff or 16/c)}.
+	 *
+	 * @return The hexadecimal {@link String} representation.
+	 */
+	@Nonnull
+	public String toUnreducedHexString() {
+		return generateRationalHexString(numerator, denominator);
 	}
 
 
@@ -920,6 +1515,12 @@ public class Rational extends Number implements Comparable<Rational> {
 	 */
 	@Override
 	public int intValue() {
+		if (isNaN()) {
+			return 0;
+		}
+		if (isInfinite()) {
+			return numerator.signum() > 0 ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+		}
 		return new BigDecimal(reducedNumerator).divide(new BigDecimal(reducedDenominator), RoundingMode.DOWN).intValue();
 	}
 
@@ -941,6 +1542,12 @@ public class Rational extends Number implements Comparable<Rational> {
 	 */
 	@Override
 	public long longValue() {
+		if (isNaN()) {
+			return 0;
+		}
+		if (isInfinite()) {
+			return numerator.signum() > 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
+		}
 		return new BigDecimal(reducedNumerator).divide(new BigDecimal(reducedDenominator), RoundingMode.DOWN).longValue();
 	}
 
@@ -952,8 +1559,16 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * {@link Rational} will be discarded.
 	 *
 	 * @return This {@link Rational} converted to a {@link BigInteger}.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite.
 	 */
+	@Nonnull
 	public BigInteger bigIntegerValue() {
+		if (isNaN()) {
+			throw new ArithmeticException("Impossible to express NaN as BigInteger");
+		}
+		if (isInfinite()) {
+			throw new ArithmeticException("Impossible to express infinity as BigInteger");
+		}
 		return new BigDecimal(reducedNumerator).divide(new BigDecimal(reducedDenominator), RoundingMode.DOWN).toBigInteger();
 	}
 
@@ -973,6 +1588,15 @@ public class Rational extends Number implements Comparable<Rational> {
 	 */
 	@Override
 	public float floatValue() {
+		if (isNaN()) {
+			return Float.NaN;
+		}
+		if (isInfinitePositive()) {
+			return Float.POSITIVE_INFINITY;
+		}
+		if (isInfiniteNegative()) {
+			return Float.NEGATIVE_INFINITY;
+		}
 		return new BigDecimal(reducedNumerator).divide(new BigDecimal(reducedDenominator), MathContext.DECIMAL32).floatValue();
 	}
 
@@ -992,6 +1616,15 @@ public class Rational extends Number implements Comparable<Rational> {
 	 */
 	@Override
 	public double doubleValue() {
+		if (isNaN()) {
+			return Double.NaN;
+		}
+		if (isInfinitePositive()) {
+			return Double.POSITIVE_INFINITY;
+		}
+		if (isInfiniteNegative()) {
+			return Double.NEGATIVE_INFINITY;
+		}
 		return new BigDecimal(reducedNumerator).divide(new BigDecimal(reducedDenominator), MathContext.DECIMAL64).doubleValue();
 	}
 
@@ -1003,13 +1636,22 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * For explicit control over the conversion, use one of the overloaded
 	 * methods.
 	 *
+	 * @return This {@link Rational} converted to a {@link BigDecimal}.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite.
+	 *
 	 * @see #bigDecimalValue(MathContext)
 	 * @see #bigDecimalValue(RoundingMode)
 	 * @see #bigDecimalValue(int, RoundingMode)
-	 *
-	 * @return This {@link Rational} converted to a {@link BigDecimal}.
 	 */
+	@Nonnull
 	public BigDecimal bigDecimalValue() {
+		if (isNaN()) {
+			throw new ArithmeticException("Impossible to express NaN as BigDecimal");
+		}
+		if (isInfinite()) {
+			throw new ArithmeticException("Impossible to express infinity as BigDecimal");
+		}
+
 		if (BigInteger.ONE.equals(reducedDenominator)) {
 			return new BigDecimal(reducedNumerator);
 		}
@@ -1021,14 +1663,26 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * rounding. The conversion is limited to 100 decimals and uses
 	 * {@code roundingMode}.
 	 *
+	 * @param roundingMode the {@link RoundingMode} to apply.
+	 * @return This {@link Rational} converted to a {@link BigDecimal}.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite or if
+	 *             {@code roundingMode} is {@link RoundingMode#UNNECESSARY} and
+	 *             the specified scale is insufficient to represent the result
+	 *             of the division exactly.
+	 *
 	 * @see #bigDecimalValue()
 	 * @see #bigDecimalValue(MathContext)
 	 * @see #bigDecimalValue(int, RoundingMode)
-	 *
-	 * @param roundingMode the {@link RoundingMode} to apply.
-	 * @return This {@link Rational} converted to a {@link BigDecimal}.
 	 */
+	@Nonnull
 	public BigDecimal bigDecimalValue(RoundingMode roundingMode) {
+		if (isNaN()) {
+			throw new ArithmeticException("Impossible to express NaN as BigDecimal");
+		}
+		if (isInfinite()) {
+			throw new ArithmeticException("Impossible to express infinity as BigDecimal");
+		}
+
 		if (BigInteger.ONE.equals(reducedDenominator)) {
 			return new BigDecimal(reducedNumerator);
 		}
@@ -1045,19 +1699,27 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * quotient cannot be represented (because it has a non-terminating decimal
 	 * expansion).
 	 *
-	 * @see #bigDecimalValue()
-	 * @see #bigDecimalValue(MathContext)
-	 * @see #bigDecimalValue(RoundingMode)
-	 *
 	 * @param scale the scale of the {@link BigDecimal} quotient to be returned.
 	 * @param roundingMode the {@link RoundingMode} to apply.
 	 * @return This {@link Rational} converted to a {@link BigDecimal}.
-	 * @throws ArithmeticException If
-	 *             {@code roundingMode == RoundingMode.UNNECESSARY} and the
-	 *             specified scale is insufficient to represent the result of
-	 *             the division exactly.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite or if
+	 *             {@code roundingMode} is {@link RoundingMode#UNNECESSARY} and
+	 *             the specified scale is insufficient to represent the result
+	 *             of the division exactly.
+	 *
+	 * @see #bigDecimalValue()
+	 * @see #bigDecimalValue(MathContext)
+	 * @see #bigDecimalValue(RoundingMode)
 	 */
+	@Nonnull
 	public BigDecimal bigDecimalValue(int scale, RoundingMode roundingMode) {
+		if (isNaN()) {
+			throw new ArithmeticException("Impossible to express NaN as BigDecimal");
+		}
+		if (isInfinite()) {
+			throw new ArithmeticException("Impossible to express infinity as BigDecimal");
+		}
+
 		if (BigInteger.ONE.equals(reducedDenominator)) {
 			return new BigDecimal(reducedNumerator);
 		}
@@ -1069,18 +1731,26 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * {@link MathContext}. This may involve rounding.
 	 * <p>
 	 *
+	 * @param mathContext the {@link MathContext} to use.
+	 * @return This {@link Rational} converted to a {@link BigDecimal}.
+	 * @throws ArithmeticException If this is {@code NaN} or infinite or if the
+	 *             result is inexact but the rounding mode is
+	 *             {@code UNNECESSARY} or {@code mathContext.precision == 0} and
+	 *             the quotient has a non-terminating decimal expansion.
+	 *
 	 * @see #bigDecimalValue()
 	 * @see #bigDecimalValue(RoundingMode)
 	 * @see #bigDecimalValue(int, RoundingMode)
-	 *
-	 * @param mathContext the {@link MathContext} to use.
-	 * @return This {@link Rational} converted to a {@link BigDecimal}.
-	 * @throws ArithmeticException If the result is inexact but the rounding
-	 *             mode is {@code UNNECESSARY} or
-	 *             {@code mathContext.precision == 0} and the quotient has a
-	 *             non-terminating decimal expansion.
 	 */
+	@Nonnull
 	public BigDecimal bigDecimalValue(MathContext mathContext) {
+		if (isNaN()) {
+			throw new NumberFormatException("Impossible to express NaN as BigDecimal");
+		}
+		if (isInfinite()) {
+			throw new NumberFormatException("Impossible to express infinity as BigDecimal");
+		}
+
 		if (BigInteger.ONE.equals(reducedDenominator)) {
 			return new BigDecimal(reducedNumerator);
 		}
@@ -1103,6 +1773,9 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * these comparisons is: {@code (x.compareTo(y)} &lt;<i>op</i>&gt;
 	 * {@code 0)}, where &lt;<i>op</i>&gt; is one of the six comparison
 	 * operators.
+	 * <p>
+	 * <b>Note:</b> {@code NaN} can't be compared by value and is considered
+	 * greater than anything but itself as defined for {@link Double}.
 	 *
 	 * @param other the {@link Rational} to which this {@link Rational} is to be
 	 *            compared.
@@ -1111,7 +1784,25 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         than {@code other}.
 	 */
 	@Override
-	public int compareTo(Rational other) {
+	public int compareTo(@Nonnull Rational other) {
+		// NaN comparison is done according to the rules for Double.
+		if (isNaN()) {
+			return other.isNaN() ? 0 : 1;
+		}
+		if (other.isNaN()) {
+			return -1;
+		}
+
+		if (isInfinite()) {
+			if (other.isInfinite()) {
+				return signum() - other.signum();
+			}
+			return this.signum();
+		}
+		if (other.isInfinite()) {
+			return -other.signum();
+		}
+
 		if (signum() != other.signum()) {
 			return signum() - other.signum();
 		}
@@ -1209,6 +1900,9 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * these comparisons is: {@code (x.compareTo(y)} &lt;<i>op</i>&gt;
 	 * {@code 0)}, where &lt;<i>op</i>&gt; is one of the six comparison
 	 * operators.
+	 * <p>
+	 * <b>Note:</b> {@code NaN} can't be compared by value and is considered
+	 * greater than anything but itself as defined for {@link Double}.
 	 *
 	 * @param number the {@link Number} to which this {@link Rational}'s value
 	 *            is to be compared.
@@ -1216,7 +1910,48 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         {@link Rational} is numerically less than, equal to, or greater
 	 *         than {@code number}.
 	 */
-	public int compareTo(Number number) {
+	public int compareTo(@Nonnull Number number) {
+		// Establish special cases
+		boolean numberIsNaN;
+		boolean numberIsInfinite;
+		int numberSignum;
+		if (number instanceof Rational) {
+			numberIsNaN = Rational.isNaN((Rational) number);
+			numberIsInfinite = Rational.isInfinite((Rational) number);
+			numberSignum = ((Rational) number).numerator.signum();
+		} else if (number instanceof Float) {
+			numberIsNaN = Float.isNaN(number.floatValue());
+			numberIsInfinite = Float.isInfinite(number.floatValue());
+			numberSignum = (int) Math.signum(number.floatValue());
+		} else if (number instanceof Double) {
+			numberIsNaN = Double.isNaN(number.doubleValue());
+			numberIsInfinite = Double.isInfinite(number.doubleValue());
+			numberSignum = (int) Math.signum(number.doubleValue());
+		} else {
+			numberIsNaN = false;
+			numberIsInfinite = false;
+			long l = number.longValue();
+			numberSignum = l == 0 ? 0 : l > 0 ? 1 : -1;
+		}
+
+		// NaN comparison is done according to the rules for Double.
+		if (isNaN()) {
+			return numberIsNaN ? 0 : 1;
+		}
+		if (numberIsNaN) {
+			return -1;
+		}
+
+		if (isInfinite()) {
+			if (numberIsInfinite) {
+				return signum() - numberSignum;
+			}
+			return this.signum();
+		}
+		if (numberIsInfinite) {
+			return -numberSignum;
+		}
+
 		// List known integer types for faster and more accurate comparison
 		if (number instanceof BigInteger) {
 			if (isInteger()) {
@@ -1238,7 +1973,7 @@ public class Rational extends Number implements Comparable<Rational> {
 			return bigDecimalValue(2, RoundingMode.HALF_EVEN).compareTo(new BigDecimal(number.longValue()));
 		}
 		if (number instanceof BigDecimal) {
-			Rational other = new Rational((BigDecimal) number);
+			Rational other = valueOf((BigDecimal) number);
 			return compareTo(other);
 		}
 		return bigDecimalValue().compareTo(new BigDecimal(number.doubleValue()));
@@ -1310,7 +2045,7 @@ public class Rational extends Number implements Comparable<Rational> {
 		} else {
 			if (reducedNumerator == null || reducedDenominator == null) {
 				// Should be impossible
-				return false;
+				throw new AssertionError("reducedNumerator or reducedDenominator is null");
 			}
 			return compareTo((Number) object) == 0;
 		}
@@ -1340,8 +2075,13 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param other the {@link Rational} to which this {@link Rational}'s value
 	 *            is to be compared.
 	 * @return An array of {@link BigInteger} multipliers.
+	 * @throws ArithmeticException if either part is {@code NaN} or infinite.
 	 */
-	protected BigInteger[] getMultipliers(Rational other) {
+	@Nonnull
+	protected BigInteger[] getMultipliers(@Nonnull Rational other) {
+		if (isNaN() || isInfinite() || other.isNaN() || other.isInfinite()) {
+			throw new ArithmeticException("Can't calculate multipliers for NaN or infinity");
+		}
 		BigInteger[] result = new BigInteger[2];
 		BigInteger lcm = calculateLeastCommonMultiple(reducedDenominator, other.reducedDenominator);
 		result[0] = lcm.divide(reducedDenominator);
@@ -1361,6 +2101,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param u the first number.
 	 * @param v the second number.
 	 * @return The GDC, always 1 or greater.
+	 * @throws ArithmeticException if GDC is greater than {@link Long#MAX_VALUE}.
 	 */
 	public static long calculateGreatestCommonDivisor(long u, long v) {
 		if (Math.abs(u) <= 1 || Math.abs(v) <= 1) {
@@ -1407,7 +2148,11 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param v the second number.
 	 * @return The GDC, always 1 or greater.
 	 */
-	public static BigInteger calculateGreatestCommonDivisor(BigInteger u, BigInteger v) {
+	@Nullable
+	public static BigInteger calculateGreatestCommonDivisor(@Nullable BigInteger u, @Nullable BigInteger v) {
+		if (u == null || v == null) {
+			return null;
+		}
 		if (u.abs().compareTo(BigInteger.ONE) <= 0 || v.abs().compareTo(BigInteger.ONE) <= 0) {
 			return BigInteger.ONE;
 		}
@@ -1422,12 +2167,10 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param v the second number.
 	 * @return The LCM, always 1 or greater.
 	 */
-	public static BigInteger calculateLeastCommonMultiple(BigInteger u, BigInteger v) {
-		if (u == null) {
-			u = BigInteger.ZERO;
-		}
-		if (v == null) {
-			v = BigInteger.ZERO;
+	@Nullable
+	public static BigInteger calculateLeastCommonMultiple(@Nullable BigInteger u, @Nullable BigInteger v) {
+		if (u == null || v == null) {
+			return null;
 		}
 		if (u.signum() == 0 && v.signum() == 0) {
 			return BigInteger.ONE;
@@ -1444,6 +2187,130 @@ public class Rational extends Number implements Comparable<Rational> {
 	}
 
 	/**
+	 * Tests if the specified {@link Rational} is {@code null},
+	 * {@link Rational#ZERO} or {@link Rational#NaN}.
+	 *
+	 * @param rational the {@link Rational} to evaluate.
+	 * @return {@code true} if {@code rational} is {@code null} or its value is
+	 *         zero or {@code NaN}, {@code false} otherwise.
+	 */
+	public static boolean isBlank(@Nullable Rational rational) {
+		return rational == null || rational.signum() == 0;
+	}
+
+	/**
+	 * Tests if the specified {@link Rational} is not {@code null}, not
+	 * {@link Rational#ZERO} and not {@link Rational#NaN}.
+	 *
+	 * @param rational the {@link Rational} to evaluate.
+	 * @return {@code true} if {@code rational} is not {@code null} and its
+	 *         value isn't zero or {@code NaN}, {@code false} otherwise.
+	 */
+	public static boolean isNotBlank(@Nullable Rational rational) {
+		return rational != null && rational.numerator.signum() != 0;
+	}
+
+	/**
+	 * Tests if the specified {@link Rational} is a "regular" number, which
+	 * means not {@code null}, not {@code NaN} and not infinite.
+	 *
+	 * @param rational the {@link Rational} to evaluate.
+	 * @return {@code true} if {@code rational} is not {@code null}, not
+	 *         {@code NaN} and not infinite; {@code false} otherwise.
+	 */
+	public static boolean isRegular(@Nullable Rational rational) {
+		return rational != null && rational.denominator != null;
+	}
+
+	/**
+	 * Returns {@code true} if the specified {@link Rational} can be expressed
+	 * as an integer value, {@code false} otherwise.
+	 *
+	 * @param rational the {@link Rational} to evaluate.
+	 * @return {@code true} if {@code rational} can be expressed as an integer
+	 *         value, {@code false} otherwise.
+	 */
+	public static boolean isInteger(@Nullable Rational rational) {
+		return rational == null ? false : rational.isInteger();
+	}
+
+	/**
+	 * Returns {@code true} if the specified {@link Rational} has a Not-a-Number
+	 * ({@code NaN}) value, {@code false} otherwise.
+	 *
+	 * @param rational the {@link Rational} to be tested.
+	 * @return {@code true} if {@code rational} is {@code NaN}, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isNaN(@Nullable Rational rational) {
+		return rational == null ? false : rational.isNaN();
+	}
+
+	/**
+	 * Returns {@code true} if the specified {@link Rational} is infinitely
+	 * large in magnitude, {@code false} otherwise.
+	 *
+	 * @param rational the {@link Rational} to be tested.
+	 * @return {@code true} if the value of the argument is positive infinity or
+	 *         negative infinity, {@code false} otherwise.
+	 */
+	public static boolean isInfinite(@Nullable Rational rational) {
+		return rational == null ? false : rational.isInfinite();
+	}
+
+	/**
+	 * Returns {@code true} if the specified {@link Rational} is infinitely
+	 * positive, {@code false} otherwise.
+	 *
+	 * @param rational the {@link Rational} to be tested.
+	 * @return {@code true} if value of the argument is positive infinity,
+	 *         {@code false} otherwise.
+	 */
+	public static boolean isInfinitePositive(@Nullable Rational rational) {
+		return rational == null ? false : rational.isInfinitePositive();
+	}
+
+	/**
+	 * Returns {@code true} if the specified {@link Rational} is infinitely negative, {@code false}
+	 * otherwise.
+	 *
+	 * @param rational the {@link Rational} to be tested.
+	 * @return {@code true} if value of the argument is negative infinity, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isInfiniteNegative(@Nullable Rational rational) {
+		return rational == null ? false : rational.isInfiniteNegative();
+	}
+
+	/**
+	 * Parses the specified {@link String} and returns a {@link BigDecimal}
+	 * using the specified {@link DecimalFormat}. {@code value} is expected to
+	 * be without leading or trailing whitespace. If {@code value} is blank,
+	 * {@code null} will be returned.
+	 *
+	 * @param value the {@link String} to parse.
+	 * @param decimalFormat the {@link DecimalFormat} to use when parsing.
+	 * @return The resulting {@link BigDecimal}.
+	 * @throws NumberFormatException If {@code value} cannot be parsed.
+	 */
+	@Nullable
+	public static BigDecimal parseBigDecimal(@Nullable String value, @Nullable DecimalFormat decimalFormat) {
+		if (StringUtils.isBlank(value)) {
+			return null;
+		}
+
+		if (decimalFormat != null) {
+			decimalFormat.setParseBigDecimal(true);
+			try {
+				return (BigDecimal) decimalFormat.parseObject(value);
+			} catch (ParseException e) {
+				throw new NumberFormatException("Unable to parse \"" + value + "\": " + e.getMessage());
+			}
+		}
+		return new BigDecimal(value);
+	}
+
+	/**
 	 * Used internally to generate a hexadecimal rational string representation
 	 * from two {@link BigInteger}s.
 	 *
@@ -1451,7 +2318,14 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param denominator the denominator.
 	 * @return The hexadecimal rational string representation.
 	 */
-	protected static String generateRationalHexString(BigInteger numerator, BigInteger denominator) {
+	@Nonnull
+	protected static String generateRationalHexString(@Nonnull BigInteger numerator, @Nonnull BigInteger denominator) {
+		if (denominator.signum() == 0) {
+			if (numerator.signum() == 0) {
+				return "NaN";
+			}
+			return numerator.signum() > 0 ? "\u221e" : "-\u221e";
+		}
 		if (BigInteger.ONE.equals(denominator)) {
 			return numerator.toString(16);
 		}
@@ -1466,7 +2340,14 @@ public class Rational extends Number implements Comparable<Rational> {
 	 * @param denominator the denominator.
 	 * @return The rational string representation.
 	 */
-	protected static String generateRationalString(BigInteger numerator, BigInteger denominator) {
+	@Nonnull
+	protected static String generateRationalString(@Nonnull BigInteger numerator, @Nonnull BigInteger denominator) {
+		if (denominator.signum() == 0) {
+			if (numerator.signum() == 0) {
+				return "NaN";
+			}
+			return numerator.signum() > 0 ? "\u221e" : "-\u221e";
+		}
 		if (BigInteger.ONE.equals(denominator)) {
 			return numerator.toString();
 		}
@@ -1480,13 +2361,25 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *
 	 * @param numerator the numerator.
 	 * @param denominator the denominator.
+	 * @param decimalFormat the {@link DecimalFormat} instance to use for
+	 *            formatting.
 	 * @return The string representation.
 	 */
-	protected static String generateDecimalString(BigInteger numerator, BigInteger denominator) {
+	protected static String generateDecimalString(
+		@Nonnull BigInteger numerator,
+		@Nonnull BigInteger denominator,
+		@Nonnull DecimalFormat decimalFormat
+	) {
+		if (denominator.signum() == 0) {
+			if (numerator.signum() == 0) {
+				return "NaN";
+			}
+			return numerator.signum() > 0 ? "\u221e" : "-\u221e";
+		}
 		if (BigInteger.ONE.equals(denominator)) {
 			return numerator.toString();
 		}
 		BigDecimal decimalValue = new BigDecimal(numerator).divide(new BigDecimal(denominator), 20, RoundingMode.HALF_EVEN);
-		return DECIMALFORMAT.format(decimalValue);
+		return decimalFormat.format(decimalValue);
 	}
 }

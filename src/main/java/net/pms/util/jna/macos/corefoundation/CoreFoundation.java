@@ -47,7 +47,6 @@ import net.pms.util.jna.JnaIntEnumConverter;
 import net.pms.util.jna.JnaLongEnum;
 import net.pms.util.jna.JnaLongEnumConverter;
 import net.pms.util.jna.StringByReference;
-import net.pms.util.jna.UTF16StringByReference;
 import net.pms.util.jna.macos.kernreturn.KernReturnT;
 import net.pms.util.jna.macos.kernreturn.KernReturnTConverter;
 
@@ -96,7 +95,7 @@ public interface CoreFoundation extends Library {
 	/**
 	 * The static {@link CoreFoundation} instance.
 	 */
-	CoreFoundation INSTANCE = (CoreFoundation) Native.loadLibrary("CoreFoundation", CoreFoundation.class, options);
+	CoreFoundation INSTANCE = Native.load("CoreFoundation", CoreFoundation.class, options);
 
 	/**
 	 * The default {@code CFAllocator} as a static {@link CFAllocatorRef}.
@@ -782,6 +781,23 @@ public interface CoreFoundation extends Library {
 		public CFArrayRef(Pointer p) {
 			super(p);
 		}
+
+		/**
+		 * Use this as a substitute for cast from any {@link CFTypeRef} instance
+		 * that is natively a {@code CFArrayRef}.
+		 * <p>
+		 * {@link CFTypeRef} can't be cast to {@link CFArrayRef} if gotten from
+		 * native code because {@link PointerType#fromNative} don't know the
+		 * "real" type and thus calls {@link CFTypeRef}'s constructor instead of
+		 * {@link CFArrayRef}'s constructor. This method instantiates a new
+		 * {@link CFArrayRef} and transfers the {@link Pointer} to achieve the
+		 * same result.
+		 *
+		 * @param cfArray the {@link CFTypeRef} to "cast" to {@link CFArrayRef}.
+		 */
+		public CFArrayRef(CFTypeRef cfArray) {
+			super(cfArray == null ? null : cfArray.getPointer());
+		}
 	}
 
 	/**
@@ -1173,8 +1189,8 @@ public interface CoreFoundation extends Library {
 		}
 
 		/**
-		 * Use this as a substitute for cast from any {@link CFTypeRef}
-		 * instance.
+		 * Use this as a substitute for cast from any {@link CFTypeRef} instance
+		 * that is natively a {@code CFStringRef}.
 		 * <p>
 		 * {@link CFTypeRef} can't be cast to {@link CFStringRef} if gotten from
 		 * native code because {@link PointerType#fromNative} don't know the
@@ -1194,8 +1210,7 @@ public interface CoreFoundation extends Library {
 		 * Creates a new {@code CFString} from the given {@link String}.
 		 *
 		 * @param string the source {@link String}.
-		 * @return A reference to a {@code CFString} representing {@code string}
-		 *         .
+		 * @return A reference to a {@code CFString} representing {@code string}.
 		 */
 		public static CFStringRef toCFStringRef(String string) {
 			if (string == null) {
@@ -1652,29 +1667,6 @@ public interface CoreFoundation extends Library {
 	 *         efficiently.
 	 */
 	StringByReference CFStringGetCStringPtr(CFStringRef theString, int encoding);
-
-	/**
-	 * Quickly obtains a pointer to the contents of a string as a buffer of
-	 * Unicode characters.
-	 * <p>
-	 * This function either returns the requested pointer immediately, with no
-	 * memory allocations and no copying, or it returns {@code null}. If the
-	 * latter is the result, call an alternative function such as
-	 * {@code CFStringGetCharacters} function to extract the characters. Whether
-	 * or not this function returns a valid pointer or {@code null} depends on
-	 * many factors, all of which depend on how the string was created and its
-	 * properties. In addition, the function result might change between
-	 * different releases and on different platforms. So do not count on
-	 * receiving a non-{@code null} result from this function under any
-	 * circumstances (except when the object is created with
-	 * {@code CFStringCreateMutableWithExternalCharactersNoCopy}).
-	 *
-	 * @param theString the {@code CFString} whose contents you wish to access.
-	 * @return A pointer to a buffer of {@code Unicode} character, or
-	 *         {@code null} if the internal storage of {@code theString} does
-	 *         not allow this to be returned efficiently.
-	 */
-	UTF16StringByReference CFStringGetCharactersPtr(CFStringRef theString);
 
 	/**
 	 * Returns the smallest encoding on the current system for the character

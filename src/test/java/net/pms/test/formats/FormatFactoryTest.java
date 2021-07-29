@@ -98,9 +98,8 @@ public class FormatFactoryTest {
 		testSingleFormat("test.omg", "ATRAC", Format.AUDIO);
 		testSingleFormat("test.au", "AU", Format.AUDIO);
 		testSingleFormat("test.snd", "AU", Format.AUDIO);
-		testSingleFormat("test.dff", "DSDAudio", Format.AUDIO);
-		testSingleFormat("test.dsf", "DSDAudio", Format.AUDIO);
-		testSingleFormat("test.dvr", "DVRMS", Format.VIDEO);
+		testSingleFormat("test.dff", "DFF", Format.AUDIO);
+		testSingleFormat("test.dsf", "DSF", Format.AUDIO);
 		testSingleFormat("test.dts", "DTS", Format.AUDIO);
 		testSingleFormat("test.eac3", "EAC3", Format.AUDIO);
 		testSingleFormat("test.fla", "FLAC", Format.AUDIO);
@@ -144,6 +143,8 @@ public class FormatFactoryTest {
 		testSingleFormat("test.avi", "MPG", Format.VIDEO);
 		testSingleFormat("test.div", "MPG", Format.VIDEO);
 		testSingleFormat("test.divx", "MPG", Format.VIDEO);
+		testSingleFormat("test.dvr", "DVRMS", Format.VIDEO);
+		testSingleFormat("test.dvr-ms", "DVRMS", Format.VIDEO);
 		testSingleFormat("test.m2p", "MPG", Format.VIDEO);
 		testSingleFormat("test.m2t", "MPG", Format.VIDEO);
 		testSingleFormat("test.m2ts", "MPG", Format.VIDEO);
@@ -156,6 +157,7 @@ public class FormatFactoryTest {
 		testSingleFormat("test.mpeg", "MPG", Format.VIDEO);
 		testSingleFormat("test.mpg", "MPG", Format.VIDEO);
 		testSingleFormat("test.mts", "MPG", Format.VIDEO);
+		testSingleFormat("test.s4ud", "MPG", Format.VIDEO);
 		testSingleFormat("test.tivo", "MPG", Format.VIDEO);
 		testSingleFormat("test.tmf", "MPG", Format.VIDEO);
 		testSingleFormat("test.tp", "MPG", Format.VIDEO);
@@ -163,10 +165,12 @@ public class FormatFactoryTest {
 		testSingleFormat("test.ty", "MPG", Format.VIDEO);
 		testSingleFormat("test.vdr", "MPG", Format.VIDEO);
 		testSingleFormat("test.vob", "MPG", Format.VIDEO);
+		testSingleFormat("test.vro", "MPG", Format.VIDEO);
 		testSingleFormat("test.wm", "MPG", Format.VIDEO);
 		testSingleFormat("test.wmv", "MPG", Format.VIDEO);
 		testSingleFormat("test.wtv", "MPG", Format.VIDEO);
 		testSingleFormat("test.mpa", "MPGAudio", Format.AUDIO);
+		testSingleFormat("test.mp1", "MPGAudio", Format.AUDIO);
 		testSingleFormat("test.mp2", "MPGAudio", Format.AUDIO);
 		testSingleFormat("test.sub", "MicroDVD", Format.SUBTITLE);
 		testSingleFormat("test.ape", "MonkeysAudio", Format.AUDIO);

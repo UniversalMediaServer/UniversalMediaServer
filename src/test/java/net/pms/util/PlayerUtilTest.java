@@ -20,6 +20,7 @@ package net.pms.util;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
+import java.util.Random;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.WebStream;
@@ -29,30 +30,27 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 public class PlayerUtilTest {
-	private DLNAResource video;
-	private DLNAResource audio;
-	private DLNAResource image;
-	private DLNAResource webImage;
-	private DLNAResource webVideo;
-	private DLNAResource webAudio;
+	private static DLNAResource video;
+	private static DLNAResource audio;
+	private static DLNAResource image;
+	private static DLNAResource webImage;
+	private static DLNAResource webVideo;
+	private static DLNAResource webAudio;
 
-	@Before
-	public void setUp() {
-		// Silence all log messages from the PMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
-
+	@BeforeClass
+	public static void setUpClass() {
 		// initialise the fixtures
 		// XXX we need to call isValid to call checktype(), which is needed to initialise the format
-		image = new RealFile(new File("test.jpg"));
+		image = new RealFile(getNonExistingFile("test.jpg"));
 		image.isValid();
-		audio = new RealFile(new File("test.mp3"));
+		audio = new RealFile(getNonExistingFile("test.mp3"));
 		audio.isValid();
-		video = new RealFile(new File("test.mpg"));
+		video = new RealFile(getNonExistingFile("test.mpg"));
 		video.isValid();
 		webImage = new WebStream("", "http://example.com/test.jpg", "", Format.IMAGE);
 		webImage.isValid();
@@ -60,6 +58,13 @@ public class PlayerUtilTest {
 		webAudio.isValid();
 		webVideo = new WebStream("", "http://example.com/test.mpg", "", Format.VIDEO);
 		webVideo.isValid();
+	}
+
+	@Before
+	public void setUp() {
+		// Silence all log messages from the PMS code that is being tested
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.reset();
 	}
 
 	@Test
@@ -174,5 +179,16 @@ public class PlayerUtilTest {
 		assertFalse(isWebVideo(webImage));
 		assertFalse(isWebVideo(webAudio));
 		assertTrue(isWebVideo(webVideo));
+	}
+
+	private static File getNonExistingFile(String initialname) {
+		String basename = FileUtil.getFileNameWithoutExtension(initialname);
+		String extension = FileUtil.getExtension(initialname);
+		Random random = new Random();
+		File result = new File(initialname);
+		while (result.exists()) {
+			result = new File(basename + random.nextInt() + "." + extension);
+		}
+		return result;
 	}
 }

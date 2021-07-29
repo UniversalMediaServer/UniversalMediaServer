@@ -4,12 +4,20 @@ import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.database.TableFilesStatus;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
@@ -21,16 +29,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
-	private static Set<String> fullyPlayedEntries;
+	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
+	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
 	public MediaMonitor(File[] dirs) {
-		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
-		this.dirs = dirs;
-		fullyPlayedEntries = new HashSet<>();
+		super(Messages.getString("Unused"), "images/thumbnail-folder-256.png");
+		this.dirs = new File[dirs.length];
+		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
 		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
@@ -65,12 +74,15 @@ public class MediaMonitor extends VirtualFolder {
 						if (!new File(entry.trim()).exists()) {
 							continue;
 						}
-						fullyPlayedEntries.add(entry.trim());
+
+						entry = entry.trim();
+						setFullyPlayed(entry, true, null);
 					}
 				}
 			}
-			dumpFile();
 		} catch (IOException e) {
+			LOGGER.error("Error reading monitor file \"{}\": {}", f.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
@@ -85,32 +97,42 @@ public class MediaMonitor extends VirtualFolder {
 							continue;
 						}
 						RealFile rf = (RealFile) r;
-						fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
+						setFullyPlayed(rf.getFile().getAbsolutePath(), true, null);
 					}
 					mm.setDiscovered(false);
 					mm.getChildren().clear();
-					try {
-						dumpFile();
-					} catch (IOException e) {
-					}
 					return true;
 				}
 			});
 
-			for (File f : files) {
-				if (f.isFile()) {
-					if (isFullyPlayed(f.getAbsolutePath())) {
+			Set<String> fullyPlayedPaths = null;
+			if (config.isHideEmptyFolders()) {
+				fullyPlayedPaths = new HashSet<>();
+				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
+				try {
+					for (Entry<String, Boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
+						if (entry.getValue()) {
+							fullyPlayedPaths.add(entry.getKey());
+						}
+					}
+				} finally {
+					FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
+				}
+			}
+			for (File fileEntry : files) {
+				if (fileEntry.isFile()) {
+					if (isFullyPlayed(fileEntry.getAbsolutePath())) {
 						continue;
 					}
-					res.addChild(new RealFile(f));
+					res.addChild(new RealFile(fileEntry));
 				}
-				if (f.isDirectory()) {
-					boolean add = true;
-					if (config.isHideEmptyFolders()) {
-						add = FileUtil.isFolderRelevant(f, config, fullyPlayedEntries);
+				if (fileEntry.isDirectory()) {
+					boolean add = !config.isHideEmptyFolders();
+					if (!add) {
+						add = FileUtil.isFolderRelevant(fileEntry, config, fullyPlayedPaths);
 					}
 					if (add) {
-						res.addChild(new MonitorEntry(f, this));
+						res.addChild(new MonitorEntry(fileEntry, this));
 					}
 				}
 			}
@@ -131,40 +153,57 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
-	public void stopped(DLNAResource res) {
-		if (!(res instanceof RealFile)) {
+	public void stopped(DLNAResource resource) {
+		if (!(resource instanceof RealFile)) {
 			return;
 		}
 
-		RealFile rf = (RealFile) res;
+		final RealFile realFile = (RealFile) resource;
+		String fullPathToFile = realFile.getFile().getAbsolutePath();
+
+		boolean isMonitored = false;
+		List<Path> foldersMonitored = configuration.getMonitoredFolders();
+		if (!foldersMonitored.isEmpty()) {
+			for (Path folderMonitored : foldersMonitored) {
+				if (fullPathToFile.contains(folderMonitored.toAbsolutePath().toString())) {
+					isMonitored = true;
+					break;
+				}
+			}
+		}
+
+		if (!isMonitored) {
+			LOGGER.trace("File {} is not within a monitored directory, so not calculating fully played status", realFile.getName());
+			return;
+		}
 
 		// The total video duration in seconds
 		double fileDuration = 0;
-		if (res.getMedia() != null && (res.getMedia().isAudio() || res.getMedia().isVideo())) {
-			fileDuration = res.getMedia().getDurationInSeconds();
+		if (realFile.getMedia() != null && (realFile.getMedia().isAudio() || realFile.getMedia().isVideo())) {
+			fileDuration = realFile.getMedia().getDurationInSeconds();
 		}
 
 		/**
-		 * Time since the file started playing.
-		 * This is not a great way to get this value because if the
-		 * video is paused, it will no longer be accurate.
+		 * Time since the file started playing. This is not a great way to get
+		 * this value because if the video is paused, it will no longer be
+		 * accurate.
 		 */
 		double elapsed;
-		if (res.getLastStartPosition() == 0) {
-			elapsed = (double) (System.currentTimeMillis() - res.getStartTime()) / 1000;
+		if (realFile.getLastStartPosition() == 0) {
+			elapsed = (double) (System.currentTimeMillis() - realFile.getStartTime()) / 1000;
 		} else {
-			elapsed = (double) (System.currentTimeMillis() - res.getLastStartSystemTime()) / 1000;
-			elapsed += res.getLastStartPosition();
+			elapsed = (System.currentTimeMillis() - realFile.getLastStartSystemTime()) / 1000;
+			elapsed += realFile.getLastStartPosition();
 		}
 
 		FullyPlayedAction fullyPlayedAction = configuration.getFullyPlayedAction();
 
-		if (!fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION)) {
+		if (LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION)) {
 			LOGGER.trace("Fully Played feature logging:");
 			LOGGER.trace("   duration: " + fileDuration);
-			LOGGER.trace("   getLastStartPosition: " + res.getLastStartPosition());
-			LOGGER.trace("   getStartTime: " + res.getStartTime());
-			LOGGER.trace("   getLastStartSystemTime: " + res.getLastStartSystemTime());
+			LOGGER.trace("   getLastStartPosition: " + realFile.getLastStartPosition());
+			LOGGER.trace("   getStartTime: " + realFile.getStartTime());
+			LOGGER.trace("   getLastStartSystemTime: " + realFile.getLastStartSystemTime());
 			LOGGER.trace("   elapsed: " + elapsed);
 			LOGGER.trace("   minimum play time needed: " + (fileDuration * configuration.getResumeBackFactor()));
 		}
@@ -174,118 +213,161 @@ public class MediaMonitor extends VirtualFolder {
 		 * the duration has elapsed since it started playing.
 		 */
 		if (
-			(
-				res.getMedia() != null &&
-				res.getMedia().isImage()
-			) ||
-			(
-				fileDuration > configuration.getMinimumWatchedPlayTimeSeconds() &&
-				elapsed >= (fileDuration * configuration.getResumeBackFactor())
-			)
+			fileDuration == 0 ||
+			elapsed > configuration.getMinimumWatchedPlayTimeSeconds() &&
+			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
-			DLNAResource tmp = res.getParent();
-			if (tmp != null) {
-				boolean isMonitored = false;
-				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
-				if (foldersMonitored != null && foldersMonitored.length > 0) {
-					for (File folderMonitored : foldersMonitored) {
-						if (rf.getFile().getAbsolutePath().contains(folderMonitored.getAbsolutePath())) {
-							isMonitored = true;
-						}
-					}
+			DLNAResource fileParent = realFile.getParent();
+			if (fileParent != null && !isFullyPlayed(fullPathToFile)) {
+				// Only set fully played if the file will stay where it is
+				if (
+					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
+					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
+					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
+				) {
+					setFullyPlayed(fullPathToFile, true, elapsed);
 				}
 
-				if (isMonitored) {
-					// Prevent duplicates from being added
-					if (isFullyPlayed(rf.getFile().getAbsolutePath())) {
-						return;
-					}
+				setDiscovered(false);
+				getChildren().clear();
 
-					fullyPlayedEntries.add(rf.getFile().getAbsolutePath());
-					setDiscovered(false);
-					getChildren().clear();
+				File playedFile = new File(fullPathToFile);
 
-					try {
-						dumpFile();
-					} catch (IOException e) {
-						LOGGER.debug("An error occurred when dumping monitor file: " + e);
-					}
-
-					File playedFile = new File(rf.getFile().getAbsolutePath());
-
-					if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER) {
+				if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER || fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER_AND_MARK) {
+					String oldDirectory = FileUtil.appendPathSeparator(playedFile.getAbsoluteFile().getParent());
+					String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
+					if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
 						// Move the video to a different folder
-						String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
+						boolean moved = false;
+						File newFile = null;
 
-						if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
+						try {
+							Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
 							LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
-						} else {
-							LOGGER.debug("Moving {} failed, trying again in 3 seconds", playedFile.getName());
+							newFile = new File(newDirectory + playedFile.getName());
+							moved = true;
+						} catch (IOException e) {
+							LOGGER.debug("Moving {} failed, trying again in 3 seconds: {}", playedFile.getName(), e.getMessage());
 
 							try {
 								Thread.sleep(3000);
-
-								if (playedFile.renameTo(new File(newDirectory + playedFile.getName()))) {
-									LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
-								} else {
-									LOGGER.info("Failed to move {}", playedFile.getName());
-								}
-							} catch (InterruptedException e) {
-								LOGGER.warn("Abandoning moving of {} because the thread was interrupted, probably due to UMS shutdown", e.getMessage());
-								LOGGER.trace("", e);
+								Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newDirectory + playedFile.getName()), StandardCopyOption.REPLACE_EXISTING);
+								LOGGER.debug("Moved {} because it has been fully played", playedFile.getName());
+								newFile = new File(newDirectory + playedFile.getName());
+								moved = true;
+							} catch (InterruptedException e2) {
+								LOGGER.debug(
+									"Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}",
+									playedFile.getName(),
+									e2.getMessage()
+								);
 								Thread.currentThread().interrupt();
+							} catch (IOException e3) {
+								LOGGER.debug("Moving {} failed a second time: {}", playedFile.getName(), e3.getMessage());
 							}
 						}
-					} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
-						try {
-							if (Platform.isLinux()) {
-								FreedesktopTrash.moveToTrash(playedFile);
-							} else {
-								FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
-							}
-						} catch (IOException | FileUtil.InvalidFileSystemException e) {
-							LOGGER.warn("Failed to move file \"{}\" to recycler/trash after it has been fully played: {}", playedFile.getAbsoluteFile(), e.getMessage());
-							LOGGER.trace("", e);
+
+						if (moved) {
+							RootFolder.parseFileForDatabase(newFile);
+							setFullyPlayed(newDirectory + playedFile.getName(), true, elapsed);
 						}
+					} else if (StringUtils.isBlank(newDirectory)) {
+						LOGGER.warn(
+							"Failed to move \"{}\" after being fully played because the folder to move to isn't configured",
+							playedFile.getName()
+						);
+					} else {
+						LOGGER.trace(
+							"Not moving \"{}\" after being fully played since it's already in the target folder \"{}\"",
+							playedFile.getName(),
+							newDirectory
+						);
 					}
-					LOGGER.info("{} marked as fully played", playedFile.getName());
+				} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
+					try {
+						if (Platform.isLinux()) {
+							FreedesktopTrash.moveToTrash(playedFile);
+						} else {
+							FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
+						}
+					} catch (IOException | FileUtil.InvalidFileSystemException e) {
+						LOGGER.warn(
+							"Failed to move file \"{}\" to recycler/trash after it has been fully played: {}",
+							playedFile.getAbsoluteFile(),
+							e.getMessage()
+						);
+						LOGGER.trace("", e);
+					}
 				}
+				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
-			LOGGER.trace("   final decision: not fully played");
+			TableFilesStatus.setLastPlayed(fullPathToFile, elapsed);
+			LOGGER.trace("final decision: not fully played");
 		}
 	}
 
-	public static boolean isFullyPlayed(String str) {
-		return fullyPlayedEntries != null && fullyPlayedEntries.contains(str);
+	/**
+	 * Checks if {@code fullPathToFile} is registered as fully played. The check
+	 * will first check the memory cache, and if not found there check the
+	 * database and insert an entry in the memory cache.
+	 *
+	 * @param fullPathToFile the full path to the file whose status to retrieve.
+	 * @return {@code true} if {@code fullPathToFile} is fully played,
+	 *         {@code false} otherwise.
+	 */
+	public static boolean isFullyPlayed(String fullPathToFile) {
+		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
+		Boolean fullyPlayed;
+		try {
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
+		} finally {
+			FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
+		}
+		if (fullyPlayed != null) {
+			return fullyPlayed;
+		}
+
+		// The status isn't cached, add it
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
+		try {
+			// It could have been added between the locks, check again
+			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
+			if (fullyPlayed != null) {
+				return fullyPlayed;
+			}
+
+			// Add the entry to the cache
+			fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
+			if (fullyPlayed == null) {
+				fullyPlayed = false;
+			}
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, fullyPlayed);
+			return fullyPlayed;
+		} finally {
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
+		}
 	}
 
 	/**
-	 * Populates UMS.mon with a list of completely played media.
+	 * Sets the fully played status of the given {@code fullPathToFile} both in
+	 * the memory cache and in the database.
 	 *
-	 * @throws IOException
+	 * @param fullPathToFile the full path to the file in question.
+	 * @param isFullyPlayed {@code true} if {@code fullPathToFile} is fully
+	 *            played, {@code false} otherwise.
+	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	private void dumpFile() throws IOException {
-		File f = monitorFile();
-		Date now = new Date();
-		try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8)) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("######\n");
-			sb.append("## NOTE!!!!!\n");
-			sb.append("## This file is auto generated\n");
-			sb.append("## Edit with EXTREME care\n");
-			sb.append("## Generated: ");
-			sb.append(now.toString());
-			sb.append("\n");
-			for (String str : fullyPlayedEntries) {
-				if (sb.indexOf(str) == -1) {
-					sb.append("entry=");
-					sb.append(str);
-					sb.append("\n");
-				}
+	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, Double lastPlaybackPosition) {
+		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
+		try {
+			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
+			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
+			if (lastPlaybackPosition != null) {
+				TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
 			}
-			out.write(sb.toString());
-			out.flush();
+		} finally {
+			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
 		}
 	}
 

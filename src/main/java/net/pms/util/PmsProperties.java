@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 /**
@@ -33,7 +35,7 @@ import java.util.Properties;
  */
 public class PmsProperties {
 	private final Properties properties = new Properties();
-	private static final String ENCODING = "UTF-8";
+	private static final Charset ENCODING = StandardCharsets.UTF_8;
 
 	public void loadFromByteArray(byte[] data) throws IOException {
 		try {

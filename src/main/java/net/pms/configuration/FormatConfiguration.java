@@ -20,6 +20,8 @@
 
 package net.pms.configuration;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
@@ -29,12 +31,13 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
+import net.pms.io.OutputParams;
 import net.pms.util.AudioUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +48,9 @@ public class FormatConfiguration {
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
 	public static final String AAC_LC = "aac-lc";
+	public static final String AAC_LTP = "aac-ltp";
+	public static final String AAC_MAIN = "aac-main";
+	public static final String AAC_SSR = "aac-ssr";
 	public static final String AC3 = "ac3";
 	public static final String ACELP = "acelp";
 	public static final String ADPCM = "adpcm";
@@ -53,21 +59,29 @@ public class FormatConfiguration {
 	public static final String ALAC = "alac";
 	public static final String ALS = "als";
 	public static final String AMR = "amr";
+	public static final String ASF = "asf";
 	public static final String ATMOS = "atmos";
 	public static final String ATRAC = "atrac";
 	public static final String AU = "au";
+	public static final String AV1 = "av1";
 	public static final String AVI = "avi";
 	public static final String BMP = "bmp";
+	public static final String CAF = "caf";
+	public static final String CELP = "celp";
 	public static final String CINEPAK = "cvid";
 	public static final String COOK = "cook";
 	public static final String CUR = "cur";
 	public static final String DIVX = "divx";
 	/** Direct Stream Digital / Super Audio CD tracks */
-	public static final String DSD = "dsd";
+	public static final String DFF = "dff";
+	public static final String DSF = "dsf";
+	public static final String DOLBYE = "dolbye";
 	public static final String DTS = "dts";
 	public static final String DTSHD = "dtshd";
 	public static final String DV = "dv";
 	public static final String EAC3 = "eac3";
+	public static final String ER_BSAC = "erbsac";
+	public static final String FFV1 = "ffv1";
 	public static final String FLAC = "flac";
 	public static final String FLV = "flv";
 	public static final String G729 = "g729";
@@ -86,10 +100,14 @@ public class FormatConfiguration {
 	public static final String JPEG2000 = "jpeg2000";
 	public static final String LPCM = "lpcm";
 	public static final String M4A = "m4a";
+	public static final String M4V = "m4v";
 	public static final String MKV = "mkv";
+	public static final String MI_VBD = "vbd";
 	public static final String MI_GMC = "gmc";
 	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
+	public static final String MACE3 = "mace3";
+	public static final String MACE6 = "mace6";
 	public static final String MJPEG = "mjpeg";
 	public static final String MKA = "mka";
 	public static final String MLP = "mlp";
@@ -104,6 +122,7 @@ public class FormatConfiguration {
 	public static final String MPEG2 = "mpeg2";
 	public static final String MPEGPS = "mpegps";
 	public static final String MPEGTS = "mpegts";
+	public static final String NELLYMOSER = "nellymoser";
 	public static final String OGG = "ogg";
 	/** OGG container with only audio track */
 	public static final String OGA = "oga";
@@ -112,6 +131,7 @@ public class FormatConfiguration {
 	public static final String PNG = "png";
 	public static final String PNM = "pnm";
 	public static final String PSD = "psd";
+	public static final String QCELP = "qcelp";
 	public static final String QDESIGN = "qdmc";
 	/** This is the RealAudio file format, not one of the codecs */
 	public static final String RA = "ra";
@@ -121,11 +141,13 @@ public class FormatConfiguration {
 	public static final String REALAUDIO_28_8 = "ra28.8";
 	/** Used as a "video codec" when sequences of raw, uncompressed RGB or RGBA is used as a video stream in AVI, MP4 or MOV files */
 	public static final String RGB = "rgb";
+	public static final String RLE = "rle";
 	public static final String RM = "rm";
 	public static final String SHORTEN = "shn";
 	public static final String SIPRO = "sipro";
 	public static final String SLS = "sls";
 	public static final String SORENSON = "sor";
+	public static final String TGA = "tga";
 	public static final String THEORA = "theora";
 	public static final String TIFF = "tiff";
 	public static final String TRUEHD = "truehd";
@@ -152,10 +174,11 @@ public class FormatConfiguration {
 	/** Used as a "video codec" when sequences of raw, uncompressed YUV is used as a video stream in AVI, MP4 or MOV files */
 	public static final String YUV = "yuv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
-	public static final String und = "und";
+	public static final String UND = "und";
 
 	private static class SupportSpec {
 		private int iMaxBitrate = Integer.MAX_VALUE;
+		private int iMaxFramerate = Integer.MAX_VALUE;
 		private int iMaxFrequency = Integer.MAX_VALUE;
 		private int iMaxNbChannels = Integer.MAX_VALUE;
 		private int iMaxVideoHeight = Integer.MAX_VALUE;
@@ -167,6 +190,7 @@ public class FormatConfiguration {
 		private String audioCodec;
 		private String format;
 		private String maxBitrate;
+		private String maxFramerate;
 		private String maxFrequency;
 		private String maxNbChannels;
 		private String maxVideoHeight;
@@ -174,89 +198,146 @@ public class FormatConfiguration {
 		private String mimeType;
 		private String videoCodec;
 		private String supportLine;
+		private String supportedEmbeddedSubtitlesFormats;
+		private String supportedExternalSubtitlesFormats;
 
 		SupportSpec() {
 			this.mimeType = MIMETYPE_AUTO;
 		}
 
 		boolean isValid() {
-			if (StringUtils.isBlank(format)) { // required
-				LOGGER.warn("No format supplied");
+			if (isBlank(format)) { // required
+				LOGGER.error("No format specified on line \"{}\"", supportLine);
 				return false;
 			}
 			try {
 				pFormat = Pattern.compile(format);
 			} catch (PatternSyntaxException pse) {
-				LOGGER.error("Error parsing format \"{}\": {}", format, pse.getMessage());
+				LOGGER.error(
+					"Error parsing format \"{}\" from line \"{}\": {}",
+					format,
+					supportLine,
+					pse.getMessage()
+				);
 				LOGGER.trace("", pse);
 				return false;
 			}
 
-			if (videoCodec != null) {
+			if (isNotBlank(videoCodec)) {
 				try {
 					pVideoCodec = Pattern.compile(videoCodec);
 				} catch (PatternSyntaxException pse) {
-					LOGGER.error("Error parsing video codec \"{}\": {}", videoCodec, pse.getMessage());
+					LOGGER.error(
+						"Error parsing video codec \"{}\" from line \"{}\": {}",
+						videoCodec,
+						supportLine,
+						pse.getMessage()
+					);
 					LOGGER.trace("", pse);
 					return false;
 				}
 			}
 
-			if (audioCodec != null) {
+			if (isNotBlank(audioCodec)) {
 				try {
 					pAudioCodec = Pattern.compile(audioCodec);
 				} catch (PatternSyntaxException pse) {
-					LOGGER.error("Error parsing audio codec \"{}\": {}", audioCodec, pse.getMessage());
+					LOGGER.error(
+						"Error parsing audio codec \"{}\" from line \"{}\": {}",
+						audioCodec,
+						supportLine,
+						pse.getMessage()
+					);
 					LOGGER.trace("", pse);
 					return false;
 				}
 			}
 
-			if (maxNbChannels != null) {
+			if (isNotBlank(maxNbChannels)) {
 				try {
 					iMaxNbChannels = Integer.parseInt(maxNbChannels);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing number of channels \"{}\": {}", maxNbChannels, nfe.getMessage());
+					LOGGER.error(
+						"Error parsing number of channels \"{}\" from line \"{}\": {}",
+						maxNbChannels,
+						supportLine,
+						nfe.getMessage()
+					);
 					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
 
-			if (maxFrequency != null) {
+			if (isNotBlank(maxFramerate)) {
+				try {
+					iMaxFramerate = Integer.parseInt(maxFramerate);
+				} catch (NumberFormatException nfe) {
+					LOGGER.error(
+						"Error parsing maximum framerate \"{}\" from line \"{}\": {}",
+						maxFramerate,
+						supportLine,
+						nfe.getMessage()
+					);
+					LOGGER.trace("", nfe);
+					return false;
+				}
+			}
+
+			if (isNotBlank(maxFrequency)) {
 				try {
 					iMaxFrequency = Integer.parseInt(maxFrequency);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum frequency \"{}\": {}", maxFrequency, nfe.getMessage());
+					LOGGER.error(
+						"Error parsing maximum frequency \"{}\" from line \"{}\": {}",
+						maxFrequency,
+						supportLine,
+						nfe.getMessage()
+					);
 					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
 
-			if (maxBitrate != null) {
+			if (isNotBlank(maxBitrate)) {
 				try {
 					iMaxBitrate = Integer.parseInt(maxBitrate);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum bitrate \"{}\": {}", maxBitrate, nfe.getMessage());
+					LOGGER.error(
+						"Error parsing maximum bitrate \"{}\" from line \"{}\": {}",
+						maxBitrate,
+						supportLine,
+						nfe.getMessage()
+					);
 					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
 
-			if (maxVideoWidth != null) {
+			if (isNotBlank(maxVideoWidth)) {
 				try {
 					iMaxVideoWidth = Integer.parseInt(maxVideoWidth);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum video width \"{}\": {}", maxVideoWidth, nfe.getMessage());
+					LOGGER.error(
+						"Error parsing maximum video width \"{}\" from line \"{}\": {}",
+						maxVideoWidth,
+						supportLine,
+						nfe.getMessage()
+					);
 					LOGGER.trace("", nfe);
 					return false;
 				}
 			}
 
-			if (maxVideoHeight != null) {
+			if (isNotBlank(maxVideoHeight)) {
 				try {
 					iMaxVideoHeight = Integer.parseInt(maxVideoHeight);
 				} catch (NumberFormatException nfe) {
-					LOGGER.error("Error parsing maximum video height \"{}\": {}", maxVideoHeight, nfe.getMessage());
+					LOGGER.error(
+						"Error parsing maximum video height \"{}\" from line \"{}\": {}",
+						maxVideoHeight,
+						supportLine,
+						nfe.getMessage()
+					);
 					LOGGER.trace("", nfe);
 					return false;
 				}
@@ -266,21 +347,51 @@ public class FormatConfiguration {
 		}
 
 		public boolean match(String container, String videoCodec, String audioCodec) {
-			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, null);
+			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, 0, null, null, false, null);
+		}
+
+		public boolean match(DLNAResource dlna) {
+			DLNAMediaInfo media = dlna.getMedia();
+			if (dlna.getMediaSubtitle() != null) {
+				return match(
+					media.getContainer(),
+					media.getCodecV(),
+					dlna.getMediaAudio().getCodecA(),
+					0,
+					0,
+					0,
+					0,
+					0,
+					iMaxBitrate,
+					media.getVideoBitDepth(),
+					null,
+					dlna.getMediaSubtitle().getType().getExtension(),
+					dlna.getMediaSubtitle().isExternal(),
+					null
+				);
+			} else {
+				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA());
+			}
 		}
 
 		/**
 		 * Determine whether or not the provided parameters match the
-		 * "Supported" lines for this configuration. If a parameter is null
-		 * or 0, its value is skipped for making the match. If any of the
-		 * non-null parameters does not match, false is returned. For example,
-		 * assume a configuration that contains only the following line:
+		 * "Supported" lines for this configuration, or the related settings.
+		 * If a parameter is null or 0, its value is skipped for making the
+		 * match. If any of the non-null parameters does not match, false is
+		 * returned.
+		 * For example, assume a configuration that contains only the following line:
 		 *
-		 * Supported = f:mp4 n:2
+		 * <blockquote><pre>
+		 * 	Supported = f:mp4 n:2 se:SUBRIP
 		 *
-		 * match("mp4", null, null, 2, 0, 0, 0, 0, null) = true
-		 * match("mp4", null, null, 6, 0, 0, 0, 0, null) = false
-		 * match("wav", null, null, 2, 0, 0, 0, 0, null) = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = true
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, null,     true)  = false
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false
+		 * match("wav", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", true)  = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "SUBRIP", false) = false
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, 0, null, "sub",    true)  = false
+		 * </pre></blockquote>
 		 *
 		 * @param format
 		 * @param videoCodec
@@ -288,9 +399,17 @@ public class FormatConfiguration {
 		 * @param nbAudioChannels
 		 * @param frequency
 		 * @param bitrate
+		 * @param framerate
 		 * @param videoWidth
 		 * @param videoHeight
-		 * @param extras
+		 * @param videoBitDepth
+		 * @param extras map containing 0 or more key/value pairs for:
+		 *               - qpel
+		 *               - gmc
+		 *               - gop
+		 * @param subsFormat
+		 * @param isExternalSubs
+		 * @param renderer
 		 * @return False if any of the provided non-null parameters is not a
 		 * 			match, true otherwise.
 		 */
@@ -301,13 +420,17 @@ public class FormatConfiguration {
 			int nbAudioChannels,
 			int frequency,
 			int bitrate,
+			int framerate,
 			int videoWidth,
 			int videoHeight,
-			Map<String, String> extras
+			int videoBitDepth,
+			Map<String, String> extras,
+			String subsFormat,
+			boolean isExternalSubs,
+			RendererConfiguration renderer
 		) {
-
 			// Satisfy a minimum threshold
-			if (format == null && videoCodec == null && audioCodec == null) {
+			if (format == null && videoCodec == null && audioCodec == null && subsFormat == null) {
 				// We have no matchable info. This can happen with unparsed
 				// mediainfo objects (e.g. from WEB.conf or plugins).
 				return false;
@@ -334,6 +457,11 @@ public class FormatConfiguration {
 				return false;
 			}
 
+			if (framerate > 0 && iMaxFramerate > 0 && framerate > iMaxFramerate) {
+				LOGGER.trace("Framerate \"{}\" failed to match support line {}", framerate, supportLine);
+				return false;
+			}
+
 			if (frequency > 0 && iMaxFrequency > 0 && frequency > iMaxFrequency) {
 				LOGGER.trace("Frequency \"{}\" failed to match support line {}", frequency, supportLine);
 				return false;
@@ -354,6 +482,40 @@ public class FormatConfiguration {
 				return false;
 			}
 
+			if (videoBitDepth > 0) {
+				if (miExtras != null && miExtras.get(MI_VBD) != null && !miExtras.get(MI_VBD).matcher(Integer.toString(videoBitDepth)).matches()) {
+					LOGGER.trace("Video Bit Depth value \"{}\" failed to match support line {}", videoBitDepth, supportLine);
+					return false;
+				} else if (!(renderer != null && renderer.isVideoBitDepthSupportedForAllFiletypes(videoBitDepth))) {
+					LOGGER.trace("The video bit depth \"{}\" is not supported for this filetype, or all filetypes", videoBitDepth);
+					return false;
+				}
+			}
+
+			if (subsFormat != null) {
+				if (isExternalSubs) {
+					if (supportedExternalSubtitlesFormats == null || !subsFormat.matches(supportedExternalSubtitlesFormats)) {
+						LOGGER.trace("External subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
+						if (renderer == null || !renderer.isExternalSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
+							LOGGER.trace("And did not match any formats in the SupportedExternalSubtitlesFormats renderer configuration setting");
+							return false;
+						} else {
+							LOGGER.trace("But did match a format in the SupportedExternalSubtitlesFormats renderer configuration setting");
+						}
+					}
+				} else {
+					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
+						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
+						if (renderer == null || !renderer.isEmbeddedSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
+							LOGGER.trace("And did not match any formats in the SupportedInternalSubtitlesFormats renderer configuration setting");
+							return false;
+						} else {
+							LOGGER.trace("But did match a format in the SupportedInternalSubtitlesFormats renderer configuration setting");
+						}
+					}
+				}
+			}
+
 			if (extras != null && miExtras != null) {
 				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();
 				while (keyIt.hasNext()) {
@@ -361,16 +523,21 @@ public class FormatConfiguration {
 					String value = extras.get(key).toLowerCase();
 
 					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
-						LOGGER.trace("Qpel value \"{}\" failed to match support line {}", miExtras.get(MI_QPEL), supportLine);
+						LOGGER.trace("QPel value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 
 					if (key.equals(MI_GMC) && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
-						LOGGER.trace("Gmc value \"{}\" failed to match support line {}", miExtras.get(MI_GMC), supportLine);
+						LOGGER.trace("GMC value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 
-					if (key.equals(MI_GOP) && miExtras.get(MI_GOP) != null && miExtras.get(MI_GOP).matcher("static").matches() && value.equals("variable")) {
+					if (
+						key.equals(MI_GOP) &&
+						miExtras.get(MI_GOP) != null &&
+						miExtras.get(MI_GOP).matcher("static").matches() &&
+						value.equals("variable")
+					) {
 						LOGGER.trace("GOP value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
@@ -398,11 +565,6 @@ public class FormatConfiguration {
 		}
 	}
 
-	@Deprecated
-	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type) {
-		parse(media, file, ext, type, null);
-	}
-
 	/**
 	 * Chooses which parsing method to parse the file with.
 	 */
@@ -424,11 +586,12 @@ public class FormatConfiguration {
 				}
 			}
 
-			// MediaInfo can't correctly parse ADPCM, DSD or PNM
+			// MediaInfo can't correctly parse ADPCM, DFF, DSF or PNM
 			if (
 				renderer.isUseMediaInfo() &&
 				ext.getIdentifier() != Identifier.ADPCM &&
-				ext.getIdentifier() != Identifier.DSD &&
+				ext.getIdentifier() != Identifier.DFF &&
+				ext.getIdentifier() != Identifier.DSF &&
 				ext.getIdentifier() != Identifier.PNM
 			) {
 				LibMediaInfoParser.parse(media, file, type, renderer);
@@ -440,153 +603,131 @@ public class FormatConfiguration {
 		}
 	}
 
-	// XXX Unused
-	@Deprecated
-	public boolean isDVDVideoRemuxSupported() {
-		return match(MPEGPS, MPEG2, null) != null;
-	}
-
 	public boolean isFormatSupported(String container) {
-		return match(container, null, null) != null;
+		return getMatchedMIMEtype(container, null, null) != null;
 	}
 
 	public boolean isDTSSupported() {
-		return match(MPEGPS, null, DTS) != null || match(MPEGTS, null, DTS) != null;
+		return getMatchedMIMEtype(MPEGPS, null, DTS) != null || getMatchedMIMEtype(MPEGTS, null, DTS) != null;
 	}
 
 	public boolean isLPCMSupported() {
-		return match(MPEGPS, null, LPCM) != null || match(MPEGTS, null, LPCM) != null;
+		return getMatchedMIMEtype(MPEGPS, null, LPCM) != null || getMatchedMIMEtype(MPEGTS, null, LPCM) != null;
 	}
 
 	public boolean isMpeg2Supported() {
-		return match(MPEGPS, MPEG2, null) != null || match(MPEGTS, MPEG2, null) != null;
-	}
-
-	// XXX Unused
-	@Deprecated
-	public boolean isHiFiMusicFileSupported() {
-		return match(WAV, null, null, 0, 96000, 0, 0, 0, null) != null || match(MP3, null, null, 0, 96000, 0, 0, 0, null) != null;
-	}
-
-	// XXX Unused
-	@Deprecated
-	public String getPrimaryVideoTranscoder() {
-		for (SupportSpec supportSpec : supportSpecs) {
-			if (supportSpec.match(MPEGPS, MPEG2, AC3)) {
-				return MPEGPS;
-			}
-
-			if (
-				supportSpec.match(MPEGTS, MPEG2, AC3) ||
-				supportSpec.match(MPEGTS, H264, AAC_LC) ||
-				supportSpec.match(MPEGTS, H264, AC3)
-			) {
-				return MPEGTS;
-			}
-
-			if (supportSpec.match(WMV, WMV, WMA)) {
-				return WMV;
-			}
-		}
-
-		return null;
-	}
-
-	// XXX Unused
-	@Deprecated
-	public String getPrimaryAudioTranscoder() {
-		for (SupportSpec supportSpec : supportSpecs) {
-			if (supportSpec.match(WAV, null, null)) {
-				return WAV;
-			}
-
-			if (supportSpec.match(MP3, null, null)) {
-				return MP3;
-			}
-
-			// FIXME LPCM?
-		}
-
-		return null;
+		return getMatchedMIMEtype(MPEGPS, MPEG2, null) != null || getMatchedMIMEtype(MPEGTS, MPEG2, null) != null;
 	}
 
 	/**
 	 * Match media information to audio codecs supported by the renderer and
-	 * return its MIME-type if the match is successful. Returns null if the
+	 * return its MIME type if the match is successful.Returns null if the
 	 * media is not natively supported by the renderer, which means it has
 	 * to be transcoded.
 	 *
-	 * @param media The MediaInfo metadata
+	 * @param dlna The DLNAResource
+	 * @param renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String match(DLNAMediaInfo media) {
+	public String getMatchedMIMEtype(DLNAResource dlna, RendererConfiguration renderer) {
+		DLNAMediaInfo media = dlna.getMedia();
+		if (media == null) {
+			return null;
+		}
+		int frameRate = 0;
+		if (isNotBlank(media.getFrameRate())) {
+			try {
+				frameRate = (int) Math.round(Double.parseDouble(media.getFrameRate()));
+			} catch (NumberFormatException e) {
+				LOGGER.debug(
+					"Could not parse framerate \"{}\" for media {}: {}",
+					media.getFrameRate(),
+					media,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
 		if (media.getFirstAudioTrack() == null) {
 			// no sound
-			return match(
+			return getMatchedMIMEtype(
 				media.getContainer(),
 				media.getCodecV(),
 				null,
 				0,
 				0,
 				media.getBitrate(),
+				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				media.getExtras()
+				media.getVideoBitDepth(),
+				media.getExtras(),
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				renderer
 			);
 		}
 
 		if (media.isSLS()) {
 			/*
-			 * MPEG-4 SLS is a special case and must be treated differently. It
-			 * consists of a MPEG-4 ISO container with two audio tracks, the
-			 * first is the lossy "core" stream and the second is the SLS
-			 * correction stream. When the SLS stream is applied to the core
-			 * stream the result is lossless. It is arranged this way so that
-			 * players that can't play SLS can still play the (lossy) core
-			 * stream. Because of this, only compatibility for the first audio
-			 * track needs to be checked.
-			 */
+			* MPEG-4 SLS is a special case and must be treated differently. It
+			* consists of a MPEG-4 ISO container with two audio tracks, the
+			* first is the lossy "core" stream and the second is the SLS
+			* correction stream. When the SLS stream is applied to the core
+			* stream the result is lossless. It is arranged this way so that
+			* players that can't play SLS can still play the (lossy) core
+			* stream. Because of this, only compatibility for the first audio
+			* track needs to be checked.
+			*/
 			DLNAMediaAudio audio = media.getFirstAudioTrack();
-			return match(
+			return getMatchedMIMEtype(
 				media.getContainer(),
 				media.getCodecV(),
 				audio.getCodecA(),
 				audio.getAudioProperties().getNumberOfChannels(),
 				audio.getSampleRate(),
 				audio.getBitRate(),
+				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				media.getExtras()
+				media.getVideoBitDepth(),
+				media.getExtras(),
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				renderer
 			);
 		}
 
 		String finalMimeType = null;
 
 		for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-			String mimeType = match(
+			String mimeType = getMatchedMIMEtype(
 				media.getContainer(),
 				media.getCodecV(),
 				audio.getCodecA(),
 				audio.getAudioProperties().getNumberOfChannels(),
 				audio.getSampleRate(),
 				media.getBitrate(),
+				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				media.getExtras()
+				media.getVideoBitDepth(),
+				media.getExtras(),
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
+				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				renderer
 			);
-
 			finalMimeType = mimeType;
-
-			if (mimeType == null) { // if at least one audio track is not compatible, the file must be transcoded.
-				return null;
+			if (mimeType != null) { // if at least one audio track is compatible, the file can be streamed.
+				return finalMimeType;
 			}
 		}
 
 		return finalMimeType;
 	}
 
-	public String match(String container, String videoCodec, String audioCodec) {
-		return match(
+	public String getMatchedMIMEtype(String container, String videoCodec, String audioCodec) {
+		return getMatchedMIMEtype(
 			container,
 			videoCodec,
 			audioCodec,
@@ -595,20 +736,60 @@ public class FormatConfiguration {
 			0,
 			0,
 			0,
+			0,
+			0,
+			null,
+			null,
+			false,
 			null
 		);
 	}
 
-	public String match(
+	/**
+	 * Match media information and subtitles type supported by the renderer and
+	 * return media MIME-type if the match is successful. Returns null if the
+	 * media or subtitles are not natively supported by the renderer, which means it has
+	 * to be transcoded.
+	 *
+	 * @param media The MediaInfo metadata
+	 * @param params Output params defining audio a subtitles streams to be
+	 * send to renderer
+	 * @return The MIME type or null if no match was found.
+	 */
+	public String getMatchedMIMEtype(DLNAMediaInfo media, OutputParams params) {
+		return getMatchedMIMEtype(
+			media.getContainer(),
+			media.getCodecV(),
+			params.getAid() != null ? params.getAid().getCodecA() : null,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			media.getVideoBitDepth(),
+			null,
+			params.getSid().getType().name(),
+			params.getSid().isExternal(),
+			null
+		);
+	}
+
+	public String getMatchedMIMEtype(
 		String container,
 		String videoCodec,
 		String audioCodec,
 		int nbAudioChannels,
 		int frequency,
 		int bitrate,
+		int framerate,
 		int videoWidth,
 		int videoHeight,
-		Map<String, String> extras
+		int videoBitDepth,
+		Map<String, String> extras,
+		String subsFormat,
+		boolean isInternal,
+		RendererConfiguration renderer
 	) {
 		String matchedMimeType = null;
 
@@ -620,9 +801,14 @@ public class FormatConfiguration {
 				nbAudioChannels,
 				frequency,
 				bitrate,
+				framerate,
 				videoWidth,
 				videoHeight,
-				extras
+				videoBitDepth,
+				extras,
+				subsFormat,
+				isInternal,
+				renderer
 			)) {
 				matchedMimeType = supportSpec.mimeType;
 				break;
@@ -659,6 +845,12 @@ public class FormatConfiguration {
 				supportSpec.mimeType = token.substring(2).trim();
 			} else if (token.startsWith("b:")) {
 				supportSpec.maxBitrate = token.substring(2).trim();
+			} else if (token.startsWith("si:")) {
+				supportSpec.supportedEmbeddedSubtitlesFormats = token.substring(3).trim();
+			} else if (token.startsWith("se:")) {
+				supportSpec.supportedExternalSubtitlesFormats = token.substring(3).trim();
+			} else if (token.startsWith("fps:")) {
+				supportSpec.maxFramerate = token.substring(4).trim();
 			} else if (token.contains(":")) {
 				// Extra MediaInfo stuff
 				if (supportSpec.miExtras == null) {

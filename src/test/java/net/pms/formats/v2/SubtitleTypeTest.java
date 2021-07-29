@@ -41,32 +41,33 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void testValueOfLibMediaInfoCodec_matchingCodecs() throws Exception {
-		assertThat(valueOfLibMediaInfoCodec("s_utf8")).isEqualTo(SUBRIP);
-		assertThat(valueOfLibMediaInfoCodec("S_TEXT/UTF8")).isEqualTo(SUBRIP);
-		assertThat(valueOfLibMediaInfoCodec("Subrip")).isEqualTo(SUBRIP);
-		assertThat(valueOfLibMediaInfoCodec("s_ssa")).isEqualTo(ASS);
-		assertThat(valueOfLibMediaInfoCodec("s_ass")).isEqualTo(ASS);
-		assertThat(valueOfLibMediaInfoCodec("S_TEXT/SSA")).isEqualTo(ASS);
-		assertThat(valueOfLibMediaInfoCodec("S_TEXT/ASS")).isEqualTo(ASS);
-		assertThat(valueOfLibMediaInfoCodec("SSA")).isEqualTo(ASS);
-		assertThat(valueOfLibMediaInfoCodec("ASS")).isEqualTo(ASS);
-		assertThat(valueOfLibMediaInfoCodec("subp")).isEqualTo(VOBSUB);
-		assertThat(valueOfLibMediaInfoCodec("S_VOBSUB")).isEqualTo(VOBSUB);
-		assertThat(valueOfLibMediaInfoCodec("mp4s")).isEqualTo(VOBSUB);
-		assertThat(valueOfLibMediaInfoCodec("E0")).isEqualTo(VOBSUB);
-		assertThat(valueOfLibMediaInfoCodec("s_usf")).isEqualTo(USF);
-		assertThat(valueOfLibMediaInfoCodec("S_TEXT/USF")).isEqualTo(USF);
-		assertThat(valueOfLibMediaInfoCodec("S_IMAGE/BMP")).isEqualTo(BMP);
-		assertThat(valueOfLibMediaInfoCodec("DXSB")).isEqualTo(DIVX);
-		assertThat(valueOfLibMediaInfoCodec("tx3g")).isEqualTo(TX3G);
-		assertThat(valueOfLibMediaInfoCodec("pgs")).isEqualTo(PGS);
-		assertThat(valueOfLibMediaInfoCodec("S_HDMV/PGS")).isEqualTo(PGS);
-		assertThat(valueOfLibMediaInfoCodec("144")).isEqualTo(PGS);
-		assertThat(valueOfLibMediaInfoCodec("WebVTT")).isEqualTo(WEBVTT);
+		assertThat(valueOfMediaInfoValue("s_utf8")).isEqualTo(SUBRIP);
+		assertThat(valueOfMediaInfoValue("S_TEXT/UTF8")).isEqualTo(SUBRIP);
+		assertThat(valueOfMediaInfoValue("Subrip")).isEqualTo(SUBRIP);
+		assertThat(valueOfMediaInfoValue("s_ssa")).isEqualTo(ASS);
+		assertThat(valueOfMediaInfoValue("s_ass")).isEqualTo(ASS);
+		assertThat(valueOfMediaInfoValue("S_TEXT/SSA")).isEqualTo(ASS);
+		assertThat(valueOfMediaInfoValue("S_TEXT/ASS")).isEqualTo(ASS);
+		assertThat(valueOfMediaInfoValue("SSA")).isEqualTo(ASS);
+		assertThat(valueOfMediaInfoValue("ASS")).isEqualTo(ASS);
+		assertThat(valueOfMediaInfoValue("subp")).isEqualTo(VOBSUB);
+		assertThat(valueOfMediaInfoValue("S_VOBSUB")).isEqualTo(VOBSUB);
+		assertThat(valueOfMediaInfoValue("mp4s")).isEqualTo(VOBSUB);
+		assertThat(valueOfMediaInfoValue("E0")).isEqualTo(VOBSUB);
+		assertThat(valueOfMediaInfoValue("s_usf")).isEqualTo(USF);
+		assertThat(valueOfMediaInfoValue("S_TEXT/USF")).isEqualTo(USF);
+		assertThat(valueOfMediaInfoValue("S_IMAGE/BMP")).isEqualTo(BMP);
+		assertThat(valueOfMediaInfoValue("DXSB")).isEqualTo(DIVX);
+		assertThat(valueOfMediaInfoValue("tx3g")).isEqualTo(TX3G);
+		assertThat(valueOfMediaInfoValue("pgs")).isEqualTo(PGS);
+		assertThat(valueOfMediaInfoValue("S_HDMV/PGS")).isEqualTo(PGS);
+		assertThat(valueOfMediaInfoValue("144")).isEqualTo(PGS);
+		assertThat(valueOfMediaInfoValue("WebVTT")).isEqualTo(WEBVTT);
 		assertThat(valueOfLibMediaInfoCodec("S_HDMV/TEXTST")).isEqualTo(TEXTST);
 		assertThat(valueOfLibMediaInfoCodec("S_DVBSUB")).isEqualTo(DVBSUB);
 		assertThat(valueOfLibMediaInfoCodec("EIA-608")).isEqualTo(EIA608);
 //		assertThat(valueOfLibMediaInfoCodec("EIA-708")).isEqualTo(EIA708);
+
 	}
 
 	@Test
@@ -113,8 +114,8 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void testValueOfLibMediaInfoCodec_nullOrBlankCodec() throws Exception {
-		assertThat(valueOfLibMediaInfoCodec(null)).isEqualTo(UNKNOWN);
-		assertThat(valueOfLibMediaInfoCodec("")).isEqualTo(UNKNOWN);
+		assertThat(valueOfMediaInfoValue(null)).isEqualTo(UNKNOWN);
+		assertThat(valueOfMediaInfoValue("")).isEqualTo(UNKNOWN);
 	}
 
 	@Test
@@ -124,7 +125,7 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void testValueOfLibMediaInfoCodec_unknownCodec() throws Exception {
-		assertThat(valueOfLibMediaInfoCodec("xyz")).isEqualTo(UNKNOWN);
+		assertThat(valueOfMediaInfoValue("xyz")).isEqualTo(UNKNOWN);
 	}
 
 	@Test
@@ -136,20 +137,20 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void testValueOfLibMediaInfoCodec_CodecInsensitivity() throws Exception {
-		assertThat(valueOfLibMediaInfoCodec("s_TeXT/UtF8")).isEqualTo(SUBRIP);
+		assertThat(valueOfMediaInfoValue("s_TeXT/UtF8")).isEqualTo(SUBRIP);
 	}
 
 	@Test
 	public void testValueOfLibMediaInfoCodec_CodecWithExtraSpaces() throws Exception {
-		assertThat(valueOfLibMediaInfoCodec("s_utf8 ")).isEqualTo(SUBRIP);
-		assertThat(valueOfLibMediaInfoCodec("   s_utf8")).isEqualTo(SUBRIP);
-		assertThat(valueOfLibMediaInfoCodec("	s_utf8 ")).isEqualTo(SUBRIP);
+		assertThat(valueOfMediaInfoValue("s_utf8 ")).isEqualTo(SUBRIP);
+		assertThat(valueOfMediaInfoValue("   s_utf8")).isEqualTo(SUBRIP);
+		assertThat(valueOfMediaInfoValue("	s_utf8 ")).isEqualTo(SUBRIP);
 	}
 
 	@Test
 	public void testValueOfLibMediaInfoCodec_SubstringShouldNotMatch() throws Exception {
-		assertThat(valueOfLibMediaInfoCodec("S_TEXT/SSA2")).isEqualTo(UNKNOWN);
-		assertThat(valueOfLibMediaInfoCodec("ps_utf8")).isEqualTo(UNKNOWN);
+		assertThat(valueOfMediaInfoValue("S_TEXT/SSA2")).isEqualTo(UNKNOWN);
+		assertThat(valueOfMediaInfoValue("ps_utf8")).isEqualTo(UNKNOWN);
 	}
 
 	@Test

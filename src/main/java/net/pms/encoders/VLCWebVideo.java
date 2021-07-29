@@ -18,21 +18,19 @@
  */
 package net.pms.encoders;
 
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.util.PlayerUtil;
 
 public class VLCWebVideo extends VLCVideo {
-	@Deprecated
-	public static final String ID = "vlcwebvideo";
+	public static final PlayerId ID = StandardPlayerId.VLC_WEB_VIDEO;
 
-	@Deprecated
-	public VLCWebVideo(PmsConfiguration configuration) {
-		this();
+	/** The {@link Configuration} key for the VLC Web executable type. */
+	public static final String KEY_VLC_WEB_EXECUTABLE_TYPE = "vlc_web_executable_type";
+	public static final String NAME = "VLC Web Video";
+
+	// Not to be instantiated by anything but PlayerFactory
+	VLCWebVideo() {
 	}
-
-	public VLCWebVideo() {
-	}	
 
 	@Override
 	public int purpose() {
@@ -40,8 +38,13 @@ public class VLCWebVideo extends VLCVideo {
 	}
 
 	@Override
-	public String id() {
+	public PlayerId id() {
 		return ID;
+	}
+
+	@Override
+	public String getExecutableTypeKey() {
+		return KEY_VLC_WEB_EXECUTABLE_TYPE;
 	}
 
 	@Override
@@ -51,12 +54,9 @@ public class VLCWebVideo extends VLCVideo {
 
 	@Override
 	public String name() {
-		return "VLC Web Video";
+		return NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebVideo(resource);

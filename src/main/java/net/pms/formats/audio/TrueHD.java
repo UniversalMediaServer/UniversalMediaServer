@@ -34,6 +34,6 @@ public class TrueHD extends AudioBase {
 	// Be careful adding extensions here since it's a raw stream and FFmpeg relies on file extension for format recognition
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "thd" };
+		return new String[] {"thd"};
 	}
 }

@@ -33,6 +33,6 @@ public class RA extends AudioBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "ra" };
+		return new String[] {"ra"};
 	}
 }

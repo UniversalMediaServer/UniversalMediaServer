@@ -20,6 +20,7 @@ package net.pms.newgui;
 
 import java.util.ArrayList;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.newgui.StatusTab.ConnectionState;
 import org.apache.commons.lang3.StringUtils;
 
 public class DummyFrame implements IFrame {
@@ -44,7 +45,7 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
-	public void setStatusCode(int code, String msg, String icon) {
+	public void setConnectionState(ConnectionState connectionState) {
 	}
 
 	@Override
@@ -73,6 +74,10 @@ public class DummyFrame implements IFrame {
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
+	}
+
+	@Override
+	public void enableWebUiButton() {
 	}
 
 	public String getLog() {

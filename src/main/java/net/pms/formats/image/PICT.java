@@ -1,13 +1,11 @@
 package net.pms.formats.image;
 
-
 /**
  * A representation of the Apple PICT format.
  *
  * @author Nadahar
  */
 public class PICT extends ImageBase {
-
 	/**
 	 * {@inheritDoc}
 	 */
