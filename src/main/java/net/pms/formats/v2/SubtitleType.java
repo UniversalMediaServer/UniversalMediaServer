@@ -35,7 +35,7 @@ public enum SubtitleType {
 	// SubtitleType(int index, String description, List<String> fileExtensions, List<String> libMediaInfoCodecs, int category)
 	UNKNOWN     (0,  "Generic",                     "Unknown",     list(),             list(),                                                           Category.UNDEF),
 	SUBRIP      (1,  "SubRip",                      "SubRip",      list("srt"),        list("S_TEXT/UTF8", "S_UTF8", "Subrip"),                          Category.TEXT),
-	TEXT        (2,  "Text file",                   "Text",        list("txt"),        list(),                                                           Category.TEXT),
+	TEXT        (2,  "Text",                   "Text",        list("txt"),        list(),                                                           Category.TEXT),
 	MICRODVD    (3,  "MicroDVD",                    "MicroDVD",    list("sub"),        list(),                                                           Category.TEXT),
 	SAMI        (4,  "SAMI",                        "SAMI",        list("smi"),        list(),                                                           Category.TEXT),
 	ASS         (5,  "(Advanced) SubStation Alpha", "SSA",         list("ass", "ssa"), list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS"), Category.TEXT),
@@ -45,7 +45,7 @@ public enum SubtitleType {
 	BMP         (9,  "BMP",                         "BMP",         list(),             list("S_IMAGE/BMP"),                                              Category.PICTURE),
 	DIVX        (10, "DIVX subtitles",              "DIVX",        list(),             list("DXSB"),                                                     Category.PICTURE),
 	TX3G        (11, "Timed text (TX3G)",           "TX3G",        list(),             list("tx3g"),                                                     Category.TEXT),
-	PGS         (12, "Blu-ray subtitles",           "PGS",         list(),             list("S_HDMV/PGS", "PGS", "144"),                                 Category.PICTURE),
+	PGS         (12, "Presentation Graphic Stream", "PGS",         list("sup"),        list("S_HDMV/PGS", "PGS", "144"),                                 Category.PICTURE),
 	WEBVTT      (13, "Web Video Text Tracks",       "WebVTT",      list("vtt"),        list("WebVTT", "S_TEXT/WEBVTT"),                                  Category.TEXT),
 	TEXTST      (14, "HDMV Text SubTitles",         "HDMV",        list(),             list("S_HDMV/TEXTST"),                                            Category.TEXT),
 	DVBSUB      (15, "DVB Subtitles",               "DVB",         list(),             list("S_DVBSUB"),                                                 Category.PICTURE),
