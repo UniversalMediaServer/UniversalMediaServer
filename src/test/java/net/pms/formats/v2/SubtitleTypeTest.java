@@ -64,10 +64,10 @@ public class SubtitleTypeTest {
 		assertThat(valueOfMediaInfoValue("144")).isEqualTo(PGS);
 		assertThat(valueOfMediaInfoValue("WebVTT")).isEqualTo(WEBVTT);
 		assertThat(valueOfMediaInfoValue("S_TEXT/WEBVTT")).isEqualTo(WEBVTT);
-		assertThat(valueOfLibMediaInfoCodec("S_HDMV/TEXTST")).isEqualTo(TEXTST);
-		assertThat(valueOfLibMediaInfoCodec("S_DVBSUB")).isEqualTo(DVBSUB);
-		assertThat(valueOfLibMediaInfoCodec("EIA-608")).isEqualTo(EIA608);
-//		assertThat(valueOfLibMediaInfoCodec("EIA-708")).isEqualTo(EIA708);
+		assertThat(valueOfMediaInfoValue("S_HDMV/TEXTST")).isEqualTo(TEXTST);
+		assertThat(valueOfMediaInfoValue("S_DVBSUB")).isEqualTo(DVBSUB);
+		assertThat(valueOfMediaInfoValue("EIA-608")).isEqualTo(EIA608);
+//		assertThat(valueOfMediaInfoValue("EIA-708")).isEqualTo(EIA708);
 
 	}
 
