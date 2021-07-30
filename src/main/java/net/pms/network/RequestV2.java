@@ -1353,4 +1353,8 @@ public class RequestV2 extends HTTPResource {
 
 		return result;
 	}
+
+	public String getUri() {
+		return uri;
+	}
 }

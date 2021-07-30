@@ -1,0 +1,7 @@
+#EXTM3U
+#EXT-X-VERSION:3
+{{#items}}
+#EXTINF:{{duration}},{{title}}
+{{url}}
+{{/items}}
+

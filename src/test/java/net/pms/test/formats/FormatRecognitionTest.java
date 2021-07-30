@@ -83,7 +83,7 @@ public class FormatRecognitionTest {
      * Test some basic functionality of {@link RendererConfiguration#isCompatible(DLNAMediaInfo, Format)}
      */
     @Test
-	public void testRendererConfigurationBasics() {
+    public void testRendererConfigurationBasics() {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
