@@ -42,7 +42,7 @@ public enum SubtitleType {
 	VOBSUB      (6,  "VobSub",                                    "VobSub",      list("idx"),        list("S_VOBSUB", "subp", "mp4s", "E0", "RLE"),                    Category.PICTURE), // TODO: "RLE" may also apply to other formats
 	UNSUPPORTED (7,  "Unsupported",                               "Unsupported", list(),             list(),                                                           Category.UNDEF),
 	USF         (8,  "Universal Subtitle Format",                 "USF",         list(),             list("S_TEXT/USF", "S_USF"),                                      Category.TEXT),
-	BMP         (9,  "BMP",                                       "BMP",         list(),             list("S_IMAGE/BMP"),                                              Category.PICTURE),
+	BMP         (9,  "Bitmap",                                    "BMP",         list(),             list("S_IMAGE/BMP"),                                              Category.PICTURE),
 	DIVX        (10, "DIVX subtitles",                            "DIVX",        list(),             list("DXSB"),                                                     Category.PICTURE),
 	TX3G        (11, "Timed text (TX3G)",                         "TX3G",        list(),             list("tx3g"),                                                     Category.TEXT),
 	PGS         (12, "Presentation Graphic Stream",               "PGS",         list("sup"),        list("S_HDMV/PGS", "PGS", "144"),                                 Category.PICTURE),
