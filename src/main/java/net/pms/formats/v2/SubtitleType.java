@@ -33,24 +33,24 @@ public enum SubtitleType {
 	// MediaInfo database of codec signatures https://github.com/MediaArea/MediaInfoLib/blob/master/Source/Resource/Text/DataBase/Codec.csv
 
 	// SubtitleType(int index, String description, List<String> fileExtensions, List<String> libMediaInfoCodecs, int category)
-	UNKNOWN     (0,  "Generic",                     "Unknown",     list(),             list(),                                                           Category.UNDEF),
-	SUBRIP      (1,  "SubRip",                      "SubRip",      list("srt"),        list("S_TEXT/UTF8", "S_UTF8", "Subrip"),                          Category.TEXT),
-	TEXT        (2,  "Text",                   "Text",        list("txt"),        list(),                                                           Category.TEXT),
-	MICRODVD    (3,  "MicroDVD",                    "MicroDVD",    list("sub"),        list(),                                                           Category.TEXT),
-	SAMI        (4,  "SAMI",                        "SAMI",        list("smi"),        list(),                                                           Category.TEXT),
-	ASS         (5,  "(Advanced) SubStation Alpha", "SSA",         list("ass", "ssa"), list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS"), Category.TEXT),
-	VOBSUB      (6,  "VobSub",                      "VobSub",      list("idx"),        list("S_VOBSUB", "subp", "mp4s", "E0", "RLE"),                    Category.PICTURE), // TODO: "RLE" may also apply to other formats
-	UNSUPPORTED (7,  "Unsupported",                 "Unsupported", list(),             list(),                                                           Category.UNDEF),
-	USF         (8,  "Universal Subtitle Format",   "USF",         list(),             list("S_TEXT/USF", "S_USF"),                                      Category.TEXT),
-	BMP         (9,  "BMP",                         "BMP",         list(),             list("S_IMAGE/BMP"),                                              Category.PICTURE),
-	DIVX        (10, "DIVX subtitles",              "DIVX",        list(),             list("DXSB"),                                                     Category.PICTURE),
-	TX3G        (11, "Timed text (TX3G)",           "TX3G",        list(),             list("tx3g"),                                                     Category.TEXT),
-	PGS         (12, "Presentation Graphic Stream", "PGS",         list("sup"),        list("S_HDMV/PGS", "PGS", "144"),                                 Category.PICTURE),
-	WEBVTT      (13, "Web Video Text Tracks",       "WebVTT",      list("vtt"),        list("WebVTT", "S_TEXT/WEBVTT"),                                  Category.TEXT),
-	TEXTST      (14, "HDMV Text SubTitles",         "HDMV",        list(),             list("S_HDMV/TEXTST"),                                            Category.TEXT),
-	DVBSUB      (15, "DVB Subtitles",               "DVB",         list(),             list("S_DVBSUB"),                                                 Category.PICTURE),
-	EIA608      (16, "EIA-608 subtitles",           "EIA-608",     list(),             list("EIA-608"),                                                  Category.TEXT);
-//	EIA708      (17, "EIA-708 subtitles",           "EIA-708",     list(),             list("EIA-708"),                                                  Category.TEXT);
+	UNKNOWN     (0,  "Generic",                                   "Unknown",     list(),             list(),                                                           Category.UNDEF),
+	SUBRIP      (1,  "SubRip",                                    "SubRip",      list("srt"),        list("S_TEXT/UTF8", "S_UTF8", "Subrip"),                          Category.TEXT),
+	TEXT        (2,  "Text",                                      "Text",        list("txt"),        list(),                                                           Category.TEXT),
+	MICRODVD    (3,  "MicroDVD",                                  "MicroDVD",    list("sub"),        list(),                                                           Category.TEXT),
+	SAMI        (4,  "Synchronized Accessible Media Interchange", "SAMI",        list("smi"),        list(),                                                           Category.TEXT),
+	ASS         (5,  "(Advanced) SubStation Alpha",               "SSA",         list("ass", "ssa"), list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS"), Category.TEXT),
+	VOBSUB      (6,  "VobSub",                                    "VobSub",      list("idx"),        list("S_VOBSUB", "subp", "mp4s", "E0", "RLE"),                    Category.PICTURE), // TODO: "RLE" may also apply to other formats
+	UNSUPPORTED (7,  "Unsupported",                               "Unsupported", list(),             list(),                                                           Category.UNDEF),
+	USF         (8,  "Universal Subtitle Format",                 "USF",         list(),             list("S_TEXT/USF", "S_USF"),                                      Category.TEXT),
+	BMP         (9,  "BMP",                                       "BMP",         list(),             list("S_IMAGE/BMP"),                                              Category.PICTURE),
+	DIVX        (10, "DIVX subtitles",                            "DIVX",        list(),             list("DXSB"),                                                     Category.PICTURE),
+	TX3G        (11, "Timed text (TX3G)",                         "TX3G",        list(),             list("tx3g"),                                                     Category.TEXT),
+	PGS         (12, "Presentation Graphic Stream",               "PGS",         list("sup"),        list("S_HDMV/PGS", "PGS", "144"),                                 Category.PICTURE),
+	WEBVTT      (13, "Web Video Text Tracks",                     "WebVTT",      list("vtt"),        list("WebVTT", "S_TEXT/WEBVTT"),                                  Category.TEXT),
+	TEXTST      (14, "HDMV Text SubTitles",                       "HDMV",        list(),             list("S_HDMV/TEXTST"),                                            Category.TEXT),
+	DVBSUB      (15, "DVB Subtitles",                             "DVB",         list(),             list("S_DVBSUB"),                                                 Category.PICTURE),
+	EIA608      (16, "EIA-608 subtitles",                         "EIA-608",     list(),             list("EIA-608"),                                                  Category.TEXT);
+//	EIA708      (17, "EIA-708 subtitles",                         "EIA-708",     list(),             list("EIA-708"),                                                  Category.TEXT);
 
 	public static enum Category {
 		/** Text based subtitles */
