@@ -38,7 +38,7 @@ public enum SubtitleType {
 	TEXT        (2,  "Text",                                      "Text",        list("txt"),        list(),                                                           Category.TEXT),
 	MICRODVD    (3,  "MicroDVD",                                  "MicroDVD",    list("sub"),        list(),                                                           Category.TEXT),
 	SAMI        (4,  "Synchronized Accessible Media Interchange", "SAMI",        list("smi"),        list(),                                                           Category.TEXT),
-	ASS         (5,  "(Advanced) SubStation Alpha",               "SSA",         list("ass", "ssa"), list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS"), Category.TEXT),
+	ASS         (5,  "(Advanced) Sub Station Alpha",              "SSA",         list("ass", "ssa"), list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS"), Category.TEXT),
 	VOBSUB      (6,  "VobSub",                                    "VobSub",      list("idx"),        list("S_VOBSUB", "subp", "mp4s", "E0", "RLE"),                    Category.PICTURE), // TODO: "RLE" may also apply to other formats
 	UNSUPPORTED (7,  "Unsupported",                               "Unsupported", list(),             list(),                                                           Category.UNDEF),
 	USF         (8,  "Universal Subtitle Format",                 "USF",         list(),             list("S_TEXT/USF", "S_USF"),                                      Category.TEXT),
