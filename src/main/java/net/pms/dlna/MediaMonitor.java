@@ -299,6 +299,9 @@ public class MediaMonitor extends VirtualFolder {
 						LOGGER.trace("", e);
 					}
 				}
+
+				notifyRefresh();
+
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
