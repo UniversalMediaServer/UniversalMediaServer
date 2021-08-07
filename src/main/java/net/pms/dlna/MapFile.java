@@ -49,11 +49,11 @@ public class MapFile extends DLNAResource {
 	));
 
 	/**
-	 * An array of {@link String}s that defines the lower-case representation of
-	 * the file extensions that are never media so we should not do anything with.
+	 * An array of {@link String}s that defines the file extensions that are
+	 * never media so we should not attempt to parse.
 	 */
 	public static final Set<String> EXTENSIONS_DENYLIST = Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList(new String[] {"!qB", "!uT", "dmg", "exe"})
+		Arrays.asList(new String[] {"!qB", "!ut", "dmg", "exe"})
 	));
 
 	private List<File> discoverable;
