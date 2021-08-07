@@ -245,9 +245,9 @@ public class FileWatcher {
 
 		try {
 			if (nativeRecursive) {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH, ExtendedWatchEventModifier.FILE_TREE);
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, ExtendedWatchEventModifier.FILE_TREE);
 			} else {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH);
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE});
 			}
 			keys.put(key, w);
 			LOGGER.debug("Added file watch at {}: {}", dir, w.fspec);
