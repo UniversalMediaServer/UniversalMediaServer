@@ -53,7 +53,7 @@ public class MapFile extends DLNAResource {
 	 * never media so we should not attempt to parse.
 	 */
 	public static final Set<String> EXTENSIONS_DENYLIST = Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList(new String[] {"!qB", "!ut", "dmg", "exe"})
+		Arrays.asList(new String[] {"!qB", "!ut", "1", "dmg", "exe"})
 	));
 
 	private List<File> discoverable;
