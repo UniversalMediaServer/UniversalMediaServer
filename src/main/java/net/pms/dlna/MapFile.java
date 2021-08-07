@@ -48,6 +48,14 @@ public class MapFile extends DLNAResource {
 		Arrays.asList(new String[] {"jpeg", "jpg", "png"})
 	));
 
+	/**
+	 * An array of {@link String}s that defines the lower-case representation of
+	 * the file extensions that are never media so we should not do anything with.
+	 */
+	public static final Set<String> EXTENSIONS_DENYLIST = Collections.unmodifiableSet(new HashSet<>(
+		Arrays.asList(new String[] {"!qB", "!uT", "dmg", "exe"})
+	));
+
 	private List<File> discoverable;
 	private List<File> emptyFoldersToRescan;
 	private String forcedName;
@@ -196,6 +204,19 @@ public class MapFile extends DLNAResource {
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
 		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
+	}
+
+	/**
+	 * Returns whether {@code fileName} has an extension that is not on our
+	 * list of extensions that can't be media files.
+	 *
+	 * @param fileName the file name to evaluate.
+	 * @return {@code true} if {@code fileName} has one of the predefined
+	 *         {@link MapFile#NON_MEDIA_EXTENSIONS} extensions, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isPotentialMediaFile(String fileName) {
+		return !MapFile.EXTENSIONS_DENYLIST.contains(FileUtil.getExtension(fileName));
 	}
 
 	private void manageFile(File f, boolean isAddGlobally) {
