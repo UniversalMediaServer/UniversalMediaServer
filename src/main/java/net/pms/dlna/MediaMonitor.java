@@ -300,7 +300,9 @@ public class MediaMonitor extends VirtualFolder {
 					}
 				}
 
-				notifyRefresh();
+				if (fullyPlayedAction != FullyPlayedAction.NO_ACTION) {
+					notifyRefresh();
+				}
 
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
