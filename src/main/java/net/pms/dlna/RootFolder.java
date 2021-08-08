@@ -1551,11 +1551,13 @@ public class RootFolder extends DLNAResource {
 						} else if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
+							bumpSystemUpdateId();
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntry(filename);
+							bumpSystemUpdateId();
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);
 							File file = new File(filename);
