@@ -2,7 +2,6 @@ package net.pms.util;
 
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
