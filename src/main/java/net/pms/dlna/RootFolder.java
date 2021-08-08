@@ -1581,6 +1581,7 @@ public class RootFolder extends DLNAResource {
 
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
+			bumpSystemUpdateId();
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
