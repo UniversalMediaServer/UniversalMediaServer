@@ -1,3 +1,18 @@
+10.9.0 - 2021-
+
+	General:
+		Added option to download folder as playlist on web interface
+		Added option to download media as playlist on web interface
+		Made more room for media titles on web interface
+		Added recognition of MP1
+		Improved support for Blu-ray (PGS), HDMV, DVB, WebVTT and EIA-608 subtitles
+		Fixed crash on SUSE Linux
+		Fixed chapter folders showing blank names
+	Renderers:
+		Improved support for Google Chromecast Ultra
+		Improved support for MXPlayer on Google Android
+		Improved support for Windows Media Player
+
 10.8.2 - 2021-07-25
 
 	General:
