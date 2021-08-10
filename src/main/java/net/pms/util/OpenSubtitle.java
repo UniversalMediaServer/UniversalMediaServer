@@ -1779,6 +1779,13 @@ public class OpenSubtitle {
 		}
 
 		String mediaType = isBlank(episode) ? "movie" : "episode";
+
+		// Remove the year from the title before lookup if it exists
+		int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), movieOrTVSeriesTitle);
+		if (yearIndex > -1) {
+			movieOrTVSeriesTitle = movieOrTVSeriesTitle.substring(0, yearIndex);
+		}
+
 		LOGGER.trace("looking up " + mediaType + ": " + movieOrTVSeriesTitle);
 		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID, osdbHash, filebytesize);
 
@@ -4809,6 +4816,14 @@ public class OpenSubtitle {
 				 * based on the title.
 				 */
 				seriesMetadataFromDatabase = TableTVSeries.getByTitle(title);
+
+				// Restore the year appended to the title if it is in the filename
+				int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), (String) seriesMetadataFromAPI.get("title"));
+				if (isNotBlank(yearFromFilename) && yearIndex == -1) {
+					String titleFromAPI = seriesMetadataFromAPI.get("title") + " (" + yearFromFilename + ")";
+					seriesMetadataFromAPI.replace("title", titleFromAPI);
+				}
+
 				if (seriesMetadataFromDatabase == null) {
 					if (overTheTopLogging) {
 						LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
