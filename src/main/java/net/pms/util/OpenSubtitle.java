@@ -4820,7 +4820,7 @@ public class OpenSubtitle {
 				// Restore the year appended to the title if it is in the filename
 				int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), (String) seriesMetadataFromAPI.get("title"));
 				if (isNotBlank(yearFromFilename) && yearIndex == -1) {
-					String titleFromAPI = seriesMetadataFromAPI.get("title") + " (" + yearFromFilename+ ")";
+					String titleFromAPI = seriesMetadataFromAPI.get("title") + " (" + yearFromFilename + ")";
 					seriesMetadataFromAPI.replace("title", titleFromAPI);
 				}
 
