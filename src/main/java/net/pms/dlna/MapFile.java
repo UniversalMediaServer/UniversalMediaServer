@@ -212,7 +212,7 @@ public class MapFile extends DLNAResource {
 	 * list of extensions that can't be media files.
 	 *
 	 * @param fileName the file name to evaluate.
-	 * @return {@code true} if {@code fileName} has one of the predefined
+	 * @return {@code true} if {@code fileName} has not the one of the predefined
 	 *         {@link MapFile#NON_MEDIA_EXTENSIONS} extensions, {@code false}
 	 *         otherwise.
 	 */
