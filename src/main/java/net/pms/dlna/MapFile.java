@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
@@ -296,6 +297,13 @@ public class MapFile extends DLNAResource {
 		List<File> out = new ArrayList<>();
 		ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
 		String filename;
+		FilenameFilter filter = new FilenameFilter() {
+			@Override
+			public boolean accept(File f, String name) {
+				// We want to find only media files
+				return isPotentialMediaFile(name);
+			}
+		};
 
 		for (File file : this.conf.getFiles()) {
 			filename = file.getName() == null ? "unnamed" : file.getName();
@@ -311,7 +319,7 @@ public class MapFile extends DLNAResource {
 			}
 
 			if (file.canRead()) {
-				File[] files = file.listFiles();
+				File[] files = file.listFiles(filter);
 
 				if (files == null) {
 					LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
