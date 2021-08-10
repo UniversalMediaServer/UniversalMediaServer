@@ -154,7 +154,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-	private int updateId = 1;
 	private static int systemUpdateId = 1;
 	private boolean noName;
 	private int nametruncate;
@@ -434,7 +433,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		this.specificType = Format.UNKNOWN;
 		// this.children = new ArrayList<DLNAResource>();
 		this.children = new DLNAList();
-		this.updateId = 1;
 		resHash = 0;
 	}
 
@@ -1161,7 +1159,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		updateId += 1;
 		systemUpdateId += 1;
 	}
 
@@ -4117,28 +4114,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the updates id for this resource. When the resource needs to be
-	 * refreshed, its id is updated.
-	 *
-	 * @return The updated id.
-	 * @see #notifyRefresh()
-	 */
-	public int getUpdateId() {
-		return updateId;
-	}
-
-	/**
-	 * Sets the updated id for this resource. When the resource needs to be
-	 * refreshed, its id should be updated.
-	 *
-	 * @param updateId The updated id value to set.
-	 * @since 1.50
-	 */
-	protected void setUpdateId(int updateId) {
-		this.updateId = updateId;
-	}
-
-	/**
 	 * Returns the updates id for all resources. When all resources need to be
 	 * refreshed, this id is updated.
 	 *
@@ -4150,14 +4125,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the updated id for all resources. When all resources need to be
-	 * refreshed, this id should be updated.
-	 *
-	 * @param systemUpdateId The system updated id to set.
-	 * @since 1.50
+	 * Bumps the updated id for all resources. When any resources has been
+	 * changed this id should be bumped.
 	 */
-	public static void setSystemUpdateId(int systemUpdateId) {
-		DLNAResource.systemUpdateId = systemUpdateId;
+	public static void bumpSystemUpdateId() {
+		systemUpdateId++;
 	}
 
 	/**
