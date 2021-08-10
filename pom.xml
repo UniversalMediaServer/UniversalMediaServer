@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.8.1-SNAPSHOT</version>
+	<version>10.9.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.8.1</project.version.short>
+		<project.version.short>10.9.1</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -86,7 +86,7 @@
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.3.0</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>4.0.5</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
 
@@ -116,7 +116,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.7.2</junit5.version>
-		<com.sun.xml.bind-version>3.0.1</com.sun.xml.bind-version>
+		<com.sun.xml.bind-version>3.0.2</com.sun.xml.bind-version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
@@ -3264,7 +3264,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>8.44</version>
+								<version>8.45.1</version>
 							</dependency>
 						</dependencies>
 						<configuration>

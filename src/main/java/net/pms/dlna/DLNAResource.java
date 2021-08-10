@@ -1679,7 +1679,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					sb.append(" ").append(displayNamesuffix);
 				}
 			}
-		} else if (isInsideTranscodeFolder()) {
+		} else if (isInsideTranscodeFolder() && !(this instanceof ChapterFileTranscodeVirtualFolder)) {
 			// This matches the [No transcoding] entry in the TRANSCODE folder
 			sb.setLength(0);
 		}
@@ -1745,13 +1745,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String getURL(String prefix, boolean useSystemName) {
+		return getURL(prefix, false, true);
+	}
+
+	public String getURL(String prefix, boolean useSystemName, boolean urlEncode) {
+		String uri = useSystemName ? getSystemName() : getName();
 		StringBuilder sb = new StringBuilder();
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); // id
 		sb.append('/');
 		sb.append(prefix);
-		sb.append(encode(useSystemName ? getSystemName() : getName()));
+		sb.append(urlEncode ? encode(uri) : uri);
 		return sb.toString();
 	}
 
