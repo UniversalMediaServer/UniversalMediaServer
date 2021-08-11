@@ -299,6 +299,15 @@ public class MediaMonitor extends VirtualFolder {
 						LOGGER.trace("", e);
 					}
 				}
+
+				/**
+				 * Here we bump the systemUpdateID because a file has
+				 * either been removed or its thumbnail changed.
+				 */
+				if (fullyPlayedAction != FullyPlayedAction.NO_ACTION) {
+					notifyRefresh();
+				}
+
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
@@ -373,6 +382,8 @@ public class MediaMonitor extends VirtualFolder {
 
 	@Override
 	public void doRefreshChildren() {
-		setUpdateId(this.getIntId());
+		if (isDiscovered()) {
+			notifyRefresh();
+		}
 	}
 }

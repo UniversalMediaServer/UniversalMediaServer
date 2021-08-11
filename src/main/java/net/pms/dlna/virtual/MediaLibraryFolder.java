@@ -701,7 +701,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 
 		if (isDiscovered()) {
-			setUpdateId(this.getIntId());
+			bumpSystemUpdateId();
 		}
 	}
 
