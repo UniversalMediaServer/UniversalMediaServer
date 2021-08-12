@@ -2,7 +2,6 @@ package net.pms.util;
 
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
@@ -245,9 +244,9 @@ public class FileWatcher {
 
 		try {
 			if (nativeRecursive) {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH, ExtendedWatchEventModifier.FILE_TREE);
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, ExtendedWatchEventModifier.FILE_TREE);
 			} else {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH);
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE});
 			}
 			keys.put(key, w);
 			LOGGER.debug("Added file watch at {}: {}", dir, w.fspec);

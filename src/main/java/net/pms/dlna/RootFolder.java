@@ -1575,6 +1575,11 @@ public class RootFolder extends DLNAResource {
 	 * @param file the file to parse
 	 */
 	public static final void parseFileForDatabase(File file) {
+		if (!MapFile.isPotentialMediaFile(file.getAbsolutePath())) {
+			LOGGER.trace("Not parsing file that can't be media");
+			return;
+		}
+
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
 		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
