@@ -213,7 +213,7 @@ public class MapFile extends DLNAResource {
 	 *
 	 * @param fileName the file name to evaluate.
 	 * @return {@code true} if {@code fileName} has not the one of the predefined
-	 *         {@link MapFile#NON_MEDIA_EXTENSIONS} extensions, {@code false}
+	 *         {@link MapFile#EXTENSIONS_DENYLIST} extensions, {@code false}
 	 *         otherwise.
 	 */
 	public static boolean isPotentialMediaFile(String fileName) {
