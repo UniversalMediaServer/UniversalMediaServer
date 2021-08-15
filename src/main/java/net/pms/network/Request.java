@@ -47,6 +47,7 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.MediaType;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;

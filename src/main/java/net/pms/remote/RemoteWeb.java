@@ -52,6 +52,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
