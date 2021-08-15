@@ -424,7 +424,7 @@ public final class TableTVSeries extends Tables {
 					"FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
 				"WHERE " +
 					"FILES.MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
-					"FILES.ISTVEPISODE AND " + 
+					"FILES.ISTVEPISODE AND " +
 					TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
 				"LIMIT 1";
 
