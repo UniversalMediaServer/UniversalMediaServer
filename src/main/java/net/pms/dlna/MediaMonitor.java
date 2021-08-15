@@ -318,15 +318,16 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	/**
-	 * Checks if {@code fullPathToFile} is registered as fully played. The check
+	 * Checks if {@code fullPathToFile} is registered as fully played.The check
 	 * will first check the memory cache, and if not found there check the
 	 * database and insert an entry in the memory cache.
 	 *
 	 * @param fullPathToFile the full path to the file whose status to retrieve.
+	 * @param isFileOrTVSeries whether this is a file or TV series
 	 * @return {@code true} if {@code fullPathToFile} is fully played,
 	 *         {@code false} otherwise.
 	 */
-	public static boolean isFullyPlayed(String fullPathToFile, boolean isFile) {
+	public static boolean isFullyPlayed(String fullPathToFile, boolean isFileOrTVSeries) {
 		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 		Boolean fullyPlayed;
 		try {
@@ -348,7 +349,7 @@ public class MediaMonitor extends VirtualFolder {
 			}
 
 			// Add the entry to the cache
-			if (isFile) {
+			if (isFileOrTVSeries) {
 				fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
 			} else {
 				fullyPlayed = TableTVSeries.isFullyPlayed(fullPathToFile);

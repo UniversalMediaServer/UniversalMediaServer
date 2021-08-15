@@ -349,9 +349,16 @@ public class Request extends HTTPResource {
 					}
 					BufferedImageFilterChain filterChain = null;
 					if (
-						dlna instanceof RealFile &&
-						mediaRenderer.isThumbnails() &&
-						FullyPlayed.isFullyPlayedFileMark(((RealFile) dlna).getFile())
+						(
+							dlna instanceof RealFile &&
+							mediaRenderer.isThumbnails() &&
+							FullyPlayed.isFullyPlayedFileMark(((RealFile) dlna).getFile())
+						) ||
+						(
+							dlna instanceof MediaLibraryFolder &&
+							((MediaLibraryFolder) dlna).isTVSeries() &&
+							FullyPlayed.isFullyPlayedTVSeriesMark(((MediaLibraryFolder) dlna).getName())
+						)
 					) {
 						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 					}

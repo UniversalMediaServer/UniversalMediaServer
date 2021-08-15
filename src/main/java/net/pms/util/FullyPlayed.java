@@ -90,14 +90,14 @@ public class FullyPlayed {
 	 * @return whether the TV series should be marked as "fully played" either with
 	 * text or a "fully played" overlay.
 	 */
-	public static boolean isFullyPlayedTVSeriesMark(File file) {
+	public static boolean isFullyPlayedTVSeriesMark(String title) {
 		return
-			file != null &&
+			title != null &&
 			(
 				configuration.getFullyPlayedAction() == FullyPlayedAction.MARK ||
 				configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
 			) &&
-			MediaMonitor.isFullyPlayed(file.getAbsolutePath(), false);
+			MediaMonitor.isFullyPlayed(title, false);
 	}
 
 	/**

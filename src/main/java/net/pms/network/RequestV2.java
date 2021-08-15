@@ -346,7 +346,6 @@ public class RequestV2 extends HTTPResource {
 						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
 
-					// TODO: Make this work for TV series
 					BufferedImageFilterChain filterChain = null;
 					if (
 						(
@@ -357,7 +356,7 @@ public class RequestV2 extends HTTPResource {
 						(
 							dlna instanceof MediaLibraryFolder &&
 							((MediaLibraryFolder) dlna).isTVSeries() &&
-							FullyPlayed.isFullyPlayedTVSeriesMark(((RealFile) dlna).getFile())
+							FullyPlayed.isFullyPlayedTVSeriesMark(((MediaLibraryFolder) dlna).getName())
 						)
 					) {
 						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
