@@ -290,7 +290,6 @@ public class RemoteWeb {
 
 		public RemoteThumbHandler(RemoteWeb parent) {
 			this.parent = parent;
-
 		}
 
 		@Override
@@ -305,17 +304,20 @@ public class RemoteWeb {
 					RemoteUtil.sendLogo(t);
 					return;
 				}
+
 				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 				if (root == null) {
 					LOGGER.debug("weird root in thumb req");
 					throw new IOException("Unknown root");
 				}
+
 				final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
 				if (r == null) {
 					// another error
 					LOGGER.debug("media unknown");
 					throw new IOException("Bad id");
 				}
+
 				DLNAThumbnailInputStream in;
 				if (!CONFIGURATION.isShowCodeThumbs() && !r.isCodeValid(r)) {
 					// we shouldn't show the thumbs for coded objects
@@ -329,7 +331,9 @@ public class RemoteWeb {
 						in = r.getGenericThumbnailInputStream(null);
 					}
 				}
+
 				BufferedImageFilterChain filterChain = null;
+				// TODO: Make this work for TV series too
 				if (r instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) r).getFile())) {
 					filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 				}

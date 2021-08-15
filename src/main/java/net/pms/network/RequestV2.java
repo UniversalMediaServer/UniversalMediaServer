@@ -58,6 +58,7 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.MediaType;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.ImagePlayer;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
@@ -344,11 +345,20 @@ public class RequestV2 extends HTTPResource {
 						dlna.checkThumbnail();
 						thumbInputStream = dlna.fetchThumbnailInputStream();
 					}
+
+					// TODO: Make this work for TV series
 					BufferedImageFilterChain filterChain = null;
 					if (
-						dlna instanceof RealFile &&
-						mediaRenderer.isThumbnails() &&
-						FullyPlayed.isFullyPlayedMark(((RealFile) dlna).getFile())
+						(
+							dlna instanceof RealFile &&
+							mediaRenderer.isThumbnails() &&
+							FullyPlayed.isFullyPlayedFileMark(((RealFile) dlna).getFile())
+						) ||
+						(
+							dlna instanceof MediaLibraryFolder &&
+							((MediaLibraryFolder) dlna).isTVSeries() &&
+							FullyPlayed.isFullyPlayedTVSeriesMark(((RealFile) dlna).getFile())
+						)
 					) {
 						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 					}

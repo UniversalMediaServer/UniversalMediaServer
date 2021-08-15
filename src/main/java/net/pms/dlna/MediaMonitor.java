@@ -18,6 +18,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.database.TableTVSeries;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
@@ -121,7 +122,7 @@ public class MediaMonitor extends VirtualFolder {
 			}
 			for (File fileEntry : files) {
 				if (fileEntry.isFile()) {
-					if (isFullyPlayed(fileEntry.getAbsolutePath())) {
+					if (isFullyPlayed(fileEntry.getAbsolutePath(), true)) {
 						continue;
 					}
 					res.addChild(new RealFile(fileEntry));
@@ -218,7 +219,7 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
 			DLNAResource fileParent = realFile.getParent();
-			if (fileParent != null && !isFullyPlayed(fullPathToFile)) {
+			if (fileParent != null && !isFullyPlayed(fullPathToFile, true)) {
 				// Only set fully played if the file will stay where it is
 				if (
 					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
@@ -325,7 +326,7 @@ public class MediaMonitor extends VirtualFolder {
 	 * @return {@code true} if {@code fullPathToFile} is fully played,
 	 *         {@code false} otherwise.
 	 */
-	public static boolean isFullyPlayed(String fullPathToFile) {
+	public static boolean isFullyPlayed(String fullPathToFile, boolean isFile) {
 		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 		Boolean fullyPlayed;
 		try {
@@ -347,7 +348,12 @@ public class MediaMonitor extends VirtualFolder {
 			}
 
 			// Add the entry to the cache
-			fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
+			if (isFile) {
+				fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
+			} else {
+				fullyPlayed = TableTVSeries.isFullyPlayed(fullPathToFile);
+			}
+
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
