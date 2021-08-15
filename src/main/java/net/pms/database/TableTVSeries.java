@@ -406,6 +406,50 @@ public final class TableTVSeries extends Tables {
 		}
 	}
 
+	public static Boolean isFullyPlayed(final String title) {
+		boolean trace = LOGGER.isTraceEnabled();
+		Boolean result = true;
+
+		try (Connection connection = DATABASE.getConnection()) {
+			/*
+			 * If there is one file for this TV series where ISFULLYPLAYED is
+			 * not true, then this series is not fully played, otherwise it is.
+			 *
+			 * This backwards logic is used for performance since we only have
+			 * to check one row instead of all rows.
+			 */
+			String query = "SELECT FILES.MOVIEORSHOWNAME " +
+				"FROM FILES " +
+					"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " +
+					"FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
+				"WHERE " +
+					"FILES.MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
+					"FILES.ISTVEPISODE AND " +
+					TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
+				"LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						result = false;
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error while looking up TV series status in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return result;
+	}
+
 	/**
 	 * Checks and creates or upgrades the table as needed.
 	 *
