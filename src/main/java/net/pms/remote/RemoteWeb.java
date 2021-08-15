@@ -334,7 +334,10 @@ public class RemoteWeb {
 
 				BufferedImageFilterChain filterChain = null;
 				// TODO: Make this work for TV series too
-				if (r instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) r).getFile())) {
+				if (
+					r instanceof RealFile &&
+					FullyPlayed.isFullyPlayedFileMark(((RealFile) r).getFile())
+				) {
 					filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 				}
 				filterChain = r.addFlagFilters(filterChain);
