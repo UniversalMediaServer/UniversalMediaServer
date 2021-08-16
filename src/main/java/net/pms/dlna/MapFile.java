@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
@@ -46,6 +47,14 @@ public class MapFile extends DLNAResource {
 	 */
 	public static final Set<String> THUMBNAIL_EXTENSIONS = Collections.unmodifiableSet(new HashSet<>(
 		Arrays.asList(new String[] {"jpeg", "jpg", "png"})
+	));
+
+	/**
+	 * An array of {@link String}s that defines the file extensions that are
+	 * never media so we should not attempt to parse.
+	 */
+	public static final Set<String> EXTENSIONS_DENYLIST = Collections.unmodifiableSet(new HashSet<>(
+		Arrays.asList(new String[] {"!qB", "!ut", "1", "dmg", "exe"})
 	));
 
 	private List<File> discoverable;
@@ -198,6 +207,19 @@ public class MapFile extends DLNAResource {
 		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
 	}
 
+	/**
+	 * Returns whether {@code fileName} has an extension that is not on our
+	 * list of extensions that can't be media files.
+	 *
+	 * @param fileName the file name to evaluate.
+	 * @return {@code true} if {@code fileName} has not the one of the predefined
+	 *         {@link MapFile#EXTENSIONS_DENYLIST} extensions, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isPotentialMediaFile(String fileName) {
+		return !MapFile.EXTENSIONS_DENYLIST.contains(FileUtil.getExtension(fileName));
+	}
+
 	private void manageFile(File f, boolean isAddGlobally) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
@@ -271,34 +293,41 @@ public class MapFile extends DLNAResource {
 		}
 	}
 
-	private List<File> getFileList() {
+	private List<File> getFilesListForDirectories() {
 		List<File> out = new ArrayList<>();
-		ArrayList<String> ignoredFolderNames = configuration.getIgnoredFolderNames();
-		String filename;
-
-		for (File file : this.conf.getFiles()) {
-			filename = file.getName() == null ? "unnamed" : file.getName();
-			if (file == null || !file.isDirectory()) {
-				LOGGER.trace("Ignoring {} because it is not a valid directory", filename);
+		ArrayList<String> ignoredDirectoryNames = configuration.getIgnoredFolderNames();
+		String directoryName;
+		for (File directory : this.conf.getFiles()) {
+			directoryName = directory.getName() == null ? "unnamed" : directory.getName();
+			if (directory == null || !directory.isDirectory()) {
+				LOGGER.trace("Ignoring {} because it is not a valid directory", directoryName);
 				continue;
 			}
 
 			// Skip if ignored
-			if (!ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(filename)) {
-				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.getName());
+			if (!ignoredDirectoryNames.isEmpty() && ignoredDirectoryNames.contains(directoryName)) {
+				LOGGER.debug("Ignoring {} because it is in the ignored directories list", directoryName);
 				continue;
 			}
 
-			if (file.canRead()) {
-				File[] files = file.listFiles();
+			if (directory.canRead()) {
+				File[] files = directory.listFiles(
+					new FilenameFilter() {
+						@Override
+						public boolean accept(File f, String name) {
+							// We want to find only media files
+							return isPotentialMediaFile(name);
+						}
+					}
+				);
 
 				if (files == null) {
-					LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
+					LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
 				} else {
 					out.addAll(Arrays.asList(files));
 				}
 			} else {
-				LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+				LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
 			}
 		}
 
@@ -360,7 +389,7 @@ public class MapFile extends DLNAResource {
 
 		int sm = configuration.getSortMethod(getPath());
 
-		List<File> files = getFileList();
+		List<File> files = getFilesListForDirectories();
 
 		// Build a map of all files and their corresponding formats
 		HashSet<File> images = new HashSet<>();

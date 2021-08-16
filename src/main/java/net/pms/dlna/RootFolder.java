@@ -22,7 +22,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.Win32Exception;
-import java.awt.Cursor;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -472,41 +471,39 @@ public class RootFolder extends DLNAResource {
 	 * file watcher for the file.
 	 */
 	public synchronized void loadWebConf() {
-		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		SharedContentTab.webContentList.setEnabled(false);
-		try {
-			Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
-			for (DLNAResource d : webFolders) {
-				getChildren().remove(d);
-			}
-			webFolders.clear();
-			String webConfPath = configuration.getWebConfPath();
-			File webConf = new File(webConfPath);
-			if (!webConf.exists()) {
-				configuration.writeWebConfigurationFile();
-			}
-			if (
-				webConf.exists() &&
-				configuration.getExternalNetwork() &&
-				(
-					SharedContentTab.lastWebContentUpdate == 1L ||
-					SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
-				)
-			) {
-				/**
-				 * If the GUI last updated less than 2 seconds ago, chances are good
-				 * that this method was triggered by changes in the GUI, which means
-				 * we can skip updating the GUI here (avoiding the peakaboo effect)
-				 */
-				LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
-				parseWebConf(webConf, currentlySelectedPosition);
-				FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
-			}
-			setLastModified(1);
-		} finally {
-			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			SharedContentTab.webContentList.setEnabled(true);
+		Integer currentlySelectedPosition = -1;
+
+		if (SharedContentTab.webContentList != null) {
+			currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
 		}
+
+		for (DLNAResource d : webFolders) {
+			getChildren().remove(d);
+		}
+		webFolders.clear();
+		String webConfPath = configuration.getWebConfPath();
+		File webConf = new File(webConfPath);
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
+		if (
+			webConf.exists() &&
+			configuration.getExternalNetwork() &&
+			(
+				SharedContentTab.lastWebContentUpdate == 1L ||
+				SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
+			)
+		) {
+			/**
+			 * If the GUI last updated less than 2 seconds ago, chances are good
+			 * that this method was triggered by changes in the GUI, which means
+			 * we can skip updating the GUI here (avoiding the peakaboo effect)
+			 */
+			LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
+			parseWebConf(webConf, currentlySelectedPosition);
+			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
+		}
+		setLastModified(1);
 	}
 
 	/**
@@ -1554,11 +1551,13 @@ public class RootFolder extends DLNAResource {
 						} else if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
+							bumpSystemUpdateId();
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntry(filename);
+							bumpSystemUpdateId();
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);
 							File file = new File(filename);
@@ -1576,6 +1575,11 @@ public class RootFolder extends DLNAResource {
 	 * @param file the file to parse
 	 */
 	public static final void parseFileForDatabase(File file) {
+		if (!MapFile.isPotentialMediaFile(file.getAbsolutePath())) {
+			LOGGER.trace("Not parsing file that can't be media");
+			return;
+		}
+
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
 		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -1584,6 +1588,7 @@ public class RootFolder extends DLNAResource {
 
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
+			bumpSystemUpdateId();
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}

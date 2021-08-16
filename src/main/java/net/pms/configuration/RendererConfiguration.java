@@ -53,6 +53,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
 	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
+	protected static DeviceConfiguration streamingConf;
+	public static final String NOTRANSCODE = "_NOTRANSCODE_";
 	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
 
 	protected RootFolder rootFolder;
@@ -208,6 +210,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return defaultConf;
 	}
 
+	public static RendererConfiguration getStreamingConf() {
+		return streamingConf;
+	}
+
 	public ConfigurationReader getConfigurationReader() {
 		return configurationReader;
 	}
@@ -237,7 +243,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			try {
 				defaultConf = new RendererConfiguration();
-			} catch (ConfigurationException e) {
+				streamingConf = new DeviceConfiguration();
+				streamingConf.inherit(defaultConf);
+			} catch (ConfigurationException | InterruptedException e) {
 				LOGGER.debug("Caught exception", e);
 			}
 
