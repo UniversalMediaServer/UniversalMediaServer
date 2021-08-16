@@ -1111,8 +1111,7 @@ public class RequestV2 extends HTTPResource {
 		try {
 			return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
 		} catch (Exception e) {
-			LOGGER.info("error transforming searchCriteria to SQL.", e);
-			LOGGER.debug("fallback to content browsing ...");
+			LOGGER.trace("error transforming searchCriteria to SQL. Fallback to content browsing ...", e);
 			return browseHandler();
 		}
 	}

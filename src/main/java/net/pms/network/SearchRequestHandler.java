@@ -53,16 +53,19 @@ public class SearchRequestHandler {
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
 			if (propertyValue != null) {
-				if (propertyValue.toLowerCase().startsWith("object.item.audioitem")) {
-					return DbidMediaType.TYPE_FILES;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.person")) {
-					return DbidMediaType.TYPE_PERSON;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.album")) {
-					return DbidMediaType.TYPE_ALBUM;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.playlistcontainer")) {
-					return DbidMediaType.TYPE_PLAYLIST;
-				} else if (propertyValue.toLowerCase().startsWith("object.item.videoitem")) {
+				propertyValue = propertyValue.toLowerCase();
+				if (propertyValue.startsWith("object.item.audioitem")) {
+					return DbidMediaType.TYPE_AUDIO;
+				} else if (propertyValue.startsWith("object.item.videoitem")) {
 					return DbidMediaType.TYPE_VIDEO;
+				} else if (propertyValue.startsWith("object.item.imageitem")) {
+					return DbidMediaType.TYPE_IMAGE;
+				} else if (propertyValue.startsWith("object.container.person")) {
+					return DbidMediaType.TYPE_PERSON;
+				} else if (propertyValue.startsWith("object.container.album")) {
+					return DbidMediaType.TYPE_ALBUM;
+				} else if (propertyValue.startsWith("object.container.playlistcontainer")) {
+					return DbidMediaType.TYPE_PLAYLIST;
 				}
 			}
 		}
@@ -78,7 +81,7 @@ public class SearchRequestHandler {
 		DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
 
 		VirtualFolderDbId folder = new VirtualFolderDbId(requestType, "Search Result", "");
-		if (requestType == DbidMediaType.TYPE_FILES || requestType == DbidMediaType.TYPE_PLAYLIST) {
+		if (requestType == DbidMediaType.TYPE_AUDIO || requestType == DbidMediaType.TYPE_PLAYLIST) {
 			StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
 			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
 				folder.addChild(resource);
@@ -117,7 +120,7 @@ public class SearchRequestHandler {
 	 */
 	private String addSqlSelectByType(DbidMediaType requestType) {
 		switch (requestType) {
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 				return "select FILENAME, MODIFIED, F.ID as FID from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 			case TYPE_PERSON:
 				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME from AUDIOTRACKS as A where ";
@@ -126,6 +129,7 @@ public class SearchRequestHandler {
 			case TYPE_PLAYLIST:
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				return "select FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
 			default:
 				throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
@@ -193,7 +197,7 @@ public class SearchRequestHandler {
 
 	private String getTitlePropertyMapping(DbidMediaType requestType) {
 		switch (requestType) {
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 				return " A.SONGNAME ";
 			case TYPE_ALBUM:
 				return " A.ALBUM ";
@@ -201,6 +205,7 @@ public class SearchRequestHandler {
 				return " COALESCE(A.ALBUMARTIST, A.ARTIST) ";
 			case TYPE_PLAYLIST:
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				return " F.FILENAME ";
 			default:
 				break;
@@ -214,9 +219,10 @@ public class SearchRequestHandler {
 			case TYPE_PERSON:
 				sb.append(" 1=1 ");
 				return;
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 			case TYPE_PLAYLIST:
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
 					sb.append(String.format(" F.TYPE = %d ", getFileType(requestType)));
 				}
@@ -236,7 +242,7 @@ public class SearchRequestHandler {
 		// album and persons titles are stored within the RealFile and have
 		// therefore no unique id.
 		switch (mediaFolderType) {
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 			case TYPE_ALBUM:
 			case TYPE_PERSON:
 				return 1;
