@@ -18,6 +18,7 @@ import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
+import net.pms.formats.Format;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.message.SearchRequest;
 
@@ -245,11 +246,13 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO:
 			case TYPE_ALBUM:
 			case TYPE_PERSON:
-				return 1;
+				return Format.AUDIO;
 			case TYPE_VIDEO:
-				return 4;
+				return Format.VIDEO;
+			case TYPE_IMAGE:
+				return Format.IMAGE;
 			case TYPE_PLAYLIST:
-				return 16;
+				return Format.PLAYLIST;
 			default:
 				break;
 		}
