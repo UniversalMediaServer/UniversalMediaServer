@@ -66,7 +66,7 @@ public class SearchRequestHandler {
 				}
 			}
 		}
-		throw new RuntimeException("Unknown type : ");
+		throw new RuntimeException("Unknown type : " + (searchCriteria != null ? searchCriteria : "NULL"));
 	}
 
 	public StringBuilder createSearchResponse(SearchRequest requestMessage, RendererConfiguration mediaRenderer) {
@@ -75,37 +75,33 @@ public class SearchRequestHandler {
 		int updateID = 1;
 
 		StringBuilder dlnaItems = new StringBuilder();
-		try {
-			DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
+		DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
 
-			VirtualFolderDbId folder = new VirtualFolderDbId(requestType, "Search Result", "");
-			if (requestType == DbidMediaType.TYPE_FILES || requestType == DbidMediaType.TYPE_PLAYLIST) {
-				StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
-				for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
-					folder.addChild(resource);
-				}
-			} else {
-				StringBuilder sqlFiles = new StringBuilder();
-				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType));
-				for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
-					folder.addChild(resource);
+		VirtualFolderDbId folder = new VirtualFolderDbId(requestType, "Search Result", "");
+		if (requestType == DbidMediaType.TYPE_FILES || requestType == DbidMediaType.TYPE_PLAYLIST) {
+			StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+				folder.addChild(resource);
+			}
+		} else {
+			StringBuilder sqlFiles = new StringBuilder();
+			sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType));
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+				folder.addChild(resource);
+			}
+		}
+
+		folder.discoverChildren();
+		for (DLNAResource uf : folder.getChildren()) {
+			if (totalMatches >= requestMessage.getStartingIndex()) {
+				totalMatches++;
+				if (numberReturned < requestMessage.getRequestedCount()) {
+					numberReturned++;
+					uf.resolve();
+					uf.setFakeParentId("0");
+					dlnaItems.append(uf.getDidlString(mediaRenderer));
 				}
 			}
-
-			folder.discoverChildren();
-			for (DLNAResource uf : folder.getChildren()) {
-				if (totalMatches >= requestMessage.getStartingIndex()) {
-					totalMatches++;
-					if (numberReturned < requestMessage.getRequestedCount()) {
-						numberReturned++;
-						uf.resolve();
-						uf.setFakeParentId("0");
-						dlnaItems.append(uf.getDidlString(mediaRenderer));
-					}
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.warn("error transforming searchCriteria to SQL.", e);
 		}
 
 		// Build response message
@@ -132,7 +128,7 @@ public class SearchRequestHandler {
 			case TYPE_VIDEO:
 				return "select FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
 			default:
-				throw new RuntimeException("not implemented request type");
+				throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
 	}
 

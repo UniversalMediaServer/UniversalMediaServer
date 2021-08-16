@@ -1107,7 +1107,14 @@ public class RequestV2 extends HTTPResource {
 
 	private StringBuilder searchHandler() {
 		SearchRequest requestMessage = getPayload(SearchRequest.class);
-		return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
+
+		try {
+			return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
+		} catch (Exception e) {
+			LOGGER.info("error transforming searchCriteria to SQL.", e);
+			LOGGER.debug("fallback to content browsing ...");
+			return browseHandler();
+		}
 	}
 
 	/**
