@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
@@ -104,6 +105,7 @@ public class DbIdResourceLocator {
 							}
 						}
 						break;
+
 					case TYPE_PLAYLIST:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
@@ -114,9 +116,11 @@ public class DbIdResourceLocator {
 							}
 						}
 						break;
+
 					case TYPE_ALBUM:
 						sql = String.format(
-							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  A.ALBUM  = '%s')",
+							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
+								"where (  F.TYPE = 1  and  A.ALBUM  = '%s')",
 							typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(typeAndIdent.ident,
@@ -130,13 +134,15 @@ public class DbIdResourceLocator {
 							}
 						}
 						break;
+
 					case TYPE_PERSON_ALL_FILES:
 						sql = String.format(
-							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (A.ALBUMARTIST = '%s' or A.ARTIST = '%s')",
+							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
+								"where (A.ALBUMARTIST = '%s' or A.ARTIST = '%s')",
 							typeAndIdent.ident, typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
-							res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
-								"");
+							res = new VirtualFolderDbId(typeAndIdent.ident,
+								new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 							while (resultSet.next()) {
 								DLNAResource item = new RealFileDbId(
 									new DbidTypeAndIdent(DbidMediaType.TYPE_FILES, resultSet.getString("FID")),
@@ -145,20 +151,25 @@ public class DbIdResourceLocator {
 								res.addChild(item);
 							}
 						}
+						res.setFakeParentId(encodeDbid(new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON, typeAndIdent.ident)));
 						break;
+
 					case TYPE_PERSON:
-						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON, typeAndIdent.ident), "");
-						DLNAResource allFiles = new VirtualFolderDbId("All files",
+						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON, typeAndIdent.ident),
+							"");
+						DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("Search.AllFiles"),
 							new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 						res.addChild(allFiles);
-						DLNAResource albums = new VirtualFolderDbId("Albums",
+						DLNAResource albums = new VirtualFolderDbId(Messages.getString("Search.ByAlbum"),
 							new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 						res.addChild(albums);
 						break;
+
 					case TYPE_PERSON_ALBUM:
 						sql = String.format("SELECT DISTINCT(album) FROM AUDIOTRACKS A where COALESCE(A.ALBUMARTIST, A.ARTIST) = '%s'",
 							typeAndIdent.ident);
-						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
+							"");
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							while (resultSet.next()) {
 								String album = resultSet.getString(1);
@@ -166,11 +177,14 @@ public class DbIdResourceLocator {
 									typeAndIdent.ident + DbidMediaType.SPLIT_CHARS + album), ""));
 							}
 						}
+						res.setFakeParentId(encodeDbid(new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON, typeAndIdent.ident)));
 						break;
+
 					case TYPE_PERSON_ALBUM_FILES:
 						String[] identSplitted = typeAndIdent.ident.split(DbidMediaType.SPLIT_CHARS);
 						sql = String.format(
-							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (A.ALBUM = '%s') and (A.ALBUMARTIST = '%s' or A.ARTIST = '%s')",
+							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
+								"where (A.ALBUM = '%s') and (A.ALBUMARTIST = '%s' or A.ARTIST = '%s')",
 							identSplitted[1], identSplitted[0], identSplitted[0]);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(identSplitted[1],
@@ -183,6 +197,7 @@ public class DbIdResourceLocator {
 								res.addChild(item);
 							}
 						}
+						res.setFakeParentId(encodeDbid(new DbidTypeAndIdent(DbidMediaType.TYPE_PERSON_ALBUM, identSplitted[0])));
 						break;
 					default:
 						throw new RuntimeException("Unknown Type");
