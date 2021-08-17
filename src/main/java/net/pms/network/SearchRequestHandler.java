@@ -55,7 +55,7 @@ public class SearchRequestHandler {
 			String propertyValue = matcher.group("val");
 			if (propertyValue != null) {
 				if (propertyValue.toLowerCase().startsWith("object.item.audioitem")) {
-					return DbidMediaType.TYPE_FILES;
+					return DbidMediaType.TYPE_AUDIO;
 				} else if (propertyValue.toLowerCase().startsWith("object.container.person")) {
 					return DbidMediaType.TYPE_PERSON;
 				} else if (propertyValue.toLowerCase().startsWith("object.container.album")) {
@@ -76,37 +76,33 @@ public class SearchRequestHandler {
 		int updateID = 1;
 
 		StringBuilder dlnaItems = new StringBuilder();
-		try {
-			DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
+		DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
 
-			VirtualFolderDbId folder = new VirtualFolderDbId("SearchResult", new DbidTypeAndIdent(requestType, ""), "");
-			if (requestType == DbidMediaType.TYPE_FILES || requestType == DbidMediaType.TYPE_PLAYLIST) {
-				StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
-				for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
-					folder.addChild(resource);
-				}
-			} else {
-				StringBuilder sqlFiles = new StringBuilder();
-				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType));
-				for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
-					folder.addChild(resource);
+		VirtualFolderDbId folder = new VirtualFolderDbId("SearchResult", new DbidTypeAndIdent(requestType, ""), "");
+		if (requestType == DbidMediaType.TYPE_AUDIO || requestType == DbidMediaType.TYPE_PLAYLIST) {
+			StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+				folder.addChild(resource);
+			}
+		} else {
+			StringBuilder sqlFiles = new StringBuilder();
+			sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType));
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+				folder.addChild(resource);
+			}
+		}
+
+		folder.discoverChildren();
+		for (DLNAResource uf : folder.getChildren()) {
+			if (totalMatches >= requestMessage.getStartingIndex()) {
+				totalMatches++;
+				if (numberReturned < requestMessage.getRequestedCount()) {
+					numberReturned++;
+					uf.resolve();
+					uf.setFakeParentId("0");
+					dlnaItems.append(uf.getDidlString(mediaRenderer));
 				}
 			}
-
-			folder.discoverChildren();
-			for (DLNAResource uf : folder.getChildren()) {
-				if (totalMatches >= requestMessage.getStartingIndex()) {
-					totalMatches++;
-					if (numberReturned < requestMessage.getRequestedCount()) {
-						numberReturned++;
-						uf.resolve();
-						uf.setFakeParentId("0");
-						dlnaItems.append(uf.getDidlString(mediaRenderer));
-					}
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.warn("error transforming searchCriteria to SQL.", e);
 		}
 
 		// Build response message
@@ -122,7 +118,7 @@ public class SearchRequestHandler {
 	 */
 	private String addSqlSelectByType(DbidMediaType requestType) {
 		switch (requestType) {
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 				return "select FILENAME, MODIFIED, F.ID as FID from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 			case TYPE_PERSON:
 				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME from AUDIOTRACKS as A where ";
@@ -198,7 +194,7 @@ public class SearchRequestHandler {
 
 	private String getTitlePropertyMapping(DbidMediaType requestType) {
 		switch (requestType) {
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 				return " A.SONGNAME ";
 			case TYPE_ALBUM:
 				return " A.ALBUM ";
@@ -219,7 +215,7 @@ public class SearchRequestHandler {
 			case TYPE_PERSON:
 				sb.append(" 1=1 ");
 				return;
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 			case TYPE_PLAYLIST:
 			case TYPE_VIDEO:
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
@@ -241,7 +237,7 @@ public class SearchRequestHandler {
 		// album and persons titles are stored within the RealFile and have
 		// therefore no unique id.
 		switch (mediaFolderType) {
-			case TYPE_FILES:
+			case TYPE_AUDIO:
 			case TYPE_ALBUM:
 			case TYPE_PERSON:
 				return 1;
