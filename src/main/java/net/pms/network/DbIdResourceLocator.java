@@ -28,12 +28,16 @@ public class DbIdResourceLocator {
 
 	public enum DbidMediaType {
 
-		TYPE_FILES("FID$", "object.item"), TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"), TYPE_PERSON("PERSON$",
-			"object.container.person.musicArtist"), TYPE_PERSON_ALBUM_FILES("PERSON_ALBUM_FILES$",
-				"object.container.storageFolder"), TYPE_PERSON_ALBUM("PERSON_ALBUM$",
-					"object.container.album.musicAlbum"), TYPE_PERSON_ALL_FILES("PERSON_ALL_FILES$",
-						"object.container.storageFolder"), TYPE_PLAYLIST("PLAYLIST$",
-							"object.container.playlistContainer"), TYPE_VIDEO("VIDEO$", "object.container.storageFolder");
+		//@formatter:off
+		TYPE_AUDIO("FID$", "object.item.audioItem"),
+		TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"),
+		TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
+		TYPE_PERSON_ALBUM_FILES("PERSON_ALBUM_FILES$", "object.container.storageFolder"),
+		TYPE_PERSON_ALBUM("PERSON_ALBUM$", "object.container.album.musicAlbum"),
+		TYPE_PERSON_ALL_FILES("PERSON_ALL_FILES$", "object.container.storageFolder"),
+		TYPE_PLAYLIST("PLAYLIST$", "object.container.playlistContainer"),
+		TYPE_VIDEO("VIDEO$", "object.container.storageFolder");
+		//@formatter:on
 
 		public final static String GENERAL_PREFIX = "$DBID$";
 		public static final String SPLIT_CHARS = "___";
@@ -95,7 +99,7 @@ public class DbIdResourceLocator {
 			try (Statement statement = connection.createStatement()) {
 				String sql = null;
 				switch (typeAndIdent.type) {
-					case TYPE_FILES:
+					case TYPE_AUDIO:
 					case TYPE_VIDEO:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
@@ -127,7 +131,7 @@ public class DbIdResourceLocator {
 								new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 							while (resultSet.next()) {
 								DLNAResource item = new RealFileDbId(
-									new DbidTypeAndIdent(DbidMediaType.TYPE_FILES, resultSet.getString("FID")),
+									new DbidTypeAndIdent(DbidMediaType.TYPE_AUDIO, resultSet.getString("FID")),
 									new File(resultSet.getString("FILENAME")));
 								item.resolve();
 								res.addChild(item);
@@ -145,7 +149,7 @@ public class DbIdResourceLocator {
 								new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 							while (resultSet.next()) {
 								DLNAResource item = new RealFileDbId(
-									new DbidTypeAndIdent(DbidMediaType.TYPE_FILES, resultSet.getString("FID")),
+									new DbidTypeAndIdent(DbidMediaType.TYPE_AUDIO, resultSet.getString("FID")),
 									new File(resultSet.getString("FILENAME")));
 								item.resolve();
 								res.addChild(item);
@@ -191,7 +195,7 @@ public class DbIdResourceLocator {
 								new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 							while (resultSet.next()) {
 								DLNAResource item = new RealFileDbId(
-									new DbidTypeAndIdent(DbidMediaType.TYPE_FILES, resultSet.getString("FID")),
+									new DbidTypeAndIdent(DbidMediaType.TYPE_AUDIO, resultSet.getString("FID")),
 									new File(resultSet.getString("FILENAME")));
 								item.resolve();
 								res.addChild(item);
