@@ -19,6 +19,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
+import net.pms.formats.Format;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.message.SearchRequest;
 
@@ -54,20 +55,23 @@ public class SearchRequestHandler {
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
 			if (propertyValue != null) {
-				if (propertyValue.toLowerCase().startsWith("object.item.audioitem")) {
+				propertyValue = propertyValue.toLowerCase();
+				if (propertyValue.startsWith("object.item.audioitem")) {
 					return DbidMediaType.TYPE_AUDIO;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.person")) {
-					return DbidMediaType.TYPE_PERSON;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.album")) {
-					return DbidMediaType.TYPE_ALBUM;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.playlistcontainer")) {
-					return DbidMediaType.TYPE_PLAYLIST;
-				} else if (propertyValue.toLowerCase().startsWith("object.item.videoitem")) {
+				} else if (propertyValue.startsWith("object.item.videoitem")) {
 					return DbidMediaType.TYPE_VIDEO;
+				} else if (propertyValue.startsWith("object.item.imageitem")) {
+					return DbidMediaType.TYPE_IMAGE;
+				} else if (propertyValue.startsWith("object.container.person")) {
+					return DbidMediaType.TYPE_PERSON;
+				} else if (propertyValue.startsWith("object.container.album")) {
+					return DbidMediaType.TYPE_ALBUM;
+				} else if (propertyValue.startsWith("object.container.playlistcontainer")) {
+					return DbidMediaType.TYPE_PLAYLIST;
 				}
 			}
 		}
-		throw new RuntimeException("Unknown type : ");
+		throw new RuntimeException("Unknown type : " + (searchCriteria != null ? searchCriteria : "NULL"));
 	}
 
 	public StringBuilder createSearchResponse(SearchRequest requestMessage, RendererConfiguration mediaRenderer) {
@@ -76,37 +80,33 @@ public class SearchRequestHandler {
 		int updateID = 1;
 
 		StringBuilder dlnaItems = new StringBuilder();
-		try {
-			DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
+		DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
 
-			VirtualFolderDbId folder = new VirtualFolderDbId("SearchResult", new DbidTypeAndIdent(requestType, ""), "");
-			if (requestType == DbidMediaType.TYPE_AUDIO || requestType == DbidMediaType.TYPE_PLAYLIST) {
-				StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
-				for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
-					folder.addChild(resource);
-				}
-			} else {
-				StringBuilder sqlFiles = new StringBuilder();
-				sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType));
-				for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
-					folder.addChild(resource);
+		VirtualFolderDbId folder = new VirtualFolderDbId("SearchResult", new DbidTypeAndIdent(requestType, ""), "");
+		if (requestType == DbidMediaType.TYPE_AUDIO || requestType == DbidMediaType.TYPE_PLAYLIST) {
+			StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+				folder.addChild(resource);
+			}
+		} else {
+			StringBuilder sqlFiles = new StringBuilder();
+			sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType));
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+				folder.addChild(resource);
+			}
+		}
+
+		folder.discoverChildren();
+		for (DLNAResource uf : folder.getChildren()) {
+			if (totalMatches >= requestMessage.getStartingIndex()) {
+				totalMatches++;
+				if (numberReturned < requestMessage.getRequestedCount()) {
+					numberReturned++;
+					uf.resolve();
+					uf.setFakeParentId("0");
+					dlnaItems.append(uf.getDidlString(mediaRenderer));
 				}
 			}
-
-			folder.discoverChildren();
-			for (DLNAResource uf : folder.getChildren()) {
-				if (totalMatches >= requestMessage.getStartingIndex()) {
-					totalMatches++;
-					if (numberReturned < requestMessage.getRequestedCount()) {
-						numberReturned++;
-						uf.resolve();
-						uf.setFakeParentId("0");
-						dlnaItems.append(uf.getDidlString(mediaRenderer));
-					}
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.warn("error transforming searchCriteria to SQL.", e);
 		}
 
 		// Build response message
@@ -131,9 +131,10 @@ public class SearchRequestHandler {
 			case TYPE_PLAYLIST:
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				return "select FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
 			default:
-				throw new RuntimeException("not implemented request type");
+				throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
 	}
 
@@ -206,6 +207,7 @@ public class SearchRequestHandler {
 				return " COALESCE(A.ALBUMARTIST, A.ARTIST) ";
 			case TYPE_PLAYLIST:
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				return " F.FILENAME ";
 			default:
 				break;
@@ -222,6 +224,7 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO:
 			case TYPE_PLAYLIST:
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
 					sb.append(String.format(" F.TYPE = %d ", getFileType(requestType)));
 				}
@@ -244,11 +247,13 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO:
 			case TYPE_ALBUM:
 			case TYPE_PERSON:
-				return 1;
+				return Format.AUDIO;
 			case TYPE_VIDEO:
-				return 4;
+				return Format.VIDEO;
+			case TYPE_IMAGE:
+				return Format.IMAGE;
 			case TYPE_PLAYLIST:
-				return 16;
+				return Format.PLAYLIST;
 			default:
 				break;
 		}

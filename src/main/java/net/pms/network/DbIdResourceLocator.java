@@ -30,13 +30,15 @@ public class DbIdResourceLocator {
 
 		//@formatter:off
 		TYPE_AUDIO("FID$", "object.item.audioItem"),
+		TYPE_FOLDER("FOLDER$", "object.container.storageFolder"),
 		TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"),
 		TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
 		TYPE_PERSON_ALBUM_FILES("PERSON_ALBUM_FILES$", "object.container.storageFolder"),
 		TYPE_PERSON_ALBUM("PERSON_ALBUM$", "object.container.album.musicAlbum"),
 		TYPE_PERSON_ALL_FILES("PERSON_ALL_FILES$", "object.container.storageFolder"),
 		TYPE_PLAYLIST("PLAYLIST$", "object.container.playlistContainer"),
-		TYPE_VIDEO("VIDEO$", "object.container.storageFolder");
+		TYPE_VIDEO("VIDEO$", "object.item.videoItem"),
+		TYPE_IMAGE("IMAGE$", "object.item.imageItem");
 		//@formatter:on
 
 		public final static String GENERAL_PREFIX = "$DBID$";
@@ -101,6 +103,7 @@ public class DbIdResourceLocator {
 				switch (typeAndIdent.type) {
 					case TYPE_AUDIO:
 					case TYPE_VIDEO:
+					case TYPE_IMAGE:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							if (resultSet.next()) {
