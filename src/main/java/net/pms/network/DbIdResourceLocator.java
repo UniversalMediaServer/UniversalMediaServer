@@ -34,7 +34,7 @@ public class DbIdResourceLocator {
 		TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"),
 		TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
 		TYPE_PERSON_ALBUM_FILES("PERSON_ALBUM_FILES$", "object.container.storageFolder"),
-		TYPE_PERSON_ALBUM("PERSON_ALBUM$", "object.container.album.musicAlbum"),
+		TYPE_PERSON_ALBUM("PERSON_ALBUM$", "object.container.storageFolder"),
 		TYPE_PERSON_ALL_FILES("PERSON_ALL_FILES$", "object.container.storageFolder"),
 		TYPE_PLAYLIST("PLAYLIST$", "object.container.playlistContainer"),
 		TYPE_VIDEO("VIDEO$", "object.item.videoItem"),
