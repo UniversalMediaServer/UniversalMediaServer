@@ -268,6 +268,10 @@ public class SearchRequestHandler {
 	private List<DLNAResource> getDLNAResourceFromSQL(String query, DbidMediaType type) {
 		ArrayList<DLNAResource> filesList = new ArrayList<>();
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(String.format("SQL %s : %s", type.dbidPrefix, query));
+		}
+
 		try (Connection connection = database.getConnection()) {
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
@@ -290,7 +294,7 @@ public class SearchRequestHandler {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.trace("", e);
+			LOGGER.trace("getDLNAResourceFromSQL", e);
 		}
 		return filesList;
 	}

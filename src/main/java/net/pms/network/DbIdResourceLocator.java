@@ -98,6 +98,9 @@ public class DbIdResourceLocator {
 					case TYPE_VIDEO:
 					case TYPE_IMAGE:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL AUDIO/VIDEO/IMAGE : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							if (resultSet.next()) {
 								res = new RealFileDbId(new File(resultSet.getString("FILENAME")));
@@ -107,6 +110,9 @@ public class DbIdResourceLocator {
 						break;
 					case TYPE_PLAYLIST:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL PLAYLIST : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							if (resultSet.next()) {
 								res = new PlaylistFolder(new File(resultSet.getString("FILENAME")));
@@ -119,6 +125,9 @@ public class DbIdResourceLocator {
 						sql = String.format(
 							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  A.ALBUM  = '%s')",
 							typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident, "");
 							while (resultSet.next()) {
@@ -133,6 +142,9 @@ public class DbIdResourceLocator {
 						sql = String.format(
 							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  (A.ALBUMARTIST = '%s' or A.ARTIST = '%s'))",
 							typeAndIdent.ident, typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL PERSON : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident, "");
 							while (resultSet.next()) {
