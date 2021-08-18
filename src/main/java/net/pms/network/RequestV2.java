@@ -1106,8 +1106,8 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	private StringBuilder searchHandler() {
-		BrowseRequest requestMessage = getPayload(BrowseRequest.class);
-		return browseSearchHandler(requestMessage);
+		SearchRequest requestMessage = getPayload(SearchRequest.class);
+		return this.browseSearchHandler(requestMessage);
 //		try {
 //			return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
 //		} catch (Exception e) {
