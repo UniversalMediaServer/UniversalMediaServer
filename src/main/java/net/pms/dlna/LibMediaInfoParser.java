@@ -294,7 +294,7 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setAlbumArtist(mI.Get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
-					if (media.isAudio()) { // add MusicBrainsID only for audio files
+					if (media.isAudio()) { // add MusicBrainzID only for audio files
 						addMusicBrainzIDs(file, currentAudioTrack);
 					}
 
