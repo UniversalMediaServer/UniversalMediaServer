@@ -34,6 +34,7 @@ import net.pms.util.Iso639;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.Version;
+import su.litvak.chromecast.api.v2.Media;
 
 public class LibMediaInfoParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
@@ -294,7 +295,9 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setAlbumArtist(mI.Get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
-					addMusicBrainzIDs(file, currentAudioTrack);
+					if (media.isAudio()) { // add MusicBrainsID only for audio files
+						addMusicBrainzIDs(file, currentAudioTrack);
+					}
 
 					value = mI.Get(general, 0, "Track/Position");
 					if (!value.isEmpty()) {
