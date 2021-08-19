@@ -48,6 +48,7 @@ import com.sun.jna.Platform;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataAwards;
@@ -1414,6 +1415,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public ArrayList<String> getStrings(String sql) {
 		ArrayList<String> list = new ArrayList<>();
+		HashSet<String> set = new HashSet<>();
 		try (Connection connection = getConnection()) {
 			TABLE_LOCK.readLock().lock();
 			try (
@@ -1423,11 +1425,9 @@ public class DLNAMediaDatabase implements Runnable {
 				while (rs.next()) {
 					String str = rs.getString(1);
 					if (isBlank(str)) {
-						if (!list.contains(NONAME)) {
-							list.add(NONAME);
-						}
-					} else if (!list.contains(str)) {
-						list.add(str);
+						set.add(NONAME);
+					} else {
+						set.add(str);
 					}
 				}
 			} finally {
@@ -1437,6 +1437,7 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.error(null, se);
 			return null;
 		}
+		list.addAll(set);
 		return list;
 	}
 
