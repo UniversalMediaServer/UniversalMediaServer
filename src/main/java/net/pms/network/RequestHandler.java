@@ -104,17 +104,8 @@ public class RequestHandler implements Runnable {
 			// header matches are attempted and if those fail as well we're stuck with the
 			// default renderer.
 
-			// Attempt 1: If the reguested url contains the no-transcode tag, force
-			// the default streaming-only conf.
-			if (request.getArgument().contains(RendererConfiguration.NOTRANSCODE)) {
-				renderer = RendererConfiguration.getStreamingConf();
-				LOGGER.debug("Forcing streaming.");
-			}
-
-			if (renderer == null) {
-				// Attempt 2: try to recognize the renderer by its socket address from previous requests
-				renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
-			}
+			// Attempt 1: try to recognize the renderer by its socket address from previous requests
+			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 			// If the renderer exists but isn't marked as loaded it means it's unrecognized
 			// by upnp and we still need to attempt http recognition here.
@@ -133,7 +124,7 @@ public class RequestHandler implements Runnable {
 			}
 
 			if (unrecognized) {
-				// Attempt 3: try to recognize the renderer by matching headers
+				// Attempt 2: try to recognize the renderer by matching headers
 				renderer = RendererConfiguration.getRendererConfigurationByHeaders(sortedHeaders, ia);
 			}
 
@@ -238,7 +229,7 @@ public class RequestHandler implements Runnable {
 			if (request != null) {
 				// Still no media renderer recognized?
 				if (renderer == null) {
-					// Attempt 4: Not really an attempt; all other attempts to recognize
+					// Attempt 3: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
 					renderer = RendererConfiguration.resolve(ia, null);
