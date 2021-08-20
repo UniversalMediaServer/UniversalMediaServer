@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
@@ -39,6 +40,7 @@ public class SearchRequestHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestHandler.class);
 	private final static String CRLF = "\r\n";
+	private AtomicInteger updateID = new AtomicInteger(1);
 
 	private static Pattern classPattern = Pattern.compile("upnp:class\\s(\\bderivedfrom\\b|=)\\s+\"(?<val>.*?)\"",
 		Pattern.CASE_INSENSITIVE);
@@ -49,7 +51,7 @@ public class SearchRequestHandler {
 		this.database = PMS.get().getDatabase();
 	}
 
-	private DbidMediaType getRequestType(String searchCriteria) {
+	DbidMediaType getRequestType(String searchCriteria) {
 		Matcher matcher = classPattern.matcher(searchCriteria);
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
@@ -76,7 +78,6 @@ public class SearchRequestHandler {
 	public StringBuilder createSearchResponse(SearchRequest requestMessage, RendererConfiguration mediaRenderer) {
 		int numberReturned = 0;
 		int totalMatches = 0;
-		int updateID = 1;
 
 		StringBuilder dlnaItems = new StringBuilder();
 		DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
@@ -109,7 +110,7 @@ public class SearchRequestHandler {
 		}
 
 		// Build response message
-		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID, dlnaItems);
+		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID.getAndIncrement(), dlnaItems);
 		return createResponse(response.toString());
 	}
 
