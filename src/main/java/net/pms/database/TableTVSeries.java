@@ -423,6 +423,7 @@ public final class TableTVSeries extends Tables {
 					"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " +
 					"FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
 				"WHERE " +
+					"FILES.TYPE = 4 AND " +
 					"FILES.MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
 					"FILES.ISTVEPISODE AND " +
 					TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +

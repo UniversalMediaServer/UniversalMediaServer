@@ -1,3 +1,15 @@
+10.10.0 - 2021-08-18
+
+	General:
+		Added fully played overlay to TV series thumbnails in Media Library if all episodes are played
+		Fixes some renderers not reflecting content updates like fully played thumbnail changes
+		Fixed broken API matching for episodes from files with years in the series name
+		Fixed files locking during or just after download
+		Ignore incomplete files
+	Translation updates via Crowdin:
+		Romanian (100%) (thanks, FlorinT!)
+		Russian (90%) (thanks, Sergei Kotlar!)
+
 10.9.0 - 2021-08-09
 
 	General:
