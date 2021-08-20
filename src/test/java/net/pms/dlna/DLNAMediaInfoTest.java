@@ -62,7 +62,7 @@ public class DLNAMediaInfoTest {
 
 		Logger LOGGER = LoggerFactory.getLogger(CLASS);
 
-		Services.create();
+//		Services.create();
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {

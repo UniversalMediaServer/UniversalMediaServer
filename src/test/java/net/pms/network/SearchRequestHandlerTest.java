@@ -12,6 +12,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.message.SearchRequest;
+import net.pms.service.Services;
 
 /**
  *
@@ -27,9 +28,10 @@ public class SearchRequestHandlerTest {
 	@BeforeAll
 	public static final void setUp() throws ConfigurationException, InterruptedException {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.DEBUG);
+		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
 		PMS.forceHeadless();
 		PMS.setConfiguration(new PmsConfiguration(false));
+		Services.create();
 		PMS.get();
 	}
 
