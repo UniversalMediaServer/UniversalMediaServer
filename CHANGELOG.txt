@@ -1,13 +1,15 @@
-10.10.1 - 2021-08-
+10.10.1 - 2021-08-23
 
 	General:
 		Up to 4x browsing speed improvement (thanks, ik666!)
 		Disabled UPnP search while we fix problems with it
 		Fixed sending MusicBrainz info for non-audio files
+		Fixed the older HTTP engine
 	Renderers:
 		Improved support for HDR and high bit depths on LG OLED TVs
 		Fixed support for OGG formats on LG EG910V TV
 	Dependencies:
+		Bump gson from 2.8.7 to 2.8.8
 		Bump JRE to 8u302+8
 		Bump logback-version from 1.2.3 to 1.2.5
 
