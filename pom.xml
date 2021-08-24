@@ -560,7 +560,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.8.0</version>
+			<version>5.8.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
