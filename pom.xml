@@ -556,7 +556,7 @@
 				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 
 				net.java.dev.jna:jna-platform is shared with
-					- net.pms:dms
+					- net.pms:ums
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
