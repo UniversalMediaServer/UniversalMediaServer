@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
@@ -39,6 +40,7 @@ public class SearchRequestHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestHandler.class);
 	private final static String CRLF = "\r\n";
+	private AtomicInteger updateID = new AtomicInteger(1);
 
 	private static Pattern classPattern = Pattern.compile("upnp:class\\s(\\bderivedfrom\\b|=)\\s+\"(?<val>.*?)\"",
 		Pattern.CASE_INSENSITIVE);
@@ -49,7 +51,7 @@ public class SearchRequestHandler {
 		this.database = PMS.get().getDatabase();
 	}
 
-	private DbidMediaType getRequestType(String searchCriteria) {
+	DbidMediaType getRequestType(String searchCriteria) {
 		Matcher matcher = classPattern.matcher(searchCriteria);
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
@@ -72,41 +74,33 @@ public class SearchRequestHandler {
 
 	public StringBuilder createSearchResponse(SearchRequest requestMessage, RendererConfiguration mediaRenderer) {
 		int numberReturned = 0;
-		int totalMatches = 0;
-		int updateID = 1;
-
 		StringBuilder dlnaItems = new StringBuilder();
 		DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
+		int totalMatches = getDLNAResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId("SearchResult", new DbidTypeAndIdent(requestType, ""), "");
+		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbidTypeAndIdent(DbidMediaType.TYPE_FOLDER, ""), "");
 		if (requestType == DbidMediaType.TYPE_AUDIO || requestType == DbidMediaType.TYPE_PLAYLIST) {
-			StringBuilder sqlFiles = convertToFilesSql(requestMessage.getSearchCriteria(), requestType);
-			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+			String sqlFiles = convertToFilesSql(requestMessage, requestType);
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
 				folder.addChild(resource);
 			}
 		} else {
-			StringBuilder sqlFiles = new StringBuilder();
-			sqlFiles.append(convertToFilesSql(requestMessage.getSearchCriteria(), requestType));
-			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles.toString(), requestType)) {
+			String sqlFiles = convertToFilesSql(requestMessage, requestType);
+			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
 				folder.addChild(resource);
 			}
 		}
 
 		folder.discoverChildren();
 		for (DLNAResource uf : folder.getChildren()) {
-			if (totalMatches >= requestMessage.getStartingIndex()) {
-				totalMatches++;
-				if (numberReturned < requestMessage.getRequestedCount()) {
-					numberReturned++;
-					uf.resolve();
-					uf.setFakeParentId("0");
-					dlnaItems.append(uf.getDidlString(mediaRenderer));
-				}
-			}
+			numberReturned++;
+			uf.resolve();
+			uf.setFakeParentId("0");
+			dlnaItems.append(uf.getDidlString(mediaRenderer));
 		}
 
 		// Build response message
-		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID, dlnaItems);
+		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID.getAndIncrement(), dlnaItems);
 		return createResponse(response.toString());
 	}
 
@@ -119,26 +113,70 @@ public class SearchRequestHandler {
 	private String addSqlSelectByType(DbidMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO:
-				return "select FILENAME, MODIFIED, F.ID as FID from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 			case TYPE_PERSON:
-				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME from AUDIOTRACKS as A where ";
+				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			case TYPE_ALBUM:
-				return "select DISTINCT ALBUM as FILENAME from AUDIOTRACKS as A where ";
+				return "select DISTINCT ALBUM as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			case TYPE_PLAYLIST:
-				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
+				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			case TYPE_VIDEO:
-				return "select FILENAME, MODIFIED, F.ID as FID from FILES as F where ";
+			case TYPE_IMAGE:
+				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			default:
 				throw new RuntimeException("not implemented request type");
 		}
 	}
 
-	StringBuilder convertToFilesSql(String upnpSearch, DbidMediaType requestType) {
-		int lastIndex = 0;
+	/**
+	 * Beginning part of SQL statement, by type.
+	 *
+	 * @param requestType
+	 * @return
+	 */
+	private String addSqlSelectCountByType(DbidMediaType requestType) {
+		switch (requestType) {
+			case TYPE_AUDIO:
+				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+			case TYPE_PERSON:
+				return "select count (DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST)) from AUDIOTRACKS as A where ";
+			case TYPE_ALBUM:
+				return "select count(DISTINCT A.id) from AUDIOTRACKS as A where ";
+			case TYPE_PLAYLIST:
+				return "select count(DISTINCT F.id) from FILES as F where ";
+			case TYPE_VIDEO:
+				return "select count(DISTINCT F.id) from FILES as F where ";
+			default:
+				throw new RuntimeException("not implemented request type");
+		}
+	}
+
+	String convertToFilesSql(SearchRequest requestMessage, DbidMediaType requestType) {
 		StringBuilder sb = new StringBuilder();
-
 		sb.append(addSqlSelectByType(requestType));
+		addSqlWherePart(requestMessage.getSearchCriteria(), requestType, sb);
+		addLimit(requestMessage, requestType, sb);
+		return sb.toString();
+	}
 
+	private void addLimit(SearchRequest requestMessage, DbidMediaType requestType, StringBuilder sb) {
+		int limit = requestMessage.getRequestedCount();
+		int offset = requestMessage.getStartingIndex();
+		if (limit == 0) {
+			limit = 999; // performance issue: do only deliver top 999 items
+		}
+		sb.append(String.format(" ORDER BY oid LIMIT %d OFFSET %d ", limit, offset));
+	}
+
+	String convertToCountSql(String upnpSearch, DbidMediaType requestType) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(addSqlSelectCountByType(requestType));
+		addSqlWherePart(upnpSearch, requestType, sb);
+		return sb.toString();
+	}
+
+	private void addSqlWherePart(String upnpSearch, DbidMediaType requestType, StringBuilder sb) {
+		int lastIndex = 0;
 		Matcher matcher = tokenizerPattern.matcher(upnpSearch);
 		while (matcher.find()) {
 			sb.append(upnpSearch, lastIndex, matcher.start());
@@ -153,7 +191,6 @@ public class SearchRequestHandler {
 		if (lastIndex < upnpSearch.length()) {
 			sb.append(upnpSearch, lastIndex, upnpSearch.length());
 		}
-		return sb;
 	}
 
 	/**
@@ -251,6 +288,24 @@ public class SearchRequestHandler {
 		throw new RuntimeException("unknown or unimplemented mediafolder type : >" + mediaFolderType + "<");
 	}
 
+	private int getDLNAResourceCountFromSQL(String query) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(String.format("SQL count : %s", query));
+		}
+
+		try (Connection connection = database.getConnection()) {
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					resultSet.next();
+					return resultSet.getInt(1);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.trace("getDLNAResourceCountFromSQL", e);
+		}
+		return 0;
+	}
+
 	/**
 	 * Converts sql statements with FILENAME to RealFiles
 	 *
@@ -259,6 +314,10 @@ public class SearchRequestHandler {
 	 */
 	private List<DLNAResource> getDLNAResourceFromSQL(String query, DbidMediaType type) {
 		ArrayList<DLNAResource> filesList = new ArrayList<>();
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(String.format("SQL %s : %s", type.dbidPrefix, query));
+		}
 
 		try (Connection connection = database.getConnection()) {
 			try (Statement statement = connection.createStatement()) {
@@ -283,7 +342,7 @@ public class SearchRequestHandler {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.trace("", e);
+			LOGGER.trace("getDLNAResourceFromSQL", e);
 		}
 		return filesList;
 	}
