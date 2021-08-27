@@ -23,6 +23,7 @@ public class SearchRequestHandlerTest {
 
 	/**
 	 * Set up testing conditions before running the tests.
+	 *
 	 * @throws ConfigurationException
 	 */
 	@BeforeAll
@@ -37,11 +38,14 @@ public class SearchRequestHandlerTest {
 
 	@Test
 	public void testVideoFileSqlStatement() {
-		SearchRequestHandler sr = new SearchRequestHandler();
+		SearchRequestHandler srh = new SearchRequestHandler();
 		String s = "( upnp:class derivedfrom \"object.item.videoItem\" )";
-		String result = sr.convertToFilesSql(s, sr.getRequestType(s)).toString();
-		LOG.info(result);  //  \\s+
-		assertTrue(result.matches("select\\s+FILENAME,\\s+MODIFIED,\\s+F\\.ID\\s+as\\s+FID\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s+\\(\\s+F\\.TYPE\\s+=\\s+4\\s+\\)"));
+		SearchRequest sr = new SearchRequest();
+		sr.setSearchCriteria(s);
+		String result = srh.convertToFilesSql(sr, srh.getRequestType(s)).toString();
+		LOG.info(result);  // \\s+
+		assertTrue(result.matches(
+			"select\\s+FILENAME,\\s+MODIFIED,\\s+F\\.ID\\s+as\\s+FID\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s+\\(\\s+F\\.TYPE\\s+=\\s+4\\s+\\)"));
 	}
 
 	@Test
@@ -51,7 +55,8 @@ public class SearchRequestHandlerTest {
 		RendererConfiguration rc = RendererConfiguration.getDefaultConf();
 		sr.setContainerId("0");
 		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.videoItem\"");
-		sr.setFilter("dc:title,av:mediaClass,dc:date,@childCount,av:chapterInfo,res,upnp:rating,upnp:rating@type,upnp:class,av:soundPhoto,res@resolution,res@av:mpfEntries,upnp:album,upnp:genre,upnp:albumArtURI,upnp:albumArtURI@dlna:profileID,dc:creator,res@size,res@duration,res@bitrate,res@protocolInfo");
+		sr.setFilter(
+			"dc:title,av:mediaClass,dc:date,@childCount,av:chapterInfo,res,upnp:rating,upnp:rating@type,upnp:class,av:soundPhoto,res@resolution,res@av:mpfEntries,upnp:album,upnp:genre,upnp:albumArtURI,upnp:albumArtURI@dlna:profileID,dc:creator,res@size,res@duration,res@bitrate,res@protocolInfo");
 		sr.setStartingIndex(0);
 		sr.setRequestedCount(14);
 		sr.setSortCriteria("");
