@@ -1,3 +1,65 @@
+10.10.1 - 2021-08-23
+
+	General:
+		Up to 4x browsing speed improvement (thanks, ik666!)
+		Disabled UPnP search while we fix problems with it
+		Fixed sending MusicBrainz info for non-audio files
+		Fixed the older HTTP engine
+	Renderers:
+		Improved support for HDR and high bit depths on LG OLED TVs
+		Fixed support for OGG formats on LG EG910V TV
+	Dependencies:
+		Bump gson from 2.8.7 to 2.8.8
+		Bump JRE to 8u302+8
+		Bump logback-version from 1.2.3 to 1.2.5
+
+10.10.0 - 2021-08-18
+
+	General:
+		Added fully played overlay to TV series thumbnails in Media Library if all episodes are played
+		Fixes some renderers not reflecting content updates like fully played thumbnail changes
+		Fixed broken API matching for episodes from files with years in the series name
+		Fixed files locking during or just after download
+		Ignore incomplete files
+	Translation updates via Crowdin:
+		Romanian (100%) (thanks, FlorinT!)
+		Russian (90%) (thanks, Sergei Kotlar!)
+
+10.9.0 - 2021-08-09
+
+	General:
+		Added option to download folder as playlist on web interface
+		Added option to download media as playlist on web interface
+		Changed macOS dock icon to match newer Apple design guidelines for Big Sur+ (thanks, Alex Gurr!)
+		Made more room for media titles on web interface
+		Added recognition of MP1
+		Improved support for Blu-ray (PGS), HDMV, DVB, WebVTT and EIA-608 subtitles
+		Fixed crash on SUSE Linux
+		Fixed chapter folders showing blank names
+	Renderers:
+		Improved support for Google Chromecast Ultra
+		Improved support for MXPlayer on Google Android
+		Improved support for Windows Media Player
+		Fixed support for OGG formats on Naim-Mu-So, Roku and Samsung devices
+	Translation updates via Crowdin:
+		Chinese (Traditional) (100%) (thanks, Gene Wu!)
+		Danish (100%) (thanks, NCAA!)
+		English (United Kingdom) (43%) (thanks, MrSmithr!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Maxence Vary!)
+		German (100%) (thanks, Peter Ollig and pipin!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+		Russian (89%) (thanks, Artem4ik!)
+		Spanish (100%) (thanks, Diego Guerrero, edwardalvarez2011 and Gerardo Ruiz!)
+		Thai (3%) (thanks, Surasak Namnongor!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+	Dependencies:
+		Bump checkstyle from 8.44 to 8.45.1
+		Bump com.sun.xml.bind-version from 3.0.1 to 3.0.2
+		Bump git-commit-id-plugin from 4.0.5 to 4.9.10
+
 10.8.2 - 2021-07-25
 
 	General:

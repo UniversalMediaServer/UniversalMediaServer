@@ -154,7 +154,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-	private int updateId = 1;
 	private static int systemUpdateId = 1;
 	private boolean noName;
 	private int nametruncate;
@@ -434,7 +433,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		this.specificType = Format.UNKNOWN;
 		// this.children = new ArrayList<DLNAResource>();
 		this.children = new DLNAList();
-		this.updateId = 1;
 		resHash = 0;
 	}
 
@@ -1161,7 +1159,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		updateId += 1;
 		systemUpdateId += 1;
 	}
 
@@ -1707,13 +1704,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String getURL(String prefix, boolean useSystemName) {
+		return getURL(prefix, false, true);
+	}
+
+	public String getURL(String prefix, boolean useSystemName, boolean urlEncode) {
+		String uri = useSystemName ? getSystemName() : getName();
 		StringBuilder sb = new StringBuilder();
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); // id
 		sb.append('/');
 		sb.append(prefix);
-		sb.append(encode(useSystemName ? getSystemName() : getName()));
+		sb.append(urlEncode ? encode(uri) : uri);
 		return sb.toString();
 	}
 
@@ -2149,7 +2151,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			title = mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 		}
-		if (!mediaRenderer.isThumbnails() && this instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) this).getFile())) {
+
+		if (
+			!mediaRenderer.isThumbnails() &&
+			this instanceof RealFile &&
+			FullyPlayed.isFullyPlayedFileMark(((RealFile) this).getFile())
+		) {
 			title = FullyPlayed.addFullyPlayedNamePrefix(title, this);
 		}
 
@@ -2399,7 +2406,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// DESC Metadata support: add ability for control point to identify
 			// song by MusicBrainz TrackID
-			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
+			if (media.isAudio() && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
@@ -4112,28 +4119,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the updates id for this resource. When the resource needs to be
-	 * refreshed, its id is updated.
-	 *
-	 * @return The updated id.
-	 * @see #notifyRefresh()
-	 */
-	public int getUpdateId() {
-		return updateId;
-	}
-
-	/**
-	 * Sets the updated id for this resource. When the resource needs to be
-	 * refreshed, its id should be updated.
-	 *
-	 * @param updateId The updated id value to set.
-	 * @since 1.50
-	 */
-	protected void setUpdateId(int updateId) {
-		this.updateId = updateId;
-	}
-
-	/**
 	 * Returns the updates id for all resources. When all resources need to be
 	 * refreshed, this id is updated.
 	 *
@@ -4145,14 +4130,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the updated id for all resources. When all resources need to be
-	 * refreshed, this id should be updated.
-	 *
-	 * @param systemUpdateId The system updated id to set.
-	 * @since 1.50
+	 * Bumps the updated id for all resources. When any resources has been
+	 * changed this id should be bumped.
 	 */
-	public static void setSystemUpdateId(int systemUpdateId) {
-		DLNAResource.systemUpdateId = systemUpdateId;
+	public static void bumpSystemUpdateId() {
+		systemUpdateId++;
 	}
 
 	/**

@@ -1551,11 +1551,13 @@ public class RootFolder extends DLNAResource {
 						} else if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
+							bumpSystemUpdateId();
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntry(filename);
+							bumpSystemUpdateId();
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);
 							File file = new File(filename);
@@ -1573,6 +1575,11 @@ public class RootFolder extends DLNAResource {
 	 * @param file the file to parse
 	 */
 	public static final void parseFileForDatabase(File file) {
+		if (!MapFile.isPotentialMediaFile(file.getAbsolutePath())) {
+			LOGGER.trace("Not parsing file that can't be media");
+			return;
+		}
+
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
 		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -1581,6 +1588,7 @@ public class RootFolder extends DLNAResource {
 
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
+			bumpSystemUpdateId();
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}

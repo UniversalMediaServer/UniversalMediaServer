@@ -173,6 +173,7 @@ ul#Folders li span {
 #MediaContainer {
 	overflow-y: auto;
 	padding: 20px 0 20px 20px;
+	position: relative;
 }
 
 #Media {
@@ -184,13 +185,13 @@ ul#Media li {
 	float: left;
 	margin-right: 20px;
 	margin-bottom: 20px;
-}
+	position: relative;
+	display: block;
+	overflow: hidden;
 
-ul#Media li {
 	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
 	width: 308px;
 	height: 173px;
-	display: block;
 }
 
 ul#Media .thumb {
@@ -207,7 +208,7 @@ ul#Media .thumb {
 
 ul#Media .caption {
 	display: block;
-	max-width: 263px;
+	max-width: 100%;
 	height: 16px;
 	overflow: hidden;
 	float: left;
@@ -217,6 +218,28 @@ ul#Media .caption {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	line-height: 16px;
+}
+
+ul#Media .actions {
+	position: absolute;
+	top: -32px;
+	right: 8px;
+	background-color: #111;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+	padding: 8px;
+	opacity: 0.7;
+	transition: transform 250ms;
+}
+
+ul#Media li:hover .actions,
+ul#Media li:focus .actions {
+	transform: translateY(100%);
+}
+
+ul#Media .actions:hover,
+ul#Media .actions:focus {
+	opacity: 1;
 }
 
 ul#Media li:hover .caption {
@@ -247,9 +270,15 @@ ul#Media .caption:hover {
 	background: url('/files/bump/skin/remove16.png') no-repeat;
 }
 
+.download {
+	background: url('/files/down16.png') no-repeat;
+}
+
 .playlist_add,
 .playlist_del,
 .bumpIcon,
+.download,
+#M3uFolder,
 #ViewGrid,
 #ViewDynamic,
 #DocButton {
@@ -259,6 +288,8 @@ ul#Media .caption:hover {
 .playlist_add:hover,
 .playlist_del:hover,
 .bumpIcon:hover,
+.download:hover,
+#M3uFolder:hover,
 #ViewGrid:hover,
 #ViewDynamic:hover,
 #ViewGrid.active,
@@ -267,12 +298,22 @@ ul#Media .caption:hover {
 	opacity: 1.0;
 }
 
-.playlist_add, .playlist_del {
+.playlist_add, .playlist_del, .download {
 	width: 13px;
 	height: 16px;
 	display: block;
 	float: right;
 	margin-right:1px;
+}
+
+#M3uFolder {
+	background: url('/files/folderdown16.png') no-repeat;
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	display: block;
+	top: 29px;
+	right: 32px;
 }
 
 #ViewGrid,

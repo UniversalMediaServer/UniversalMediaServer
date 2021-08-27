@@ -10,6 +10,10 @@ ul#Media,
 	padding: 20px 20px 20px 0;
 }
 
+#M3uFolder {
+	top: 0;
+}
+
 #ContentPage #Menu {
 	background: url('/files/menu-background-content.png');
 	background-repeat: repeat-x;

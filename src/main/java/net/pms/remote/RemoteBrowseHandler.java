@@ -84,7 +84,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 			// ensure that we got a string
 			bumpHTML.append("");
 		}
-		item.put("bump", bumpHTML.toString());
+
+		bumpHTML.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
+			.append(RemoteUtil.getMsgString("Web.DownloadAsPlaylist", t)).append("\"></a>");
+
+		item.put("actions", bumpHTML.toString());
 
 		if (resource.isFolder() || WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
 			StringBuilder thumbHTML = new StringBuilder();
@@ -212,7 +216,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 					captionHTML.append("</a>");
 
 					item.put("caption", captionHTML.toString());
-					item.put("bump", "<span class=\"floatRight\"></span>");
+					item.put("actions", "<span class=\"floatRight\"></span>");
 					media.add(item);
 					hasFile = true;
 				}
@@ -283,7 +287,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						.append("<span class=\"caption\">").append(name).append("</span>")
 						.append("</a>");
 				item.put("caption", captionHTML.toString());
-				item.put("bump", "<span class=\"floatRight\"></span>");
+				item.put("actions", "<span class=\"floatRight\"></span>");
 				media.add(item);
 				hasFile = true;
 				continue;
@@ -419,6 +423,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		if (CONFIGURATION.useWebControl()) {
 			mustacheVars.put("push", true);
+		}
+		if (hasFile) {
+			mustacheVars.put("folderId", id);
+			mustacheVars.put("downloadFolderTooltip", RemoteUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
 		}
 
 		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
