@@ -791,7 +791,12 @@ public class PMS {
 
 				// Shut down library scanner
 				if (getConfiguration().getUseCache()) {
-					getDatabase().stopScanLibrary();
+					if (getDatabase() != null && getDatabase().isScanLibraryRunning()) {
+						LOGGER.debug("Database is still not null, attempting to close it");
+						getDatabase().stopScanLibrary();
+					} else {
+						LOGGER.debug("Database already closed");
+					}
 				}
 			}
 		});

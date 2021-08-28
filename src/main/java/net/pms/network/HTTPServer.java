@@ -53,7 +53,8 @@ public class HTTPServer implements Runnable {
 	private ChannelFactory factory;
 	private Channel channel;
 	private NetworkInterface networkInterface;
-	private ChannelGroup group;
+	private static ChannelGroup allChannels;
+	private ServerBootstrap bootstrap;
 
 	public NetworkInterface getNetworkInterface() {
 		return networkInterface;
@@ -100,14 +101,14 @@ public class HTTPServer implements Runnable {
 
 		if (CONFIGURATION.isHTTPEngineV2()) { // HTTP Engine V2
 			ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
-			group = new DefaultChannelGroup("HTTPServer");
+			allChannels = new DefaultChannelGroup("HTTPServer");
 			factory = new NioServerSocketChannelFactory(
 				Executors.newCachedThreadPool(new NettyBossThreadFactory()),
 				Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
 			);
 
-			ServerBootstrap bootstrap = new ServerBootstrap(factory);
-			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(group);
+			bootstrap = new ServerBootstrap(factory);
+			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(allChannels);
 			bootstrap.setPipelineFactory(pipeline);
 			bootstrap.setOption("child.tcpNoDelay", true);
 			bootstrap.setOption("child.keepAlive", true);
@@ -119,7 +120,7 @@ public class HTTPServer implements Runnable {
 			try {
 				channel = bootstrap.bind(address);
 
-				group.add(channel);
+				allChannels.add(channel);
 			} catch (Exception e) {
 				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
@@ -171,15 +172,13 @@ public class HTTPServer implements Runnable {
 		return ia != null;
 	}
 
-	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=10689&p=48811#p48811
-	//
 	// avoid a NPE when a) switching HTTP Engine versions and b) restarting the HTTP server
 	// by cleaning up based on what's in use (not null) rather than the config state, which
 	// might be inconsistent.
 	//
 	// NOTE: there's little in the way of cleanup to do here as PMS.reset() discards the old
 	// server and creates a new one
-	public void stop() {
+	public synchronized void stop() {
 		LOGGER.info("Stopping server on host {} and port {}...", hostname, port);
 
 		if (runnable != null) { // HTTP Engine V1
@@ -195,14 +194,19 @@ public class HTTPServer implements Runnable {
 			}
 		}
 
-		if (channel != null) { // HTTP Engine V2
-			if (group != null) {
-				group.close().awaitUninterruptibly();
+		/**
+		 * Netty v3 (HTTP Engine V2) shutdown approach from
+		 * @see https://netty.io/3.8/guide/#start.12
+		 */
+		if (channel != null) {
+			if (allChannels != null) {
+				allChannels.close().awaitUninterruptibly();
 			}
+			LOGGER.info("Confirm allChannels is empty: " + allChannels.toString());
 
-			if (factory != null) {
-				factory.releaseExternalResources();
-			}
+			LOGGER.info("This log happens");
+			bootstrap.releaseExternalResources();
+			LOGGER.info("This log sometimes does not happen");
 		}
 
 		NetworkConfiguration.forgetConfiguration();

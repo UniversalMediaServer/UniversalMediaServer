@@ -165,6 +165,14 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.debug("Database logging is disabled");
 		}
 
+		/**
+		 * Disable multi-threading because it can cause a hanging process. Can possibly
+		 * be removed if we ever upgrade to H2 1.4.200.
+		 *
+		 * @see https://github.com/h2database/h2database/issues/1841
+		 */
+		url += ";MULTI_THREADED=FALSE";
+
 		LOGGER.debug("Using database URL: {}", url);
 		LOGGER.info("Using database located at: \"{}\"", dbDir);
 
