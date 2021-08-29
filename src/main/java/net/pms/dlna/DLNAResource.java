@@ -2077,9 +2077,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean isFolder = isFolder();
 		if (!isFolder) {
 			if (media != null && media.isVideo()) {
-				if (!configurationSpecificToRenderer.isDisableSubtitles() &&
-					(player == null || mediaRenderer.streamSubsForTranscodedVideo()) && mediaSubtitle != null &&
-					mediaSubtitle.isExternal() && mediaRenderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this)) {
+				if (
+					!configurationSpecificToRenderer.isDisableSubtitles() &&
+					(
+						player == null ||
+						mediaRenderer.streamSubsForTranscodedVideo()
+					) &&
+					mediaSubtitle != null &&
+					mediaSubtitle.isExternal() &&
+					mediaRenderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this)
+				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("External subtitles \"{}\" can be streamed to {}", mediaSubtitle.getName(), mediaRenderer);
 				} else if (mediaSubtitle != null && LOGGER.isTraceEnabled()) {
@@ -2087,6 +2094,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						LOGGER.trace("Subtitles are disabled");
 					} else if (mediaSubtitle.isEmbedded()) {
 						LOGGER.trace("Subtitles track {} cannot be streamed because it is internal/embedded", mediaSubtitle.getId());
+					} else if (player != null && !mediaRenderer.streamSubsForTranscodedVideo()) {
+						LOGGER.trace("Subtitles \"{}\" aren't supported while transcoding to {}", mediaSubtitle.getName(), mediaRenderer);
 					} else {
 						LOGGER.trace("Subtitles \"{}\" aren't valid for streaming to {}", mediaSubtitle.getName(), mediaRenderer);
 					}
