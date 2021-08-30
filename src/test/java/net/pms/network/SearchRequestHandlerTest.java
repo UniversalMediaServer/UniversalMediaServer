@@ -42,10 +42,12 @@ public class SearchRequestHandlerTest {
 		String s = "( upnp:class derivedfrom \"object.item.videoItem\" )";
 		SearchRequest sr = new SearchRequest();
 		sr.setSearchCriteria(s);
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
 		String result = srh.convertToFilesSql(sr, srh.getRequestType(s)).toString();
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
-			"select\\s+FILENAME,\\s+MODIFIED,\\s+F\\.ID\\s+as\\s+FID\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s+\\(\\s+F\\.TYPE\\s+=\\s+4\\s+\\)"));
+			"select\\s+FILENAME\\s*,\\s*MODIFIED\\s*,\\s*F\\.ID\\s+as\\s+FID\\s*,\\s*F\\.ID\\s+as\\s+oid\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s*\\(\\s*F\\.TYPE\\s*=\\s*4\\s*\\)\\s*ORDER\\s+BY\\s+oid\\s+LIMIT\\s+999\\s+OFFSET\\s+0\\s*"));
 	}
 
 	@Test
@@ -53,6 +55,8 @@ public class SearchRequestHandlerTest {
 		SearchRequestHandler srh = new SearchRequestHandler();
 		SearchRequest sr = new SearchRequest();
 		RendererConfiguration rc = RendererConfiguration.getDefaultConf();
+		sr.setRequestedCount(0);
+		sr.setStartingIndex(0);
 		sr.setContainerId("0");
 		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.videoItem\"");
 		sr.setFilter(
