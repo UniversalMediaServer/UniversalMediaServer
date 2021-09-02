@@ -165,6 +165,8 @@ public class RendererConfigurationTest {
 
 		testHeaders("Philips Aurea", "User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00");
 
+		testUPNPDetails("Philips OLED TV", "friendlyName=55OLED805/12, modelName=Philips TV DMR");
+
 		testHeaders("Philips PUS TV", "User-Agent: 49PUS8503/12");
 		testUPNPDetails("Philips PUS TV", "friendlyName=49PUS8503/12");
 
