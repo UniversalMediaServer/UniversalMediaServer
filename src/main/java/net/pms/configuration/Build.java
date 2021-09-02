@@ -21,6 +21,7 @@
 package net.pms.configuration;
 
 import net.pms.PMS;
+import net.pms.update.AutoUpdater;
 import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
@@ -36,6 +37,11 @@ public class Build {
 	 * Can be null/empty if not used. Not used if IS_UPDATABLE is set to false.
 	 */
 	private static final String UPDATE_SERVER_URL = REPO + "/master/src/main/external-resources/update/latest_version.properties";
+
+	/**
+	 * The url of the releases page on Github
+	 */
+	private static final String RELEASES_PAGE_URL = "https://github.com/UniversalMediaServer/UniversalMediaServer/releases";
 
 	/**
 	 * If false, manual and automatic update checks are unconditionally disabled.
@@ -94,5 +100,13 @@ public class Build {
 	 */
 	public static String getProfileDirectoryName() {
 		return PMS.isRunningTests() ? "UMS-tests" : PROFILE_DIRECTORY_NAME;
+	}
+
+	/**
+	 *  Returns the {@link #RELEASES_PAGE_URL} where releases are located
+	 * @return The releases page url
+	 */
+	public static String getReleasesPageUrl(){
+		return RELEASES_PAGE_URL;
 	}
 }
