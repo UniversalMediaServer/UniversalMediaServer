@@ -1,17 +1,23 @@
 package net.pms.newgui.update;
 
 import com.sun.jna.Platform;
-import java.awt.Dimension;
-import java.awt.Window;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
@@ -23,6 +29,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private static final long serialVersionUID = 3809427933990495309L;
 	private final AutoUpdater autoUpdater;
 	private JLabel stateLabel = new JLabel();
+	private JLabel hyperLinkLabel = new HyperLinkLabel();
 	private JButton okButton = new DownloadButton();
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();
@@ -43,7 +50,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		this.autoUpdater = autoUpdater;
 		autoUpdater.addObserver(this);
 		initComponents();
-		setMinimumSize(new Dimension(0, 140));
+		setMinimumSize(new Dimension(0, 160));
 		setLocationRelativeTo(parent);
 		update();
 	}
@@ -89,6 +96,47 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				default:
 					break;
 			}
+		}
+	}
+
+	private class HyperLinkLabel extends JLabel implements MouseListener{
+		private static final long serialVersionUID = 4762020878159496714L;
+
+		HyperLinkLabel(){
+			super(Messages.getString("AutoUpdate.14"));
+			setForeground(Color.BLUE.darker());
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			addMouseListener(this);
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			Desktop desktop = Desktop.getDesktop();
+			try {
+				desktop.browse(new URI(Build.getReleasesPageUrl()));
+			} catch (IOException | URISyntaxException ex){
+				LOGGER.error(ex.getMessage());
+			}
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			setText(String.format("<html><a href=''>%s</a></html>",Messages.getString("AutoUpdate.14")));
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			setText(Messages.getString("AutoUpdate.14"));
 		}
 	}
 
@@ -218,12 +266,12 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
 		layout.setHorizontalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addComponent(okButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE).addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)).addComponent(stateLabel).addComponent(downloadProgressBar, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)).addContainerGap()));
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addComponent(okButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE).addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)).addComponent(stateLabel).addComponent(hyperLinkLabel).addComponent(downloadProgressBar, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)).addContainerGap()));
 
 		layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[]{cancelButton, okButton});
 
 		layout.setVerticalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addContainerGap().addComponent(stateLabel).addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(downloadProgressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(okButton).addComponent(cancelButton)).addContainerGap()));
+			layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addContainerGap().addComponent(stateLabel).addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(hyperLinkLabel).addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(downloadProgressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(okButton).addComponent(cancelButton)).addContainerGap()));
 
 		pack();
 	}
