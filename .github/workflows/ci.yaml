@@ -4,9 +4,6 @@ on: [push, pull_request_target]
 
 jobs:
   macos:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: macos-latest
     strategy:
       matrix:
@@ -36,9 +33,6 @@ jobs:
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
   windows:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -66,9 +60,6 @@ jobs:
         run: mvn verify -P linter
 
   linux:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
