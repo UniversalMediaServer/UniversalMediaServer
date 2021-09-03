@@ -20,13 +20,6 @@ jobs:
         uses: stCarolas/setup-maven@v4
         with:
           maven-version: 3.6.3
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Install dependencies from Maven
         run: mvn external:install
       - name: Run tests (XCode ${{ matrix.xcode }})
@@ -45,13 +38,6 @@ jobs:
         uses: stCarolas/setup-maven@v4
         with:
           maven-version: 3.6.3
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Install dependencies from Maven
         run: mvn external:install
       - name: Run tests
@@ -72,13 +58,6 @@ jobs:
         uses: stCarolas/setup-maven@v4
         with:
           maven-version: 3.6.3
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Install dependencies from Maven
         run: mvn external:install
       - name: Run tests
