@@ -99,10 +99,10 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		}
 	}
 
-	private class HyperLinkLabel extends JLabel implements MouseListener{
+	private class HyperLinkLabel extends JLabel implements MouseListener {
 		private static final long serialVersionUID = 4762020878159496714L;
 
-		HyperLinkLabel(){
+		HyperLinkLabel() {
 			super(Messages.getString("AutoUpdate.14"));
 			setForeground(Color.BLUE.darker());
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -114,7 +114,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			Desktop desktop = Desktop.getDesktop();
 			try {
 				desktop.browse(new URI(Build.getReleasesPageUrl()));
-			} catch (IOException | URISyntaxException ex){
+			} catch (IOException | URISyntaxException ex) {
 				LOGGER.error(ex.getMessage());
 			}
 		}
@@ -131,7 +131,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			setText(String.format("<html><a href=''>%s</a></html>",Messages.getString("AutoUpdate.14")));
+			setText(String.format("<html><a href=''>%s</a></html>", Messages.getString("AutoUpdate.14")));
 		}
 
 		@Override
