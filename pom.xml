@@ -81,7 +81,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>138</binary-revision>
+		<binary-revision>139</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
