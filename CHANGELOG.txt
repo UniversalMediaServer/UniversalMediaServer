@@ -1,4 +1,4 @@
-10.11.0 - 2021-09-
+10.11.0 - 2021-09-04
 
 	General:
 		Added link to changelog in auto updater (thanks, Patrick!)
@@ -10,6 +10,8 @@
 	Translation updates via Crowdin:
 		Chinese (Traditional) (95%) (thanks, Gene Wu!)
 		Czech (99%)
+		Danish (100%) (thanks, NCAA!)
+		Dutch (97%) (thanks, Jos van der logt!)
 		Finnish (100%) (thanks, Esko Gardner!)
 		Korean (100%) (thanks, VenusGirl!)
 		Polish (100%) (thanks, Karol Szastok!)
