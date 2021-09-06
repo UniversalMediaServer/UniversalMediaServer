@@ -372,14 +372,17 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
 		<dependency>
-			<groupId>jwbroek.cuelib</groupId>
-			<artifactId>cuelib</artifactId>
-			<version>${cuelib-version}</version>
+			<groupId>org.digitalmediaserver</groupId>
+			<artifactId>cuelib-core</artifactId>
+			<version>2.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
