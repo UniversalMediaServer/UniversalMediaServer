@@ -21,7 +21,6 @@
 package net.pms.configuration;
 
 import net.pms.PMS;
-import net.pms.update.AutoUpdater;
 import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
@@ -103,10 +102,9 @@ public class Build {
 	}
 
 	/**
-	 *  Returns the {@link #RELEASES_PAGE_URL} where releases are located
-	 * @return The releases page url
+	 * @return the {@link #RELEASES_PAGE_URL} where releases are located
 	 */
-	public static String getReleasesPageUrl(){
+	public static String getReleasesPageUrl() {
 		return RELEASES_PAGE_URL;
 	}
 }
