@@ -897,43 +897,6 @@
 				</configuration>
 			</plugin>
 
-			<!--
-				This plugin will take care of installing the external dependencies that do not
-				exist in a public Maven repository. That is why we store some jar files in the
-				"src/main/external-resources/lib" directory and have this plugin take care of
-				the installation at build time.
-
-				Checksums can be calculated with "openssl sha1 [filename]".
-			-->
-			<plugin>
-				<groupId>com.universalmediaserver</groupId>
-				<artifactId>external-maven-plugin</artifactId>
-				<version>0.3</version>
-				<inherited>false</inherited>
-				<configuration>
-					<disableSSLValidation>true</disableSSLValidation>
-					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
-					<createChecksum>true</createChecksum>
-					<artifactItems>
-						<artifactItem>
-							<groupId>jwbroek.cuelib</groupId>
-							<artifactId>cuelib</artifactId>
-							<version>${cuelib-version}</version>
-							<downloadUrl>http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/cuelib/cuelib-${cuelib-version}.jar</downloadUrl>
-							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
-						</artifactItem>
-					</artifactItems>
-				</configuration>
-				<executions>
-					<execution>
-						<id>clean-external-dependencies</id>
-						<phase>clean</phase>
-						<goals>
-							<goal>clean</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
