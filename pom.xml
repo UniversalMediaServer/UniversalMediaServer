@@ -3,16 +3,6 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
-		UMS consists of two major parts: UMS itself and the third party software needed to
-		run it. While UMS itself is 100% pure Java, some of the third party software is
-		not. This means building a platform specific distribution boils down to first
-		building the ums.jar and then assembling all application resources.
-
-		Note that Maven 3 does not automatically install all dependencies, unlike Maven 2.
-		To install external dependencies to your local repository, run the following commands:
-
-		mvn external:install
-
 		To build UMS, do:
 
 			mvn clean package
