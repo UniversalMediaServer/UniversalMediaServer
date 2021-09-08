@@ -30,7 +30,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.11.0-SNAPSHOT</version>
+	<version>10.11.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,8 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.11.0</project.version.short>
-		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
+		<project.version.short>10.11.1</project.version.short>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
 		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
@@ -81,11 +80,11 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>138</binary-revision>
+		<binary-revision>139</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
-		<maven-javadoc-plugin-version>3.3.0</maven-javadoc-plugin-version>
+		<maven-javadoc-plugin-version>3.3.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
@@ -372,14 +371,17 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
 		<dependency>
-			<groupId>jwbroek.cuelib</groupId>
-			<artifactId>cuelib</artifactId>
-			<version>${cuelib-version}</version>
+			<groupId>org.digitalmediaserver</groupId>
+			<artifactId>cuelib-core</artifactId>
+			<version>2.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
@@ -560,7 +562,7 @@
 
 				Check the net.java.dev.jna:jna-platform version before upgrading
 			-->
-			<version>5.8.1</version>
+			<version>5.8.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -912,13 +914,6 @@
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
 					<createChecksum>true</createChecksum>
 					<artifactItems>
-						<artifactItem>
-							<groupId>jwbroek.cuelib</groupId>
-							<artifactId>cuelib</artifactId>
-							<version>${cuelib-version}</version>
-							<downloadUrl>http://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/cuelib/cuelib-${cuelib-version}.jar</downloadUrl>
-							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
-						</artifactItem>
 					</artifactItems>
 				</configuration>
 				<executions>
