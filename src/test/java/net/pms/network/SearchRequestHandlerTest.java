@@ -41,7 +41,10 @@ public class SearchRequestHandlerTest {
 		SearchRequestHandler srh = new SearchRequestHandler();
 		String s = "( upnp:class derivedfrom \"object.item.videoItem\" )";
 		SearchRequest sr = new SearchRequest();
+		sr.setContainerId("0");
 		sr.setSearchCriteria(s);
+		sr.setStartingIndex(0);
+		sr.setRequestedCount(10);
 		String result = srh.convertToFilesSql(sr, srh.getRequestType(s)).toString();
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
