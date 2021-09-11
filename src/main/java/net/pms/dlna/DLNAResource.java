@@ -631,11 +631,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 							// Should the child be added to the #--TRANSCODE--# folder?
 							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
-								/*
-								 * true: create (and append) the #--TRANSCODE--# folder to this
-								 * folder if supported/enabled and if it doesn't already exist
-								 */
-								VirtualFolder transcodeFolder = getTranscodeFolder(true);
+								VirtualFolder transcodeFolder = getTranscodeFolder();
 								if (transcodeFolder != null) {
 									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child);
 									if (parent instanceof SubSelect) {
@@ -911,23 +907,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Return the transcode folder for this resource. If DMS is configured to
-	 * hide transcode folders, null is returned. If no folder exists and the
-	 * create argument is false, null is returned. If no folder exists and the
-	 * create argument is true, a new transcode folder is created. This method
-	 * is called on the parent folder each time a child is added to that parent
-	 * (via {@link addChild(DLNAResource)}.
+	 * Returns the transcode folder for this resource.
+	 * If UMS is configured to hide transcode folders, null is returned.
+	 * If no folder exists, a new transcode folder is created.
+	 * This method is called on the parent folder each time a child is added to
+	 * that parent (via {@link addChild(DLNAResource)}.
 	 *
-	 * @param create
 	 * @return the transcode virtual folder
 	 */
 	// XXX package-private: used by MapFile; should be protected?
-	TranscodeVirtualFolder getTranscodeFolder(boolean create) {
-		return getTranscodeFolder(create, true);
-	}
-
-	// does this need to happen on initial scan?
-	TranscodeVirtualFolder getTranscodeFolder(boolean create, boolean isAddGlobally) {
+	TranscodeVirtualFolder getTranscodeFolder() {
 		if (!isTranscodeFolderAvailable()) {
 			return null;
 		}
@@ -945,7 +934,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (create) {
 			TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null, configuration);
-			addChildInternal(transcodeFolder, isAddGlobally);
+			addChildInternal(transcodeFolder);
 			return transcodeFolder;
 		}
 
