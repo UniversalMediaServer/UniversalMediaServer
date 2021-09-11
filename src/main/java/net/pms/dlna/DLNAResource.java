@@ -910,6 +910,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Returns the transcode folder for this resource.
 	 * If UMS is configured to hide transcode folders, null is returned.
 	 * If no folder exists, a new transcode folder is created.
+	 * If transcode folder exists, it is returned.
 	 * This method is called on the parent folder each time a child is added to
 	 * that parent (via {@link addChild(DLNAResource)}.
 	 *
@@ -932,13 +933,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (create) {
-			TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null, configuration);
-			addChildInternal(transcodeFolder);
-			return transcodeFolder;
-		}
-
-		return null;
+		TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null, configuration);
+		addChildInternal(transcodeFolder);
+		return transcodeFolder;
 	}
 
 	public void updateChild(DLNAResource child) {
