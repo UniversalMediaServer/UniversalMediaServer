@@ -121,10 +121,10 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (configuration.isShowMediaLibraryFolder()) {
+		if (isAddGlobally && configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
+				addChild(libraryRes, true);
 			}
 		}
 
@@ -141,16 +141,22 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
-			lim = new FolderLimit();
-			addChild(lim, true, isAddGlobally);
-		}
+		if (isAddGlobally) {
+			if (
+				configuration.getFolderLimit() &&
+				getDefaultRenderer() != null &&
+				getDefaultRenderer().isLimitFolders()
+			) {
+				lim = new FolderLimit();
+				addChild(lim, true);
+			}
 
-		if (configuration.isDynamicPls()) {
-			addChild(PMS.get().getDynamicPls(), true, isAddGlobally);
-			if (!configuration.isHideSavedPlaylistFolder()) {
-				File plsdir = new File(configuration.getDynamicPlsSavePath());
-				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true, isAddGlobally);
+			if (configuration.isDynamicPls()) {
+				addChild(PMS.get().getDynamicPls(), true);
+				if (!configuration.isHideSavedPlaylistFolder()) {
+					File plsdir = new File(configuration.getDynamicPlsSavePath());
+					addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true);
+				}
 			}
 		}
 
@@ -185,36 +191,38 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		loadWebConf();
+		if (isAddGlobally) {
+			loadWebConf();
 
-		switch (Platform.getOSType()) {
-			case Platform.MAC:
-				if (configuration.isShowIphotoLibrary()) {
-					DLNAResource iPhotoRes = getiPhotoFolder();
-					if (iPhotoRes != null) {
-						addChild(iPhotoRes);
+			switch (Platform.getOSType()) {
+				case Platform.MAC:
+					if (configuration.isShowIphotoLibrary()) {
+						DLNAResource iPhotoRes = getiPhotoFolder();
+						if (iPhotoRes != null) {
+							addChild(iPhotoRes);
+						}
 					}
-				}
-				if (configuration.isShowApertureLibrary()) {
-					DLNAResource apertureRes = getApertureFolder();
-					if (apertureRes != null) {
-						addChild(apertureRes);
+					if (configuration.isShowApertureLibrary()) {
+						DLNAResource apertureRes = getApertureFolder();
+						if (apertureRes != null) {
+							addChild(apertureRes);
+						}
 					}
-				}
-			case Platform.WINDOWS:
-				if (configuration.isShowItunesLibrary()) {
-					DLNAResource iTunesRes = getiTunesFolder();
-					if (iTunesRes != null) {
-						addChild(iTunesRes);
+				case Platform.WINDOWS:
+					if (configuration.isShowItunesLibrary()) {
+						DLNAResource iTunesRes = getiTunesFolder();
+						if (iTunesRes != null) {
+							addChild(iTunesRes);
+						}
 					}
-				}
+			}
+
+			if (configuration.isShowServerSettingsFolder()) {
+				addAdminFolder();
+			}
+
+			setDiscovered(true);
 		}
-
-		if (configuration.isShowServerSettingsFolder()) {
-			addAdminFolder();
-		}
-
-		setDiscovered(true);
 	}
 
 	public void setFolderLim(DLNAResource r) {
@@ -1570,7 +1578,8 @@ public class RootFolder extends DLNAResource {
 	};
 
 	/**
-	 * Parses a file so it gets added to the Media Library along the way.
+	 * Parses a file so it gets parsed and added to the database
+	 * along the way.
 	 *
 	 * @param file the file to parse
 	 */
@@ -1580,6 +1589,7 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
+		// TODO: Can this use UnattachedFolder and add instead?
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
 		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -1598,7 +1608,7 @@ public class RootFolder extends DLNAResource {
 	 * Starts partial rescan
 	 *
 	 * @param filename This is the partial root of the scan. If a file is given,
-	 *            the parent folder will be scanned.
+	 *                 the parent folder will be scanned.
 	 */
 	public static void rescanLibraryFileOrFolder(String filename) {
 		if (
