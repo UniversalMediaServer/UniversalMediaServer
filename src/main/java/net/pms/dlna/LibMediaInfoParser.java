@@ -556,8 +556,10 @@ public class LibMediaInfoParser {
 			}
 			Tag t = af.getTag();
 			if (t != null) {
-				currentAudioTrack.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
-				currentAudioTrack.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
+				currentAudioTrack.setMbidRecord(val.equals("") ? null : val);
+				val = t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
+				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
 			}
 		} catch (Exception e) {
 		}
