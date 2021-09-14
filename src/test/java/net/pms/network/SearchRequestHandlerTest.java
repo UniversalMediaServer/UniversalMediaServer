@@ -61,8 +61,6 @@ public class SearchRequestHandlerTest {
 		sr.setSearchCriteria("upnp:class derivedfrom \"object.item.videoItem\"");
 		sr.setFilter(
 			"dc:title,av:mediaClass,dc:date,@childCount,av:chapterInfo,res,upnp:rating,upnp:rating@type,upnp:class,av:soundPhoto,res@resolution,res@av:mpfEntries,upnp:album,upnp:genre,upnp:albumArtURI,upnp:albumArtURI@dlna:profileID,dc:creator,res@size,res@duration,res@bitrate,res@protocolInfo");
-		sr.setStartingIndex(0);
-		sr.setRequestedCount(14);
 		sr.setSortCriteria("");
 		StringBuilder response = srh.createSearchResponse(sr, rc);
 		LOG.info("");
