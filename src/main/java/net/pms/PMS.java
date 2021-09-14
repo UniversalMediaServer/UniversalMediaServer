@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -778,6 +779,13 @@ public class PMS {
 				} else {
 					LOGGER.error("Unable to shut down logging gracefully");
 					System.err.println("Unable to shut down logging gracefully");
+				}
+
+				try {
+					Statement stmt = database.getConnection().createStatement();
+					stmt.execute("SHUTDOWN COMPACT");
+				} catch (SQLException e1) {
+					LOGGER.error("compacting DB ", e1);
 				}
 
 				if (configuration.getDatabaseLogging()) {

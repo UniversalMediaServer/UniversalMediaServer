@@ -144,7 +144,7 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + File.separator + dbName;
+		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
 
 		if (!Platform.isLinux()) {
 			/**
