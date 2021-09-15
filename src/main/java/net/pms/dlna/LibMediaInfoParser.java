@@ -294,7 +294,7 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setAlbumArtist(mI.Get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
-					addMusicBrainzIDs(file, currentAudioTrack);
+					addMusicBrainzIDs(file, currentAudioTrack);						
 
 					value = mI.Get(general, 0, "Track/Position");
 					if (!value.isEmpty()) {
@@ -562,6 +562,7 @@ public class LibMediaInfoParser {
 				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
 			}
 		} catch (Exception e) {
+			LOGGER.trace("Audio Tag not parsed: " + e.getMessage());
 		}
 	}
 

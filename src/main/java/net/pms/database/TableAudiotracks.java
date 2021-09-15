@@ -24,6 +24,7 @@ public class TableAudiotracks extends Tables {
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
 	private static final int SIZE_MAX = 255;
+	private static final int SIZE_MBID = 36;
 	private static final int SIZE_SAMPLEFREQ = 16;
 	private static final int SIZE_CODECA = 32;
 
@@ -105,8 +106,8 @@ public class TableAudiotracks extends Tables {
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
 			sb.append("  ID                INT              NOT NULL");
 			sb.append(", FILEID            BIGINT           NOT NULL");
-			sb.append(", MBID_RECORD       UUID");
-			sb.append(", MBID_TRACK        UUID");
+			sb.append(", MBID_RECORD       VARCHAR(").append(SIZE_MBID).append(')');
+			sb.append(", MBID_TRACK        VARCHAR(").append(SIZE_MBID).append(')');
 			sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
 			sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", NRAUDIOCHANNELS   NUMERIC");
