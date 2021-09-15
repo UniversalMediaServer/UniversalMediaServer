@@ -781,8 +781,7 @@ public class PMS {
 					System.err.println("Unable to shut down logging gracefully");
 				}
 
-				try {
-					Statement stmt = database.getConnection().createStatement();
+				try (Statement stmt = database.getConnection().createStatement()) {
 					stmt.execute("SHUTDOWN COMPACT");
 				} catch (SQLException e1) {
 					LOGGER.error("compacting DB ", e1);
