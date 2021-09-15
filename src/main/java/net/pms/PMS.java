@@ -781,13 +781,6 @@ public class PMS {
 					System.err.println("Unable to shut down logging gracefully");
 				}
 
-				try {
-					Statement stmt = database.getConnection().createStatement();
-					stmt.execute("SHUTDOWN COMPACT");
-				} catch (SQLException e1) {
-					LOGGER.error("compacting DB ", e1);
-				}
-
 				if (configuration.getDatabaseLogging()) {
 					// use an automatic H2database profiling tool to make a report at the end of the logging file
 					// converted to the "logging_report.txt" in the database directory
@@ -795,6 +788,12 @@ public class PMS {
 						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
 							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
 					} catch (SQLException e) {}
+				}
+
+				try (Statement stmt = database.getConnection().createStatement()) {
+					stmt.execute("SHUTDOWN COMPACT");
+				} catch (SQLException e1) {
+					LOGGER.error("compacting DB ", e1);
 				}
 			}
 		});
