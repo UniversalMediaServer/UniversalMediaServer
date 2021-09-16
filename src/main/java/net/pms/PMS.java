@@ -1140,6 +1140,10 @@ public class PMS {
 		return web == null ? null : web.getServer();
 	}
 
+	/**
+	 * Save the configuration changes immediately to the configuration
+	 * file and not wait for the automatic saving.
+	 */
 	public void saveConfiguration() {
 		try {
 			configuration.save();
