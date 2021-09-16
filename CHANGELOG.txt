@@ -1,3 +1,30 @@
+10.11.0 - 2021-09-04
+
+	General:
+		Added link to changelog in auto updater (thanks, Patrick!)
+		Fixed Dolby Vision video being detected as Digital Video (dv)
+		Fixed browsing on some renderers
+		Fixed tsMuxeR not working on macOS (thanks, justdan96!)
+	Renderers:
+		Improved support for subtitles on LG OLED TVs
+	Translation updates via Crowdin:
+		Chinese (Traditional) (95%) (thanks, Gene Wu!)
+		Czech (99%)
+		Danish (100%) (thanks, NCAA!)
+		Dutch (97%) (thanks, Jos van der logt!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Spanish (100%) (thanks, edwardalvarez2011!)
+		Turkish (100%) (thanks, Burak Yavuz and Erdin Koc!)
+		Ukrainian (19%) (thanks, Paul Furlet!)
+	Dependencies:
+		Bump checkstyle from 8.45.1 to 9.0
+		Bump JNA from 5.8.0 to 5.9.0
+		Bump oshi-core from 5.8.0 to 5.8.1
+		Bump tsMuxeR to 2021-09-02-01-59-46
+
 10.10.1 - 2021-08-23
 
 	General:
