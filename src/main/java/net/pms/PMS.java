@@ -733,6 +733,12 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					try { // force to save the configuration to file before stopping the UMS
+						configuration.save();
+					} catch (ConfigurationException e) {
+						LOGGER.trace("Failed to save Configuration.");
+					}
+
 					UPNPHelper.shutDownListener();
 					UPNPHelper.sendByeBye();
 
