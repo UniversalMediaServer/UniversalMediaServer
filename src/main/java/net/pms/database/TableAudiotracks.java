@@ -106,8 +106,8 @@ public class TableAudiotracks extends Tables {
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
 			sb.append("  ID                INT              NOT NULL");
 			sb.append(", FILEID            BIGINT           NOT NULL");
-			sb.append(", MBID_RECORD       VARCHAR(").append(SIZE_MBID).append(')');
-			sb.append(", MBID_TRACK        VARCHAR(").append(SIZE_MBID).append(')');
+			sb.append(", MBID_RECORD       UUID");
+			sb.append(", MBID_TRACK        UUID");
 			sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
 			sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", NRAUDIOCHANNELS   NUMERIC");
