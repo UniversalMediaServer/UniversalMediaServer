@@ -788,6 +788,16 @@ public class PMS {
 							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
 					} catch (SQLException e) {}
 				}
+
+				// Shut down library scanner
+				if (getConfiguration().getUseCache()) {
+					if (getDatabase() != null && getDatabase().isScanLibraryRunning()) {
+						LOGGER.debug("Database is still not null, attempting to close it");
+						getDatabase().stopScanLibrary();
+					} else {
+						LOGGER.debug("Database already closed");
+					}
+				}
 			}
 		});
 
