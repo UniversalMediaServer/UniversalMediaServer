@@ -800,14 +800,15 @@ public class PMS {
 					} else {
 						LOGGER.debug("Database already closed");
 				  }
-        }
+                }
         
 				if (database != null) {
 					try (Statement stmt = database.getConnection().createStatement()) {
 						stmt.execute("SHUTDOWN COMPACT");
 					} catch (SQLException e1) {
 						LOGGER.error("compacting DB ", e1);
-				}
+				    }
+			    }
 			}
 		});
 
