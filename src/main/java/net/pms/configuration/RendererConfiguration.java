@@ -2119,7 +2119,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return whether to use MediaInfo
 	 */
 	public boolean isUseMediaInfo() {
-		return getBoolean(MEDIAPARSERV2, false) && LibMediaInfoParser.isValid();
+		return getBoolean(MEDIAPARSERV2, true) && LibMediaInfoParser.isValid();
 	}
 
 	public boolean isMediaInfoThumbnailGeneration() {
