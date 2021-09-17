@@ -4,9 +4,6 @@ on: [push, pull_request_target]
 
 jobs:
   windows:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
