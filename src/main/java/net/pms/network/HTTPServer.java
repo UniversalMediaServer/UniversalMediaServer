@@ -204,9 +204,7 @@ public class HTTPServer implements Runnable {
 			}
 			LOGGER.info("Confirm allChannels is empty: " + allChannels.toString());
 
-			LOGGER.info("This log happens");
 			bootstrap.releaseExternalResources();
-			LOGGER.info("This log sometimes does not happen");
 		}
 
 		NetworkConfiguration.forgetConfiguration();
