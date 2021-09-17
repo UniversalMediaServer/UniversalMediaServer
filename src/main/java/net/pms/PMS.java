@@ -249,6 +249,16 @@ public class PMS {
 	 */
 	private DLNAMediaDatabase database;
 	private Object databaseLock = new Object();
+	private boolean databaseInUse = false;
+
+	/**
+	 * Checks if the database is in use.
+	 *
+	 * @return true : database is in use
+	 */
+	public boolean isDatabaseInUse() {
+		return this.databaseInUse;
+	}
 
 	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
@@ -258,6 +268,7 @@ public class PMS {
 	public DLNAMediaDatabase getDatabase() {
 		synchronized (databaseLock) {
 			if (database == null) {
+				this.databaseInUse = true;
 				database = new DLNAMediaDatabase("medias");
 				database.init(false);
 			}
@@ -792,10 +803,12 @@ public class PMS {
 					} catch (SQLException e) {}
 				}
 
-				try (Statement stmt = database.getConnection().createStatement()) {
-					stmt.execute("SHUTDOWN COMPACT");
-				} catch (SQLException e1) {
-					LOGGER.error("compacting DB ", e1);
+				if (isDatabaseInUse()) {
+					try (Statement stmt = database.getConnection().createStatement()) {
+						stmt.execute("SHUTDOWN COMPACT");
+					} catch (SQLException e1) {
+						LOGGER.error("compacting DB ", e1);
+					}
 				}
 			}
 		});
