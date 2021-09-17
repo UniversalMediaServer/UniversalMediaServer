@@ -1,3 +1,26 @@
+10.12.0 - 2021-09-
+	General:
+		Increased performance and reduced memory use of startup scan
+		Renderer configurations now have MediaInfo enabled by default
+		Fixed files locking during or just after download
+		Fixed process hanging on shutdown
+		Made building the project faster
+		Started using DeepSource for static code analysis
+	Translation updates via Crowdin:
+		French (100%) (thanks, Archaos!)
+		German (100%) (thanks, pipin!)
+		Italian (100%) (thanks, Marco F. V. Baljet!)
+		Portuguese (Brazilian) (thanks, Mauro.A!)
+		Russian (96%) (thanks, Andrey Zhernovoy!)
+	Dependencies:
+		Revert h2database from 1.4.199 to 1.4.197
+		Bump JRE to 8u302+8 on macOS
+		Bump junit5.version from 5.7.2 to 5.8.0
+		Bump maven-javadoc-plugin from 3.3.0 to 3.3.1
+		Bump maven-pmd-plugin from 3.14.0 to 3.15.0
+		Bump oshi-core from 5.8.1 to 5.8.2
+		Fixed using x64 JRE on x86 (i586) Linux
+
 10.11.0 - 2021-09-04
 
 	General:
