@@ -729,10 +729,10 @@ public class PMS {
 		UPNPHelper.getInstance().createMulticastSocket();
 
 		TimerTask refreshConnectionSpeed = new TimerTask() {
-		    @Override
-		    public void run() {
-		    	configuration.calculateAllSpeeds(true);
-		    }
+			@Override
+			public void run() {
+				configuration.calculateAllSpeeds(true);
+			}
 		};
 
 		new Timer().schedule(refreshConnectionSpeed, 60000, 60000);
