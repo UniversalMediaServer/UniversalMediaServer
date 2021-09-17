@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.11.1-SNAPSHOT</version>
+	<version>10.12.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.11.1</project.version.short>
+		<project.version.short>10.12.0</project.version.short>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
 		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
@@ -70,7 +70,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>139</binary-revision>
+		<binary-revision>140</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -194,8 +194,8 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<!-- Versions above 1.4.199 should only be used when https://github.com/UniversalMediaServer/UniversalMediaServer/issues/2030 is done -->
-			<version>1.4.199</version>
+			<!-- Versions above 1.4.197 should only be used when https://github.com/UniversalMediaServer/UniversalMediaServer/issues/2030 is done -->
+			<version>1.4.197</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -1987,12 +1987,13 @@
 										<mkdir dir="${project.binaries}/linux/x86/jre8" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/bin" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/lib" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/amd64" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/amd64/jli" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/amd64/server" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/applet" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/cmm" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/ext" />
+										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386" />
+										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/jli" />
+										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/client" />
+										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/server" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/images" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/images/cursors" />
 										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/jfr" />
@@ -2044,44 +2045,6 @@
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/rt.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/sound.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/tzdb.dat" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/jvm.cfg" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libawt.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libawt_headless.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libawt_headless.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libawt_xawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libawt_xawt.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libdt_socket.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libdt_socket.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libfreetype.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libfreetype.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libfontmanager.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libfontmanager.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libhprof.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libhprof.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libinstrument.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libinstrument.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libj2gss.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libj2gss.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libj2pcsc.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libj2pcsc.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libj2pkcs11.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libj2pkcs11.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjaas_unix.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjaas_unix.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjava.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjava.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjava_crw_demo.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjava_crw_demo.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjawt.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjdwp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjdwp.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjpeg.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjpeg.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjsdt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjsdt.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjsig.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjsound.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjsound.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libjsoundalsa.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libjsoundalsa.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/liblcms.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/liblcms.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libmanagement.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libmanagement.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libmlib_image.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libmlib_image.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libnet.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libnet.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libnio.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libnio.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libnpt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libnpt.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libsctp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libsctp.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libsplashscreen.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libsplashscreen.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libsunec.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libsunec.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libunpack.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libunpack.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libverify.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libverify.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/libzip.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/libzip.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/jli/libjli.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/jli/libjli.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/server/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/server/libjsig.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/server/libjvm.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/server/libjvm.so" usetimestamp="true" />
-                                        <get src="${project.binaries-base}/linux/x86/jre8/lib/amd64/server/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/amd64/server/Xusage.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/GRAY.pf" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
@@ -2097,6 +2060,47 @@
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/sunjce_provider.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/sunpkcs11.jar" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/zipfs.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/jvm.cfg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libawt.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libawt_headless.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libawt_headless.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libawt_xawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libawt_xawt.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libdt_socket.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libdt_socket.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libfontmanager.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libfontmanager.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libfreetype.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libfreetype.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libhprof.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libhprof.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libinstrument.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libinstrument.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libj2gss.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libj2gss.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libj2pcsc.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libj2pcsc.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libj2pkcs11.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libj2pkcs11.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjaas_unix.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjaas_unix.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjava.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjava.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjava_crw_demo.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjava_crw_demo.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjawt.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjdwp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjdwp.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjpeg.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjpeg.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsdt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsdt.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsig.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsound.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsound.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsoundalsa.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsoundalsa.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/liblcms.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/liblcms.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libmanagement.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libmanagement.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libmlib_image.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libmlib_image.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libnet.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libnet.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libnio.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libnio.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libnpt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libnpt.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libsctp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libsctp.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libsplashscreen.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libsplashscreen.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libsunec.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libsunec.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libunpack.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libunpack.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libverify.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libverify.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libzip.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libzip.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/client/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/client/libjsig.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/client/libjvm.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/client/libjvm.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/client/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/client/Xusage.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/jli/libjli.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/jli/libjli.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/server/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/server/libjsig.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/server/libjvm.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/server/libjvm.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/server/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/server/Xusage.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/cursors.properties" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/motif_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/motif_CopyDrop32x32.gif" usetimestamp="true" />
