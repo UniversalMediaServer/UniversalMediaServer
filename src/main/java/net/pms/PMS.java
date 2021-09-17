@@ -731,6 +731,7 @@ public class PMS {
 		TimerTask refreshConnectionSpeed = new TimerTask() {
 			@Override
 			public void run() {
+				LOGGER.info("Checking actual network speed for all connected renderers");
 				configuration.calculateAllSpeeds(true);
 			}
 		};
