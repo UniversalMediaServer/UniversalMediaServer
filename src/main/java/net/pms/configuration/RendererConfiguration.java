@@ -545,12 +545,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				sa.isAnyLocalAddress()
 			)
 		) {
-			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName(), false);
 		}
 		return true;
 	}
 
-	public static void calculateAllSpeeds() {
+	public static void calculateAllSpeeds(boolean refresh) {
 		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			InetAddress sa = entry.getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
@@ -558,7 +558,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 			RendererConfiguration r = entry.getValue();
 			if (!r.isOffline()) {
-				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName(), refresh);
 			}
 		}
 	}

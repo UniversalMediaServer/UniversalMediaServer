@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -690,7 +691,7 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(7000);
+					sleep(7000);
 				} catch (InterruptedException e) {
 				}
 
@@ -726,6 +727,15 @@ public class PMS {
 		ready = true;
 
 		UPNPHelper.getInstance().createMulticastSocket();
+
+		TimerTask refreshConnectionSpeed = new TimerTask() {
+		    @Override
+		    public void run() {
+		    	configuration.calculateAllSpeeds(true);
+		    }
+		};
+
+		new Timer().schedule(refreshConnectionSpeed, 60000, 60000);
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {

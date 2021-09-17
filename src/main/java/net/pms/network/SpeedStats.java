@@ -78,12 +78,16 @@ public class SpeedStats {
 	 *
 	 * @return The network throughput
 	 */
-	public Future<Integer> getSpeedInMBits(InetAddress addr, String rendererName) {
+	public Future<Integer> getSpeedInMBits(InetAddress addr, String rendererName, boolean refresh) {
 		synchronized (speedStats) {
-			Future<Integer> value = speedStats.get(addr.getHostAddress());
-			if (value != null) {
-				return value;
+			Future<Integer> value;
+			if (!refresh) { // if not needed actual speed return stored value
+				value = speedStats.get(addr.getHostAddress());
+				if (value != null) {
+					return value;
+				}
 			}
+
 			value = executor.submit(new MeasureSpeed(addr, rendererName));
 			speedStats.put(addr.getHostAddress(), value);
 			return value;
