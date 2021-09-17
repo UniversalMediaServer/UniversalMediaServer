@@ -340,7 +340,7 @@
 			<artifactId>jaudiotagger</artifactId>
 			<scope>system</scope>
 			<version>2.2.6-SNAPSHOT</version>
-			<systemPath>${project.basedir}\src\main\external-resources\lib\jaudiotagger-2.2.6-SNAPSHOT.jar</systemPath>
+			<systemPath>${project.basedir}/src/main/external-resources/lib/jaudiotagger-2.2.6-SNAPSHOT.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>
