@@ -550,6 +550,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return true;
 	}
 
+	/**
+	 * Calculate the network speed for all renderers connected to the UMS. It stores
+	 * the current speed for each renderer.
+	 *
+	 * @param refresh If {@code true} recalculate the current speed and set it
+	 * to the {@code speedStats} for the future use or returns the previously 
+	 * calculated speed stored in it.
+	 */
 	public static void calculateAllSpeeds(boolean refresh) {
 		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			InetAddress sa = entry.getKey();
