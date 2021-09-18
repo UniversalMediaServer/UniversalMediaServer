@@ -71,10 +71,13 @@ public class SpeedStats {
 
 	/**
 	 * Return the network throughput for the given IP address in MBits. It is calculated in the background, and cached,
-	 * so only a reference is given to the result, which can be retrieved by calling the get() method on it.
+	 * so a reference is given to the result when the {@code refresh} is {@code false}.
+	 * The stored value can be also retrieved by calling the get() method on it.
+	 * When {@code refresh} is true the actual network throughput is recalculated and stored in it.
 	 *
-	 * @param addr
-	 * @param rendererName
+	 * @param addr Address of the renderer.
+	 * @param rendererName The renderer name for which the network throughput is calculated.
+	 * @param refresh Whether to recalculate the network throughput for given renderer. 
 	 *
 	 * @return The network throughput
 	 */
