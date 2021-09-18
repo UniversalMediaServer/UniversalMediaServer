@@ -77,7 +77,7 @@ public class SpeedStats {
 	 *
 	 * @param addr Address of the renderer.
 	 * @param rendererName The renderer name for which the network throughput is calculated.
-	 * @param refresh Whether to recalculate the network throughput for given renderer. 
+	 * @param refresh Whether to recalculate the network throughput for given renderer.
 	 *
 	 * @return The network throughput
 	 */
