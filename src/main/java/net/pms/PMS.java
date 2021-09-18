@@ -736,7 +736,7 @@ public class PMS {
 			}
 		};
 
-		new Timer().schedule(refreshConnectionSpeed, 60000, 60000);
+		new Timer("Catculate actual network speed", true).schedule(refreshConnectionSpeed, 60000, 60000);
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
