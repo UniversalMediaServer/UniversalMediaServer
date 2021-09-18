@@ -555,7 +555,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * the current speed for each renderer.
 	 *
 	 * @param refresh If {@code true} recalculate the current speed and set it
-	 * to the {@code speedStats} for the future use or returns the previously 
+	 * to the {@code speedStats} for the future use or returns the previously
 	 * calculated speed stored in it.
 	 */
 	public static void calculateAllSpeeds(boolean refresh) {
