@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -90,7 +91,6 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK = "nativelook";
@@ -732,6 +732,9 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					// force to save the configuration to file before stopping the UMS
+					saveConfiguration();
+
 					UPNPHelper.shutDownListener();
 					UPNPHelper.sendByeBye();
 
@@ -798,6 +801,14 @@ public class PMS {
 						LOGGER.debug("Database already closed");
 					}
 				}
+
+				if (database != null) {
+					try (Statement stmt = database.getConnection().createStatement()) {
+						stmt.execute("SHUTDOWN COMPACT");
+					} catch (SQLException e1) {
+						LOGGER.error("compacting DB ", e1);
+					}
+				}
 			}
 		});
 
@@ -812,7 +823,7 @@ public class PMS {
 		UPNPHelper.listen();
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
-		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {
+		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
 			getDatabase().scanLibrary();
 		}
 
@@ -878,20 +889,15 @@ public class PMS {
 	public synchronized String usn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
-			uuid = getConfiguration().getUuid();
+			uuid = configuration.getUuid();
 
 			if (uuid == null) {
 				uuid = UUID.randomUUID().toString();
 				LOGGER.info("Generated new random UUID: {}", uuid);
 
 				// save the newly-generated UUID
-				getConfiguration().setUuid(uuid);
-
-				try {
-					getConfiguration().save();
-				} catch (ConfigurationException e) {
-					LOGGER.error("Failed to save configuration with new UUID", e);
-				}
+				configuration.setUuid(uuid);
+				saveConfiguration();
 			}
 
 			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
@@ -1048,8 +1054,8 @@ public class PMS {
 		}
 
 		try {
-			setConfiguration(new PmsConfiguration());
-			assert getConfiguration() != null;
+			configuration = new PmsConfiguration();
+			assert configuration != null;
 
 			// Log whether the service is installed as it may help with debugging and support
 			if (Platform.isWindows()) {
@@ -1066,7 +1072,7 @@ public class PMS {
 			 */
 
 			// Set root level from configuration here so that logging is available during renameOldLogFile();
-			LoggingConfig.setRootLevel(Level.toLevel(getConfiguration().getRootLogLevel()));
+			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
 			renameOldLogFile();
 
 			// Load the (optional) LogBack config file.
@@ -1105,12 +1111,12 @@ public class PMS {
 			LOGGER.debug(new Date().toString());
 
 			try {
-				getConfiguration().initCred();
+				configuration.initCred();
 			} catch (IOException e) {
 				LOGGER.debug("Error initializing plugin credentials: {}", e);
 			}
 
-			if (getConfiguration().isRunSingleInstance()) {
+			if (configuration.isRunSingleInstance()) {
 				killOld();
 			}
 
@@ -1146,7 +1152,11 @@ public class PMS {
 		return web == null ? null : web.getServer();
 	}
 
-	public void save() {
+	/**
+	 * Save the configuration changes immediately to the configuration
+	 * file and not wait for the automatic saving.
+	 */
+	public void saveConfiguration() {
 		try {
 			configuration.save();
 		} catch (ConfigurationException e) {
@@ -1162,7 +1172,7 @@ public class PMS {
 	 */
 	public void storeFileInCache(File file, int formatType) {
 		if (
-			getConfiguration().getUseCache() &&
+			configuration.getUseCache() &&
 			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
 		) {
 			try {
