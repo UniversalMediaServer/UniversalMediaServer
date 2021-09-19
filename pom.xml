@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.11.1-SNAPSHOT</version>
+	<version>10.12.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.11.1</project.version.short>
+		<project.version.short>10.12.0</project.version.short>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
 		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
@@ -336,9 +336,11 @@
 			<version>2.16.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.goxr3plus</groupId>
+			<groupId>jaudiotagger</groupId>
 			<artifactId>jaudiotagger</artifactId>
-			<version>2.2.7</version>
+			<scope>system</scope>
+			<version>2.2.6-SNAPSHOT</version>
+			<systemPath>${project.basedir}/src/main/external-resources/lib/jaudiotagger-2.2.6-SNAPSHOT.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>

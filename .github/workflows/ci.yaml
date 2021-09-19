@@ -4,9 +4,6 @@ on: [push, pull_request_target]
 
 jobs:
   macos:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: macos-latest
     strategy:
       matrix:
@@ -23,19 +20,17 @@ jobs:
         uses: stCarolas/setup-maven@v4
         with:
           maven-version: 3.6.3
-      - name: Cache Maven packages
+      - name: Cache local Maven repository
         uses: actions/cache@v2
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - name: Run tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
   windows:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -48,21 +43,19 @@ jobs:
         uses: stCarolas/setup-maven@v4
         with:
           maven-version: 3.6.3
-      - name: Cache Maven packages
+      - name: Cache local Maven repository
         uses: actions/cache@v2
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - name: Run tests
         run: mvn verify -P testing-windows
       - name: Run linter
         run: mvn verify -P linter
 
   linux-bionic:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
@@ -75,12 +68,13 @@ jobs:
         uses: stCarolas/setup-maven@v4
         with:
           maven-version: 3.6.3
-      - name: Cache Maven packages
+      - name: Cache local Maven repository
         uses: actions/cache@v2
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
@@ -91,9 +85,6 @@ jobs:
           mvn verify -P testing
 
   linux-focal:
-    if: |
-      (github.event_name == 'push' && github.actor != 'dependabot[bot]') ||
-      (github.event_name == 'pull_request_target')
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
