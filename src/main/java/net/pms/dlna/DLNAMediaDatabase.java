@@ -44,7 +44,6 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.CharMatcher;
-import com.sun.jna.Platform;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -145,18 +144,6 @@ public class DLNAMediaDatabase implements Runnable {
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
 		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
-
-		if (!Platform.isLinux()) {
-			/**
-			 * This enables multiple database connections, which is useful for
-			 * debugging (can run UMS and H2 debug tool at the same time) and
-			 * also makes it less bad when there is a hung process.
-			 *
-			 * Disabled on Linux because of a connection error seen on SUSE.
-			 * @see https://www.universalmediaserver.com/forum/viewtopic.php?f=10&t=14774
-			 */
-			url += ";AUTO_SERVER=TRUE";
-		}
 
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
@@ -638,7 +625,6 @@ public class DLNAMediaDatabase implements Runnable {
 								audio.setGenre(elements.getString("GENRE"));
 								audio.setYear(elements.getInt("YEAR"));
 								audio.setTrack(elements.getInt("TRACK"));
-								audio.setDisc(elements.getInt("DISC"));
 								audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
 								audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
 								audio.setBitRate(elements.getInt("BITRATE"));
@@ -780,14 +766,14 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
-			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK, DISC";
+			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK";
 
 		TABLE_LOCK.writeLock().lock();
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
 					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
-					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DISC, " +
+					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, " +
 					"DELAY, MUXINGMODE, BITRATE " +
 				"FROM AUDIOTRACKS " +
 				"WHERE " +
@@ -828,7 +814,6 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("GENRE", left(trimToEmpty(audioTrack.getGenre()), SIZE_GENRE));
 						rs.updateInt("YEAR", audioTrack.getYear());
 						rs.updateInt("TRACK", audioTrack.getTrack());
-						rs.updateInt("DISC", audioTrack.getDisc());
 						rs.updateInt("DELAY", audioTrack.getAudioProperties().getAudioDelay());
 						rs.updateString("MUXINGMODE", left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
 						rs.updateInt("BITRATE", audioTrack.getBitRate());
@@ -863,7 +848,6 @@ public class DLNAMediaDatabase implements Runnable {
 						insertStatement.setInt(18, audioTrack.getBitRate());
 						insertStatement.setString(19, audioTrack.getMbidRecord());
 						insertStatement.setString(20, audioTrack.getMbidTrack());
-						insertStatement.setInt(21, audioTrack.getDisc());
 						insertStatement.executeUpdate();
 					}
 				}
