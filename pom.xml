@@ -336,11 +336,9 @@
 			<version>2.16.0</version>
 		</dependency>
 		<dependency>
-			<groupId>jaudiotagger</groupId>
+			<groupId>com.github.goxr3plus</groupId>
 			<artifactId>jaudiotagger</artifactId>
-			<scope>system</scope>
-			<version>2.2.6-SNAPSHOT</version>
-			<systemPath>${project.basedir}/src/main/external-resources/lib/jaudiotagger-2.2.6-SNAPSHOT.jar</systemPath>
+			<version>2.2.7</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>
