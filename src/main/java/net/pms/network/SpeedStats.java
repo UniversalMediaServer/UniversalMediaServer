@@ -157,7 +157,7 @@ public class SpeedStats {
 				}
 			}
 			double speedInMbits1 = bps / (cnt * 1000000);
-			LOGGER.info("Renderer {} has an estimated network speed of {} Mb/s", rendererName, speedInMbits1);
+			LOGGER.info("Renderer {} has an estimated network speed of {} Mb/s", rendererName, (int) speedInMbits1);
 			int speedInMbits = (int) speedInMbits1;
 			if (speedInMbits1 < 1.0) {
 				speedInMbits = -1;
