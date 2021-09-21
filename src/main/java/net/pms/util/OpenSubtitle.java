@@ -131,6 +131,7 @@ import net.pms.util.XMLRPCUtil.ValueStruct;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final CacheUtil<String,String> cacheUtil = new CacheUtil<>();
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
@@ -205,6 +206,9 @@ public class OpenSubtitle {
 	 * "http://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes"
 	 * >OpenSubtitles hash</a> for the specified {@link Path}.
 	 *
+	 * The availability of the hash is first checked in the cache and returned if available
+	 * Otherwise it is calculated, stored in the cache and returned
+	 *
 	 * @param file the {@link Path} for which to calculate the hash.
 	 * @return The calculated OpenSubtitles hash or {@code null}.
 	 * @throws IOException If an I/O error occurs during the operation.
@@ -214,6 +218,9 @@ public class OpenSubtitle {
 			return null;
 		}
 
+		String cachedHash = cacheUtil.getItem(file.getFileName().toString());
+		if(cachedHash!=null)return cachedHash;
+
 		long size = Files.size(file);
 		long chunkSizeForFile = Math.min(HASH_CHUNK_SIZE, size);
 
@@ -221,7 +228,9 @@ public class OpenSubtitle {
 			long head = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, 0, chunkSizeForFile));
 			long tail = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, Math.max(size - HASH_CHUNK_SIZE, 0), chunkSizeForFile));
 
-			return String.format("%016x", size + head + tail);
+			String hash =  String.format("%016x", size + head + tail);
+			cacheUtil.setItem(file.getFileName().toString(),hash);
+			return hash;
 		}
 	}
 
@@ -365,7 +374,6 @@ public class OpenSubtitle {
 	 * <b>All access to {@link #token} must be protected by
 	 * {@link #TOKEN_LOCK}</b>.
 	 *
-	 * @param url The API {@link URL} to use for login.
 	 * @return The URL to use if the login was a success, {@code null}
 	 *         otherwise.
 	 */
