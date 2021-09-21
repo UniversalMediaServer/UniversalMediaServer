@@ -1599,6 +1599,19 @@ public class RootFolder extends DLNAResource {
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
 			bumpSystemUpdateId();
+
+			/*
+			 * Something about this process causes Java to hold onto the
+			 * file, which prevents things happening to it on the filesystem
+			 * until the garbage collector runs.
+			 * Some sources say it is a symptom of the nio namespace itself
+			 * and the fix is to use older syntax, and others say other things,
+			 * but until we have a real fix for it we ask Java to collect the
+			 * garbage. It might not do it, but usually it does, which is better
+			 * than what we had before.
+			 */
+			System.gc();
+			System.runFinalization();
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}

@@ -1,5 +1,7 @@
 version = 1
 
+exclude_patterns = ["src/main/external-resources/web/util/**"]
+
 [[analyzers]]
 name = "java"
 enabled = true

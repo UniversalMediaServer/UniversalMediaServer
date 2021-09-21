@@ -44,7 +44,6 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.CharMatcher;
-import com.sun.jna.Platform;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -144,19 +143,7 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + File.separator + dbName;
-
-		if (!Platform.isLinux()) {
-			/**
-			 * This enables multiple database connections, which is useful for
-			 * debugging (can run UMS and H2 debug tool at the same time) and
-			 * also makes it less bad when there is a hung process.
-			 *
-			 * Disabled on Linux because of a connection error seen on SUSE.
-			 * @see https://www.universalmediaserver.com/forum/viewtopic.php?f=10&t=14774
-			 */
-			url += ";AUTO_SERVER=TRUE";
-		}
+		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
 
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
