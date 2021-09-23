@@ -154,7 +154,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-	private int updateId = 1;
 	private static int systemUpdateId = 1;
 	private boolean noName;
 	private int nametruncate;
@@ -434,7 +433,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		this.specificType = Format.UNKNOWN;
 		// this.children = new ArrayList<DLNAResource>();
 		this.children = new DLNAList();
-		this.updateId = 1;
 		resHash = 0;
 	}
 
@@ -517,7 +515,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			defaultRenderer = parent.getDefaultRenderer();
 		}
 
-		if (configuration.useCode() && !PMS.get().masterCodeValid()) {
+		if (isAddGlobally && configuration.useCode() && !PMS.get().masterCodeValid()) {
 			String code = PMS.get().codeDb().getCode(child);
 			if (StringUtils.isNotEmpty(code)) {
 				DLNAResource cobj = child.isCoded();
@@ -527,7 +525,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ce.setParent(this);
 					ce.setDefaultRenderer(this.getDefaultRenderer());
 					ce.setCode(code);
-					addChildInternal(ce, isAddGlobally);
+					addChildInternal(ce);
 					return;
 				}
 			}
@@ -535,7 +533,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				if (child.format != null) {
+				if (isAddGlobally && child.format != null) {
 					// Do not add unsupported media formats to the list
 					if (defaultRenderer != null && !defaultRenderer.supportsFormat(child.format)) {
 						LOGGER.trace("Ignoring file \"{}\" because it is not supported by renderer \"{}\"", child.getName(),
@@ -563,13 +561,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAResource resumeRes = null;
 
 				ResumeObj resumeObject = ResumeObj.create(child);
-				if (resumeObject != null && !defaultRenderer.disableUmsResume() && !defaultRenderer.isSamsung()) {
+				if (
+					isAddGlobally &&
+					resumeObject != null &&
+					!defaultRenderer.disableUmsResume() &&
+					!defaultRenderer.isSamsung()
+				) {
 					resumeRes = child.clone();
 					resumeRes.resume = resumeObject;
 					resumeRes.resHash = child.resHash;
 				}
 
-				if (child.format != null) {
+				if (isAddGlobally && child.format != null) {
 					// Determine transcoding possibilities if either
 					// - the format is known to be transcodable
 					// - we have media info (via parserV2, playback info, or a
@@ -626,14 +629,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!allChildrenAreFolders) {
 							child.setDefaultRenderer(defaultRenderer);
 
-							// Should the child be added to the #--TRANSCODE--#
-							// folder?
+							// Should the child be added to the #--TRANSCODE--# folder?
 							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
-								// true: create (and append) the #--TRANSCODE--#
-								// folder to this
-								// folder if supported/enabled and if it doesn't
-								// already exist
-								VirtualFolder transcodeFolder = getTranscodeFolder(true, isAddGlobally);
+								VirtualFolder transcodeFolder = getTranscodeFolder();
 								if (transcodeFolder != null) {
 									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child);
 									if (parent instanceof SubSelect) {
@@ -642,7 +640,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(),
 										playerTranscoding);
-									transcodeFolder.addChildInternal(fileTranscodeFolder, isAddGlobally);
+									transcodeFolder.addChildInternal(fileTranscodeFolder);
 								}
 							}
 
@@ -655,7 +653,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									LOGGER.trace("Adding live subtitles folder for \"{}\" with player {}", child.getName(),
 										playerTranscoding);
 
-									vf.addChild(new SubSelFile(newChild), true, isAddGlobally);
+									vf.addChild(new SubSelFile(newChild), true);
 								}
 							}
 
@@ -698,7 +696,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (child.media != null && child.media.isSecondaryFormatValid()) {
-							addChild(newChild, true, isAddGlobally);
+							addChild(newChild, true);
 							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
 						} else {
 							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.format.toString(),
@@ -709,7 +707,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
-					addChildInternal(resumeRes, isAddGlobally);
+					addChildInternal(resumeRes);
 				}
 
 				if (isNew) {
@@ -732,7 +730,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return A player if transcoding or null if streaming
 	 */
 	public Player resolvePlayer(RendererConfiguration renderer) {
-		// Use device-specific DMS conf, if any
+		// Use device-specific conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		Player resolvedPlayer = null;
@@ -909,22 +907,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Return the transcode folder for this resource. If DMS is configured to
-	 * hide transcode folders, null is returned. If no folder exists and the
-	 * create argument is false, null is returned. If no folder exists and the
-	 * create argument is true, a new transcode folder is created. This method
-	 * is called on the parent folder each time a child is added to that parent
-	 * (via {@link addChild(DLNAResource)}.
+	 * Returns the transcode folder for this resource.
+	 * If UMS is configured to hide transcode folders, null is returned.
+	 * If no folder exists, a new transcode folder is created.
+	 * If transcode folder exists, it is returned.
+	 * This method is called on the parent folder each time a child is added to
+	 * that parent (via {@link addChild(DLNAResource)}.
 	 *
-	 * @param create
 	 * @return the transcode virtual folder
 	 */
 	// XXX package-private: used by MapFile; should be protected?
-	TranscodeVirtualFolder getTranscodeFolder(boolean create) {
-		return getTranscodeFolder(create, true);
-	}
-
-	TranscodeVirtualFolder getTranscodeFolder(boolean create, boolean isAddGlobally) {
+	TranscodeVirtualFolder getTranscodeFolder() {
 		if (!isTranscodeFolderAvailable()) {
 			return null;
 		}
@@ -940,13 +933,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (create) {
-			TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null, configuration);
-			addChildInternal(transcodeFolder, isAddGlobally);
-			return transcodeFolder;
-		}
-
-		return null;
+		TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null, configuration);
+		addChildInternal(transcodeFolder);
+		return transcodeFolder;
 	}
 
 	public void updateChild(DLNAResource child) {
@@ -994,9 +983,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * with the {@link #addChild(DLNAResource)} method.
 	 *
 	 * @param child the DLNA resource to add to this node's list of children
-	 * @param isAddGlobally when a global ID is added for a DLNAResource it
-	 *            means the garbage collector can't clean up the memory, and
-	 *            sometimes we don't need the resource to hang around forever.
+	 * @param isAddGlobally whether to store a reference to this child in the
+	 *                      global ID repository.
 	 */
 	protected synchronized void addChildInternal(DLNAResource child, boolean isAddGlobally) {
 		if (child.getInternalId() != null) {
@@ -1015,7 +1003,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) {
 		// this method returns exactly ONE (1) DLNAResource
 		// it's used when someone requests playback of media. The media must
-		// first have been discovered by someone first (unless it's a Temp item)
+		// have been discovered by someone first (unless it's a Temp item)
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
@@ -1044,7 +1032,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * First thing it does it searches for an item matching the given objectID.
 	 * If children is false, then it returns the found object as the only object
-	 * in the list. TODO: (botijo) This function does a lot more than this!
+	 * in the list.
+	 *
+	 * TODO: (botijo) This function does a lot more than this!
 	 *
 	 * @param objectId ID to search for.
 	 * @param children State if you want all the children in the returned list.
@@ -1161,7 +1151,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		updateId += 1;
 		systemUpdateId += 1;
 	}
 
@@ -1644,7 +1633,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					sb.append(" ").append(displayNamesuffix);
 				}
 			}
-		} else if (isInsideTranscodeFolder()) {
+		} else if (isInsideTranscodeFolder() && !(this instanceof ChapterFileTranscodeVirtualFolder)) {
 			// This matches the [No transcoding] entry in the TRANSCODE folder
 			sb.setLength(0);
 		}
@@ -1710,13 +1699,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String getURL(String prefix, boolean useSystemName) {
+		return getURL(prefix, false, true);
+	}
+
+	public String getURL(String prefix, boolean useSystemName, boolean urlEncode) {
+		String uri = useSystemName ? getSystemName() : getName();
 		StringBuilder sb = new StringBuilder();
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); // id
 		sb.append('/');
 		sb.append(prefix);
-		sb.append(encode(useSystemName ? getSystemName() : getName()));
+		sb.append(urlEncode ? encode(uri) : uri);
 		return sb.toString();
 	}
 
@@ -2078,9 +2072,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean isFolder = isFolder();
 		if (!isFolder) {
 			if (media != null && media.isVideo()) {
-				if (!configurationSpecificToRenderer.isDisableSubtitles() &&
-					(player == null || mediaRenderer.streamSubsForTranscodedVideo()) && mediaSubtitle != null &&
-					mediaSubtitle.isExternal() && mediaRenderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this)) {
+				if (
+					!configurationSpecificToRenderer.isDisableSubtitles() &&
+					(
+						player == null ||
+						mediaRenderer.streamSubsForTranscodedVideo()
+					) &&
+					mediaSubtitle != null &&
+					mediaSubtitle.isExternal() &&
+					mediaRenderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this)
+				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("External subtitles \"{}\" can be streamed to {}", mediaSubtitle.getName(), mediaRenderer);
 				} else if (mediaSubtitle != null && LOGGER.isTraceEnabled()) {
@@ -2088,6 +2089,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						LOGGER.trace("Subtitles are disabled");
 					} else if (mediaSubtitle.isEmbedded()) {
 						LOGGER.trace("Subtitles track {} cannot be streamed because it is internal/embedded", mediaSubtitle.getId());
+					} else if (player != null && !mediaRenderer.streamSubsForTranscodedVideo()) {
+						LOGGER.trace("Subtitles \"{}\" aren't supported while transcoding to {}", mediaSubtitle.getName(), mediaRenderer);
 					} else {
 						LOGGER.trace("Subtitles \"{}\" aren't valid for streaming to {}", mediaSubtitle.getName(), mediaRenderer);
 					}
@@ -2152,7 +2155,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			title = mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 		}
-		if (!mediaRenderer.isThumbnails() && this instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) this).getFile())) {
+
+		if (
+			!mediaRenderer.isThumbnails() &&
+			this instanceof RealFile &&
+			FullyPlayed.isFullyPlayedFileMark(((RealFile) this).getFile())
+		) {
 			title = FullyPlayed.addFullyPlayedNamePrefix(title, this);
 		}
 
@@ -2402,7 +2410,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// DESC Metadata support: add ability for control point to identify
 			// song by MusicBrainz TrackID
-			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
+			if (media.isAudio() && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
@@ -4115,28 +4123,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the updates id for this resource. When the resource needs to be
-	 * refreshed, its id is updated.
-	 *
-	 * @return The updated id.
-	 * @see #notifyRefresh()
-	 */
-	public int getUpdateId() {
-		return updateId;
-	}
-
-	/**
-	 * Sets the updated id for this resource. When the resource needs to be
-	 * refreshed, its id should be updated.
-	 *
-	 * @param updateId The updated id value to set.
-	 * @since 1.50
-	 */
-	protected void setUpdateId(int updateId) {
-		this.updateId = updateId;
-	}
-
-	/**
 	 * Returns the updates id for all resources. When all resources need to be
 	 * refreshed, this id is updated.
 	 *
@@ -4148,14 +4134,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the updated id for all resources. When all resources need to be
-	 * refreshed, this id should be updated.
-	 *
-	 * @param systemUpdateId The system updated id to set.
-	 * @since 1.50
+	 * Bumps the updated id for all resources. When any resources has been
+	 * changed this id should be bumped.
 	 */
-	public static void setSystemUpdateId(int systemUpdateId) {
-		DLNAResource.systemUpdateId = systemUpdateId;
+	public static void bumpSystemUpdateId() {
+		systemUpdateId++;
 	}
 
 	/**

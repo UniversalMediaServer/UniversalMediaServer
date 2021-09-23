@@ -98,7 +98,6 @@ public class RequestHandler implements Runnable {
 				throw new IOException("Access denied for address " + ia + " based on IP filter");
 			}
 
-
 			// The handler makes a couple of attempts to recognize a renderer from its requests.
 			// IP address matches from previous requests are preferred, when that fails request
 			// header matches are attempted and if those fail as well we're stuck with the
@@ -129,7 +128,6 @@ public class RequestHandler implements Runnable {
 			}
 
 			for (String headerLine : headerLines) {
-
 				// The request object is created inside the while loop.
 				if (request != null && request.getMediaRenderer() == null && renderer != null) {
 					request.setMediaRenderer(renderer);
@@ -227,9 +225,18 @@ public class RequestHandler implements Runnable {
 			}
 
 			if (request != null) {
+				/*
+				 * Attempt 3: If the reguested url contains the no-transcode tag, force
+				 * the default streaming-only conf.
+				 */
+				if (request.getArgument().contains(RendererConfiguration.NOTRANSCODE)) {
+					renderer = RendererConfiguration.getStreamingConf();
+					LOGGER.debug("Forcing streaming.");
+				}
+
 				// Still no media renderer recognized?
 				if (renderer == null) {
-					// Attempt 3: Not really an attempt; all other attempts to recognize
+					// Attempt 4: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
 					renderer = RendererConfiguration.resolve(ia, null);

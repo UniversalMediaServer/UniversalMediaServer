@@ -112,18 +112,28 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		request = new RequestV2(nettyRequest.getMethod(), getUri(nettyRequest.getUri()));
 
+
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
 		// default renderer.
 
-		// Attempt 1: try to recognize the renderer by its socket address from previous requests
-		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+		// Attempt 1: If the reguested url contains the no-transcode tag, force
+		// the default streaming-only conf.
+		if (request.getUri().contains(RendererConfiguration.NOTRANSCODE)) {
+			renderer = RendererConfiguration.getStreamingConf();
+			LOGGER.debug("Forcing streaming.");
+		}
+
+		if (renderer == null) {
+			// Attempt 2: try to recognize the renderer by its socket address from previous requests
+			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
 		if (renderer == null || !renderer.loaded) {
-			// Attempt 2: try to recognize the renderer by matching headers
+			// Attempt 3: try to recognize the renderer by matching headers
 			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}
 
@@ -217,7 +227,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// Still no media renderer recognized?
 		if (renderer == null) {
 
-			// Attempt 3: Not really an attempt; all other attempts to recognize
+			// Attempt 4: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
 			renderer = RendererConfiguration.resolve(ia, null);

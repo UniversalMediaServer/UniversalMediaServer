@@ -353,7 +353,7 @@ public class Request extends HTTPResource {
 						if (
 							dlna instanceof RealFile &&
 							mediaRenderer.isThumbnails() &&
-							FullyPlayed.isFullyPlayedMark(((RealFile) dlna).getFile())
+							FullyPlayed.isFullyPlayedFileMark(((RealFile) dlna).getFile())
 						) {
 							filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 						}
@@ -872,7 +872,7 @@ public class Request extends HTTPResource {
 					response.append("<UpdateID>");
 
 					if (parentFolder != null) {
-						response.append(parentFolder.getUpdateId());
+						response.append(parentFolder.getSystemUpdateId());
 					} else {
 						response.append('1');
 					}

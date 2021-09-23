@@ -33,11 +33,6 @@ function changeMargins() {
 
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
-					var caption_w = cell_w - 43;
-					$(cells[c]).find('.caption').css({
-						width: caption_w + 'px',
-						maxWidth: caption_w + 'px',
-					});
 					$(cells[c]).find('.thumb').css({
 						width: 'auto',
 						height: row_h + 'px',
@@ -81,11 +76,6 @@ function changeMargins() {
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
 					var cell_w = row_h * aspect[c];
-					var caption_w = cell_w - 48;
-					$(cells[c]).find('.caption').css({
-						width: caption_w + 'px',
-						maxWidth: caption_w + 'px',
-					});
 					$(cells[c]).find('.thumb').css({
 						width: 'auto',
 						height: row_h + 'px',
@@ -182,18 +172,18 @@ function scrollActions() {
 			$("#Menu").animate({height: 95}, 200);
 			$("#ContentPage #Menu #HomeButton").animate({height: 93}, 200);
 			$("ul#Folders").animate({top: 94}, 200);
-			$("ul#Media").animate({paddingTop: 115}, 200);
+//			$("ul#Media").animate({paddingTop: 115}, 200);
 		} else {
 			$("#Menu").animate({height: 53}, 200);
 			$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
 			$("ul#Folders").animate({top: 52}, 200);
-			$("ul#Media").animate({paddingTop: 73}, 200);
+//			$("ul#Media").animate({paddingTop: 73}, 200);
 		}
 	} else {
 		$("#Menu, #ContentPage #Menu #HomeButton, ul#Media").stop();
 		$("#Menu").animate({height: 53}, 200);
 		$("#ContentPage #Menu #HomeButton").animate({height: 51}, 200);
-		$("ul#Media").animate({paddingTop: 20}, 200);
+//		$("ul#Media").animate({paddingTop: 20}, 200);
 	}
 }
 

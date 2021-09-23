@@ -23,13 +23,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import jwbroek.cuelib.*;
 import net.pms.PMS;
 import net.pms.dlna.Range.Time;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
 import org.apache.commons.lang3.StringUtils;
+import org.digitalmediaserver.cuelib.CueParser;
+import org.digitalmediaserver.cuelib.CueSheet;
+import org.digitalmediaserver.cuelib.FileData;
+import org.digitalmediaserver.cuelib.Position;
+import org.digitalmediaserver.cuelib.TrackData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +87,7 @@ public class CueFolder extends DLNAResource {
 		if (playlistfile.length() < 10000000) {
 			CueSheet sheet;
 			try {
-				sheet = CueParser.parse(playlistfile);
+				sheet = CueParser.parse(playlistfile, null);
 			} catch (IOException e) {
 				LOGGER.info("Error in parsing cue: " + e.getMessage());
 				return;

@@ -52,6 +52,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
@@ -135,6 +136,7 @@ public class RemoteWeb {
 			addCtx("/play", playHandler);
 			addCtx("/playstatus", playHandler);
 			addCtx("/playlist", playHandler);
+			addCtx("/m3u8", playHandler);
 			addCtx("/media", new RemoteMediaHandler(this));
 			addCtx("/fmedia", new RemoteMediaHandler(this, true));
 			addCtx("/thumb", new RemoteThumbHandler(this));
@@ -289,7 +291,6 @@ public class RemoteWeb {
 
 		public RemoteThumbHandler(RemoteWeb parent) {
 			this.parent = parent;
-
 		}
 
 		@Override
@@ -304,17 +305,20 @@ public class RemoteWeb {
 					RemoteUtil.sendLogo(t);
 					return;
 				}
+
 				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 				if (root == null) {
 					LOGGER.debug("weird root in thumb req");
 					throw new IOException("Unknown root");
 				}
+
 				final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
 				if (r == null) {
 					// another error
 					LOGGER.debug("media unknown");
 					throw new IOException("Bad id");
 				}
+
 				DLNAThumbnailInputStream in;
 				if (!CONFIGURATION.isShowCodeThumbs() && !r.isCodeValid(r)) {
 					// we shouldn't show the thumbs for coded objects
@@ -328,8 +332,19 @@ public class RemoteWeb {
 						in = r.getGenericThumbnailInputStream(null);
 					}
 				}
+
 				BufferedImageFilterChain filterChain = null;
-				if (r instanceof RealFile && FullyPlayed.isFullyPlayedMark(((RealFile) r).getFile())) {
+				if (
+					(
+						r instanceof RealFile &&
+						FullyPlayed.isFullyPlayedFileMark(((RealFile) r).getFile())
+					) ||
+					(
+						r instanceof MediaLibraryFolder &&
+						((MediaLibraryFolder) r).isTVSeries() &&
+						FullyPlayed.isFullyPlayedTVSeriesMark(((MediaLibraryFolder) r).getName())
+					)
+				) {
 					filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 				}
 				filterChain = r.addFlagFilters(filterChain);

@@ -18,6 +18,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFilesStatus;
+import net.pms.database.TableTVSeries;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
@@ -121,7 +122,7 @@ public class MediaMonitor extends VirtualFolder {
 			}
 			for (File fileEntry : files) {
 				if (fileEntry.isFile()) {
-					if (isFullyPlayed(fileEntry.getAbsolutePath())) {
+					if (isFullyPlayed(fileEntry.getAbsolutePath(), true)) {
 						continue;
 					}
 					res.addChild(new RealFile(fileEntry));
@@ -218,7 +219,7 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
 			DLNAResource fileParent = realFile.getParent();
-			if (fileParent != null && !isFullyPlayed(fullPathToFile)) {
+			if (fileParent != null && !isFullyPlayed(fullPathToFile, true)) {
 				// Only set fully played if the file will stay where it is
 				if (
 					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
@@ -299,6 +300,15 @@ public class MediaMonitor extends VirtualFolder {
 						LOGGER.trace("", e);
 					}
 				}
+
+				/**
+				 * Here we bump the systemUpdateID because a file has
+				 * either been removed or its thumbnail changed.
+				 */
+				if (fullyPlayedAction != FullyPlayedAction.NO_ACTION) {
+					notifyRefresh();
+				}
+
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
@@ -308,15 +318,16 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	/**
-	 * Checks if {@code fullPathToFile} is registered as fully played. The check
+	 * Checks if {@code fullPathToFile} is registered as fully played.The check
 	 * will first check the memory cache, and if not found there check the
 	 * database and insert an entry in the memory cache.
 	 *
 	 * @param fullPathToFile the full path to the file whose status to retrieve.
+	 * @param isFileOrTVSeries whether this is a file or TV series
 	 * @return {@code true} if {@code fullPathToFile} is fully played,
 	 *         {@code false} otherwise.
 	 */
-	public static boolean isFullyPlayed(String fullPathToFile) {
+	public static boolean isFullyPlayed(String fullPathToFile, boolean isFileOrTVSeries) {
 		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 		Boolean fullyPlayed;
 		try {
@@ -338,7 +349,12 @@ public class MediaMonitor extends VirtualFolder {
 			}
 
 			// Add the entry to the cache
-			fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
+			if (isFileOrTVSeries) {
+				fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
+			} else {
+				fullyPlayed = TableTVSeries.isFullyPlayed(fullPathToFile);
+			}
+
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
@@ -373,6 +389,8 @@ public class MediaMonitor extends VirtualFolder {
 
 	@Override
 	public void doRefreshChildren() {
-		setUpdateId(this.getIntId());
+		if (isDiscovered()) {
+			notifyRefresh();
+		}
 	}
 }

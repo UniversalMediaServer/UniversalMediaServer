@@ -109,7 +109,6 @@ public class RequestV2 extends HTTPResource {
 	private static final int BUFFER_SIZE = 8 * 1024;
 	private final HttpMethod method;
 	private PmsConfiguration configuration = PMS.getConfiguration();
-	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
 	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	/**
@@ -350,7 +349,7 @@ public class RequestV2 extends HTTPResource {
 						if (
 							dlna instanceof RealFile &&
 							mediaRenderer.isThumbnails() &&
-							FullyPlayed.isFullyPlayedMark(((RealFile) dlna).getFile())
+							FullyPlayed.isFullyPlayedFileMark(((RealFile) dlna).getFile())
 						) {
 							filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 						}
@@ -1103,7 +1102,8 @@ public class RequestV2 extends HTTPResource {
 
 	private StringBuilder searchHandler() {
 		SearchRequest requestMessage = getPayload(SearchRequest.class);
-		return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
+		return this.browseSearchHandler(requestMessage);
+		//return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
 	}
 
 	/**
@@ -1258,18 +1258,32 @@ public class RequestV2 extends HTTPResource {
 			// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
 			response.append("<TotalMatches>1</TotalMatches>");
 		}
-
 		response.append(CRLF);
+
+		/**
+		 * From page 95, section 5.5.8.2 of http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
+		 *
+		 * UpdateID: The value returned in the UpdateID argument shall be the SystemUpdateID
+		 * state variable value at the time the Browse() response was generated. If a control point
+		 * finds that the current SystemUpdateID state variable value is not equal to the value
+		 * returned in the UpdateID argument, then a change within the ContentDirectory service has
+		 * occurred between the time the result was generated and the time that the control point is
+		 * processing the result. The control point might therefore want to re-invoke the Browse()
+		 * action to ensure that it has the latest property values. Note however that the change in the
+		 * value of the SystemUpdateID state variable could have been caused by a change that
+		 * occurred in a location in the ContentDirectory tree hierarchy that is not part of the returned
+		 * result. In this case, the re-invocation of the Browse() action will return the exact same
+		 * result.
+		 * Note: This definition is not backwards compatible with previous versions of this
+		 * specification. However, the previous definition did not indicate changes to properties
+		 * of child containers. Therefore the control point would not have been aware that it had
+		 * stale data.
+		 */
 		response.append("<UpdateID>");
-
-		if (parentFolder != null) {
-			response.append(parentFolder.getUpdateId());
-		} else {
-			response.append('1');
-		}
-
+		response.append(DLNAResource.getSystemUpdateId());
 		response.append("</UpdateID>");
 		response.append(CRLF);
+
 		if (requestMessage instanceof SearchRequest) {
 			response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
 		} else {
@@ -1357,5 +1371,9 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		return result;
+	}
+
+	public String getUri() {
+		return uri;
 	}
 }

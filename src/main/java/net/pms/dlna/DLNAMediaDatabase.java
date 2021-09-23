@@ -47,6 +47,7 @@ import com.google.common.base.CharMatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataAwards;
@@ -143,15 +144,17 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
-		boolean logDB = CONFIGURATION.getDatabaseLogging();
-		url = Constants.START_URL + dbDir + File.separator + dbName + ";AUTO_SERVER=TRUE" + (logDB ? ";TRACE_LEVEL_FILE=3" : "");
-		LOGGER.debug("Using database URL: {}", url);
-		LOGGER.info("Using database located at: \"{}\"", dbDir);
-		if (logDB) {
+		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
+
+		if (CONFIGURATION.getDatabaseLogging()) {
+			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");
 		} else if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Database logging is disabled");
 		}
+
+		LOGGER.debug("Using database URL: {}", url);
+		LOGGER.info("Using database located at: \"{}\"", dbDir);
 
 		try {
 			Class.forName("org.h2.Driver");
@@ -1397,6 +1400,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public ArrayList<String> getStrings(String sql) {
 		ArrayList<String> list = new ArrayList<>();
+		HashSet<String> set = new HashSet<>();
 		try (Connection connection = getConnection()) {
 			TABLE_LOCK.readLock().lock();
 			try (
@@ -1406,11 +1410,9 @@ public class DLNAMediaDatabase implements Runnable {
 				while (rs.next()) {
 					String str = rs.getString(1);
 					if (isBlank(str)) {
-						if (!list.contains(NONAME)) {
-							list.add(NONAME);
-						}
-					} else if (!list.contains(str)) {
-						list.add(str);
+						set.add(NONAME);
+					} else {
+						set.add(str);
 					}
 				}
 			} finally {
@@ -1420,6 +1422,7 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.error(null, se);
 			return null;
 		}
+		list.addAll(set);
 		return list;
 	}
 
