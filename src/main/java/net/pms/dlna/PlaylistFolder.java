@@ -130,6 +130,12 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	@Override
+	public void resolve() {
+		getChildren().clear();
+		resolveOnce();
+	}
+
+	@Override
 	protected void resolveOnce() {
 		ArrayList<Entry> entries = new ArrayList<>();
 		boolean m3u = false;

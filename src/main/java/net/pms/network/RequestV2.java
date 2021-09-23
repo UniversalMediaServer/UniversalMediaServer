@@ -56,6 +56,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.MediaType;
+import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
@@ -1181,6 +1182,12 @@ public class RequestV2 extends HTTPResource {
 			mediaRenderer,
 			searchCriteria
 		);
+
+		for (DLNAResource dlnaResource : files) {
+			if (dlnaResource instanceof PlaylistFolder) {
+				((PlaylistFolder) dlnaResource).resolve();
+			}
+		}
 
 		if (searchCriteria != null && files != null) {
 			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
