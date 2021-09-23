@@ -7,8 +7,8 @@ public class CacheUtilTest {
     @Test
     public void testSetsAndGetsItem(){
         CacheUtil<String, String> cacheUtil = new CacheUtil<>();
-        cacheUtil.setItem("key","value");
-        assertEquals("value",cacheUtil.getItem("key"));
+        cacheUtil.setItem("key", "value");
+        assertEquals("value", cacheUtil.getItem("key"));
     }
 
     @Test
@@ -20,7 +20,7 @@ public class CacheUtilTest {
     @Test
     public void testClearCache(){
         CacheUtil<String, String> cacheUtil = new CacheUtil<>();
-        cacheUtil.setItem("key","value");
+        cacheUtil.setItem("key", "value");
         cacheUtil.clearCache();
         assertNull(cacheUtil.getItem("key"));
     }
@@ -28,10 +28,10 @@ public class CacheUtilTest {
     @Test
     public void testCompatibleWithDifferentTypes(){
         CacheUtil<String, Integer> cacheUtil = new CacheUtil<>();
-        cacheUtil.setItem("first",1);
-        cacheUtil.setItem("second",2);
-        assertEquals(2,cacheUtil.getItem("second"));
-        assertEquals(1,cacheUtil.getItem("first"));
+        cacheUtil.setItem("first", 1);
+        cacheUtil.setItem("second", 2);
+        assertEquals(2, cacheUtil.getItem("second"));
+        assertEquals(1, cacheUtil.getItem("first"));
         assertNull(cacheUtil.getItem("third"));
     }
 }

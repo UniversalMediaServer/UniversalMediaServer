@@ -8,8 +8,8 @@ import java.util.Map;
  * @param <T>
  * @param <U>
  */
-public class CacheUtil<T,U> {
-    private final Map<T,U> cache;
+public class CacheUtil<T, U> {
+    private final Map<T, U> cache;
 
     public CacheUtil(){
         cache = new HashMap<>();
@@ -20,8 +20,8 @@ public class CacheUtil<T,U> {
      * @param key
      * @param value
      */
-    public void setItem(T key,U value){
-        cache.put(key,value);
+    public void setItem(T key, U value){
+        cache.put(key, value);
     }
 
     /**
@@ -31,7 +31,7 @@ public class CacheUtil<T,U> {
      * @return value
      */
     public U getItem(T key){
-        return cache.getOrDefault(key,null);
+        return cache.getOrDefault(key, null);
     }
 
     /**
