@@ -1183,15 +1183,6 @@ public class RequestV2 extends HTTPResource {
 			searchCriteria
 		);
 
-		for (DLNAResource dlnaResource : files) {
-			if (dlnaResource instanceof PlaylistFolder) {
-				File f = new File(dlnaResource.getFileName());
-				if (dlnaResource.getLastModified() < f.lastModified()) {
-					((PlaylistFolder) dlnaResource).resolve();
-				}
-			}
-		}
-
 		if (searchCriteria != null && files != null) {
 			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
 			if (xbox360 && files.size() > 0) {
@@ -1203,6 +1194,13 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder filesData = new StringBuilder();
 		if (files != null) {
 			for (DLNAResource uf : files) {
+				if (uf instanceof PlaylistFolder) {
+					File f = new File(uf.getFileName());
+					if (uf.getLastModified() < f.lastModified()) {
+						((PlaylistFolder) uf).resolve();
+					}
+				}
+
 				if (xbox360 && containerID != null) {
 					uf.setFakeParentId(containerID);
 				}
