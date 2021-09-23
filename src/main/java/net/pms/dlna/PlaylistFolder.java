@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PlaylistFolder extends DLNAResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
 	private String name;
 	private String uri;
@@ -121,7 +122,8 @@ public class PlaylistFolder extends DLNAResource {
 				LOGGER.debug("PlaylistFolder albumart path : " + thumbnailImage.getAbsolutePath());
 				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumbnailImage));
 			} catch (IOException e) {
-				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
+				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(),
+					e.getMessage());
 				LOGGER.trace("", e);
 			}
 			return result != null ? result : super.getThumbnailInputStream();
@@ -132,6 +134,7 @@ public class PlaylistFolder extends DLNAResource {
 	@Override
 	public void resolve() {
 		getChildren().clear();
+		setLastModified(getPlaylistfile().lastModified());
 		resolveOnce();
 	}
 
@@ -235,16 +238,17 @@ public class PlaylistFolder extends DLNAResource {
 			} else {
 				String u = FileUtil.urlJoin(uri, entry.fileName);
 				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
-					// If the filename continues past the "extension" (i.e. has a query string) it's
-					// likely not a nested playlist but a media item, for instance Twitch TV media urls:
-					//    'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
+					// If the filename continues past the "extension" (i.e. has
+					// a query string) it's
+					// likely not a nested playlist but a media item, for
+					// instance Twitch TV media urls:
+					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
 					type = defaultContent;
 				}
-				DLNAResource d =
-					type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
+				DLNAResource d = type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
 					type == Format.AUDIO ? new WebAudioStream(entry.title, u, null) :
-					type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
-					type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
+						type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
+							type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
 				if (d != null) {
 					addChild(d);
 					valid = true;
@@ -264,6 +268,7 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	private static class Entry {
+
 		public String fileName;
 		public String title;
 
@@ -285,8 +290,8 @@ public class PlaylistFolder extends DLNAResource {
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
 				case "ups":
 					return new Playlist(name, uri);
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 		return null;

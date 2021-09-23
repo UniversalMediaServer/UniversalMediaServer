@@ -1189,7 +1189,10 @@ public class RequestV2 extends HTTPResource {
 
 		for (DLNAResource dlnaResource : files) {
 			if (dlnaResource instanceof PlaylistFolder) {
-				((PlaylistFolder) dlnaResource).resolve();
+				File f = new File(dlnaResource.getFileName());
+				if (dlnaResource.getLastModified() < f.lastModified()) {
+					((PlaylistFolder) dlnaResource).resolve();
+				}
 			}
 		}
 

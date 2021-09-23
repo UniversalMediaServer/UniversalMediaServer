@@ -3651,7 +3651,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.71.0
 	 */
 	protected void setLastModified(long lastModified) {
-		// TODO rename lastmodified -> lastModified
 		this.lastModified = lastModified;
 	}
 
