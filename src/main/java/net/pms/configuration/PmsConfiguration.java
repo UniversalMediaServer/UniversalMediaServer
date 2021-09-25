@@ -3078,6 +3078,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		return output;
 	}
 
+	/**
+     * Save the configuration. Before this method can be called a valid file
+     * name must have been set.
+     *
+     * @throws ConfigurationException if an error occurs or no file name has
+     * been set yet
+     */
 	public void save() throws ConfigurationException {
 		((PropertiesConfiguration) configuration).save();
 		LOGGER.info("Configuration saved to \"{}\"", PROFILE_PATH);

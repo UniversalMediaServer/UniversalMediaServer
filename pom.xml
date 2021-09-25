@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.12.0</version>
+	<version>10.12.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.12.0</project.version.short>
+		<project.version.short>10.12.1</project.version.short>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
 		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
@@ -70,7 +70,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>140</binary-revision>
+		<binary-revision>141</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -87,7 +87,7 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<logback-version>1.2.5</logback-version>
+		<logback-version>1.2.6</logback-version>
 		<surefire-version>3.0.0-M5</surefire-version>
 
 		<!--
@@ -104,7 +104,7 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.8.0</junit5.version>
+		<junit5.version>5.8.1</junit5.version>
 		<com.sun.xml.bind-version>3.0.2</com.sun.xml.bind-version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -125,9 +125,10 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+		<!-- jaudiotagger repository made by goxr3plus -->
 		<repository>
-			<id>jaudiotagger-repository</id>
-			<url>https://repository.mulesoft.org/nexus/content/repositories/public/</url>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -336,11 +337,9 @@
 			<version>2.16.0</version>
 		</dependency>
 		<dependency>
-			<groupId>jaudiotagger</groupId>
+			<groupId>com.github.goxr3plus</groupId>
 			<artifactId>jaudiotagger</artifactId>
-			<scope>system</scope>
-			<version>2.2.6-SNAPSHOT</version>
-			<systemPath>${project.basedir}/src/main/external-resources/lib/jaudiotagger-2.2.6-SNAPSHOT.jar</systemPath>
+			<version>2.2.7</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>
@@ -416,7 +415,7 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
-			<version>3.20.2</version>
+			<version>3.21.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -959,7 +958,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.3.0</version>
+				<version>4.4.1</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
