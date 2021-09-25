@@ -737,7 +737,7 @@ public class PMS {
 		};
 
 		// Calculate actual network speed in 10 minutes period
-		new Timer("Calculate actual network speed", true).schedule(refreshConnectionSpeed, 60000, 600000);
+		new Timer("Calculate actual network speed", true).schedule(refreshConnectionSpeed, 60000, 60000 * 10);
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
