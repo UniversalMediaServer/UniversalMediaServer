@@ -219,7 +219,7 @@ public class OpenSubtitle {
 		}
 
 		String cachedHash = cacheUtil.getItem(file.getFileName().toString());
-		if(cachedHash != null){
+		if (cachedHash != null) {
 			return cachedHash;
 		}
 
