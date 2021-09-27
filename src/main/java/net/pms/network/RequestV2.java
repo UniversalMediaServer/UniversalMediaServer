@@ -750,7 +750,6 @@ public class RequestV2 extends HTTPResource {
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !HEAD.equals(method)) {
 				PMS.REALTIME_LOCK.lock();
-				
 				// Send the response body to the client in chunks.
 				ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
