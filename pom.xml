@@ -125,9 +125,10 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+		<!-- jaudiotagger repository made by goxr3plus -->
 		<repository>
-			<id>jaudiotagger-repository</id>
-			<url>https://repository.mulesoft.org/nexus/content/repositories/public/</url>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 	<dependencies>
