@@ -749,6 +749,8 @@ public class RequestV2 extends HTTPResource {
 			future = event.getChannel().write(output);
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !HEAD.equals(method)) {
+				PMS.REALTIME_LOCK.lock();
+				
 				// Send the response body to the client in chunks.
 				ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
@@ -767,6 +769,7 @@ public class RequestV2 extends HTTPResource {
 						// a freeze at the end of video when the channel is not closed.
 						future.getChannel().close();
 						startStopListenerDelegate.stop();
+						PMS.REALTIME_LOCK.unlock();
 					}
 				});
 			} else {

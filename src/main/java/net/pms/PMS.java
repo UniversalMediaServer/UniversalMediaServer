@@ -32,14 +32,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
@@ -92,6 +93,7 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("restriction")
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK = "nativelook";
@@ -133,6 +135,18 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	private JmDNS jmDNS;
+
+	/**
+	 * A lock to prevent heavy IO tasks from causing browsing to be less
+	 * responsive.
+	 *
+	 * When a task has a high priority (needs to run in realtime), it should
+	 * implement this lock for the duration of their operation. When a task
+	 * has a lower priority, it should use this lock to wait for any
+	 * realtime task to finish, and then immediately unlock, to prevent
+	 * blocking the next realtime task from starting.
+	 */
+	public final static Lock REALTIME_LOCK = new ReentrantLock();
 
 	/**
 	 * Returns a pointer to the DMS GUI's main window.
@@ -731,6 +745,9 @@ public class PMS {
 		TimerTask refreshConnectionSpeed = new TimerTask() {
 			@Override
 			public void run() {
+				// wait until the realtime lock is released before starting
+				REALTIME_LOCK.lock();
+				REALTIME_LOCK.unlock();
 				LOGGER.info("Checking actual network speed for all connected renderers");
 				configuration.calculateAllSpeeds(true);
 			}
@@ -744,9 +761,6 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
-					// force to save the configuration to file before stopping the UMS
-					saveConfiguration();
-
 					UPNPHelper.shutDownListener();
 					UPNPHelper.sendByeBye();
 
@@ -813,14 +827,6 @@ public class PMS {
 						LOGGER.debug("Database already closed");
 					}
 				}
-
-				if (database != null) {
-					try (Statement stmt = database.getConnection().createStatement()) {
-						stmt.execute("SHUTDOWN COMPACT");
-					} catch (SQLException e1) {
-						LOGGER.error("compacting DB ", e1);
-					}
-				}
 			}
 		});
 
@@ -835,7 +841,7 @@ public class PMS {
 		UPNPHelper.listen();
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
-		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
+		if (getConfiguration().getUseCache() && getConfiguration().isScanSharedFoldersOnStartup()) {
 			getDatabase().scanLibrary();
 		}
 
@@ -901,15 +907,20 @@ public class PMS {
 	public synchronized String usn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
-			uuid = configuration.getUuid();
+			uuid = getConfiguration().getUuid();
 
 			if (uuid == null) {
 				uuid = UUID.randomUUID().toString();
 				LOGGER.info("Generated new random UUID: {}", uuid);
 
 				// save the newly-generated UUID
-				configuration.setUuid(uuid);
-				saveConfiguration();
+				getConfiguration().setUuid(uuid);
+
+				try {
+					getConfiguration().save();
+				} catch (ConfigurationException e) {
+					LOGGER.error("Failed to save configuration with new UUID", e);
+				}
 			}
 
 			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
@@ -1066,8 +1077,8 @@ public class PMS {
 		}
 
 		try {
-			configuration = new PmsConfiguration();
-			assert configuration != null;
+			setConfiguration(new PmsConfiguration());
+			assert getConfiguration() != null;
 
 			// Log whether the service is installed as it may help with debugging and support
 			if (Platform.isWindows()) {
@@ -1084,7 +1095,7 @@ public class PMS {
 			 */
 
 			// Set root level from configuration here so that logging is available during renameOldLogFile();
-			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
+			LoggingConfig.setRootLevel(Level.toLevel(getConfiguration().getRootLogLevel()));
 			renameOldLogFile();
 
 			// Load the (optional) LogBack config file.
@@ -1123,12 +1134,12 @@ public class PMS {
 			LOGGER.debug(new Date().toString());
 
 			try {
-				configuration.initCred();
+				getConfiguration().initCred();
 			} catch (IOException e) {
 				LOGGER.debug("Error initializing plugin credentials: {}", e);
 			}
 
-			if (configuration.isRunSingleInstance()) {
+			if (getConfiguration().isRunSingleInstance()) {
 				killOld();
 			}
 
@@ -1164,11 +1175,7 @@ public class PMS {
 		return web == null ? null : web.getServer();
 	}
 
-	/**
-	 * Save the configuration changes immediately to the configuration
-	 * file and not wait for the automatic saving.
-	 */
-	public void saveConfiguration() {
+	public void save() {
 		try {
 			configuration.save();
 		} catch (ConfigurationException e) {
@@ -1184,7 +1191,7 @@ public class PMS {
 	 */
 	public void storeFileInCache(File file, int formatType) {
 		if (
-			configuration.getUseCache() &&
+			getConfiguration().getUseCache() &&
 			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
 		) {
 			try {
