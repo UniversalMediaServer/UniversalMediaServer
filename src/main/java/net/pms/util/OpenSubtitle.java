@@ -131,7 +131,7 @@ import net.pms.util.XMLRPCUtil.ValueStruct;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final CacheUtil<String, String> cacheUtil = new CacheUtil<>();
+	private static final HashMap<String, String> cachedFileHash = new HashMap<>();
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
@@ -218,7 +218,7 @@ public class OpenSubtitle {
 			return null;
 		}
 
-		String cachedHash = cacheUtil.getItem(file.getFileName().toString());
+		String cachedHash = cachedFileHash.get(file.getFileName().toString());
 		if (cachedHash != null) {
 			return cachedHash;
 		}
@@ -231,7 +231,7 @@ public class OpenSubtitle {
 			long tail = computeHashForChunk(fileChannel.map(MapMode.READ_ONLY, Math.max(size - HASH_CHUNK_SIZE, 0), chunkSizeForFile));
 
 			String hash = String.format("%016x", size + head + tail);
-			cacheUtil.setItem(file.getFileName().toString(), hash);
+			cachedFileHash.put(file.getFileName().toString(), hash);
 			return hash;
 		}
 	}
