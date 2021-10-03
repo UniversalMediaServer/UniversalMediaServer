@@ -4731,8 +4731,6 @@ public class OpenSubtitle {
 	 * @return the title of the series.
 	 */
 	private static String setTVSeriesInfo(String seriesIMDbIDFromAPI, String titleFromFilename, String yearFromFilename, String titleSimplifiedFromFilename, File file) {
-		final boolean overTheTopLogging = true;
-
 		long tvSeriesDatabaseId;
 		String title;
 		String titleSimplified;
@@ -4755,18 +4753,14 @@ public class OpenSubtitle {
 			}
 
 			if (seriesMetadataFromDatabase != null) {
-				if (overTheTopLogging) {
-					LOGGER.trace("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("TITLE"));
-				}
+				LOGGER.trace("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("TITLE"));
 				return (String) seriesMetadataFromDatabase.get("TITLE");
 			} else {
 				/*
 				 * This either means there is no entry in the TV Series table for this series, or
 				 * there is but it only contains filename info - not API yet.
 				 */
-				if (overTheTopLogging) {
-					LOGGER.trace("Metadata for TV series {} ({}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
-				}
+				LOGGER.trace("API metadata for TV series {} ({}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
 
 				// Start by checking if we have already failed this lookup recently
 				if (TableFailedLookups.hasLookupFailedRecently(failedLookupKey)) {
@@ -4778,9 +4772,7 @@ public class OpenSubtitle {
 					if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
 						LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
 					}
-					if (overTheTopLogging) {
-						LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
-					}
+					LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
 					// Return now because the API data is wrong if we have an episode but no series in the API
 					return null;
 				}
@@ -4825,14 +4817,10 @@ public class OpenSubtitle {
 				}
 
 				if (seriesMetadataFromDatabase == null) {
-					if (overTheTopLogging) {
-						LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
-					}
+					LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
 					tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
 				} else {
-					if (overTheTopLogging) {
-						LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
-					}
+					LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
 					tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
 					TableTVSeries.insertAPIMetadata(seriesMetadataFromAPI);
 				}
@@ -4895,9 +4883,7 @@ public class OpenSubtitle {
 					!title.equals(titleFromFilename) &&
 					titleSimplified.equals(titleSimplifiedFromFilename)
 				) {
-					if (overTheTopLogging) {
-						LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-					}
+					LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
 					PMS.get().getDatabase().updateMovieOrShowName(titleFromFilename, title);
 				}
 			}
@@ -4918,13 +4904,9 @@ public class OpenSubtitle {
 	 * @param media
 	 */
 	public static void backgroundLookupAndAdd(final File file, final DLNAMediaInfo media) {
-		final boolean overTheTopLogging = true;
-
 		Runnable r = () -> {
 			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
-				if (overTheTopLogging) {
-					LOGGER.trace("Metadata already exists for {}", file.getName());
-				}
+				LOGGER.trace("Metadata already exists for {}", file.getName());
 				return;
 			}
 
@@ -4959,7 +4941,7 @@ public class OpenSubtitle {
 						}
 
 						return;
-					} else if (overTheTopLogging) {
+					} else {
 						LOGGER.trace("Found an API match for " + file.getName());
 					}
 				} catch (IOException ex) {
@@ -5023,16 +5005,12 @@ public class OpenSubtitle {
 					LOGGER.debug("API data was different to our parsed data, not storing it.");
 					TableFailedLookups.set(file.getAbsolutePath(), "Data mismatch");
 
-					if (overTheTopLogging) {
-						LOGGER.trace("Filename data: " + media);
-						LOGGER.trace("API data: " + metadataFromAPI);
-					}
+					LOGGER.trace("Filename data: " + media);
+					LOGGER.trace("API data: " + metadataFromAPI);
 					return;
 				}
 
-				if (overTheTopLogging) {
-					LOGGER.trace("API data matches filename data for " + file.getName());
-				}
+				LOGGER.trace("API data matches filename data for " + file.getName());
 
 				// Now that we are happy with the API data, let's make some clearer variables
 				boolean isTVEpisode    = isTVEpisodeBasedOnFilename;
@@ -5091,14 +5069,8 @@ public class OpenSubtitle {
 					media.setTVSeason(tvSeason);
 					media.setTVEpisodeNumber(tvEpisodeNumber);
 					if (isNotBlank(tvEpisodeTitle)) {
-						if (overTheTopLogging) {
-							LOGGER.trace("Setting episode name from api: " + tvEpisodeTitle);
-						}
+						LOGGER.trace("Setting episode name from api: " + tvEpisodeTitle);
 						media.setTVEpisodeName(tvEpisodeTitle);
-					}
-
-					if (overTheTopLogging) {
-						LOGGER.trace("Setting is TV episode true for " + metadataFromAPI.toString());
 					}
 
 					media.setIsTVEpisode(true);
