@@ -55,8 +55,9 @@
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
 		<project.version.short>10.12.1</project.version.short>
 
-		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
-		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on.
+		The UMS no longer supports plugins so we can use latest version -->
+		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
@@ -448,6 +449,24 @@
 			<groupId>org.seamless</groupId>
 			<artifactId>seamless-util</artifactId>
 			<version>1.1.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-collections</groupId>
+					<artifactId>commons-collections</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-lang</groupId>
+					<artifactId>commons-lang</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.seamless</groupId>
@@ -531,6 +550,10 @@
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
 					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
