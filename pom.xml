@@ -54,9 +54,6 @@
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
 		<project.version.short>10.12.1</project.version.short>
-
-		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on.
-		The UMS no longer supports plugins so we can use latest version -->
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
