@@ -358,11 +358,7 @@ function isDarkColorNeededOnThisColor(rgbColor) {
       iterator++;
       backgroundLightness += PERCEIVED_WEIGHTING_BLUE_LIGHT * rgbColor[iterator];
 
-      if (backgroundLightness > LIGHT_DARK_THRESHOLD) {
-        return true;
-      } else {
-        return false;
-      }
+      return (backgroundLightness > LIGHT_DARK_THRESHOLD);
 }
 
 /**
