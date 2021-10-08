@@ -117,7 +117,6 @@ function changeMargins() {
 
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
-					var caption_w = cell_w - 43;
 					$(cells[c]).find('.caption').css({
 						width: '100%',
 						maxWidth: '100%',
@@ -482,7 +481,7 @@ function populateMetadataDisplayFromGlobalVars() {
 	if (totalSeasons) {
 		$('.totalSeasons').html('<strong>' + totalSeasonsTranslation + ':</strong> ' + totalSeasons);
 	}
-	
+
 }
 
 $(document).ready(function () {
