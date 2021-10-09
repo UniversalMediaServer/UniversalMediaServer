@@ -249,43 +249,55 @@ public class OpenSubtitle {
 			connection.connect();
 
 			int status = connection.getResponseCode();
+			String response;
 
 			switch (status) {
 				case 200:
 				case 201:
-					try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-						StringBuilder sb = new StringBuilder();
+					StringBuilder sb = new StringBuilder();
+					try (
+						InputStreamReader instream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
+						BufferedReader br = new BufferedReader(instream)
+					) {
 						String line;
 						while ((line = br.readLine()) != null) {
-							sb.append(line).append("\n");
+							sb.append(line.trim()).append("\n");
 						}
-						br.close();
-						return sb.toString().trim();
 					} catch (Exception e) {
 						LOGGER.info("API lookup error for {}, {}", connection.getURL(), e.getMessage());
 					}
 					LOGGER.debug("API URL was {}", connection.getURL());
+					response = sb.toString().trim();
 					break;
 				default:
 					StringBuilder errorMessage = new StringBuilder();
 					if (connection.getErrorStream() != null) {
-						InputStreamReader inputStreamReader = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
-						BufferedReader in = new BufferedReader(inputStreamReader);
-						String str;
-						while ((str = in.readLine()) != null) {
-							errorMessage.append(str.trim()).append("\n");
+						try (
+							InputStreamReader instream = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
+							BufferedReader br = new BufferedReader(instream)
+						) {
+							String line;
+							while ((line = br.readLine()) != null) {
+								errorMessage.append(line.trim()).append("\n");
+							}
+						} catch (Exception e) {
+							LOGGER.info("API lookup error for {}, {}", connection.getURL(), e.getMessage());
 						}
 					}
 
 					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
-					return "{ statusCode: \"" + status + "\", serverResponse: " + gson.toJson(errorMessage) + " }";
+					response = "{ statusCode: \"" + status + "\", serverResponse: " + gson.toJson(errorMessage) + " }";
 			}
+
+			return response;
+		} catch (Exception e) {
+			LOGGER.debug("Error while parsing JSON response: {}", e);
 		} finally {
 			if (connection != null) {
 				try {
 					connection.disconnect();
 				} catch (Exception ex) {
-					LOGGER.debug("" + ex);
+					LOGGER.debug("Error while disconnecting connection: {}", ex);
 				}
 			}
 		}
@@ -1786,7 +1798,6 @@ public class OpenSubtitle {
 			movieOrTVSeriesTitle = movieOrTVSeriesTitle.substring(0, yearIndex);
 		}
 
-		LOGGER.trace("looking up " + mediaType + ": " + movieOrTVSeriesTitle);
 		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID, osdbHash, filebytesize);
 
 		String notFoundMessage = "Metadata not found on OpenSubtitles";
@@ -1828,8 +1839,6 @@ public class OpenSubtitle {
 		if (yearIndex > -1) {
 			formattedName = formattedName.substring(0, yearIndex);
 		}
-
-		LOGGER.trace("getting API info for TV series: {}, {}, {}", formattedName, imdbID, year);
 
 		apiResult = getInfoFromAllExtractedData(formattedName, true, year, null, null, imdbID, null, 0L);
 
@@ -1903,7 +1912,7 @@ public class OpenSubtitle {
 		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
-
+		LOGGER.trace("Getting API data from: {}", url);
 		return getJson(url);
 	}
 
