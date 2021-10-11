@@ -56,6 +56,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.MediaType;
+import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
@@ -1197,6 +1198,13 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder filesData = new StringBuilder();
 		if (files != null) {
 			for (DLNAResource uf : files) {
+				if (uf instanceof PlaylistFolder) {
+					File f = new File(uf.getFileName());
+					if (uf.getLastModified() < f.lastModified()) {
+						((PlaylistFolder) uf).resolve();
+					}
+				}
+
 				if (xbox360 && containerID != null) {
 					uf.setFakeParentId(containerID);
 				}
