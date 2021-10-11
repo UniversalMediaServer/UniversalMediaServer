@@ -301,12 +301,13 @@ public class SearchRequestHandler {
 			LOGGER.trace(String.format("SQL count : %s", query));
 		}
 
-		try (Connection connection = database.getConnection()) {
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					resultSet.next();
-					return resultSet.getInt(1);
-				}
+		try (
+			Connection connection = database.getConnection();
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query)
+		) {
+			if (resultSet.next()) {
+				return resultSet.getInt(1);
 			}
 		} catch (SQLException e) {
 			LOGGER.trace("getDLNAResourceCountFromSQL", e);
