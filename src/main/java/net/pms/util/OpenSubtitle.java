@@ -5109,7 +5109,7 @@ public class OpenSubtitle {
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
-				frame.setStatusLine("");
+				frame.setStatusLine("Parsing Folder: " + file.getParent());
 			}
 		};
 		BACKGROUND_EXECUTOR.execute(r);
