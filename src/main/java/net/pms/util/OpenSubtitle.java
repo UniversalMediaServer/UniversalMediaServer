@@ -5109,7 +5109,7 @@ public class OpenSubtitle {
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
-				frame.setStatusLine("Parsing Folder: " + file.getParent());
+				frame.setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + file.getParent());
 			}
 		};
 		BACKGROUND_EXECUTOR.execute(r);
