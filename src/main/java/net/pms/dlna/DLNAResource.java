@@ -102,7 +102,6 @@ import net.pms.util.FullyPlayed;
 import net.pms.util.GenericIcons;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
-import net.pms.util.OpenSubtitle;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 
