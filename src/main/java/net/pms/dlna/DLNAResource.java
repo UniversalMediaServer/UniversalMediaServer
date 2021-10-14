@@ -94,6 +94,7 @@ import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.HTTPResource;
 import net.pms.network.UPNPControl.Renderer;
+import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
 import net.pms.util.FileUtil;
@@ -4889,7 +4890,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} finally {
 			// Attempt to enhance the metadata via our API.
 			if (configuration.isUseInfoFromIMDb()) {
-				OpenSubtitle.backgroundLookupAndAdd(file, media);
+				APIUtils.backgroundLookupAndAddMetadata(file, media);
 			}
 		}
 	}
