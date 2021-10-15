@@ -561,8 +561,8 @@ public class FileUtil {
 	 * Remove group name from the beginning of the filename.
 	 */
 	private static String removeGroupNameFromBeginning(String formattedName) {
-		if (!"".equals(formattedName) && formattedName.startsWith("[")) {
-			Pattern pattern = Pattern.compile("^\\[[^\\]]{0,20}\\][^\\w]*(\\w.*?)\\s*$");
+		if (!"".equals(formattedName) && (formattedName.startsWith("[") || formattedName.startsWith("("))) {
+			Pattern pattern = Pattern.compile("^[\\[\\(][^\\]]{0,25}[\\]\\)][^\\w]*(\\w.*?)\\s*$");
 			Matcher matcher = pattern.matcher(formattedName);
 			if (matcher.find()) {
 				formattedName = matcher.group(1);
@@ -596,8 +596,8 @@ public class FileUtil {
 	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sTVNZ\\s.*|\\sFP\\s.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
 	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sTVNZ.*|.*\\sFP.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
 
-	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|\\s\\(Dual\\sAudio.*";
-	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s\\[720p.*|.*\\s\\[1080p.*|.*\\s\\[480p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*\\s\\(Dual\\sAudio.*";
+	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s[\\[\\(]\\d{3,4}p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|[\\s_]\\(Dual\\sAudio.*|\\s\\[VOSTFR\\].*|\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
+	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 
 	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,})";
 	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
@@ -980,9 +980,14 @@ public class FileUtil {
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$") || formattedName.matches(".*\\s-\\s\\d{1,3}$") || formattedName.matches(COMMON_ANIME_FILE_ENDS_MATCH)) {
+			/*
+			 * This matches anime episodes that end with a hash or an episode number, or no quality/resolution.
+			 * It is quite messy because there is so much variation out there.
+			 */
+
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
 			formattedName = formattedName.replaceAll(COMMON_ANIME_FILE_ENDS, "");
-			// This matches anime episodes that end with a hash or an episode number, or no quality/resolution
+
 			matcher = COMMON_ANIME_EPISODE_NUMBERS_PATTERN.matcher(formattedName);
 			if (matcher.find()) {
 				tvSeason = "1";
@@ -1004,6 +1009,11 @@ public class FileUtil {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
 				}
+			}
+
+			if (tvEpisodeNumber.length() > 2 && tvEpisodeNumber.charAt(0) == '0') {
+				// Strips a leading zero from a 3+ digit episode number
+				tvEpisodeNumber = tvEpisodeNumber.substring(1);
 			}
 
 			// Attempt to extract the season number from the series title
