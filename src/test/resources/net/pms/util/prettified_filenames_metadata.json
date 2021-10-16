@@ -281,6 +281,39 @@
 		}
 	},
 	{
+		"comment": "Video of an anime episode with French subtitles",
+		"filename": "[FanSubbers]_Universal_Media_Server_925_[VOSTFR][HD_1280x720].mp4",
+		"prettified": "Universal Media Server S01E925",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [925]
+		}
+	},
+	{
+		"comment": "Video of an anime episode with Dual Audio and underscores inconsistently used",
+		"filename": "[FanSubbers]Universal_Media_Server_-_09_(Dual Audio_10bit_BD720p).mkv",
+		"prettified": "Universal Media Server S01E09",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [9]
+		}
+	},
+	{
+		"comment": "Video of an anime episode with website as fansubs",
+		"filename": "(universalmediaserver.com)_Universal_Media_Server_-_037_(480p)_(FanSubbers).mkv",
+		"prettified": "Universal Media Server S01E37",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [37]
+		}
+	},
+	{
 		"comment": "Video of an episode with a mixed convention",
 		"filename": "Universal Media Server - S01 E02 - Mysterious Wordplay.mkv",
 		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
