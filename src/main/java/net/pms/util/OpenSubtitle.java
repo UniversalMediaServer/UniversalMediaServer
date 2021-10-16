@@ -1654,8 +1654,6 @@ public class OpenSubtitle {
 		return null;
 	}
 
-
-
 	/**
 	 * Resolves the location and full path of the subtitles file with the
 	 * specified name.
