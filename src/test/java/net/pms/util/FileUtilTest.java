@@ -106,8 +106,9 @@ public class FileUtilTest {
 			for (JsonElement test : tests) {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
-				String prettified = o.get("prettified").getAsString();
-				assertThat(FileUtil.getFileNamePrettified(original)).as(o.get("comment").getAsString()).isEqualTo(prettified);
+				String expectedOutput = o.get("prettified").getAsString();
+				String fileNamePrettified = FileUtil.getFileNamePrettified(original);
+				assertThat(fileNamePrettified).as(o.get("comment").getAsString()).isEqualTo(expectedOutput);
 			}
 		} catch (Exception ex) {
 			throw (new AssertionError(ex));
