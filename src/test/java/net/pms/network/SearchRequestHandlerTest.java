@@ -32,6 +32,7 @@ public class SearchRequestHandlerTest {
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
 		PMS.forceHeadless();
 		PMS.setConfiguration(new PmsConfiguration(false));
+		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
 		Services.create();
 		PMS.get();
 	}
