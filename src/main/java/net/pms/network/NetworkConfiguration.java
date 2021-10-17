@@ -406,7 +406,7 @@ public class NetworkConfiguration {
 			return null;
 		}
 
-		Map<String, InterfaceAssociation> virtualInterfaces = new HashMap<>();
+		Map<String, InterfaceAssociation> virtualInterfaces = new LinkedHashMap<>();
 		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
 			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
 				virtualInterfaces.put(entry.getKey(), entry.getValue());
