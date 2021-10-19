@@ -408,7 +408,7 @@
 			"released": { "year": 2018 }
 		}
 	},
-		{
+	{
 		"comment": "Video of a movie with a year at the end of title",
 		"filename": "UMS.2018.mp4",
 		"prettified": "UMS (2018)",
@@ -416,6 +416,17 @@
 			"type": "movie",
 			"title": "UMS",
 			"released": { "year": 2018 }
+		}
+	},
+	{
+		"comment": "Video of a movie with a short filename, and the proper filename in its parent directory",
+		"filename": "groupname-moviename.1080p-x264.mkv",
+		"absolutepath": "D:\\Movie.Name.2001.1080p.BluRay.x264-GROUPNAME\\groupname-moviename.1080p-x264.mkv",
+		"prettified": "Movie Name (2001)",
+		"metadata": {
+			"type": "movie",
+			"title": "Movie Name",
+			"released": { "year": 2001 }
 		}
 	}
 ]

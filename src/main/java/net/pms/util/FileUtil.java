@@ -621,8 +621,59 @@ public class FileUtil {
 	private static final String COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS = "(?:[\\s']|S\\d{1,2}\\sE)(?:[pP]|)(\\d{1,}-\\d{1,})(?:[\\s']|v\\d)";
 	private static final Pattern COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS_PATTERN = Pattern.compile(COMMON_ANIME_MULTIPLE_EPISODES_NUMBERS);
 
-	public static String getFileNamePrettified(String f) {
-		return getFileNamePrettified(f, null, false, false);
+	/**
+	 * Attempts to resolve short filenames by using their parent directory.
+	 * For example, it can be common for files to have a filename like:
+	 *    groupname-moviename.1080p-x264
+	 * Which is very hard to parse, while the directory name is much better:
+	 *    Movie.Name.2001.1080p.BluRay.x264-GROUPNAME
+	 *
+	 * @return the parent directory or the original filename if there was no match
+	 */
+	public static String replaceShortFilenameWithParentDirectoryName(String filename, String absolutePath) {
+		if (absolutePath == null || filename == null) {
+			return filename;
+		}
+
+		// With this naming convention, the filename is always lower case
+		if (filename.toLowerCase() != filename) {
+			return filename;
+		}
+
+		String pathWithoutFilename = substringBeforeLast(absolutePath, "\\");
+		if (pathWithoutFilename == null) {
+			return filename;
+		}
+		String parentDirectory = substringAfterLast(pathWithoutFilename, "\\");
+		if (parentDirectory == null) {
+			return filename;
+		}
+
+		String groupNameFromDirectory = substringAfterLast(parentDirectory, "-");
+		if (groupNameFromDirectory == null) {
+			return filename;
+		}
+
+		// Remove any host information from the group name, e.g. Movie.Name.2001.1080p.BluRay.x264-GROUPNAME [HostName]
+		String groupNameFromDirectoryWithoutHost = substringBefore(groupNameFromDirectory, " ");
+		if (groupNameFromDirectoryWithoutHost != null) {
+			groupNameFromDirectory = groupNameFromDirectoryWithoutHost;
+		}
+
+		String groupNameFromFilename = substringBefore(filename, "-");
+		if (groupNameFromFilename == null) {
+			return filename;
+		}
+
+		if (!groupNameFromFilename.equals(lowerCase(groupNameFromDirectory))) {
+			return filename;
+		}
+
+		return parentDirectory;
+	}
+
+	public static String getFileNamePrettified(String f, String absolutePath) {
+		return getFileNamePrettified(f, null, false, false, absolutePath);
 	}
 
 	/**
@@ -802,6 +853,8 @@ public class FileUtil {
 
 		Pattern pattern;
 		Matcher matcher;
+
+		filename = replaceShortFilenameWithParentDirectoryName(filename, absolutePath);
 
 		formattedName = basicPrettify(filename);
 
