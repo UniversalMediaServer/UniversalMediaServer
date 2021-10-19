@@ -107,7 +107,7 @@ public class FileUtilTest {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
 				String absolutePath = null;
-				if (o.get("absolutepath").getAsString() != null) {
+				if (o.get("absolutepath") != null) {
 					absolutePath = o.get("absolutepath").getAsString();
 				}
 				String expectedOutput = o.get("prettified").getAsString();
@@ -143,7 +143,7 @@ public class FileUtilTest {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
 				String absolutePath = null;
-				if (o.get("absolutepath").getAsString() != null) {
+				if (o.get("absolutepath") != null) {
 					absolutePath = o.get("absolutepath").getAsString();
 				}
 				JsonObject metadata = o.get("metadata").getAsJsonObject();
