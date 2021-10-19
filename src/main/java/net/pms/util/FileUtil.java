@@ -638,10 +638,11 @@ public class FileUtil {
 	 *                                    a season folder in the Media Library
 	 * @param isEpisodeWithinTVSeriesFolder whether this is an episode within
 	 *                                      a TV series folder in the Media Library
+	 * @param absolutePath the full path to the file
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
+	public static String getFileNamePrettified(String f, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
 		String formattedName;
 
 		String title;
@@ -652,6 +653,15 @@ public class FileUtil {
 		String tvEpisodeNumber;
 		String tvEpisodeName;
 		boolean isTVEpisode = false;
+
+		// Attempt to get API metadata from the database if it wasn't passed via the media parameter
+		if (media == null && absolutePath != null && getConfiguration().getUseCache()) {
+			try {
+				media = PMS.get().getDatabase().getFileMetadata(absolutePath);
+			} catch (Exception e) {
+				LOGGER.debug("Error while fetching metadata from database for prettifying: {}", e);
+			}
+		}
 
 		// Populate the variables from the data if we can, otherwise from the filename
 		if (media != null && getConfiguration().getUseCache() && isNotBlank(media.getMovieOrShowName())) {
@@ -664,7 +674,7 @@ public class FileUtil {
 			tvEpisodeName    = isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
 			isTVEpisode      = isNotBlank(media.getTVSeason());
 		} else {
-			String[] metadataFromFilename = getFileNameMetadata(f);
+			String[] metadataFromFilename = getFileNameMetadata(f, absolutePath);
 
 			title            = isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
 			year             = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
@@ -769,7 +779,7 @@ public class FileUtil {
 	 *
 	 * @return The metadata
 	 */
-	public static String[] getFileNameMetadata(String filename) {
+	public static String[] getFileNameMetadata(String filename, String absolutePath) {
 		if (filename == null) {
 			return new String[] {null, null, null, null, null, null};
 		}
@@ -1011,7 +1021,7 @@ public class FileUtil {
 				}
 			}
 
-			if (tvEpisodeNumber.length() > 2 && tvEpisodeNumber.charAt(0) == '0') {
+			if (tvEpisodeNumber != null && tvEpisodeNumber.length() > 2 && tvEpisodeNumber.charAt(0) == '0') {
 				// Strips a leading zero from a 3+ digit episode number
 				tvEpisodeNumber = tvEpisodeNumber.substring(1);
 			}
@@ -1948,16 +1958,12 @@ public class FileUtil {
 	}
 
 	public static String renameForSorting(String filename) {
-		return renameForSorting(filename, false);
+		return renameForSorting(filename, false, null);
 	}
 
-	public static String renameForSorting(String filename, boolean isEpisodeWithinTVSeriesFolder) {
+	public static String renameForSorting(String filename, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			if (isEpisodeWithinTVSeriesFolder) {
-				filename = getFileNamePrettified(filename, null, false, isEpisodeWithinTVSeriesFolder);
-			} else {
-				filename = basicPrettify(filename);
-			}
+			filename = getFileNamePrettified(filename, null, false, isEpisodeWithinTVSeriesFolder, absolutePath);
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
