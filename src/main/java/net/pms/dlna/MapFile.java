@@ -458,7 +458,7 @@ public class MapFile extends DLNAResource {
 					continue;
 				}
 
-				String filenameToSort = FileUtil.renameForSorting(f.getName());
+				String filenameToSort = FileUtil.renameForSorting(f.getName(), false, f.getAbsolutePath());
 
 				char c = filenameToSort.toUpperCase().charAt(0);
 
