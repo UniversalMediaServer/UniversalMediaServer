@@ -532,7 +532,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
-	 * as a {@link DLNAMediaInfo} instance.
+	 * as a {@link DLNAMediaInfo} instance, along with thumbnails, status and tracks.
 	 *
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
@@ -677,6 +677,67 @@ public class DLNAMediaDatabase implements Runnable {
 						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
 					}
 				}
+			}
+		} catch (SQLException se) {
+			if (se.getCause() != null && se.getCause() instanceof IOException) {
+				throw (IOException) se.getCause();
+			}
+			throw se;
+		}
+		return media;
+	}
+
+	/**
+	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
+	 * as a {@link DLNAMediaInfo} instance.
+	 * This is the same as getData above, but is a much smaller query because it
+	 * does not fetch thumbnails, status and tracks, and does not require a
+	 * modified value to be passed, which means we can avoid touching the filesystem
+	 * in the caller.
+	 *
+	 * @param name the full path of the media.
+	 * @return The {@link DLNAMediaInfo} instance matching
+	 *         {@code name} and {@code modified}.
+	 * @throws SQLException if an SQL error occurs during the operation.
+	 * @throws IOException if an IO error occurs during the operation.
+	 */
+	public DLNAMediaInfo getFileMetadata(String name) throws IOException, SQLException {
+		DLNAMediaInfo media = null;
+		try (Connection conn = getConnection()) {
+			TABLE_LOCK.readLock().lock();
+			try (
+				PreparedStatement stmt = conn.prepareStatement(
+					"SELECT * FROM " + TABLE_NAME + " " +
+					"WHERE " + TABLE_NAME + ".FILENAME = ? " +
+					"LIMIT 1"
+				);
+			) {
+				stmt.setString(1, name);
+				try (
+					ResultSet rs = stmt.executeQuery();
+				) {
+					if (rs.next()) {
+						media = new DLNAMediaInfo();
+						int id = rs.getInt("ID");
+						media.setIMDbID(rs.getString("IMDBID"));
+						media.setYear(rs.getString("YEAR"));
+						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
+						media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
+						media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
+
+						if (rs.getBoolean("ISTVEPISODE")) {
+							media.setTVSeason(rs.getString("TVSEASON"));
+							media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
+							media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+							media.setIsTVEpisode(true);
+						} else {
+							media.setIsTVEpisode(false);
+						}
+						media.setMediaparsed(true);
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException se) {
 			if (se.getCause() != null && se.getCause() instanceof IOException) {
