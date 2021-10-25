@@ -24,6 +24,7 @@ public class TableAudiotracks extends Tables {
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
 	private static final int SIZE_MAX = 255;
+	private static final int SIZE_MBID = 36;
 	private static final int SIZE_SAMPLEFREQ = 16;
 	private static final int SIZE_CODECA = 32;
 

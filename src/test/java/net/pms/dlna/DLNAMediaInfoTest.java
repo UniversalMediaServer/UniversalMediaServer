@@ -7,7 +7,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.logging.LoggingConfig;
-import net.pms.service.Services;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -64,7 +63,6 @@ public class DLNAMediaInfoTest {
 
 		Logger LOGGER = LoggerFactory.getLogger(CLASS);
 
-		Services.create();
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
@@ -76,7 +74,6 @@ public class DLNAMediaInfoTest {
 		}
 
 		// Create a new PMS instance
-		PMS.getNewInstance();
 
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.

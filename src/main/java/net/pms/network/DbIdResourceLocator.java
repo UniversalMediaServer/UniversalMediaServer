@@ -27,9 +27,13 @@ public class DbIdResourceLocator {
 
 	public enum DbidMediaType {
 
-		TYPE_FILES("FID$", "object.item"), TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"), TYPE_PERSON("PERSON$",
-			"object.container.person.musicArtist"), TYPE_PLAYLIST("PLAYLIST$",
-				"object.container.playlistContainer"), TYPE_VIDEO("VIDEO$", "object.container.storageFolder");
+		TYPE_AUDIO("FID$", "object.item.audioItem"),
+		TYPE_FOLDER("FOLDER$", "object.container.storageFolder"),
+		TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"),
+		TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
+		TYPE_PLAYLIST("PLAYLIST$", "object.container.playlistContainer"),
+		TYPE_VIDEO("VIDEO$", "object.item.videoItem"),
+		TYPE_IMAGE("IMAGE$", "object.item.imageItem");
 
 		public final static String GENERAL_PREFIX = "$DBID$";
 		public final String dbidPrefix;
@@ -90,9 +94,13 @@ public class DbIdResourceLocator {
 			try (Statement statement = connection.createStatement()) {
 				String sql = null;
 				switch (typeAndIdent.type) {
-					case TYPE_FILES:
+					case TYPE_AUDIO:
 					case TYPE_VIDEO:
+					case TYPE_IMAGE:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL AUDIO/VIDEO/IMAGE : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							if (resultSet.next()) {
 								res = new RealFileDbId(new File(resultSet.getString("FILENAME")));
@@ -102,6 +110,9 @@ public class DbIdResourceLocator {
 						break;
 					case TYPE_PLAYLIST:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL PLAYLIST : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							if (resultSet.next()) {
 								res = new PlaylistFolder(new File(resultSet.getString("FILENAME")));
@@ -114,10 +125,13 @@ public class DbIdResourceLocator {
 						sql = String.format(
 							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  A.ALBUM  = '%s')",
 							typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident, "");
 							while (resultSet.next()) {
-								DLNAResource item = new RealFileDbId(DbidMediaType.TYPE_FILES, new File(resultSet.getString("FILENAME")),
+								DLNAResource item = new RealFileDbId(DbidMediaType.TYPE_AUDIO, new File(resultSet.getString("FILENAME")),
 									resultSet.getString("FID"));
 								item.resolve();
 								res.addChild(item);
@@ -128,10 +142,13 @@ public class DbIdResourceLocator {
 						sql = String.format(
 							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where (  F.TYPE = 1  and  (A.ALBUMARTIST = '%s' or A.ARTIST = '%s'))",
 							typeAndIdent.ident, typeAndIdent.ident);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace(String.format("SQL PERSON : %s", sql));
+						}
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							res = new VirtualFolderDbId(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident, "");
 							while (resultSet.next()) {
-								DLNAResource item = new RealFileDbId(DbidMediaType.TYPE_FILES, new File(resultSet.getString("FILENAME")),
+								DLNAResource item = new RealFileDbId(DbidMediaType.TYPE_AUDIO, new File(resultSet.getString("FILENAME")),
 									resultSet.getString("FID"));
 								item.resolve();
 								res.addChild(item);
