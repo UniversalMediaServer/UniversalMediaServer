@@ -4888,7 +4888,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.trace("", e);
 		} finally {
 			// Attempt to enhance the metadata via our API.
-			if (configuration.isUseInfoFromIMDb()) {
+			if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
 				APIUtils.backgroundLookupAndAddMetadata(file, media);
 			}
 		}

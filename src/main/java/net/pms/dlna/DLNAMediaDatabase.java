@@ -66,6 +66,7 @@ import net.pms.database.TableTVSeries;
 import net.pms.database.TableVideoMetadataIMDbRating;
 import static net.pms.database.Tables.sqlQuote;
 import net.pms.newgui.SharedContentTab;
+import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 
 /**
@@ -79,6 +80,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock(true);
+	private static final ReadWriteLock TABLE_LOCK_METADATA = new ReentrantReadWriteLock(true);
 
 	private String url;
 	private String dbDir;
@@ -106,8 +108,10 @@ public class DLNAMediaDatabase implements Runnable {
 	 *       to 1.4.196 because 1.4.197 broke audio metadata being
 	 *       inserted/updated
 	 * - 23: Store aspect ratios as strings again
+	 * - 24: Added VERSION column to FILES table which keeps track of which
+	 *       API metadata version is saved for that file
 	 */
-	private static final int LATEST_VERSION = 23;
+	private static final int LATEST_VERSION = 24;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -274,31 +278,24 @@ public class DLNAMediaDatabase implements Runnable {
 			close(conn);
 		}
 
-		try {
-			conn = getConnection();
-
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery("SELECT count(*) FROM FILES");
-			if (rs.next()) {
-				dbCount = rs.getInt(1);
-			}
-			rs.close();
-			stmt.close();
-
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'");
-			if (rs.next()) {
-				currentVersion = Integer.parseInt(rs.getString(1));
+		TABLE_LOCK.readLock().lock();
+		try (
+			Connection conn2 = getConnection();
+			Statement stmt2 = conn2.createStatement();
+			ResultSet rs2 = stmt2.executeQuery("SELECT count(*) FROM FILES")
+		) {
+			if (rs2.next()) {
+				dbCount = rs2.getInt(1);
 			}
 		} catch (SQLException se) {
 			if (se.getErrorCode() != 42102) { // Don't log exception "Table "FILES" not found" which will be corrected in following step
 				LOGGER.error(null, se);
 			}
 		} finally {
-			close(rs);
-			close(stmt);
-			close(conn);
+			TABLE_LOCK.readLock().unlock();
 		}
+
+		currentVersion = getMetadataVersion();
 
 		/**
 		 * In here we could update tables with our changes, but our database
@@ -306,8 +303,42 @@ public class DLNAMediaDatabase implements Runnable {
 		 * dumb way for now until we have better ways to keep the database
 		 * smaller.
 		 */
-		if (currentVersion != -1 && LATEST_VERSION != currentVersion) {
-			force = true;
+		if (!force && currentVersion != -1 && LATEST_VERSION != currentVersion) {
+			TABLE_LOCK.writeLock().lock();
+			try (Connection conn3 = getConnection()) {
+				for (int version = currentVersion; version < LATEST_VERSION; version++) {
+					LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+					switch (version) {
+						case 23:
+							try (Statement statement = conn3.createStatement()) {
+								StringBuilder sb = new StringBuilder();
+								sb.append("ALTER TABLE ").append(TABLE_NAME).append(" ADD VERSION VARCHAR2(").append(SIZE_MAX).append(')');
+								statement.execute(sb.toString());
+								statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on FILES (FILENAME, MODIFIED, VERSION, IMDBID)");
+							}
+							version++;
+							LOGGER.trace("Updated {} table from version {} to {}", TABLE_NAME, currentVersion, version);
+							break;
+						default:
+							// Do the dumb way
+							force = true;
+					}
+				}
+
+				if (!force) {
+					try (Statement statement = conn3.createStatement()) {
+						statement.execute("DROP TABLE METADATA");
+						statement.execute("CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
+						statement.execute("INSERT INTO METADATA VALUES ('VERSION', '" + LATEST_VERSION + "')");
+					}
+				}
+			} catch (Exception se) {
+				LOGGER.error("Error updating tables: " + se.getMessage());
+				LOGGER.trace("", se);
+				force = true;
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
 		}
 
 		if (force || dbCount == -1) {
@@ -371,6 +402,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", ISTVEPISODE             BOOLEAN");
 				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(")");
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
@@ -400,6 +432,9 @@ public class DLNAMediaDatabase implements Runnable {
 
 				LOGGER.trace("Creating index IDX_FILENAME_MODIFIED_IMDBID");
 				executeUpdate(conn, "CREATE INDEX IDX_FILENAME_MODIFIED_IMDBID ON FILES(FILENAME, MODIFIED, IMDBID)");
+
+				LOGGER.trace("Creating index FILENAME_MODIFIED_VERSION_IMDBID");
+				executeUpdate(conn, "CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on FILES (FILENAME, MODIFIED, VERSION, IMDBID)");
 
 				LOGGER.trace("Creating index TYPE");
 				executeUpdate(conn, "CREATE INDEX TYPE on FILES (TYPE)");
@@ -453,6 +488,31 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
+	/**
+	 * Gets database version from the METADATA table
+	 */
+	public Integer getMetadataVersion() {
+		Integer value = null;
+
+		try (Connection conn = getConnection()) {
+			TABLE_LOCK_METADATA.readLock().lock();
+			try (
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'")
+			) {
+				if (rs.next()) {
+					value = Integer.parseInt(rs.getString(1));
+				}
+			} finally {
+				TABLE_LOCK_METADATA.readLock().unlock();
+			}
+		} catch (Exception se) {
+			LOGGER.error(null, se);
+		}
+
+		return value;
+	}
+
 	private static void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
 			try (Statement stmt = conn.createStatement()) {
@@ -474,7 +534,7 @@ public class DLNAMediaDatabase implements Runnable {
 		boolean found = false;
 		try (Connection connection = getConnection()) {
 			TABLE_LOCK.readLock().lock();
-			try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ? LIMIT 1")) {
+			try (PreparedStatement statement = connection.prepareStatement("SELECT ID FROM FILES WHERE FILENAME = ? AND MODIFIED = ? LIMIT 1")) {
 				statement.setString(1, name);
 				statement.setTimestamp(2, new Timestamp(modified));
 				try (ResultSet resultSet = statement.executeQuery()) {
@@ -494,20 +554,33 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Checks whether data from our API has been written to the database
-	 * for this video.
+	 * Checks whether the latest data from our API has been written to the
+	 * database for this video.
+	 * If we could not fetch the latest version from the API, it will check
+	 * whether any version exists in the database.
 	 *
 	 * @param name the full path of the video.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @return whether API metadata exists for this video.
+	 * @return whether the latest API metadata exists for this video.
 	 */
 	public boolean isAPIMetadataExists(String name, long modified) {
 		boolean found = false;
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT ID FROM FILES WHERE FILENAME = ? AND MODIFIED = ? ");
+		String latestVersion = APIUtils.getApiDataVideoVersion();
+		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
+			sql.append("AND VERSION = ? ");
+		}
+		sql.append("AND IMDBID IS NOT NULL LIMIT 1");
+
 		try (Connection connection = getConnection()) {
 			TABLE_LOCK.readLock().lock();
-			try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM FILES WHERE FILENAME = ? AND MODIFIED = ? AND IMDBID IS NOT NULL LIMIT 1")) {
+			try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
 				statement.setString(1, name);
 				statement.setTimestamp(2, new Timestamp(modified));
+				if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
+					statement.setString(3, latestVersion);
+				}
 				try (ResultSet resultSet = statement.executeQuery()) {
 					if (resultSet.next()) {
 						found = true;
@@ -516,15 +589,16 @@ public class DLNAMediaDatabase implements Runnable {
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (SQLException se) {
+		} catch (Exception se) {
 			LOGGER.error(
-				"An SQL error occurred when trying to check if OpenSubtitles metadata exists for \"{}\": {}",
+				"An error occurred when trying to check if API metadata exists for \"{}\": {}",
 				name,
 				se.getMessage()
 			);
 			LOGGER.trace("", se);
 			return false;
 		}
+
 		return found;
 	}
 
@@ -1220,10 +1294,11 @@ public class DLNAMediaDatabase implements Runnable {
 			TABLE_LOCK.writeLock().lock();
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
+					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
 				"FROM FILES " +
 				"WHERE " +
-					"FILENAME = ? AND MODIFIED = ?",
+					"FILENAME = ? AND MODIFIED = ? " +
+				"LIMIT 1",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)) {
@@ -1240,6 +1315,7 @@ public class DLNAMediaDatabase implements Runnable {
 						rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
 						rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
 						rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
+						rs.updateString("VERSION", left(APIUtils.getApiDataVideoVersion(), SIZE_MAX));
 						rs.updateRow();
 					} else {
 						LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
