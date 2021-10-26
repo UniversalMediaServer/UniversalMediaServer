@@ -38,6 +38,11 @@ public class Build {
 	private static final String UPDATE_SERVER_URL = REPO + "/master/src/main/external-resources/update/latest_version.properties";
 
 	/**
+	 * The url of the releases page on Github
+	 */
+	private static final String RELEASES_PAGE_URL = "https://github.com/UniversalMediaServer/UniversalMediaServer/releases";
+
+	/**
 	 * If false, manual and automatic update checks are unconditionally disabled.
 	 */
 	private static final boolean IS_UPDATABLE = true;
@@ -94,5 +99,12 @@ public class Build {
 	 */
 	public static String getProfileDirectoryName() {
 		return PMS.isRunningTests() ? "UMS-tests" : PROFILE_DIRECTORY_NAME;
+	}
+
+	/**
+	 * @return the {@link #RELEASES_PAGE_URL} where releases are located
+	 */
+	public static String getReleasesPageUrl() {
+		return RELEASES_PAGE_URL;
 	}
 }

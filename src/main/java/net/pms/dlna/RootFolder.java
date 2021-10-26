@@ -22,7 +22,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.Win32Exception;
-import java.awt.Cursor;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -122,10 +121,10 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (configuration.isShowMediaLibraryFolder()) {
+		if (isAddGlobally && configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
+				addChild(libraryRes, true);
 			}
 		}
 
@@ -142,16 +141,22 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
-			lim = new FolderLimit();
-			addChild(lim, true, isAddGlobally);
-		}
+		if (isAddGlobally) {
+			if (
+				configuration.getFolderLimit() &&
+				getDefaultRenderer() != null &&
+				getDefaultRenderer().isLimitFolders()
+			) {
+				lim = new FolderLimit();
+				addChild(lim, true);
+			}
 
-		if (configuration.isDynamicPls()) {
-			addChild(PMS.get().getDynamicPls(), true, isAddGlobally);
-			if (!configuration.isHideSavedPlaylistFolder()) {
-				File plsdir = new File(configuration.getDynamicPlsSavePath());
-				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true, isAddGlobally);
+			if (configuration.isDynamicPls()) {
+				addChild(PMS.get().getDynamicPls(), true);
+				if (!configuration.isHideSavedPlaylistFolder()) {
+					File plsdir = new File(configuration.getDynamicPlsSavePath());
+					addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true);
+				}
 			}
 		}
 
@@ -186,36 +191,38 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		loadWebConf();
+		if (isAddGlobally) {
+			loadWebConf();
 
-		switch (Platform.getOSType()) {
-			case Platform.MAC:
-				if (configuration.isShowIphotoLibrary()) {
-					DLNAResource iPhotoRes = getiPhotoFolder();
-					if (iPhotoRes != null) {
-						addChild(iPhotoRes);
+			switch (Platform.getOSType()) {
+				case Platform.MAC:
+					if (configuration.isShowIphotoLibrary()) {
+						DLNAResource iPhotoRes = getiPhotoFolder();
+						if (iPhotoRes != null) {
+							addChild(iPhotoRes);
+						}
 					}
-				}
-				if (configuration.isShowApertureLibrary()) {
-					DLNAResource apertureRes = getApertureFolder();
-					if (apertureRes != null) {
-						addChild(apertureRes);
+					if (configuration.isShowApertureLibrary()) {
+						DLNAResource apertureRes = getApertureFolder();
+						if (apertureRes != null) {
+							addChild(apertureRes);
+						}
 					}
-				}
-			case Platform.WINDOWS:
-				if (configuration.isShowItunesLibrary()) {
-					DLNAResource iTunesRes = getiTunesFolder();
-					if (iTunesRes != null) {
-						addChild(iTunesRes);
+				case Platform.WINDOWS:
+					if (configuration.isShowItunesLibrary()) {
+						DLNAResource iTunesRes = getiTunesFolder();
+						if (iTunesRes != null) {
+							addChild(iTunesRes);
+						}
 					}
-				}
+			}
+
+			if (configuration.isShowServerSettingsFolder()) {
+				addAdminFolder();
+			}
+
+			setDiscovered(true);
 		}
-
-		if (configuration.isShowServerSettingsFolder()) {
-			addAdminFolder();
-		}
-
-		setDiscovered(true);
 	}
 
 	public void setFolderLim(DLNAResource r) {
@@ -290,6 +297,7 @@ public class RootFolder extends DLNAResource {
 			}
 		} else {
 			frame.setScanLibraryEnabled(true);
+			frame.setStatusLine(null);
 		}
 	}
 
@@ -472,41 +480,39 @@ public class RootFolder extends DLNAResource {
 	 * file watcher for the file.
 	 */
 	public synchronized void loadWebConf() {
-		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		SharedContentTab.webContentList.setEnabled(false);
-		try {
-			Integer currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
-			for (DLNAResource d : webFolders) {
-				getChildren().remove(d);
-			}
-			webFolders.clear();
-			String webConfPath = configuration.getWebConfPath();
-			File webConf = new File(webConfPath);
-			if (!webConf.exists()) {
-				configuration.writeWebConfigurationFile();
-			}
-			if (
-				webConf.exists() &&
-				configuration.getExternalNetwork() &&
-				(
-					SharedContentTab.lastWebContentUpdate == 1L ||
-					SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
-				)
-			) {
-				/**
-				 * If the GUI last updated less than 2 seconds ago, chances are good
-				 * that this method was triggered by changes in the GUI, which means
-				 * we can skip updating the GUI here (avoiding the peakaboo effect)
-				 */
-				LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
-				parseWebConf(webConf, currentlySelectedPosition);
-				FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
-			}
-			setLastModified(1);
-		} finally {
-			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			SharedContentTab.webContentList.setEnabled(true);
+		Integer currentlySelectedPosition = -1;
+
+		if (SharedContentTab.webContentList != null) {
+			currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
 		}
+
+		for (DLNAResource d : webFolders) {
+			getChildren().remove(d);
+		}
+		webFolders.clear();
+		String webConfPath = configuration.getWebConfPath();
+		File webConf = new File(webConfPath);
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
+		if (
+			webConf.exists() &&
+			configuration.getExternalNetwork() &&
+			(
+				SharedContentTab.lastWebContentUpdate == 1L ||
+				SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
+			)
+		) {
+			/**
+			 * If the GUI last updated less than 2 seconds ago, chances are good
+			 * that this method was triggered by changes in the GUI, which means
+			 * we can skip updating the GUI here (avoiding the peakaboo effect)
+			 */
+			LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
+			parseWebConf(webConf, currentlySelectedPosition);
+			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
+		}
+		setLastModified(1);
 	}
 
 	/**
@@ -1554,11 +1560,13 @@ public class RootFolder extends DLNAResource {
 						} else if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
+							bumpSystemUpdateId();
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 							PMS.get().getDatabase().removeMediaEntry(filename);
+							bumpSystemUpdateId();
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);
 							File file = new File(filename);
@@ -1571,11 +1579,18 @@ public class RootFolder extends DLNAResource {
 	};
 
 	/**
-	 * Parses a file so it gets added to the Media Library along the way.
+	 * Parses a file so it gets parsed and added to the database
+	 * along the way.
 	 *
 	 * @param file the file to parse
 	 */
 	public static final void parseFileForDatabase(File file) {
+		if (!MapFile.isPotentialMediaFile(file.getAbsolutePath())) {
+			LOGGER.trace("Not parsing file that can't be media");
+			return;
+		}
+
+		// TODO: Can this use UnattachedFolder and add instead?
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
 		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -1584,6 +1599,20 @@ public class RootFolder extends DLNAResource {
 
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
+			bumpSystemUpdateId();
+
+			/*
+			 * Something about this process causes Java to hold onto the
+			 * file, which prevents things happening to it on the filesystem
+			 * until the garbage collector runs.
+			 * Some sources say it is a symptom of the nio namespace itself
+			 * and the fix is to use older syntax, and others say other things,
+			 * but until we have a real fix for it we ask Java to collect the
+			 * garbage. It might not do it, but usually it does, which is better
+			 * than what we had before.
+			 */
+			System.gc();
+			System.runFinalization();
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
@@ -1593,7 +1622,7 @@ public class RootFolder extends DLNAResource {
 	 * Starts partial rescan
 	 *
 	 * @param filename This is the partial root of the scan. If a file is given,
-	 *            the parent folder will be scanned.
+	 *                 the parent folder will be scanned.
 	 */
 	public static void rescanLibraryFileOrFolder(String filename) {
 		if (

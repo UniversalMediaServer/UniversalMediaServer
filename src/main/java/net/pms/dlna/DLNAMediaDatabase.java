@@ -47,6 +47,7 @@ import com.google.common.base.CharMatcher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataAwards;
@@ -142,15 +143,17 @@ public class DLNAMediaDatabase implements Runnable {
 		dbName = name;
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
-		boolean logDB = CONFIGURATION.getDatabaseLogging();
-		url = Constants.START_URL + dbDir + File.separator + dbName + ";AUTO_SERVER=TRUE" + (logDB ? ";TRACE_LEVEL_FILE=3" : "");
-		LOGGER.debug("Using database URL: {}", url);
-		LOGGER.info("Using database located at: \"{}\"", dbDir);
-		if (logDB) {
+		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
+
+		if (CONFIGURATION.getDatabaseLogging()) {
+			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");
 		} else if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Database logging is disabled");
 		}
+
+		LOGGER.debug("Using database URL: {}", url);
+		LOGGER.info("Using database located at: \"{}\"", dbDir);
 
 		try {
 			Class.forName("org.h2.Driver");
@@ -435,14 +438,12 @@ public class DLNAMediaDatabase implements Runnable {
 					executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");
 				}
 
-				if (force) {
-					Tables.reInitTablesExceptFilesStatus();
-				}
-
 				LOGGER.debug("Database initialized");
 			} catch (SQLException se) {
 				LOGGER.error("Error creating tables: " + se.getMessage());
 				LOGGER.trace("", se);
+			} catch (Exception se) {
+				LOGGER.trace("Error in database initialization:", se);
 			} finally {
 				close(conn);
 			}
@@ -529,7 +530,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
-	 * as a {@link DLNAMediaInfo} instance.
+	 * as a {@link DLNAMediaInfo} instance, along with thumbnails, status and tracks.
 	 *
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
@@ -675,6 +676,67 @@ public class DLNAMediaDatabase implements Runnable {
 						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
 					}
 				}
+			}
+		} catch (SQLException se) {
+			if (se.getCause() != null && se.getCause() instanceof IOException) {
+				throw (IOException) se.getCause();
+			}
+			throw se;
+		}
+		return media;
+	}
+
+	/**
+	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
+	 * as a {@link DLNAMediaInfo} instance.
+	 * This is the same as getData above, but is a much smaller query because it
+	 * does not fetch thumbnails, status and tracks, and does not require a
+	 * modified value to be passed, which means we can avoid touching the filesystem
+	 * in the caller.
+	 *
+	 * @param name the full path of the media.
+	 * @return The {@link DLNAMediaInfo} instance matching
+	 *         {@code name} and {@code modified}.
+	 * @throws SQLException if an SQL error occurs during the operation.
+	 * @throws IOException if an IO error occurs during the operation.
+	 */
+	public DLNAMediaInfo getFileMetadata(String name) throws IOException, SQLException {
+		DLNAMediaInfo media = null;
+		try (Connection conn = getConnection()) {
+			TABLE_LOCK.readLock().lock();
+			try (
+				PreparedStatement stmt = conn.prepareStatement(
+					"SELECT * FROM " + TABLE_NAME + " " +
+					"WHERE " + TABLE_NAME + ".FILENAME = ? " +
+					"LIMIT 1"
+				);
+			) {
+				stmt.setString(1, name);
+				try (
+					ResultSet rs = stmt.executeQuery();
+				) {
+					if (rs.next()) {
+						media = new DLNAMediaInfo();
+						int id = rs.getInt("ID");
+						media.setIMDbID(rs.getString("IMDBID"));
+						media.setYear(rs.getString("YEAR"));
+						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
+						media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
+						media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
+
+						if (rs.getBoolean("ISTVEPISODE")) {
+							media.setTVSeason(rs.getString("TVSEASON"));
+							media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
+							media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+							media.setIsTVEpisode(true);
+						} else {
+							media.setIsTVEpisode(false);
+						}
+						media.setMediaparsed(true);
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException se) {
 			if (se.getCause() != null && se.getCause() instanceof IOException) {
@@ -1399,6 +1461,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public ArrayList<String> getStrings(String sql) {
 		ArrayList<String> list = new ArrayList<>();
+		HashSet<String> set = new HashSet<>();
 		try (Connection connection = getConnection()) {
 			TABLE_LOCK.readLock().lock();
 			try (
@@ -1408,11 +1471,9 @@ public class DLNAMediaDatabase implements Runnable {
 				while (rs.next()) {
 					String str = rs.getString(1);
 					if (isBlank(str)) {
-						if (!list.contains(NONAME)) {
-							list.add(NONAME);
-						}
-					} else if (!list.contains(str)) {
-						list.add(str);
+						set.add(NONAME);
+					} else {
+						set.add(str);
 					}
 				}
 			} finally {
@@ -1422,6 +1483,7 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.error(null, se);
 			return null;
 		}
+		list.addAll(set);
 		return list;
 	}
 
