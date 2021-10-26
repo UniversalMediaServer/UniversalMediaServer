@@ -562,6 +562,7 @@ public class LibMediaInfoParser {
 				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
 			}
 		} catch (Exception e) {
+			LOGGER.trace("Audio Tag not parsed: " + e.getMessage());
 		}
 	}
 

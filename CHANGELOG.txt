@@ -1,4 +1,26 @@
+10.13.0 - 2021-10-
+
+	General:
+		Improved matching and prettifying of TV episodes, especially anime
+		Compact database on shutdown (thanks, ik666!)
+		Fixed status line glitches while scanning
+		Fixed playlist folders not updating (thanks, ik666!)
+		Fixed memory leak after failed API lookup
+		Various web interface code improvements (thanks, Amir, Florian, and Kurtis Hanson)
+		Code readability improvements (thanks, Christian Baer!)
+	Renderers:
+		Improved matching and transcoding on Samsung 4K+ TVs
+	Dependencies:
+		Bump assertj-core from 3.20.2 to 3.21.0
+		Bump checkstyle from 9.0 to 9.0.1
+		Bump junit5.version from 5.8.0 to 5.8.1
+		Bump logback-version from 1.2.5 to 1.2.6
+		Bump maven-enforcer-plugin from 3.0.0-M3 to 3.0.0
+		Bump MediaInfo from 21.03 to 21.09
+		Bump spotbugs-maven-plugin from 4.3.0 to 4.4.2
+
 10.12.0 - 2021-09-17
+
 	General:
 		Increased performance and reduced memory use of startup scan
 		Renderer configurations now have MediaInfo enabled by default

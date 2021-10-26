@@ -115,6 +115,18 @@
 		}
 	},
 	{
+		"comment": "Video of a TV episode from season 0 titled Mysterious Wordplay",
+		"filename": "Universal.Media.Server.S00E02.Mysterious.Wordplay.720p.mkv",
+		"prettified": "Universal Media Server S00E02 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episode",
+			"series": "Universal Media Server",
+			"season": 0,
+			"episode": 2,
+			"title": "Mysterious Wordplay"
+		}
+	},
+	{
 		"comment": "Video of a TV episode titled Mysterious Wordplay with 1x23 format",
 		"filename": "Universal Media Server - 1x23 - Mysterious Wordplay.mkv",
 		"prettified": "Universal Media Server S01E23 - Mysterious Wordplay",
@@ -281,6 +293,39 @@
 		}
 	},
 	{
+		"comment": "Video of an anime episode with French subtitles",
+		"filename": "[FanSubbers]_Universal_Media_Server_925_[VOSTFR][HD_1280x720].mp4",
+		"prettified": "Universal Media Server S01E925",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [925]
+		}
+	},
+	{
+		"comment": "Video of an anime episode with Dual Audio and underscores inconsistently used",
+		"filename": "[FanSubbers]Universal_Media_Server_-_09_(Dual Audio_10bit_BD720p).mkv",
+		"prettified": "Universal Media Server S01E09",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [9]
+		}
+	},
+	{
+		"comment": "Video of an anime episode with website as fansubs",
+		"filename": "(universalmediaserver.com)_Universal_Media_Server_-_037_(480p)_(FanSubbers).mkv",
+		"prettified": "Universal Media Server S01E37",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [37]
+		}
+	},
+	{
 		"comment": "Video of an episode with a mixed convention",
 		"filename": "Universal Media Server - S01 E02 - Mysterious Wordplay.mkv",
 		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
@@ -375,7 +420,7 @@
 			"released": { "year": 2018 }
 		}
 	},
-		{
+	{
 		"comment": "Video of a movie with a year at the end of title",
 		"filename": "UMS.2018.mp4",
 		"prettified": "UMS (2018)",
@@ -383,6 +428,17 @@
 			"type": "movie",
 			"title": "UMS",
 			"released": { "year": 2018 }
+		}
+	},
+	{
+		"comment": "Video of a movie with a short filename, and the proper filename in its parent directory",
+		"filename": "groupname-moviename.1080p-x264.mkv",
+		"absolutepath": "D:\\Movie.Name.2001.1080p.BluRay.x264-GROUPNAME\\groupname-moviename.1080p-x264.mkv",
+		"prettified": "Movie Name (2001)",
+		"metadata": {
+			"type": "movie",
+			"title": "Movie Name",
+			"released": { "year": 2001 }
 		}
 	}
 ]

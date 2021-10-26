@@ -20,6 +20,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
+import net.pms.formats.Format;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.message.SearchRequest;
 
@@ -56,29 +57,33 @@ public class SearchRequestHandler {
 		if (matcher.find()) {
 			String propertyValue = matcher.group("val");
 			if (propertyValue != null) {
-				if (propertyValue.toLowerCase().startsWith("object.item.audioitem")) {
+				propertyValue = propertyValue.toLowerCase();
+				if (propertyValue.startsWith("object.item.audioitem")) {
 					return DbidMediaType.TYPE_AUDIO;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.person")) {
-					return DbidMediaType.TYPE_PERSON;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.album")) {
-					return DbidMediaType.TYPE_ALBUM;
-				} else if (propertyValue.toLowerCase().startsWith("object.container.playlistcontainer")) {
-					return DbidMediaType.TYPE_PLAYLIST;
-				} else if (propertyValue.toLowerCase().startsWith("object.item.videoitem")) {
+				} else if (propertyValue.startsWith("object.item.videoitem")) {
 					return DbidMediaType.TYPE_VIDEO;
+				} else if (propertyValue.startsWith("object.item.imageitem")) {
+					return DbidMediaType.TYPE_IMAGE;
+				} else if (propertyValue.startsWith("object.container.person")) {
+					return DbidMediaType.TYPE_PERSON;
+				} else if (propertyValue.startsWith("object.container.album")) {
+					return DbidMediaType.TYPE_ALBUM;
+				} else if (propertyValue.startsWith("object.container.playlistcontainer")) {
+					return DbidMediaType.TYPE_PLAYLIST;
 				}
 			}
 		}
-		throw new RuntimeException("Unknown type : ");
+		throw new RuntimeException("Unknown type : " + (searchCriteria != null ? searchCriteria : "NULL"));
 	}
 
 	public StringBuilder createSearchResponse(SearchRequest requestMessage, RendererConfiguration mediaRenderer) {
 		int numberReturned = 0;
 		StringBuilder dlnaItems = new StringBuilder();
 		DbidMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
+
 		int totalMatches = getDLNAResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbidTypeAndIdent(DbidMediaType.TYPE_FOLDER, ""), "");
+		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbidTypeAndIdent(requestType, ""), "");
 		if (requestType == DbidMediaType.TYPE_AUDIO || requestType == DbidMediaType.TYPE_PLAYLIST) {
 			String sqlFiles = convertToFilesSql(requestMessage, requestType);
 			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
@@ -124,7 +129,7 @@ public class SearchRequestHandler {
 			case TYPE_IMAGE:
 				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			default:
-				throw new RuntimeException("not implemented request type");
+				throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
 	}
 
@@ -145,9 +150,10 @@ public class SearchRequestHandler {
 			case TYPE_PLAYLIST:
 				return "select count(DISTINCT F.id) from FILES as F where ";
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				return "select count(DISTINCT F.id) from FILES as F where ";
 			default:
-				throw new RuntimeException("not implemented request type");
+				throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
 	}
 
@@ -239,6 +245,7 @@ public class SearchRequestHandler {
 				return " COALESCE(A.ALBUMARTIST, A.ARTIST) ";
 			case TYPE_PLAYLIST:
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				return " F.FILENAME ";
 			default:
 				break;
@@ -255,6 +262,7 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO:
 			case TYPE_PLAYLIST:
 			case TYPE_VIDEO:
+			case TYPE_IMAGE:
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
 					sb.append(String.format(" F.TYPE = %d ", getFileType(requestType)));
 				}
@@ -277,11 +285,13 @@ public class SearchRequestHandler {
 			case TYPE_AUDIO:
 			case TYPE_ALBUM:
 			case TYPE_PERSON:
-				return 1;
+				return Format.AUDIO;
 			case TYPE_VIDEO:
-				return 4;
+				return Format.VIDEO;
+			case TYPE_IMAGE:
+				return Format.IMAGE;
 			case TYPE_PLAYLIST:
-				return 16;
+				return Format.PLAYLIST;
 			default:
 				break;
 		}
@@ -293,12 +303,13 @@ public class SearchRequestHandler {
 			LOGGER.trace(String.format("SQL count : %s", query));
 		}
 
-		try (Connection connection = database.getConnection()) {
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					resultSet.next();
-					return resultSet.getInt(1);
-				}
+		try (
+			Connection connection = database.getConnection();
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query)
+		) {
+			if (resultSet.next()) {
+				return resultSet.getInt(1);
 			}
 		} catch (SQLException e) {
 			LOGGER.trace("getDLNAResourceCountFromSQL", e);

@@ -4863,7 +4863,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
-		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName());
+		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
 		String titleFromFilename = metadataFromFilename[0];
 		String yearFromFilename = metadataFromFilename[1];
 		String extraInformationFromFilename = metadataFromFilename[2];

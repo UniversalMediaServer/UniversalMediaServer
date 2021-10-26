@@ -145,9 +145,10 @@ public class NetworkConfiguration {
 	private List<InterfaceAssociation> interfaces = new ArrayList<>();
 
 	/**
-	 * The map of discovered default IP addresses belonging to a network interface.
+	 * The insertion-ordered map of discovered default IP addresses belonging to a network interface.
+	 * This assumes that interfaces order in the OS is made upon their importance.
 	 */
-	private Map<String, InterfaceAssociation> interfacesWithAssociatedAddress = new HashMap<>();
+	private Map<String, InterfaceAssociation> interfacesWithAssociatedAddress = new LinkedHashMap<>();
 
 	/**
 	 * The map of IP addresses connected to an interface name.
@@ -406,7 +407,7 @@ public class NetworkConfiguration {
 			return null;
 		}
 
-		Map<String, InterfaceAssociation> virtualInterfaces = new HashMap<>();
+		Map<String, InterfaceAssociation> virtualInterfaces = new LinkedHashMap<>();
 		for (Entry<String, InterfaceAssociation> entry : interfacesWithAssociatedAddress.entrySet()) {
 			if (entry.getValue().getDisplayName().toLowerCase().contains("virtual")) {
 				virtualInterfaces.put(entry.getKey(), entry.getValue());

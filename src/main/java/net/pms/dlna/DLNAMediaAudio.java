@@ -682,7 +682,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Returns the MB record ID for this track
 	 *
-	 * @return The album artist name.
+	 * @return The MB record ID.
 	 */
 	public String getMbidRecord() {
 		return this.mbidRecord;
@@ -700,7 +700,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Returns MB track id for this track.
 	 *
-	 * @return The album artist name.
+	 * @return The MB track ID.
 	 */
 	public String getMbidTrack() {
 		return this.mbidTrack;

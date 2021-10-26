@@ -145,8 +145,8 @@ public class UMSUtils {
 
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
 
 						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
 					}
@@ -157,8 +157,8 @@ public class UMSUtils {
 
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
 
 						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 					}
@@ -191,8 +191,8 @@ public class UMSUtils {
 
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder);
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder);
+						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
+						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
 
 						return COLLATOR.compare(filename1ToSort, filename2ToSort);
 					}
