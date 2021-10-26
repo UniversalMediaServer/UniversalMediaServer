@@ -72,23 +72,26 @@ public final class TableVideoMetadataDirectors extends Tables {
 			Iterator<String> i = directors.iterator();
 			while (i.hasNext()) {
 				String director = i.next();
-				PreparedStatement insertStatement = connection.prepareStatement(
-					"INSERT INTO " + TABLE_NAME + " (" +
-						"TVSERIESID, FILENAME, DIRECTOR" +
-					") VALUES (" +
-						"?, ?, ?" +
-					")",
-					Statement.RETURN_GENERATED_KEYS
-				);
-				insertStatement.clearParameters();
-				insertStatement.setLong(1, tvSeriesID);
-				insertStatement.setString(2, left(fullPathToFile, 255));
-				insertStatement.setString(3, left(director, 255));
+				try (
+					PreparedStatement insertStatement = connection.prepareStatement(
+						"INSERT INTO " + TABLE_NAME + " (" +
+							"TVSERIESID, FILENAME, DIRECTOR" +
+						") VALUES (" +
+							"?, ?, ?" +
+						")",
+						Statement.RETURN_GENERATED_KEYS
+					)
+				) {
+					insertStatement.clearParameters();
+					insertStatement.setLong(1, tvSeriesID);
+					insertStatement.setString(2, left(fullPathToFile, 255));
+					insertStatement.setString(3, left(director, 255));
 
-				insertStatement.executeUpdate();
-				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-					if (rs.next()) {
-						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, director);
+					insertStatement.executeUpdate();
+					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+						if (rs.next()) {
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, director);
+						}
 					}
 				}
 			}
