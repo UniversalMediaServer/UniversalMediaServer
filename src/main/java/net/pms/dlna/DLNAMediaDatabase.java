@@ -278,22 +278,22 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		TABLE_LOCK.readLock().lock();
-		try (conn = getConnection()) {
+		try (Connection conn2 = getConnection()) {
 			try (
-				stmt = conn.createStatement();
-				rs = stmt.executeQuery("SELECT count(*) FROM FILES")
+				Statement stmt2 = conn.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("SELECT count(*) FROM FILES")
 			) {
-				if (rs.next()) {
-					dbCount = rs.getInt(1);
+				if (rs2.next()) {
+					dbCount = rs2.getInt(1);
 				}
 			}
 
 			try (
-				stmt = conn.createStatement();
-				rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'")
+				Statement stmt2 = conn.createStatement();
+				ResultSet rs2 = stmt2.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'")
 			) {
-				if (rs.next()) {
-					currentVersion = Integer.parseInt(rs.getString(1));
+				if (rs2.next()) {
+					currentVersion = Integer.parseInt(rs2.getString(1));
 				}
 			}
 		} catch (SQLException se) {
