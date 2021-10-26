@@ -117,7 +117,6 @@ function changeMargins() {
 
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
-					var caption_w = cell_w - 43;
 					$(cells[c]).find('.caption').css({
 						width: '100%',
 						maxWidth: '100%',
@@ -358,11 +357,7 @@ function isDarkColorNeededOnThisColor(rgbColor) {
       iterator++;
       backgroundLightness += PERCEIVED_WEIGHTING_BLUE_LIGHT * rgbColor[iterator];
 
-      if (backgroundLightness > LIGHT_DARK_THRESHOLD) {
-        return true;
-      } else {
-        return false;
-      }
+      return (backgroundLightness > LIGHT_DARK_THRESHOLD);
 }
 
 /**
@@ -486,7 +481,7 @@ function populateMetadataDisplayFromGlobalVars() {
 	if (totalSeasons) {
 		$('.totalSeasons').html('<strong>' + totalSeasonsTranslation + ':</strong> ' + totalSeasons);
 	}
-	
+
 }
 
 $(document).ready(function () {

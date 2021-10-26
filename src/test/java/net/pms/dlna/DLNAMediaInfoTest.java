@@ -7,7 +7,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.logging.LoggingConfig;
-import net.pms.service.Services;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -40,6 +39,8 @@ public class DLNAMediaInfoTest {
 		"video-h264-eac3.mkv",
 		"audio-flac24.flac",
 		"video-xvid-mp3.avi",
+		"video-h265_dolbyvision_p05.05-eac3_atmos.mkv",
+		"video-h265_dolbyvision_p08.05-eac3_atmos.mkv",
 	};
 
 	@Test
@@ -62,7 +63,6 @@ public class DLNAMediaInfoTest {
 
 		Logger LOGGER = LoggerFactory.getLogger(CLASS);
 
-		Services.create();
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
@@ -74,7 +74,6 @@ public class DLNAMediaInfoTest {
 		}
 
 		// Create a new PMS instance
-		PMS.getNewInstance();
 
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
@@ -205,6 +204,16 @@ public class DLNAMediaInfoTest {
 				case 21:
 					assertThat(mediaInfo.toString()).isEqualTo(
 						"Container: AVI, Size: 1282694, Overall Bitrate: 793255, Video Tracks: 1, Video Codec: divx, Duration: 0:00:12.936, Video Resolution: 720 x 400, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 25.000, Audio Tracks: 1 [Audio Track Title From Metadata: video-mpeg4-aac, Audio Codec: MP3, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi"
+					);
+					break;
+				case 22:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 8925360, Overall Bitrate: 11868830, Video Tracks: 1, Video Codec: h265, Duration: 0:00:06.016, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 59.940, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Bit Depth: 10, Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+					);
+					break;
+				case 23:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 7799945, Overall Bitrate: 10372267, Video Tracks: 1, Video Codec: h265, Duration: 0:00:06.016, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 59.940, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
 					);
 					break;
 				default:

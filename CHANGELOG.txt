@@ -1,3 +1,102 @@
+10.13.0 - 2021-10-
+
+	General:
+		Improved matching and prettifying of TV episodes, especially anime
+		Compact database on shutdown (thanks, ik666!)
+		Fixed status line glitches while scanning
+		Fixed playlist folders not updating (thanks, ik666!)
+		Fixed memory leak after failed API lookup
+		Various web interface code improvements (thanks, Amir, Florian, and Kurtis Hanson)
+		Code readability improvements (thanks, Christian Baer!)
+	Renderers:
+		Improved matching and transcoding on Samsung 4K+ TVs
+	Dependencies:
+		Bump assertj-core from 3.20.2 to 3.21.0
+		Bump checkstyle from 9.0 to 9.0.1
+		Bump junit5.version from 5.8.0 to 5.8.1
+		Bump logback-version from 1.2.5 to 1.2.6
+		Bump maven-enforcer-plugin from 3.0.0-M3 to 3.0.0
+		Bump MediaInfo from 21.03 to 21.09
+		Bump spotbugs-maven-plugin from 4.3.0 to 4.4.2
+
+10.12.0 - 2021-09-17
+
+	General:
+		Increased performance and reduced memory use of startup scan
+		Renderer configurations now have MediaInfo enabled by default
+		Fixed files locking during or just after download
+		Fixed process hanging on shutdown
+		Made building the project faster
+		Started using DeepSource for static code analysis
+	Translation updates via Crowdin:
+		French (100%) (thanks, Archaos!)
+		German (100%) (thanks, pipin!)
+		Italian (100%) (thanks, Marco F. V. Baljet!)
+		Portuguese (Brazilian) (thanks, Mauro.A!)
+		Russian (96%) (thanks, Andrey Zhernovoy!)
+	Dependencies:
+		Revert h2database from 1.4.199 to 1.4.197
+		Bump JRE to 8u302+8 on macOS
+		Bump junit5.version from 5.7.2 to 5.8.0
+		Bump maven-javadoc-plugin from 3.3.0 to 3.3.1
+		Bump maven-pmd-plugin from 3.14.0 to 3.15.0
+		Bump oshi-core from 5.8.1 to 5.8.2
+		Fixed using x64 JRE on x86 (i586) Linux
+
+10.11.0 - 2021-09-04
+
+	General:
+		Added link to changelog in auto updater (thanks, Patrick!)
+		Fixed Dolby Vision video being detected as Digital Video (dv)
+		Fixed browsing on some renderers
+		Fixed tsMuxeR not working on macOS (thanks, justdan96!)
+	Renderers:
+		Improved support for subtitles on LG OLED TVs
+	Translation updates via Crowdin:
+		Chinese (Traditional) (95%) (thanks, Gene Wu!)
+		Czech (99%)
+		Danish (100%) (thanks, NCAA!)
+		Dutch (97%) (thanks, Jos van der logt!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (99%) (thanks, mariopinto!)
+		Spanish (100%) (thanks, edwardalvarez2011!)
+		Turkish (100%) (thanks, Burak Yavuz and Erdin Koc!)
+		Ukrainian (19%) (thanks, Paul Furlet!)
+	Dependencies:
+		Bump checkstyle from 8.45.1 to 9.0
+		Bump JNA from 5.8.0 to 5.9.0
+		Bump oshi-core from 5.8.0 to 5.8.1
+		Bump tsMuxeR to 2021-09-02-01-59-46
+
+10.10.1 - 2021-08-23
+
+	General:
+		Up to 4x browsing speed improvement (thanks, ik666!)
+		Disabled UPnP search while we fix problems with it
+		Fixed sending MusicBrainz info for non-audio files
+		Fixed the older HTTP engine
+	Renderers:
+		Improved support for HDR and high bit depths on LG OLED TVs
+		Fixed support for OGG formats on LG EG910V TV
+	Dependencies:
+		Bump gson from 2.8.7 to 2.8.8
+		Bump JRE to 8u302+8
+		Bump logback-version from 1.2.3 to 1.2.5
+
+10.10.0 - 2021-08-18
+
+	General:
+		Added fully played overlay to TV series thumbnails in Media Library if all episodes are played
+		Fixes some renderers not reflecting content updates like fully played thumbnail changes
+		Fixed broken API matching for episodes from files with years in the series name
+		Fixed files locking during or just after download
+		Ignore incomplete files
+	Translation updates via Crowdin:
+		Romanian (100%) (thanks, FlorinT!)
+		Russian (90%) (thanks, Sergei Kotlar!)
+
 10.9.0 - 2021-08-09
 
 	General:

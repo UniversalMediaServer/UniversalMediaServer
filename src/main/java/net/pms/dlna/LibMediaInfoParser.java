@@ -556,10 +556,13 @@ public class LibMediaInfoParser {
 			}
 			Tag t = af.getTag();
 			if (t != null) {
-				currentAudioTrack.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
-				currentAudioTrack.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
+				currentAudioTrack.setMbidRecord(val.equals("") ? null : val);
+				val = t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
+				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
 			}
 		} catch (Exception e) {
+			LOGGER.trace("Audio Tag not parsed: " + e.getMessage());
 		}
 	}
 
@@ -727,7 +730,10 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.CELP;
 		} else if (value.equals("qcelp")) {
 			format = FormatConfiguration.QCELP;
-		} else if (value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)")) {
+		} else if (
+			value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)") &&
+			!value.contains("dvhe")
+		) {
 			format = FormatConfiguration.DV;
 		} else if (value.contains("mpeg video")) {
 			format = FormatConfiguration.MPEG2;

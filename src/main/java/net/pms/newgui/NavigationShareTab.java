@@ -32,6 +32,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
+import net.pms.database.Tables;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
@@ -379,6 +380,11 @@ public class NavigationShareTab {
 				JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {
 				PMS.get().getDatabase().init(true);
+				try {
+					Tables.reInitTablesExceptFilesStatus();
+				} catch (Exception e2) {
+					LOGGER.debug("Error when re-initializing after manual cache reset:", e2);
+				}
 			}
 		});
 		cacheReset.setEnabled(configuration.getUseCache());

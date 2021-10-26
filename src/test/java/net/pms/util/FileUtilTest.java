@@ -106,8 +106,13 @@ public class FileUtilTest {
 			for (JsonElement test : tests) {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
-				String prettified = o.get("prettified").getAsString();
-				assertThat(FileUtil.getFileNamePrettified(original)).as(o.get("comment").getAsString()).isEqualTo(prettified);
+				String absolutePath = null;
+				if (o.get("absolutepath") != null) {
+					absolutePath = o.get("absolutepath").getAsString();
+				}
+				String expectedOutput = o.get("prettified").getAsString();
+				String fileNamePrettified = FileUtil.getFileNamePrettified(original, absolutePath);
+				assertThat(fileNamePrettified).as(o.get("comment").getAsString()).isEqualTo(expectedOutput);
 			}
 		} catch (Exception ex) {
 			throw (new AssertionError(ex));
@@ -137,13 +142,17 @@ public class FileUtilTest {
 			for (JsonElement test : tests) {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
+				String absolutePath = null;
+				if (o.get("absolutepath") != null) {
+					absolutePath = o.get("absolutepath").getAsString();
+				}
 				JsonObject metadata = o.get("metadata").getAsJsonObject();
 				boolean todo = false;
 				if (o.has("todo")) {
 					todo = o.get("todo").getAsBoolean();
 				}
 
-				String[] extracted_metadata = FileUtil.getFileNameMetadata(original);
+				String[] extracted_metadata = FileUtil.getFileNameMetadata(original, absolutePath);
 				assert extracted_metadata.length == 6;
 				String movieOrShowName = extracted_metadata[0];
 				int year = -1;
