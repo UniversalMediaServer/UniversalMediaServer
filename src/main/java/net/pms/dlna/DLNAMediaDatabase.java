@@ -80,7 +80,6 @@ public class DLNAMediaDatabase implements Runnable {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock(true);
-	private static final ReadWriteLock TABLE_LOCK_METADATA = new ReentrantReadWriteLock(true);
 
 	private String url;
 	private String dbDir;
@@ -279,13 +278,23 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		TABLE_LOCK.readLock().lock();
-		try (
-			Connection conn2 = getConnection();
-			Statement stmt2 = conn2.createStatement();
-			ResultSet rs2 = stmt2.executeQuery("SELECT count(*) FROM FILES")
-		) {
-			if (rs2.next()) {
-				dbCount = rs2.getInt(1);
+		try (conn = getConnection()) {
+			try (
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery("SELECT count(*) FROM FILES")
+			) {
+				if (rs.next()) {
+					dbCount = rs.getInt(1);
+				}
+			}
+
+			try (
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'")
+			) {
+				if (rs.next()) {
+					currentVersion = Integer.parseInt(rs.getString(1));
+				}
 			}
 		} catch (SQLException se) {
 			if (se.getErrorCode() != 42102) { // Don't log exception "Table "FILES" not found" which will be corrected in following step
@@ -294,8 +303,6 @@ public class DLNAMediaDatabase implements Runnable {
 		} finally {
 			TABLE_LOCK.readLock().unlock();
 		}
-
-		currentVersion = getMetadataVersion();
 
 		/**
 		 * In here we could update tables with our changes, but our database
@@ -486,31 +493,6 @@ public class DLNAMediaDatabase implements Runnable {
 			LOGGER.debug("Database file count: " + dbCount);
 			LOGGER.debug("Database version: " + LATEST_VERSION);
 		}
-	}
-
-	/**
-	 * Gets database version from the METADATA table
-	 */
-	public Integer getMetadataVersion() {
-		Integer value = null;
-
-		try (Connection conn = getConnection()) {
-			TABLE_LOCK_METADATA.readLock().lock();
-			try (
-				Statement stmt = conn.createStatement();
-				ResultSet rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'")
-			) {
-				if (rs.next()) {
-					value = Integer.parseInt(rs.getString(1));
-				}
-			} finally {
-				TABLE_LOCK_METADATA.readLock().unlock();
-			}
-		} catch (Exception se) {
-			LOGGER.error(null, se);
-		}
-
-		return value;
 	}
 
 	private static void executeUpdate(Connection conn, String sql) throws SQLException {
