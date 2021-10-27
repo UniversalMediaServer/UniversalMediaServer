@@ -1,19 +1,20 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3. Copyright (C) 2008
- * A.Brochard
+ * PS3 Media Server, for streaming any medias to your PS3.
+ * Copyright (C) 2008  A.Brochard
  *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; version 2 of the License only.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.io;
 
@@ -33,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessWrapperImpl.class);
 
 	/** FONTCONFIG_PATH environment variable name */
@@ -75,7 +75,12 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this(cmdArray, false, params, keepOutput, keepOutput);
 	}
 
-	public ProcessWrapperImpl(String[] cmdArray, boolean useByteArrayStdConsumer, OutputParams params, boolean keepOutput) {
+	public ProcessWrapperImpl(
+		String[] cmdArray,
+		boolean useByteArrayStdConsumer,
+		OutputParams params,
+		boolean keepOutput
+	) {
 		this(cmdArray, useByteArrayStdConsumer, params, keepOutput, keepOutput);
 	}
 
@@ -83,8 +88,13 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this(cmdArray, false, params, keepStdout, keepStderr);
 	}
 
-	public ProcessWrapperImpl(String[] cmdArray, boolean useByteArrayStdConsumer, OutputParams params, boolean keepStdout,
-		boolean keepStderr) {
+	public ProcessWrapperImpl(
+		String[] cmdArray,
+		boolean useByteArrayStdConsumer,
+		OutputParams params,
+		boolean keepStdout,
+		boolean keepStderr
+	) {
 		super();
 		this.useByteArrayStdConsumer = useByteArrayStdConsumer;
 
@@ -134,8 +144,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// Retrieve all environment variables of the process
 			Map<String, String> environment = pb.environment();
 
-			// The variable params.env is initialized to null in the
-			// OutputParams
+			// The variable params.env is initialized to null in the OutputParams
 			// constructor and never set to another value in PMS code. Plugins
 			// might use it?
 			if (params.getEnv() != null && !params.getEnv().isEmpty()) {
@@ -145,7 +154,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				// As is Map
 				String path = params.getEnv().containsKey("PATH") ? params.getEnv().get("PATH") :
 					params.getEnv().containsKey("path") ? params.getEnv().get("path") :
-						params.getEnv().containsKey("Path") ? params.getEnv().get("Path") : null;
+					params.getEnv().containsKey("Path") ? params.getEnv().get("Path") : null;
 				if (path != null) {
 					path += (File.pathSeparator + environment.get(sysPathKey));
 				}
@@ -155,11 +164,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			}
 
-			// Fontconfig on Mac OS X may have problems locating fonts. As a
-			// result
+			// Fontconfig on Mac OS X may have problems locating fonts. As a result
 			// subtitles may be rendered invisible. Force feed fontconfig the
-			// FONTCONFIG_PATH environment variable to the prepackaged
-			// fontconfig
+			// FONTCONFIG_PATH environment variable to the prepackaged fontconfig
 			// configuration directory that comes with UMS on Mac OS X to make
 			// sure it has sensible defaults.
 			if (Platform.isMac()) {
@@ -172,12 +179,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			}
 
-			// XXX A cleaner way to execute short-running commands (e.g. vlc
-			// -version)
-			// is being developed. When that's done, this class can be used
-			// solely
-			// for the long-running tasks i.e. transcodes. At that point, we
-			// won't need
+			// XXX A cleaner way to execute short-running commands (e.g. vlc -version)
+			// is being developed. When that's done, this class can be used solely
+			// for the long-running tasks i.e. transcodes. At that point, we won't need
 			// separate stdout and stderr and can merge them by uncommenting the
 			// following line:
 			// pb.redirectErrorStream(true);
@@ -185,7 +189,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			PMS.get().currentProcesses.add(process);
 
 			if (stderrConsumer == null) {
-				stderrConsumer = keepStderr ? new OutputTextConsumer(process.getErrorStream(), true) :
+				stderrConsumer = keepStderr ?
+					new OutputTextConsumer(process.getErrorStream(), true) :
 					new OutputTextLogger(process.getErrorStream());
 			} else {
 				stderrConsumer.setInputStream(process.getErrorStream());
@@ -213,7 +218,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				bo.attachThread(this);
 				new OutputTextLogger(process.getInputStream()).start();
 			} else if (params.isLog()) {
-				stdoutConsumer = keepStdout ? new OutputTextConsumer(process.getInputStream(), true) :
+				stdoutConsumer = keepStdout ?
+					new OutputTextConsumer(process.getInputStream(), true) :
 					new OutputTextLogger(process.getInputStream());
 			} else {
 				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
@@ -251,8 +257,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				if (stdoutConsumer != null) {
 					stdoutConsumer.join(1000);
 				}
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) { }
 		} catch (IOException e) {
 			LOGGER.error("Error initializing process: {}", e.getMessage());
 			LOGGER.debug("", e);
@@ -271,8 +276,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				try {
 					success = true;
 					if (process != null && process.exitValue() != 0) {
-						LOGGER.info("Process {} has a return code of {}! Maybe an error occurred... check the log file", cmdArray[0],
-							process.exitValue());
+						LOGGER.info("Process {} has a return code of {}! Maybe an error occurred... check the log file", cmdArray[0], process.exitValue());
 						success = false;
 					}
 				} catch (IllegalThreadStateException itse) {
@@ -294,7 +298,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	/**
 	 * Same as {@link #start()}, merely making the intention explicit in the
 	 * method name.
-	 *
 	 * @see #runInSameThread()
 	 */
 	@Override
@@ -305,15 +308,16 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	/**
 	 * Same as {@link #run()}, merely making the intention explicit in the
 	 * method name.
-	 *
 	 * @see #runInNewThread()
 	 */
 	@Override
 	@SuppressFBWarnings("RU_INVOKE_RUN")
 	public void runInSameThread() {
 		if (!useByteArrayStdConsumer && !params.isLog()) {
-			LOGGER.warn("ProcessWrapperImpl.runInSameThread() is called without using " +
-				"byte array standard consumer or a text consumer. This can " + "cause this thread to hang and should be avoided!");
+			LOGGER.warn(
+				"ProcessWrapperImpl.runInSameThread() is called without using " +
+				"byte array standard consumer or a text consumer. This can " +
+				"cause this thread to hang and should be avoided!");
 		}
 		this.run();
 	}
@@ -352,15 +356,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	@Override
 	public List<String> getResults() {
-		if (stderrConsumer != null) {
-			try {
-				stderrConsumer.join(1000);
-			} catch (InterruptedException e) {
-			}
-			return stderrConsumer.getResults();
+		try {
+			stderrConsumer.join(1000);
+		} catch (InterruptedException e) {
 		}
-		LOGGER.warn("stderrConsumer is null");
-		return new ArrayList<>();
+		return stderrConsumer.getResults();
 	}
 
 	@Override
