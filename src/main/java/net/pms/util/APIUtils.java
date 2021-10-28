@@ -107,7 +107,7 @@ public class APIUtils {
 	public static String getApiDataVideoVersion() {
 		if (apiDataVideoVersion == null) {
 			setApiMetadataVersions();
-		};
+		}
 
 		return apiDataVideoVersion;
 	}
@@ -115,7 +115,7 @@ public class APIUtils {
 	public static String getApiDataSeriesVersion() {
 		if (apiDataSeriesVersion == null) {
 			setApiMetadataVersions();
-		};
+		}
 
 		return apiDataSeriesVersion;
 	}

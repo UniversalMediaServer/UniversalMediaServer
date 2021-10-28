@@ -173,7 +173,7 @@ public final class TableTVSeries extends Tables {
 	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
 		StringBuilder sql = new StringBuilder();
-		sql.append( "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " ");
+		sql.append("SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " ");
 		String latestVersion = APIUtils.getApiDataSeriesVersion();
 		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
 			sql.append("AND VERSION = " + sqlQuote(imdbID) + " ");

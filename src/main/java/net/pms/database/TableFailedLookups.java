@@ -146,14 +146,14 @@ public final class TableFailedLookups extends Tables {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
-						result.updateString("FAILUREDETAILS", failureDetails);
-						result.updateString("VERSION", latestVersion);
+						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+						result.updateString("VERSION", left(latestVersion, 1024));
 						result.updateRow();
 					} else {
 						result.moveToInsertRow();
-						result.updateString("FILENAME", fullPathToFile);
-						result.updateString("FAILUREDETAILS", failureDetails);
-						result.updateString("VERSION", latestVersion);
+						result.updateString("FILENAME", left(fullPathToFile, 1024));
+						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+						result.updateString("VERSION", left(latestVersion, 1024));
 						result.insertRow();
 					}
 				} finally {
