@@ -280,7 +280,7 @@ public class DLNAMediaDatabase implements Runnable {
 		TABLE_LOCK.readLock().lock();
 		try (Connection conn2 = getConnection()) {
 			try (
-				Statement stmt2 = conn.createStatement();
+				Statement stmt2 = conn2.createStatement();
 				ResultSet rs2 = stmt2.executeQuery("SELECT count(*) FROM FILES")
 			) {
 				if (rs2.next()) {
@@ -289,7 +289,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 
 			try (
-				Statement stmt2 = conn.createStatement();
+				Statement stmt2 = conn2.createStatement();
 				ResultSet rs2 = stmt2.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'")
 			) {
 				if (rs2.next()) {
