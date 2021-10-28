@@ -543,15 +543,22 @@ public class DLNAMediaDatabase implements Runnable {
 	 *
 	 * @param name the full path of the video.
 	 * @param modified the current {@code lastModified} value of the media file.
+	 * @param includeVersionCheck whether to include the version check. It is important
+	 *                            to NOT do the version check in a blocking way, because
+	 *                            that makes it possible for the API to potentially impact
+	 *                            the performance of this program.
 	 * @return whether the latest API metadata exists for this video.
 	 */
-	public boolean isAPIMetadataExists(String name, long modified) {
+	public boolean isAPIMetadataExists(String name, long modified, boolean includeVersionCheck) {
 		boolean found = false;
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT ID FROM FILES WHERE FILENAME = ? AND MODIFIED = ? ");
-		String latestVersion = APIUtils.getApiDataVideoVersion();
-		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
-			sql.append("AND VERSION = ? ");
+		String latestVersion = null;
+		if (includeVersionCheck && CONFIGURATION.getExternalNetwork()) {
+			latestVersion = APIUtils.getApiDataVideoVersion();
+			if (latestVersion != null) {
+				sql.append("AND VERSION = ? ");
+			}
 		}
 		sql.append("AND IMDBID IS NOT NULL LIMIT 1");
 
@@ -560,7 +567,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
 				statement.setString(1, name);
 				statement.setTimestamp(2, new Timestamp(modified));
-				if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
+				if (latestVersion != null) {
 					statement.setString(3, latestVersion);
 				}
 				try (ResultSet resultSet = statement.executeQuery()) {

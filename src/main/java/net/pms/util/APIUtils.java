@@ -157,7 +157,7 @@ public class APIUtils {
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final DLNAMediaInfo media) {
 		Runnable r = () -> {
-			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
+			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified(), true)) {
 				LOGGER.trace("The latest metadata already exists for {}", file.getName());
 				return;
 			}
