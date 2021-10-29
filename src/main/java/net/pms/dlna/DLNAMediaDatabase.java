@@ -322,6 +322,7 @@ public class DLNAMediaDatabase implements Runnable {
 								sb.append("ALTER TABLE ").append(TABLE_NAME).append(" ADD VERSION VARCHAR2(").append(SIZE_MAX).append(')');
 								statement.execute(sb.toString());
 								statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on FILES (FILENAME, MODIFIED, VERSION, IMDBID)");
+								statement.execute("CREATE UNIQUE INDEX IDX_KEY ON METADATA(KEY)");
 							}
 							version++;
 							LOGGER.trace("Updated {} table from version {} to {}", TABLE_NAME, currentVersion, version);
@@ -334,9 +335,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 				if (!force) {
 					try (Statement statement = conn3.createStatement()) {
-						statement.execute("DROP TABLE METADATA");
-						statement.execute("CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
-						statement.execute("INSERT INTO METADATA VALUES ('VERSION', '" + LATEST_VERSION + "')");
+						setOrUpdateMetadataValue("VERSION", Integer.toString(LATEST_VERSION));
 					}
 				}
 			} catch (Exception se) {
@@ -432,6 +431,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 				LOGGER.trace("Creating table METADATA");
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
+				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_KEY ON METADATA(KEY)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + LATEST_VERSION + "')");
 
 				LOGGER.trace("Creating index IDX_FILE");
@@ -531,7 +531,7 @@ public class DLNAMediaDatabase implements Runnable {
 		String query;
 
 		try (Connection connection = getConnection()) {
-			query = "SELECT VALUE FROM METADATA WHERE KEY = " + sqlQuote(key) + " LIMIT 1";
+			query = "SELECT * FROM METADATA WHERE KEY = " + sqlQuote(key) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", query);
 			}
@@ -547,6 +547,7 @@ public class DLNAMediaDatabase implements Runnable {
 						result.moveToInsertRow();
 					}
 
+					result.updateString("KEY", key);
 					result.updateString("VALUE", value);
 
 					if (isCreatingNewRecord) {
