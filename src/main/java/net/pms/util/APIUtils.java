@@ -177,6 +177,16 @@ public class APIUtils {
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final DLNAMediaInfo media) {
 		Runnable r = () -> {
+			if (!CONFIGURATION.getExternalNetwork()) {
+				LOGGER.trace("Not doing background API lookup because external network is disabled");
+				return;
+			}
+
+			if (!CONFIGURATION.isUseInfoFromIMDb()) {
+				LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
+				return;
+			}
+
 			if (PMS.get().getDatabase().doesLatestApiMetadataExist(file.getAbsolutePath(), file.lastModified())) {
 				LOGGER.trace("The latest metadata already exists for {}", file.getName());
 				return;
