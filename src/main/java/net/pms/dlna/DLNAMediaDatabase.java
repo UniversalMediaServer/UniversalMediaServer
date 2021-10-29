@@ -619,7 +619,7 @@ public class DLNAMediaDatabase implements Runnable {
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @return whether the latest API metadata exists for this video.
 	 */
-	public boolean isAPIMetadataExists(String name, long modified) {
+	public boolean doesLatestApiMetadataExist(String name, long modified) {
 		boolean found = false;
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT ID FROM FILES WHERE FILENAME = ? AND MODIFIED = ? ");
@@ -849,7 +849,6 @@ public class DLNAMediaDatabase implements Runnable {
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
-						int id = rs.getInt("ID");
 						media.setIMDbID(rs.getString("IMDBID"));
 						media.setYear(rs.getString("YEAR"));
 						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
