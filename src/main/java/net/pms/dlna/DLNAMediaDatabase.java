@@ -321,7 +321,31 @@ public class DLNAMediaDatabase implements Runnable {
 								StringBuilder sb = new StringBuilder();
 								sb.append("ALTER TABLE ").append(TABLE_NAME).append(" ADD VERSION VARCHAR2(").append(SIZE_MAX).append(')');
 								statement.execute(sb.toString());
+
+								/*
+								 * Since the last release, 10.12.0, we fixed some bugs with TV episode filename parsing
+								 * so here we clear any cached data for non-episodes.
+								 */
+								sb = new StringBuilder();
+								sb
+									.append("UPDATE ")
+										.append("FILES ")
+									.append("SET ")
+										.append("IMDBID = NULL, ")
+										.append("YEAR = NULL, ")
+										.append("MOVIEORSHOWNAME = NULL, ")
+										.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
+										.append("TVSEASON = NULL, ")
+										.append("TVEPISODENUMBER = NULL, ")
+										.append("TVEPISODENAME = NULL, ")
+										.append("ISTVEPISODE = NULL, ")
+										.append("EXTRAINFORMATION = NULL ")
+									.append("WHERE ")
+										.append("NOT ISTVEPISODE");
+								statement.execute(sb.toString());
+
 								statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on FILES (FILENAME, MODIFIED, VERSION, IMDBID)");
+
 								statement.execute("CREATE UNIQUE INDEX IDX_KEY ON METADATA(KEY)");
 							}
 							version++;
