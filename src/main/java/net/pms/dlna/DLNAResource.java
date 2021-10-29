@@ -4820,77 +4820,77 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param file
 	 */
 	private void setMetadataFromFileName(File file) {
-		if (PMS.get().getDatabase().doesLatestApiMetadataExist(file.getAbsolutePath(), file.lastModified())) {
-			LOGGER.trace("The latest metadata already exists for {}", file.getName());
-			return;
-		}
-
-		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
-		String titleFromFilename = metadataFromFilename[0];
-		String yearFromFilename = metadataFromFilename[1];
-		String extraInformationFromFilename = metadataFromFilename[2];
-		String tvSeasonFromFilename = metadataFromFilename[3];
-		String tvEpisodeNumberFromFilename = metadataFromFilename[4];
-		String tvEpisodeNameFromFilename = metadataFromFilename[5];
-		String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
-
-		media.setMovieOrShowName(titleFromFilename);
-		media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
-		String titleFromDatabase;
-		String titleFromDatabaseSimplified;
-
-		// Apply the metadata from the filename.
-		if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
-			/**
-			 * Overwrite the title from the filename if it's very similar to one
-			 * we already have in our database. This is to avoid minor
-			 * grammatical differences like "Word and Word" vs. "Word & Word"
-			 * from creating two virtual folders.
-			 */
-			titleFromDatabase = TableTVSeries.getSimilarTVSeriesName(titleFromFilename);
-			titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
-			if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
-				media.setMovieOrShowName(titleFromDatabase);
-			}
-
-			media.setTVSeason(tvSeasonFromFilename);
-			if (isNotBlank(tvEpisodeNumberFromFilename)) {
-				media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
-			}
-			if (isNotBlank(tvEpisodeNameFromFilename)) {
-				media.setTVEpisodeName(tvEpisodeNameFromFilename);
-			}
-
-			media.setIsTVEpisode(true);
-		}
-
-		if (yearFromFilename != null) {
-			media.setYear(yearFromFilename);
-		}
-
-		if (extraInformationFromFilename != null) {
-			media.setExtraInformation(extraInformationFromFilename);
-		}
-
+		// If the in-memory media has not already been populated with filename metadata, we attempt it
 		try {
-			if (configuration.getUseCache()) {
-				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+			if (isBlank(media.getMovieOrShowName())) {
+				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
+				String titleFromFilename = metadataFromFilename[0];
+				String yearFromFilename = metadataFromFilename[1];
+				String extraInformationFromFilename = metadataFromFilename[2];
+				String tvSeasonFromFilename = metadataFromFilename[3];
+				String tvEpisodeNumberFromFilename = metadataFromFilename[4];
+				String tvEpisodeNameFromFilename = metadataFromFilename[5];
+				String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
 
-				// Creates a minimal TV series row with just the title, that
-				// might be enhanced later by the API
-				if (media.isTVEpisode()) {
-					TableTVSeries.set(null, media.getMovieOrShowName());
+				media.setMovieOrShowName(titleFromFilename);
+				media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
+				String titleFromDatabase;
+				String titleFromDatabaseSimplified;
+
+				// Apply the metadata from the filename.
+				if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
+					/**
+					* Overwrite the title from the filename if it's very similar to one
+					* we already have in our database. This is to avoid minor
+					* grammatical differences like "Word and Word" vs. "Word & Word"
+					* from creating two virtual folders.
+					*/
+					titleFromDatabase = TableTVSeries.getSimilarTVSeriesName(titleFromFilename);
+					titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+					if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
+						media.setMovieOrShowName(titleFromDatabase);
+					}
+
+					media.setTVSeason(tvSeasonFromFilename);
+					if (isNotBlank(tvEpisodeNumberFromFilename)) {
+						media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+					}
+					if (isNotBlank(tvEpisodeNameFromFilename)) {
+						media.setTVEpisodeName(tvEpisodeNameFromFilename);
+					}
+
+					media.setIsTVEpisode(true);
+				}
+
+				if (yearFromFilename != null) {
+					media.setYear(yearFromFilename);
+				}
+
+				if (extraInformationFromFilename != null) {
+					media.setExtraInformation(extraInformationFromFilename);
+				}
+
+				if (configuration.getUseCache()) {
+					// TODO: Make sure this does not happen if ANY version already exists, before doing this
+					PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+
+					// Creates a minimal TV series row with just the title, that
+					// might be enhanced later by the API
+					if (media.isTVEpisode()) {
+						// TODO: Make this check if it already exists instead of always setting it
+						TableTVSeries.set(null, media.getMovieOrShowName());
+					}
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Could not update the database with information from the filename for \"{}\": {}", file.getAbsolutePath(),
 				e.getMessage());
 			LOGGER.trace("", e);
+		} catch (Exception e) {
+			LOGGER.debug("", e);
 		} finally {
 			// Attempt to enhance the metadata via our API.
-			if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
-				APIUtils.backgroundLookupAndAddMetadata(file, media);
-			}
+			APIUtils.backgroundLookupAndAddMetadata(file, media);
 		}
 	}
 
