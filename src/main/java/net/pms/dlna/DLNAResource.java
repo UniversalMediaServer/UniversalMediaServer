@@ -4820,7 +4820,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param file
 	 */
 	private void setMetadataFromFileName(File file) {
-		if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified(), false)) {
+		if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
 			LOGGER.trace("Metadata already exists for {}", file.getName());
 			return;
 		}

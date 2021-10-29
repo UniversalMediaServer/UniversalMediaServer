@@ -120,30 +120,50 @@ public class APIUtils {
 		return apiDataSeriesVersion;
 	}
 
+	/**
+	 * Populates the apiDataSeriesVersion and apiDataVideoVersion
+	 * variables, preferably from the API, but falling back to
+	 * the local database.
+	 */
 	public static void setApiMetadataVersions() {
 		try {
 			URL domain = new URL("https://api.universalmediaserver.com");
 			URL url = new URL(domain, "/api/subversions");
-
-			String apiResult = getJson(url);
-
 			HashMap<String, String> jsonData = new HashMap<String, String>();
-			try {
-				jsonData = gson.fromJson(apiResult, jsonData.getClass());
-			} catch (JsonSyntaxException e) {
-				LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
+
+			if (CONFIGURATION.getExternalNetwork()) {
+				String apiResult = getJson(url);
+
+				try {
+					jsonData = gson.fromJson(apiResult, jsonData.getClass());
+				} catch (JsonSyntaxException e) {
+					LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
+				}
 			}
 
 			if (jsonData == null || jsonData.isEmpty() || jsonData.containsKey("statusCode")) {
 				if (jsonData != null && jsonData.containsKey("statusCode") && jsonData.get("statusCode") == "500") {
 					LOGGER.debug("Got a 500 error while looking for metadata subversions");
 				}
-				LOGGER.trace("Did not get metadata subversions");
+				LOGGER.trace("Did not get metadata subversions, will attempt to use the database version");
+
+				apiDataSeriesVersion = PMS.get().getDatabase().getMetadataValue("SERIES_VERSION");
+				apiDataVideoVersion = PMS.get().getDatabase().getMetadataValue("VIDEO_VERSION");
+
+				if (apiDataSeriesVersion == null) {
+					LOGGER.trace("API versions could not be fetched from the API or the local database");
+				}
 				return;
 			}
 
 			apiDataSeriesVersion = jsonData.get("series");
 			apiDataVideoVersion = jsonData.get("video");
+
+			// Persist the values to the database to be used as fallbacks
+			if (apiDataSeriesVersion != null) {
+				PMS.get().getDatabase().setOrUpdateMetadataValue("SERIES_VERSION", apiDataSeriesVersion);
+				PMS.get().getDatabase().setOrUpdateMetadataValue("VIDEO_VERSION", apiDataVideoVersion);
+			}
 		} catch (Exception e) {
 			LOGGER.trace("Error while setting API metadata versions", e);
 		}
@@ -157,7 +177,7 @@ public class APIUtils {
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final DLNAMediaInfo media) {
 		Runnable r = () -> {
-			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified(), true)) {
+			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
 				LOGGER.trace("The latest metadata already exists for {}", file.getName());
 				return;
 			}

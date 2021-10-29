@@ -495,6 +495,80 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
+	/**
+	 * Gets a value from the METADATA table
+	 */
+	public String getMetadataValue(String key) {
+		String value = null;
+
+		try (Connection conn = getConnection()) {
+			TABLE_LOCK.readLock().lock();
+			try (
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = '" + key + "'")
+			) {
+				if (rs.next()) {
+					value = rs.getString(1);
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (Exception se) {
+			LOGGER.error(null, se);
+		}
+
+		return value;
+	}
+
+	/**
+	 * Sets or updates a value in the METADATA table.
+	 *
+	 * @param key
+	 * @param value
+	 */
+	public void setOrUpdateMetadataValue(final String key, final String value) {
+		boolean trace = LOGGER.isTraceEnabled();
+		String query;
+
+		try (Connection connection = getConnection()) {
+			query = "SELECT VALUE FROM METADATA WHERE KEY = " + sqlQuote(key) + " LIMIT 1";
+			if (trace) {
+				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", query);
+			}
+
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				connection.setAutoCommit(false);
+				try (ResultSet result = statement.executeQuery(query)) {
+					boolean isCreatingNewRecord = false;
+
+					if (!result.next()) {
+						isCreatingNewRecord = true;
+						result.moveToInsertRow();
+					}
+
+					result.updateString("VALUE", value);
+
+					if (isCreatingNewRecord) {
+						result.insertRow();
+					} else {
+						result.updateRow();
+					}
+				} finally {
+					connection.commit();
+				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error(
+				"Database error while writing value to METADATA: {}",
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
+
 	private static void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
 			try (Statement stmt = conn.createStatement()) {
@@ -543,18 +617,14 @@ public class DLNAMediaDatabase implements Runnable {
 	 *
 	 * @param name the full path of the video.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @param includeVersionCheck whether to include the version check. It is important
-	 *                            to NOT do the version check in a blocking way, because
-	 *                            that makes it possible for the API to potentially impact
-	 *                            the performance of this program.
 	 * @return whether the latest API metadata exists for this video.
 	 */
-	public boolean isAPIMetadataExists(String name, long modified, boolean includeVersionCheck) {
+	public boolean isAPIMetadataExists(String name, long modified) {
 		boolean found = false;
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT ID FROM FILES WHERE FILENAME = ? AND MODIFIED = ? ");
 		String latestVersion = null;
-		if (includeVersionCheck && CONFIGURATION.getExternalNetwork()) {
+		if (CONFIGURATION.getExternalNetwork()) {
 			latestVersion = APIUtils.getApiDataVideoVersion();
 			if (latestVersion != null) {
 				sql.append("AND VERSION = ? ");
@@ -1240,7 +1310,7 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
-	 * Updates the name of a TV series for existing entries in the database.
+	 * Updates the name of a movie or TV series for existing entries in the database.
 	 *
 	 * @param oldName the existing movie or show name.
 	 * @param newName the new movie or show name.
