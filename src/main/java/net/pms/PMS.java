@@ -755,7 +755,6 @@ public class PMS {
 
 					LOGGER.debug("Shutting down all active processes");
 
-
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
 					}
