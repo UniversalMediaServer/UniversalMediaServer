@@ -429,18 +429,4 @@ public class FileWatcher {
 	}
 
 	static private Notifier notifier = new Notifier("File event");
-
-	static {
-		Runtime.getRuntime().addShutdownHook(new Thread("File watcher shutdown") {
-			@Override
-			public void run() {
-				try {
-					watchService.close();
-					LOGGER.trace("Shut down file watcher");
-				} catch (Exception e) {
-					LOGGER.debug("Error while shutting down file watcher service: {}", e);
-				}
-			}
-		});
-	}
 }
