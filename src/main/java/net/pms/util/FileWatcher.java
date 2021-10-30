@@ -313,6 +313,7 @@ public class FileWatcher {
 						// Wait a bit in case there are a few repeats
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
+						LOGGER.debug("Sleep interrupted {}", e);
 					}
 					// Filter the received directory event(s)
 					for (WatchEvent<?> e : key.pollEvents()) {
