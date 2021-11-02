@@ -1145,7 +1145,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private boolean hasAudioFiles(DLNAResource dlna) {
 		for (DLNAResource res : dlna.getChildren()) {
-			if (res.getFormat() == null || !res.getFormat().isAudio()) {
+			if (res.getFormat() != null && res.getFormat().isAudio()) {
 				return true;
 			}
 		}
