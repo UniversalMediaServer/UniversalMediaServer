@@ -1115,7 +1115,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
 						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
 
-					if (hasAudioFiles(dlna)) {
+					if (hasAudioFilesSameAlbum(dlna)) {
 						sortChildrenWithAudioElements(dlna);
 					}
 					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
@@ -1143,13 +1143,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return resources;
 	}
 
-	private boolean hasAudioFiles(DLNAResource dlna) {
+	/**
+	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
+	 * implementaion could match the MBID record id (not implemented).
+	 *
+	 * @param dlna Folder containing child objects of any kind
+	 *
+	 * @return
+	 * 	TRUE, if all audio child objects belong to the same album.
+	 */
+	private boolean hasAudioFilesSameAlbum(DLNAResource dlna) {
+		String album = null;
+		boolean audioExists = false;
 		for (DLNAResource res : dlna.getChildren()) {
 			if (res.getFormat() != null && res.getFormat().isAudio()) {
-				return true;
+				if (album == null) {
+					audioExists = true;
+					if (res.getMedia().getFirstAudioTrack() == null) {
+						return false;
+					}
+					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
+				} else {
+					if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
+						return false;
+					}
+				}
 			}
 		}
-		return false;
+		return audioExists;
 	}
 
 	private void sortChildrenWithAudioElements(DLNAResource dlna) {
