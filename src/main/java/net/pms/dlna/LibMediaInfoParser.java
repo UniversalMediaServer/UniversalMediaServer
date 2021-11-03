@@ -305,6 +305,15 @@ public class LibMediaInfoParser {
 						}
 					}
 
+					value = mI.Get(general, 0, "Part");
+					if (!value.isEmpty()) {
+						try {
+							currentAudioTrack.setDisc(Integer.parseInt(value));
+						} catch (NumberFormatException nfe) {
+							LOGGER.debug("Could not parse disc \"" + value + "\"");
+						}
+					}
+
 					// Try to parse the year from the stored date
 					String recordedDate = mI.Get(general, 0, "Recorded_Date");
 					Matcher matcher = YEAR_PATTERN.matcher(recordedDate);

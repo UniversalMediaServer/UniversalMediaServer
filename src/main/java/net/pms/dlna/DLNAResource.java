@@ -1178,14 +1178,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			@Override
 			public int compare(DLNAResource o1, DLNAResource o2) {
-				if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
-					if (o2 != null && o2.getFormat() != null && o2.getFormat().isAudio()) {
-						return getTrackNum(o1).compareTo(getTrackNum(o2));
+				if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
+					if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
+						if (o2 != null && o2.getFormat() != null && o2.getFormat().isAudio()) {
+							return getTrackNum(o1).compareTo(getTrackNum(o2));
+						} else {
+							return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+						}
 					} else {
 						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
 					}
 				} else {
-					return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+					return getDiscNum(o1).compareTo(getDiscNum(o2));
 				}
 			}
 		});
@@ -1194,6 +1198,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Integer getTrackNum(DLNAResource res) {
 		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
 			return res.getMedia().getFirstAudioTrack().getTrack();
+		}
+		return 0;
+	}
+
+	private Integer getDiscNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getDisc();
 		}
 		return 0;
 	}
