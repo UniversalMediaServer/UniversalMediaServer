@@ -815,6 +815,11 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		return track;
 	}
 
+	/**
+	 * Returns the disc number of an album for the audio.
+	 *
+	 * @return The disc number.
+	 */
 	public int getDisc() {
 		return disc;
 	}
