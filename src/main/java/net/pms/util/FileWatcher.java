@@ -285,6 +285,18 @@ public class FileWatcher {
 		// Start the service
 		try {
 			watchService = dir.getFileSystem().newWatchService();
+
+			Runtime.getRuntime().addShutdownHook(new Thread("File watcher shutdown") {
+				@Override
+				public void run() {
+					try {
+						watchService.close();
+						LOGGER.trace("Shut down file watcher");
+					} catch (Exception e) {
+						LOGGER.debug("Error while shutting down file watcher service: {}", e);
+					}
+				}
+			});
 		} catch (Exception e) {
 			LOGGER.debug("Error creating WatchService: " + e);
 			e.printStackTrace();
@@ -301,6 +313,7 @@ public class FileWatcher {
 						// Wait a bit in case there are a few repeats
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
+						LOGGER.debug("Sleep interrupted {}", e);
 					}
 					// Filter the received directory event(s)
 					for (WatchEvent<?> e : key.pollEvents()) {
