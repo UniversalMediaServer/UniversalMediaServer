@@ -17,6 +17,13 @@
 		Code readability improvements (thanks, Christian Baer!)
 	Renderers:
 		Improved matching and transcoding on Samsung 4K+ TVs
+	Translation updates via Crowdin:
+		Chinese (Simplified) (100%) (thanks, wwj402_github!)
+		Chinese (Traditional) (96%) (thanks, Gene Wu!)
+		Danish (100%) (thanks, GurliGebis!)
+		Hungarian (96%) (thanks, Hild György!)
+		Japanese (100%) (thanks, Katsuhide.M!)
+		Romanian (100%) (thanks, Bogdan!)
 	Dependencies:
 		Bump assertj-core from 3.20.2 to 3.21.0
 		Bump checkstyle from 9.0 to 9.1
