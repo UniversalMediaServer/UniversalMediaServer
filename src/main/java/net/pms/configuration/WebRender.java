@@ -22,6 +22,7 @@ package net.pms.configuration;
 
 import com.google.gson.Gson;
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.remote.RemoteUtil;
 import net.pms.util.BasicPlayer;
+import net.pms.util.FileUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -272,7 +274,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	public String getVideoMimeType() {
 		if (browser == CHROME) {
-			return HTTPResource.WEBM_TYPEMIME;
+			return HTTPResource.HLS_TYPEMIME;
 		} else if (browser == FIREFOX) {
 			return HTTPResource.MP4_TYPEMIME;
 		}
@@ -301,6 +303,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
 
+	/**
+	 * Adds commands to the incoming cmdList based on which browser was detected.
+	 *
+	 * If HLS was used, it also launches the process that creates the playlist file
+	 * and video files.
+	 */
 	@Override
 	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Player player, OutputParams params) {
 		if (player instanceof FFMpegVideo) {
@@ -319,7 +327,14 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							ffMp4Cmd(cmdList);
 							break;
 						case HTTPResource.WEBM_TYPEMIME:
-							ffWebmCmd(cmdList);
+							ffWebmH264MP3Cmd(cmdList);
+							break;
+						case HTTPResource.HLS_TYPEMIME:
+							try {
+								ffHlsH264VorbisCmd(cmdList, resource.getId());
+							} catch (IOException e) {
+								LOGGER.debug("Could not read temp folder:" + e.getMessage());
+							}
 							break;
 					default:
 						break;
@@ -411,8 +426,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("mp4");
 	}
 
-	private static void ffWebmCmd(List<String> cmdList) {
-		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
+	private static void ffWebmH264MP3Cmd(List<String> cmdList) {
+		//-c:v libx264 -profile:v high -level:v 3.1 -c:a libmp3lame -ac 2 -pix_fmt yuv420p -preset ultrafast -f matroska
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
 		cmdList.add("-profile:v");
@@ -431,8 +446,63 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("matroska");
 	}
 
-	@SuppressWarnings("unused")
-	private static void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffHlsH264VorbisCmd(List<String> cmdList, String globalId) throws IOException {
+		// -c:v libx264 -preset ultrafast -c:a libvorbis -ac 2 -copyts -c:s mov_text -flags -global_header -map 0 -f segment -segment_time 5 -segment_list /tmp/ps4player/" + hash + "/playlist.m3u8 -segment_format mpegts /tmp/ps4player/" + hash + "/stream%05d.ts
+		cmdList.add("-c:v");
+		cmdList.add("libx264");
+		cmdList.add("-preset");
+		cmdList.add("ultrafast");
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
+		cmdList.add("-c:a");
+		cmdList.add("libvorbis");
+		cmdList.add("-ac");
+		cmdList.add("2");
+		cmdList.add("-copyts");
+		cmdList.add("-c:s");
+		cmdList.add("mov_text");
+		cmdList.add("-flags");
+		cmdList.add("-global_header");
+		cmdList.add("-map");
+		cmdList.add("0");
+		cmdList.add("-f");
+		cmdList.add("segment");
+		cmdList.add("-segment_time");
+		cmdList.add("5");
+		cmdList.add("-segment_list");
+		cmdList.add(FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "ums-" + globalId + "-playlist.m3u8");
+		cmdList.add("-segment_format");
+		cmdList.add("mpegts");
+		cmdList.add("-y");
+	}
+
+	/**
+	 * This is unused but may be useful for testing.
+	 */
+	private static void ffWebmVP9VorbisCmd(List<String> cmdList) {
+		//-c:v vp9 -c:a libvorbis -ac 2 -pix_fmt yuv420p -crf 30 -b:v 0 -deadline realtime -f matroska
+		cmdList.add("-c:v");
+		cmdList.add("vp9");
+		cmdList.add("-c:a");
+		cmdList.add("libvorbis");
+		cmdList.add("-ac");
+		cmdList.add("2");
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
+		cmdList.add("-crf");
+		cmdList.add("30");
+		cmdList.add("-b:v");
+		cmdList.add("0");
+		cmdList.add("-deadline");
+		cmdList.add("realtime");
+		cmdList.add("-f");
+		cmdList.add("matroska");
+	}
+
+	/**
+	 * This is unused but may be useful as a reference.
+	 */
+	private static void ffHlsCmd(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");

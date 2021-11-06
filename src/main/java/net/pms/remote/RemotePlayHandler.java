@@ -378,7 +378,7 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 				}
 				RemoteUtil.respond(t, returnPage(), 200, "text/html");
-			}  else if (p.contains("/m3u8/")) {
+			} else if (p.contains("/m3u8/")) {
 				String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
 				String response = mkM3u8(PMS.getGlobalRepo().get(id));
 				if (response != null) {

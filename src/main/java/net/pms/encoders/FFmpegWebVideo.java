@@ -162,8 +162,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
-		// Use device-specific conf
-		PmsConfiguration prev = configuration;
+
+		// Backup the existing configuration, to be restored at the end
+		// TODO: stop doing that
+		PmsConfiguration existingConfiguration = configuration;
+
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		RendererConfiguration renderer = params.getMediaRenderer();
 		String filename = dlna.getFileName();
@@ -224,8 +227,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		cmdList.add(getExecutable());
 
-		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
-		// that it can write to a file that already exists i.e. the named pipe
+		// this stops FFmpeg waiting to write to a file that already exists i.e. the named pipe
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
@@ -355,7 +357,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
 
-		configuration = prev;
+		configuration = existingConfiguration;
 		return pw;
 	}
 

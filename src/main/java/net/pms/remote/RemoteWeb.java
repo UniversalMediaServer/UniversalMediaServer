@@ -1,9 +1,11 @@
 package net.pms.remote;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -133,6 +135,7 @@ public class RemoteWeb {
 			addCtx("/", new RemoteStartHandler(this));
 			addCtx("/browse", new RemoteBrowseHandler(this));
 			RemotePlayHandler playHandler = new RemotePlayHandler(this);
+			addCtx("/hls", playHandler);
 			addCtx("/play", playHandler);
 			addCtx("/playstatus", playHandler);
 			addCtx("/playlist", playHandler);
@@ -376,6 +379,8 @@ public class RemoteWeb {
 			this.parent = parent;
 		}
 
+		final String HLS_PATH = "/files/hls/";
+
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			try {
@@ -393,7 +398,6 @@ public class RemoteWeb {
 						"<allow-access-from domain=\"*\" />" +
 						"</cross-domain-policy>";
 					mime = "text/xml";
-
 				} else if (path.startsWith("/files/log/")) {
 					String filename = path.substring(11);
 					if (filename.equals("info")) {
@@ -503,8 +507,7 @@ public class RemoteWeb {
 			} catch (IOException e) {
 				throw e;
 			} catch (Exception e) {
-				// Nothing should get here, this is just to avoid crashing the
-				// thread
+				// Nothing should get here, this is just to avoid crashing the thread
 				LOGGER.error("Unexpected error in RemoteFileHandler.handle(): {}", e.getMessage());
 				LOGGER.trace("", e);
 			}

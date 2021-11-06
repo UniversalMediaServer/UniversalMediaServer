@@ -3,17 +3,23 @@ package net.pms.remote;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
+import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +31,7 @@ public class RemoteMediaHandler implements HttpHandler {
 	private String path;
 	private RendererConfiguration renderer;
 	private boolean flash;
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	public RemoteMediaHandler(RemoteWeb parent) {
 		this(parent, "media/", null);
@@ -56,6 +63,41 @@ public class RemoteMediaHandler implements HttpHandler {
 			for (String h1 : h.keySet()) {
 				LOGGER.debug("key " + h1 + "=" + h.get(h1));
 			}
+
+			String uriPath = httpExchange.getRequestURI().getPath();
+
+			/**
+			 * Handle requests from browsers as they parse our HLS m3u8 files
+			 * which started to be created during the /media/id request
+			 */
+			if (uriPath.startsWith("/media/ffmpegvideo_") && uriPath.endsWith(".ts")) {
+				String response = null;
+				String mime = HTTPResource.HLS_TYPEMIME;
+				int status = 200;
+				String filename = uriPath.substring(7);
+
+				String videoSectionPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + filename;
+				LOGGER.info("4 " + videoSectionPath);
+				File videoSection = new File(videoSectionPath);
+				LOGGER.info("5 " + videoSection.exists());
+
+				StringBuilder resultStringBuilder = new StringBuilder();
+				try (BufferedReader br = new BufferedReader(new FileReader(videoSection))) {
+					LOGGER.info("6 " + videoSection.exists());
+					String line;
+					while ((line = br.readLine()) != null) {
+						LOGGER.info("7 " + line);
+						resultStringBuilder.append(line).append("\n");
+					}
+				}
+				response = resultStringBuilder.toString();
+				LOGGER.info("8" + response);
+
+				RemoteUtil.respond(httpExchange, response, status, mime);
+				return;
+			}
+
+
 			String id = RemoteUtil.getId(path, httpExchange);
 			id = RemoteUtil.strip(id);
 			RendererConfiguration defaultRenderer = renderer;
@@ -65,7 +107,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			DLNAResource resource = root.getDLNAResource(id, defaultRenderer);
 			if (resource == null) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
 			if (!resource.isCodeValid(resource)) {
@@ -123,24 +165,26 @@ public class RemoteMediaHandler implements HttpHandler {
 			Range.Byte range = RemoteUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
-			if (range.getEnd() == 0) {
-				// For web resources actual length may be unknown until we open the stream
-				range.setEnd(resource.length());
-			}
-			Headers headers = httpExchange.getResponseHeaders();
-			headers.add("Content-Type", mimeType);
-			headers.add("Accept-Ranges", "bytes");
-			long end = range.getEnd();
-			long start = range.getStart();
-			String rStr = start + "-" + end + "/*";
-			headers.add("Content-Range", "bytes " + rStr);
-			if (start != 0) {
-				code = 206;
-			}
+			if (render.getVideoMimeType() != HTTPResource.HLS_TYPEMIME) {
+				if (range.getEnd() == 0) {
+					// For web resources actual length may be unknown until we open the stream
+					range.setEnd(resource.length());
+				}
+				Headers headers = httpExchange.getResponseHeaders();
+				headers.add("Content-Type", mimeType);
+				headers.add("Accept-Ranges", "bytes");
+				long end = range.getEnd();
+				long start = range.getStart();
+				String rStr = start + "-" + end + "/*";
+				headers.add("Content-Range", "bytes " + rStr);
+				if (start != 0) {
+					code = 206;
+				}
 
-			headers.add("Server", PMS.get().getServerName());
-			headers.add("Connection", "keep-alive");
-			httpExchange.sendResponseHeaders(code, 0);
+				headers.add("Server", PMS.get().getServerName());
+				headers.add("Connection", "keep-alive");
+				httpExchange.sendResponseHeaders(code, 0);
+			}
 			OutputStream os = httpExchange.getResponseBody();
 			if (render != null) {
 				render.start(resource);
@@ -148,7 +192,44 @@ public class RemoteMediaHandler implements HttpHandler {
 			if (sid != null) {
 				resource.setMediaSubtitle(sid);
 			}
-			RemoteUtil.dump(in, os, render);
+			if (render.getVideoMimeType() != HTTPResource.HLS_TYPEMIME) {
+				RemoteUtil.dump(in, os, render);
+			}
+
+
+
+
+
+
+
+
+
+
+
+			if (render.getVideoMimeType() == HTTPResource.HLS_TYPEMIME) {
+				String response = null;
+				String mime = HTTPResource.HLS_TYPEMIME;
+				int status = 200;
+
+				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "ums-" + id + "-playlist.m3u8";
+				LOGGER.info("4 " + playlistPath);
+				File playlist = new File(playlistPath);
+				LOGGER.info("5 " + playlist.exists());
+
+				StringBuilder resultStringBuilder = new StringBuilder();
+				try (BufferedReader br = new BufferedReader(new FileReader(playlist))) {
+					LOGGER.info("6 " + playlist.exists());
+					String line;
+					while ((line = br.readLine()) != null) {
+						LOGGER.info("7 " + line);
+						resultStringBuilder.append(line).append("\n");
+					}
+				}
+				response = resultStringBuilder.toString();
+				LOGGER.info("8" + response);
+
+				RemoteUtil.respond(httpExchange, response, status, mime);
+			}
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {

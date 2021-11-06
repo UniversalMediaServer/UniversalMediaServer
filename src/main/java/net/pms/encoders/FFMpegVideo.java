@@ -47,6 +47,7 @@ import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
@@ -816,6 +817,7 @@ public class FFMpegVideo extends Player {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		RendererConfiguration renderer = params.getMediaRenderer();
+		WebRender webRenderer = (WebRender) renderer;
 
 		/*
 		 * Check if the video track and the container report different aspect ratios
@@ -1190,9 +1192,13 @@ public class FFMpegVideo extends Player {
 		if (!dtsRemux) {
 			// cmdList.add("pipe:");
 
+			String pipeFileExtension = "";
+			if (webRenderer.getVideoMimeType() == HTTPResource.HLS_TYPEMIME) {
+				pipeFileExtension = "%%0d.ts";
+			}
 			// basename of the named pipe:
 			String fifoName = String.format(
-				"ffmpegvideo_%d_%d",
+				"ffmpegvideo_%d_%d" + pipeFileExtension,
 				Thread.currentThread().getId(),
 				System.currentTimeMillis()
 			);
