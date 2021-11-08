@@ -168,7 +168,8 @@ public final class TableTVSeries extends Tables {
 	}
 
 	/**
-	 * Get TV series by IMDb ID. If we have an API version
+	 * Get TV series by IMDb ID. If we have the latest version number from the
+	 * API, narrow the result to that version.
 	 */
 	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
