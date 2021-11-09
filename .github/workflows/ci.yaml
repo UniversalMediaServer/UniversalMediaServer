@@ -50,10 +50,8 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Run linter
-        run: mvn verify -P linter -Doffline=true -DskipTests
-      - name: Run tests
-        run: mvn verify -P testing-windows
+      - name: Run linter and tests
+        run: mvn verify -P linter
 
   linux-bionic:
     runs-on: ubuntu-18.04
