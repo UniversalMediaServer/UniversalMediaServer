@@ -62,7 +62,7 @@ public class TableFilesStatusTest {
 			try (Statement statement = connection.createStatement()) {
 				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
 
-				// Create version 7 of this table
+				// Create version 7 of this table to start with
 				statement.execute(
 					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
 						"ID            IDENTITY PRIMARY KEY, " +
