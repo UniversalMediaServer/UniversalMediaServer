@@ -74,7 +74,7 @@ public class TableFilesStatusTest {
 							"ON DELETE CASCADE" +
 					")"
 				);
-	
+
 				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TableFilesStatus.TABLE_NAME + "(FILENAME)");
 				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
 
