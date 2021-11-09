@@ -79,6 +79,8 @@ public class TableFilesStatusTest {
 				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
 
 				Tables.setTableVersion(connection, TableFilesStatus.TABLE_NAME, 7);
+			} catch (Exception e) {
+				System.out.println("Error: " + e);
 			}
 
 			/*
@@ -86,6 +88,8 @@ public class TableFilesStatusTest {
 			 * and any errors that occur along the way will cause the test to fail.
 			 */
 			TableFilesStatus.checkTable(connection);
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
 		}
 	}
 
