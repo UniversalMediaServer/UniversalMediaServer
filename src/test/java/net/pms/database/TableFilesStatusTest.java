@@ -47,7 +47,9 @@ public class TableFilesStatusTest {
 	}
 
 	/**
-	 * This should get more specific, since for now it
+	 * Ensures that the table updates properly.
+	 *
+	 * todo: This should get more specific, since for now it
 	 * just makes sure the code completes without errors but
 	 * doesn't really do anything.
 	 */
