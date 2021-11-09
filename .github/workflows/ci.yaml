@@ -53,7 +53,7 @@ jobs:
       - name: Run tests
         run: mvn verify -P testing-windows
       - name: Run linter
-        run: mvn verify -P linter
+        run: mvn verify -P linter -Doffline=true -DskipTests
 
   linux-bionic:
     runs-on: ubuntu-18.04
