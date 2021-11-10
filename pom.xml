@@ -68,7 +68,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>141</binary-revision>
+		<binary-revision>142</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -209,7 +209,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.8.8</version>
+			<version>2.8.9</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -1345,117 +1345,65 @@
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-string-l1-1-0.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-time-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-time-l1-1-0.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-utility-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-utility-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/attach.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/attach.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/awt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/awt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/awt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/awt.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_shmem.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_shmem.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_shmem.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_socket.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_socket.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_socket.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/freetype.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/freetype.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/freetype.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/freetype.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/fontmanager.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/fontmanager.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/fontmanager.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/fontmanager.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/hprof.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/hprof.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/hprof.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/hprof.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/instrument.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/instrument.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/instrument.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/instrument.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pcsc.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pcsc.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pcsc.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pcsc.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pkcs11.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pkcs11.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pkcs11.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pkcs11.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jaas_nt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jaas_nt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jaas_nt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jaas_nt.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jabswitch.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jabswitch.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jabswitch.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jabswitch.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/java.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/java.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/java_crw_demo.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java_crw_demo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java_crw_demo.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java_crw_demo.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge-32.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge-32.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/java-rmi.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java-rmi.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/javaw.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/javaw.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/javaw.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/javaw.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jawt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jawt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jawt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jawt.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge-32.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge-32.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jdwp.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jdwp.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jdwp.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jdwp.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jjs.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jjs.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jjs.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jli.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jli.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jli.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jpeg.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jpeg.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jpeg.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jpeg.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsdt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsdt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsdt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsdt.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsound.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsound.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsound.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsound.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsoundds.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsoundds.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsoundds.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsoundds.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/keytool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/keytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/keytool.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/keytool.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/kinit.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/kinit.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/kinit.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/kinit.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/klist.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/klist.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/klist.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/ktab.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/ktab.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/ktab.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/lcms.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/lcms.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/lcms.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/management.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/management.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/management.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/mlib_image.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/mlib_image.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/mlib_image.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/mlib_image.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/msvcp140.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/msvcp140.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/net.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/net.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/net.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/net.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/nio.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/nio.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/nio.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/nio.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/npt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/npt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/npt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/npt.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/orbd.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/orbd.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/orbd.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/orbd.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/pack200.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/pack200.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/pack200.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/pack200.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/policytool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/policytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/policytool.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/policytool.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmid.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmid.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmid.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmid.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmiregistry.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmiregistry.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmiregistry.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmiregistry.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/servertool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/servertool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/servertool.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/servertool.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/splashscreen.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/splashscreen.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/splashscreen.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/splashscreen.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunec.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunec.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunec.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunec.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunmscapi.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunmscapi.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunmscapi.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunmscapi.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/tnameserv.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/tnameserv.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/tnameserv.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/tnameserv.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/ucrtbase.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/ucrtbase.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/unpack.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/unpack.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/unpack.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/unpack.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/unpack200.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/unpack200.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/vcruntime140.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/vcruntime140.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/verify.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/verify.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/verify.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/w2k_lsa_auth.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/w2k_lsa_auth.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/w2k_lsa_auth.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge-32.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge-32.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/zip.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/zip.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/zip.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/client/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/client/jvm.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/client/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/client/Xusage.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/lib/accessibility.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/accessibility.properties" usetimestamp="true" />
@@ -3323,7 +3271,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>9.0.1</version>
+								<version>9.1</version>
 							</dependency>
 						</dependencies>
 						<configuration>

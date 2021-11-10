@@ -196,7 +196,7 @@ public class APIUtils {
 				return;
 			}
 
-			frame.setStatusLine(Messages.getString("StatusBar.GettingAPIInfoFor") + " " + file.getName());
+			frame.setSecondaryStatusLine(Messages.getString("StatusBar.GettingAPIInfoFor") + " " + file.getName());
 			HashMap<?, ?> metadataFromAPI;
 			try {
 				String yearFromFilename            = media.getYear();
@@ -391,7 +391,7 @@ public class APIUtils {
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
-				frame.setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + file.getParent());
+				frame.setSecondaryStatusLine(null);
 			}
 		};
 		BACKGROUND_EXECUTOR.execute(r);
