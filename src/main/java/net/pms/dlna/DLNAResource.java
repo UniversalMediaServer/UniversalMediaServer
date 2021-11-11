@@ -43,6 +43,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1114,6 +1115,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
 						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
 
+					if (hasAudioFilesSameAlbum(dlna)) {
+						sortChildrenWithAudioElements(dlna);
+					}
 					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
 						final DLNAResource child = dlna.getChildren().get(i);
 						if (child != null) {
@@ -1137,6 +1141,72 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return resources;
+	}
+
+	/**
+	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
+	 * implementaion could match the MBID record id (not implemented).
+	 *
+	 * @param dlna Folder containing child objects of any kind
+	 *
+	 * @return
+	 * 	TRUE, if all audio child objects belong to the same album.
+	 */
+	private boolean hasAudioFilesSameAlbum(DLNAResource dlna) {
+		String album = null;
+		boolean audioExists = false;
+		for (DLNAResource res : dlna.getChildren()) {
+			if (res.getFormat() != null && res.getFormat().isAudio()) {
+				if (album == null) {
+					audioExists = true;
+					if (res.getMedia().getFirstAudioTrack() == null) {
+						return false;
+					}
+					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
+				} else {
+					if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
+						return false;
+					}
+				}
+			}
+		}
+		return audioExists;
+	}
+
+	private void sortChildrenWithAudioElements(DLNAResource dlna) {
+		Collections.sort(dlna.getChildren(), new Comparator<DLNAResource>() {
+
+			@Override
+			public int compare(DLNAResource o1, DLNAResource o2) {
+				if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
+					if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
+						if (o2 != null && o2.getFormat() != null && o2.getFormat().isAudio()) {
+							return getTrackNum(o1).compareTo(getTrackNum(o2));
+						} else {
+							return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+						}
+					} else {
+						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+					}
+				} else {
+					return getDiscNum(o1).compareTo(getDiscNum(o2));
+				}
+			}
+		});
+	}
+
+	private Integer getTrackNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getTrack();
+		}
+		return 0;
+	}
+
+	private Integer getDiscNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getDisc();
+		}
+		return 0;
 	}
 
 	protected void refreshChildrenIfNeeded(String search) {
@@ -2416,6 +2486,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
 				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
+				if (firstAudioTrack.getDisc() > 0) {
+					addXMLTagAndAttribute(sb, "numberOfThisDisc", "" + firstAudioTrack.getDisc());
+				}
 				closeTag(sb, "desc");
 			}
 		}

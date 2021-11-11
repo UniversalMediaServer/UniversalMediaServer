@@ -40,6 +40,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private String songname;
 	private String genre;
 	private int year;
+	private int disc = 1;
 	private int track;
 	private String audioTrackTitleFromMetadata;
 	private String muxingModeAudio;
@@ -815,6 +816,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Returns the disc number of an album for the audio.
+	 *
+	 * @return The disc number.
+	 */
+	public int getDisc() {
+		return disc;
+	}
+
+	/**
 	 * Sets the track number within an album for the audio.
 	 *
 	 * @param track The track number to set.
@@ -822,6 +832,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setTrack(int track) {
 		this.track = track;
+	}
+
+	public void setDisc(int disc) {
+		this.disc = disc;
 	}
 
 	public String getAudioTrackTitleFromMetadata() {
