@@ -187,8 +187,11 @@ public class DbIdResourceLocator {
 					case TYPE_PERSON_ALBUM:
 						sql = String.format("SELECT DISTINCT(album) FROM AUDIOTRACKS A where COALESCE(A.ALBUMARTIST, A.ARTIST) = '%s'",
 							typeAndIdent.ident);
-						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
-							"");
+						res = new VirtualFolderDbId(
+							typeAndIdent.ident,
+							new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
+							""
+						);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							while (resultSet.next()) {
 								String album = resultSet.getString(1);
