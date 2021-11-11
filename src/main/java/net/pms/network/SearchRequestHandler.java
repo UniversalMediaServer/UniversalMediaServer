@@ -341,8 +341,13 @@ public class SearchRequestHandler {
 								filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
 								break;
 							case TYPE_PLAYLIST:
-								filesList
-									.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, resultSet.getString("FID")), ""));
+								filesList.add(
+									new VirtualFolderDbId(
+										filenameField,
+										new DbidTypeAndIdent(type, resultSet.getString("FID")),
+										""
+									)
+								);
 								break;
 							default:
 								filesList.add(new RealFileDbId(new DbidTypeAndIdent(type, resultSet.getString("FID")),
