@@ -75,23 +75,26 @@ public final class TableVideoMetadataCountries extends Tables {
 			Iterator<String> i = countriesArray.iterator();
 			while (i.hasNext()) {
 				String country = i.next();
-				PreparedStatement insertStatement = connection.prepareStatement(
-					"INSERT INTO " + TABLE_NAME + " (" +
-						"TVSERIESID, FILENAME, COUNTRY" +
-					") VALUES (" +
-						"?, ?, ?" +
-					")",
-					Statement.RETURN_GENERATED_KEYS
-				);
-				insertStatement.clearParameters();
-				insertStatement.setLong(1, tvSeriesID);
-				insertStatement.setString(2, left(fullPathToFile, 255));
-				insertStatement.setString(3, left(country, 255));
+				try (
+					PreparedStatement insertStatement = connection.prepareStatement(
+						"INSERT INTO " + TABLE_NAME + " (" +
+							"TVSERIESID, FILENAME, COUNTRY" +
+						") VALUES (" +
+							"?, ?, ?" +
+						")",
+						Statement.RETURN_GENERATED_KEYS
+					)
+				) {
+					insertStatement.clearParameters();
+					insertStatement.setLong(1, tvSeriesID);
+					insertStatement.setString(2, left(fullPathToFile, 255));
+					insertStatement.setString(3, left(country, 255));
 
-				insertStatement.executeUpdate();
-				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-					if (rs.next()) {
-						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, country);
+					insertStatement.executeUpdate();
+					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+						if (rs.next()) {
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, country);
+						}
 					}
 				}
 			}

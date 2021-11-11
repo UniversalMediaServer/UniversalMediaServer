@@ -74,24 +74,27 @@ public final class TableVideoMetadataRatings extends Tables {
 			Iterator<LinkedTreeMap> i = ratings.iterator();
 			while (i.hasNext()) {
 				LinkedTreeMap<String, String> rating = i.next();
-				PreparedStatement insertStatement = connection.prepareStatement(
-					"INSERT INTO " + TABLE_NAME + " (" +
-						"TVSERIESID, FILENAME, RATINGSOURCE, RATINGVALUE" +
-					") VALUES (" +
-						"?, ?, ?, ?" +
-					")",
-					Statement.RETURN_GENERATED_KEYS
-				);
-				insertStatement.clearParameters();
-				insertStatement.setLong(1, tvSeriesID);
-				insertStatement.setString(2, left(fullPathToFile, 255));
-				insertStatement.setString(3, rating.get("Source"));
-				insertStatement.setString(4, rating.get("Value"));
+				try (
+					PreparedStatement insertStatement = connection.prepareStatement(
+						"INSERT INTO " + TABLE_NAME + " (" +
+							"TVSERIESID, FILENAME, RATINGSOURCE, RATINGVALUE" +
+						") VALUES (" +
+							"?, ?, ?, ?" +
+						")",
+						Statement.RETURN_GENERATED_KEYS
+					)
+				) {
+					insertStatement.clearParameters();
+					insertStatement.setLong(1, tvSeriesID);
+					insertStatement.setString(2, left(fullPathToFile, 255));
+					insertStatement.setString(3, rating.get("Source"));
+					insertStatement.setString(4, rating.get("Value"));
 
-				insertStatement.executeUpdate();
-				try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-					if (rs.next()) {
-						LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, rating);
+					insertStatement.executeUpdate();
+					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+						if (rs.next()) {
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, rating);
+						}
 					}
 				}
 			}
