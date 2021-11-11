@@ -440,5 +440,16 @@
 			"title": "Movie Name",
 			"released": { "year": 2001 }
 		}
+	},
+	{
+		"comment": "Video of a movie with a short filename, and the proper filename in its parent directory, 2",
+		"filename": "gro-moviena.1080p.mkv",
+		"absolutepath": "D:\\Movie.Name.2012.LiMiTED.1080p.BluRay.x264-GR0UPNAME\\gro-moviena.1080p.mkv",
+		"prettified": "Movie Name (2012)",
+		"metadata": {
+			"type": "movie",
+			"title": "Movie Name",
+			"released": { "year": 2012 }
+		}
 	}
 ]

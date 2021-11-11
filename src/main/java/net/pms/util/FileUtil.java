@@ -666,7 +666,25 @@ public class FileUtil {
 		}
 
 		if (!groupNameFromFilename.equals(lowerCase(groupNameFromDirectory))) {
-			return filename;
+			// We didn't match the group name exactly, but let's try a partial match
+			String groupNameFromDirectoryWithoutNumbers = lowerCase(groupNameFromDirectory).replaceAll("\\d", "");
+
+			/*
+			 * Sometimes the release group will have a number in it, and that will
+			 * be in the directory but not the filename, which is really stupid but
+			 * that's how it is. Here we remove that character from both strings
+			 * before attempting to match.
+			 */
+			Pattern pattern = Pattern.compile("\\d");
+			Matcher matcher = pattern.matcher(groupNameFromDirectory);
+			if (matcher.find()) {
+				Integer numberIndex = matcher.start();
+				groupNameFromFilename = new StringBuilder(groupNameFromFilename).deleteCharAt(numberIndex).toString();
+			}
+
+			if (!groupNameFromDirectoryWithoutNumbers.startsWith(groupNameFromFilename)) {
+				return filename;
+			}
 		}
 
 		return parentDirectory;
