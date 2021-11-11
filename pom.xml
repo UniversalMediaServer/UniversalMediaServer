@@ -1349,7 +1349,6 @@
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_shmem.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_socket.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/freetype.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/freetype.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/freetype.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/freetype.pdb" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/fontmanager.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/fontmanager.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/hprof.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/hprof.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x86/bin/instrument.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/instrument.dll" usetimestamp="true" />
