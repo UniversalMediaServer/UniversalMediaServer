@@ -605,7 +605,11 @@ public class FileUtil {
 	private static final String MIXED_EPISODE_CONVENTION = "\\s-\\sEp.\\s(\\d{1,4})\\s-\\s";
 	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
 	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
-	
+
+	private static final String SCENE_MULTI_EPISODE_CONVENTION = "[sS](\\d{1,2})[eE](\\d{1,})([eE]|-[eE])(\\d{1,})";
+	private static final String SCENE_MULTI_EPISODE_CONVENTION_MATCH = ".*" + SCENE_MULTI_EPISODE_CONVENTION + ".*";
+	private static final Pattern SCENE_MULTI_EPISODE_CONVENTION_PATTERN = Pattern.compile(SCENE_MULTI_EPISODE_CONVENTION);
+
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
 	 * false-positive by being case-sensitive.
@@ -885,10 +889,9 @@ public class FileUtil {
 			isSample = true;
 		}
 
-		if (formattedName.matches(".*[sS](\\d{1,2})[eE](\\d{1,})([eE]|-[eE])\\d\\d.*")) {
+		if (formattedName.matches(SCENE_MULTI_EPISODE_CONVENTION_MATCH)) {
 			// This matches scene and most p2p TV episodes that are more than one episode
-			pattern = Pattern.compile("[sS](\\d{1,2})[eE](\\d{1,})(?:[eE]|-[eE])(\\d{1,})");
-			matcher = pattern.matcher(formattedName);
+			matcher = SCENE_MULTI_EPISODE_CONVENTION_PATTERN.matcher(formattedName);
 
 			if (matcher.find()) {
 				tvSeason = matcher.group(1);
@@ -896,15 +899,14 @@ public class FileUtil {
 					tvSeason = "0" + tvSeason;
 				}
 				tvEpisodeNumber = matcher.group(2);
-				tvEpisodeNumber += "-" + matcher.group(3);
+				tvEpisodeNumber += "-" + matcher.group(4);
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d{1,2})E(\\d{1,})([eE]|-[eE])(\\d{1,})\\s", " S" + tvSeason + "E$2-$3 - ");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d{1,2})E(\\d{1,})([eE]|-[eE])(\\d{1,})", " S" + tvSeason + "E$2-$3");
-			formattedName = formattedName.replaceAll("\\sS(\\d{1,2})E(\\d{1,})([eE]|-[eE])(\\d{1,})", " S" + tvSeason + "E$2-$3");
+			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION + "\\s", " S" + tvSeason + "E$2-$3 - ");
+			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION, " S" + tvSeason + "E$2-$3");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
