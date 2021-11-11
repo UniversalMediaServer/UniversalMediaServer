@@ -601,6 +601,11 @@ public class FileUtil {
 
 	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,})";
 	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
+
+	private static final String MIXED_EPISODE_CONVENTION = "\\s-\\sEp.\\s(\\d{1,4})\\s-\\s";
+	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
+	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
+	
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
 	 * false-positive by being case-sensitive.
@@ -1010,6 +1015,27 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(MIXED_EPISODE_CONVENTION_MATCH)) {
+			// This matches anoter mixed convention, like:
+			// e.g. Universal Media Server - Ep. 02 - Mysterious Wordplay.mp4
+			matcher = MIXED_EPISODE_CONVENTION_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "01";
+				tvEpisodeNumber = matcher.group(1);
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll(MIXED_EPISODE_CONVENTION, " S" + tvSeason + "E" + tvEpisodeNumber + " - ");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d{2}\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 			pattern = Pattern.compile("\\s((?:19|20)\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)\\s");
@@ -1155,7 +1181,7 @@ public class FileUtil {
 						}
 					}
 				} else {
-					showNameIndex = indexOf(Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
+					showNameIndex = indexOf(Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
