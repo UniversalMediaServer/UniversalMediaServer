@@ -33,7 +33,9 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -47,6 +49,7 @@ public final class TableTVSeries extends Tables {
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableTVSeries.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final String TABLE_NAME = "TV_SERIES";
 
 	/**
@@ -54,7 +57,7 @@ public final class TableTVSeries extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	// No instantiation
 	private TableTVSeries() {
@@ -109,9 +112,9 @@ public final class TableTVSeries extends Tables {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
 						} else {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
-								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, YEAR" +
+								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, YEAR, VERSION" +
 							") VALUES (" +
-								"?, ?, ?, ?, ?, ?, ?, ?, ?" +
+								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
 							")";
 						}
 						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -134,6 +137,7 @@ public final class TableTVSeries extends Tables {
 
 								insertStatement.setString(8, (String) tvSeries.get("votes"));
 								insertStatement.setString(9, (String) tvSeries.get("year"));
+								insertStatement.setString(10, APIUtils.getApiDataSeriesVersion().toString());
 							}
 							insertStatement.executeUpdate();
 
@@ -163,27 +167,37 @@ public final class TableTVSeries extends Tables {
 		return -1;
 	}
 
+	/**
+	 * Get TV series by IMDb ID. If we have the latest version number from the
+	 * API, narrow the result to that version.
+	 */
 	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " ");
+		String latestVersion = APIUtils.getApiDataSeriesVersion();
+		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
+			sql.append("AND VERSION = " + sqlQuote(imdbID) + " ");
+		}
+		sql.append("LIMIT 1");
 
 		try (Connection connection = DATABASE.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " LIMIT 1";
-
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
 			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						return convertSingleResultSetToList(resultSet);
-					}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql.toString())
+			) {
+				if (resultSet.next()) {
+					return convertSingleResultSetToList(resultSet);
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", imdbID, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -203,23 +217,24 @@ public final class TableTVSeries extends Tables {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
 		try (Connection connection = DATABASE.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + " WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+			String sql = "SELECT * FROM " + TABLE_NAME + " WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
 			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						return convertSingleResultSetToList(resultSet);
-					}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql)
+			) {
+				if (resultSet.next()) {
+					return convertSingleResultSetToList(resultSet);
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -237,26 +252,27 @@ public final class TableTVSeries extends Tables {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
 		try (Connection connection = DATABASE.getConnection()) {
-			String query = "SELECT THUMBNAIL " +
+			String sql = "SELECT THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
 				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
 			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
-					}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql)
+			) {
+				if (resultSet.next()) {
+					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -272,7 +288,7 @@ public final class TableTVSeries extends Tables {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = DATABASE.getConnection()) {
-			String query = "SELECT * " +
+			String sql = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + TableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataActors.TABLE_NAME + ".TVSERIESID " +
 				"LEFT JOIN " + TableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataAwards.TABLE_NAME + ".TVSERIESID " +
@@ -287,18 +303,19 @@ public final class TableTVSeries extends Tables {
 				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " and IMDBID != ''";
 
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
 			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					return convertResultSetToList(resultSet);
-				}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql)
+			) {
+				return convertResultSetToList(resultSet);
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", simplifiedTitle, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -364,6 +381,7 @@ public final class TableTVSeries extends Tables {
 						if (tvSeries.get("totalSeasons") != null) {
 							rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
 						}
+						rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
 						rs.updateString("VOTES", (String) tvSeries.get("votes"));
 						rs.updateString("YEAR", (String) tvSeries.get("year"));
 						rs.updateRow();
@@ -396,7 +414,7 @@ public final class TableTVSeries extends Tables {
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error(
 				"Database error while removing entries from " + TABLE_NAME + " for \"{}\": {}",
 				imdbID,
@@ -418,7 +436,7 @@ public final class TableTVSeries extends Tables {
 			 * This backwards logic is used for performance since we only have
 			 * to check one row instead of all rows.
 			 */
-			String query = "SELECT FILES.MOVIEORSHOWNAME " +
+			String sql = "SELECT FILES.MOVIEORSHOWNAME " +
 				"FROM FILES " +
 					"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " +
 					"FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
@@ -430,20 +448,21 @@ public final class TableTVSeries extends Tables {
 				"LIMIT 1";
 
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
 			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						result = false;
-					}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql)
+			) {
+				if (resultSet.next()) {
+					result = false;
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error("Database error while looking up TV series status in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -464,7 +483,9 @@ public final class TableTVSeries extends Tables {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
-					if (version > TABLE_VERSION) {
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
@@ -481,6 +502,55 @@ public final class TableTVSeries extends Tables {
 			} else {
 				createTable(connection);
 				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * This method <strong>MUST</strong> be updated if the table definition are
+	 * altered. The changes for each version in the form of
+	 * <code>ALTER TABLE</code> must be implemented here.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param currentVersion the version to upgrade <strong>from</strong>
+	 *
+	 * @throws SQLException
+	 */
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				switch (version) {
+					case 1:
+						try (Statement statement = connection.createStatement()) {
+							if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+								statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
+							}
+						} catch (SQLException e) {
+							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+							throw new SQLException(e);
+						}
+						version++;
+						break;
+					default:
+						throw new IllegalStateException(
+							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
+							version + " to " + TABLE_VERSION
+						);
+				}
+			}
+
+			try {
+				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			} catch (SQLException e) {
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+				throw new SQLException(e);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -525,6 +595,7 @@ public final class TableTVSeries extends Tables {
 					"TITLE    VARCHAR2(1024) NOT NULL, " +
 					"SIMPLIFIEDTITLE    VARCHAR2(1024) NOT NULL, " +
 					"TOTALSEASONS    DOUBLE, " +
+					"VERSION    VARCHAR2(1024), " +
 					"VOTES    VARCHAR2(1024), " +
 					"YEAR    VARCHAR2(1024) " +
 				")"
@@ -532,6 +603,7 @@ public final class TableTVSeries extends Tables {
 			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
 			statement.execute("CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)");
 			statement.execute("CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)");
+			statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
 		}
 	}
 
