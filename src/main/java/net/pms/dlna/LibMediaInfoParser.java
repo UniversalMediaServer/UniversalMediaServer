@@ -305,6 +305,15 @@ public class LibMediaInfoParser {
 						}
 					}
 
+					value = mI.Get(general, 0, "Part");
+					if (!value.isEmpty()) {
+						try {
+							currentAudioTrack.setDisc(Integer.parseInt(value));
+						} catch (NumberFormatException nfe) {
+							LOGGER.debug("Could not parse disc \"" + value + "\"");
+						}
+					}
+
 					// Try to parse the year from the stored date
 					String recordedDate = mI.Get(general, 0, "Recorded_Date");
 					Matcher matcher = YEAR_PATTERN.matcher(recordedDate);
@@ -556,10 +565,13 @@ public class LibMediaInfoParser {
 			}
 			Tag t = af.getTag();
 			if (t != null) {
-				currentAudioTrack.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
-				currentAudioTrack.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
+				currentAudioTrack.setMbidRecord(val.equals("") ? null : val);
+				val = t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
+				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
 			}
 		} catch (Exception e) {
+			LOGGER.trace("Audio Tag not parsed: " + e.getMessage());
 		}
 	}
 

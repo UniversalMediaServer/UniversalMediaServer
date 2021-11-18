@@ -102,7 +102,8 @@ public final class TableVideoMetadataRated extends Tables {
 		}
 
 		TABLE_LOCK.writeLock().lock();
-		try (Connection connection = DATABASE.getConnection()) {
+		try (
+			Connection connection = DATABASE.getConnection();
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO " + TABLE_NAME + " (" +
 					"TVSERIESID, FILENAME, RATING" +
@@ -110,7 +111,8 @@ public final class TableVideoMetadataRated extends Tables {
 					"?, ?, ?" +
 				")",
 				Statement.RETURN_GENERATED_KEYS
-			);
+			)
+		) {
 			insertStatement.clearParameters();
 			insertStatement.setLong(1, tvSeriesID);
 			insertStatement.setString(2, left(fullPathToFile, 255));

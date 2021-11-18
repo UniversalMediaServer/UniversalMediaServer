@@ -297,6 +297,7 @@ public class RootFolder extends DLNAResource {
 			}
 		} else {
 			frame.setScanLibraryEnabled(true);
+			frame.setStatusLine(null);
 		}
 	}
 

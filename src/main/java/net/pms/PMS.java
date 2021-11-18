@@ -386,7 +386,7 @@ public class PMS {
 	}
 
 	/**
-	 * Initialization procedure for DMS.
+	 * Initialization procedure.
 	 *
 	 * @return <code>true</code> if the server has been initialized correctly.
 	 *         <code>false</code> if initialization was aborted.
@@ -721,6 +721,11 @@ public class PMS {
 		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
 		//     b) *after* mediaLibrary is initialized, if enabled (above)
 		getRootFolder(RendererConfiguration.getDefaultConf());
+
+		// Ensure up-to-date API metadata versions
+		if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
+			APIUtils.setApiMetadataVersions();
+		}
 
 		frame.serverReady();
 		ready = true;

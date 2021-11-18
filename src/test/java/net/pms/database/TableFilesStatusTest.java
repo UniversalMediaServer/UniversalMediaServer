@@ -47,7 +47,9 @@ public class TableFilesStatusTest {
 	}
 
 	/**
-	 * This should get more specific, since for now it
+	 * Ensures that the table updates properly.
+	 *
+	 * todo: This should get more specific, since for now it
 	 * just makes sure the code completes without errors but
 	 * doesn't really do anything.
 	 */
@@ -62,7 +64,7 @@ public class TableFilesStatusTest {
 			try (Statement statement = connection.createStatement()) {
 				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
 
-				// Create version 7 of this table
+				// Create version 7 of this table to start with
 				statement.execute(
 					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
 						"ID            IDENTITY PRIMARY KEY, " +
@@ -74,11 +76,13 @@ public class TableFilesStatusTest {
 							"ON DELETE CASCADE" +
 					")"
 				);
-	
+
 				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TableFilesStatus.TABLE_NAME + "(FILENAME)");
 				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
 
 				Tables.setTableVersion(connection, TableFilesStatus.TABLE_NAME, 7);
+			} catch (Exception e) {
+				System.out.println("Error: " + e);
 			}
 
 			/*
@@ -86,6 +90,8 @@ public class TableFilesStatusTest {
 			 * and any errors that occur along the way will cause the test to fail.
 			 */
 			TableFilesStatus.checkTable(connection);
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
 		}
 	}
 

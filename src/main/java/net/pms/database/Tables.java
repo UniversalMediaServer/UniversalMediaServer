@@ -109,6 +109,7 @@ public class Tables {
 	 * @throws SQLException
 	 */
 	public static final void reInitTablesExceptFilesStatus() throws SQLException {
+		LOGGER.debug("Re-initializing tables");
 		try (Connection connection = DATABASE.getConnection()) {
 			TableMusicBrainzReleases.dropTable(connection);
 			TableCoverArtArchive.dropTable(connection);

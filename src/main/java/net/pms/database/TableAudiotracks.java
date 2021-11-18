@@ -15,15 +15,18 @@ import org.slf4j.LoggerFactory;
  * done with this class.
  */
 public class TableAudiotracks extends Tables {
+
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
 	private static final String MBID_RECORD = "MBID_RECORD";
 	private static final String MBID_TRACK = "MBID_TRACK";
+	private static final String DISC = "DISC";
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
 	private static final int SIZE_MAX = 255;
+	private static final int SIZE_MBID = 36;
 	private static final int SIZE_SAMPLEFREQ = 16;
 	private static final int SIZE_CODECA = 32;
 
@@ -32,7 +35,7 @@ public class TableAudiotracks extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -69,19 +72,17 @@ public class TableAudiotracks extends Tables {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
-			if (currentVersion == null || currentVersion == 1) {
-				try (Statement statement = connection.createStatement()) {
-					if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
-					}
-					if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
-					}
-				} catch (SQLException e) {
-					LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
-					LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-					throw new SQLException(e);
+			try (Statement statement = connection.createStatement()) {
+				if (currentVersion == null || currentVersion == 1) {
+					addVersion1Cols(connection, statement);
+					addVersion2Cols(connection, statement);
+				} else if (currentVersion == 2) {
+					addVersion2Cols(connection, statement);
 				}
+			} catch (SQLException e) {
+				LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+				LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+				throw new SQLException(e);
 			}
 
 			try {
@@ -92,6 +93,21 @@ public class TableAudiotracks extends Tables {
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	private static void addVersion1Cols(Connection connection, Statement statement) throws SQLException {
+		if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
+			statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
+		}
+		if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
+			statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
+		}
+	}
+
+	private static void addVersion2Cols(Connection connection, Statement statement) throws SQLException {
+		if (!isColumnExist(connection, TABLE_NAME, DISC)) {
+			statement.execute("ALTER TABLE " + TABLE_NAME + " ADD " + DISC + " INT");
 		}
 	}
 
@@ -120,6 +136,7 @@ public class TableAudiotracks extends Tables {
 			sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
 			sb.append(", YEAR              INT");
 			sb.append(", TRACK             INT");
+			sb.append(", DISC              INT");
 			sb.append(", DELAY             INT");
 			sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 			sb.append(", BITRATE           INT");

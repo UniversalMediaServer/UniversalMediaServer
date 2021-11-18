@@ -1,4 +1,54 @@
+10.13.0 - 2021-11-
+
+	General:
+		Improved matching and prettifying of TV episodes, especially anime and TV episodes
+		Allow successful API matches to be updated via versioning, for more accurate results
+		If a folder contains music tracks, music tracks will be sorted by track number (thanks, ik666!)
+		Re-implemented UPnP searching (thanks, ik666!)
+		Compact database on shutdown (thanks, ik666!)
+		Fixed status line glitches while scanning
+		Improved default network interface selection
+		Fixed playlist folders not updating (thanks, ik666!)
+		Fixed sorting when API result starts with a different letter than filename
+		Parse files that have the short naming convention, where the parent directory is the real filename
+		Fixed parsing of TV episodes in season 0
+		Fixed crash when bumping database version
+		Fixed memory leak after failed API lookup
+		Fixed hanging process due to filewatcher not closing before shutdown
+		Various web interface code improvements (thanks, Amir, Florian, and Kurtis Hanson)
+		Code readability improvements (thanks, Christian Baer!)
+		Protect against uncaught exceptions
+		Fixed memory leaks
+		Fixed database thread-safety bugs
+		Increased performance of some database queries
+		Increased performance of filename prettifying
+		Fixed sending API requests when external network is disabled
+		Fixed process hanging if filesystem activity happens in a watched folder during shutdown
+	Renderers:
+		Improved matching and transcoding on Samsung 4K+ TVs
+	Translation updates via Crowdin:
+		Bengali (1%) (thanks, Bipul Dey!)
+		Chinese (Simplified) (100%) (thanks, wwj402_github!)
+		Chinese (Traditional) (96%) (thanks, Gene Wu!)
+		Czech (100%)
+		Danish (100%) (thanks, GurliGebis!)
+		Hungarian (96%) (thanks, Hild György!)
+		Japanese (100%) (thanks, Katsuhide.M!)
+		Romanian (100%) (thanks, Bogdan!)
+	Dependencies:
+		Bump assertj-core from 3.20.2 to 3.21.0
+		Bump checkstyle from 9.0 to 9.1
+		Bump gson from 2.8.8 to 2.8.9
+		Bump junit5.version from 5.8.0 to 5.8.1
+		Bump JRE from 8u302 to 8u312
+		Bump logback from 1.2.5 to 1.2.7
+		Bump maven-enforcer-plugin from 3.0.0-M3 to 3.0.0
+		Bump MediaInfo from 21.03 to 21.09
+		Bump oshi-core from 5.8.2 to 5.8.3
+		Bump spotbugs-maven-plugin from 4.3.0 to 4.4.2.2
+
 10.12.0 - 2021-09-17
+
 	General:
 		Increased performance and reduced memory use of startup scan
 		Renderer configurations now have MediaInfo enabled by default

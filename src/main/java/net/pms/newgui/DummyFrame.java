@@ -61,6 +61,10 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
+	public void setSecondaryStatusLine(String line) {
+	}
+
+	@Override
 	public void addRenderer(RendererConfiguration renderer) {
 	}
 

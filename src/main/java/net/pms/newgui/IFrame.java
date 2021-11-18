@@ -31,6 +31,7 @@ public interface IFrame {
 	public void setReloadable(boolean reload);
 	public void addEngines();
 	public void setStatusLine(String line);
+	public void setSecondaryStatusLine(String line);
 	public void serverReady();
 	public void setScanLibraryEnabled(boolean flag);
 	public String getLog();
