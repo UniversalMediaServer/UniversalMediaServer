@@ -100,6 +100,7 @@ public class HTTPResource {
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
 	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
+	public static final String MPEGTS_BYTESTREAM_TYPEMIME = "video/MP2T";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";

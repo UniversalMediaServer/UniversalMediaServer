@@ -64,7 +64,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	@SuppressWarnings("unused")
 	private int port;
 	private String ua;
-	private String defaultMime;
 	private int browser = 0;
 	private String platform = null;
 	private int screenWidth = 0;
@@ -106,8 +105,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		port = 0;
 		ua = "";
 		fileless = true;
-		String userFmt = CONFIGURATION.getWebTranscode();
-		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
 		startStop = null;
 		subLang = "";
 		if (CONFIGURATION.useWebControl()) {
@@ -273,12 +270,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getVideoMimeType() {
-		if (browser == CHROME) {
-			return HTTPResource.HLS_TYPEMIME;
-		} else if (browser == FIREFOX) {
-			return HTTPResource.MP4_TYPEMIME;
-		}
-		return defaultMime;
+		return HTTPResource.HLS_TYPEMIME;
 	}
 
 	@Override
@@ -331,7 +323,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							break;
 						case HTTPResource.HLS_TYPEMIME:
 							try {
-								ffHlsH264VorbisCmd(cmdList, resource.getId());
+								ffHlsH264VorbisCmd(cmdList, media, resource.getId());
 							} catch (IOException e) {
 								LOGGER.debug("Could not read temp folder:" + e.getMessage());
 							}
@@ -446,14 +438,19 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("matroska");
 	}
 
-	private static void ffHlsH264VorbisCmd(List<String> cmdList, String globalId) throws IOException {
-		// -c:v libx264 -preset ultrafast -c:a libvorbis -ac 2 -copyts -c:s mov_text -flags -global_header -map 0 -f segment -segment_time 5 -segment_list /tmp/ps4player/" + hash + "/playlist.m3u8 -segment_format mpegts /tmp/ps4player/" + hash + "/stream%05d.ts
+	private static void ffHlsH264VorbisCmd(List<String> cmdList, DLNAMediaInfo media, String globalId) throws IOException {
+		// Can't streamcopy if filters are present
+		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
-		cmdList.add("libx264");
-		cmdList.add("-preset");
-		cmdList.add("ultrafast");
-		cmdList.add("-pix_fmt");
-		cmdList.add("yuv420p");
+		if (canCopy && media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("libx264");
+			cmdList.add("-preset");
+			cmdList.add("ultrafast");
+			cmdList.add("-pix_fmt");
+			cmdList.add("yuv420p");
+		}
 		cmdList.add("-c:a");
 		cmdList.add("libvorbis");
 		cmdList.add("-ac");
@@ -462,18 +459,28 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("-c:s");
 		cmdList.add("mov_text");
 		cmdList.add("-flags");
-		cmdList.add("-global_header");
-		cmdList.add("-map");
-		cmdList.add("0");
+		cmdList.add("cgop");
+		// cmdList.add("-global_header");
+		// cmdList.add("-map");
+		// cmdList.add("0");
 		cmdList.add("-f");
-		cmdList.add("segment");
-		cmdList.add("-segment_time");
-		cmdList.add("5");
-		cmdList.add("-segment_list");
-		cmdList.add(FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "ums-" + globalId + "-playlist.m3u8");
-		cmdList.add("-segment_format");
-		cmdList.add("mpegts");
+		cmdList.add("hls");
+		// cmdList.add("-hls_playlist_type");
+		// cmdList.add("vod");
+		cmdList.add("-hls_flags");
+		cmdList.add("independent_segments");
+		cmdList.add("-hls_base_url");
+		cmdList.add("/ts/");
+
+		// Include all video segments in the playlist
+		cmdList.add("-hls_list_size");
+		cmdList.add("0");
+
+		cmdList.add("-hls_allow_cache");
+		cmdList.add("1");
+
 		cmdList.add("-y");
+		cmdList.add(FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + globalId + "-playlist.m3u8");
 	}
 
 	/**

@@ -60,6 +60,7 @@ import net.pms.newgui.DbgPacker;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,6 @@ public class RemoteWeb {
 			}
 		});
 
-
 		// Setup the socket address
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
@@ -134,6 +134,7 @@ public class RemoteWeb {
 			addCtx("/browse", new RemoteBrowseHandler(this));
 			RemotePlayHandler playHandler = new RemotePlayHandler(this);
 			addCtx("/hls", playHandler);
+			addCtx("/ts", new LocalTransportStreamHandler(this));
 			addCtx("/play", playHandler);
 			addCtx("/playstatus", playHandler);
 			addCtx("/playlist", playHandler);
@@ -489,7 +490,6 @@ public class RemoteWeb {
 				} else if (parent.getResources().write(path.substring(7), t)) {
 					// The resource manager found and sent the file, all done.
 					return;
-
 				} else {
 					status = 404;
 				}
@@ -618,6 +618,48 @@ public class RemoteWeb {
 				}
 			}
 			return logs;
+		}
+	}
+
+	/**
+	 * Serves .ts segments that are referenced by dynamic HLS playlists.
+	 */
+	static class LocalTransportStreamHandler implements HttpHandler {
+		private static final Logger LOGGER = LoggerFactory.getLogger(LocalTransportStreamHandler.class);
+		@SuppressWarnings("unused")
+		private final static String CRLF = "\r\n";
+
+		public LocalTransportStreamHandler(RemoteWeb parent) {}
+
+		@Override
+		public void handle(HttpExchange httpExchange) throws IOException {
+			try {
+				LOGGER.debug("root req " + httpExchange.getRequestURI());
+				if (RemoteUtil.deny(httpExchange)) {
+					throw new IOException("Access denied");
+				}
+
+				String uriPath = httpExchange.getRequestURI().getPath();
+				String filename = uriPath.substring(4);
+				if (!filename.endsWith(".ts")) {
+					throw new Exception("File must be a transport stream");
+				}
+				String videoSectionPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + filename;
+				File videoSection = new File(videoSectionPath);
+				byte[] response = FileUtils.readFileToByteArray(videoSection);
+
+				Headers headers = httpExchange.getResponseHeaders();
+				String mimeType = HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME;
+				headers.add("accept-ranges", "bytes");
+				RemoteUtil.respond(httpExchange, response, 200, mimeType);
+				return;
+			} catch (IOException e) {
+				throw e;
+			} catch (Exception e) {
+				// Nothing should get here, this is just to avoid crashing the thread
+				LOGGER.error("Unexpected error in LocalTransportStreamHandler.handle(): {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 	}
 

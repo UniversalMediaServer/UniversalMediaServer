@@ -64,40 +64,6 @@ public class RemoteMediaHandler implements HttpHandler {
 				LOGGER.debug("key " + h1 + "=" + h.get(h1));
 			}
 
-			String uriPath = httpExchange.getRequestURI().getPath();
-
-			/**
-			 * Handle requests from browsers as they parse our HLS m3u8 files
-			 * which started to be created during the /media/id request
-			 */
-			if (uriPath.startsWith("/media/ffmpegvideo_") && uriPath.endsWith(".ts")) {
-				String response = null;
-				String mime = HTTPResource.HLS_TYPEMIME;
-				int status = 200;
-				String filename = uriPath.substring(7);
-
-				String videoSectionPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + filename;
-				LOGGER.info("4 " + videoSectionPath);
-				File videoSection = new File(videoSectionPath);
-				LOGGER.info("5 " + videoSection.exists());
-
-				StringBuilder resultStringBuilder = new StringBuilder();
-				try (BufferedReader br = new BufferedReader(new FileReader(videoSection))) {
-					LOGGER.info("6 " + videoSection.exists());
-					String line;
-					while ((line = br.readLine()) != null) {
-						LOGGER.info("7 " + line);
-						resultStringBuilder.append(line).append("\n");
-					}
-				}
-				response = resultStringBuilder.toString();
-				LOGGER.info("8" + response);
-
-				RemoteUtil.respond(httpExchange, response, status, mime);
-				return;
-			}
-
-
 			String id = RemoteUtil.getId(path, httpExchange);
 			id = RemoteUtil.strip(id);
 			RendererConfiguration defaultRenderer = renderer;
@@ -196,37 +162,22 @@ public class RemoteMediaHandler implements HttpHandler {
 				RemoteUtil.dump(in, os, render);
 			}
 
-
-
-
-
-
-
-
-
-
-
 			if (render.getVideoMimeType() == HTTPResource.HLS_TYPEMIME) {
 				String response = null;
 				String mime = HTTPResource.HLS_TYPEMIME;
 				int status = 200;
 
-				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "ums-" + id + "-playlist.m3u8";
-				LOGGER.info("4 " + playlistPath);
+				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + id + "-playlist.m3u8";
 				File playlist = new File(playlistPath);
-				LOGGER.info("5 " + playlist.exists());
 
 				StringBuilder resultStringBuilder = new StringBuilder();
 				try (BufferedReader br = new BufferedReader(new FileReader(playlist))) {
-					LOGGER.info("6 " + playlist.exists());
 					String line;
 					while ((line = br.readLine()) != null) {
-						LOGGER.info("7 " + line);
 						resultStringBuilder.append(line).append("\n");
 					}
 				}
 				response = resultStringBuilder.toString();
-				LOGGER.info("8" + response);
 
 				RemoteUtil.respond(httpExchange, response, status, mime);
 			}
