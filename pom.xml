@@ -102,7 +102,7 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.8.1</junit5.version>
+		<junit5.version>5.8.2</junit5.version>
 		<com.sun.xml.bind-version>3.0.2</com.sun.xml.bind-version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
