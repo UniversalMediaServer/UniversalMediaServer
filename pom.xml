@@ -190,12 +190,15 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
 			<!-- Versions above 1.4.197 should only be used when https://github.com/UniversalMediaServer/UniversalMediaServer/issues/2030 is done -->
-			<version>1.4.200</version>
+		    <version>2.0.202</version>
+		    <scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
