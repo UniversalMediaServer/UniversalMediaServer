@@ -187,7 +187,7 @@ public class SearchRequestHandler {
 		while (matcher.find()) {
 			sb.append(upnpSearch, lastIndex, matcher.start());
 			if ("upnp:class".equalsIgnoreCase(matcher.group("property"))) {
-				aquireDatabaseType(sb, matcher.group("op"), matcher.group("val"), requestType);
+				acquireDatabaseType(sb, matcher.group("op"), matcher.group("val"), requestType);
 			} else if (matcher.group("property").startsWith("upnp:") || matcher.group("property").startsWith("dc:")) {
 				appendProperty(sb, matcher.group("property"), matcher.group("op"), matcher.group("val"), requestType);
 			}
@@ -253,7 +253,7 @@ public class SearchRequestHandler {
 		throw new RuntimeException("Unknown type : " + requestType);
 	}
 
-	private void aquireDatabaseType(StringBuilder sb, String op, String val, DbidMediaType requestType) {
+	private void acquireDatabaseType(StringBuilder sb, String op, String val, DbidMediaType requestType) {
 		switch (requestType) {
 			case TYPE_ALBUM:
 			case TYPE_PERSON:
@@ -341,8 +341,13 @@ public class SearchRequestHandler {
 								filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
 								break;
 							case TYPE_PLAYLIST:
-								filesList
-									.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, resultSet.getString("FID")), ""));
+								filesList.add(
+									new VirtualFolderDbId(
+										filenameField,
+										new DbidTypeAndIdent(type, resultSet.getString("FID")),
+										""
+									)
+								);
 								break;
 							default:
 								filesList.add(new RealFileDbId(new DbidTypeAndIdent(type, resultSet.getString("FID")),

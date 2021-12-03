@@ -103,6 +103,7 @@ public class DbIdResourceLocator {
 				switch (typeAndIdent.type) {
 					case TYPE_AUDIO:
 					case TYPE_VIDEO:
+					case TYPE_IMAGE:
 						sql = String.format("select FILENAME, TYPE from files where id = %s", typeAndIdent.ident);
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace(String.format("SQL AUDIO/VIDEO/IMAGE : %s", sql));
@@ -186,8 +187,11 @@ public class DbIdResourceLocator {
 					case TYPE_PERSON_ALBUM:
 						sql = String.format("SELECT DISTINCT(album) FROM AUDIOTRACKS A where COALESCE(A.ALBUMARTIST, A.ARTIST) = '%s'",
 							typeAndIdent.ident);
-						res = new VirtualFolderDbId(typeAndIdent.ident, new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
-							"");
+						res = new VirtualFolderDbId(
+							typeAndIdent.ident,
+							new DbidTypeAndIdent(DbidMediaType.TYPE_ALBUM, typeAndIdent.ident),
+							""
+						);
 						try (ResultSet resultSet = statement.executeQuery(sql)) {
 							while (resultSet.next()) {
 								String album = resultSet.getString(1);
