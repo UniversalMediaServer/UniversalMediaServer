@@ -97,6 +97,79 @@ public class APIUtils {
 	}
 
 	/**
+	 * These versions are returned to us from the API server. The versions are
+	 * bumped when that endpoint has received a fix that warrants the client
+	 * re-fetching its results.
+	 */
+	private static String apiDataVideoVersion = null;
+	private static String apiDataSeriesVersion = null;
+
+	public static String getApiDataVideoVersion() {
+		if (apiDataVideoVersion == null) {
+			setApiMetadataVersions();
+		}
+
+		return apiDataVideoVersion;
+	}
+
+	public static String getApiDataSeriesVersion() {
+		if (apiDataSeriesVersion == null) {
+			setApiMetadataVersions();
+		}
+
+		return apiDataSeriesVersion;
+	}
+
+	/**
+	 * Populates the apiDataSeriesVersion and apiDataVideoVersion
+	 * variables, preferably from the API, but falling back to
+	 * the local database.
+	 */
+	public static void setApiMetadataVersions() {
+		try {
+			URL domain = new URL("https://api.universalmediaserver.com");
+			URL url = new URL(domain, "/api/subversions");
+			HashMap<String, String> jsonData = new HashMap<String, String>();
+
+			if (CONFIGURATION.getExternalNetwork()) {
+				String apiResult = getJson(url);
+
+				try {
+					jsonData = gson.fromJson(apiResult, jsonData.getClass());
+				} catch (JsonSyntaxException e) {
+					LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
+				}
+			}
+
+			if (jsonData == null || jsonData.isEmpty() || jsonData.containsKey("statusCode")) {
+				if (jsonData != null && jsonData.containsKey("statusCode") && jsonData.get("statusCode") == "500") {
+					LOGGER.debug("Got a 500 error while looking for metadata subversions");
+				}
+				LOGGER.trace("Did not get metadata subversions, will attempt to use the database version");
+
+				apiDataSeriesVersion = PMS.get().getDatabase().getMetadataValue("SERIES_VERSION");
+				apiDataVideoVersion = PMS.get().getDatabase().getMetadataValue("VIDEO_VERSION");
+
+				if (apiDataSeriesVersion == null) {
+					LOGGER.trace("API versions could not be fetched from the API or the local database");
+				}
+				return;
+			}
+
+			apiDataSeriesVersion = jsonData.get("series");
+			apiDataVideoVersion = jsonData.get("video");
+
+			// Persist the values to the database to be used as fallbacks
+			if (apiDataSeriesVersion != null) {
+				PMS.get().getDatabase().setOrUpdateMetadataValue("SERIES_VERSION", apiDataSeriesVersion);
+				PMS.get().getDatabase().setOrUpdateMetadataValue("VIDEO_VERSION", apiDataVideoVersion);
+			}
+		} catch (Exception e) {
+			LOGGER.trace("Error while setting API metadata versions", e);
+		}
+	}
+
+	/**
 	 * Enhances existing metadata attached to this media by querying our API.
 	 *
 	 * @param file
@@ -104,16 +177,26 @@ public class APIUtils {
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final DLNAMediaInfo media) {
 		Runnable r = () -> {
-			if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
-				LOGGER.trace("Metadata already exists for {}", file.getName());
+			if (!CONFIGURATION.getExternalNetwork()) {
+				LOGGER.trace("Not doing background API lookup because external network is disabled");
 				return;
 			}
 
-			if (TableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath())) {
+			if (!CONFIGURATION.isUseInfoFromIMDb()) {
+				LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
 				return;
 			}
 
-			frame.setStatusLine(Messages.getString("StatusBar.GettingAPIInfoFor") + " " + file.getName());
+			if (PMS.get().getDatabase().doesLatestApiMetadataExist(file.getAbsolutePath(), file.lastModified())) {
+				LOGGER.trace("The latest metadata already exists for {}", file.getName());
+				return;
+			}
+
+			if (TableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath(), true)) {
+				return;
+			}
+
+			frame.setSecondaryStatusLine(Messages.getString("StatusBar.GettingAPIInfoFor") + " " + file.getName());
 			HashMap<?, ?> metadataFromAPI;
 			try {
 				String yearFromFilename            = media.getYear();
@@ -132,7 +215,7 @@ public class APIUtils {
 
 					if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
 						LOGGER.trace("Failed lookup for " + file.getName());
-						TableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""));
+						TableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""), true);
 
 						// File lookup failed, but before we return, attempt to enhance TV series data
 						if (isTVEpisodeBasedOnFilename) {
@@ -202,7 +285,7 @@ public class APIUtils {
 					)
 				) {
 					LOGGER.debug("API data was different to our parsed data, not storing it.");
-					TableFailedLookups.set(file.getAbsolutePath(), "Data mismatch");
+					TableFailedLookups.set(file.getAbsolutePath(), "Data mismatch", true);
 
 					LOGGER.trace("Filename data: " + media);
 					LOGGER.trace("API data: " + metadataFromAPI);
@@ -308,7 +391,7 @@ public class APIUtils {
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
-				frame.setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + file.getParent());
+				frame.setSecondaryStatusLine(null);
 			}
 		};
 		BACKGROUND_EXECUTOR.execute(r);
@@ -361,7 +444,7 @@ public class APIUtils {
 				LOGGER.trace("API metadata for TV series {} ({}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
 
 				// Start by checking if we have already failed this lookup recently
-				if (TableFailedLookups.hasLookupFailedRecently(failedLookupKey)) {
+				if (TableFailedLookups.hasLookupFailedRecently(failedLookupKey, false)) {
 					return null;
 				}
 
@@ -389,11 +472,11 @@ public class APIUtils {
 				if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
 					isAPIDataValid = false;
 					LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
-					TableFailedLookups.set(titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified);
+					TableFailedLookups.set(titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
 				} else if (!isSeriesFromAPI) {
 					isAPIDataValid = false;
 					LOGGER.debug(validationFailedPrepend + "we received a non-series from API");
-					TableFailedLookups.set(titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI);
+					TableFailedLookups.set(titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI, false);
 				}
 
 				if (!isAPIDataValid) {

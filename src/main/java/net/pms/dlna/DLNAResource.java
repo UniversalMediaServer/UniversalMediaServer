@@ -43,6 +43,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1114,6 +1115,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
 						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
 
+					if (hasAudioFilesSameAlbum(dlna)) {
+						sortChildrenWithAudioElements(dlna);
+					}
 					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
 						final DLNAResource child = dlna.getChildren().get(i);
 						if (child != null) {
@@ -1137,6 +1141,72 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return resources;
+	}
+
+	/**
+	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
+	 * implementaion could match the MBID record id (not implemented).
+	 *
+	 * @param dlna Folder containing child objects of any kind
+	 *
+	 * @return
+	 * 	TRUE, if all audio child objects belong to the same album.
+	 */
+	private boolean hasAudioFilesSameAlbum(DLNAResource dlna) {
+		String album = null;
+		boolean audioExists = false;
+		for (DLNAResource res : dlna.getChildren()) {
+			if (res.getFormat() != null && res.getFormat().isAudio()) {
+				if (album == null) {
+					audioExists = true;
+					if (res.getMedia().getFirstAudioTrack() == null) {
+						return false;
+					}
+					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
+				} else {
+					if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
+						return false;
+					}
+				}
+			}
+		}
+		return audioExists;
+	}
+
+	private void sortChildrenWithAudioElements(DLNAResource dlna) {
+		Collections.sort(dlna.getChildren(), new Comparator<DLNAResource>() {
+
+			@Override
+			public int compare(DLNAResource o1, DLNAResource o2) {
+				if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
+					if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
+						if (o2 != null && o2.getFormat() != null && o2.getFormat().isAudio()) {
+							return getTrackNum(o1).compareTo(getTrackNum(o2));
+						} else {
+							return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+						}
+					} else {
+						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+					}
+				} else {
+					return getDiscNum(o1).compareTo(getDiscNum(o2));
+				}
+			}
+		});
+	}
+
+	private Integer getTrackNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getTrack();
+		}
+		return 0;
+	}
+
+	private Integer getDiscNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getDisc();
+		}
+		return 0;
 	}
 
 	protected void refreshChildrenIfNeeded(String search) {
@@ -2416,6 +2486,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
 				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
+				if (firstAudioTrack.getDisc() > 0) {
+					addXMLTagAndAttribute(sb, "numberOfThisDisc", "" + firstAudioTrack.getDisc());
+				}
 				closeTag(sb, "desc");
 			}
 		}
@@ -4820,77 +4893,77 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param file
 	 */
 	private void setMetadataFromFileName(File file) {
-		if (PMS.get().getDatabase().isAPIMetadataExists(file.getAbsolutePath(), file.lastModified())) {
-			LOGGER.trace("Metadata already exists for {}", file.getName());
-			return;
-		}
-
-		String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
-		String titleFromFilename = metadataFromFilename[0];
-		String yearFromFilename = metadataFromFilename[1];
-		String extraInformationFromFilename = metadataFromFilename[2];
-		String tvSeasonFromFilename = metadataFromFilename[3];
-		String tvEpisodeNumberFromFilename = metadataFromFilename[4];
-		String tvEpisodeNameFromFilename = metadataFromFilename[5];
-		String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
-
-		media.setMovieOrShowName(titleFromFilename);
-		media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
-		String titleFromDatabase;
-		String titleFromDatabaseSimplified;
-
-		// Apply the metadata from the filename.
-		if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
-			/**
-			 * Overwrite the title from the filename if it's very similar to one
-			 * we already have in our database. This is to avoid minor
-			 * grammatical differences like "Word and Word" vs. "Word & Word"
-			 * from creating two virtual folders.
-			 */
-			titleFromDatabase = TableTVSeries.getSimilarTVSeriesName(titleFromFilename);
-			titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
-			if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
-				media.setMovieOrShowName(titleFromDatabase);
-			}
-
-			media.setTVSeason(tvSeasonFromFilename);
-			if (isNotBlank(tvEpisodeNumberFromFilename)) {
-				media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
-			}
-			if (isNotBlank(tvEpisodeNameFromFilename)) {
-				media.setTVEpisodeName(tvEpisodeNameFromFilename);
-			}
-
-			media.setIsTVEpisode(true);
-		}
-
-		if (yearFromFilename != null) {
-			media.setYear(yearFromFilename);
-		}
-
-		if (extraInformationFromFilename != null) {
-			media.setExtraInformation(extraInformationFromFilename);
-		}
-
+		// If the in-memory media has not already been populated with filename metadata, we attempt it
 		try {
-			if (configuration.getUseCache()) {
-				PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+			if (isBlank(media.getMovieOrShowName())) {
+				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
+				String titleFromFilename = metadataFromFilename[0];
+				String yearFromFilename = metadataFromFilename[1];
+				String extraInformationFromFilename = metadataFromFilename[2];
+				String tvSeasonFromFilename = metadataFromFilename[3];
+				String tvEpisodeNumberFromFilename = metadataFromFilename[4];
+				String tvEpisodeNameFromFilename = metadataFromFilename[5];
+				String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
 
-				// Creates a minimal TV series row with just the title, that
-				// might be enhanced later by the API
-				if (media.isTVEpisode()) {
-					TableTVSeries.set(null, media.getMovieOrShowName());
+				media.setMovieOrShowName(titleFromFilename);
+				media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
+				String titleFromDatabase;
+				String titleFromDatabaseSimplified;
+
+				// Apply the metadata from the filename.
+				if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
+					/**
+					* Overwrite the title from the filename if it's very similar to one
+					* we already have in our database. This is to avoid minor
+					* grammatical differences like "Word and Word" vs. "Word & Word"
+					* from creating two virtual folders.
+					*/
+					titleFromDatabase = TableTVSeries.getSimilarTVSeriesName(titleFromFilename);
+					titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+					if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
+						media.setMovieOrShowName(titleFromDatabase);
+					}
+
+					media.setTVSeason(tvSeasonFromFilename);
+					if (isNotBlank(tvEpisodeNumberFromFilename)) {
+						media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+					}
+					if (isNotBlank(tvEpisodeNameFromFilename)) {
+						media.setTVEpisodeName(tvEpisodeNameFromFilename);
+					}
+
+					media.setIsTVEpisode(true);
+				}
+
+				if (yearFromFilename != null) {
+					media.setYear(yearFromFilename);
+				}
+
+				if (extraInformationFromFilename != null) {
+					media.setExtraInformation(extraInformationFromFilename);
+				}
+
+				if (configuration.getUseCache()) {
+					// TODO: Make sure this does not happen if ANY version already exists, before doing this
+					PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+
+					// Creates a minimal TV series row with just the title, that
+					// might be enhanced later by the API
+					if (media.isTVEpisode()) {
+						// TODO: Make this check if it already exists instead of always setting it
+						TableTVSeries.set(null, media.getMovieOrShowName());
+					}
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Could not update the database with information from the filename for \"{}\": {}", file.getAbsolutePath(),
 				e.getMessage());
 			LOGGER.trace("", e);
+		} catch (Exception e) {
+			LOGGER.debug("", e);
 		} finally {
 			// Attempt to enhance the metadata via our API.
-			if (configuration.isUseInfoFromIMDb()) {
-				APIUtils.backgroundLookupAndAddMetadata(file, media);
-			}
+			APIUtils.backgroundLookupAndAddMetadata(file, media);
 		}
 	}
 

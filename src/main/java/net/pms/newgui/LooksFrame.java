@@ -108,6 +108,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
+	private String statusLine = null;
+
 	/**
 	 * Class name of Windows L&F provided in Sun JDK.
 	 */
@@ -558,8 +560,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		panel.add(toolBar, BorderLayout.NORTH);
 		panel.add(buildMain(), BorderLayout.CENTER);
 		status = new JLabel("");
-		status.setBorder(BorderFactory.createEmptyBorder());
 		status.setComponentOrientation(orientation);
+		status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
 
 		// Calling applyComponentOrientation() here would be ideal.
 		// Alas it horribly mutilates the layout of several tabs.
@@ -745,8 +747,37 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void setStatusLine(String line) {
-		if (line == null || "".equals(line)) {
+		statusLine = line;
+
+		if (line == null) {
 			line = "";
+		}
+
+		if (line.equals("")) {
+			status.setBorder(BorderFactory.createEmptyBorder());
+		} else {
+			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
+		}
+
+		status.setText(line);
+	}
+
+	/**
+	 * Sets a secondary status line.
+	 * If it receives null, it will try to set the primary status
+	 * line if it exists, otherwise clear it.
+	 */
+	@Override
+	public void setSecondaryStatusLine(String line) {
+		if (line == null) {
+			if (statusLine != null) {
+				line = statusLine;
+			} else {
+				line = "";
+			}
+		}
+
+		if (line.equals("")) {
 			status.setBorder(BorderFactory.createEmptyBorder());
 		} else {
 			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));

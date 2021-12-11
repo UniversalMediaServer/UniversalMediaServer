@@ -28,6 +28,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.util.APIUtils;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +45,7 @@ public final class TableFailedLookups extends Tables {
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableFailedLookups.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final String TABLE_NAME = "FAILED_LOOKUPS";
 
 	/**
@@ -49,7 +53,7 @@ public final class TableFailedLookups extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	// No instantiation
 	private TableFailedLookups() {
@@ -57,34 +61,48 @@ public final class TableFailedLookups extends Tables {
 
 	/**
 	 * @param fullPathToFile
+	 * @param isVideo whether this is a video, otherwise it's a TV series
 	 * @return whether a lookup for this file has failed recently
 	 */
-	public static boolean hasLookupFailedRecently(final String fullPathToFile) {
+	public static boolean hasLookupFailedRecently(final String fullPathToFile, final boolean isVideo) {
 		boolean removeAfter = false;
+		String latestVersion = null;
+		if (isVideo) {
+			latestVersion = APIUtils.getApiDataVideoVersion();
+		} else {
+			latestVersion = APIUtils.getApiDataSeriesVersion();
+		}
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT LASTATTEMPT FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " ");
+		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
+			sql.append(" AND VERSION = " + sqlQuote(latestVersion) + " ");
+		}
+		sql.append("LIMIT 1");
+
 		TABLE_LOCK.readLock().lock();
-		try (Connection connection = DATABASE.getConnection()) {
-			PreparedStatement selectStatement = connection.prepareStatement("SELECT LASTATTEMPT FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1");
+		try (
+			Connection connection = DATABASE.getConnection();
+			PreparedStatement selectStatement = connection.prepareStatement(sql.toString());
+			ResultSet rs = selectStatement.executeQuery()
+		) {
+			if (rs.next()) {
+				LOGGER.trace("We have failed a lookup for {} so let's see if it was recent", fullPathToFile);
 
-			try (ResultSet rs = selectStatement.executeQuery()) {
-				if (rs.next()) {
-					LOGGER.trace("We have failed a lookup for {} so let's see if it was recent", fullPathToFile);
-
-					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-					OffsetDateTime lastAttempt = rs.getObject("LASTATTEMPT", OffsetDateTime.class);
-					if (lastAttempt.plusWeeks(1).isAfter(now)) {
-						// The last attempt happened in the last week
-						return true;
-					} else {
-						// The last attempt happened over a week ago, let's remove it so it can be tried again
-						removeAfter = true;
-						return false;
-					}
+				OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+				OffsetDateTime lastAttempt = rs.getObject("LASTATTEMPT", OffsetDateTime.class);
+				if (lastAttempt.plusWeeks(1).isAfter(now)) {
+					// The last attempt happened in the last week
+					return true;
 				} else {
-					LOGGER.trace("We have no failed lookups stored for {}", fullPathToFile);
+					// The last attempt happened over a week ago, let's remove it so it can be tried again
+					removeAfter = true;
 					return false;
 				}
+			} else {
+				LOGGER.trace("We have no failed lookups stored for {}", fullPathToFile);
+				return false;
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error(
 				"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
 				fullPathToFile,
@@ -107,26 +125,42 @@ public final class TableFailedLookups extends Tables {
 	 * @param fullPathToFile
 	 * @param failureDetails the response the API server returned, or a client-side message
 	 */
-	public static void set(final String fullPathToFile, final String failureDetails) {
+	public static void set(final String fullPathToFile, final String failureDetails, final boolean isVideo) {
+		boolean trace = LOGGER.isTraceEnabled();
+		String latestVersion = null;
+		if (isVideo) {
+			latestVersion = APIUtils.getApiDataVideoVersion();
+		} else {
+			latestVersion = APIUtils.getApiDataSeriesVersion();
+		}
+
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = DATABASE.getConnection()) {
-			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TABLE_NAME + " (" +
-					"FILENAME, FAILUREDETAILS" +
-				") VALUES (" +
-					"?, ?" +
-				")",
-				Statement.RETURN_GENERATED_KEYS
-			);
-			insertStatement.clearParameters();
-			insertStatement.setString(1, left(fullPathToFile, 1024));
-			insertStatement.setString(2, left(failureDetails, 20000));
+			String query = "SELECT FILENAME, FAILUREDETAILS, VERSION FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+			if (trace) {
+				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", query);
+			}
 
-			insertStatement.executeUpdate();
-			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-				if (rs.next()) {
-					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\"", fullPathToFile);
+			TABLE_LOCK.writeLock().lock();
+			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				connection.setAutoCommit(false);
+				try (ResultSet result = statement.executeQuery(query)) {
+					if (result.next()) {
+						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+						result.updateString("VERSION", left(latestVersion, 1024));
+						result.updateRow();
+					} else {
+						result.moveToInsertRow();
+						result.updateString("FILENAME", left(fullPathToFile, 1024));
+						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+						result.updateString("VERSION", left(latestVersion, 1024));
+						result.insertRow();
+					}
+				} finally {
+					connection.commit();
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			if (e.getErrorCode() != 23505) {
@@ -137,6 +171,8 @@ public final class TableFailedLookups extends Tables {
 				);
 				LOGGER.trace("", e);
 			}
+		} catch (Exception e) {
+			LOGGER.trace("", e);
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
 		}
@@ -187,7 +223,9 @@ public final class TableFailedLookups extends Tables {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
-					if (version > TABLE_VERSION) {
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
 						LOGGER.warn(
 							"Database table \"" + TABLE_NAME +
 							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
@@ -211,6 +249,55 @@ public final class TableFailedLookups extends Tables {
 	}
 
 	/**
+	 * This method <strong>MUST</strong> be updated if the table definition are
+	 * altered. The changes for each version in the form of
+	 * <code>ALTER TABLE</code> must be implemented here.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param currentVersion the version to upgrade <strong>from</strong>
+	 *
+	 * @throws SQLException
+	 */
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				switch (version) {
+					case 1:
+						try (Statement statement = connection.createStatement()) {
+							if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+								statement.execute("CREATE INDEX FILENAME_VERSION on FILES (FILENAME, VERSION)");
+							}
+						} catch (SQLException e) {
+							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+							throw new SQLException(e);
+						}
+						version++;
+						break;
+					default:
+						throw new IllegalStateException(
+							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
+							version + " to " + TABLE_VERSION
+						);
+				}
+			}
+
+			try {
+				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			} catch (SQLException e) {
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+				throw new SQLException(e);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
@@ -221,11 +308,13 @@ public final class TableFailedLookups extends Tables {
 					"ID               IDENTITY                   PRIMARY KEY, " +
 					"FILENAME         VARCHAR2(1024)             NOT NULL, " +
 					"FAILUREDETAILS   VARCHAR2(20000)            NOT NULL, " +
+					"VERSION          VARCHAR2(1024)             NOT NULL, " +
 					"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
 				")"
 			);
 
 			statement.execute("CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
+			statement.execute("CREATE INDEX FILENAME_VERSION on FILES (FILENAME, VERSION)");
 		}
 	}
 

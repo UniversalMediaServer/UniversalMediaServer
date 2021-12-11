@@ -601,6 +601,15 @@ public class FileUtil {
 
 	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,})";
 	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
+
+	private static final String MIXED_EPISODE_CONVENTION = "\\s-\\sEp.\\s(\\d{1,4})\\s-\\s";
+	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
+	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
+
+	private static final String SCENE_MULTI_EPISODE_CONVENTION = "[sS](\\d{1,2})[eE](\\d{1,})([eE]|-[eE])(\\d{1,})";
+	private static final String SCENE_MULTI_EPISODE_CONVENTION_MATCH = ".*" + SCENE_MULTI_EPISODE_CONVENTION + ".*";
+	private static final Pattern SCENE_MULTI_EPISODE_CONVENTION_PATTERN = Pattern.compile(SCENE_MULTI_EPISODE_CONVENTION);
+
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
 	 * false-positive by being case-sensitive.
@@ -666,7 +675,25 @@ public class FileUtil {
 		}
 
 		if (!groupNameFromFilename.equals(lowerCase(groupNameFromDirectory))) {
-			return filename;
+			// We didn't match the group name exactly, but let's try a partial match
+			String groupNameFromDirectoryWithoutNumbers = lowerCase(groupNameFromDirectory).replaceAll("\\d", "");
+
+			/*
+			 * Sometimes the release group will have a number in it, and that will
+			 * be in the directory but not the filename, which is really stupid but
+			 * that's how it is. Here we remove that character from both strings
+			 * before attempting to match.
+			 */
+			Pattern pattern = Pattern.compile("\\d");
+			Matcher matcher = pattern.matcher(groupNameFromDirectory);
+			if (matcher.find()) {
+				Integer numberIndex = matcher.start();
+				groupNameFromFilename = new StringBuilder(groupNameFromFilename).deleteCharAt(numberIndex).toString();
+			}
+
+			if (!groupNameFromDirectoryWithoutNumbers.startsWith(groupNameFromFilename)) {
+				return filename;
+			}
 		}
 
 		return parentDirectory;
@@ -862,10 +889,9 @@ public class FileUtil {
 			isSample = true;
 		}
 
-		if (formattedName.matches(".*[sS](\\d{1,2})[eE](\\d{1,})([eE]|-[eE])\\d\\d.*")) {
+		if (formattedName.matches(SCENE_MULTI_EPISODE_CONVENTION_MATCH)) {
 			// This matches scene and most p2p TV episodes that are more than one episode
-			pattern = Pattern.compile("[sS](\\d{1,2})[eE](\\d{1,})(?:[eE]|-[eE])(\\d{1,})");
-			matcher = pattern.matcher(formattedName);
+			matcher = SCENE_MULTI_EPISODE_CONVENTION_PATTERN.matcher(formattedName);
 
 			if (matcher.find()) {
 				tvSeason = matcher.group(1);
@@ -873,15 +899,14 @@ public class FileUtil {
 					tvSeason = "0" + tvSeason;
 				}
 				tvEpisodeNumber = matcher.group(2);
-				tvEpisodeNumber += "-" + matcher.group(3);
+				tvEpisodeNumber += "-" + matcher.group(4);
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d{1,2})E(\\d{1,})([eE]|-[eE])(\\d{1,})\\s", " S" + tvSeason + "E$2-$3 - ");
-			formattedName = formattedName.replaceAll("(?i)\\sS(\\d{1,2})E(\\d{1,})([eE]|-[eE])(\\d{1,})", " S" + tvSeason + "E$2-$3");
-			formattedName = formattedName.replaceAll("\\sS(\\d{1,2})E(\\d{1,})([eE]|-[eE])(\\d{1,})", " S" + tvSeason + "E$2-$3");
+			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION + "\\s", " S" + tvSeason + "E$2-$3 - ");
+			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION, " S" + tvSeason + "E$2-$3");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
 			formattedName = result.formattedName;
 			if (result.edition != null) {
@@ -990,6 +1015,27 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\s-\\s(\\d{3})\\s-\\s", " S" + tvSeason + "E" + tvEpisodeNumber + " - ");
 			formattedName = formattedName.replaceAll("(?i)\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
 			formattedName = formattedName.replaceAll("\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(MIXED_EPISODE_CONVENTION_MATCH)) {
+			// This matches anoter mixed convention, like:
+			// e.g. Universal Media Server - Ep. 02 - Mysterious Wordplay.mp4
+			matcher = MIXED_EPISODE_CONVENTION_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "01";
+				tvEpisodeNumber = matcher.group(1);
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+			formattedName = formattedName.replaceAll(MIXED_EPISODE_CONVENTION, " S" + tvSeason + "E" + tvEpisodeNumber + " - ");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d{2}\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
@@ -1137,7 +1183,7 @@ public class FileUtil {
 						}
 					}
 				} else {
-					showNameIndex = indexOf(Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
+					showNameIndex = indexOf(Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
