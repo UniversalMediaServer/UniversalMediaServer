@@ -3143,10 +3143,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nonnull
 	public List<Path> getSharedFolders() {
 		synchronized (sharedFoldersLock) {
-			if (isSharedFoldersEmpty()) {
-				setSharedFoldersToDefault();
-			}
-
 			readSharedFolders();
 			return new ArrayList<>(sharedFolders);
 		}
@@ -3158,10 +3154,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nonnull
 	public List<Path> getMonitoredFolders() {
 		synchronized (sharedFoldersLock) {
-			if (isSharedFoldersEmpty()) {
-				setSharedFoldersToDefault();
-			}
-
 			if (!monitoredFoldersRead) {
 				monitoredFolders = getFolders(KEY_FOLDERS_MONITORED);
 				monitoredFoldersRead = true;
@@ -4917,17 +4909,16 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * @return whether youtube-dl has been enabled once.
+	 * @return whether UMS has run once.
 	 */
-	public boolean wasYoutubeDlEnabledOnce() {
+	public boolean hasRunOnce() {
 		return getBoolean(WAS_YOUTUBE_DL_ENABLED_ONCE, false);
 	}
 
 	/**
-	 * Records whether youtube-dl has been enabled on program
-	 * initialization one time, to prevent it enabling again.
+	 * Records that UMS has run once.
 	 */
-	public void setYoutubeDlEnabledOnce() {
+	public void setHasRunOnce() {
 		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
 	}
 
