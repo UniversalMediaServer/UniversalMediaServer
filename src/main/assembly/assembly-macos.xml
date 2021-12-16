@@ -25,6 +25,7 @@
 			<fileMode>0755</fileMode>
 			<includes>
 				<include>builds.txt</include>
+				<include>ffmpeg</include>
 				<include>flac</include>
 				<include>mencoder</include>
 				<include>mplayer</include>
@@ -41,7 +42,6 @@
 			<fileMode>0755</fileMode>
 			<includes>
 				<include>dcraw</include>
-				<include>ffmpeg</include>
 				<include>libmediainfo.dylib</include>
 				<include>youtube-dl</include>
 			</includes>
