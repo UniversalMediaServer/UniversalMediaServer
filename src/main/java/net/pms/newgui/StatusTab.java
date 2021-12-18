@@ -510,19 +510,17 @@ public class StatusTab {
 		}
 		return bi;
 	}
-	
+
 	public static BufferedImage getRendererIcon(String icon, String overlays) {
 		BufferedImage bi = getRendererIcon(icon);
 		if (bi != null && StringUtils.isNotBlank(overlays)) {
 			Graphics g = bi.getGraphics();
 			g.setColor(Color.DARK_GRAY);
-			for (String overlay : overlays.split("[\u007c]")){
-				if (overlay.contains("@"))
-				{
+			for (String overlay : overlays.split("[\u007c]")) {
+				if (overlay.contains("@")) {
 					String text = overlay.substring(0, overlay.indexOf("@"));
 					String[] values = overlay.substring(overlay.indexOf("@") + 1).split(",");
-					if (values.length == 3)
-					{
+					if (values.length == 3) {
 						int x = Integer.parseInt(values[0]);
 						int y = Integer.parseInt(values[1]);
 						int size = Integer.parseInt(values[2]);
