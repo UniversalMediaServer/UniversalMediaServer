@@ -817,7 +817,6 @@ public class FFMpegVideo extends Player {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		RendererConfiguration renderer = params.getMediaRenderer();
-		WebRender webRenderer = (WebRender) renderer;
 
 		/*
 		 * Check if the video track and the container report different aspect ratios
@@ -1193,9 +1192,14 @@ public class FFMpegVideo extends Player {
 			// cmdList.add("pipe:");
 
 			String pipeFileExtension = "";
-			if (webRenderer.getVideoMimeType() == HTTPResource.HLS_TYPEMIME) {
-				pipeFileExtension = "%%0d.ts";
+
+			if (cmdList.contains("hls")) {
+				WebRender webRenderer = (WebRender) renderer;
+				if (webRenderer.getVideoMimeType() == HTTPResource.HLS_TYPEMIME) {
+					pipeFileExtension = "%%0d.ts";
+				}
 			}
+
 			// basename of the named pipe:
 			String fifoName = String.format(
 				"ffmpegvideo_%d_%d" + pipeFileExtension,
