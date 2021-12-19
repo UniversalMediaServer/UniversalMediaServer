@@ -1,4 +1,32 @@
-10.13.0 - 2021-11-
+10.14.0 - 2021-12-19
+
+	General:
+		Added the Contributor Covenant Code of Conduct to reflect and inspire our ideals and practices (thanks, Shubham Rauthan!)
+		Added "Browse by album" feature to UPnP person/artist searches (thanks, ik666!)
+		Added a debug configuration for VS Code (thanks, A2va!)
+		Allow users to have no shared content (both remote or local), instead of setting defaults (thanks, Andy Griffiths!)
+		Fixed tsMuxeR not working on macOS, again (thanks, DetectiveKenobi!)
+	Renderers:
+		Fixed support for H.264 level 5.x video on Panasonic VT60 TVs
+	Translation updates via Crowdin:
+		Bulgarian (96%) (thanks, Radoslav Ignatov!)
+		Hungarian (96%) (thanks, Poliziotto!)
+		Persian (34%) (thanks, Aydin Noori!)
+	Dependencies:
+		Bump checkstyle from 9.1 to 9.2
+		Bump doxia-module-docbook-simple from 1.10 to 1.11.1
+		Bump FFmpeg from 2021-07-22 to 2021-12-16
+		Bump JNA from 5.9.0 to 5.10.0
+		Bump junit5 from 5.8.1 to 5.8.2
+		Bump logback from 1.2.7 to 1.2.8
+		Bump oshi-core from 5.8.5 to 5.8.6
+		Bump spotbugs-maven-plugin from 4.4.2.2 to 4.5.0.0
+		Bump thumbnailator from 0.4.14 to 0.4.15
+		Bump tsMuxeR from 2021-09-02-01-59-46 to 2021-11-14-02-03-07
+		Bump twelvemonkeys-imageio-version from 3.7.0 to 3.8.0
+		Bump youtube-dl from 2021.06.06 to 2021.12.17
+
+10.13.0 - 2021-11-16
 
 	General:
 		Improved matching and prettifying of TV episodes, especially anime and TV episodes

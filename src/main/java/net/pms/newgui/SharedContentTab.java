@@ -128,60 +128,56 @@ public class SharedContentTab {
 	public static long lastWebContentUpdate = 1L;
 
 	private void updateWebContentModel() {
-		if (webContentTableModel.getRowCount() == 0) {
-			configuration.writeWebConfigurationFile();
-		} else {
-			List<String> entries = new ArrayList<>();
+		List<String> entries = new ArrayList<>();
 
-			for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
-				String readableType = (String) webContentTableModel.getValueAt(i, 1);
-				String folders = (String) webContentTableModel.getValueAt(i, 2);
-				String configType;
+		for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
+			String readableType = (String) webContentTableModel.getValueAt(i, 1);
+			String folders = (String) webContentTableModel.getValueAt(i, 2);
+			String configType;
 
-				if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
-					configType = "imagefeed";
-				} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
-					configType = "videofeed";
-				} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
-					configType = "audiofeed";
-				} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
-					configType = "audiostream";
-				} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
-					configType = "videostream";
-				} else {
-					// Skip the whole row if another value was used
-					continue;
-				}
-
-				String source = (String) webContentTableModel.getValueAt(i, 3);
-				String resourceName = (String) webContentTableModel.getValueAt(i, 0);
-
-				StringBuilder entryToAdd = new StringBuilder();
-				entryToAdd.append(configType).append(".").append(folders).append("=");
-
-				switch (configType) {
-					case "imagefeed":
-					case "videofeed":
-					case "audiofeed":
-						entryToAdd.append(source);
-
-						if (resourceName != null) {
-							entryToAdd.append(",,,").append(resourceName);
-						}
-						break;
-					default:
-						if (resourceName != null) {
-							entryToAdd.append(resourceName).append(",").append(source);
-						}
-						break;
-				}
-
-				entries.add(entryToAdd.toString());
+			if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
+				configType = "imagefeed";
+			} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
+				configType = "videofeed";
+			} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
+				configType = "audiofeed";
+			} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
+				configType = "audiostream";
+			} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
+				configType = "videostream";
+			} else {
+				// Skip the whole row if another value was used
+				continue;
 			}
 
-			configuration.writeWebConfigurationFile(entries);
-			lastWebContentUpdate = System.currentTimeMillis();
+			String source = (String) webContentTableModel.getValueAt(i, 3);
+			String resourceName = (String) webContentTableModel.getValueAt(i, 0);
+
+			StringBuilder entryToAdd = new StringBuilder();
+			entryToAdd.append(configType).append(".").append(folders).append("=");
+
+			switch (configType) {
+				case "imagefeed":
+				case "videofeed":
+				case "audiofeed":
+					entryToAdd.append(source);
+
+					if (resourceName != null) {
+						entryToAdd.append(",,,").append(resourceName);
+					}
+					break;
+				default:
+					if (resourceName != null) {
+						entryToAdd.append(resourceName).append(",").append(source);
+					}
+					break;
+			}
+
+			entries.add(entryToAdd.toString());
 		}
+
+		configuration.writeWebConfigurationFile(entries);
+		lastWebContentUpdate = System.currentTimeMillis();
 	}
 
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
