@@ -49,6 +49,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import net.pms.database.TableVideoMetadataActors;
 import net.pms.database.TableVideoMetadataAwards;
 import net.pms.database.TableVideoMetadataCountries;
@@ -68,6 +69,7 @@ import static net.pms.database.Tables.sqlQuote;
 import net.pms.newgui.SharedContentTab;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
+import org.h2.tools.Upgrade;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -85,10 +87,12 @@ public class DLNAMediaDatabase implements Runnable {
 	private String dbDir;
 	private String dbName;
 	public static final String NONAME = "###";
+	private static final String DB_USER = "sa";
+	private static final String DB_PASSWORD = "";
 	private Thread scanner;
 	private final JdbcConnectionPool cp;
 	private int dbCount;
-
+	
 	public static final String TABLE_NAME = "FILES";
 
 	/**
@@ -166,8 +170,8 @@ public class DLNAMediaDatabase implements Runnable {
 
 		JdbcDataSource ds = new JdbcDataSource();
 		ds.setURL(url);
-		ds.setUser("sa");
-		ds.setPassword("");
+		ds.setUser(DB_USER);
+		ds.setPassword(DB_PASSWORD);
 		cp = JdbcConnectionPool.create(ds);
 	}
 
@@ -220,15 +224,16 @@ public class DLNAMediaDatabase implements Runnable {
 		dbCount = -1;
 		int currentVersion = -1;
 		Connection conn = null;
-		ResultSet rs = null;
-		Statement stmt = null;
 
 		try {
 			conn = getConnection();
 		} catch (SQLException se) {
 			final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
 			final File dbDirectory = new File(dbDir);
-			if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
+			if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
+				LOGGER.info("The database need a migration to h2 format 2");
+				migrateDatabaseVersion2();
+			} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 				FileUtils.deleteQuietly(dbDirectory);
 				if (!dbDirectory.exists()) {
 					LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
@@ -290,7 +295,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 			try (
 				Statement stmt2 = conn2.createStatement();
-				ResultSet rs2 = stmt2.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = 'VERSION'")
+				ResultSet rs2 = stmt2.executeQuery("SELECT `VALUE` FROM METADATA WHERE `KEY` = 'VERSION'")
 			) {
 				if (rs2.next()) {
 					currentVersion = Integer.parseInt(rs2.getString(1));
@@ -332,7 +337,7 @@ public class DLNAMediaDatabase implements Runnable {
 										.append("FILES ")
 									.append("SET ")
 										.append("IMDBID = NULL, ")
-										.append("YEAR = NULL, ")
+										.append("`YEAR` = NULL, ")
 										.append("MOVIEORSHOWNAME = NULL, ")
 										.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
 										.append("TVSEASON = NULL, ")
@@ -346,7 +351,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 								statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on FILES (FILENAME, MODIFIED, VERSION, IMDBID)");
 
-								statement.execute("CREATE UNIQUE INDEX IDX_KEY ON METADATA(KEY)");
+								statement.execute("CREATE UNIQUE INDEX IDX_KEY ON METADATA(`KEY`)");
 							}
 							version++;
 							LOGGER.trace("Updated {} table from version {} to {}", TABLE_NAME, currentVersion, version);
@@ -376,13 +381,13 @@ public class DLNAMediaDatabase implements Runnable {
 			try {
 				conn = getConnection();
 				LOGGER.trace("DROPPING TABLE FILES");
-				executeUpdate(conn, "DROP TABLE FILES");
+				executeUpdate(conn, "DROP TABLE IF EXISTS FILES");
 				LOGGER.trace("DROPPING TABLE METADATA");
-				executeUpdate(conn, "DROP TABLE METADATA");
+				executeUpdate(conn, "DROP TABLE IF EXISTS METADATA");
 				LOGGER.trace("DROPPING TABLE REGEXP_RULES");
-				executeUpdate(conn, "DROP TABLE REGEXP_RULES");
+				executeUpdate(conn, "DROP TABLE IF EXISTS REGEXP_RULES");
 				LOGGER.trace("DROPPING TABLE SUBTRACKS");
-				executeUpdate(conn, "DROP TABLE SUBTRACKS");
+				executeUpdate(conn, "DROP TABLE IF EXISTS SUBTRACKS");
 			} catch (SQLException se) {
 				if (se.getErrorCode() != 42102) { // Don't log exception "Table "FILES" not found" which will be corrected in following step
 					LOGGER.error("SQL error while dropping tables: {}", se.getMessage());
@@ -392,7 +397,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
-				sb.append("  ID                      INT AUTO_INCREMENT");
+				sb.append("  ID                      INT AUTO_INCREMENT PRIMARY KEY");
 				sb.append(", THUMBID                 BIGINT");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
@@ -424,7 +429,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", SCANTYPE                OTHER");
 				sb.append(", SCANORDER               OTHER");
 				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
-				sb.append(", YEAR                    VARCHAR2(").append(SIZE_YEAR).append(')');
+				sb.append(", `YEAR`                  VARCHAR2(").append(SIZE_YEAR).append(')');
 				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
@@ -438,13 +443,13 @@ public class DLNAMediaDatabase implements Runnable {
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
-				sb.append("  ID       INT              NOT NULL");
-				sb.append(", FILEID   BIGINT           NOT NULL");
-				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(')');
-				sb.append(", TITLE    VARCHAR2(").append(SIZE_MAX).append(')');
-				sb.append(", TYPE     INT");
-				sb.append(", EXTERNALFILE VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL default ''");
-				sb.append(", CHARSET VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append("  ID             INT              NOT NULL");
+				sb.append(", FILEID         BIGINT           NOT NULL");
+				sb.append(", LANG           VARCHAR2(").append(SIZE_LANG).append(')');
+				sb.append(", TITLE          VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", TYPE           INT");
+				sb.append(", EXTERNALFILE   VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL default ''");
+				sb.append(", CHARSET        VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", constraint PKSUB primary key (FILEID, ID, EXTERNALFILE)");
 				sb.append(", FOREIGN KEY(FILEID)");
 				sb.append("    REFERENCES FILES(ID)");
@@ -454,8 +459,8 @@ public class DLNAMediaDatabase implements Runnable {
 				executeUpdate(conn, sb.toString());
 
 				LOGGER.trace("Creating table METADATA");
-				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
-				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_KEY ON METADATA(KEY)");
+				executeUpdate(conn, "CREATE TABLE METADATA (`KEY` VARCHAR2(255) NOT NULL, `VALUE` VARCHAR2(255) NOT NULL)");
+				executeUpdate(conn, "CREATE UNIQUE INDEX IDX_KEY ON METADATA(`KEY`)");
 				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + LATEST_VERSION + "')");
 
 				LOGGER.trace("Creating index IDX_FILE");
@@ -483,7 +488,7 @@ public class DLNAMediaDatabase implements Runnable {
 				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_NAME_SEASON on FILES (TYPE, ISTVEPISODE, MOVIEORSHOWNAME, TVSEASON)");
 
 				LOGGER.trace("Creating index TYPE_ISTV_YEAR_STEREOSCOPY");
-				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_YEAR_STEREOSCOPY on FILES (TYPE, ISTVEPISODE, YEAR, STEREOSCOPY)");
+				executeUpdate(conn, "CREATE INDEX TYPE_ISTV_YEAR_STEREOSCOPY on FILES (TYPE, ISTVEPISODE, `YEAR`, STEREOSCOPY)");
 
 				LOGGER.trace("Creating index TYPE_WIDTH_HEIGHT");
 				executeUpdate(conn, "CREATE INDEX TYPE_WIDTH_HEIGHT on FILES (TYPE, WIDTH, HEIGHT)");
@@ -520,6 +525,36 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	/**
+	 * Migrate the h2 database from version 1.4.197 to version 2.
+	 * 
+	 */
+	private void migrateDatabaseVersion2() {
+		String h2_version = org.h2.engine.Constants.VERSION;
+		LOGGER.info("Migrating database to v{}", h2_version);
+		if (!net.pms.PMS.isHeadless()) {
+			try {
+				PMS.get().getFrame().setStatusLine("Migrating database to v" + h2_version);
+			} catch (NullPointerException e) {
+				LOGGER.debug("Failed to set status, probably because GUI is not initialized yet. Error was {}", e);
+			}
+		}
+		String oldUrl = Constants.START_URL + dbDir + File.separator + dbName;
+		Properties prprts = new Properties();
+		prprts.setProperty("user", DB_USER);
+		prprts.setProperty("password", DB_PASSWORD);
+		try {
+			Upgrade.upgrade(oldUrl, prprts, 197);
+			LOGGER.info("The database successfully migrated to version {}", h2_version);
+		} catch (Exception e) {
+			LOGGER.error(
+				"Database migration failed: {}",
+				e.getMessage()
+			);
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
 	 * Gets a value from the METADATA table
 	 */
 	public String getMetadataValue(String key) {
@@ -529,7 +564,7 @@ public class DLNAMediaDatabase implements Runnable {
 			TABLE_LOCK.readLock().lock();
 			try (
 				Statement stmt = conn.createStatement();
-				ResultSet rs = stmt.executeQuery("SELECT VALUE FROM METADATA WHERE KEY = '" + key + "'")
+				ResultSet rs = stmt.executeQuery("SELECT `VALUE` FROM METADATA WHERE `KEY` = '" + key + "'")
 			) {
 				if (rs.next()) {
 					value = rs.getString(1);
@@ -555,7 +590,7 @@ public class DLNAMediaDatabase implements Runnable {
 		String query;
 
 		try (Connection connection = getConnection()) {
-			query = "SELECT * FROM METADATA WHERE KEY = " + sqlQuote(key) + " LIMIT 1";
+			query = "SELECT * FROM METADATA WHERE `KEY` = " + sqlQuote(key) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", query);
 			}
@@ -983,14 +1018,14 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 
 		String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
-			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK, DISC";
+			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, `YEAR`, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK, DISC";
 
 		TABLE_LOCK.writeLock().lock();
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
 					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
-					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, YEAR, TRACK, DISC, " +
+					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, `YEAR`, TRACK, DISC, " +
 					"DELAY, MUXINGMODE, BITRATE " +
 				"FROM AUDIOTRACKS " +
 				"WHERE " +
@@ -1118,7 +1153,7 @@ public class DLNAMediaDatabase implements Runnable {
 					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
-					"IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
+					"IMDBID, `YEAR`, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ? " +
@@ -1197,7 +1232,7 @@ public class DLNAMediaDatabase implements Runnable {
 				String columns = "FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, " +
 					"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, YEAR, MOVIEORSHOWNAME, " +
+					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, `YEAR`, MOVIEORSHOWNAME, " +
 					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION";
 
 				TABLE_LOCK.writeLock().lock();
@@ -1380,7 +1415,7 @@ public class DLNAMediaDatabase implements Runnable {
 			TABLE_LOCK.writeLock().lock();
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"ID, IMDBID, YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
+					"ID, IMDBID, `YEAR`, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
 				"FROM FILES " +
 				"WHERE " +
 					"FILENAME = ? AND MODIFIED = ? " +
