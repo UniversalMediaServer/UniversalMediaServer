@@ -92,7 +92,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private Thread scanner;
 	private final JdbcConnectionPool cp;
 	private int dbCount;
-	
+
 	public static final String TABLE_NAME = "FILES";
 
 	/**
@@ -526,14 +526,14 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * Migrate the h2 database from version 1.4.197 to version 2.
-	 * 
+	 *
 	 */
 	private void migrateDatabaseVersion2() {
-		String h2_version = org.h2.engine.Constants.VERSION;
-		LOGGER.info("Migrating database to v{}", h2_version);
+		String h2Version = org.h2.engine.Constants.VERSION;
+		LOGGER.info("Migrating database to v{}", h2Version);
 		if (!net.pms.PMS.isHeadless()) {
 			try {
-				PMS.get().getFrame().setStatusLine("Migrating database to v" + h2_version);
+				PMS.get().getFrame().setStatusLine("Migrating database to v" + h2Version);
 			} catch (NullPointerException e) {
 				LOGGER.debug("Failed to set status, probably because GUI is not initialized yet. Error was {}", e);
 			}
@@ -544,7 +544,7 @@ public class DLNAMediaDatabase implements Runnable {
 		prprts.setProperty("password", DB_PASSWORD);
 		try {
 			Upgrade.upgrade(oldUrl, prprts, 197);
-			LOGGER.info("The database successfully migrated to version {}", h2_version);
+			LOGGER.info("The database successfully migrated to version {}", h2Version);
 		} catch (Exception e) {
 			LOGGER.error(
 				"Database migration failed: {}",
