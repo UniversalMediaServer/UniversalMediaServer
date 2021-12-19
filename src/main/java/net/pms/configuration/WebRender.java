@@ -456,8 +456,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("-ac");
 		cmdList.add("2");
 		cmdList.add("-copyts");
-		cmdList.add("-c:s");
-		cmdList.add("mov_text");
+		// cmdList.add("-c:s");
+		// cmdList.add("mov_text");
 		cmdList.add("-flags");
 		cmdList.add("cgop");
 		// cmdList.add("-global_header");
@@ -467,14 +467,25 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("hls");
 		// cmdList.add("-hls_playlist_type");
 		// cmdList.add("vod");
+		// cmdList.add("-hls_playlist_type");
+		// cmdList.add("event");
+
 		cmdList.add("-hls_flags");
-		cmdList.add("independent_segments");
+		// cmdList.add("append_list");
+		// cmdList.add("independent_segments");
+		cmdList.add("omit_endlist");
+		// cmdList.add("single_file"); //todo try this
+
 		cmdList.add("-hls_base_url");
 		cmdList.add("/ts/");
 
 		// Include all video segments in the playlist
 		cmdList.add("-hls_list_size");
 		cmdList.add("0");
+
+		// Include all video segments in the playlist
+		cmdList.add("-hls_time");
+		cmdList.add("10");
 
 		cmdList.add("-hls_allow_cache");
 		cmdList.add("1");

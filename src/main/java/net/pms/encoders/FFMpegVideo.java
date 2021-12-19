@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -1188,21 +1189,11 @@ public class FFMpegVideo extends Player {
 		// Set up the process
 		PipeProcess pipe = null;
 
-		if (!dtsRemux) {
-			// cmdList.add("pipe:");
-
-			String pipeFileExtension = "";
-
-			if (cmdList.contains("hls")) {
-				WebRender webRenderer = (WebRender) renderer;
-				if (webRenderer.getVideoMimeType() == HTTPResource.HLS_TYPEMIME) {
-					pipeFileExtension = "%%0d.ts";
-				}
-			}
-
+		boolean isHls = cmdList.contains("hls");
+		if (!isHls && !dtsRemux) {
 			// basename of the named pipe:
 			String fifoName = String.format(
-				"ffmpegvideo_%d_%d" + pipeFileExtension,
+				"ffmpegvideo_%d_%d",
 				Thread.currentThread().getId(),
 				System.currentTimeMillis()
 			);
@@ -1224,7 +1215,24 @@ public class FFMpegVideo extends Player {
 
 		setOutputParsing(dlna, pw, false);
 
-		if (!dtsRemux) {
+		if (isHls) {
+			// try {
+			// 	ListProcessWrapperResult output = SimpleProcessWrapper.runProcessListOutput(
+			// 		30000,
+			// 		1000,
+			// 		configuration.getFFmpegPaths().getDefaultPath().toString(),
+			// 		String.join(" ", cmdArray)
+			// 	);
+			// 	if (output.getError() != null) {
+			// 		LOGGER.debug("\"{} {}\" failed with error: {}", configuration.getFFmpegPaths().getDefaultPath().toString(), cmdList, output.getError().getMessage());
+			// 	}
+			// 	if (output.getExitCode() == 0) {
+			// 		LOGGER.debug("FFmpeg HLS logging: {}", output.getOutput().get(0));
+			// 	}
+			// } catch (InterruptedException e) {
+			// 	return null;
+			// }
+		} else if (!dtsRemux) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
 			/**
