@@ -520,17 +520,25 @@ public class PMS {
 			configuration.setShowInfoAboutVideoAutomaticSetting(false);
 		}
 
-		/*
-		 * Enable youtube-dl once, to ensure that if it is
-		 * disabled, that was done by the user.
-		 */
-		if (!configuration.wasYoutubeDlEnabledOnce()) {
+		// Actions that happen only the first time UMS runs
+		if (!configuration.hasRunOnce()) {
+			/*
+			 * Enable youtube-dl once, to ensure that if it is
+			 * disabled, that was done by the user.
+			 */
 			if (!PlayerFactory.isPlayerActive(YoutubeDl.ID)) {
 				configuration.setEngineEnabled(YoutubeDl.ID, true);
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
 
-			configuration.setYoutubeDlEnabledOnce();
+			// Set default local shared content
+			configuration.setSharedFoldersToDefault();
+
+			// Set default remote shared content
+			configuration.writeWebConfigurationFile();
+
+			// Ensure this only happens once
+			configuration.setHasRunOnce();
 		}
 
 		if (!isHeadless()) {
