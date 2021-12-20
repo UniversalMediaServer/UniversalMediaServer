@@ -33,6 +33,9 @@ jobs:
 
   windows-latest:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        java-version: [ 8 ]
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java-version }}
@@ -56,6 +59,10 @@ jobs:
 
   linux-bionic:
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        java-version: [ 8 ]
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java-version }}
@@ -85,6 +92,10 @@ jobs:
 
   linux-focal:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        java-version: [ 8 ]
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java-version }}
