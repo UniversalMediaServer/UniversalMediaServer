@@ -9,13 +9,14 @@ jobs:
       matrix:
         # test against two different xcode version on MacOS
         xcode: [ 9.4.1, latest ]
+        java-version: [ 8 ]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: 8
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -34,11 +35,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: 8
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -57,11 +58,11 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: '8'
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -86,11 +87,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: '8'
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
