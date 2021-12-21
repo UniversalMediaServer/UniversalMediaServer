@@ -47,7 +47,7 @@ public class OutputTextConsumer extends OutputConsumer {
 			if (Platform.isWindows() && WinUtils.getOEMCharset() != null) {
 				charset = WinUtils.getOEMCharset();
 			} else {
-				charset = StandardCharsets.UTF_16;
+				charset = StandardCharsets.UTF_8;
 			}
 		}
 	}
