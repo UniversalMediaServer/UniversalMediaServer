@@ -21,7 +21,6 @@ package net.pms.io;
 import com.sun.jna.Platform;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public class OutputTextConsumer extends OutputConsumer {
 
 	@Override
 	public void run() {
-		try (LineIterator it = IOUtils.lineIterator(new InputStreamReader(inputStream, charset))) {
+		try (LineIterator it = IOUtils.lineIterator(inputStream, charset)) {
 			while (it.hasNext()) {
 				String line = it.nextLine();
 
