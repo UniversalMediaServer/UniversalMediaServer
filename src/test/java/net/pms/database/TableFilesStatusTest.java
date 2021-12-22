@@ -99,6 +99,7 @@ public class TableFilesStatusTest {
 	public void testIsFullyPlayed() throws Exception {
 		TableFilesStatus.setFullyPlayed("FileThatHasBeenPlayed", true);
 		TableFilesStatus.setFullyPlayed("FileThatHasBeenMarkedNotPlayed", false);
+		Thread.sleep(4000);
 		assertThat(TableFilesStatus.isFullyPlayed("FileThatDoesntExist")).isNull();
 		assertThat(TableFilesStatus.isFullyPlayed("FileThatHasBeenPlayed")).isTrue();
 		assertThat(TableFilesStatus.isFullyPlayed("FileThatHasBeenMarkedNotPlayed")).isFalse();
