@@ -112,7 +112,7 @@ public final class TableTVSeries extends Tables {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
 						} else {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
-								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, YEAR, VERSION" +
+								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, `YEAR`, VERSION" +
 							") VALUES (" +
 								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
 							")";
@@ -597,7 +597,7 @@ public final class TableTVSeries extends Tables {
 					"TOTALSEASONS    DOUBLE, " +
 					"VERSION    VARCHAR2(1024), " +
 					"VOTES    VARCHAR2(1024), " +
-					"YEAR    VARCHAR2(1024) " +
+					"`YEAR`    VARCHAR2(1024) " +
 				")"
 			);
 			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
