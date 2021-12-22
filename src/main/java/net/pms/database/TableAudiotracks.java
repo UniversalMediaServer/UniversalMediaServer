@@ -134,7 +134,7 @@ public class TableAudiotracks extends Tables {
 			sb.append(", ALBUMARTIST       VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", SONGNAME          VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
-			sb.append(", YEAR              INT");
+			sb.append(", `YEAR`              INT");
 			sb.append(", TRACK             INT");
 			sb.append(", DISC              INT");
 			sb.append(", DELAY             INT");
@@ -161,7 +161,7 @@ public class TableAudiotracks extends Tables {
 			executeUpdate(connection, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
 
 			LOGGER.trace("Creating index IDXYEAR");
-			executeUpdate(connection, "CREATE INDEX IDXYEAR on AUDIOTRACKS (YEAR asc);");
+			executeUpdate(connection, "CREATE INDEX IDXYEAR on AUDIOTRACKS (`YEAR` asc);");
 		}
 	}
 
