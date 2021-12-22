@@ -122,12 +122,15 @@ public final class TableFilesStatus extends Tables {
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 						result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
 						result.insertRow();
+						System.out.println("inserted " + fullPathToFile);
 					}
 				} finally {
 					connection.commit();
+					System.out.println("committed " + fullPathToFile);
 				}
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
+				System.out.println("unlocked after " + fullPathToFile);
 			}
 		} catch (SQLException e) {
 			System.out.println("error with " + fullPathToFile);
