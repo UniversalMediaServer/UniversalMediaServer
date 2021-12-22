@@ -9,13 +9,14 @@ jobs:
       matrix:
         # test against two different xcode version on MacOS
         xcode: [ 9.4.1, latest ]
+        java-version: [ 8 ]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: 8
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -32,13 +33,16 @@ jobs:
 
   windows-latest:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        java-version: [ 8 ]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: 8
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -55,13 +59,17 @@ jobs:
 
   linux-bionic:
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        java-version: [ 8 ]
+
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: '8'
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
@@ -84,13 +92,17 @@ jobs:
 
   linux-focal:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        java-version: [ 8 ]
+
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: '8'
+          distribution: 'zulu'
+          java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
         with:
