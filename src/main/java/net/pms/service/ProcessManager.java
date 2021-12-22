@@ -328,6 +328,12 @@ public class ProcessManager {
 			return 0;
 		}
 		try {
+			Method method = Process.class.getMethod("pid");
+			return (int)(long)method.invoke(process);
+		} catch (Exception e) {
+		}
+		
+		try {
 			Field field;
 			if (Platform.isWindows()) {
 				field = process.getClass().getDeclaredField("handle");
