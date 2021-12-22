@@ -149,7 +149,7 @@ public final class TableMusicBrainzReleases extends Tables {
 			if (added) {
 				where.append(and);
 			}
-			where.append("`YEAR`").append(sqlNullIfBlank(tagInfo.year, true, false));
+			where.append("YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
 		}
 
 		return where.toString();
@@ -356,7 +356,7 @@ public final class TableMusicBrainzReleases extends Tables {
 							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
 						);
 						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` VARCHAR(20)"
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN YEAR VARCHAR(20)"
 						);
 						break;
 					default:
@@ -386,7 +386,7 @@ public final class TableMusicBrainzReleases extends Tables {
 					"ARTIST VARCHAR(1000), " +
 					"ALBUM VARCHAR(1000), " +
 					"TITLE VARCHAR(1000), " +
-					"`YEAR` VARCHAR(20), " +
+					"YEAR VARCHAR(20), " +
 					"ARTIST_ID VARCHAR(36), " +
 					"TRACK_ID VARCHAR(36)" +
 				")");
