@@ -80,6 +80,7 @@ public final class TableFilesStatus extends Tables {
 
 		try (Connection connection = DATABASE.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+			System.out.println("searching for " + fullPathToFile);
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
@@ -90,10 +91,12 @@ public final class TableFilesStatus extends Tables {
 				try (ResultSet result = statement.executeQuery(query)) {
 					if (result.next()) {
 						if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
+			System.out.println("found and already played " + fullPathToFile);
 							if (trace) {
 								LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
 							}
 						} else {
+			System.out.println("found and will set " + fullPathToFile);
 							if (trace) {
 								LOGGER.trace(
 									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
@@ -106,6 +109,7 @@ public final class TableFilesStatus extends Tables {
 							result.updateRow();
 						}
 					} else {
+			System.out.println("not found, will set " + fullPathToFile);
 						if (trace) {
 							LOGGER.trace(
 								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
@@ -126,6 +130,8 @@ public final class TableFilesStatus extends Tables {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
+			System.out.println("error with " + fullPathToFile);
+			System.out.println(":: " + e);
 			LOGGER.error(
 				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
 				isFullyPlayed,
