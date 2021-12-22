@@ -302,6 +302,12 @@ public class RendererConfigurationTest {
 			"modelName=XBR-65A1E"
 		);
 
+		testHeaders("Sony X Series TV", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-50X80J\"; mv=\"3.0\";");
+		testUPNPDetails(
+			"Sony X Series TV",
+			"{friendlyName=Security TV, address=192.168.50.183, udn=uuid:96c90ee4-6768-460a-ad31-090018db9149, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}"
+		);
+
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
 
 		// Note: This isn't the full user-agent, just a snippet to find it
