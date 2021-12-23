@@ -193,8 +193,8 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<!-- Versions above 1.4.197 should only be used when https://github.com/UniversalMediaServer/UniversalMediaServer/issues/2030 is done -->
-			<version>1.4.197</version>
+			<!-- Versions above 2.0.204 should only be used when https://github.com/UniversalMediaServer/UniversalMediaServer/issues/2030 is done -->
+			<version>2.0.204</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
