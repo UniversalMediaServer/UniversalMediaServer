@@ -286,24 +286,31 @@ public final class TableFilesStatus extends Tables {
 		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
+			System.out.println("2 searching: " + query);
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
 
 			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						result = resultSet.getBoolean("ISFULLYPLAYED");
-					}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query)
+			) {
+				System.out.println("2 queried");
+				if (resultSet.next()) {
+					System.out.println("2 got result: " + resultSet.getBoolean("ISFULLYPLAYED"));
+					result = resultSet.getBoolean("ISFULLYPLAYED");
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
+				System.out.println("2 unlocked");
 			}
 		} catch (SQLException e) {
+			System.out.println("2 db error: " + e);
 			LOGGER.error("Database error while looking up file status in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
+		System.out.println("2 returning");
 
 		return result;
 	}
