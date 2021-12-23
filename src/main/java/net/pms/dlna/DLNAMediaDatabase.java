@@ -152,7 +152,7 @@ public class DLNAMediaDatabase implements Runnable {
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
 		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
 		LOGGER.info("Using database engine version {}", Constants.VERSION);
-		
+
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");

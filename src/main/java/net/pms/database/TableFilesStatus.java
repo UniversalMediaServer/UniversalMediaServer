@@ -478,13 +478,11 @@ public final class TableFilesStatus extends Tables {
 						if (rs.next()) {
 							sql = "SELECT CONSTRAINT_NAME " +
 								"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'"
-							;
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
 						} else {
 							sql = "SELECT CONSTRAINT_NAME " +
 								"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'"
-							;
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
 						}
 
 						PreparedStatement stmt = connection.prepareStatement(sql);
