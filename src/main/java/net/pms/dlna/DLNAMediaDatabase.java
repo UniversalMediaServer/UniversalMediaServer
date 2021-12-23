@@ -151,7 +151,8 @@ public class DLNAMediaDatabase implements Runnable {
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
 		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
-
+		LOGGER.info("Using database engine version {}", Constants.VERSION);
+		
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");
@@ -284,27 +285,29 @@ public class DLNAMediaDatabase implements Runnable {
 
 		TABLE_LOCK.readLock().lock();
 		try (Connection conn2 = getConnection()) {
-			try (
-				Statement stmt2 = conn2.createStatement();
-				ResultSet rs2 = stmt2.executeQuery("SELECT count(*) FROM FILES")
-			) {
-				if (rs2.next()) {
-					dbCount = rs2.getInt(1);
+			//only if table FILES exists
+			ResultSet rsFiles = conn2.getMetaData().getTables(null, null, "FILES", null);
+			if (rsFiles.next()) {
+				try (
+					Statement stmt2 = conn2.createStatement();
+					ResultSet rs2 = stmt2.executeQuery("SELECT count(*) FROM FILES")
+				) {
+					if (rs2.next()) {
+						dbCount = rs2.getInt(1);
+					}
 				}
-			}
 
-			try (
-				Statement stmt2 = conn2.createStatement();
-				ResultSet rs2 = stmt2.executeQuery("SELECT `VALUE` FROM METADATA WHERE `KEY` = 'VERSION'")
-			) {
-				if (rs2.next()) {
-					currentVersion = Integer.parseInt(rs2.getString(1));
+				try (
+					Statement stmt2 = conn2.createStatement();
+					ResultSet rs2 = stmt2.executeQuery("SELECT `VALUE` FROM METADATA WHERE `KEY` = 'VERSION'")
+				) {
+					if (rs2.next()) {
+						currentVersion = Integer.parseInt(rs2.getString(1));
+					}
 				}
 			}
 		} catch (SQLException se) {
-			if (se.getErrorCode() != 42102) { // Don't log exception "Table "FILES" not found" which will be corrected in following step
-				LOGGER.error(null, se);
-			}
+			LOGGER.error(null, se);
 		} finally {
 			TABLE_LOCK.readLock().unlock();
 		}
@@ -529,11 +532,10 @@ public class DLNAMediaDatabase implements Runnable {
 	 *
 	 */
 	private void migrateDatabaseVersion2() {
-		String h2Version = org.h2.engine.Constants.VERSION;
-		LOGGER.info("Migrating database to v{}", h2Version);
+		LOGGER.info("Migrating database to v{}", Constants.VERSION);
 		if (!net.pms.PMS.isHeadless()) {
 			try {
-				PMS.get().getFrame().setStatusLine("Migrating database to v" + h2Version);
+				PMS.get().getFrame().setStatusLine("Migrating database to v" + Constants.VERSION);
 			} catch (NullPointerException e) {
 				LOGGER.debug("Failed to set status, probably because GUI is not initialized yet. Error was {}", e);
 			}
@@ -544,7 +546,7 @@ public class DLNAMediaDatabase implements Runnable {
 		prprts.setProperty("password", DB_PASSWORD);
 		try {
 			Upgrade.upgrade(oldUrl, prprts, 197);
-			LOGGER.info("The database successfully migrated to version {}", h2Version);
+			LOGGER.info("The database successfully migrated to version {}", Constants.VERSION);
 		} catch (Exception e) {
 			LOGGER.error(
 				"Database migration failed: {}",

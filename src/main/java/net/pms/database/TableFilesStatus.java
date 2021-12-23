@@ -473,12 +473,22 @@ public final class TableFilesStatus extends Tables {
 					case 6:
 					case 7:
 						// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
-						PreparedStatement stmt = connection.prepareStatement(
-							"SELECT constraint_name " +
-							"FROM information_schema.constraints " +
-							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
-						);
-						ResultSet rs = stmt.executeQuery();
+						String sql;
+						ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
+						if (rs.next()) {
+							sql = "SELECT constraint_name " +
+								"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "'"
+							;
+						} else {
+							sql = "SELECT constraint_name " +
+								"FROM information_schema.constraints " +
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+							;
+						}
+
+						PreparedStatement stmt = connection.prepareStatement(sql);
+						rs = stmt.executeQuery();
 
 						while (rs.next()) {
 							try (Statement statement = connection.createStatement()) {
@@ -486,11 +496,7 @@ public final class TableFilesStatus extends Tables {
 							}
 						}
 
-						stmt = connection.prepareStatement(
-							"SELECT constraint_name " +
-							"FROM information_schema.constraints " +
-							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
-						);
+						stmt = connection.prepareStatement(sql);
 						rs = stmt.executeQuery();
 
 						while (rs.next()) {

@@ -63,16 +63,19 @@ public class TableFilesStatusTest {
 
 			try (Statement statement = connection.createStatement()) {
 				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
+				// Set FILENAME unique to allow CONSTRAINT creation
+				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
+				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
 				// Create version 7 of this table to start with
 				statement.execute(
 					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
 						"ID            IDENTITY PRIMARY KEY, " +
-						"FILENAME      VARCHAR2(1024)        NOT NULL, " +
+						"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
 						"MODIFIED      DATETIME, " +
 						"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
 						"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
-							"REFERENCES FILES(FILENAME) " +
+							"REFERENCES " + DLNAMediaDatabase.TABLE_NAME + "(FILENAME) " +
 							"ON DELETE CASCADE" +
 					")"
 				);
