@@ -495,7 +495,7 @@ public final class TableFilesStatus extends Tables {
 								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
 							}
 						}
-						
+
 						stmt = connection.prepareStatement(sql);
 						rs = stmt.executeQuery();
 
