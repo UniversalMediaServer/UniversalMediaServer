@@ -63,7 +63,7 @@ public class TableFilesStatusTest {
 
 			try (Statement statement = connection.createStatement()) {
 				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
-				// Set FILENAME unique to allow CONSTRAINT creation
+				// Set FILES.FILENAME unique to allow CONSTRAINT creation
 				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
 				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
@@ -71,7 +71,7 @@ public class TableFilesStatusTest {
 				statement.execute(
 					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
 						"ID            IDENTITY PRIMARY KEY, " +
-						"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
+						"FILENAME      VARCHAR2(1024)        NOT NULL, " +
 						"MODIFIED      DATETIME, " +
 						"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
 						"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
@@ -93,6 +93,12 @@ public class TableFilesStatusTest {
 			 * and any errors that occur along the way will cause the test to fail.
 			 */
 			TableFilesStatus.checkTable(connection);
+			// Unset FILES.FILENAME unique
+			try (Statement statement = connection.createStatement()) {
+				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
+			} catch (Exception e) {
+				System.out.println("Error: " + e);
+			}
 		} catch (Exception e) {
 			System.out.println("Error: " + e);
 		}

@@ -476,14 +476,14 @@ public final class TableFilesStatus extends Tables {
 						String sql;
 						ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
 						if (rs.next()) {
-							sql = "SELECT constraint_name " +
+							sql = "SELECT CONSTRAINT_NAME " +
 								"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "'"
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'"
 							;
 						} else {
-							sql = "SELECT constraint_name " +
-								"FROM information_schema.constraints " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND constraint_type = 'REFERENTIAL'"
+							sql = "SELECT CONSTRAINT_NAME " +
+								"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'"
 							;
 						}
 
@@ -492,10 +492,10 @@ public final class TableFilesStatus extends Tables {
 
 						while (rs.next()) {
 							try (Statement statement = connection.createStatement()) {
-								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("constraint_name"));
+								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
 							}
 						}
-
+						
 						stmt = connection.prepareStatement(sql);
 						rs = stmt.executeQuery();
 
