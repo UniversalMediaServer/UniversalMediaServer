@@ -392,7 +392,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
-				sb.append("  ID                      INT AUTO_INCREMENT");
+				sb.append("  ID                      INT PRIMARY KEY AUTO_INCREMENT");
 				sb.append(", THUMBID                 BIGINT");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
