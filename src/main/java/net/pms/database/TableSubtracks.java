@@ -72,8 +72,8 @@ public class TableSubtracks extends TableHelper {
 				switch (version) {
 					case 1:
 						if (isColumnExist(connection, TABLE_NAME, "TYPE")) {
-							LOGGER.trace("Renaming column name TYPE to MEDIA_TYPE");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `TYPE` RENAME TO MEDIA_TYPE");
+							LOGGER.trace("Renaming column name TYPE to FORMAT_TYPE");
+							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `TYPE` RENAME TO FORMAT_TYPE");
 						}
 						break;
 					default:
@@ -123,13 +123,13 @@ public class TableSubtracks extends TableHelper {
 			return;
 		}
 
-		String columns = "FILEID, ID, LANG, TITLE, MEDIA_TYPE, EXTERNALFILE, CHARSET ";
+		String columns = "FILEID, ID, LANG, TITLE, FORMAT_TYPE, EXTERNALFILE, CHARSET ";
 
 		TABLE_LOCK.writeLock().lock();
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(
 				"SELECT " +
-					"FILEID, ID, LANG, TITLE, MEDIA_TYPE, EXTERNALFILE, CHARSET " +
+					"FILEID, ID, LANG, TITLE, FORMAT_TYPE, EXTERNALFILE, CHARSET " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILEID = ? AND ID = ? AND EXTERNALFILE = ?",
@@ -153,7 +153,7 @@ public class TableSubtracks extends TableHelper {
 					if (rs.next()) {
 						rs.updateString("LANG", left(subtitleTrack.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
-						rs.updateInt("MEDIA_TYPE", subtitleTrack.getType().getStableIndex());
+						rs.updateInt("FORMAT_TYPE", subtitleTrack.getType().getStableIndex());
 						if (subtitleTrack.getExternalFile() != null) {
 							rs.updateString("EXTERNALFILE", left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
 						} else {

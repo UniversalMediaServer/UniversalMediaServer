@@ -33,6 +33,8 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Properties;
+import org.h2.tools.Upgrade;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -181,13 +183,13 @@ public class Database extends DatabaseHelper {
 				}
 			} else if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
 				LOGGER.info("The database need a migration to h2 format 2");
-				//migrateDatabaseVersion2();
+				migrateDatabaseVersion2();
 			} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 				FileUtils.deleteQuietly(dbDirectory);
 				if (!dbDirectory.exists()) {
 					LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
 				} else {
-					if (!net.pms.PMS.isHeadless()) {
+					if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
@@ -205,7 +207,7 @@ public class Database extends DatabaseHelper {
 					Thread.sleep(10000);
 					conn = getConnection();
 				} catch (InterruptedException | SQLException se2) {
-					if (!net.pms.PMS.isHeadless()) {
+					if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
 						try {
 							JOptionPane.showMessageDialog(
 								SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
@@ -233,10 +235,9 @@ public class Database extends DatabaseHelper {
 	 * Migrate the h2 database from version 1.4.197 to version 2.
 	 *
 	 */
-	/*
 	private void migrateDatabaseVersion2() {
 		LOGGER.info("Migrating database to v{}", Constants.VERSION);
-		if (!net.pms.PMS.isHeadless()) {
+		if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
 			try {
 				PMS.get().getFrame().setStatusLine("Migrating database to v" + Constants.VERSION);
 			} catch (NullPointerException e) {
@@ -258,5 +259,4 @@ public class Database extends DatabaseHelper {
 			LOGGER.trace("", e);
 		}
 	}
-	*/
 }

@@ -264,7 +264,7 @@ public class SearchRequestHandler {
 			case TYPE_VIDEO:
 			case TYPE_IMAGE:
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
-					sb.append(String.format(" F.TYPE = %d ", getFileType(requestType)));
+					sb.append(String.format(" F.FORMAT_TYPE = %d ", getFileType(requestType)));
 				}
 				return;
 			default:
