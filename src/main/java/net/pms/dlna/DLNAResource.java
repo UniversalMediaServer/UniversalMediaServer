@@ -64,7 +64,6 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.MediasDatabase;
 import net.pms.database.TableFiles;
 import net.pms.database.TableFilesStatus;
 import net.pms.database.TableTVSeries;
