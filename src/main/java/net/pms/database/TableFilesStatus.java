@@ -270,8 +270,6 @@ public final class TableFilesStatus extends TableHelper {
 		}
 	}
 
-	
-	
 	/**
 	 * Sets whether the file has been fully played.
 	 *

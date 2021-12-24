@@ -23,8 +23,7 @@ public class TableSubtracks extends TableHelper {
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableSubtracks.class);
 	public static final String TABLE_NAME = "SUBTRACKS";
-	
-	
+
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_EXTERNALFILE = 1000;
 
@@ -70,7 +69,6 @@ public class TableSubtracks extends TableHelper {
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
-				
 				switch (version) {
 					case 1:
 						if (isColumnExist(connection, TABLE_NAME, "TYPE")) {
@@ -84,7 +82,6 @@ public class TableSubtracks extends TableHelper {
 							version + " to " + TABLE_VERSION
 						);
 				}
-				
 			}
 			try {
 				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -120,8 +117,6 @@ public class TableSubtracks extends TableHelper {
 		LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
 		executeUpdate(connection, sb.toString());
 	}
-
-	
 
 	protected static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {

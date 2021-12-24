@@ -39,8 +39,7 @@ public class MediasDatabase extends Database implements Runnable {
 	private Thread scanner;
 
 	private static boolean tablesChecked = false;
-	
-	
+
 	/**
 	 * Initializes the database connection pool for the current profile.
 	 *
@@ -100,7 +99,6 @@ public class MediasDatabase extends Database implements Runnable {
 		}
 	}
 
-	
 	//table related functions
 	/**
 	 * Checks all child tables for their existence and version and creates or

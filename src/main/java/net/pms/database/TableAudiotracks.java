@@ -77,7 +77,6 @@ public class TableAudiotracks extends TableHelper {
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
-				
 				switch (version) {
 					case 1:
 						if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
@@ -108,7 +107,6 @@ public class TableAudiotracks extends TableHelper {
 							version + " to " + TABLE_VERSION
 						);
 				}
-				
 			}
 			try {
 				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);

@@ -33,7 +33,6 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.logging.Level;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -50,7 +49,7 @@ public class Database extends DatabaseHelper {
 	private String dbUser;
 	private String dbPassword;
 	private final JdbcConnectionPool cp;
-	
+
 	/**
 	 * Initializes the database connection pool for the current profile.
 	 *
@@ -70,7 +69,7 @@ public class Database extends DatabaseHelper {
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
 		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
 		LOGGER.info("Using database engine version {}.{}.{}", Constants.VERSION_MAJOR, Constants.VERSION_MINOR, Constants.BUILD_ID);
-		
+
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");

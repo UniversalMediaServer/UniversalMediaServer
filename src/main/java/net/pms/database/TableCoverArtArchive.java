@@ -271,5 +271,4 @@ public final class TableCoverArtArchive extends TableHelper {
 
 		return result;
 	}
-	
 }

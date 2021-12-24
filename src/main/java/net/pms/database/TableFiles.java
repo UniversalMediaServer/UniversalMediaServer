@@ -53,14 +53,14 @@ public class TableFiles extends TableHelper {
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock(true);
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableFiles.class);
 	public static final String TABLE_NAME = "FILES";
-	
+
 	public static final String NONAME = "###";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
-	 * 
+	 *
 	 * Version notes:
 	 * - 18: Introduced ALBUMARTIST field
 	 * - 19: Introduced EXTERNALFILE and CHARSET fields

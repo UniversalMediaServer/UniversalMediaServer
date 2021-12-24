@@ -74,7 +74,7 @@ public class DatabaseHelper {
 			}
 		}
 	}
-	
+
 	/**
 	 * Checks if a named table exists in table schema <code>PUBLIC</code>
 	 *
@@ -311,7 +311,7 @@ public class DatabaseHelper {
 		sb.append(" VALUES (").append(StringUtils.repeat("?,", count)).append("?)");
 		return sb.toString();
 	}
-	
+
 	protected static Double toDouble(ResultSet rs, String column) throws SQLException {
 		Object obj = rs.getObject(column);
 		if (obj instanceof Double) {
@@ -349,5 +349,4 @@ public class DatabaseHelper {
 			LOGGER.error("error during closing:" + e.getMessage(), e);
 		}
 	}
-	
 }

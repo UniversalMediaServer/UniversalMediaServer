@@ -287,7 +287,7 @@ public final class TableTVSeries extends TableHelper {
 	 * If we have the latest version number from the
 	 * API, narrow the result to that version.
 	 * @param imdbID
-	 * @return 
+	 * @return
 	 */
 	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
