@@ -181,7 +181,6 @@ public class TableFiles extends TableHelper {
 						break;
 					case 24:
 						//Rename sql reserved words
-						
 						LOGGER.trace("Deleting index TYPE_ISTV");
 						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_ISTV");
 						LOGGER.trace("Deleting index TYPE_ISTV_SIMPLENAME");
