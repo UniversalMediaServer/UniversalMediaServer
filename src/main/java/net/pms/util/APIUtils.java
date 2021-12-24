@@ -50,6 +50,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.TableFailedLookups;
+import net.pms.database.TableFiles;
+import net.pms.database.TableMetadata;
 import net.pms.database.TableTVSeries;
 import net.pms.database.TableThumbnails;
 import net.pms.database.TableVideoMetadataActors;
@@ -147,8 +149,8 @@ public class APIUtils {
 				}
 				LOGGER.trace("Did not get metadata subversions, will attempt to use the database version");
 
-				apiDataSeriesVersion = PMS.get().getDatabase().getMetadataValue("SERIES_VERSION");
-				apiDataVideoVersion = PMS.get().getDatabase().getMetadataValue("VIDEO_VERSION");
+				apiDataSeriesVersion = TableMetadata.getMetadataValue("SERIES_VERSION");
+				apiDataVideoVersion = TableMetadata.getMetadataValue("VIDEO_VERSION");
 
 				if (apiDataSeriesVersion == null) {
 					LOGGER.trace("API versions could not be fetched from the API or the local database");
@@ -161,8 +163,8 @@ public class APIUtils {
 
 			// Persist the values to the database to be used as fallbacks
 			if (apiDataSeriesVersion != null) {
-				PMS.get().getDatabase().setOrUpdateMetadataValue("SERIES_VERSION", apiDataSeriesVersion);
-				PMS.get().getDatabase().setOrUpdateMetadataValue("VIDEO_VERSION", apiDataVideoVersion);
+				TableMetadata.setOrUpdateMetadataValue("SERIES_VERSION", apiDataSeriesVersion);
+				TableMetadata.setOrUpdateMetadataValue("VIDEO_VERSION", apiDataVideoVersion);
 			}
 		} catch (Exception e) {
 			LOGGER.trace("Error while setting API metadata versions", e);
@@ -187,7 +189,7 @@ public class APIUtils {
 				return;
 			}
 
-			if (PMS.get().getDatabase().doesLatestApiMetadataExist(file.getAbsolutePath(), file.lastModified())) {
+			if (TableFiles.doesLatestApiMetadataExist(file.getAbsolutePath(), file.lastModified())) {
 				LOGGER.trace("The latest metadata already exists for {}", file.getName());
 				return;
 			}
@@ -360,7 +362,7 @@ public class APIUtils {
 
 				if (CONFIGURATION.getUseCache()) {
 					LOGGER.trace("setting metadata for " + file.getName());
-					PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+					TableFiles.insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 
 					if (media.getThumb() != null) {
 						TableThumbnails.setThumbnail(media.getThumb(), file.getAbsolutePath(), -1);
@@ -565,7 +567,7 @@ public class APIUtils {
 					titleSimplified.equals(titleSimplifiedFromFilename)
 				) {
 					LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-					PMS.get().getDatabase().updateMovieOrShowName(titleFromFilename, title);
+					TableFiles.updateMovieOrShowName(titleFromFilename, title);
 				}
 			}
 

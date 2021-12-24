@@ -12,7 +12,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediasDatabase;
 import net.pms.dlna.RootFolder;
 
 /**
@@ -21,7 +21,7 @@ import net.pms.dlna.RootFolder;
 public class ApiHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
 
-	private DLNAMediaDatabase database = PMS.get().getDatabase();
+	private MediasDatabase database = PMS.get().getDatabase();
 
 	public ApiHandler() {
 	}

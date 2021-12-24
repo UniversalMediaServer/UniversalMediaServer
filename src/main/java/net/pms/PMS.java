@@ -54,9 +54,9 @@ import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.Tables;
+import net.pms.database.MediasDatabase;
+import net.pms.database.TableFiles;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.Playlist;
@@ -247,7 +247,7 @@ public class PMS {
 	 * Main resource database that supports search capabilities. Also known as media cache.
 	 * @see net.pms.dlna.DLNAMediaDatabase
 	 */
-	private DLNAMediaDatabase database;
+	private MediasDatabase database;
 	private Object databaseLock = new Object();
 
 	/**
@@ -255,10 +255,10 @@ public class PMS {
 	 * for its queries.
 	 * @return (DLNAMediaDatabase) a reference to the database.
 	 */
-	public DLNAMediaDatabase getDatabase() {
+	public MediasDatabase getDatabase() {
 		synchronized (databaseLock) {
 			if (database == null) {
-				database = new DLNAMediaDatabase("medias");
+				database = new MediasDatabase();
 				database.init(false);
 			}
 			return database;
@@ -317,7 +317,7 @@ public class PMS {
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
 		// Logfile name(s) and path(s)
-		if (lfps != null && lfps.size() > 0) {
+		if (lfps != null && !lfps.isEmpty()) {
 			if (lfps.size() == 1) {
 				Entry<String, String> entry = lfps.entrySet().iterator().next();
 				if (entry.getKey().toLowerCase().equals("default.log")) {
@@ -436,7 +436,7 @@ public class PMS {
 
 		// Initialize database
 		try {
-			Tables.checkTables(false);
+			getDatabase().checkTables(false);
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
 			LOGGER.trace("Error was: {}", e1);
@@ -1186,10 +1186,10 @@ public class PMS {
 	public void storeFileInCache(File file, int formatType) {
 		if (
 			configuration.getUseCache() &&
-			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
+			!TableFiles.isDataExists(file.getAbsolutePath(), file.lastModified())
 		) {
 			try {
-				getDatabase().insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+				TableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
 			} catch (SQLException e) {
 				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
 				LOGGER.trace("", e);

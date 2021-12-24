@@ -55,8 +55,9 @@ import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.database.MediasDatabase;
+import net.pms.database.TableFiles;
 import net.pms.database.TableFilesStatus;
-import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.network.HTTPResource;
 import static net.pms.dlna.RootFolder.parseFeedKey;
 import static net.pms.dlna.RootFolder.parseFeedValue;
@@ -323,7 +324,7 @@ public class SharedContentTab {
 					}
 				}
 				for (int i = rows.length - 1; i >= 0; i--) {
-					PMS.get().getDatabase().removeMediaEntriesInFolder((String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
+					TableFiles.removeMediaEntriesInFolder((String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
 					((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
 				}
 			}
@@ -374,7 +375,7 @@ public class SharedContentTab {
 		SCAN_BUSY_DISABLED_ICON.start();
 		SCAN_BUTTON.addActionListener((ActionEvent e) -> {
 			if (configuration.getUseCache()) {
-				DLNAMediaDatabase database = PMS.get().getDatabase();
+				MediasDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
 					if (database.isScanLibraryRunning()) {

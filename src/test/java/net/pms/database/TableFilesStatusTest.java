@@ -25,7 +25,6 @@ import java.sql.Connection;
 import java.sql.Statement;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
@@ -37,6 +36,7 @@ public class TableFilesStatusTest {
 	/**
 	 * Set up testing conditions before running the tests.
 	 * @throws ConfigurationException
+	 * @throws InterruptedException
 	 */
 	@Before
 	public final void setUp() throws ConfigurationException, InterruptedException {
@@ -48,34 +48,35 @@ public class TableFilesStatusTest {
 
 	/**
 	 * Ensures that the table updates properly.
-	 *
 	 * todo: This should get more specific, since for now it
 	 * just makes sure the code completes without errors but
 	 * doesn't really do anything.
+	 *
+	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testUpgrade() throws Exception {
-		DLNAMediaDatabase database = PMS.get().getDatabase();
+		MediasDatabase database = PMS.get().getDatabase();
 		try (Connection connection = database.getConnection()) {
-			if (!Tables.tableExists(connection, "TABLES")) {
-				Tables.createTablesTable(connection);
+			if (!TableTablesVersions.tableExists(connection, TableTablesVersions.TABLE_NAME)) {
+				TableTablesVersions.createTable(connection);
 			}
 
 			try (Statement statement = connection.createStatement()) {
-				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
+				TableTablesVersions.dropTable(connection, TableFilesStatus.TABLE_NAME);
 				// Set FILES.FILENAME unique to allow CONSTRAINT creation
-				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
-				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
+				statement.execute("ALTER TABLE " + TableFiles.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
+				statement.execute("ALTER TABLE " + TableFiles.TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
 				// Create version 7 of this table to start with
 				statement.execute(
 					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
 						"ID            IDENTITY PRIMARY KEY, " +
-						"FILENAME      VARCHAR2(1024)        NOT NULL, " +
+						"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
 						"MODIFIED      DATETIME, " +
 						"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
 						"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
-							"REFERENCES " + DLNAMediaDatabase.TABLE_NAME + "(FILENAME) " +
+							"REFERENCES " + TableFiles.TABLE_NAME + "(FILENAME) " +
 							"ON DELETE CASCADE" +
 					")"
 				);
@@ -83,7 +84,7 @@ public class TableFilesStatusTest {
 				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TableFilesStatus.TABLE_NAME + "(FILENAME)");
 				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
 
-				Tables.setTableVersion(connection, TableFilesStatus.TABLE_NAME, 7);
+				TableTablesVersions.setTableVersion(connection, TableFilesStatus.TABLE_NAME, 7);
 			} catch (Exception e) {
 				System.out.println("Error: " + e);
 			}
@@ -95,7 +96,7 @@ public class TableFilesStatusTest {
 			TableFilesStatus.checkTable(connection);
 			// Unset FILES.FILENAME unique
 			try (Statement statement = connection.createStatement()) {
-				statement.execute("ALTER TABLE " + DLNAMediaDatabase.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
+				statement.execute("ALTER TABLE " + TableFiles.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
 			} catch (Exception e) {
 				System.out.println("Error: " + e);
 			}

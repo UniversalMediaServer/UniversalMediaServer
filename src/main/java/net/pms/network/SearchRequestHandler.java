@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediasDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.RealFileDbId;
@@ -37,7 +37,7 @@ import net.pms.network.message.SearchRequest;
  */
 public class SearchRequestHandler {
 
-	private DLNAMediaDatabase database;
+	private MediasDatabase database;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestHandler.class);
 	private final static String CRLF = "\r\n";

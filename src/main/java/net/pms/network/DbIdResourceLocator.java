@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediasDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.PlaylistFolder;
@@ -24,7 +24,7 @@ public class DbIdResourceLocator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
 
-	private DLNAMediaDatabase database;
+	private MediasDatabase database;
 
 	public enum DbidMediaType {
 

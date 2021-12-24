@@ -32,14 +32,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-public final class TableTVSeries extends Tables {
+public final class TableTVSeries extends TableHelper {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -49,7 +47,6 @@ public final class TableTVSeries extends Tables {
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(TableTVSeries.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final String TABLE_NAME = "TV_SERIES";
 
 	/**
@@ -57,10 +54,128 @@ public final class TableTVSeries extends Tables {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
-	// No instantiation
-	private TableTVSeries() {
+	/**
+	 * Checks and creates or upgrades the table as needed.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static void checkTable(final Connection connection) throws SQLException {
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (tableExists(connection, TABLE_NAME)) {
+				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				if (version != null) {
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
+						LOGGER.warn(
+							"Database table \"" + TABLE_NAME +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
+							DATABASE.getDatabaseFilename() +
+							"\" before starting UMS"
+						);
+					}
+				} else {
+					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					dropTable(connection, TABLE_NAME);
+					createTable(connection);
+					TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				}
+			} else {
+				createTable(connection);
+				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * This method <strong>MUST</strong> be updated if the table definition are
+	 * altered. The changes for each version in the form of
+	 * <code>ALTER TABLE</code> must be implemented here.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param currentVersion the version to upgrade <strong>from</strong>
+	 *
+	 * @throws SQLException
+	 */
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				switch (version) {
+					case 1:
+						try (Statement statement = connection.createStatement()) {
+							if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+								statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
+							}
+						} catch (SQLException e) {
+							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+							throw new SQLException(e);
+						}
+						version++;
+						break;
+					case 2:
+						if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
+							LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
+							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
+						}
+						break;
+					default:
+						throw new IllegalStateException(
+							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
+							version + " to " + TABLE_VERSION
+						);
+				}
+			}
+
+			try {
+				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			} catch (SQLException e) {
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+				throw new SQLException(e);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Must be called from inside a table lock
+	 */
+	private static void createTable(final Connection connection) throws SQLException {
+		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
+		try (Statement statement = connection.createStatement()) {
+			statement.execute(
+				"CREATE TABLE " + TABLE_NAME + "(" +
+					"ID       IDENTITY PRIMARY KEY, " +
+					"ENDYEAR    VARCHAR2(1024), " +
+					"IMDBID    VARCHAR2(1024), " +
+					"THUMBID    BIGINT, " +
+					"PLOT    VARCHAR2(20000), " +
+					"STARTYEAR    VARCHAR2(1024), " +
+					"TITLE    VARCHAR2(1024) NOT NULL, " +
+					"SIMPLIFIEDTITLE    VARCHAR2(1024) NOT NULL, " +
+					"TOTALSEASONS    DOUBLE, " +
+					"VERSION    VARCHAR2(1024), " +
+					"VOTES    VARCHAR2(1024), " +
+					"MEDIA_YEAR    VARCHAR2(1024) " +
+				")"
+			);
+			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
+			statement.execute("CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)");
+			statement.execute("CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)");
+			statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
+		}
 	}
 
 	/**
@@ -112,7 +227,7 @@ public final class TableTVSeries extends Tables {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
 						} else {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
-								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, `YEAR`, VERSION" +
+								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, MEDIA_YEAR, VERSION" +
 							") VALUES (" +
 								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
 							")";
@@ -168,16 +283,19 @@ public final class TableTVSeries extends Tables {
 	}
 
 	/**
-	 * Get TV series by IMDb ID. If we have the latest version number from the
+	 * Get TV series by IMDb ID.
+	 * If we have the latest version number from the
 	 * API, narrow the result to that version.
+	 * @param imdbID
+	 * @return 
 	 */
 	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT * FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID) + " ");
+		sql.append("SELECT * FROM ").append(TABLE_NAME).append(" WHERE IMDBID = ").append(sqlQuote(imdbID)).append(" ");
 		String latestVersion = APIUtils.getApiDataSeriesVersion();
 		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
-			sql.append("AND VERSION = " + sqlQuote(imdbID) + " ");
+			sql.append("AND VERSION = ").append(sqlQuote(imdbID)).append(" ");
 		}
 		sql.append("LIMIT 1");
 
@@ -280,6 +398,27 @@ public final class TableTVSeries extends Tables {
 		return null;
 	}
 
+	public static void updateThumbnailId(long id, int thumbId) {
+		try (Connection conn = DATABASE.getConnection()) {
+			TABLE_LOCK.writeLock().lock();
+			try (
+				PreparedStatement ps = conn.prepareStatement(
+					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE ID = ?"
+				);
+			) {
+				ps.setInt(1, thumbId);
+				ps.setLong(2, id);
+				ps.executeUpdate();
+				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
+			}
+		} catch (SQLException se) {
+			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
+			LOGGER.trace("", se);
+		}
+	}
+
 	/**
 	 * @param simplifiedTitle
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
@@ -337,8 +476,8 @@ public final class TableTVSeries extends Tables {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 		simplifiedTitle = StringEscapeUtils.escapeSql(simplifiedTitle);
 
-		ArrayList<String> titleList = PMS.get().getDatabase().getStrings("SELECT TITLE FROM " + TableTVSeries.TABLE_NAME + " WHERE SIMPLIFIEDTITLE='" + simplifiedTitle + "' LIMIT 1");
-		if (titleList.size() > 0) {
+		ArrayList<String> titleList = TableFiles.getStrings("SELECT TITLE FROM " + TableTVSeries.TABLE_NAME + " WHERE SIMPLIFIEDTITLE='" + simplifiedTitle + "' LIMIT 1");
+		if (!titleList.isEmpty()) {
 			return titleList.get(0);
 		}
 
@@ -383,7 +522,7 @@ public final class TableTVSeries extends Tables {
 						}
 						rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
 						rs.updateString("VOTES", (String) tvSeries.get("votes"));
-						rs.updateString("YEAR", (String) tvSeries.get("year"));
+						rs.updateString("MEDIA_YEAR", (String) tvSeries.get("year"));
 						rs.updateRow();
 					} else {
 						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
@@ -470,154 +609,4 @@ public final class TableTVSeries extends Tables {
 		return result;
 	}
 
-	/**
-	 * Checks and creates or upgrades the table as needed.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version < TABLE_VERSION) {
-						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
-					}
-				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createTable(connection);
-					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				}
-			} else {
-				createTable(connection);
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * This method <strong>MUST</strong> be updated if the table definition are
-	 * altered. The changes for each version in the form of
-	 * <code>ALTER TABLE</code> must be implemented here.
-	 *
-	 * @param connection the {@link Connection} to use
-	 * @param currentVersion the version to upgrade <strong>from</strong>
-	 *
-	 * @throws SQLException
-	 */
-	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
-		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
-				switch (version) {
-					case 1:
-						try (Statement statement = connection.createStatement()) {
-							if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
-								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
-								statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
-							}
-						} catch (SQLException e) {
-							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
-							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-							throw new SQLException(e);
-						}
-						version++;
-						break;
-					default:
-						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
-						);
-				}
-			}
-
-			try {
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			} catch (SQLException e) {
-				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
-				throw new SQLException(e);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	public static void updateThumbnailId(long id, int thumbId) {
-		try (Connection conn = DATABASE.getConnection()) {
-			TABLE_LOCK.writeLock().lock();
-			try (
-				PreparedStatement ps = conn.prepareStatement(
-					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE ID = ?"
-				);
-			) {
-				ps.setInt(1, thumbId);
-				ps.setLong(2, id);
-				ps.executeUpdate();
-				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
-			}
-		} catch (SQLException se) {
-			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
-			LOGGER.trace("", se);
-		}
-	}
-
-	/**
-	 * Must be called from inside a table lock
-	 */
-	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID       IDENTITY PRIMARY KEY, " +
-					"ENDYEAR    VARCHAR2(1024), " +
-					"IMDBID    VARCHAR2(1024), " +
-					"THUMBID    BIGINT, " +
-					"PLOT    VARCHAR2(20000), " +
-					"STARTYEAR    VARCHAR2(1024), " +
-					"TITLE    VARCHAR2(1024) NOT NULL, " +
-					"SIMPLIFIEDTITLE    VARCHAR2(1024) NOT NULL, " +
-					"TOTALSEASONS    DOUBLE, " +
-					"VERSION    VARCHAR2(1024), " +
-					"VOTES    VARCHAR2(1024), " +
-					"`YEAR`    VARCHAR2(1024) " +
-				")"
-			);
-			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
-			statement.execute("CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)");
-			statement.execute("CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)");
-			statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
-		}
-	}
-
-	/**
-	 * Drops (deletes) the current table. Use with caution, there is no undo.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void dropTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
-		}
-	}
 }

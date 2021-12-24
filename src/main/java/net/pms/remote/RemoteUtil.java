@@ -18,8 +18,8 @@ import net.pms.PMS;
 import net.pms.configuration.IpFilter;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.database.TableFiles;
 import net.pms.database.TableTVSeries;
-import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
@@ -515,7 +515,7 @@ public class RemoteUtil {
 			String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
 			resourceMetadataFromDatabase = TableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
 		} else {
-			resourceMetadataFromDatabase = DLNAMediaDatabase.getAPIResultsByFilenameIncludingExternalTables(resource.getFileName());
+			resourceMetadataFromDatabase = TableFiles.getAPIResultsByFilenameIncludingExternalTables(resource.getFileName());
 		}
 
 		if (resourceMetadataFromDatabase == null) {

@@ -64,6 +64,8 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediasDatabase;
+import net.pms.database.TableFiles;
 import net.pms.database.TableFilesStatus;
 import net.pms.database.TableTVSeries;
 import net.pms.database.TableThumbnails;
@@ -3891,11 +3893,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				SubtitleUtils.searchAndAttachExternalSubtitles(file, media, forceRefresh);
 				// update the database if enabled
 				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
-					DLNAMediaDatabase database = PMS.get().getDatabase();
-
-					if (database != null) {
+					if (PMS.get().getDatabase() != null) {
 						try {
-							database.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
+							TableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
 						} catch (SQLException e) {
 							LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
 								e.getMessage());
@@ -4945,7 +4945,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (configuration.getUseCache()) {
 					// TODO: Make sure this does not happen if ANY version already exists, before doing this
-					PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+					TableFiles.insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 
 					// Creates a minimal TV series row with just the title, that
 					// might be enhanced later by the API

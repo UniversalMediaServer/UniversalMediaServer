@@ -45,7 +45,7 @@ import net.pms.dlna.MediaMonitor;
  * @author SubJunk & Nadahar
  * @since 7.0.0
  */
-public final class TableFilesStatus extends Tables {
+public final class TableFilesStatus extends TableHelper {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -64,10 +64,214 @@ public final class TableFilesStatus extends Tables {
 	 */
 	private static final int TABLE_VERSION = 12;
 
-	// No instantiation
-	private TableFilesStatus() {
+	/**
+	 * Checks and creates or upgrades the table as needed.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static void checkTable(final Connection connection) throws SQLException {
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (tableExists(connection, TABLE_NAME)) {
+				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				if (version != null) {
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
+						LOGGER.warn(
+							"Database table \"" + TABLE_NAME +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
+							DATABASE.getDatabaseFilename() +
+							"\" before starting UMS"
+						);
+					}
+				} else {
+					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					dropTable(connection, TABLE_NAME);
+					createTable(connection);
+					TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				}
+			} else {
+				createTable(connection);
+				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
 	}
 
+	/**
+	 * This method <strong>MUST</strong> be updated if the table definition are
+	 * altered. The changes for each version in the form of
+	 * <code>ALTER TABLE</code> must be implemented here.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param currentVersion the version to upgrade <strong>from</strong>
+	 *
+	 * @throws SQLException
+	 */
+	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				switch (version) {
+					case 1:
+						// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
+
+							Set<String> fileStatusEntries = new HashSet<>();
+							PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
+							ResultSet rs = stmt.executeQuery();
+							String filename;
+							while (rs.next()) {
+								filename = rs.getString("FILES_FILENAME");
+
+								// Ensure we don't attempt add the same filename twice
+								if (!fileStatusEntries.contains(filename)) {
+									fileStatusEntries.add(filename);
+									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
+									Statement statement2 = connection.createStatement();
+									statement2.execute(query);
+									LOGGER.info("Updating fully played entry for " + filename);
+								}
+							}
+							stmt.close();
+							rs.close();
+
+							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
+							statement.execute("DROP INDEX IF EXISTS FILEID_IDX");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
+							statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
+						}
+						version = 2;
+						break;
+					case 2:
+					case 3:
+						// From version 2 to 3, we added an index for the ISFULLYPLAYED column
+						// From version 3 to 4, we make sure the previous index was created correctly
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("DROP INDEX IF EXISTS ISFULLYPLAYED_IDX");
+							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
+						}
+						version = 4;
+						break;
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+						// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
+						String sql;
+						ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
+						if (rs.next()) {
+							sql = "SELECT CONSTRAINT_NAME " +
+								"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
+						} else {
+							sql = "SELECT CONSTRAINT_NAME " +
+								"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
+						}
+
+						PreparedStatement stmt = connection.prepareStatement(sql);
+						rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							try (Statement statement = connection.createStatement()) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+							}
+						}
+
+						stmt = connection.prepareStatement(sql);
+						rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
+						}
+
+						stmt.close();
+						rs.close();
+
+						version = 8;
+						break;
+					case 8:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD BOOKMARK INTEGER DEFAULT 0");
+						}
+						version = 9;
+						break;
+					case 9:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
+						}
+						version = 10;
+						break;
+					case 10:
+					case 11:
+						try (Statement statement = connection.createStatement()) {
+							if (!isColumnExist(connection, TABLE_NAME, "LASTPLAYBACKPOSITION")) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
+							}
+						} catch (SQLException e) {
+							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+							throw new SQLException(e);
+						}
+						version = 12;
+						break;
+					default:
+						throw new IllegalStateException(
+							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
+							version + " to " + TABLE_VERSION
+						);
+				}
+			}
+
+			try {
+				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			} catch (SQLException e) {
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+				throw new SQLException(e);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Must be called from inside a table lock
+	 */
+	private static void createTable(final Connection connection) throws SQLException {
+		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
+		try (Statement statement = connection.createStatement()) {
+			statement.execute(
+				"CREATE TABLE " + TABLE_NAME + "(" +
+					"ID                     IDENTITY PRIMARY KEY, " +
+					"FILENAME               VARCHAR2(1024)        NOT NULL, " +
+					"MODIFIED               DATETIME, " +
+					"ISFULLYPLAYED          BOOLEAN                          DEFAULT false, " +
+					"BOOKMARK               INTEGER                          DEFAULT 0, " +
+					"DATELASTPLAY           DATETIME, " +
+					"PLAYCOUNT              INTEGER                          DEFAULT 0, " +
+					"LASTPLAYBACKPOSITION   DOUBLE                           DEFAULT 0.0" +
+				")"
+			);
+
+			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
+			statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
+		}
+	}
+
+	
+	
 	/**
 	 * Sets whether the file has been fully played.
 	 *
@@ -366,212 +570,6 @@ public final class TableFilesStatus extends Tables {
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
-		}
-	}
-
-	/**
-	 * Checks and creates or upgrades the table as needed.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version < TABLE_VERSION) {
-						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
-					}
-				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createFilesStatusTable(connection);
-					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				}
-			} else {
-				createFilesStatusTable(connection);
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * This method <strong>MUST</strong> be updated if the table definition are
-	 * altered. The changes for each version in the form of
-	 * <code>ALTER TABLE</code> must be implemented here.
-	 *
-	 * @param connection the {@link Connection} to use
-	 * @param currentVersion the version to upgrade <strong>from</strong>
-	 *
-	 * @throws SQLException
-	 */
-	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
-	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
-		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
-				switch (version) {
-					case 1:
-						// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
-						try (Statement statement = connection.createStatement()) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
-
-							Set<String> fileStatusEntries = new HashSet<>();
-							PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
-							ResultSet rs = stmt.executeQuery();
-							String filename;
-							while (rs.next()) {
-								filename = rs.getString("FILES_FILENAME");
-
-								// Ensure we don't attempt add the same filename twice
-								if (!fileStatusEntries.contains(filename)) {
-									fileStatusEntries.add(filename);
-									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
-									Statement statement2 = connection.createStatement();
-									statement2.execute(query);
-									LOGGER.info("Updating fully played entry for " + filename);
-								}
-							}
-							stmt.close();
-							rs.close();
-
-							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
-							statement.execute("DROP INDEX IF EXISTS FILEID_IDX");
-							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
-							statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-						}
-						version = 2;
-						break;
-					case 2:
-					case 3:
-						// From version 2 to 3, we added an index for the ISFULLYPLAYED column
-						// From version 3 to 4, we make sure the previous index was created correctly
-						try (Statement statement = connection.createStatement()) {
-							statement.execute("DROP INDEX IF EXISTS ISFULLYPLAYED_IDX");
-							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
-						}
-						version = 4;
-						break;
-					case 4:
-					case 5:
-					case 6:
-					case 7:
-						// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
-						String sql;
-						ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
-						if (rs.next()) {
-							sql = "SELECT CONSTRAINT_NAME " +
-								"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
-						} else {
-							sql = "SELECT CONSTRAINT_NAME " +
-								"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
-						}
-
-						PreparedStatement stmt = connection.prepareStatement(sql);
-						rs = stmt.executeQuery();
-
-						while (rs.next()) {
-							try (Statement statement = connection.createStatement()) {
-								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
-							}
-						}
-
-						stmt = connection.prepareStatement(sql);
-						rs = stmt.executeQuery();
-
-						while (rs.next()) {
-							throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
-						}
-
-						stmt.close();
-						rs.close();
-
-						version = 8;
-						break;
-					case 8:
-						try (Statement statement = connection.createStatement()) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD BOOKMARK INTEGER DEFAULT 0");
-						}
-						version = 9;
-						break;
-					case 9:
-						try (Statement statement = connection.createStatement()) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
-						}
-						version = 10;
-						break;
-					case 10:
-					case 11:
-						try (Statement statement = connection.createStatement()) {
-							if (!isColumnExist(connection, TABLE_NAME, "LASTPLAYBACKPOSITION")) {
-								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
-							}
-						} catch (SQLException e) {
-							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
-							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-							throw new SQLException(e);
-						}
-						version = 12;
-						break;
-					default:
-						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
-						);
-				}
-			}
-
-			try {
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			} catch (SQLException e) {
-				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
-				throw new SQLException(e);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Must be called from inside a table lock
-	 */
-	private static void createFilesStatusTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID                     IDENTITY PRIMARY KEY, " +
-					"FILENAME               VARCHAR2(1024)        NOT NULL, " +
-					"MODIFIED               DATETIME, " +
-					"ISFULLYPLAYED          BOOLEAN                          DEFAULT false, " +
-					"BOOKMARK               INTEGER                          DEFAULT 0, " +
-					"DATELASTPLAY           DATETIME, " +
-					"PLAYCOUNT              INTEGER                          DEFAULT 0, " +
-					"LASTPLAYBACKPOSITION   DOUBLE                           DEFAULT 0.0" +
-				")"
-			);
-
-			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-			statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
 		}
 	}
 }
