@@ -43,7 +43,7 @@ public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
 	protected static final String ENCODING = StandardCharsets.UTF_8.name();
-	protected static final MediasDatabase DATABASE = PMS.get().getDatabase();
+	protected static final MediasDatabase DATABASE = PMS.get().getMediasDatabase();
 	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 

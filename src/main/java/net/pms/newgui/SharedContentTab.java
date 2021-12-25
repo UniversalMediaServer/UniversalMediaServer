@@ -375,7 +375,7 @@ public class SharedContentTab {
 		SCAN_BUSY_DISABLED_ICON.start();
 		SCAN_BUTTON.addActionListener((ActionEvent e) -> {
 			if (configuration.getUseCache()) {
-				MediasDatabase database = PMS.get().getDatabase();
+				MediasDatabase database = PMS.get().getMediasDatabase();
 
 				if (database != null) {
 					if (database.isScanLibraryRunning()) {

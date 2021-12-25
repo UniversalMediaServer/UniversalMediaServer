@@ -28,7 +28,7 @@ public class HTMLConsole {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html><head><meta charset=\"utf-8\"><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");
 
-		MediasDatabase database = PMS.get().getDatabase();
+		MediasDatabase database = PMS.get().getMediasDatabase();
 		PmsConfiguration configuration = PMS.getConfiguration();
 
 		if (resource.equals("scan") && configuration.getUseCache()) {

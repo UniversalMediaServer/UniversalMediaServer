@@ -1535,7 +1535,7 @@ public class RootFolder extends DLNAResource {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
-				MediasDatabase database = PMS.get().getDatabase();
+				MediasDatabase database = PMS.get().getMediasDatabase();
 
 				if (database != null) {
 					/**
@@ -1633,7 +1633,7 @@ public class RootFolder extends DLNAResource {
 		) {
 			LOGGER.debug("rescanning file or folder : " + filename);
 
-			if (!PMS.get().getDatabase().isScanLibraryRunning()) {
+			if (!PMS.get().getMediasDatabase().isScanLibraryRunning()) {
 				Runnable scan = () -> {
 					File file = new File(filename);
 					if (file.isFile()) {

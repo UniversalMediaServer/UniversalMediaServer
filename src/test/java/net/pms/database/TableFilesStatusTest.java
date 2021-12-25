@@ -56,7 +56,7 @@ public class TableFilesStatusTest {
 	 */
 	@Test
 	public void testUpgrade() throws Exception {
-		MediasDatabase database = PMS.get().getDatabase();
+		MediasDatabase database = PMS.get().getMediasDatabase();
 		try (Connection connection = database.getConnection()) {
 			//remove all tables to cleanup db
 			MediasDatabase.dropAllTables(connection);

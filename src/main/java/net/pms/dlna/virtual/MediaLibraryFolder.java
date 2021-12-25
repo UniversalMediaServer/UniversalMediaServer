@@ -70,7 +70,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		this.database = PMS.get().getDatabase();
+		this.database = PMS.get().getMediasDatabase();
 	}
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput, String nameToDisplay) {
@@ -81,7 +81,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		this.database = PMS.get().getDatabase();
+		this.database = PMS.get().getMediasDatabase();
 		if (nameToDisplay != null) {
 			this.displayNameOverride = nameToDisplay;
 		}
@@ -91,7 +91,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		super(name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		this.database = PMS.get().getDatabase();
+		this.database = PMS.get().getMediasDatabase();
 		if (nameToDisplay != null) {
 			this.displayNameOverride = nameToDisplay;
 		}

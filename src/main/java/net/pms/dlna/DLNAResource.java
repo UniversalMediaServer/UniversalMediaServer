@@ -3892,7 +3892,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				SubtitleUtils.searchAndAttachExternalSubtitles(file, media, forceRefresh);
 				// update the database if enabled
 				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
-					if (PMS.get().getDatabase() != null) {
+					if (PMS.get().getMediasDatabase() != null) {
 						try {
 							MediasTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
 						} catch (SQLException e) {

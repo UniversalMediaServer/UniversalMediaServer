@@ -211,7 +211,7 @@ public class RealFile extends MapFile {
 			}
 
 			if (configuration.getUseCache()) {
-				MediasDatabase database = PMS.get().getDatabase();
+				MediasDatabase database = PMS.get().getMediasDatabase();
 
 				if (database != null) {
 					DLNAMediaInfo media;
@@ -254,7 +254,7 @@ public class RealFile extends MapFile {
 				}
 
 				if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
-					MediasDatabase database = PMS.get().getDatabase();
+					MediasDatabase database = PMS.get().getMediasDatabase();
 
 					if (database != null) {
 						try {

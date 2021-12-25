@@ -443,7 +443,7 @@ public class MediasTableFiles extends MediasTable {
 	}
 
 	/**
-	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
+	 * Gets a row of {@link MediaDatabase} from the database and returns it
 	 * as a {@link DLNAMediaInfo} instance, along with thumbnails, status and tracks.
 	 *
 	 * @param name the full path of the media.
@@ -601,7 +601,7 @@ public class MediasTableFiles extends MediasTable {
 	}
 
 	/**
-	 * Gets a row of {@link DLNAMediaDatabase} from the database and returns it
+	 * Gets a row of {@link MediaDatabase} from the database and returns it
 	 * as a {@link DLNAMediaInfo} instance.
 	 * This is the same as getData above, but is a much smaller query because it
 	 * does not fetch thumbnails, status and tracks, and does not require a
@@ -1453,7 +1453,7 @@ public class MediasTableFiles extends MediasTable {
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
-		try (Connection connection = PMS.get().getDatabase().getConnection()) {
+		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediasTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediasTableThumbnails.TABLE_NAME + ".ID " +

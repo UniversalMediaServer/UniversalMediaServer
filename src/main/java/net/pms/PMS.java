@@ -245,23 +245,23 @@ public class PMS {
 
 	/**
 	 * Main resource database that supports search capabilities. Also known as media cache.
-	 * @see net.pms.dlna.DLNAMediaDatabase
+	 * @see net.pms.database.MediaDatabase
 	 */
-	private MediasDatabase database;
-	private Object databaseLock = new Object();
+	private MediasDatabase mediasDatabase;
+	private final Object mediasDatabaseLock = new Object();
 
 	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
 	 * for its queries.
-	 * @return (DLNAMediaDatabase) a reference to the database.
+	 * @return (MediasDatabase) a reference to the mediasDatabase.
 	 */
-	public MediasDatabase getDatabase() {
-		synchronized (databaseLock) {
-			if (database == null) {
-				database = new MediasDatabase();
-				database.init(false);
+	public MediasDatabase getMediasDatabase() {
+		synchronized (mediasDatabaseLock) {
+			if (mediasDatabase == null) {
+				mediasDatabase = new MediasDatabase();
+				mediasDatabase.init(false);
 			}
-			return database;
+			return mediasDatabase;
 		}
 	}
 
@@ -434,9 +434,9 @@ public class PMS {
 			profiler.startCollecting();
 		}
 
-		// Initialize database
+		// Initialize mediasDatabase
 		try {
-			getDatabase().checkTables(false);
+			getMediasDatabase().checkTables(false);
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
 			LOGGER.trace("Error was: {}", e1);
@@ -798,25 +798,25 @@ public class PMS {
 
 				if (configuration.getDatabaseLogging()) {
 					// use an automatic H2database profiling tool to make a report at the end of the logging file
-					// converted to the "logging_report.txt" in the database directory
+					// converted to the "logging_report.txt" in the mediasDatabase directory
 					try {
-						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
-							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
+						ConvertTraceFile.main("-traceFile", mediasDatabase.getDatabasePath()  + File.separator + "medias.trace.db",
+							"-script", mediasDatabase.getDatabasePath()  + File.separator + "logging_report.txt");
 					} catch (SQLException e) {}
 				}
 
 				// Shut down library scanner
 				if (getConfiguration().getUseCache()) {
-					if (getDatabase() != null && getDatabase().isScanLibraryRunning()) {
+					if (getMediasDatabase() != null && getMediasDatabase().isScanLibraryRunning()) {
 						LOGGER.debug("Database is still not null, attempting to close it");
-						getDatabase().stopScanLibrary();
+						getMediasDatabase().stopScanLibrary();
 					} else {
 						LOGGER.debug("Database already closed");
 					}
 				}
 
-				if (database != null) {
-					try (Statement stmt = database.getConnection().createStatement()) {
+				if (mediasDatabase != null) {
+					try (Statement stmt = mediasDatabase.getConnection().createStatement()) {
 						stmt.execute("SHUTDOWN COMPACT");
 					} catch (SQLException e1) {
 						LOGGER.error("compacting DB ", e1);
@@ -837,7 +837,7 @@ public class PMS {
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
-			getDatabase().scanLibrary();
+			getMediasDatabase().scanLibrary();
 		}
 
 		return true;
@@ -1694,9 +1694,9 @@ public class PMS {
 	}
 
 	/**
-	 * Returns if the database logging is forced by command line arguments.
+	 * Returns if the mediasDatabase logging is forced by command line arguments.
 	 *
-	 * @return {@code true} if database logging is forced, {@code false}
+	 * @return {@code true} if mediasDatabase logging is forced, {@code false}
 	 *         otherwise.
 	 */
 	public static boolean getLogDB() {

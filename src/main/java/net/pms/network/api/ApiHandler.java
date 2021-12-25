@@ -21,7 +21,7 @@ import net.pms.dlna.RootFolder;
 public class ApiHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
 
-	private MediasDatabase database = PMS.get().getDatabase();
+	private MediasDatabase database = PMS.get().getMediasDatabase();
 
 	public ApiHandler() {
 	}

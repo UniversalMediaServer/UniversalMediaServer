@@ -69,7 +69,7 @@ public class DbIdResourceLocator {
 	}
 
 	public DbIdResourceLocator() {
-		this.database = PMS.get().getDatabase();
+		this.database = PMS.get().getMediasDatabase();
 	}
 
 	public DLNAResource locateResource(String id) {

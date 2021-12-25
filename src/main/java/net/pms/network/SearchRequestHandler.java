@@ -49,7 +49,7 @@ public class SearchRequestHandler {
 		.compile("(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
 
 	public SearchRequestHandler() {
-		this.database = PMS.get().getDatabase();
+		this.database = PMS.get().getMediasDatabase();
 	}
 
 	DbidMediaType getRequestType(String searchCriteria) {
