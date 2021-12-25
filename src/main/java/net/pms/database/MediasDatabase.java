@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -160,31 +161,43 @@ public class MediasDatabase extends Database implements Runnable {
 	public final void reInitTablesExceptFilesStatus() throws SQLException {
 		LOGGER.debug("Re-initializing tables");
 		try (Connection connection = getConnection()) {
-			dropTable(connection, TableMusicBrainzReleases.TABLE_NAME);
-			dropTable(connection, TableCoverArtArchive.TABLE_NAME);
-			dropTable(connection, TableThumbnails.TABLE_NAME);
-
-			dropTable(connection, TableTVSeries.TABLE_NAME);
-			dropTable(connection, TableFailedLookups.TABLE_NAME);
-
-			// Video metadata tables
-			dropTable(connection, TableVideoMetadataActors.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataAwards.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataCountries.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataDirectors.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataIMDbRating.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataGenres.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataPosters.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataProduction.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataRated.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataRatings.TABLE_NAME);
-			dropTable(connection, TableVideoMetadataReleased.TABLE_NAME);
-
-			// Audio Metadata
-			dropTable(connection, TableAudiotracks.TABLE_NAME);
+			dropAllTablesExceptFilesStatus(connection);
 		}
-
 		checkTables(true);
+	}
+
+	public static synchronized void dropAllTables(Connection connection) {
+		dropAllTablesExceptFilesStatus(connection);
+		dropTableAndConstraint(connection, TableRegexpRules.TABLE_NAME);
+		dropTableAndConstraint(connection, TableFilesStatus.TABLE_NAME);
+		dropTableAndConstraint(connection, TableMetadata.TABLE_NAME);
+		dropTableAndConstraint(connection, TableFiles.TABLE_NAME);
+		dropTableAndConstraint(connection, TableTablesVersions.TABLE_NAME);
+	}
+
+	public static synchronized void dropAllTablesExceptFilesStatus(Connection connection) {
+		dropTableAndConstraint(connection, TableMusicBrainzReleases.TABLE_NAME);
+		dropTableAndConstraint(connection, TableCoverArtArchive.TABLE_NAME);
+		dropTableAndConstraint(connection, TableThumbnails.TABLE_NAME);
+
+		dropTableAndConstraint(connection, TableTVSeries.TABLE_NAME);
+		dropTableAndConstraint(connection, TableFailedLookups.TABLE_NAME);
+
+		// Video metadata tables
+		dropTableAndConstraint(connection, TableVideoMetadataActors.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataAwards.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataCountries.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataDirectors.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataIMDbRating.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataGenres.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataPosters.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataProduction.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataRated.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataRatings.TABLE_NAME);
+		dropTableAndConstraint(connection, TableVideoMetadataReleased.TABLE_NAME);
+
+		// Audio Metadata
+		dropTableAndConstraint(connection, TableAudiotracks.TABLE_NAME);
 	}
 
 }

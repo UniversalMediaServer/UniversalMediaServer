@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -265,7 +266,7 @@ public class TableFiles extends TableHelper {
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
 			sb.append("  ID                      INT AUTO_INCREMENT PRIMARY KEY");
 			sb.append(", THUMBID                 BIGINT");
-			sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
+			sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL UNIQUE");
 			sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
 			sb.append(", FORMAT_TYPE             INT");
 			sb.append(", DURATION                DOUBLE");

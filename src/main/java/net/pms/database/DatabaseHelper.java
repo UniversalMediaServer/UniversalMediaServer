@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -104,6 +105,58 @@ public class DatabaseHelper {
 			statement.execute("DROP TABLE IF EXISTS " + tableName);
 		}
 	}
+
+	/**
+	 * Drops (deletes) the named table and its constaints. Use with caution, there is no undo.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param tableName the name of the table to delete
+	 */
+	protected static final void dropTableAndConstraint(final Connection connection, final String tableName) {
+		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
+		try {
+			if (tableExists(connection, tableName)) {
+				dropReferentialsConstraint(connection, tableName);
+				executeUpdate(connection, "DROP TABLE IF EXISTS " + tableName + " CASCADE");
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during dropping table\"" + tableName + "\":" + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Drops referentials constraints on the named table.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param tableName the name of the table to delete
+	 */
+	protected static final void dropReferentialsConstraint(final Connection connection, final String tableName) {
+		LOGGER.debug("Dropping table \"{}\" constraints if it exists", tableName);
+		try {
+			String sql;
+			ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
+			if (rs.next()) {
+				sql = "SELECT CONSTRAINT_NAME " +
+					"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
+					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
+			} else {
+				sql = "SELECT CONSTRAINT_NAME " +
+					"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
+					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
+			}
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				try (Statement statement = connection.createStatement()) {
+					statement.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during dropping table\"" + tableName + "\" constraints:" + e.getMessage(), e);
+		}
+	}
+
 	/**
 	 * Convenience method for handling SQL null values in <code>WHERE</code> or
 	 * <code>HAVING</code> statements. SQL doesn't see null as a value, and

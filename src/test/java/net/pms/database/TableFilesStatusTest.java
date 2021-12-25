@@ -58,15 +58,11 @@ public class TableFilesStatusTest {
 	public void testUpgrade() throws Exception {
 		MediasDatabase database = PMS.get().getDatabase();
 		try (Connection connection = database.getConnection()) {
-			if (!TableTablesVersions.tableExists(connection, TableTablesVersions.TABLE_NAME)) {
-				TableTablesVersions.createTable(connection);
-			}
-
+			//remove all tables to cleanup db
+			MediasDatabase.dropAllTables(connection);
+			database.checkTables(true);
 			try (Statement statement = connection.createStatement()) {
 				TableTablesVersions.dropTable(connection, TableFilesStatus.TABLE_NAME);
-				// Set FILES.FILENAME unique to allow CONSTRAINT creation
-				statement.execute("ALTER TABLE " + TableFiles.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
-				statement.execute("ALTER TABLE " + TableFiles.TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
 				// Create version 7 of this table to start with
 				statement.execute(
@@ -93,13 +89,7 @@ public class TableFilesStatusTest {
 			 * Version 7 is created, so now we can update to the latest version
 			 * and any errors that occur along the way will cause the test to fail.
 			 */
-			TableFilesStatus.checkTable(connection);
-			// Unset FILES.FILENAME unique
-			try (Statement statement = connection.createStatement()) {
-				statement.execute("ALTER TABLE " + TableFiles.TABLE_NAME + " DROP CONSTRAINT IF EXISTS FILES_FILENAME_UNIQUE");
-			} catch (Exception e) {
-				System.out.println("Error: " + e);
-			}
+			database.checkTables(true);
 		} catch (Exception e) {
 			System.out.println("Error: " + e);
 		}

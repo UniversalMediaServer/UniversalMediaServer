@@ -1,3 +1,22 @@
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.database;
 
 import java.sql.Connection;
@@ -106,7 +125,7 @@ public class TableSubtracks extends TableHelper {
 		sb.append(", FILEID         BIGINT           NOT NULL");
 		sb.append(", LANG           VARCHAR2(").append(SIZE_LANG).append(')');
 		sb.append(", TITLE          VARCHAR2(").append(SIZE_MAX).append(')');
-		sb.append(", MEDIA_TYPE     INT");
+		sb.append(", FORMAT_TYPE    INT");
 		sb.append(", EXTERNALFILE   VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL default ''");
 		sb.append(", CHARSET        VARCHAR2(").append(SIZE_MAX).append(')');
 		sb.append(", constraint PKSUB primary key (FILEID, ID, EXTERNALFILE)");
