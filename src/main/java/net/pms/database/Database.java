@@ -152,39 +152,9 @@ public class Database extends DatabaseHelper {
 		} catch (SQLException se) {
 			final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
 			final File dbDirectory = new File(dbDir);
-			if (se.getErrorCode() == 90030 && se.getCause().getMessage().contains("format 2 is larger than the supported format 1")) {
-				LOGGER.info("The current database was migrated to h2 format 2");
-				//check if the backup file is still present
-				File dbNewFile = new File(dbDir + File.separator + dbName + ".mv.db");
-				if (dbNewFile.exists()) {
-					//delete the new file
-					LOGGER.trace("Deleting the current db file \"{}\"", dbNewFile.getName());
-					dbNewFile.delete();
-					LOGGER.info("The database has been deleted because it had the wrong version");
-				}
-				File dbBakFile = new File(dbDir + File.separator + dbName + ".mv.db.bak");
-				if (dbBakFile.exists()) {
-					LOGGER.info("Revert back to the backup database not migrated");
-					LOGGER.trace("Renaming backup db file \"{}\" to \"{}\"", dbBakFile.getName(), dbNewFile.getName());
-					dbBakFile.renameTo(dbNewFile);
-					try {
-						LOGGER.trace("Try to open the backup db file");
-						conn = getConnection();
-					} catch (SQLException ex) {
-						LOGGER.info("The backup database failed to open");
-						if (dbNewFile.exists()) {
-							LOGGER.trace("Renaming current db file \"{}\" to \"{}\"", dbNewFile.getName(), dbBakFile.getName());
-							dbNewFile.renameTo(dbBakFile);
-						}
-					}
-				} else if (dbNewFile.exists()) {
-					//delete the new file
-					dbNewFile.delete();
-					LOGGER.info("The database has been deleted because it had the wrong version");
-				}
-			} else if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
+			if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
 				LOGGER.info("The database need a migration to h2 format 2");
-				migrateDatabaseVersion2();
+				migrateDatabaseVersion2(true);
 			} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 				FileUtils.deleteQuietly(dbDirectory);
 				if (!dbDirectory.exists()) {
@@ -236,7 +206,7 @@ public class Database extends DatabaseHelper {
 	 * Migrate the h2 database from version 1.4.197 to version 2.
 	 *
 	 */
-	private void migrateDatabaseVersion2() {
+	private void migrateDatabaseVersion2(boolean deleteBackup) {
 		LOGGER.info("Migrating database to v{}", Constants.VERSION);
 		if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
 			try {
@@ -251,6 +221,12 @@ public class Database extends DatabaseHelper {
 		prprts.setProperty("password", dbPassword);
 		try {
 			Upgrade.upgrade(oldUrl, prprts, 197);
+			if (deleteBackup) {
+				final File dbBakFile = new File(dbDir + File.separator + dbName + ".mv.db.bak");
+				if (dbBakFile.exists()) {
+					dbBakFile.delete();
+				}
+			}
 			LOGGER.info("The database successfully migrated to version {}", Constants.VERSION);
 		} catch (Exception e) {
 			LOGGER.error(
