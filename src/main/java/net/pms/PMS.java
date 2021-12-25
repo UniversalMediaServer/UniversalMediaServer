@@ -55,7 +55,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediasDatabase;
-import net.pms.database.TableFiles;
+import net.pms.database.MediasTableFiles;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
@@ -1186,10 +1186,10 @@ public class PMS {
 	public void storeFileInCache(File file, int formatType) {
 		if (
 			configuration.getUseCache() &&
-			!TableFiles.isDataExists(file.getAbsolutePath(), file.lastModified())
+			!MediasTableFiles.isDataExists(file.getAbsolutePath(), file.lastModified())
 		) {
 			try {
-				TableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+				MediasTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
 			} catch (SQLException e) {
 				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
 				LOGGER.trace("", e);

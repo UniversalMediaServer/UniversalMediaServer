@@ -42,6 +42,9 @@ public class DatabaseHelper {
 	private static final String ESCAPE_CHARACTER = "\\";
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
+	// Generic constant for the maximum string size: 255 chars
+	protected static final int SIZE_MAX = 255;
+
 	/**
 	 * Checks if a named table exists
 	 *

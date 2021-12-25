@@ -37,7 +37,7 @@ import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-public final class TableTVSeries extends TableHelper {
+public final class MediasTableTVSeries extends MediasTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -46,7 +46,7 @@ public final class TableTVSeries extends TableHelper {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableTVSeries.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableTVSeries.class);
 	public static final String TABLE_NAME = "TV_SERIES";
 
 	/**
@@ -67,7 +67,7 @@ public final class TableTVSeries extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
@@ -83,11 +83,11 @@ public final class TableTVSeries extends TableHelper {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -139,7 +139,7 @@ public final class TableTVSeries extends TableHelper {
 			}
 
 			try {
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				throw new SQLException(e);
@@ -372,7 +372,7 @@ public final class TableTVSeries extends TableHelper {
 		try (Connection connection = DATABASE.getConnection()) {
 			String sql = "SELECT THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+				"LEFT JOIN " + MediasTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediasTableThumbnails.TABLE_NAME + ".ID " +
 				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {
@@ -429,16 +429,16 @@ public final class TableTVSeries extends TableHelper {
 		try (Connection connection = DATABASE.getConnection()) {
 			String sql = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + TableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataActors.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataAwards.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataCountries.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataDirectors.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataProduction.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataPosters.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataRated.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataRatings.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + TableVideoMetadataReleased.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataActors.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataAwards.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataCountries.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataDirectors.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataProduction.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataPosters.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataRated.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataRatings.TABLE_NAME + ".TVSERIESID " +
+				"LEFT JOIN " + MediasTableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediasTableVideoMetadataReleased.TABLE_NAME + ".TVSERIESID " +
 				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " and IMDBID != ''";
 
 			if (trace) {
@@ -476,7 +476,7 @@ public final class TableTVSeries extends TableHelper {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 		simplifiedTitle = StringEscapeUtils.escapeSql(simplifiedTitle);
 
-		ArrayList<String> titleList = TableFiles.getStrings("SELECT TITLE FROM " + TableTVSeries.TABLE_NAME + " WHERE SIMPLIFIEDTITLE='" + simplifiedTitle + "' LIMIT 1");
+		ArrayList<String> titleList = MediasTableFiles.getStrings("SELECT TITLE FROM " + MediasTableTVSeries.TABLE_NAME + " WHERE SIMPLIFIEDTITLE='" + simplifiedTitle + "' LIMIT 1");
 		if (!titleList.isEmpty()) {
 			return titleList.get(0);
 		}
@@ -499,10 +499,9 @@ public final class TableTVSeries extends TableHelper {
 		try (Connection connection = DATABASE.getConnection()) {
 			TABLE_LOCK.writeLock().lock();
 			connection.setAutoCommit(false);
-			try (PreparedStatement ps = connection.prepareStatement(
-				"SELECT " +
+			try (PreparedStatement ps = connection.prepareStatement("SELECT " +
 					"* " +
-				"FROM " + TableTVSeries.TABLE_NAME + " " +
+				"FROM " + MediasTableTVSeries.TABLE_NAME + " " +
 				"WHERE " +
 					"SIMPLIFIEDTITLE = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
@@ -577,13 +576,13 @@ public final class TableTVSeries extends TableHelper {
 			 */
 			String sql = "SELECT FILES.MOVIEORSHOWNAME " +
 				"FROM FILES " +
-					"LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON " +
-					"FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME " +
+					"LEFT JOIN " + MediasTableFilesStatus.TABLE_NAME + " ON " +
+					"FILES.FILENAME = " + MediasTableFilesStatus.TABLE_NAME + ".FILENAME " +
 				"WHERE " +
 					"FILES.TYPE = 4 AND " +
 					"FILES.MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
 					"FILES.ISTVEPISODE AND " +
-					TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
+					MediasTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
 				"LIMIT 1";
 
 			if (trace) {

@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import net.pms.PMS;
 import net.pms.database.MediasDatabase;
-import net.pms.database.TableFiles;
+import net.pms.database.MediasTableFiles;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.BasicSystemUtils;
@@ -216,7 +216,7 @@ public class RealFile extends MapFile {
 				if (database != null) {
 					DLNAMediaInfo media;
 					try {
-						media = TableFiles.getData(fileName, file.lastModified());
+						media = MediasTableFiles.getData(fileName, file.lastModified());
 
 						setExternalSubtitlesParsed();
 						if (media != null) {
@@ -267,7 +267,7 @@ public class RealFile extends MapFile {
 							if (getMedia() != null && getMedia().isVideo()) {
 								registerExternalSubtitles(false);
 							}
-							TableFiles.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
+							MediasTableFiles.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
 						} catch (SQLException e) {
 							LOGGER.error(
 								"Database error while trying to add parsed information for \"{}\" to the cache: {}",

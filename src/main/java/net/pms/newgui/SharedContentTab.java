@@ -56,8 +56,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.MediasDatabase;
-import net.pms.database.TableFiles;
-import net.pms.database.TableFilesStatus;
+import net.pms.database.MediasTableFiles;
+import net.pms.database.MediasTableFilesStatus;
 import net.pms.network.HTTPResource;
 import static net.pms.dlna.RootFolder.parseFeedKey;
 import static net.pms.dlna.RootFolder.parseFeedValue;
@@ -253,12 +253,12 @@ public class SharedContentTab {
 
 		menuItemMarkPlayed.addActionListener((ActionEvent e) -> {
 			String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
-			TableFilesStatus.setDirectoryFullyPlayed(path, true);
+			MediasTableFilesStatus.setDirectoryFullyPlayed(path, true);
 		});
 
 		menuItemMarkUnplayed.addActionListener((ActionEvent e) -> {
 			String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
-			TableFilesStatus.setDirectoryFullyPlayed(path, false);
+			MediasTableFilesStatus.setDirectoryFullyPlayed(path, false);
 		});
 
 		popupMenu.add(menuItemMarkPlayed);
@@ -324,7 +324,7 @@ public class SharedContentTab {
 					}
 				}
 				for (int i = rows.length - 1; i >= 0; i--) {
-					TableFiles.removeMediaEntriesInFolder((String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
+					MediasTableFiles.removeMediaEntriesInFolder((String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
 					((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
 				}
 			}

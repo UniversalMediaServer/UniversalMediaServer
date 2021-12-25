@@ -24,14 +24,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TableVideoMetadataAwards extends TableHelper {
+public final class MediasTableVideoMetadataGenres extends MediasTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -40,8 +41,8 @@ public final class TableVideoMetadataAwards extends TableHelper {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableVideoMetadataAwards.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_AWARDS";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableVideoMetadataGenres.class);
+	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -61,7 +62,7 @@ public final class TableVideoMetadataAwards extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version > TABLE_VERSION) {
 						LOGGER.warn(
@@ -75,11 +76,11 @@ public final class TableVideoMetadataAwards extends TableHelper {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -97,53 +98,90 @@ public final class TableVideoMetadataAwards extends TableHelper {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"AWARD        VARCHAR2(1024)   NOT NULL" +
+					"GENRE        VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_AWARD_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, AWARD, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_GENRE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, GENRE, TVSERIESID)");
 		}
+	}
+
+	/**
+	 * @param tvSeriesTitle
+	 * @return all data in this table for a TV series, if it has an IMDb ID stored.
+	 */
+	public static HashSet getByTVSeriesName(final String tvSeriesTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = DATABASE.getConnection()) {
+			String query = "SELECT GENRE FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + MediasTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + MediasTableTVSeries.TABLE_NAME + ".ID " +
+				"WHERE " + MediasTableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle);
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					return convertResultSetToHashSet(resultSet);
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSeriesTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
 	}
 
 	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param awards
+	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final String awards, final long tvSeriesID) {
-		if (isBlank(awards)) {
+	public static void set(final String fullPathToFile, final HashSet genres, final long tvSeriesID) {
+		if (genres == null || genres.isEmpty()) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
-		try (
-			Connection connection = DATABASE.getConnection();
-			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TABLE_NAME + " (" +
-					"TVSERIESID, FILENAME, AWARD" +
-				") VALUES (" +
-					"?, ?, ?" +
-				")",
-				Statement.RETURN_GENERATED_KEYS
-			)
-		) {
-			insertStatement.clearParameters();
-			insertStatement.setLong(1, tvSeriesID);
-			insertStatement.setString(2, left(fullPathToFile, 255));
-			insertStatement.setString(3, left(awards, 255));
+		try (Connection connection = DATABASE.getConnection()) {
+			Iterator<String> i = genres.iterator();
+			while (i.hasNext()) {
+				String genre = i.next();
+				try (
+					PreparedStatement insertStatement = connection.prepareStatement(
+						"INSERT INTO " + TABLE_NAME + " (" +
+							"TVSERIESID, FILENAME, GENRE" +
+						") VALUES (" +
+							"?, ?, ?" +
+						")",
+						Statement.RETURN_GENERATED_KEYS
+					)
+				) {
+					insertStatement.clearParameters();
+					insertStatement.setLong(1, tvSeriesID);
+					insertStatement.setString(2, left(fullPathToFile, 255));
+					insertStatement.setString(3, left(genre, 255));
 
-			insertStatement.executeUpdate();
-			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-				if (rs.next()) {
-					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, awards);
+					insertStatement.executeUpdate();
+					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+						if (rs.next()) {
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
+						}
+					}
 				}
 			}
 		} catch (SQLException e) {
 			if (e.getErrorCode() != 23505) {
 				LOGGER.error(
-					"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
+					"Database error while writing genres to " + TABLE_NAME + " for \"{}\": {}",
 					fullPathToFile,
 					e.getMessage()
 				);

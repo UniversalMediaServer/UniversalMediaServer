@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
+ * Universal Media Server, for streaming any medias to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -29,18 +29,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.sql.PreparedStatement;
+import net.pms.dlna.DLNAThumbnail;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
- * This class is responsible for managing the Cover Art Archive table. It
+ * This class is responsible for managing the Thumbnails table. It
  * does everything from creating, checking and upgrading the table to
  * performing lookups, updates and inserts. All operations involving this table
  * shall be done with this class.
  *
- * @author Nadahar
+ * @author SubJunk & Nadahar
+ * @since 7.1.1
  */
-
-public final class TableCoverArtArchive extends TableHelper {
-
+public final class MediasTableThumbnails extends MediasTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -49,8 +51,8 @@ public final class TableCoverArtArchive extends TableHelper {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableCoverArtArchive.class);
-	public static final String TABLE_NAME = "COVER_ART_ARCHIVE";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableThumbnails.class);
+	public static final String TABLE_NAME = "THUMBNAILS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -70,7 +72,7 @@ public final class TableCoverArtArchive extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
@@ -86,11 +88,11 @@ public final class TableCoverArtArchive extends TableHelper {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -107,7 +109,7 @@ public final class TableCoverArtArchive extends TableHelper {
 	 *
 	 * @throws SQLException
 	 */
-	@SuppressWarnings("unused")
+	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
@@ -115,15 +117,17 @@ public final class TableCoverArtArchive extends TableHelper {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
 				switch (version) {
-					//case 1: Alter table to version 2
+					case 1:
+						version = 2;
+						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
+							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
 							version + " to " + TABLE_VERSION
 						);
 				}
 			}
-			TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
 		}
@@ -133,88 +137,80 @@ public final class TableCoverArtArchive extends TableHelper {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
+		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
 			statement.execute(
 				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID IDENTITY PRIMARY KEY, " +
-					"MODIFIED DATETIME, " +
-					"MBID VARCHAR(36), " +
-					"COVER BLOB" +
-				")");
-			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
+					"ID          IDENTITY PRIMARY KEY, " +
+					"THUMBNAIL   OTHER         NOT NULL, " +
+					"MODIFIED    DATETIME, " +
+					"MD5         VARCHAR UNIQUE NOT NULL" +
+				")"
+			);
+
+			statement.execute("CREATE UNIQUE INDEX MD5_IDX ON " + TABLE_NAME + "(MD5)");
 		}
 	}
 
 	/**
-	 * A type class for returning results from Cover Art Archive database
-	 * lookup.
-	 */
-	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-	public static class CoverArtArchiveResult {
-
-		public boolean found = false;
-		public Timestamp modified = null;
-		public byte[] cover = null;
-
-		@SuppressFBWarnings("EI_EXPOSE_REP2")
-		public CoverArtArchiveResult(final boolean found, final Timestamp modified, final byte[] cover) {
-			this.found = found;
-			this.modified = modified;
-			this.cover = cover;
-		}
-	}
-
-	private static String contructMBIDWhere(final String mBID) {
-		return " WHERE MBID" + sqlNullIfBlank(mBID, true, false);
-	}
-
-	/**
-	 * Stores the cover {@link Blob} with the given mBID in the database
+	 * Attempts to find a thumbnail in this table by MD5 hash. If not found,
+	 * it writes the new thumbnail to this table.
+	 * Finally, it writes the ID from this table as the THUMBID in the FILES
+	 * table.
 	 *
-	 * @param mBID the MBID to store
-	 * @param cover the cover as a {@link Blob}
+	 * @param thumbnail
+	 * @param fullPathToFile
+	 * @param tvSeriesID
 	 */
-	public static void writeMBID(final String mBID, final byte[] cover) {
-		boolean trace = LOGGER.isTraceEnabled();
+	public static void setThumbnail(final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID) {
+		if (fullPathToFile == null && tvSeriesID == -1) {
+			LOGGER.trace("Either fullPathToFile or tvSeriesID are required for setThumbnail, returning early");
+			return;
+		}
+
+		String selectQuery;
+		String md5Hash = DigestUtils.md5Hex(thumbnail.getBytes(false));
 
 		try (Connection connection = DATABASE.getConnection()) {
-			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
-			}
+			selectQuery = "SELECT ID FROM " + TABLE_NAME + " WHERE MD5 = " + sqlQuote(md5Hash) + " LIMIT 1";
+			LOGGER.trace("Searching for thumbnail in {} with \"{}\" before update", TABLE_NAME, selectQuery);
 
 			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			try (PreparedStatement selectStatement = connection.prepareStatement(selectQuery, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
+				try (ResultSet result = selectStatement.executeQuery()) {
 					if (result.next()) {
-						if (cover != null || result.getBlob("COVER") == null) {
-							if (trace) {
-								LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
-							}
-							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-							if (cover != null) {
-								result.updateBytes("COVER", cover);
-							} else {
-								result.updateNull("COVER");
-							}
-							result.updateRow();
-						} else if (trace) {
-							LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
+						if (fullPathToFile != null) {
+							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
+							MediasTableFiles.updateThumbnailId(fullPathToFile, result.getInt("ID"));
+						} else {
+							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, MediasTableTVSeries.TABLE_NAME);
+							MediasTableTVSeries.updateThumbnailId(tvSeriesID, result.getInt("ID"));
 						}
 					} else {
-						if (trace) {
-							LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
-						}
+						LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
 
-						result.moveToInsertRow();
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateString("MBID", mBID);
-						if (cover != null) {
-							result.updateBytes("COVER", cover);
+						String insertQuery = "INSERT INTO " + TABLE_NAME + " (THUMBNAIL, MODIFIED, MD5) VALUES (?, ?, ?)";
+						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
+							insertStatement.setObject(1, thumbnail);
+							insertStatement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+							insertStatement.setString(3, md5Hash);
+							insertStatement.executeUpdate();
+
+							try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
+								if (generatedKeys.next()) {
+									if (fullPathToFile != null) {
+										LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
+										MediasTableFiles.updateThumbnailId(fullPathToFile, generatedKeys.getInt(1));
+									} else {
+										LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, MediasTableTVSeries.TABLE_NAME);
+										MediasTableTVSeries.updateThumbnailId(tvSeriesID, generatedKeys.getInt(1));
+									}
+								} else {
+									LOGGER.trace("Generated key not returned in " + TABLE_NAME);
+								}
+							}
 						}
-						result.insertRow();
 					}
 				} finally {
 					connection.commit();
@@ -223,52 +219,9 @@ public final class TableCoverArtArchive extends TableHelper {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while writing Cover Art Archive cover for MBID \"{}\": {}", mBID, e.getMessage());
+			LOGGER.error("Database error while writing \"{}\" to {}: {}", md5Hash, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
-	/**
-	 * Looks up cover in the table based on the given MBID. Never returns
-	 * <code>null</code>
-	 *
-	 * @param mBID the MBID {@link String} to search with
-	 *
-	 * @return The result of the search, never <code>null</code>
-	 */
-	public static CoverArtArchiveResult findMBID(final String mBID) {
-		boolean trace = LOGGER.isTraceEnabled();
-		CoverArtArchiveResult result;
-
-		try (Connection connection = DATABASE.getConnection()) {
-			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
-
-			if (trace) {
-				LOGGER.trace("Searching for cover with \"{}\"", query);
-			}
-
-			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						result = new CoverArtArchiveResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getBytes("COVER"));
-					} else {
-						result = new CoverArtArchiveResult(false, null, null);
-					}
-				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
-			}
-		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while looking up Cover Art Archive cover for MBID \"{}\": {}",
-				mBID,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-			result = new CoverArtArchiveResult(false, null, null);
-		}
-
-		return result;
-	}
 }

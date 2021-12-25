@@ -49,22 +49,22 @@ import com.google.gson.JsonSyntaxException;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.database.TableFailedLookups;
-import net.pms.database.TableFiles;
-import net.pms.database.TableMetadata;
-import net.pms.database.TableTVSeries;
-import net.pms.database.TableThumbnails;
-import net.pms.database.TableVideoMetadataActors;
-import net.pms.database.TableVideoMetadataAwards;
-import net.pms.database.TableVideoMetadataCountries;
-import net.pms.database.TableVideoMetadataDirectors;
-import net.pms.database.TableVideoMetadataGenres;
-import net.pms.database.TableVideoMetadataIMDbRating;
-import net.pms.database.TableVideoMetadataPosters;
-import net.pms.database.TableVideoMetadataProduction;
-import net.pms.database.TableVideoMetadataRated;
-import net.pms.database.TableVideoMetadataRatings;
-import net.pms.database.TableVideoMetadataReleased;
+import net.pms.database.MediasTableFailedLookups;
+import net.pms.database.MediasTableFiles;
+import net.pms.database.MediasTableMetadata;
+import net.pms.database.MediasTableTVSeries;
+import net.pms.database.MediasTableThumbnails;
+import net.pms.database.MediasTableVideoMetadataActors;
+import net.pms.database.MediasTableVideoMetadataAwards;
+import net.pms.database.MediasTableVideoMetadataCountries;
+import net.pms.database.MediasTableVideoMetadataDirectors;
+import net.pms.database.MediasTableVideoMetadataGenres;
+import net.pms.database.MediasTableVideoMetadataIMDbRating;
+import net.pms.database.MediasTableVideoMetadataPosters;
+import net.pms.database.MediasTableVideoMetadataProduction;
+import net.pms.database.MediasTableVideoMetadataRated;
+import net.pms.database.MediasTableVideoMetadataRatings;
+import net.pms.database.MediasTableVideoMetadataReleased;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
@@ -149,8 +149,8 @@ public class APIUtils {
 				}
 				LOGGER.trace("Did not get metadata subversions, will attempt to use the database version");
 
-				apiDataSeriesVersion = TableMetadata.getMetadataValue("SERIES_VERSION");
-				apiDataVideoVersion = TableMetadata.getMetadataValue("VIDEO_VERSION");
+				apiDataSeriesVersion = MediasTableMetadata.getMetadataValue("SERIES_VERSION");
+				apiDataVideoVersion = MediasTableMetadata.getMetadataValue("VIDEO_VERSION");
 
 				if (apiDataSeriesVersion == null) {
 					LOGGER.trace("API versions could not be fetched from the API or the local database");
@@ -163,8 +163,8 @@ public class APIUtils {
 
 			// Persist the values to the database to be used as fallbacks
 			if (apiDataSeriesVersion != null) {
-				TableMetadata.setOrUpdateMetadataValue("SERIES_VERSION", apiDataSeriesVersion);
-				TableMetadata.setOrUpdateMetadataValue("VIDEO_VERSION", apiDataVideoVersion);
+				MediasTableMetadata.setOrUpdateMetadataValue("SERIES_VERSION", apiDataSeriesVersion);
+				MediasTableMetadata.setOrUpdateMetadataValue("VIDEO_VERSION", apiDataVideoVersion);
 			}
 		} catch (Exception e) {
 			LOGGER.trace("Error while setting API metadata versions", e);
@@ -189,12 +189,12 @@ public class APIUtils {
 				return;
 			}
 
-			if (TableFiles.doesLatestApiMetadataExist(file.getAbsolutePath(), file.lastModified())) {
+			if (MediasTableFiles.doesLatestApiMetadataExist(file.getAbsolutePath(), file.lastModified())) {
 				LOGGER.trace("The latest metadata already exists for {}", file.getName());
 				return;
 			}
 
-			if (TableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath(), true)) {
+			if (MediasTableFailedLookups.hasLookupFailedRecently(file.getAbsolutePath(), true)) {
 				return;
 			}
 
@@ -217,7 +217,7 @@ public class APIUtils {
 
 					if (metadataFromAPI == null || metadataFromAPI.containsKey("statusCode")) {
 						LOGGER.trace("Failed lookup for " + file.getName());
-						TableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""), true);
+						MediasTableFailedLookups.set(file.getAbsolutePath(), (metadataFromAPI != null ? (String) metadataFromAPI.get("serverResponse") : ""), true);
 
 						// File lookup failed, but before we return, attempt to enhance TV series data
 						if (isTVEpisodeBasedOnFilename) {
@@ -287,7 +287,7 @@ public class APIUtils {
 					)
 				) {
 					LOGGER.debug("API data was different to our parsed data, not storing it.");
-					TableFailedLookups.set(file.getAbsolutePath(), "Data mismatch", true);
+					MediasTableFailedLookups.set(file.getAbsolutePath(), "Data mismatch", true);
 
 					LOGGER.trace("Filename data: " + media);
 					LOGGER.trace("API data: " + metadataFromAPI);
@@ -362,33 +362,33 @@ public class APIUtils {
 
 				if (CONFIGURATION.getUseCache()) {
 					LOGGER.trace("setting metadata for " + file.getName());
-					TableFiles.insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+					MediasTableFiles.insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 
 					if (media.getThumb() != null) {
-						TableThumbnails.setThumbnail(media.getThumb(), file.getAbsolutePath(), -1);
+						MediasTableThumbnails.setThumbnail(media.getThumb(), file.getAbsolutePath(), -1);
 					}
 
 					if (metadataFromAPI.get("actors") != null) {
-						TableVideoMetadataActors.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("actors")), -1);
+						MediasTableVideoMetadataActors.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("actors")), -1);
 					}
-					TableVideoMetadataAwards.set(file.getAbsolutePath(), (String) metadataFromAPI.get("awards"), -1);
-					TableVideoMetadataCountries.set(file.getAbsolutePath(), (String) metadataFromAPI.get("country"), -1);
+					MediasTableVideoMetadataAwards.set(file.getAbsolutePath(), (String) metadataFromAPI.get("awards"), -1);
+					MediasTableVideoMetadataCountries.set(file.getAbsolutePath(), (String) metadataFromAPI.get("country"), -1);
 					if (metadataFromAPI.get("directors") != null) {
-						TableVideoMetadataDirectors.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("directors")), -1);
+						MediasTableVideoMetadataDirectors.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("directors")), -1);
 					}
 					if (metadataFromAPI.get("rating") != null && (Double) metadataFromAPI.get("rating") != 0.0) {
-						TableVideoMetadataIMDbRating.set(file.getAbsolutePath(), Double.toString((Double) metadataFromAPI.get("rating")), -1);
+						MediasTableVideoMetadataIMDbRating.set(file.getAbsolutePath(), Double.toString((Double) metadataFromAPI.get("rating")), -1);
 					}
 					if (metadataFromAPI.get("genres") != null) {
-						TableVideoMetadataGenres.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("genres")), -1);
+						MediasTableVideoMetadataGenres.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("genres")), -1);
 					}
-					TableVideoMetadataPosters.set(file.getAbsolutePath(), (String) metadataFromAPI.get("poster"), -1);
-					TableVideoMetadataProduction.set(file.getAbsolutePath(), (String) metadataFromAPI.get("production"), -1);
-					TableVideoMetadataRated.set(file.getAbsolutePath(), (String) metadataFromAPI.get("rated"), -1);
+					MediasTableVideoMetadataPosters.set(file.getAbsolutePath(), (String) metadataFromAPI.get("poster"), -1);
+					MediasTableVideoMetadataProduction.set(file.getAbsolutePath(), (String) metadataFromAPI.get("production"), -1);
+					MediasTableVideoMetadataRated.set(file.getAbsolutePath(), (String) metadataFromAPI.get("rated"), -1);
 					if (metadataFromAPI.get("ratings") != null) {
-						TableVideoMetadataRatings.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("ratings")), -1);
+						MediasTableVideoMetadataRatings.set(file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("ratings")), -1);
 					}
-					TableVideoMetadataReleased.set(file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
+					MediasTableVideoMetadataReleased.set(file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
 				}
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
@@ -430,7 +430,7 @@ public class APIUtils {
 		try {
 			HashMap<String, Object> seriesMetadataFromDatabase;
 			if (seriesIMDbIDFromAPI != null) {
-				seriesMetadataFromDatabase = TableTVSeries.getByIMDbID(seriesIMDbIDFromAPI);
+				seriesMetadataFromDatabase = MediasTableTVSeries.getByIMDbID(seriesIMDbIDFromAPI);
 			} else {
 				seriesMetadataFromDatabase = null;
 			}
@@ -446,7 +446,7 @@ public class APIUtils {
 				LOGGER.trace("API metadata for TV series {} ({}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
 
 				// Start by checking if we have already failed this lookup recently
-				if (TableFailedLookups.hasLookupFailedRecently(failedLookupKey, false)) {
+				if (MediasTableFailedLookups.hasLookupFailedRecently(failedLookupKey, false)) {
 					return null;
 				}
 
@@ -474,11 +474,11 @@ public class APIUtils {
 				if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
 					isAPIDataValid = false;
 					LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
-					TableFailedLookups.set(titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
+					MediasTableFailedLookups.set(titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
 				} else if (!isSeriesFromAPI) {
 					isAPIDataValid = false;
 					LOGGER.debug(validationFailedPrepend + "we received a non-series from API");
-					TableFailedLookups.set(titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI, false);
+					MediasTableFailedLookups.set(titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI, false);
 				}
 
 				if (!isAPIDataValid) {
@@ -490,7 +490,7 @@ public class APIUtils {
 				 * to insert it or update existing data, so we attempt to find an entry
 				 * based on the title.
 				 */
-				seriesMetadataFromDatabase = TableTVSeries.getByTitle(title);
+				seriesMetadataFromDatabase = MediasTableTVSeries.getByTitle(title);
 
 				// Restore the year appended to the title if it is in the filename
 				int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), (String) seriesMetadataFromAPI.get("title"));
@@ -501,11 +501,11 @@ public class APIUtils {
 
 				if (seriesMetadataFromDatabase == null) {
 					LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
-					tvSeriesDatabaseId = TableTVSeries.set(seriesMetadataFromAPI, null);
+					tvSeriesDatabaseId = MediasTableTVSeries.set(seriesMetadataFromAPI, null);
 				} else {
 					LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
 					tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
-					TableTVSeries.insertAPIMetadata(seriesMetadataFromAPI);
+					MediasTableTVSeries.insertAPIMetadata(seriesMetadataFromAPI);
 				}
 
 				if (tvSeriesDatabaseId == -1) {
@@ -516,25 +516,25 @@ public class APIUtils {
 				// Now we insert the TV series data into the other tables
 				HashSet<?> actorsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("actors"));
 				if (!actorsFromAPI.isEmpty()) {
-					TableVideoMetadataActors.set("", actorsFromAPI, tvSeriesDatabaseId);
+					MediasTableVideoMetadataActors.set("", actorsFromAPI, tvSeriesDatabaseId);
 				}
-				TableVideoMetadataAwards.set("", (String) seriesMetadataFromAPI.get("awards"), tvSeriesDatabaseId);
-				TableVideoMetadataCountries.set("", (String) seriesMetadataFromAPI.get("country"), tvSeriesDatabaseId);
+				MediasTableVideoMetadataAwards.set("", (String) seriesMetadataFromAPI.get("awards"), tvSeriesDatabaseId);
+				MediasTableVideoMetadataCountries.set("", (String) seriesMetadataFromAPI.get("country"), tvSeriesDatabaseId);
 				HashSet<?> directorsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("directors"));
 				if (!directorsFromAPI.isEmpty()) {
-					TableVideoMetadataDirectors.set("", directorsFromAPI, tvSeriesDatabaseId);
+					MediasTableVideoMetadataDirectors.set("", directorsFromAPI, tvSeriesDatabaseId);
 				}
 				HashSet<?> genresFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("genres"));
 				if (!genresFromAPI.isEmpty()) {
-					TableVideoMetadataGenres.set("", genresFromAPI, tvSeriesDatabaseId);
+					MediasTableVideoMetadataGenres.set("", genresFromAPI, tvSeriesDatabaseId);
 				}
-				TableVideoMetadataProduction.set("", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
+				MediasTableVideoMetadataProduction.set("", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
 
 				// Set the poster as the thumbnail
 				if (seriesMetadataFromAPI.get("poster") != null) {
 					try {
 						byte[] image = URI_FILE_RETRIEVER.get((String) seriesMetadataFromAPI.get("poster"));
-						TableThumbnails.setThumbnail(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+						MediasTableThumbnails.setThumbnail(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
 					} catch (EOFException e) {
 						LOGGER.debug(
 							"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
@@ -548,16 +548,16 @@ public class APIUtils {
 					}
 				}
 
-				TableVideoMetadataPosters.set("", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
-				TableVideoMetadataRated.set("", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
+				MediasTableVideoMetadataPosters.set("", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
+				MediasTableVideoMetadataRated.set("", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
 				if (seriesMetadataFromAPI.get("rating") != null && (Double) seriesMetadataFromAPI.get("rating") != 0.0) {
-					TableVideoMetadataIMDbRating.set("", Double.toString((Double) seriesMetadataFromAPI.get("rating")), tvSeriesDatabaseId);
+					MediasTableVideoMetadataIMDbRating.set("", Double.toString((Double) seriesMetadataFromAPI.get("rating")), tvSeriesDatabaseId);
 				}
 				HashSet<?> ratingsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("ratings"));
 				if (!ratingsFromAPI.isEmpty()) {
-					TableVideoMetadataRatings.set("", ratingsFromAPI, tvSeriesDatabaseId);
+					MediasTableVideoMetadataRatings.set("", ratingsFromAPI, tvSeriesDatabaseId);
 				}
-				TableVideoMetadataReleased.set("", (String) seriesMetadataFromAPI.get("released"), tvSeriesDatabaseId);
+				MediasTableVideoMetadataReleased.set("", (String) seriesMetadataFromAPI.get("released"), tvSeriesDatabaseId);
 
 				// Replace any close-but-not-exact titles in the FILES table
 				if (
@@ -567,7 +567,7 @@ public class APIUtils {
 					titleSimplified.equals(titleSimplifiedFromFilename)
 				) {
 					LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-					TableFiles.updateMovieOrShowName(titleFromFilename, title);
+					MediasTableFiles.updateMovieOrShowName(titleFromFilename, title);
 				}
 			}
 

@@ -1,7 +1,7 @@
 package net.pms.dlna.virtual;
 
 import net.pms.Messages;
-import net.pms.database.TableFilesStatus;
+import net.pms.database.MediasTableFilesStatus;
 import net.pms.util.FullyPlayedAction;
 
 /**
@@ -34,14 +34,14 @@ public class MediaLibrary extends VirtualFolder {
 		// Videos folder
 		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("PMS.34"), null);
 
-		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
+		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + MediasTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediasTableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
 
 		// All videos that are unwatched
-		String unwatchedCondition = " AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE";
+		String unwatchedCondition = " AND " + MediasTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE";
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
 			new String[]{
-				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + "                                    ORDER BY FILES.MOVIEORSHOWNAME ASC",
+				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + MediasTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediasTableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + "                                    ORDER BY FILES.MOVIEORSHOWNAME ASC",
 				sqlJoinStart +                                                                                                                                                        "FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + " AND FILES.MOVIEORSHOWNAME = '${0}' ORDER BY FILES.TVSEASON, FILES.TVEPISODENUMBER"
 			},
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
@@ -55,7 +55,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
 			new String[]{
-				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC",
+				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') FROM FILES LEFT JOIN " + MediasTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediasTableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC",
 				sqlJoinStart + "FILES.TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') = '${0}'" + unwatchedCondition + " ORDER BY FILENAME ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT, MediaLibraryFolder.FILES}
@@ -100,12 +100,12 @@ public class MediaLibrary extends VirtualFolder {
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(
 			Messages.getString("MediaLibrary.InProgress"),
-			sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL" + unwatchedCondition + " ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
+			sqlJoinStart + "FILES.TYPE = 4 AND " + MediasTableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL" + unwatchedCondition + " ORDER BY " + MediasTableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mostPlayedVideos = new MediaLibraryFolder(
 			Messages.getString("MediaLibrary.MostPlayed"),
-			sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".PLAYCOUNT DESC LIMIT 100",
+			sqlJoinStart + "FILES.TYPE = 4 AND " + MediasTableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + MediasTableFilesStatus.TABLE_NAME + ".PLAYCOUNT DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
@@ -155,7 +155,7 @@ public class MediaLibrary extends VirtualFolder {
 			if (configuration.isShowRecentlyPlayedFolder()) {
 				MediaLibraryFolder recentlyPlayedVideos = new MediaLibraryFolder(
 					Messages.getString("VirtualFolder.1"),
-					sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
+					sqlJoinStart + "FILES.TYPE = 4 AND " + MediasTableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + MediasTableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
 					MediaLibraryFolder.FILES_NOSORT
 				);
 				vfVideo.addChild(recentlyPlayedVideos);

@@ -43,7 +43,7 @@ import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediasDatabase;
-import net.pms.database.TableFiles;
+import net.pms.database.MediasTableFiles;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
@@ -251,7 +251,7 @@ public class RootFolder extends DLNAResource {
 
 		// Running might have been set false during scan
 		if (running) {
-			TableFiles.cleanup();
+			MediasTableFiles.cleanup();
 		}
 		frame.setScanLibraryEnabled(true);
 		frame.setStatusLine(null);
@@ -1561,13 +1561,13 @@ public class RootFolder extends DLNAResource {
 							}
 						} else if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
-							TableFiles.removeMediaEntriesInFolder(filename);
+							MediasTableFiles.removeMediaEntriesInFolder(filename);
 							bumpSystemUpdateId();
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-							TableFiles.removeMediaEntry(filename);
+							MediasTableFiles.removeMediaEntry(filename);
 							bumpSystemUpdateId();
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);

@@ -62,25 +62,25 @@ public class TableFilesStatusTest {
 			MediasDatabase.dropAllTables(connection);
 			database.checkTables(true);
 			try (Statement statement = connection.createStatement()) {
-				TableTablesVersions.dropTable(connection, TableFilesStatus.TABLE_NAME);
+				MediasTableTablesVersions.dropTable(connection, MediasTableFilesStatus.TABLE_NAME);
 
 				// Create version 7 of this table to start with
 				statement.execute(
-					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
+					"CREATE TABLE " + MediasTableFilesStatus.TABLE_NAME + "(" +
 						"ID            IDENTITY PRIMARY KEY, " +
 						"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
 						"MODIFIED      DATETIME, " +
 						"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
 						"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
-							"REFERENCES " + TableFiles.TABLE_NAME + "(FILENAME) " +
+							"REFERENCES " + MediasTableFiles.TABLE_NAME + "(FILENAME) " +
 							"ON DELETE CASCADE" +
 					")"
 				);
 
-				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TableFilesStatus.TABLE_NAME + "(FILENAME)");
-				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
+				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + MediasTableFilesStatus.TABLE_NAME + "(FILENAME)");
+				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + MediasTableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
 
-				TableTablesVersions.setTableVersion(connection, TableFilesStatus.TABLE_NAME, 7);
+				MediasTableTablesVersions.setTableVersion(connection, MediasTableFilesStatus.TABLE_NAME, 7);
 			} catch (Exception e) {
 				System.out.println("Error: " + e);
 			}
@@ -97,10 +97,10 @@ public class TableFilesStatusTest {
 
 	@Test
 	public void testIsFullyPlayed() throws Exception {
-		TableFilesStatus.setFullyPlayed("FileThatHasBeenPlayed", true);
-		TableFilesStatus.setFullyPlayed("FileThatHasBeenMarkedNotPlayed", false);
-		assertThat(TableFilesStatus.isFullyPlayed("FileThatDoesntExist")).isNull();
-		assertThat(TableFilesStatus.isFullyPlayed("FileThatHasBeenPlayed")).isTrue();
-		assertThat(TableFilesStatus.isFullyPlayed("FileThatHasBeenMarkedNotPlayed")).isFalse();
+		MediasTableFilesStatus.setFullyPlayed("FileThatHasBeenPlayed", true);
+		MediasTableFilesStatus.setFullyPlayed("FileThatHasBeenMarkedNotPlayed", false);
+		assertThat(MediasTableFilesStatus.isFullyPlayed("FileThatDoesntExist")).isNull();
+		assertThat(MediasTableFilesStatus.isFullyPlayed("FileThatHasBeenPlayed")).isTrue();
+		assertThat(MediasTableFilesStatus.isFullyPlayed("FileThatHasBeenMarkedNotPlayed")).isFalse();
 	}
 }

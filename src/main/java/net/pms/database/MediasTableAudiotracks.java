@@ -40,10 +40,10 @@ import org.slf4j.LoggerFactory;
  * lookups, updates and inserts. All operations involving this table shall be
  * done with this class.
  */
-public class TableAudiotracks extends TableHelper {
+public class MediasTableAudiotracks extends MediasTable {
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableAudiotracks.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
 	private static final String MBID_RECORD = "MBID_RECORD";
 	private static final String MBID_TRACK = "MBID_TRACK";
@@ -72,7 +72,7 @@ public class TableAudiotracks extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version == null) {
 					version = 1;
 				}
@@ -83,7 +83,7 @@ public class TableAudiotracks extends TableHelper {
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -128,7 +128,7 @@ public class TableAudiotracks extends TableHelper {
 				}
 			}
 			try {
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
@@ -203,19 +203,17 @@ public class TableAudiotracks extends TableHelper {
 
 		TABLE_LOCK.writeLock().lock();
 		try (
-			PreparedStatement updateStatment = connection.prepareStatement(
-				"SELECT " +
+			PreparedStatement updateStatment = connection.prepareStatement("SELECT " +
 					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
 					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, MEDIA_YEAR, TRACK, DISC, " +
 					"DELAY, MUXINGMODE, BITRATE " +
-				"FROM " + TableAudiotracks.TABLE_NAME + " " +
+				"FROM " + MediasTableAudiotracks.TABLE_NAME + " " +
 				"WHERE " +
 					"FILEID = ? AND ID = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			);
-			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TableAudiotracks.TABLE_NAME + " (" + columns + ")" +
+			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO " + MediasTableAudiotracks.TABLE_NAME + " (" + columns + ")" +
 				createDefaultValueForInsertStatement(columns)
 			);
 		) {

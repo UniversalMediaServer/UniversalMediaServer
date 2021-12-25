@@ -28,10 +28,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TableMetadata extends TableHelper {
+public class MediasTableMetadata extends MediasTable {
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableMetadata.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableMetadata.class);
 	public static final String TABLE_NAME = "METADATA";
 
 	/**
@@ -52,7 +52,7 @@ public class TableMetadata extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version == null) {
 					// Moving sql from DLNAMediaDatabase to this class.
 					version = 1;
@@ -64,7 +64,7 @@ public class TableMetadata extends TableHelper {
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -93,7 +93,7 @@ public class TableMetadata extends TableHelper {
 				}
 			}
 			try {
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				throw new SQLException(e);

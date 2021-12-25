@@ -47,7 +47,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.TableFilesStatus;
+import net.pms.database.MediasTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAMediaInfo;
@@ -1338,7 +1338,7 @@ public class RequestV2 extends HTTPResource {
 				DLNAResource dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(payload.getObjectId(), mediaRenderer);
 				File file = new File(dlna.getFileName());
 				String path = file.getCanonicalPath();
-				TableFilesStatus.setBookmark(path, payload.getPosSecond());
+				MediasTableFilesStatus.setBookmark(path, payload.getPosSecond());
 			} catch (Exception e) {
 				LOGGER.error("Cannot set bookmark", e);
 			}

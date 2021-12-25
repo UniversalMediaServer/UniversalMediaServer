@@ -49,10 +49,10 @@ import net.pms.util.FileUtil;
  * intensive, so the database is used to cache scanned information to be reused
  * later.
  */
-public class TableFiles extends TableHelper {
+public class MediasTableFiles extends MediasTable {
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock(true);
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableFiles.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableFiles.class);
 	public static final String TABLE_NAME = "FILES";
 
 	public static final String NONAME = "###";
@@ -107,7 +107,7 @@ public class TableFiles extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version == null) {
 					// Moving sql from DLNAMediaDatabase to this class.
 					version = 24;
@@ -119,7 +119,7 @@ public class TableFiles extends TableHelper {
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -231,7 +231,7 @@ public class TableFiles extends TableHelper {
 				}
 			}
 			try {
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				throw new SQLException(e);
@@ -248,7 +248,7 @@ public class TableFiles extends TableHelper {
 			try {
 				MediasDatabase.dropTable(connection, TABLE_NAME);
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException se) {
 				LOGGER.error("SQL error while (re)initializing tables: {}", se.getMessage());
 				LOGGER.trace("", se);
@@ -461,7 +461,7 @@ public class TableFiles extends TableHelper {
 			try (
 				PreparedStatement stmt = conn.prepareStatement(
 					"SELECT * FROM " + TABLE_NAME + " " +
-					"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + TableThumbnails.TABLE_NAME + ".ID " +
+					"LEFT JOIN " + MediasTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + MediasTableThumbnails.TABLE_NAME + ".ID " +
 					"WHERE " + TABLE_NAME + ".FILENAME = ? AND " + TABLE_NAME + ".MODIFIED = ? " +
 					"LIMIT 1"
 				);
@@ -470,9 +470,9 @@ public class TableFiles extends TableHelper {
 				stmt.setTimestamp(2, new Timestamp(modified));
 				try (
 					ResultSet rs = stmt.executeQuery();
-					PreparedStatement audios = conn.prepareStatement("SELECT * FROM " + TableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
-					PreparedStatement subs = conn.prepareStatement("SELECT * FROM " + TableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
-					PreparedStatement status = conn.prepareStatement("SELECT * FROM " + TableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
+					PreparedStatement audios = conn.prepareStatement("SELECT * FROM " + MediasTableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
+					PreparedStatement subs = conn.prepareStatement("SELECT * FROM " + MediasTableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
+					PreparedStatement status = conn.prepareStatement("SELECT * FROM " + MediasTableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
@@ -586,7 +586,7 @@ public class TableFiles extends TableHelper {
 				if (!externalFileReferencesToRemove.isEmpty()) {
 					for (String externalFileReferenceToRemove : externalFileReferencesToRemove) {
 						LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFileReferenceToRemove);
-						deleteRowsInTable(TableSubtracks.TABLE_NAME, "EXTERNALFILE", externalFileReferenceToRemove, false);
+						deleteRowsInTable(MediasTableSubtracks.TABLE_NAME, "EXTERNALFILE", externalFileReferenceToRemove, false);
 						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
 					}
 				}
@@ -883,8 +883,8 @@ public class TableFiles extends TableHelper {
 			}
 
 			if (media != null && fileId > -1) {
-				TableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
-				TableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
+				MediasTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
+				MediasTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 			}
 
 			connection.commit();
@@ -899,7 +899,7 @@ public class TableFiles extends TableHelper {
 			throw se;
 		} finally {
 			if (media != null && media.getThumb() != null) {
-				TableThumbnails.setThumbnail(media.getThumb(), name, -1);
+				MediasTableThumbnails.setThumbnail(media.getThumb(), name, -1);
 			}
 		}
 	}
@@ -1084,17 +1084,17 @@ public class TableFiles extends TableHelper {
 		}
 
 		deleteRowsInFilesTable(filename, useLike);
-		TableFilesStatus.remove(filename, useLike);
-		TableVideoMetadataActors.remove(filename, useLike);
-		TableVideoMetadataAwards.remove(filename, useLike);
-		TableVideoMetadataCountries.remove(filename, useLike);
-		TableVideoMetadataDirectors.remove(filename, useLike);
-		TableVideoMetadataGenres.remove(filename, useLike);
-		TableVideoMetadataPosters.remove(filename, useLike);
-		TableVideoMetadataProduction.remove(filename, useLike);
-		TableVideoMetadataRated.remove(filename, useLike);
-		TableVideoMetadataRatings.remove(filename, useLike);
-		TableVideoMetadataReleased.remove(filename, useLike);
+		MediasTableFilesStatus.remove(filename, useLike);
+		MediasTableVideoMetadataActors.remove(filename, useLike);
+		MediasTableVideoMetadataAwards.remove(filename, useLike);
+		MediasTableVideoMetadataCountries.remove(filename, useLike);
+		MediasTableVideoMetadataDirectors.remove(filename, useLike);
+		MediasTableVideoMetadataGenres.remove(filename, useLike);
+		MediasTableVideoMetadataPosters.remove(filename, useLike);
+		MediasTableVideoMetadataProduction.remove(filename, useLike);
+		MediasTableVideoMetadataRated.remove(filename, useLike);
+		MediasTableVideoMetadataRatings.remove(filename, useLike);
+		MediasTableVideoMetadataReleased.remove(filename, useLike);
 	}
 
 	/**
@@ -1288,14 +1288,14 @@ public class TableFiles extends TableHelper {
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
 			ps = conn.prepareStatement(
-				"DELETE FROM " + TableThumbnails.TABLE_NAME + " " +
+				"DELETE FROM " + MediasTableThumbnails.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT ID FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+					"WHERE " + TABLE_NAME + ".THUMBID = " + MediasTableThumbnails.TABLE_NAME + ".ID " +
 					"LIMIT 1" +
 				") AND NOT EXISTS (" +
-					"SELECT ID FROM " + TableTVSeries.TABLE_NAME + " " +
-					"WHERE " + TableTVSeries.TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+					"SELECT ID FROM " + MediasTableTVSeries.TABLE_NAME + " " +
+					"WHERE " + MediasTableTVSeries.TABLE_NAME + ".THUMBID = " + MediasTableThumbnails.TABLE_NAME + ".ID " +
 					"LIMIT 1" +
 				");"
 			);
@@ -1307,7 +1307,7 @@ public class TableFiles extends TableHelper {
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
 			ps = conn.prepareStatement(
-				"DELETE FROM " + TableFilesStatus.TABLE_NAME + " " +
+				"DELETE FROM " + MediasTableFilesStatus.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT ID FROM " + TABLE_NAME + " " +
 					"WHERE " + TABLE_NAME + ".FILENAME = FILES_STATUS.FILENAME" +
@@ -1321,10 +1321,10 @@ public class TableFiles extends TableHelper {
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
 			ps = conn.prepareStatement(
-				"DELETE FROM " + TableTVSeries.TABLE_NAME + " " +
+				"DELETE FROM " + MediasTableTVSeries.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT MOVIEORSHOWNAMESIMPLE FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".MOVIEORSHOWNAMESIMPLE = " + TableTVSeries.TABLE_NAME + ".SIMPLIFIEDTITLE " +
+					"WHERE " + TABLE_NAME + ".MOVIEORSHOWNAMESIMPLE = " + MediasTableTVSeries.TABLE_NAME + ".SIMPLIFIEDTITLE " +
 					"LIMIT 1" +
 				");"
 			);
@@ -1337,17 +1337,17 @@ public class TableFiles extends TableHelper {
 			 * that does not correspond to any TV series or files
 			 */
 			String[] metadataTables = {
-				TableVideoMetadataActors.TABLE_NAME,
-				TableVideoMetadataAwards.TABLE_NAME,
-				TableVideoMetadataCountries.TABLE_NAME,
-				TableVideoMetadataDirectors.TABLE_NAME,
-				TableVideoMetadataIMDbRating.TABLE_NAME,
-				TableVideoMetadataGenres.TABLE_NAME,
-				TableVideoMetadataPosters.TABLE_NAME,
-				TableVideoMetadataProduction.TABLE_NAME,
-				TableVideoMetadataRated.TABLE_NAME,
-				TableVideoMetadataRatings.TABLE_NAME,
-				TableVideoMetadataReleased.TABLE_NAME
+				MediasTableVideoMetadataActors.TABLE_NAME,
+				MediasTableVideoMetadataAwards.TABLE_NAME,
+				MediasTableVideoMetadataCountries.TABLE_NAME,
+				MediasTableVideoMetadataDirectors.TABLE_NAME,
+				MediasTableVideoMetadataIMDbRating.TABLE_NAME,
+				MediasTableVideoMetadataGenres.TABLE_NAME,
+				MediasTableVideoMetadataPosters.TABLE_NAME,
+				MediasTableVideoMetadataProduction.TABLE_NAME,
+				MediasTableVideoMetadataRated.TABLE_NAME,
+				MediasTableVideoMetadataRatings.TABLE_NAME,
+				MediasTableVideoMetadataReleased.TABLE_NAME
 			};
 			for (String table : metadataTables) {
 				ps = conn.prepareStatement(
@@ -1357,8 +1357,8 @@ public class TableFiles extends TableHelper {
 						"WHERE " + TABLE_NAME + ".FILENAME = " + table + ".FILENAME " +
 						"LIMIT 1" +
 					") AND NOT EXISTS (" +
-						"SELECT ID FROM " + TableTVSeries.TABLE_NAME + " " +
-						"WHERE " + TableTVSeries.TABLE_NAME + ".ID = " + table + ".TVSERIESID " +
+						"SELECT ID FROM " + MediasTableTVSeries.TABLE_NAME + " " +
+						"WHERE " + MediasTableTVSeries.TABLE_NAME + ".ID = " + table + ".TVSERIESID " +
 						"LIMIT 1" +
 					");"
 				);
@@ -1412,16 +1412,16 @@ public class TableFiles extends TableHelper {
 		try (Connection connection = DATABASE.getConnection()) {
 			String query = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + TableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataActors.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataAwards.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataCountries.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataDirectors.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataProduction.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataPosters.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRated.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataRatings.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + TableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + TableVideoMetadataReleased.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataActors.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataAwards.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataCountries.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataDirectors.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataProduction.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataPosters.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataRated.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataRatings.TABLE_NAME + ".FILENAME " +
+				"LEFT JOIN " + MediasTableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediasTableVideoMetadataReleased.TABLE_NAME + ".FILENAME " +
 				"WHERE " + TABLE_NAME + ".FILENAME = " + sqlQuote(filename) + " and IMDBID != ''";
 
 			if (trace) {
@@ -1456,7 +1456,7 @@ public class TableFiles extends TableHelper {
 		try (Connection connection = PMS.get().getDatabase().getConnection()) {
 			String query = "SELECT THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + TableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + TableThumbnails.TABLE_NAME + ".ID " +
+				"LEFT JOIN " + MediasTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediasTableThumbnails.TABLE_NAME + ".ID " +
 				"WHERE MOVIEORSHOWNAMESIMPLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {

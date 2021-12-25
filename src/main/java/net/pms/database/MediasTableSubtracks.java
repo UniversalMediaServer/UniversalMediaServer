@@ -37,10 +37,10 @@ import org.slf4j.LoggerFactory;
  * lookups, updates and inserts. All operations involving this table shall be
  * done with this class.
  */
-public class TableSubtracks extends TableHelper {
+public class MediasTableSubtracks extends MediasTable {
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableSubtracks.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableSubtracks.class);
 	public static final String TABLE_NAME = "SUBTRACKS";
 
 	private static final int SIZE_LANG = 3;
@@ -64,7 +64,7 @@ public class TableSubtracks extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version == null) {
 					version = 1;
 				}
@@ -75,7 +75,7 @@ public class TableSubtracks extends TableHelper {
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -103,7 +103,7 @@ public class TableSubtracks extends TableHelper {
 				}
 			}
 			try {
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");

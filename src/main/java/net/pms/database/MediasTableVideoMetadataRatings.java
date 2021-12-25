@@ -19,22 +19,21 @@
  */
 package net.pms.database;
 
+import com.google.gson.internal.LinkedTreeMap;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TableVideoMetadataCountries extends TableHelper {
+public final class MediasTableVideoMetadataRatings extends MediasTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -43,8 +42,9 @@ public final class TableVideoMetadataCountries extends TableHelper {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableVideoMetadataCountries.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_COUNTRIES";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableVideoMetadataRatings.class);
+
+	public static final String TABLE_NAME = "VIDEO_METADATA_RATINGS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -52,7 +52,6 @@ public final class TableVideoMetadataCountries extends TableHelper {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 1;
-
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -65,7 +64,7 @@ public final class TableVideoMetadataCountries extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version > TABLE_VERSION) {
 						LOGGER.warn(
@@ -79,11 +78,11 @@ public final class TableVideoMetadataCountries extends TableHelper {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -101,11 +100,12 @@ public final class TableVideoMetadataCountries extends TableHelper {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"COUNTRY      VARCHAR2(1024)   NOT NULL" +
+					"RATINGSOURCE VARCHAR2(1024)   NOT NULL, " +
+					"RATINGVALUE  VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_COUNTRY_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, COUNTRY, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_RATINGSOURCE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATINGSOURCE, TVSERIESID)");
 		}
 	}
 
@@ -113,26 +113,25 @@ public final class TableVideoMetadataCountries extends TableHelper {
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param countries
+	 * @param ratings
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final String countries, final long tvSeriesID) {
-		if (isBlank(countries)) {
+	public static void set(final String fullPathToFile, final HashSet ratings, final long tvSeriesID) {
+		if (ratings == null || ratings.isEmpty()) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = DATABASE.getConnection()) {
-			List<String> countriesArray = Arrays.asList(countries.split(", "));
-			Iterator<String> i = countriesArray.iterator();
+			Iterator<LinkedTreeMap> i = ratings.iterator();
 			while (i.hasNext()) {
-				String country = i.next();
+				LinkedTreeMap<String, String> rating = i.next();
 				try (
 					PreparedStatement insertStatement = connection.prepareStatement(
 						"INSERT INTO " + TABLE_NAME + " (" +
-							"TVSERIESID, FILENAME, COUNTRY" +
+							"TVSERIESID, FILENAME, RATINGSOURCE, RATINGVALUE" +
 						") VALUES (" +
-							"?, ?, ?" +
+							"?, ?, ?, ?" +
 						")",
 						Statement.RETURN_GENERATED_KEYS
 					)
@@ -140,12 +139,13 @@ public final class TableVideoMetadataCountries extends TableHelper {
 					insertStatement.clearParameters();
 					insertStatement.setLong(1, tvSeriesID);
 					insertStatement.setString(2, left(fullPathToFile, 255));
-					insertStatement.setString(3, left(country, 255));
+					insertStatement.setString(3, rating.get("Source"));
+					insertStatement.setString(4, rating.get("Value"));
 
 					insertStatement.executeUpdate();
 					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
 						if (rs.next()) {
-							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, country);
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, rating);
 						}
 					}
 				}

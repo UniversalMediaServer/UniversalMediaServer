@@ -45,7 +45,7 @@ import net.pms.dlna.MediaMonitor;
  * @author SubJunk & Nadahar
  * @since 7.0.0
  */
-public final class TableFilesStatus extends TableHelper {
+public final class MediasTableFilesStatus extends MediasTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -54,7 +54,7 @@ public final class TableFilesStatus extends TableHelper {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableFilesStatus.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableFilesStatus.class);
 	public static final String TABLE_NAME = "FILES_STATUS";
 
 	/**
@@ -75,7 +75,7 @@ public final class TableFilesStatus extends TableHelper {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = TableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
@@ -91,11 +91,11 @@ public final class TableFilesStatus extends TableHelper {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -236,7 +236,7 @@ public final class TableFilesStatus extends TableHelper {
 			}
 
 			try {
-				TableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				throw new SQLException(e);
