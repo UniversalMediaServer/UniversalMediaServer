@@ -248,7 +248,7 @@ public class PMS {
 	 * @see net.pms.database.MediaDatabase
 	 */
 	private MediasDatabase mediasDatabase;
-	private final Object mediasDatabaseLock = new Object();
+	private Object mediasDatabaseLock = new Object();
 
 	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
