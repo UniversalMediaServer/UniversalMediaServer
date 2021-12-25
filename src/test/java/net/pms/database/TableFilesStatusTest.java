@@ -62,7 +62,7 @@ public class TableFilesStatusTest {
 			MediasDatabase.dropAllTables(connection);
 			database.checkTables(true);
 			try (Statement statement = connection.createStatement()) {
-				MediasTableTablesVersions.dropTable(connection, MediasTableFilesStatus.TABLE_NAME);
+				MediasDatabase.dropTableAndConstraint(connection, MediasTableFilesStatus.TABLE_NAME);
 
 				// Create version 7 of this table to start with
 				statement.execute(
