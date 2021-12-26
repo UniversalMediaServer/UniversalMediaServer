@@ -1,3 +1,22 @@
+10.14.1 - 2021-12-24
+
+	General:
+		Fixed broken logging characters with some languages (thanks, SurfaceS!)
+	Translation updates via Crowdin:
+		Danish (100%) (thanks, NCAA!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (100%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+		Slovak (93%) (thanks, Lukáš Praznovec!)
+		Swedish (97%) (thanks, Lorien aka the First One)
+		Turkish (100%) (thanks, Burak Yavuz!)
+	Dependencies:
+		Bump logback from 1.2.8 to 1.2.9
+		Bump spotbugs-maven-plugin from 4.5.0.0 to 4.5.2.0
+
 10.14.0 - 2021-12-19
 
 	General:
