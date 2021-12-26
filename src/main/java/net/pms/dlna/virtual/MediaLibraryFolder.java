@@ -175,7 +175,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		List<String> queries = new ArrayList<>();
 		queries.add("SELECT " + columnName + " FROM " + tableName + " WHERE TVSERIESID > -1 ORDER BY " + columnName + " ASC");
 		queries.add("SELECT TITLE              FROM " + MediaTableTVSeries.TABLE_NAME + " LEFT JOIN " + tableName + " ON " + MediaTableTVSeries.TABLE_NAME + ".ID = " + tableName + ".TVSERIESID WHERE " + tableName + "." + columnName + " = '${0}' ORDER BY TITLE ASC");
-		queries.add("SELECT          *         FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVEPISODENUMBER");
+		queries.add("SELECT          *         FROM FILES WHERE FORMAT_TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVEPISODENUMBER");
 		return queries;
 	}
 
@@ -623,7 +623,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 						MediaTableVideoMetadataGenres.TABLE_NAME + ".GENRE IN (genresSubquery.GENRE) AND " +
 						MediaTableVideoMetadataRated.TABLE_NAME  + ".RATING = ratedSubquery.RATING " +
 					"ORDER BY " + MediaTableVideoMetadataIMDbRating.TABLE_NAME + ".IMDBRATING DESC",
-					"SELECT * FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
+					"SELECT * FROM FILES WHERE FORMAT_TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
 				},
 				new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
 			);

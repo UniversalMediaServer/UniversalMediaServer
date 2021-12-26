@@ -133,7 +133,7 @@ public class DbIdResourceLocator {
 					case TYPE_ALBUM:
 						sql = String.format(
 							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
-								"where (  F.TYPE = 1  and  A.ALBUM  = '%s')",
+								"where (  F.FORMAT_TYPE = 1  and  A.ALBUM  = '%s')",
 							typeAndIdent.ident);
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));

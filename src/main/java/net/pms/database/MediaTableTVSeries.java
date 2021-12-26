@@ -579,7 +579,7 @@ public final class MediaTableTVSeries extends MediaTable {
 					"LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " +
 					"FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME " +
 				"WHERE " +
-					"FILES.TYPE = 4 AND " +
+					"FILES.FORMAT_TYPE = 4 AND " +
 					"FILES.MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
 					"FILES.ISTVEPISODE AND " +
 					MediaTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +

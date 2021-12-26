@@ -161,7 +161,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("FILES ")
 								.append("SET ")
 									.append("IMDBID = NULL, ")
-									.append("`YEAR` = NULL, ")
+									.append("MEDIA_YEAR = NULL, ")
 									.append("MOVIEORSHOWNAME = NULL, ")
 									.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
 									.append("TVSEASON = NULL, ")
@@ -174,8 +174,6 @@ public class MediaTableFiles extends MediaTable {
 							statement.execute(sb.toString());
 
 							statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on FILES (FILENAME, MODIFIED, VERSION, IMDBID)");
-
-							statement.execute("CREATE UNIQUE INDEX IDX_KEY ON METADATA(`KEY`)");
 						}
 						version++;
 						LOGGER.trace("Updated {} table from version {} to {}", TABLE_NAME, currentVersion, version);
