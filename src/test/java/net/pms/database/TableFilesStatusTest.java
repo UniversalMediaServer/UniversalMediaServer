@@ -58,6 +58,7 @@ public class TableFilesStatusTest {
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 		try (Connection connection = database.getConnection()) {
 			//remove all tables to cleanup db
+			Tables.reInitTablesExceptFilesStatus();
 			Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
 			Tables.checkTables(true);
 
