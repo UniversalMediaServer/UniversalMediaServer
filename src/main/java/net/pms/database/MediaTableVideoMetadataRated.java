@@ -24,15 +24,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class MediasTableVideoMetadataDirectors extends MediasTable {
+public final class MediaTableVideoMetadataRated extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -41,8 +40,8 @@ public final class MediasTableVideoMetadataDirectors extends MediasTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableVideoMetadataDirectors.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_DIRECTORS";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataRated.class);
+	public static final String TABLE_NAME = "VIDEO_METADATA_RATED";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -50,7 +49,6 @@ public final class MediasTableVideoMetadataDirectors extends MediasTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 1;
-
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -63,7 +61,7 @@ public final class MediasTableVideoMetadataDirectors extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version > TABLE_VERSION) {
 						LOGGER.warn(
@@ -77,11 +75,11 @@ public final class MediasTableVideoMetadataDirectors extends MediasTable {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -99,52 +97,82 @@ public final class MediasTableVideoMetadataDirectors extends MediasTable {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"DIRECTOR        VARCHAR2(1024)   NOT NULL" +
+					"RATING       VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_DIRECTOR_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, DIRECTOR, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_RATED_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATING, TVSERIESID)");
 		}
+	}
+
+	/**
+	 * @param tvSeriesTitle
+	 * @return the rating for a TV series, if it has an IMDb ID stored.
+	 */
+	public static String getByTVSeriesName(final String tvSeriesTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = DATABASE.getConnection()) {
+			String query = "SELECT RATING FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + MediaTableTVSeries.TABLE_NAME + ".ID " +
+				"WHERE " + MediaTableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle) + " " +
+				"LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					if (resultSet.next()) {
+						return resultSet.getString(1);
+					}
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSeriesTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
 	}
 
 	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param directors
+	 * @param rated
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final HashSet directors, final long tvSeriesID) {
-		if (directors == null || directors.isEmpty()) {
+	public static void set(final String fullPathToFile, final String rated, final long tvSeriesID) {
+		if (isBlank(rated)) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
-		try (Connection connection = DATABASE.getConnection()) {
-			Iterator<String> i = directors.iterator();
-			while (i.hasNext()) {
-				String director = i.next();
-				try (
-					PreparedStatement insertStatement = connection.prepareStatement(
-						"INSERT INTO " + TABLE_NAME + " (" +
-							"TVSERIESID, FILENAME, DIRECTOR" +
-						") VALUES (" +
-							"?, ?, ?" +
-						")",
-						Statement.RETURN_GENERATED_KEYS
-					)
-				) {
-					insertStatement.clearParameters();
-					insertStatement.setLong(1, tvSeriesID);
-					insertStatement.setString(2, left(fullPathToFile, 255));
-					insertStatement.setString(3, left(director, 255));
+		try (
+			Connection connection = DATABASE.getConnection();
+			PreparedStatement insertStatement = connection.prepareStatement(
+				"INSERT INTO " + TABLE_NAME + " (" +
+					"TVSERIESID, FILENAME, RATING" +
+				") VALUES (" +
+					"?, ?, ?" +
+				")",
+				Statement.RETURN_GENERATED_KEYS
+			)
+		) {
+			insertStatement.clearParameters();
+			insertStatement.setLong(1, tvSeriesID);
+			insertStatement.setString(2, left(fullPathToFile, 255));
+			insertStatement.setString(3, left(rated, 255));
 
-					insertStatement.executeUpdate();
-					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-						if (rs.next()) {
-							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, director);
-						}
-					}
+			insertStatement.executeUpdate();
+			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+				if (rs.next()) {
+					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, rated);
 				}
 			}
 		} catch (SQLException e) {

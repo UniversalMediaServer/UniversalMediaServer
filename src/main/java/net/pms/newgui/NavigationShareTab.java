@@ -236,7 +236,7 @@ public class NavigationShareTab {
 					int ab = Integer.parseInt(seekPosition.getText());
 					configuration.setThumbnailSeekPos(ab);
 					if (configuration.getUseCache()) {
-						PMS.get().getMediasDatabase().init(true);
+						PMS.get().getMediaDatabase().init(true);
 					}
 				} catch (NumberFormatException nfe) {
 					LOGGER.debug("Could not parse thumbnail seek position from \"" + seekPosition.getText() + "\"");
@@ -378,9 +378,9 @@ public class NavigationShareTab {
 				Messages.getString("Dialog.Question"),
 				JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {
-				PMS.get().getMediasDatabase().init(true);
+				PMS.get().getMediaDatabase().init(true);
 				try {
-					PMS.get().getMediasDatabase().reInitTablesExceptFilesStatus();
+					PMS.get().getMediaDatabase().reInitTablesExceptFilesStatus();
 				} catch (Exception e2) {
 					LOGGER.debug("Error when re-initializing after manual cache reset:", e2);
 				}
@@ -610,7 +610,7 @@ public class NavigationShareTab {
 					);
 
 					if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
-						PMS.get().getMediasDatabase().init(true);
+						PMS.get().getMediaDatabase().init(true);
 					}
 				}
 			}

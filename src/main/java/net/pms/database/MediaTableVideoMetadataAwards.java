@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
+public final class MediaTableVideoMetadataAwards extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -40,8 +40,8 @@ public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableVideoMetadataIMDbRating.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_IMDB_RATING";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataAwards.class);
+	public static final String TABLE_NAME = "VIDEO_METADATA_AWARDS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -61,7 +61,7 @@ public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version > TABLE_VERSION) {
 						LOGGER.warn(
@@ -75,11 +75,11 @@ public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -97,11 +97,11 @@ public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"IMDBRATING   VARCHAR2(1024)   NOT NULL" +
+					"AWARD        VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_IMDBRATING_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, IMDBRATING, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_AWARD_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, AWARD, TVSERIESID)");
 		}
 	}
 
@@ -109,11 +109,11 @@ public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param imdbRating
+	 * @param awards
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final String imdbRating, final long tvSeriesID) {
-		if (isBlank(imdbRating)) {
+	public static void set(final String fullPathToFile, final String awards, final long tvSeriesID) {
+		if (isBlank(awards)) {
 			return;
 		}
 
@@ -122,7 +122,7 @@ public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
 			Connection connection = DATABASE.getConnection();
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO " + TABLE_NAME + " (" +
-					"TVSERIESID, FILENAME, IMDBRATING" +
+					"TVSERIESID, FILENAME, AWARD" +
 				") VALUES (" +
 					"?, ?, ?" +
 				")",
@@ -132,12 +132,12 @@ public final class MediasTableVideoMetadataIMDbRating extends MediasTable {
 			insertStatement.clearParameters();
 			insertStatement.setLong(1, tvSeriesID);
 			insertStatement.setString(2, left(fullPathToFile, 255));
-			insertStatement.setString(3, left(imdbRating, 255));
+			insertStatement.setString(3, left(awards, 255));
 
 			insertStatement.executeUpdate();
 			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
 				if (rs.next()) {
-					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, imdbRating);
+					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, awards);
 				}
 			}
 		} catch (SQLException e) {

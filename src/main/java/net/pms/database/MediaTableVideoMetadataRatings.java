@@ -33,7 +33,7 @@ import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class MediasTableVideoMetadataRatings extends MediasTable {
+public final class MediaTableVideoMetadataRatings extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -42,7 +42,7 @@ public final class MediasTableVideoMetadataRatings extends MediasTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableVideoMetadataRatings.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataRatings.class);
 
 	public static final String TABLE_NAME = "VIDEO_METADATA_RATINGS";
 
@@ -64,7 +64,7 @@ public final class MediasTableVideoMetadataRatings extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version > TABLE_VERSION) {
 						LOGGER.warn(
@@ -78,11 +78,11 @@ public final class MediasTableVideoMetadataRatings extends MediasTable {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();

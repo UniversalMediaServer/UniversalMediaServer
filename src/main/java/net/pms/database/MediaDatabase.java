@@ -33,8 +33,8 @@ import net.pms.newgui.SharedContentTab;
  * intensive, so the database is used to cache scanned information to be reused
  * later.
  */
-public class MediasDatabase extends Database implements Runnable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasDatabase.class);
+public class MediaDatabase extends Database implements Runnable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
 	private static final ReadWriteLock DATABASE_LOCK = new ReentrantReadWriteLock(true);
 
 	private Thread scanner;
@@ -48,7 +48,7 @@ public class MediasDatabase extends Database implements Runnable {
 	 * in there if it doesn't exist, in order to prevent overwriting
 	 * real databases.
 	 */
-	public MediasDatabase() {
+	public MediaDatabase() {
 		super("medias");
 	}
 
@@ -116,37 +116,37 @@ public class MediasDatabase extends Database implements Runnable {
 				LOGGER.debug("Starting check of database tables");
 				try (Connection connection = getConnection()) {
 					//Tables Versions (need to be first)
-					MediasTableTablesVersions.checkTable(connection);
+					MediaTableTablesVersions.checkTable(connection);
 
 					// Files and metadata
-					MediasTableMetadata.checkTable(connection);
-					MediasTableFiles.checkTable(connection);
-					MediasTableSubtracks.checkTable(connection);
-					MediasTableRegexpRules.checkTable(connection);
+					MediaTableMetadata.checkTable(connection);
+					MediaTableFiles.checkTable(connection);
+					MediaTableSubtracks.checkTable(connection);
+					MediaTableRegexpRules.checkTable(connection);
 
-					MediasTableMusicBrainzReleases.checkTable(connection);
-					MediasTableCoverArtArchive.checkTable(connection);
-					MediasTableFilesStatus.checkTable(connection);
-					MediasTableThumbnails.checkTable(connection);
+					MediaTableMusicBrainzReleases.checkTable(connection);
+					MediaTableCoverArtArchive.checkTable(connection);
+					MediaTableFilesStatus.checkTable(connection);
+					MediaTableThumbnails.checkTable(connection);
 
-					MediasTableTVSeries.checkTable(connection);
-					MediasTableFailedLookups.checkTable(connection);
+					MediaTableTVSeries.checkTable(connection);
+					MediaTableFailedLookups.checkTable(connection);
 
 					// Video metadata tables
-					MediasTableVideoMetadataActors.checkTable(connection);
-					MediasTableVideoMetadataAwards.checkTable(connection);
-					MediasTableVideoMetadataCountries.checkTable(connection);
-					MediasTableVideoMetadataDirectors.checkTable(connection);
-					MediasTableVideoMetadataIMDbRating.checkTable(connection);
-					MediasTableVideoMetadataGenres.checkTable(connection);
-					MediasTableVideoMetadataPosters.checkTable(connection);
-					MediasTableVideoMetadataProduction.checkTable(connection);
-					MediasTableVideoMetadataRated.checkTable(connection);
-					MediasTableVideoMetadataRatings.checkTable(connection);
-					MediasTableVideoMetadataReleased.checkTable(connection);
+					MediaTableVideoMetadataActors.checkTable(connection);
+					MediaTableVideoMetadataAwards.checkTable(connection);
+					MediaTableVideoMetadataCountries.checkTable(connection);
+					MediaTableVideoMetadataDirectors.checkTable(connection);
+					MediaTableVideoMetadataIMDbRating.checkTable(connection);
+					MediaTableVideoMetadataGenres.checkTable(connection);
+					MediaTableVideoMetadataPosters.checkTable(connection);
+					MediaTableVideoMetadataProduction.checkTable(connection);
+					MediaTableVideoMetadataRated.checkTable(connection);
+					MediaTableVideoMetadataRatings.checkTable(connection);
+					MediaTableVideoMetadataReleased.checkTable(connection);
 
 					// Audio Metadata
-					MediasTableAudiotracks.checkTable(connection);
+					MediaTableAudiotracks.checkTable(connection);
 				}
 				tablesChecked = true;
 			}
@@ -168,36 +168,36 @@ public class MediasDatabase extends Database implements Runnable {
 
 	public static synchronized void dropAllTables(Connection connection) {
 		dropAllTablesExceptFilesStatus(connection);
-		dropTableAndConstraint(connection, MediasTableRegexpRules.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableFilesStatus.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableMetadata.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableFiles.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableTablesVersions.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableRegexpRules.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableMetadata.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableFiles.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
 	}
 
 	public static synchronized void dropAllTablesExceptFilesStatus(Connection connection) {
-		dropTableAndConstraint(connection, MediasTableMusicBrainzReleases.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableCoverArtArchive.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableThumbnails.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableMusicBrainzReleases.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableCoverArtArchive.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableThumbnails.TABLE_NAME);
 
-		dropTableAndConstraint(connection, MediasTableTVSeries.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableFailedLookups.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableTVSeries.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableFailedLookups.TABLE_NAME);
 
 		// Video metadata tables
-		dropTableAndConstraint(connection, MediasTableVideoMetadataActors.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataAwards.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataCountries.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataDirectors.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataIMDbRating.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataGenres.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataPosters.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataProduction.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataRated.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataRatings.TABLE_NAME);
-		dropTableAndConstraint(connection, MediasTableVideoMetadataReleased.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataActors.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataAwards.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataCountries.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataDirectors.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataIMDbRating.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataPosters.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataProduction.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataRated.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataReleased.TABLE_NAME);
 
 		// Audio Metadata
-		dropTableAndConstraint(connection, MediasTableAudiotracks.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
 	}
 
 }

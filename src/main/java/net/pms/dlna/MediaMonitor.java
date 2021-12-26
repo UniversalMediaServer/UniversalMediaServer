@@ -17,8 +17,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.database.MediasTableFilesStatus;
-import net.pms.database.MediasTableTVSeries;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableTVSeries;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
@@ -312,7 +312,7 @@ public class MediaMonitor extends VirtualFolder {
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
-			MediasTableFilesStatus.setLastPlayed(fullPathToFile, elapsed);
+			MediaTableFilesStatus.setLastPlayed(fullPathToFile, elapsed);
 			LOGGER.trace("final decision: not fully played");
 		}
 	}
@@ -350,9 +350,9 @@ public class MediaMonitor extends VirtualFolder {
 
 			// Add the entry to the cache
 			if (isFileOrTVSeries) {
-				fullyPlayed = MediasTableFilesStatus.isFullyPlayed(fullPathToFile);
+				fullyPlayed = MediaTableFilesStatus.isFullyPlayed(fullPathToFile);
 			} else {
-				fullyPlayed = MediasTableTVSeries.isFullyPlayed(fullPathToFile);
+				fullyPlayed = MediaTableTVSeries.isFullyPlayed(fullPathToFile);
 			}
 
 			if (fullyPlayed == null) {
@@ -378,9 +378,9 @@ public class MediaMonitor extends VirtualFolder {
 		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
-			MediasTableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
+			MediaTableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
 			if (lastPlaybackPosition != null) {
-				MediasTableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+				MediaTableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
 			}
 		} finally {
 			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();

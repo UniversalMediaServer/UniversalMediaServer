@@ -42,7 +42,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * @author SubJunk & Nadahar
  * @since 7.1.1
  */
-public final class MediasTableThumbnails extends MediasTable {
+public final class MediaTableThumbnails extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -51,7 +51,7 @@ public final class MediasTableThumbnails extends MediasTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableThumbnails.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableThumbnails.class);
 	public static final String TABLE_NAME = "THUMBNAILS";
 
 	/**
@@ -72,7 +72,7 @@ public final class MediasTableThumbnails extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
@@ -88,11 +88,11 @@ public final class MediasTableThumbnails extends MediasTable {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -127,7 +127,7 @@ public final class MediasTableThumbnails extends MediasTable {
 						);
 				}
 			}
-			MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
 		}
@@ -182,10 +182,10 @@ public final class MediasTableThumbnails extends MediasTable {
 					if (result.next()) {
 						if (fullPathToFile != null) {
 							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
-							MediasTableFiles.updateThumbnailId(fullPathToFile, result.getInt("ID"));
+							MediaTableFiles.updateThumbnailId(fullPathToFile, result.getInt("ID"));
 						} else {
-							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, MediasTableTVSeries.TABLE_NAME);
-							MediasTableTVSeries.updateThumbnailId(tvSeriesID, result.getInt("ID"));
+							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
+							MediaTableTVSeries.updateThumbnailId(tvSeriesID, result.getInt("ID"));
 						}
 					} else {
 						LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
@@ -201,10 +201,10 @@ public final class MediasTableThumbnails extends MediasTable {
 								if (generatedKeys.next()) {
 									if (fullPathToFile != null) {
 										LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
-										MediasTableFiles.updateThumbnailId(fullPathToFile, generatedKeys.getInt(1));
+										MediaTableFiles.updateThumbnailId(fullPathToFile, generatedKeys.getInt(1));
 									} else {
-										LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, MediasTableTVSeries.TABLE_NAME);
-										MediasTableTVSeries.updateThumbnailId(tvSeriesID, generatedKeys.getInt(1));
+										LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
+										MediaTableTVSeries.updateThumbnailId(tvSeriesID, generatedKeys.getInt(1));
 									}
 								} else {
 									LOGGER.trace("Generated key not returned in " + TABLE_NAME);

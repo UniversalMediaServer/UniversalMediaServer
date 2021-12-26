@@ -39,7 +39,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @author Nadahar
  */
 
-public final class MediasTableCoverArtArchive extends MediasTable {
+public final class MediaTableCoverArtArchive extends MediaTable {
 
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
@@ -49,7 +49,7 @@ public final class MediasTableCoverArtArchive extends MediasTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableCoverArtArchive.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableCoverArtArchive.class);
 	public static final String TABLE_NAME = "COVER_ART_ARCHIVE";
 
 	/**
@@ -70,7 +70,7 @@ public final class MediasTableCoverArtArchive extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
@@ -86,11 +86,11 @@ public final class MediasTableCoverArtArchive extends MediasTable {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -123,7 +123,7 @@ public final class MediasTableCoverArtArchive extends MediasTable {
 						);
 				}
 			}
-			MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
 		}

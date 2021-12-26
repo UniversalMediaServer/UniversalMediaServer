@@ -54,8 +54,8 @@ import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.MediasDatabase;
-import net.pms.database.MediasTableFiles;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
@@ -247,21 +247,21 @@ public class PMS {
 	 * Main resource database that supports search capabilities. Also known as media cache.
 	 * @see net.pms.database.MediaDatabase
 	 */
-	private MediasDatabase mediasDatabase;
-	private Object mediasDatabaseLock = new Object();
+	private MediaDatabase mediaDatabase;
+	private Object mediaDatabaseLock = new Object();
 
 	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
 	 * for its queries.
-	 * @return (MediasDatabase) a reference to the mediasDatabase.
+	 * @return (MediaDatabase) a reference to the mediaDatabase.
 	 */
-	public MediasDatabase getMediasDatabase() {
-		synchronized (mediasDatabaseLock) {
-			if (mediasDatabase == null) {
-				mediasDatabase = new MediasDatabase();
-				mediasDatabase.init(false);
+	public MediaDatabase getMediaDatabase() {
+		synchronized (mediaDatabaseLock) {
+			if (mediaDatabase == null) {
+				mediaDatabase = new MediaDatabase();
+				mediaDatabase.init(false);
 			}
-			return mediasDatabase;
+			return mediaDatabase;
 		}
 	}
 
@@ -434,9 +434,9 @@ public class PMS {
 			profiler.startCollecting();
 		}
 
-		// Initialize mediasDatabase
+		// Initialize mediaDatabase
 		try {
-			getMediasDatabase().checkTables(false);
+			getMediaDatabase().checkTables(false);
 		} catch (SQLException e1) {
 			LOGGER.error("Database was not initialized.");
 			LOGGER.trace("Error was: {}", e1);
@@ -798,25 +798,25 @@ public class PMS {
 
 				if (configuration.getDatabaseLogging()) {
 					// use an automatic H2database profiling tool to make a report at the end of the logging file
-					// converted to the "logging_report.txt" in the mediasDatabase directory
+					// converted to the "logging_report.txt" in the mediaDatabase directory
 					try {
-						ConvertTraceFile.main("-traceFile", mediasDatabase.getDatabasePath()  + File.separator + "medias.trace.db",
-							"-script", mediasDatabase.getDatabasePath()  + File.separator + "logging_report.txt");
+						ConvertTraceFile.main("-traceFile", mediaDatabase.getDatabasePath()  + File.separator + "medias.trace.db",
+							"-script", mediaDatabase.getDatabasePath()  + File.separator + "logging_report.txt");
 					} catch (SQLException e) {}
 				}
 
 				// Shut down library scanner
 				if (getConfiguration().getUseCache()) {
-					if (getMediasDatabase() != null && getMediasDatabase().isScanLibraryRunning()) {
+					if (getMediaDatabase() != null && getMediaDatabase().isScanLibraryRunning()) {
 						LOGGER.debug("Database is still not null, attempting to close it");
-						getMediasDatabase().stopScanLibrary();
+						getMediaDatabase().stopScanLibrary();
 					} else {
 						LOGGER.debug("Database already closed");
 					}
 				}
 
-				if (mediasDatabase != null) {
-					try (Statement stmt = mediasDatabase.getConnection().createStatement()) {
+				if (mediaDatabase != null) {
+					try (Statement stmt = mediaDatabase.getConnection().createStatement()) {
 						stmt.execute("SHUTDOWN COMPACT");
 					} catch (SQLException e1) {
 						LOGGER.error("compacting DB ", e1);
@@ -837,7 +837,7 @@ public class PMS {
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
-			getMediasDatabase().scanLibrary();
+			getMediaDatabase().scanLibrary();
 		}
 
 		return true;
@@ -1186,10 +1186,10 @@ public class PMS {
 	public void storeFileInCache(File file, int formatType) {
 		if (
 			configuration.getUseCache() &&
-			!MediasTableFiles.isDataExists(file.getAbsolutePath(), file.lastModified())
+			!MediaTableFiles.isDataExists(file.getAbsolutePath(), file.lastModified())
 		) {
 			try {
-				MediasTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
+				MediaTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
 			} catch (SQLException e) {
 				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
 				LOGGER.trace("", e);
@@ -1694,9 +1694,9 @@ public class PMS {
 	}
 
 	/**
-	 * Returns if the mediasDatabase logging is forced by command line arguments.
+	 * Returns if the mediaDatabase logging is forced by command line arguments.
 	 *
-	 * @return {@code true} if mediasDatabase logging is forced, {@code false}
+	 * @return {@code true} if mediaDatabase logging is forced, {@code false}
 	 *         otherwise.
 	 */
 	public static boolean getLogDB() {

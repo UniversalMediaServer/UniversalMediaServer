@@ -29,8 +29,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MediasTableTablesVersions extends MediasTable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableTablesVersions.class);
+public class MediaTableTablesVersions extends MediaTable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTablesVersions.class);
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	protected static final String TABLE_NAME = "TABLES_VERSIONS";
 	protected static final String TABLE_NAME_OLD = "TABLES";

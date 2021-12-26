@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class MediasTableVideoMetadataRated extends MediasTable {
+public final class MediaTableVideoMetadataPosters extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -40,8 +40,8 @@ public final class MediasTableVideoMetadataRated extends MediasTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableVideoMetadataRated.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_RATED";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataPosters.class);
+	public static final String TABLE_NAME = "VIDEO_METADATA_POSTERS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -61,7 +61,7 @@ public final class MediasTableVideoMetadataRated extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version > TABLE_VERSION) {
 						LOGGER.warn(
@@ -75,11 +75,11 @@ public final class MediasTableVideoMetadataRated extends MediasTable {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -97,58 +97,23 @@ public final class MediasTableVideoMetadataRated extends MediasTable {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"RATING       VARCHAR2(1024)   NOT NULL" +
+					"POSTER       VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_RATED_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATING, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_POSTER_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, TVSERIESID)");
 		}
-	}
-
-	/**
-	 * @param tvSeriesTitle
-	 * @return the rating for a TV series, if it has an IMDb ID stored.
-	 */
-	public static String getByTVSeriesName(final String tvSeriesTitle) {
-		boolean trace = LOGGER.isTraceEnabled();
-
-		try (Connection connection = DATABASE.getConnection()) {
-			String query = "SELECT RATING FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediasTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + MediasTableTVSeries.TABLE_NAME + ".ID " +
-				"WHERE " + MediasTableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle) + " " +
-				"LIMIT 1";
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-
-			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						return resultSet.getString(1);
-					}
-				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
-			}
-		} catch (SQLException e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSeriesTitle, e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return null;
 	}
 
 	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param rated
+	 * @param poster
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final String rated, final long tvSeriesID) {
-		if (isBlank(rated)) {
+	public static void set(final String fullPathToFile, final String poster, final long tvSeriesID) {
+		if (isBlank(poster)) {
 			return;
 		}
 
@@ -157,7 +122,7 @@ public final class MediasTableVideoMetadataRated extends MediasTable {
 			Connection connection = DATABASE.getConnection();
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO " + TABLE_NAME + " (" +
-					"TVSERIESID, FILENAME, RATING" +
+					"TVSERIESID, FILENAME, POSTER" +
 				") VALUES (" +
 					"?, ?, ?" +
 				")",
@@ -167,12 +132,12 @@ public final class MediasTableVideoMetadataRated extends MediasTable {
 			insertStatement.clearParameters();
 			insertStatement.setLong(1, tvSeriesID);
 			insertStatement.setString(2, left(fullPathToFile, 255));
-			insertStatement.setString(3, left(rated, 255));
+			insertStatement.setString(3, left(poster, 255));
 
 			insertStatement.executeUpdate();
 			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
 				if (rs.next()) {
-					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, rated);
+					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, poster);
 				}
 			}
 		} catch (SQLException e) {

@@ -28,10 +28,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MediasTableMetadata extends MediasTable {
+public class MediaTableMetadata extends MediaTable {
 
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableMetadata.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMetadata.class);
 	public static final String TABLE_NAME = "METADATA";
 
 	/**
@@ -52,7 +52,7 @@ public class MediasTableMetadata extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version == null) {
 					// Moving sql from DLNAMediaDatabase to this class.
 					version = 1;
@@ -64,7 +64,7 @@ public class MediasTableMetadata extends MediasTable {
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -93,7 +93,7 @@ public class MediasTableMetadata extends MediasTable {
 				}
 			}
 			try {
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			} catch (SQLException e) {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				throw new SQLException(e);

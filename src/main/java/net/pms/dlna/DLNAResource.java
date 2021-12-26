@@ -64,10 +64,10 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.MediasTableFiles;
-import net.pms.database.MediasTableFilesStatus;
-import net.pms.database.MediasTableTVSeries;
-import net.pms.database.MediasTableThumbnails;
+import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableTVSeries;
+import net.pms.database.MediaTableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -2585,7 +2585,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			File file = new File(getFileName());
 			String path = file.getCanonicalPath();
-			int bookmark = MediasTableFilesStatus.getBookmark(path);
+			int bookmark = MediaTableFilesStatus.getBookmark(path);
 			LOGGER.debug("Setting bookmark for " + path + " => " + bookmark);
 			addXMLTagAndAttribute(sb, "sec:dcmInfo", encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, bookmark)));
 		} catch (Exception e) {
@@ -3350,7 +3350,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume(), renderer);
 			if (!isResume() && media.getThumb() != null && configurationSpecificToRenderer.getUseCache() && inputFile.getFile() != null) {
-				MediasTableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
+				MediaTableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
 			}
 		}
 	}
@@ -3892,9 +3892,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				SubtitleUtils.searchAndAttachExternalSubtitles(file, media, forceRefresh);
 				// update the database if enabled
 				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
-					if (PMS.get().getMediasDatabase() != null) {
+					if (PMS.get().getMediaDatabase() != null) {
 						try {
-							MediasTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
+							MediaTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
 						} catch (SQLException e) {
 							LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
 								e.getMessage());
@@ -4917,7 +4917,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					* grammatical differences like "Word and Word" vs. "Word & Word"
 					* from creating two virtual folders.
 					*/
-					titleFromDatabase = MediasTableTVSeries.getSimilarTVSeriesName(titleFromFilename);
+					titleFromDatabase = MediaTableTVSeries.getSimilarTVSeriesName(titleFromFilename);
 					titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
 					if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
 						media.setMovieOrShowName(titleFromDatabase);
@@ -4944,13 +4944,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (configuration.getUseCache()) {
 					// TODO: Make sure this does not happen if ANY version already exists, before doing this
-					MediasTableFiles.insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+					MediaTableFiles.insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
 
 					// Creates a minimal TV series row with just the title, that
 					// might be enhanced later by the API
 					if (media.isTVEpisode()) {
 						// TODO: Make this check if it already exists instead of always setting it
-						MediasTableTVSeries.set(null, media.getMovieOrShowName());
+						MediaTableTVSeries.set(null, media.getMovieOrShowName());
 					}
 				}
 			}

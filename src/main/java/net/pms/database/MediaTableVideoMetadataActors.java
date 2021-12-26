@@ -24,17 +24,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class MediasTableVideoMetadataCountries extends MediasTable {
+public final class MediaTableVideoMetadataActors extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -43,8 +41,8 @@ public final class MediasTableVideoMetadataCountries extends MediasTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediasTableVideoMetadataCountries.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_COUNTRIES";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataActors.class);
+	public static final String TABLE_NAME = "VIDEO_METADATA_ACTORS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -52,7 +50,6 @@ public final class MediasTableVideoMetadataCountries extends MediasTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 1;
-
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -65,7 +62,7 @@ public final class MediasTableVideoMetadataCountries extends MediasTable {
 		TABLE_LOCK.writeLock().lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediasTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
 					if (version > TABLE_VERSION) {
 						LOGGER.warn(
@@ -79,11 +76,11 @@ public final class MediasTableVideoMetadataCountries extends MediasTable {
 					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
-					MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
 				createTable(connection);
-				MediasTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -101,11 +98,11 @@ public final class MediasTableVideoMetadataCountries extends MediasTable {
 					"ID           IDENTITY         PRIMARY KEY, " +
 					"TVSERIESID   INT              DEFAULT -1, " +
 					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"COUNTRY      VARCHAR2(1024)   NOT NULL" +
+					"ACTOR        VARCHAR2(1024)   NOT NULL" +
 				")"
 			);
 
-			statement.execute("CREATE UNIQUE INDEX FILENAME_COUNTRY_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, COUNTRY, TVSERIESID)");
+			statement.execute("CREATE UNIQUE INDEX FILENAME_ACTOR_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, ACTOR, TVSERIESID)");
 		}
 	}
 
@@ -113,24 +110,23 @@ public final class MediasTableVideoMetadataCountries extends MediasTable {
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param countries
+	 * @param actors
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final String countries, final long tvSeriesID) {
-		if (isBlank(countries)) {
+	public static void set(final String fullPathToFile, final HashSet actors, final long tvSeriesID) {
+		if (actors.isEmpty()) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = DATABASE.getConnection()) {
-			List<String> countriesArray = Arrays.asList(countries.split(", "));
-			Iterator<String> i = countriesArray.iterator();
+			Iterator<String> i = actors.iterator();
 			while (i.hasNext()) {
-				String country = i.next();
+				String actor = i.next();
 				try (
 					PreparedStatement insertStatement = connection.prepareStatement(
 						"INSERT INTO " + TABLE_NAME + " (" +
-							"TVSERIESID, FILENAME, COUNTRY" +
+							"TVSERIESID, FILENAME, ACTOR" +
 						") VALUES (" +
 							"?, ?, ?" +
 						")",
@@ -140,12 +136,12 @@ public final class MediasTableVideoMetadataCountries extends MediasTable {
 					insertStatement.clearParameters();
 					insertStatement.setLong(1, tvSeriesID);
 					insertStatement.setString(2, left(fullPathToFile, 255));
-					insertStatement.setString(3, left(country, 255));
+					insertStatement.setString(3, left(actor, 255));
 
 					insertStatement.executeUpdate();
 					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
 						if (rs.next()) {
-							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, country);
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, actor);
 						}
 					}
 				}

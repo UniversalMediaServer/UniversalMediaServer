@@ -21,6 +21,6 @@ package net.pms.database;
 
 import net.pms.PMS;
 
-public abstract class MediasTable extends DatabaseHelper {
-	protected static final MediasDatabase DATABASE = PMS.get().getMediasDatabase();
+public abstract class MediaTable extends DatabaseHelper {
+	protected static final MediaDatabase DATABASE = PMS.get().getMediaDatabase();
 }
