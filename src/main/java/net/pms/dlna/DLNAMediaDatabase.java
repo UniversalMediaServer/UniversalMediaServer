@@ -392,7 +392,7 @@ public class DLNAMediaDatabase implements Runnable {
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
-				sb.append("  ID                      INT PRIMARY KEY AUTO_INCREMENT");
+				sb.append("  ID                      INT AUTO_INCREMENT");
 				sb.append(", THUMBID                 BIGINT");
 				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
 				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
@@ -423,6 +423,16 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", PIXELASPECTRATIO        VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(", SCANTYPE                OTHER");
 				sb.append(", SCANORDER               OTHER");
+				sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
+				sb.append(", YEAR                    VARCHAR2(").append(SIZE_YEAR).append(')');
+				sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
+				sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
+				sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", ISTVEPISODE             BOOLEAN");
+				sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
+				sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
 				sb.append(")");
 				LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 				executeUpdate(conn, sb.toString());
