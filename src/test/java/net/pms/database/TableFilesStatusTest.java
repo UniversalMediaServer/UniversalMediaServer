@@ -88,7 +88,7 @@ public class TableFilesStatusTest {
 			 * Version 7 is created, so now we can update to the latest version
 			 * and any errors that occur along the way will cause the test to fail.
 			 */
-			TableFilesStatus.checkTable(connection);
+			Tables.checkTables(true);
 		} catch (Exception e) {
 			System.out.println("Error: " + e);
 		}
