@@ -57,13 +57,11 @@ public class TableFilesStatusTest {
 	public void testUpgrade() throws Exception {
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 		try (Connection connection = database.getConnection()) {
-			if (!Tables.tableExists(connection, "TABLES")) {
-				Tables.createTablesTable(connection);
-			}
+			//remove all tables to cleanup db
+			Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
+			Tables.checkTables(true);
 
 			try (Statement statement = connection.createStatement()) {
-				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
-
 				// Create version 7 of this table to start with
 				statement.execute(
 					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
