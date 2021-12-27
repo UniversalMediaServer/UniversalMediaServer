@@ -291,6 +291,9 @@ public class FileWatcher {
 				public void run() {
 					try {
 						watchService.close();
+						if (!keys.isEmpty()) {
+							keys.clear();
+						}
 						LOGGER.trace("Shut down file watcher");
 					} catch (Exception e) {
 						LOGGER.debug("Error while shutting down file watcher service: {}", e);
@@ -306,15 +309,21 @@ public class FileWatcher {
 		new Thread(() -> {
 			try {
 				do {
-					// take() will block until events occur in our subscribed
-					// directories
-					WatchKey key = watchService.take();
+					// take() will block until events occur in our subscribed directories
+					WatchKey key;
+					try {
+						key = watchService.take();
+					} catch (Exception x) {
+						return;
+					}
+
 					try {
 						// Wait a bit in case there are a few repeats
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						LOGGER.debug("Sleep interrupted {}", e);
 					}
+
 					// Filter the received directory event(s)
 					for (WatchEvent<?> e : key.pollEvents()) {
 						final WatchEvent.Kind<?> kind = e.kind();

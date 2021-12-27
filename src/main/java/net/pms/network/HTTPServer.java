@@ -202,12 +202,14 @@ public class HTTPServer implements Runnable {
 			if (allChannels != null) {
 				allChannels.close().awaitUninterruptibly();
 			}
-			LOGGER.info("Confirm allChannels is empty: " + allChannels.toString());
+			LOGGER.trace("Confirm allChannels is empty: " + allChannels.toString());
 
 			bootstrap.releaseExternalResources();
+			LOGGER.trace("Released external resources");
 		}
 
 		NetworkConfiguration.forgetConfiguration();
+		LOGGER.trace("Forgot network configuration");
 	}
 
 	// XXX only used by HTTP Engine V1

@@ -753,6 +753,7 @@ public class PMS {
 
 					LOGGER.debug("Shutting down the HTTP server");
 					get().getServer().stop();
+					LOGGER.debug("HTTP server stopped");
 					Thread.sleep(500);
 
 					if (configuration.getDatabaseLogging()) {
@@ -762,7 +763,6 @@ public class PMS {
 					}
 
 					LOGGER.debug("Shutting down all active processes");
-
 
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
