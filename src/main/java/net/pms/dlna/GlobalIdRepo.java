@@ -46,6 +46,7 @@ public class GlobalIdRepo {
 		try {
 			if (dlnaResource.getId() == null || get(dlnaResource.getId()) != dlnaResource) {
 				ids.add(new ID(dlnaResource, curGlobalId++));
+				DLNAResource.bumpSystemUpdateId();
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -57,6 +58,7 @@ public class GlobalIdRepo {
 		try {
 			if (index > -1 && index < ids.size()) {
 				ids.remove(index);
+				DLNAResource.bumpSystemUpdateId();
 				deletionsCount++;
 			}
 		} finally {
@@ -103,6 +105,7 @@ public class GlobalIdRepo {
 				lock.writeLock().lock();
 				try {
 					item.setRef(b);
+					DLNAResource.bumpSystemUpdateId();
 				} finally {
 					lock.writeLock().unlock();
 				}

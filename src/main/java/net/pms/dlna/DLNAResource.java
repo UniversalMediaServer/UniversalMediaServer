@@ -155,7 +155,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-	private static int systemUpdateId = 1;
+	private static int systemUpdateId = 100000;
 	private boolean noName;
 	private int nametruncate;
 	private DLNAResource first;
@@ -956,7 +956,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (child != found) {
 				// Replace
 				child.parent = this;
-				PMS.getGlobalRepo().replace(found, child);
+				if (isAddGlobally) {
+					PMS.getGlobalRepo().replace(found, child);
+				}
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
