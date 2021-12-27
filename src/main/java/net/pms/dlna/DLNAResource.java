@@ -53,6 +53,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -98,6 +99,7 @@ import net.pms.network.UPNPControl.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
+import net.pms.util.Debouncer;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.GenericIcons;
@@ -134,7 +136,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private static boolean hasFetchedSystemUpdateIdFromDatabase = false;
 
-	private final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
+	private static final Debouncer debouncer = new Debouncer();
+
+	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
 
 	private int specificType;
 	private String id;
@@ -4220,36 +4224,41 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Bumps the updated id for all resources. When any resources has been
-	 * changed this id should be bumped.
+	 * changed this id should be bumped, debounced by 300ms
 	 */
 	public static void bumpSystemUpdateId() {
-		LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
-		try {
-			// Get the current value from the database if we haven't yet since UMS was started
-			if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
-				String systemUpdateIdFromDb = PMS.get().getDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
+		debouncer.debounce(Void.class, new Runnable() {
+			@Override
+			public void run() {
+				LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
 				try {
-					systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
-				} catch (Exception ex) {
-					LOGGER.debug("" + ex);
+					// Get the current value from the database if we haven't yet since UMS was started
+					if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
+						String systemUpdateIdFromDb = PMS.get().getDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
+						try {
+							systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
+						} catch (Exception ex) {
+							LOGGER.debug("" + ex);
+						}
+						hasFetchedSystemUpdateIdFromDatabase = true;
+					}
+
+					systemUpdateId++;
+
+					// if we exceeded the maximum value for a UI4, start again at 0
+					if (systemUpdateId > MAX_UI4_VALUE) {
+						systemUpdateId = 0;
+					}
+
+					// Persist the new value to the database
+					if (PMS.getConfiguration().getUseCache()) {
+						PMS.get().getDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+					}
+				} finally {
+					LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
 				}
-				hasFetchedSystemUpdateIdFromDatabase = true;
 			}
-
-			systemUpdateId++;
-
-			// if we exceeded the maximum value for a UI4, start again at 0
-			if (systemUpdateId > MAX_UI4_VALUE) {
-				systemUpdateId = 0;
-			}
-
-			// Persist the new value to the database
-			if (PMS.getConfiguration().getUseCache()) {
-				PMS.get().getDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
-			}
-		} finally {
-			LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
-		}
+		}, 300, TimeUnit.MILLISECONDS);
 	}
 
 	/**
