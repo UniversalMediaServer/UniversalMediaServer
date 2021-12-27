@@ -25,6 +25,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.UUID;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.dlna.DLNAMediaAudio;
@@ -222,8 +223,21 @@ public class MediaTableAudiotracks extends MediaTable {
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("MBID_RECORD", left(trimToEmpty(audioTrack.getMbidRecord()), SIZE_MAX));
-						rs.updateString("MBID_TRACK", left(trimToEmpty(audioTrack.getMbidTrack()), SIZE_MAX));
+						//make sure mbid are uuids
+						try {
+							UUID mbidRecord = UUID.fromString(trimToEmpty(audioTrack.getMbidRecord()));
+							rs.updateObject("MBID_RECORD", mbidRecord);
+						} catch (IllegalArgumentException e) {
+							LOGGER.trace("UUID not well formated, store null value");
+							rs.updateNull("MBID_RECORD");
+						}
+						try {
+							UUID mbidTrack = UUID.fromString(trimToEmpty(audioTrack.getMbidTrack()));
+							rs.updateObject("MBID_TRACK", mbidTrack);
+						} catch (IllegalArgumentException e) {
+							LOGGER.trace("UUID not well formated, store null value");
+							rs.updateNull("MBID_TRACK");
+						}
 						rs.updateString("LANG", left(audioTrack.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(audioTrack.getAudioTrackTitleFromMetadata(), SIZE_MAX));
 						rs.updateInt("NRAUDIOCHANNELS", audioTrack.getAudioProperties().getNumberOfChannels());
@@ -278,8 +292,20 @@ public class MediaTableAudiotracks extends MediaTable {
 						insertStatement.setInt(16, audioTrack.getAudioProperties().getAudioDelay());
 						insertStatement.setString(17, left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
 						insertStatement.setInt(18, audioTrack.getBitRate());
-						insertStatement.setString(19, audioTrack.getMbidRecord());
-						insertStatement.setString(20, audioTrack.getMbidTrack());
+						try {
+							UUID mbidRecord = UUID.fromString(trimToEmpty(audioTrack.getMbidRecord()));
+							insertStatement.setObject(19, mbidRecord);
+						} catch (IllegalArgumentException e) {
+							LOGGER.trace("UUID not well formated, store null value");
+							insertStatement.setNull(19, Types.OTHER);
+						}
+						try {
+							UUID mbidTrack = UUID.fromString(trimToEmpty(audioTrack.getMbidTrack()));
+							insertStatement.setObject(20, mbidTrack);
+						} catch (IllegalArgumentException e) {
+							LOGGER.trace("UUID not well formated, store null value");
+							insertStatement.setNull(20, Types.OTHER);
+						}
 						insertStatement.setInt(21, audioTrack.getDisc());
 						insertStatement.executeUpdate();
 					}
