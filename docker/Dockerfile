@@ -2,7 +2,7 @@ FROM alpine
 
 MAINTAINER Anand Tamariya <atamariya@gmail.com>
 
-RUN apk add --no-cache coreutils ffmpeg mediainfo openjdk8-jre
+RUN apk add --no-cache coreutils ffmpeg mediainfo openjdk8-jre iputils
 
 WORKDIR /usr/src/ums
 
