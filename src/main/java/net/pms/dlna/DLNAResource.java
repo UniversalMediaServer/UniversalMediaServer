@@ -134,6 +134,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private static boolean hasFetchedSystemUpdateIdFromDatabase = false;
 
+	private final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
+
 	private int specificType;
 	private String id;
 	private String pathId;
@@ -162,7 +164,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-	private static int systemUpdateId = 100000;
+	private static int systemUpdateId = 0;
 	private boolean noName;
 	private int nametruncate;
 	private DLNAResource first;
@@ -1230,7 +1232,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		systemUpdateId += 1;
+		DLNAResource.bumpSystemUpdateId();
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
@@ -4208,7 +4210,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.50
 	 */
 	public static int getSystemUpdateId() {
-		return systemUpdateId;
+		LOCK_SYSTEM_UPDATE_ID.readLock().lock();
+		try {
+			return systemUpdateId;
+		} finally {
+			LOCK_SYSTEM_UPDATE_ID.readLock().unlock();
+		}
 	}
 
 	/**
@@ -4216,27 +4223,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * changed this id should be bumped.
 	 */
 	public static void bumpSystemUpdateId() {
-		// Get the current value from the database if we haven't yet since UMS was started
-		if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
-			String systemUpdateIdFromDb = PMS.get().getDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
-			try {
-				systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
-			} catch (Exception ex) {
-				LOGGER.debug("" + ex);
+		LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
+		try {
+			// Get the current value from the database if we haven't yet since UMS was started
+			if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
+				String systemUpdateIdFromDb = PMS.get().getDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
+				try {
+					systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
+				} catch (Exception ex) {
+					LOGGER.debug("" + ex);
+				}
+				hasFetchedSystemUpdateIdFromDatabase = true;
 			}
-			hasFetchedSystemUpdateIdFromDatabase = true;
-		}
 
-		systemUpdateId++;
+			systemUpdateId++;
 
-		// if we exceeded the maximum value for a UI4, start again at 0
-		if (systemUpdateId > MAX_UI4_VALUE) {
-			systemUpdateId = 0;
-		}
+			// if we exceeded the maximum value for a UI4, start again at 0
+			if (systemUpdateId > MAX_UI4_VALUE) {
+				systemUpdateId = 0;
+			}
 
-		// Persist the new value to the database
-		if (PMS.getConfiguration().getUseCache()) {
-			PMS.get().getDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+			// Persist the new value to the database
+			if (PMS.getConfiguration().getUseCache()) {
+				PMS.get().getDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+			}
+		} finally {
+			LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
 		}
 	}
 

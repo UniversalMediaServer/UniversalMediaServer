@@ -54,7 +54,7 @@ public class GlobalIdRepo {
 	}
 
 	private void delete(int index) {
-		lock.readLock().lock();
+		lock.writeLock().lock();
 		try {
 			if (index > -1 && index < ids.size()) {
 				ids.remove(index);
@@ -62,7 +62,7 @@ public class GlobalIdRepo {
 				deletionsCount++;
 			}
 		} finally {
-			lock.readLock().unlock();
+			lock.writeLock().unlock();
 		}
 	}
 
