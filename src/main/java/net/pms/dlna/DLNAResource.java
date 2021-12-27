@@ -127,6 +127,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 	protected static final double CONTAINER_OVERHEAD = 1.04;
 
+	// maximum characters for UI4 (Unsigned Integer 4-bytes)
+	protected static final int MAX_UI4_VALUE = 2147483647;
+
+	protected static final String METADATA_TABLE_KEY_SYSTEMUPDATEID = "SystemUpdateID";
+
+	private static boolean hasFetchedSystemUpdateIdFromDatabase = false;
+
 	private int specificType;
 	private String id;
 	private String pathId;
@@ -4209,7 +4216,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * changed this id should be bumped.
 	 */
 	public static void bumpSystemUpdateId() {
+		// Get the current value from the database if we haven't yet since UMS was started
+		if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
+			String systemUpdateIdFromDb = PMS.get().getDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
+			try {
+				systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
+			} catch (Exception ex) {
+				LOGGER.debug("" + ex);
+			}
+			hasFetchedSystemUpdateIdFromDatabase = true;
+		}
+
 		systemUpdateId++;
+
+		// if we exceeded the maximum value for a UI4, start again at 0
+		if (systemUpdateId > MAX_UI4_VALUE) {
+			systemUpdateId = 0;
+		}
+
+		// Persist the new value to the database
+		if (PMS.getConfiguration().getUseCache()) {
+			PMS.get().getDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+		}
 	}
 
 	/**
