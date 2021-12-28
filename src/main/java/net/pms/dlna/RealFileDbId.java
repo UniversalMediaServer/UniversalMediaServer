@@ -46,6 +46,6 @@ public class RealFileDbId extends RealFile {
 	@Override
 	public boolean isFolder() {
 		Format f = getFormat();
-		return f instanceof PLAYLIST ? true : false;
+		return f instanceof PLAYLIST;
 	}
 }
