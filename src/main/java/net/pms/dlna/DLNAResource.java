@@ -4227,7 +4227,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				try {
 					// Get the current value from the database if we haven't yet since UMS was started
 					if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
-						String systemUpdateIdFromDb = PMS.get().getMediaDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
+						String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
 						try {
 							systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
 						} catch (Exception ex) {
