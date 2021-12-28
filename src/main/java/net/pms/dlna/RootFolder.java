@@ -42,6 +42,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
@@ -249,7 +251,7 @@ public class RootFolder extends DLNAResource {
 
 		// Running might have been set false during scan
 		if (running) {
-			PMS.get().getDatabase().cleanup();
+			MediaTableFiles.cleanup();
 		}
 		frame.setScanLibraryEnabled(true);
 		frame.setStatusLine(null);
@@ -1533,7 +1535,7 @@ public class RootFolder extends DLNAResource {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
-				DLNAMediaDatabase database = PMS.get().getDatabase();
+				MediaDatabase database = PMS.get().getMediaDatabase();
 
 				if (database != null) {
 					/**
@@ -1559,13 +1561,13 @@ public class RootFolder extends DLNAResource {
 							}
 						} else if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
-							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
+							MediaTableFiles.removeMediaEntriesInFolder(filename);
 							bumpSystemUpdateId();
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-							PMS.get().getDatabase().removeMediaEntry(filename);
+							MediaTableFiles.removeMediaEntry(filename);
 							bumpSystemUpdateId();
 						} else if ("ENTRY_CREATE".equals(event)) {
 							LOGGER.trace("File {} was created on the hard drive", filename);
@@ -1631,7 +1633,7 @@ public class RootFolder extends DLNAResource {
 		) {
 			LOGGER.debug("rescanning file or folder : " + filename);
 
-			if (!PMS.get().getDatabase().isScanLibraryRunning()) {
+			if (!PMS.get().getMediaDatabase().isScanLibraryRunning()) {
 				Runnable scan = () -> {
 					File file = new File(filename);
 					if (file.isFile()) {

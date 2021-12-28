@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.RealFileDbId;
@@ -37,7 +37,7 @@ import net.pms.network.message.SearchRequest;
  */
 public class SearchRequestHandler {
 
-	private DLNAMediaDatabase database;
+	private MediaDatabase database;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestHandler.class);
 	private final static String CRLF = "\r\n";
@@ -49,7 +49,7 @@ public class SearchRequestHandler {
 		.compile("(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
 
 	public SearchRequestHandler() {
-		this.database = PMS.get().getDatabase();
+		this.database = PMS.get().getMediaDatabase();
 	}
 
 	DbidMediaType getRequestType(String searchCriteria) {
@@ -264,7 +264,7 @@ public class SearchRequestHandler {
 			case TYPE_VIDEO:
 			case TYPE_IMAGE:
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
-					sb.append(String.format(" F.TYPE = %d ", getFileType(requestType)));
+					sb.append(String.format(" F.FORMAT_TYPE = %d ", getFileType(requestType)));
 				}
 				return;
 			default:

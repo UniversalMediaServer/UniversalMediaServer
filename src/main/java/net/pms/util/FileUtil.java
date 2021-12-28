@@ -31,6 +31,7 @@ import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.WindowsProgramPaths;
+import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.FormatFactory;
 import net.pms.io.BasicSystemUtils;
@@ -735,7 +736,7 @@ public class FileUtil {
 		// Attempt to get API metadata from the database if it wasn't passed via the media parameter
 		if (media == null && absolutePath != null && getConfiguration().getUseCache()) {
 			try {
-				media = PMS.get().getDatabase().getFileMetadata(absolutePath);
+				media = MediaTableFiles.getFileMetadata(absolutePath);
 			} catch (Exception e) {
 				LOGGER.debug("Error while fetching metadata from database for prettifying: {}", e);
 			}

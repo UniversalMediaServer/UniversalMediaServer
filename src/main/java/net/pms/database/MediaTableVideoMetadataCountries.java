@@ -24,6 +24,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -31,7 +34,7 @@ import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TableVideoMetadataIMDbRating extends Tables {
+public final class MediaTableVideoMetadataCountries extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -40,8 +43,8 @@ public final class TableVideoMetadataIMDbRating extends Tables {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableVideoMetadataIMDbRating.class);
-	public static final String TABLE_NAME = "VIDEO_METADATA_IMDB_RATING";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataCountries.class);
+	public static final String TABLE_NAME = "VIDEO_METADATA_COUNTRIES";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -50,43 +53,101 @@ public final class TableVideoMetadataIMDbRating extends Tables {
 	 */
 	private static final int TABLE_VERSION = 1;
 
-	// No instantiation
-	private TableVideoMetadataIMDbRating() {
+
+	/**
+	 * Checks and creates or upgrades the table as needed.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static void checkTable(final Connection connection) throws SQLException {
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (tableExists(connection, TABLE_NAME)) {
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				if (version != null) {
+					if (version > TABLE_VERSION) {
+						LOGGER.warn(
+							"Database table \"" + TABLE_NAME +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
+							DATABASE.getDatabaseFilename() +
+							"\" before starting UMS"
+						);
+					}
+				} else {
+					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					dropTable(connection, TABLE_NAME);
+					createTable(connection);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				}
+			} else {
+				createTable(connection);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Must be called from inside a table lock
+	 */
+	private static void createTable(final Connection connection) throws SQLException {
+		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
+		try (Statement statement = connection.createStatement()) {
+			statement.execute(
+				"CREATE TABLE " + TABLE_NAME + "(" +
+					"ID           IDENTITY         PRIMARY KEY, " +
+					"TVSERIESID   INT              DEFAULT -1, " +
+					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
+					"COUNTRY      VARCHAR2(1024)   NOT NULL" +
+				")"
+			);
+
+			statement.execute("CREATE UNIQUE INDEX FILENAME_COUNTRY_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, COUNTRY, TVSERIESID)");
+		}
 	}
 
 	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param imdbRating
+	 * @param countries
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final String imdbRating, final long tvSeriesID) {
-		if (isBlank(imdbRating)) {
+	public static void set(final String fullPathToFile, final String countries, final long tvSeriesID) {
+		if (isBlank(countries)) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
-		try (
-			Connection connection = DATABASE.getConnection();
-			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TABLE_NAME + " (" +
-					"TVSERIESID, FILENAME, IMDBRATING" +
-				") VALUES (" +
-					"?, ?, ?" +
-				")",
-				Statement.RETURN_GENERATED_KEYS
-			)
-		) {
-			insertStatement.clearParameters();
-			insertStatement.setLong(1, tvSeriesID);
-			insertStatement.setString(2, left(fullPathToFile, 255));
-			insertStatement.setString(3, left(imdbRating, 255));
+		try (Connection connection = DATABASE.getConnection()) {
+			List<String> countriesArray = Arrays.asList(countries.split(", "));
+			Iterator<String> i = countriesArray.iterator();
+			while (i.hasNext()) {
+				String country = i.next();
+				try (
+					PreparedStatement insertStatement = connection.prepareStatement(
+						"INSERT INTO " + TABLE_NAME + " (" +
+							"TVSERIESID, FILENAME, COUNTRY" +
+						") VALUES (" +
+							"?, ?, ?" +
+						")",
+						Statement.RETURN_GENERATED_KEYS
+					)
+				) {
+					insertStatement.clearParameters();
+					insertStatement.setLong(1, tvSeriesID);
+					insertStatement.setString(2, left(fullPathToFile, 255));
+					insertStatement.setString(3, left(country, 255));
 
-			insertStatement.executeUpdate();
-			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
-				if (rs.next()) {
-					LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, imdbRating);
+					insertStatement.executeUpdate();
+					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+						if (rs.next()) {
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, country);
+						}
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -135,72 +196,4 @@ public final class TableVideoMetadataIMDbRating extends Tables {
 		}
 	}
 
-	/**
-	 * Checks and creates or upgrades the table as needed.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
-					}
-				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createTable(connection);
-					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				}
-			} else {
-				createTable(connection);
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Must be called from inside a table lock
-	 */
-	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID           IDENTITY         PRIMARY KEY, " +
-					"TVSERIESID   INT              DEFAULT -1, " +
-					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"IMDBRATING   VARCHAR2(1024)   NOT NULL" +
-				")"
-			);
-
-			statement.execute("CREATE UNIQUE INDEX FILENAME_IMDBRATING_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, IMDBRATING, TVSERIESID)");
-		}
-	}
-
-	/**
-	 * Drops (deletes) the current table. Use with caution, there is no undo.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void dropTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
-		}
-	}
 }

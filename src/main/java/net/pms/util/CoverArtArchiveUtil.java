@@ -39,10 +39,10 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import net.pms.database.TableCoverArtArchive;
-import net.pms.database.TableCoverArtArchive.CoverArtArchiveResult;
-import net.pms.database.TableMusicBrainzReleases;
-import net.pms.database.TableMusicBrainzReleases.MusicBrainzReleasesResult;
+import net.pms.database.MediaTableCoverArtArchive;
+import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
+import net.pms.database.MediaTableMusicBrainzReleases;
+import net.pms.database.MediaTableMusicBrainzReleases.MusicBrainzReleasesResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpResponseException;
 import org.jaudiotagger.tag.FieldKey;
@@ -488,7 +488,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			}
 			try {
 				// Check if it's cached first
-				CoverArtArchiveResult result = TableCoverArtArchive.findMBID(mBID);
+				CoverArtArchiveResult result = MediaTableCoverArtArchive.findMBID(mBID);
 				if (result.found) {
 					if (result.cover != null) {
 						return result.cover;
@@ -517,7 +517,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				}
 				if (coverArt == null || coverArt.getImages().isEmpty()) {
 					LOGGER.debug("MBID \"{}\" has no cover at CoverArtArchive", mBID);
-					TableCoverArtArchive.writeMBID(mBID, null);
+					MediaTableCoverArtArchive.writeMBID(mBID, null);
 					return null;
 				}
 				CoverArtImage image = coverArt.getFrontImage();
@@ -534,12 +534,12 @@ public class CoverArtArchiveUtil extends CoverUtil {
 							cover = IOUtils.toByteArray(is);
 						}
 					}
-					TableCoverArtArchive.writeMBID(mBID, cover);
+					MediaTableCoverArtArchive.writeMBID(mBID, cover);
 					return cover;
 				} catch (HttpResponseException e) {
 					if (e.getStatusCode() == 404) {
 						LOGGER.debug("Cover for MBID \"{}\" was not found at CoverArtArchive", mBID);
-						TableCoverArtArchive.writeMBID(mBID, null);
+						MediaTableCoverArtArchive.writeMBID(mBID, null);
 						return null;
 					}
 					LOGGER.warn(
@@ -725,7 +725,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		}
 		try {
 			// Check if it's cached first
-			MusicBrainzReleasesResult result = TableMusicBrainzReleases.findMBID(tagInfo);
+			MusicBrainzReleasesResult result = MediaTableMusicBrainzReleases.findMBID(tagInfo);
 			if (result.found) {
 				if (isNotBlank(result.mBID)) {
 					return result.mBID;
@@ -875,11 +875,11 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			}
 			if (isNotBlank(mBID)) {
 				LOGGER.debug("MusicBrainz release ID \"{}\" found for \"{}\"", mBID, tagInfo);
-				TableMusicBrainzReleases.writeMBID(mBID, tagInfo);
+				MediaTableMusicBrainzReleases.writeMBID(mBID, tagInfo);
 				return mBID;
 			}
 			LOGGER.debug("No MusicBrainz release found for \"{}\"", tagInfo);
-			TableMusicBrainzReleases.writeMBID(null, tagInfo);
+			MediaTableMusicBrainzReleases.writeMBID(null, tagInfo);
 			return null;
 		} finally {
 			releaseTagLatch(latch);
