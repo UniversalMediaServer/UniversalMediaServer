@@ -4227,7 +4227,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				try {
 					// Get the current value from the database if we haven't yet since UMS was started
 					if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
-						String systemUpdateIdFromDb = PMS.get().getDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
+						String systemUpdateIdFromDb = PMS.get().getMediaDatabase().getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
 						try {
 							systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
 						} catch (Exception ex) {
@@ -4245,7 +4245,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					// Persist the new value to the database
 					if (PMS.getConfiguration().getUseCache()) {
-						PMS.get().getDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+						PMS.get().getMediaDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
 					}
 				} finally {
 					LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
