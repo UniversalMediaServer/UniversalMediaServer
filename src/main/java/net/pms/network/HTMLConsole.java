@@ -20,7 +20,7 @@ package net.pms.network;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediaDatabase;
 import net.pms.util.PropertiesUtil;
 
 public class HTMLConsole {
@@ -28,7 +28,7 @@ public class HTMLConsole {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html><head><meta charset=\"utf-8\"><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");
 
-		DLNAMediaDatabase database = PMS.get().getDatabase();
+		MediaDatabase database = PMS.get().getMediaDatabase();
 		PmsConfiguration configuration = PMS.getConfiguration();
 
 		if (resource.equals("scan") && configuration.getUseCache()) {

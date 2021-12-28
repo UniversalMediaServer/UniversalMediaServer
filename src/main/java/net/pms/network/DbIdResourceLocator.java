@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.PlaylistFolder;
@@ -24,7 +24,7 @@ public class DbIdResourceLocator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
 
-	private DLNAMediaDatabase database;
+	private MediaDatabase database;
 
 	public enum DbidMediaType {
 
@@ -69,7 +69,7 @@ public class DbIdResourceLocator {
 	}
 
 	public DbIdResourceLocator() {
-		this.database = PMS.get().getDatabase();
+		this.database = PMS.get().getMediaDatabase();
 	}
 
 	public DLNAResource locateResource(String id) {
@@ -133,7 +133,7 @@ public class DbIdResourceLocator {
 					case TYPE_ALBUM:
 						sql = String.format(
 							"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
-								"where (  F.TYPE = 1  and  A.ALBUM  = '%s')",
+								"where (  F.FORMAT_TYPE = 1  and  A.ALBUM  = '%s')",
 							typeAndIdent.ident);
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));

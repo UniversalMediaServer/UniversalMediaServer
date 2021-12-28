@@ -19,7 +19,6 @@
  */
 package net.pms.database;
 
-import com.google.gson.internal.LinkedTreeMap;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,7 +32,7 @@ import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TableVideoMetadataRatings extends Tables {
+public final class MediaTableVideoMetadataGenres extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -42,9 +41,8 @@ public final class TableVideoMetadataRatings extends Tables {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableVideoMetadataRatings.class);
-
-	public static final String TABLE_NAME = "VIDEO_METADATA_RATINGS";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataGenres.class);
+	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -53,33 +51,116 @@ public final class TableVideoMetadataRatings extends Tables {
 	 */
 	private static final int TABLE_VERSION = 1;
 
-	// No instantiation
-	private TableVideoMetadataRatings() {
+	/**
+	 * Checks and creates or upgrades the table as needed.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static void checkTable(final Connection connection) throws SQLException {
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (tableExists(connection, TABLE_NAME)) {
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				if (version != null) {
+					if (version > TABLE_VERSION) {
+						LOGGER.warn(
+							"Database table \"" + TABLE_NAME +
+							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
+							DATABASE.getDatabaseFilename() +
+							"\" before starting UMS"
+						);
+					}
+				} else {
+					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					dropTable(connection, TABLE_NAME);
+					createTable(connection);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				}
+			} else {
+				createTable(connection);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Must be called from inside a table lock
+	 */
+	private static void createTable(final Connection connection) throws SQLException {
+		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
+		try (Statement statement = connection.createStatement()) {
+			statement.execute(
+				"CREATE TABLE " + TABLE_NAME + "(" +
+					"ID           IDENTITY         PRIMARY KEY, " +
+					"TVSERIESID   INT              DEFAULT -1, " +
+					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
+					"GENRE        VARCHAR2(1024)   NOT NULL" +
+				")"
+			);
+
+			statement.execute("CREATE UNIQUE INDEX FILENAME_GENRE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, GENRE, TVSERIESID)");
+		}
+	}
+
+	/**
+	 * @param tvSeriesTitle
+	 * @return all data in this table for a TV series, if it has an IMDb ID stored.
+	 */
+	public static HashSet getByTVSeriesName(final String tvSeriesTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try (Connection connection = DATABASE.getConnection()) {
+			String query = "SELECT GENRE FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + MediaTableTVSeries.TABLE_NAME + ".ID " +
+				"WHERE " + MediaTableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle);
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			TABLE_LOCK.readLock().lock();
+			try (Statement statement = connection.createStatement()) {
+				try (ResultSet resultSet = statement.executeQuery(query)) {
+					return convertResultSetToHashSet(resultSet);
+				}
+			} finally {
+				TABLE_LOCK.readLock().unlock();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSeriesTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
 	}
 
 	/**
 	 * Sets a new row.
 	 *
 	 * @param fullPathToFile
-	 * @param ratings
+	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final HashSet ratings, final long tvSeriesID) {
-		if (ratings == null || ratings.isEmpty()) {
+	public static void set(final String fullPathToFile, final HashSet genres, final long tvSeriesID) {
+		if (genres == null || genres.isEmpty()) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
 		try (Connection connection = DATABASE.getConnection()) {
-			Iterator<LinkedTreeMap> i = ratings.iterator();
+			Iterator<String> i = genres.iterator();
 			while (i.hasNext()) {
-				LinkedTreeMap<String, String> rating = i.next();
+				String genre = i.next();
 				try (
 					PreparedStatement insertStatement = connection.prepareStatement(
 						"INSERT INTO " + TABLE_NAME + " (" +
-							"TVSERIESID, FILENAME, RATINGSOURCE, RATINGVALUE" +
+							"TVSERIESID, FILENAME, GENRE" +
 						") VALUES (" +
-							"?, ?, ?, ?" +
+							"?, ?, ?" +
 						")",
 						Statement.RETURN_GENERATED_KEYS
 					)
@@ -87,13 +168,12 @@ public final class TableVideoMetadataRatings extends Tables {
 					insertStatement.clearParameters();
 					insertStatement.setLong(1, tvSeriesID);
 					insertStatement.setString(2, left(fullPathToFile, 255));
-					insertStatement.setString(3, rating.get("Source"));
-					insertStatement.setString(4, rating.get("Value"));
+					insertStatement.setString(3, left(genre, 255));
 
 					insertStatement.executeUpdate();
 					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
 						if (rs.next()) {
-							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, rating);
+							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
 						}
 					}
 				}
@@ -101,7 +181,7 @@ public final class TableVideoMetadataRatings extends Tables {
 		} catch (SQLException e) {
 			if (e.getErrorCode() != 23505) {
 				LOGGER.error(
-					"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
+					"Database error while writing genres to " + TABLE_NAME + " for \"{}\": {}",
 					fullPathToFile,
 					e.getMessage()
 				);
@@ -144,73 +224,4 @@ public final class TableVideoMetadataRatings extends Tables {
 		}
 	}
 
-	/**
-	 * Checks and creates or upgrades the table as needed.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
-					}
-				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createTable(connection);
-					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				}
-			} else {
-				createTable(connection);
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Must be called from inside a table lock
-	 */
-	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID           IDENTITY         PRIMARY KEY, " +
-					"TVSERIESID   INT              DEFAULT -1, " +
-					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"RATINGSOURCE VARCHAR2(1024)   NOT NULL, " +
-					"RATINGVALUE  VARCHAR2(1024)   NOT NULL" +
-				")"
-			);
-
-			statement.execute("CREATE UNIQUE INDEX FILENAME_RATINGSOURCE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, RATINGSOURCE, TVSERIESID)");
-		}
-	}
-
-	/**
-	 * Drops (deletes) the current table. Use with caution, there is no undo.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void dropTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
-		}
-	}
 }
