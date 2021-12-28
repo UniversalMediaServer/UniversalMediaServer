@@ -953,10 +953,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return transcodeFolder;
 	}
 
-	public void updateChild(DLNAResource child) {
-		updateChild(child, true);
-	}
-
 	/**
 	 * (Re)sets the given DLNA resource as follows: - if it's already one of our
 	 * children, renew it - or if we have another child with the same name,
@@ -964,22 +960,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param child the DLNA resource to update
 	 */
-	public void updateChild(DLNAResource child, boolean isAddGlobally) {
+	public void updateChild(DLNAResource child) {
 		DLNAResource found = children.contains(child) ? child : searchByName(child.getName());
 		if (found != null) {
 			if (child != found) {
 				// Replace
 				child.parent = this;
-				if (isAddGlobally) {
-					PMS.getGlobalRepo().replace(found, child);
-				}
+				PMS.getGlobalRepo().replace(found, child);
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
-			addChild(child, false, isAddGlobally);
+			addChild(child, false, true);
 		} else {
 			// Not found, it's new
-			addChild(child, true, isAddGlobally);
+			addChild(child, true, true);
 		}
 	}
 
