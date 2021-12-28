@@ -33,6 +33,8 @@ import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.ChannelGroupFuture;
+import org.jboss.netty.channel.group.ChannelGroupFutureListener;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.util.ThreadNameDeterminer;
@@ -196,16 +198,19 @@ public class HTTPServer implements Runnable {
 
 		/**
 		 * Netty v3 (HTTP Engine V2) shutdown approach from
-		 * @see https://netty.io/3.8/guide/#start.12
+		 * @see https://netty.io/3.10/guide/#start.12
+		 * @see https://netty.io/3.10/api/org/jboss/netty/channel/group/ChannelGroupFuture.html
 		 */
-		if (channel != null) {
-			if (allChannels != null) {
-				allChannels.close().awaitUninterruptibly();
-			}
-			LOGGER.trace("Confirm allChannels is empty: " + allChannels.toString());
+		if (channel != null && allChannels != null) {
+			ChannelGroupFuture future = allChannels.close();
+			future.addListener(new ChannelGroupFutureListener() {
+				public void operationComplete(ChannelGroupFuture future) {
+					LOGGER.trace("Confirm allChannels is empty: " + allChannels.toString());
 
-			bootstrap.releaseExternalResources();
-			LOGGER.trace("Released external resources");
+					bootstrap.releaseExternalResources();
+					LOGGER.trace("Released external resources");
+				}
+			});
 		}
 
 		NetworkConfiguration.forgetConfiguration();
