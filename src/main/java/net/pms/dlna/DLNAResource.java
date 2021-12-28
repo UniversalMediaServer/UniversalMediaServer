@@ -4245,7 +4245,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					// Persist the new value to the database
 					if (PMS.getConfiguration().getUseCache()) {
-						PMS.get().getMediaDatabase().setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+						MediaTableMetadata.setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
 					}
 				} finally {
 					LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
