@@ -67,6 +67,7 @@ import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
