@@ -138,7 +138,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private static boolean hasFetchedSystemUpdateIdFromDatabase = false;
 
-	private static final Debouncer debouncer = new Debouncer();
+	private static final Debouncer DEBOUNCER = new Debouncer();
 
 	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
 
@@ -4221,7 +4221,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * changed this id should be bumped, debounced by 300ms
 	 */
 	public static void bumpSystemUpdateId() {
-		debouncer.debounce(Void.class, new Runnable() {
+		DEBOUNCER.debounce(Void.class, new Runnable() {
 			@Override
 			public void run() {
 				LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
