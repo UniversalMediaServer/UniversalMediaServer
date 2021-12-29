@@ -203,6 +203,8 @@ public class RendererConfigurationTest {
 			"User-Agent: Roku/DVP-7.x"
 		);
 
+		testHeaders("Roku TV", "User-Agent: Roku/5000X-7");
+
 		testHeaders(
 			"Roku TV (NSP 8)",
 			"User-Agent: Roku/DVP-8.0 (308.00E04156A)",
