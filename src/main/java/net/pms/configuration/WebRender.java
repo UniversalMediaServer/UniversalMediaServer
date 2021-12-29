@@ -662,7 +662,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
 				"PAUSED".equals(s) ? PAUSED : -1;
-			state.mute = "0".equals(data.get("mute")) ? false : true;
+			state.mute = !"0".equals(data.get("mute"));
 			s = data.get("volume");
 			try {
 				state.volume = StringUtil.hasValue(s) ? Integer.parseInt(s) : 0;
