@@ -198,6 +198,11 @@ public class RendererConfigurationTest {
 		);
 
 		testHeaders(
+			"Roku (DVP 10)",
+			"User-Agent: Roku/DVP-10.5"
+		);
+
+		testHeaders(
 			"Roku 3 (NSP 6-7)",
 			"User-Agent: Roku/DVP-6.x",
 			"User-Agent: Roku/DVP-7.x"
@@ -209,6 +214,13 @@ public class RendererConfigurationTest {
 			"Roku TV (NSP 8)",
 			"User-Agent: Roku/DVP-8.0 (308.00E04156A)",
 			"User-Agent: Roku/DVP-8.1 (508.01E04018A)"
+		);
+
+		testHeaders(
+			"Roku TV 4K",
+			"User-Agent: Roku/6000X-7",
+			"User-Agent: Roku/7000X-7",
+			"User-Agent: Roku/8000X-7"
 		);
 
 		testHeaders(
