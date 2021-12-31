@@ -76,7 +76,6 @@ public class FormatRecognitionTest {
 
 		// Initialize the RendererConfiguration
 		configuration = new PmsConfiguration(false);
-		RendererConfiguration.loadRendererConfigurations(configuration);
 	}
 
     /**
