@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAResource;
@@ -37,8 +36,6 @@ import net.pms.network.message.SearchRequest;
  */
 public class SearchRequestHandler {
 
-	private MediaDatabase database;
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestHandler.class);
 	private final static String CRLF = "\r\n";
 	private AtomicInteger updateID = new AtomicInteger(1);
@@ -49,7 +46,6 @@ public class SearchRequestHandler {
 		.compile("(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
 
 	public SearchRequestHandler() {
-		this.database = PMS.get().getMediaDatabase();
 	}
 
 	DbidMediaType getRequestType(String searchCriteria) {
@@ -302,17 +298,23 @@ public class SearchRequestHandler {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL count : %s", query));
 		}
-
-		try (
-			Connection connection = database.getConnection();
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(query)
-		) {
-			if (resultSet.next()) {
-				return resultSet.getInt(1);
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				try (
+					Statement statement = connection.createStatement();
+					ResultSet resultSet = statement.executeQuery(query)
+				) {
+					if (resultSet.next()) {
+						return resultSet.getInt(1);
+					}
+				} catch (SQLException e) {
+					LOGGER.trace("getDLNAResourceCountFromSQL", e);
+				}
 			}
-		} catch (SQLException e) {
-			LOGGER.trace("getDLNAResourceCountFromSQL", e);
+		} finally {
+			MediaDatabase.close(connection);
 		}
 		return 0;
 	}
@@ -329,36 +331,41 @@ public class SearchRequestHandler {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL %s : %s", type.dbidPrefix, query));
 		}
-
-		try (Connection connection = database.getConnection()) {
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					while (resultSet.next()) {
-						String filenameField = FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
-						switch (type) {
-							case TYPE_ALBUM:
-							case TYPE_PERSON:
-								filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
-								break;
-							case TYPE_PLAYLIST:
-								filesList.add(
-									new VirtualFolderDbId(
-										filenameField,
-										new DbidTypeAndIdent(type, resultSet.getString("FID")),
-										""
-									)
-								);
-								break;
-							default:
-								filesList.add(new RealFileDbId(new DbidTypeAndIdent(type, resultSet.getString("FID")),
-									new File(resultSet.getString("FILENAME"))));
-								break;
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				try (Statement statement = connection.createStatement()) {
+					try (ResultSet resultSet = statement.executeQuery(query)) {
+						while (resultSet.next()) {
+							String filenameField = FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
+							switch (type) {
+								case TYPE_ALBUM:
+								case TYPE_PERSON:
+									filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
+									break;
+								case TYPE_PLAYLIST:
+									filesList.add(
+										new VirtualFolderDbId(
+											filenameField,
+											new DbidTypeAndIdent(type, resultSet.getString("FID")),
+											""
+										)
+									);
+									break;
+								default:
+									filesList.add(new RealFileDbId(new DbidTypeAndIdent(type, resultSet.getString("FID")),
+										new File(resultSet.getString("FILENAME"))));
+									break;
+							}
 						}
 					}
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.trace("getDLNAResourceFromSQL", e);
+		} finally {
+			MediaDatabase.close(connection);
 		}
 		return filesList;
 	}

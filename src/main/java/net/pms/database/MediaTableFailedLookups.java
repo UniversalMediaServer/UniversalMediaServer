@@ -68,15 +68,14 @@ public final class MediaTableFailedLookups extends MediaTable {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB,
+							DATABASE_NAME,
+							TABLE_NAME,
+							DATABASE.getDatabaseFilename()
 						);
 					}
 				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
 					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -101,11 +100,11 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 * @throws SQLException
 	 */
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						try (Statement statement = connection.createStatement()) {
@@ -114,7 +113,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 								statement.execute("CREATE INDEX FILENAME_VERSION on FILES (FILENAME, VERSION)");
 							}
 						} catch (SQLException e) {
-							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+							LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
 							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 							throw new SQLException(e);
 						}
@@ -122,8 +121,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -143,29 +141,27 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID               IDENTITY                   PRIMARY KEY, " +
-					"FILENAME         VARCHAR2(1024)             NOT NULL, " +
-					"FAILUREDETAILS   VARCHAR2(20000)            NOT NULL, " +
-					"VERSION          VARCHAR2(1024)             NOT NULL, " +
-					"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
-				")"
-			);
-
-			statement.execute("CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-			statement.execute("CREATE INDEX FILENAME_VERSION on FILES (FILENAME, VERSION)");
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID               IDENTITY                   PRIMARY KEY, " +
+				"FILENAME         VARCHAR2(1024)             NOT NULL, " +
+				"FAILUREDETAILS   VARCHAR2(20000)            NOT NULL, " +
+				"VERSION          VARCHAR2(1024)             NOT NULL, " +
+				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
+			")",
+			"CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
+			"CREATE INDEX FILENAME_VERSION on FILES (FILENAME, VERSION)"
+		);
 	}
 
 	/**
+	 * @param connection the db conncection
 	 * @param fullPathToFile
 	 * @param isVideo whether this is a video, otherwise it's a TV series
 	 * @return whether a lookup for this file has failed recently
 	 */
-	public static boolean hasLookupFailedRecently(final String fullPathToFile, final boolean isVideo) {
+	public static boolean hasLookupFailedRecently(final Connection connection, final String fullPathToFile, final boolean isVideo) {
 		boolean removeAfter = false;
 		String latestVersion;
 		if (isVideo) {
@@ -182,7 +178,6 @@ public final class MediaTableFailedLookups extends MediaTable {
 
 		TABLE_LOCK.readLock().lock();
 		try (
-			Connection connection = DATABASE.getConnection();
 			PreparedStatement selectStatement = connection.prepareStatement(sql.toString());
 			ResultSet rs = selectStatement.executeQuery()
 		) {
@@ -205,7 +200,10 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (Exception e) {
 			LOGGER.error(
-				"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"writing",
+				TABLE_NAME,
 				fullPathToFile,
 				e.getMessage()
 			);
@@ -213,7 +211,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 		} finally {
 			TABLE_LOCK.readLock().unlock();
 			if (removeAfter) {
-				remove(fullPathToFile, false);
+				remove(connection, fullPathToFile, false);
 			}
 		}
 
@@ -223,10 +221,12 @@ public final class MediaTableFailedLookups extends MediaTable {
 	/**
 	 * Sets a new row.
 	 *
+	 * @param connection the db connection
 	 * @param fullPathToFile
 	 * @param failureDetails the response the API server returned, or a client-side message
+	 * @param isVideo
 	 */
-	public static void set(final String fullPathToFile, final String failureDetails, final boolean isVideo) {
+	public static void set(final Connection connection, final String fullPathToFile, final String failureDetails, final boolean isVideo) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String latestVersion;
 		if (isVideo) {
@@ -236,7 +236,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 		}
 
 		TABLE_LOCK.writeLock().lock();
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT FILENAME, FAILUREDETAILS, VERSION FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", query);
@@ -266,7 +266,10 @@ public final class MediaTableFailedLookups extends MediaTable {
 		} catch (SQLException e) {
 			if (e.getErrorCode() != 23505) {
 				LOGGER.error(
-					"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
+					LOG_ERROR_WHILE_IN_FOR,
+					DATABASE_NAME,
+					"writing",
+					TABLE_NAME,
 					fullPathToFile,
 					e.getMessage()
 				);
@@ -280,17 +283,18 @@ public final class MediaTableFailedLookups extends MediaTable {
 	}
 
 	/**
-	 * Removes an entry or entries based on its FILENAME. If {@code useLike} is
-	 * {@code true}, {@code filename} must be properly escaped.
+	 * Removes an entry or entries based on its FILENAME.If {@code useLike}is
+ 	{@code true} {@code filename}must be properly escaped.
 	 *
+	 * @param connection the db connection
 	 * @see Tables#sqlLikeEscape(String)
 	 *
 	 * @param filename the filename to remove
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
-	public static void remove(final String filename, boolean useLike) {
-		try (Connection connection = DATABASE.getConnection()) {
+	public static void remove(final Connection connection, final String filename, boolean useLike) {
+		try {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
@@ -303,7 +307,10 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while removing entries from " + TABLE_NAME + " for \"{}\": {}",
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"removing entries",
+				TABLE_NAME,
 				filename,
 				e.getMessage()
 			);

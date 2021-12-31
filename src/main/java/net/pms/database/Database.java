@@ -19,7 +19,6 @@
  */
 package net.pms.database;
 
-import net.pms.dlna.*;
 import java.awt.Component;
 import java.io.File;
 import java.sql.*;
@@ -35,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Properties;
+import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.Upgrade;
 
 /**
@@ -43,7 +43,7 @@ import org.h2.tools.Upgrade;
  * intensive, so the database is used to cache scanned information to be reused
  * later.
  */
-public class Database extends DatabaseHelper {
+public abstract class Database extends DatabaseHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
 
 	private String url;
@@ -52,6 +52,8 @@ public class Database extends DatabaseHelper {
 	private String dbUser;
 	private String dbPassword;
 	private final JdbcConnectionPool cp;
+
+	protected DatabaseStatus status;
 
 	/**
 	 * Initializes the database connection pool for the current profile.
@@ -65,6 +67,7 @@ public class Database extends DatabaseHelper {
 	 * @param password the database password
 	 */
 	public Database(String name, String user, String password) {
+		status = DatabaseStatus.CLOSED;
 		dbName = name;
 		dbUser = user;
 		dbPassword = password;
@@ -80,8 +83,8 @@ public class Database extends DatabaseHelper {
 			LOGGER.debug("Database logging is disabled");
 		}
 
-		LOGGER.debug("Using database URL: {}", url);
-		LOGGER.info("Using database located at: \"{}\"", dbDir);
+		LOGGER.debug("Using \"{}\" database URL: {}", dbName, url);
+		LOGGER.info("Using \"{}\" database located at: \"{}\"", dbName, dbDir);
 
 		try {
 			Class.forName("org.h2.Driver");
@@ -121,7 +124,6 @@ public class Database extends DatabaseHelper {
 		if (dbDir == null) {
 			return null;
 		}
-
 		return dbDir;
 	}
 
@@ -138,6 +140,14 @@ public class Database extends DatabaseHelper {
 		return cp.getConnection();
 	}
 
+	public int getActiveConnections() throws SQLException {
+		return cp.getActiveConnections();
+	}
+
+	public boolean isOpened() {
+		return status == DatabaseStatus.OPENED;
+	}
+
 	/**
 	 * Initialized the database for use, performing checks and creating a new
 	 * database if necessary.
@@ -146,60 +156,99 @@ public class Database extends DatabaseHelper {
 	 */
 	@SuppressFBWarnings("SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE")
 	public synchronized void init(boolean force) {
+		open();
+		switch (status) {
+			case OPENED:
+				onOpening(force);
+				break;
+			case OPENFAILED:
+				onOpeningFail(force);
+				break;
+		}
+	}
+
+	private void open() {
+		status = DatabaseStatus.OPENING;
 		Connection conn = null;
+		boolean needRetry = false;
 		try {
 			conn = getConnection();
+			status = DatabaseStatus.OPENED;
 		} catch (SQLException se) {
+			status = DatabaseStatus.OPENFAILED;
 			final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
 			final File dbDirectory = new File(dbDir);
 			if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
 				LOGGER.info("The database need a migration to h2 format 2");
 				migrateDatabaseVersion2(true);
+				needRetry = true;
 			} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 				FileUtils.deleteQuietly(dbDirectory);
 				if (!dbDirectory.exists()) {
 					LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
+					needRetry = true;
 				} else {
-					if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
-						JOptionPane.showMessageDialog(
-							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
-							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE
-						);
-					}
+					showMessageDialog("DLNAMediaDatabase.5", dbDir);
 					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
-					PMS.get().getRootFolder(null).stopScan();
-					CONFIGURATION.setUseCache(false);
 				}
 			} else {
 				LOGGER.debug("Database connection error, retrying in 10 seconds");
+				sleep(10000);
+				needRetry = true;
+			}
+			if (needRetry) {
 				try {
-					Thread.sleep(10000);
 					conn = getConnection();
-				} catch (InterruptedException | SQLException se2) {
-					if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
-						try {
-							JOptionPane.showMessageDialog(
-								SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-								String.format(Messages.getString("DLNAMediaDatabase.ConnectionError"), dbDir),
-								Messages.getString("Dialog.Error"),
-								JOptionPane.ERROR_MESSAGE
-							);
-						} catch (NullPointerException e) {
-							LOGGER.debug("Failed to show database connection error message, probably because GUI is not initialized yet. Error was {}", e);
-						}
-					}
+					status = DatabaseStatus.OPENED;
+				} catch (SQLException se2) {
+					showMessageDialog("DLNAMediaDatabase.ConnectionError", dbDir);
 					LOGGER.debug("", se2);
-					RootFolder rootFolder = PMS.get().getRootFolder(null);
-					if (rootFolder != null) {
-						rootFolder.stopScan();
-					}
 				}
 			}
 		} finally {
 			close(conn);
 		}
+	}
+
+	abstract void onOpening(boolean force);
+
+	abstract void onOpeningFail(boolean force);
+
+	private void showMessageDialog(String message, String dbDir) {
+		if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
+			try {
+				JOptionPane.showMessageDialog(
+					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+					String.format(Messages.getString(message), dbDir),
+					Messages.getString("Dialog.Error"),
+					JOptionPane.ERROR_MESSAGE
+				);
+			} catch (NullPointerException e1) {
+				LOGGER.debug("Failed to show database connection error message, probably because GUI is not initialized yet. Error was {}", e1);
+			}
+		}
+	}
+
+	public void close() {
+		status = DatabaseStatus.CLOSING;
+		try {
+			Thread.sleep(500);
+			while (getActiveConnections() > 0) {
+				Thread.sleep(500);
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Waiting DB connections", e);
+		} catch (InterruptedException e) {
+			LOGGER.debug("Interrupted while shutting down..");
+			LOGGER.trace("", e);
+		}
+
+		try (Statement stmt = getConnection().createStatement()) {
+			stmt.execute("SHUTDOWN COMPACT");
+		} catch (SQLException e1) {
+			LOGGER.error("compacting DB ", e1);
+		}
+		status = DatabaseStatus.CLOSED;
 	}
 
 	/**
@@ -235,5 +284,38 @@ public class Database extends DatabaseHelper {
 			);
 			LOGGER.trace("", e);
 		}
+	}
+
+	/**
+	 * Create the database report.
+	 * Use an automatic H2database profiling tool to make a report at the end of the logging file
+	 * converted to the "logging_report.txt" in the database directory.
+	 */
+	public void createDatabaseReport() {
+		try {
+			ConvertTraceFile.main("-traceFile", getDatabaseFilename() + ".trace.db",
+				"-script", getDatabaseFilename() + "_logging_report.txt");
+		} catch (SQLException e) {}
+	}
+
+	/**
+	 * Utility method to call {@link Thread#sleep(long)} without having to catch
+	 * the InterruptedException.
+	 *
+	 * @param delay the delay
+	 */
+	public static void sleep(int delay) {
+		try {
+			Thread.sleep(delay);
+		} catch (InterruptedException e) {
+		}
+	}
+
+	public enum DatabaseStatus {
+		OPENING,
+		OPENED,
+		OPENFAILED,
+		CLOSING,
+		CLOSED
 	}
 }

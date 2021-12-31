@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -60,7 +60,7 @@ public class MediaTableMetadata extends MediaTable {
 				if (version < TABLE_VERSION) {
 					upgradeTable(connection, version);
 				} else if (version > TABLE_VERSION) {
-					LOGGER.warn("Database table \"" + TABLE_NAME + "\" is from a newer version of UMS.");
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 				}
 			} else {
 				createTable(connection);
@@ -72,11 +72,11 @@ public class MediaTableMetadata extends MediaTable {
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						// From version 1 to 2, we stopped using KEY and VALUE, and instead use M_KEY and M_VALUE
@@ -87,8 +87,7 @@ public class MediaTableMetadata extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -99,7 +98,7 @@ public class MediaTableMetadata extends MediaTable {
 				throw new SQLException(e);
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+			LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
 			throw new SQLException(e);
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
@@ -110,64 +109,52 @@ public class MediaTableMetadata extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		executeUpdate(connection, "CREATE TABLE " + TABLE_NAME + " (M_KEY VARCHAR2(255) NOT NULL, M_VALUE VARCHAR2(255) NOT NULL)");
-		executeUpdate(connection, "CREATE UNIQUE INDEX IDX_M_KEY ON " + TABLE_NAME + "(M_KEY)");
-	}
-
-	/**
-	 * Drops (deletes) the current table. Use with caution, there is no undo.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void dropTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + " (" +
+				"M_KEY		VARCHAR2(255)		NOT NULL, " +
+				"M_VALUE	VARCHAR2(255)		NOT NULL" +
+			")",
+			"CREATE UNIQUE INDEX IDX_M_KEY ON " + TABLE_NAME + "(M_KEY)"
+		);
 	}
 
 	/**
 	 * Gets a value from the METADATA table
+	 * @param connection the db connection
 	 * @param key
 	 * @return value
 	 */
-	public static String getMetadataValue(String key) {
-		String value = null;
-
-		try (Connection conn = DATABASE.getConnection()) {
-			TABLE_LOCK.readLock().lock();
-			try (
-				Statement stmt = conn.createStatement();
-				ResultSet rs = stmt.executeQuery("SELECT M_VALUE FROM " + TABLE_NAME + " WHERE M_KEY = '" + key + "'")
-			) {
-				if (rs.next()) {
-					value = rs.getString(1);
-				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
+	public static String getMetadataValue(final Connection connection, String key) {
+		TABLE_LOCK.readLock().lock();
+		try (
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT M_VALUE FROM " + TABLE_NAME + " WHERE M_KEY = '" + key + "'")
+		) {
+			if (rs.next()) {
+				return rs.getString(1);
 			}
 		} catch (Exception se) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading value", key, TABLE_NAME, se.getMessage());
 			LOGGER.error(null, se);
+		} finally {
+			TABLE_LOCK.readLock().unlock();
 		}
-
-		return value;
+		return null;
 	}
 
 	/**
 	 * Sets or updates a value in the METADATA table.
 	 *
+	 * @param connection the db connection
 	 * @param key
 	 * @param value
 	 */
-	public static void setOrUpdateMetadataValue(final String key, final String value) {
+	public static void setOrUpdateMetadataValue(final Connection connection, final String key, final String value) {
 		boolean trace = LOGGER.isTraceEnabled();
-		String query;
 
-		try (Connection connection = DATABASE.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE M_KEY = " + sqlQuote(key) + " LIMIT 1";
+		try {
+			String query = "SELECT * FROM " + TABLE_NAME + " WHERE M_KEY = " + sqlQuote(key) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", query);
 			}
@@ -197,12 +184,9 @@ public class MediaTableMetadata extends MediaTable {
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}
-		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing value to " + TABLE_NAME + ": {}",
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
+		} catch (SQLException se) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "writing value", key, TABLE_NAME, se.getMessage());
+			LOGGER.trace("", se);
 		}
 	}
 }

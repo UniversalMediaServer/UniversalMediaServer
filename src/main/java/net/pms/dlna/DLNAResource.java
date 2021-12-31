@@ -58,12 +58,14 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.sql.Connection;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableTVSeries;
@@ -1733,6 +1735,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * @param profile
 	 * @return Returns an URL pointing to an image representing the item. If
 	 *         none is available, "thumbnail0000.png" is used.
 	 */
@@ -2582,14 +2585,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private void addBookmark(StringBuilder sb, String title) {
+		Connection connection =  MediaDatabase.getConnectionIfAvailable();
 		try {
-			File file = new File(getFileName());
-			String path = file.getCanonicalPath();
-			int bookmark = MediaTableFilesStatus.getBookmark(path);
-			LOGGER.debug("Setting bookmark for " + path + " => " + bookmark);
-			addXMLTagAndAttribute(sb, "sec:dcmInfo", encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, bookmark)));
-		} catch (Exception e) {
+			if (connection != null) {
+				File file = new File(getFileName());
+				String path = file.getCanonicalPath();
+				int bookmark = MediaTableFilesStatus.getBookmark(connection, path);
+				LOGGER.debug("Setting bookmark for " + path + " => " + bookmark);
+				addXMLTagAndAttribute(sb, "sec:dcmInfo", encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, bookmark)));
+			}
+		} catch (IOException e) {
 			LOGGER.error("Cannot set bookmark tag for " + title, e);
+		} finally {
+			MediaDatabase.close(connection);
 		}
 	}
 
@@ -3350,7 +3358,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume(), renderer);
 			if (!isResume() && media.getThumb() != null && configurationSpecificToRenderer.getUseCache() && inputFile.getFile() != null) {
-				MediaTableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						MediaTableThumbnails.setThumbnail(connection, media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
+					}
+				} finally {
+					MediaDatabase.close(connection);
+				}
 			}
 		}
 	}
@@ -3892,21 +3908,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				SubtitleUtils.searchAndAttachExternalSubtitles(file, media, forceRefresh);
 				// update the database if enabled
 				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
-					if (PMS.get().getMediaDatabase() != null) {
-						try {
-							MediaTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
-						} catch (SQLException e) {
-							LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
-								e.getMessage());
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("SQL error code: {}", e.getErrorCode());
-								if (e.getCause() instanceof SQLException &&
-									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()) {
-									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
-								}
-								LOGGER.trace("", e);
-							}
+					Connection connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), getType(), media);
 						}
+					} catch (SQLException e) {
+						LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
+							e.getMessage());
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("SQL error code: {}", e.getErrorCode());
+							if (e.getCause() instanceof SQLException &&
+								((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()) {
+								LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+							}
+							LOGGER.trace("", e);
+						}
+					} finally {
+						MediaDatabase.close(connection);
 					}
 				}
 			}
@@ -4906,23 +4926,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				media.setMovieOrShowName(titleFromFilename);
 				media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
-				String titleFromDatabase;
-				String titleFromDatabaseSimplified;
 
 				// Apply the metadata from the filename.
 				if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
-					/**
-					* Overwrite the title from the filename if it's very similar to one
-					* we already have in our database. This is to avoid minor
-					* grammatical differences like "Word and Word" vs. "Word & Word"
-					* from creating two virtual folders.
-					*/
-					titleFromDatabase = MediaTableTVSeries.getSimilarTVSeriesName(titleFromFilename);
-					titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
-					if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
-						media.setMovieOrShowName(titleFromDatabase);
-					}
-
 					media.setTVSeason(tvSeasonFromFilename);
 					if (isNotBlank(tvEpisodeNumberFromFilename)) {
 						media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
@@ -4942,15 +4948,36 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					media.setExtraInformation(extraInformationFromFilename);
 				}
 
-				if (configuration.getUseCache()) {
-					// TODO: Make sure this does not happen if ANY version already exists, before doing this
-					MediaTableFiles.insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+				if (configuration.getUseCache() && MediaDatabase.isAvailable()) {
+					Connection connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							if (media.isTVEpisode()) {
+								/**
+								* Overwrite the title from the filename if it's very similar to one
+								* we already have in our database. This is to avoid minor
+								* grammatical differences like "Word and Word" vs. "Word & Word"
+								* from creating two virtual folders.
+								*/
+								String titleFromDatabase = MediaTableTVSeries.getSimilarTVSeriesName(connection, titleFromFilename);
+								String titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+								if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
+									media.setMovieOrShowName(titleFromDatabase);
+								}
+							}
+							// TODO: Make sure this does not happen if ANY version already exists, before doing this
+							MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
 
-					// Creates a minimal TV series row with just the title, that
-					// might be enhanced later by the API
-					if (media.isTVEpisode()) {
-						// TODO: Make this check if it already exists instead of always setting it
-						MediaTableTVSeries.set(null, media.getMovieOrShowName());
+							// Creates a minimal TV series row with just the title, that
+							// might be enhanced later by the API
+							if (media.isTVEpisode()) {
+								// TODO: Make this check if it already exists instead of always setting it
+								MediaTableTVSeries.set(connection, null, media.getMovieOrShowName());
+							}
+						}
+					} finally {
+						MediaDatabase.close(connection);
 					}
 				}
 			}
@@ -4963,6 +4990,29 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} finally {
 			// Attempt to enhance the metadata via our API.
 			APIUtils.backgroundLookupAndAddMetadata(file, media);
+		}
+	}
+
+	/**
+	 * Stores the file in the cache if it doesn't already exist.
+	 *
+	 * @param file the full path to the file.
+	 * @param formatType the type constant defined in {@link Format}.
+	 */
+	protected void storeFileInCache(File file, int formatType) {
+		if (configuration.getUseCache() && MediaDatabase.isAvailable()) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (!MediaTableFiles.isDataExists(connection, file.getAbsolutePath(), file.lastModified())) {
+					MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), formatType, null);
+				}
+			} catch (SQLException e) {
+				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
+				LOGGER.trace("", e);
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
 	}
 

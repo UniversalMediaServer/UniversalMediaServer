@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -65,7 +65,7 @@ public class MediaTableRegexpRules extends MediaTable {
 				if (version < TABLE_VERSION) {
 					upgradeTable(connection, version);
 				} else if (version > TABLE_VERSION) {
-					LOGGER.warn("Database table \"" + TABLE_NAME + "\" is from a newer version of UMS.");
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 				}
 			} else {
 				createTable(connection);
@@ -77,11 +77,11 @@ public class MediaTableRegexpRules extends MediaTable {
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 
 				switch (version) {
 					case 1:
@@ -96,8 +96,7 @@ public class MediaTableRegexpRules extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -117,10 +116,16 @@ public class MediaTableRegexpRules extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		executeUpdate(connection, "CREATE TABLE " + TABLE_NAME + " ( ID VARCHAR2(255) PRIMARY KEY, REGEXP_RULE VARCHAR2(255), REGEXP_ORDER NUMERIC );");
-		executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " VALUES ( '###', '(?i)^\\W.+', 0 );");
-		executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " VALUES ( '0-9', '(?i)^\\d.+', 1 );");
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + " ( " +
+				"ID					VARCHAR2(255)		PRIMARY KEY	, " +
+				"REGEXP_RULE		VARCHAR2(255)					, " +
+				"REGEXP_ORDER		NUMERIC							  " +
+			")",
+			"INSERT INTO " + TABLE_NAME + " VALUES ( '###', '(?i)^\\W.+', 0 )",
+			"INSERT INTO " + TABLE_NAME + " VALUES ( '0-9', '(?i)^\\d.+', 1 )"
+		);
 		String[] chars = Messages.getString("DLNAMediaDatabase.1").split(",");
 		for (int i = 0; i < chars.length; i++) {
 			// Create regexp rules for characters with a sort order based on the property value

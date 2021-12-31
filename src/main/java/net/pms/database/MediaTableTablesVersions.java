@@ -23,7 +23,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
@@ -63,10 +62,13 @@ public class MediaTableTablesVersions extends MediaTable {
 	}
 
 	protected static final void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table \"" + TABLE_NAME + "\"");
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("CREATE TABLE " + TABLE_NAME + "(TABLE_NAME VARCHAR(50) PRIMARY KEY, TABLE_VERSION INT NOT NULL)");
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"TABLE_NAME			VARCHAR(50)		PRIMARY KEY, " +
+				"TABLE_VERSION		INT				NOT NULL" +
+			")"
+		);
 	}
 
 	/**

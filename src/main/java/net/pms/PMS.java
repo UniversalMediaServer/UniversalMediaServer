@@ -31,8 +31,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -55,10 +53,10 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
+import net.pms.dlna.LibraryScanner;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
@@ -85,7 +83,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.fest.util.Files;
-import org.h2.tools.ConvertTraceFile;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -244,25 +241,12 @@ public class PMS {
 	private IFrame frame;
 
 	/**
-	 * Main resource database that supports search capabilities. Also known as media cache.
-	 * @see net.pms.database.MediaDatabase
-	 */
-	private MediaDatabase mediaDatabase;
-	private Object mediaDatabaseLock = new Object();
-
-	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
 	 * for its queries.
 	 * @return (MediaDatabase) a reference to the mediaDatabase.
 	 */
 	public MediaDatabase getMediaDatabase() {
-		synchronized (mediaDatabaseLock) {
-			if (mediaDatabase == null) {
-				mediaDatabase = new MediaDatabase();
-				mediaDatabase.init(false);
-			}
-			return mediaDatabase;
-		}
+		return MediaDatabase.get();
 	}
 
 	private void displayBanner() throws IOException {
@@ -435,12 +419,7 @@ public class PMS {
 		}
 
 		// Initialize mediaDatabase
-		try {
-			getMediaDatabase().checkTables(false);
-		} catch (SQLException e1) {
-			LOGGER.error("Database was not initialized.");
-			LOGGER.trace("Error was: {}", e1);
-		}
+		MediaDatabase.get();
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -796,30 +775,20 @@ public class PMS {
 					System.err.println("Unable to shut down logging gracefully");
 				}
 
-				if (configuration.getDatabaseLogging()) {
-					// use an automatic H2database profiling tool to make a report at the end of the logging file
-					// converted to the "logging_report.txt" in the mediaDatabase directory
-					try {
-						ConvertTraceFile.main("-traceFile", mediaDatabase.getDatabasePath()  + File.separator + "medias.trace.db",
-							"-script", mediaDatabase.getDatabasePath()  + File.separator + "logging_report.txt");
-					} catch (SQLException e) {}
-				}
-
 				// Shut down library scanner
 				if (getConfiguration().getUseCache()) {
-					if (getMediaDatabase() != null && getMediaDatabase().isScanLibraryRunning()) {
-						LOGGER.debug("Database is still not null, attempting to close it");
-						getMediaDatabase().stopScanLibrary();
+					if (LibraryScanner.isScanLibraryRunning()) {
+						LOGGER.debug("LibraryScanner is still running, attempting to stop it");
+						LibraryScanner.stopScanLibrary();
 					} else {
-						LOGGER.debug("Database already closed");
+						LOGGER.debug("LibraryScanner already stopped");
 					}
 				}
 
-				if (mediaDatabase != null) {
-					try (Statement stmt = mediaDatabase.getConnection().createStatement()) {
-						stmt.execute("SHUTDOWN COMPACT");
-					} catch (SQLException e1) {
-						LOGGER.error("compacting DB ", e1);
+				if (MediaDatabase.isInstanciated()) {
+					MediaDatabase.get().close();
+					if (configuration.getDatabaseLogging()) {
+						MediaDatabase.get().createDatabaseReport();
 					}
 				}
 			}
@@ -837,7 +806,7 @@ public class PMS {
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
-			getMediaDatabase().scanLibrary();
+			LibraryScanner.scanLibrary();
 		}
 
 		return true;
@@ -1174,26 +1143,6 @@ public class PMS {
 			configuration.save();
 		} catch (ConfigurationException e) {
 			LOGGER.error("Could not save configuration", e);
-		}
-	}
-
-	/**
-	 * Stores the file in the cache if it doesn't already exist.
-	 *
-	 * @param file the full path to the file.
-	 * @param formatType the type constant defined in {@link Format}.
-	 */
-	public void storeFileInCache(File file, int formatType) {
-		if (
-			configuration.getUseCache() &&
-			!MediaTableFiles.isDataExists(file.getAbsolutePath(), file.lastModified())
-		) {
-			try {
-				MediaTableFiles.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
-			} catch (SQLException e) {
-				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
-				LOGGER.trace("", e);
-			}
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -71,7 +71,7 @@ public class MediaTableSubtracks extends MediaTable {
 				if (version < TABLE_VERSION) {
 					upgradeTable(connection, version);
 				} else if (version > TABLE_VERSION) {
-					LOGGER.warn("Database table \"" + TABLE_NAME + "\" is from a newer version of UMS.");
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 				}
 			} else {
 				createTable(connection);
@@ -83,11 +83,11 @@ public class MediaTableSubtracks extends MediaTable {
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						if (isColumnExist(connection, TABLE_NAME, "TYPE")) {
@@ -97,8 +97,7 @@ public class MediaTableSubtracks extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -118,23 +117,20 @@ public class MediaTableSubtracks extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		StringBuilder sb = new StringBuilder();
-		sb.append("CREATE TABLE SUBTRACKS (");
-		sb.append("  ID             INT              NOT NULL");
-		sb.append(", FILEID         BIGINT           NOT NULL");
-		sb.append(", LANG           VARCHAR2(").append(SIZE_LANG).append(')');
-		sb.append(", TITLE          VARCHAR2(").append(SIZE_MAX).append(')');
-		sb.append(", FORMAT_TYPE    INT");
-		sb.append(", EXTERNALFILE   VARCHAR2(").append(SIZE_EXTERNALFILE).append(") NOT NULL default ''");
-		sb.append(", CHARSET        VARCHAR2(").append(SIZE_MAX).append(')');
-		sb.append(", constraint PKSUB primary key (FILEID, ID, EXTERNALFILE)");
-		sb.append(", FOREIGN KEY(FILEID)");
-		sb.append("    REFERENCES FILES(ID)");
-		sb.append("    ON DELETE CASCADE");
-		sb.append(')');
-		LOGGER.trace("Creating table SUBTRACKS with:\n\n{}\n", sb.toString());
-		executeUpdate(connection, sb.toString());
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE SUBTRACKS (" +
+				"ID             INT									NOT NULL			, " +
+				"FILEID         BIGINT								NOT NULL			, " +
+				"LANG           VARCHAR2(" + SIZE_LANG + ")								, " +
+				"TITLE          VARCHAR2(" + SIZE_MAX + ")								, " +
+				"FORMAT_TYPE    INT														, " +
+				"EXTERNALFILE   VARCHAR2(" + SIZE_EXTERNALFILE + ")	NOT NULL default ''	, " +
+				"CHARSET        VARCHAR2(" + SIZE_MAX + ")								, " +
+				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE)				, " +
+				"FOREIGN KEY(FILEID) REFERENCES FILES(ID) ON DELETE CASCADE" +
+			")"
+		);
 	}
 
 	protected static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {

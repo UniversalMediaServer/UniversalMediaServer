@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -63,16 +63,13 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 				if (version != null) {
-					if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 					}
 				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
 					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -87,39 +84,65 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 	}
 
 	/**
+	 * This method <strong>MUST</strong> be updated if the table definition are
+	 * altered. The changes for each version in the form of
+	 * <code>ALTER TABLE</code> must be implemented here.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param currentVersion the version to upgrade <strong>from</strong>
+	 *
+	 * @throws SQLException
+	 */
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+				switch (version) {
+					default:
+						throw new IllegalStateException(
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+						);
+				}
+			}
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID           IDENTITY         PRIMARY KEY, " +
-					"TVSERIESID   INT              DEFAULT -1, " +
-					"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-					"AWARD        VARCHAR2(1024)   NOT NULL" +
-				")"
-			);
-
-			statement.execute("CREATE UNIQUE INDEX FILENAME_AWARD_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, AWARD, TVSERIESID)");
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID           IDENTITY         PRIMARY KEY, " +
+				"TVSERIESID   INT              DEFAULT -1, " +
+				"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
+				"AWARD        VARCHAR2(1024)   NOT NULL" +
+			")",
+			"CREATE UNIQUE INDEX FILENAME_AWARD_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, AWARD, TVSERIESID)"
+		);
 	}
 
 	/**
 	 * Sets a new row.
 	 *
+	 * @param connection the db connection
 	 * @param fullPathToFile
 	 * @param awards
 	 * @param tvSeriesID
 	 */
-	public static void set(final String fullPathToFile, final String awards, final long tvSeriesID) {
+	public static void set(final Connection connection, final String fullPathToFile, final String awards, final long tvSeriesID) {
 		if (isBlank(awards)) {
 			return;
 		}
 
 		TABLE_LOCK.writeLock().lock();
 		try (
-			Connection connection = DATABASE.getConnection();
 			PreparedStatement insertStatement = connection.prepareStatement(
 				"INSERT INTO " + TABLE_NAME + " (" +
 					"TVSERIESID, FILENAME, AWARD" +
@@ -142,11 +165,7 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 			}
 		} catch (SQLException e) {
 			if (e.getErrorCode() != 23505) {
-				LOGGER.error(
-					"Database error while writing to " + TABLE_NAME + " for \"{}\": {}",
-					fullPathToFile,
-					e.getMessage()
-				);
+				LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, fullPathToFile, e.getMessage());
 				LOGGER.trace("", e);
 			}
 		} finally {
@@ -160,12 +179,13 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 	 *
 	 * @see Tables#sqlLikeEscape(String)
 	 *
+	 * @param connection the db connection
 	 * @param filename the filename to remove
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
-	public static void remove(final String filename, boolean useLike) {
-		try (Connection connection = DATABASE.getConnection()) {
+	public static void remove(final Connection connection, final String filename, boolean useLike) {
+		try {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
@@ -177,11 +197,7 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while removing entries from " + TABLE_NAME + " for \"{}\": {}",
-				filename,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

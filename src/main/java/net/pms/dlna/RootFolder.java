@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
@@ -247,12 +248,22 @@ public class RootFolder extends DLNAResource {
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		LOGGER.debug("Starting scan of: {}", this.getName());
-		scan(this);
-
-		// Running might have been set false during scan
 		if (running) {
-			MediaTableFiles.cleanup();
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					scan(connection, this);
+					// Running might have been set false during scan
+					if (running) {
+						MediaTableFiles.cleanup(connection);
+					}
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
+
 		frame.setScanLibraryEnabled(true);
 		frame.setStatusLine(null);
 	}
@@ -261,7 +272,7 @@ public class RootFolder extends DLNAResource {
 		running = false;
 	}
 
-	public void scan(DLNAResource resource) {
+	public void scan(final Connection connection, DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
@@ -291,7 +302,7 @@ public class RootFolder extends DLNAResource {
 						continue;
 					}
 
-					scan(child);
+					scan(connection, child);
 					child.getChildren().clear();
 				} else if (!running) {
 					break;
@@ -1535,46 +1546,50 @@ public class RootFolder extends DLNAResource {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
-				MediaDatabase database = PMS.get().getMediaDatabase();
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						/**
+						 * If a new directory is created with files, the listener may not
+						 * give us information about those new files, as it wasn't listening
+						 * when they were created, so make sure we parse them.
+						 */
+						if (isDir) {
+							if ("ENTRY_CREATE".equals(event)) {
+								LOGGER.trace("Folder {} was created on the hard drive", filename);
 
-				if (database != null) {
-					/**
-					 * If a new directory is created with files, the listener may not
-					 * give us information about those new files, as it wasn't listening
-					 * when they were created, so make sure we parse them.
-					 */
-					if (isDir) {
-						if ("ENTRY_CREATE".equals(event)) {
-							LOGGER.trace("Folder {} was created on the hard drive", filename);
-
-							File[] files = new File(filename).listFiles();
-							if (files != null) {
-								LOGGER.trace("Crawling {}", filename);
-								for (File file : files) {
-									if (file.isFile()) {
-										LOGGER.trace("File {} found in {}", file.getName(), filename);
-										parseFileForDatabase(file);
+								File[] files = new File(filename).listFiles();
+								if (files != null) {
+									LOGGER.trace("Crawling {}", filename);
+									for (File file : files) {
+										if (file.isFile()) {
+											LOGGER.trace("File {} found in {}", file.getName(), filename);
+											parseFileForDatabase(file);
+										}
 									}
+								} else {
+									LOGGER.trace("Folder {} is empty", filename);
 								}
-							} else {
-								LOGGER.trace("Folder {} is empty", filename);
+							} else if ("ENTRY_DELETE".equals(event)) {
+								LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
+								MediaTableFiles.removeMediaEntriesInFolder(connection, filename);
+								bumpSystemUpdateId();
 							}
-						} else if ("ENTRY_DELETE".equals(event)) {
-							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
-							MediaTableFiles.removeMediaEntriesInFolder(filename);
-							bumpSystemUpdateId();
-						}
-					} else {
-						if ("ENTRY_DELETE".equals(event)) {
-							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-							MediaTableFiles.removeMediaEntry(filename);
-							bumpSystemUpdateId();
-						} else if ("ENTRY_CREATE".equals(event)) {
-							LOGGER.trace("File {} was created on the hard drive", filename);
-							File file = new File(filename);
-							parseFileForDatabase(file);
+						} else {
+							if ("ENTRY_DELETE".equals(event)) {
+								LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
+								MediaTableFiles.removeMediaEntry(connection, filename);
+								bumpSystemUpdateId();
+							} else if ("ENTRY_CREATE".equals(event)) {
+								LOGGER.trace("File {} was created on the hard drive", filename);
+								File file = new File(filename);
+								parseFileForDatabase(file);
+							}
 						}
 					}
+				} finally {
+					MediaDatabase.close(connection);
 				}
 			}
 		}
@@ -1633,7 +1648,7 @@ public class RootFolder extends DLNAResource {
 		) {
 			LOGGER.debug("rescanning file or folder : " + filename);
 
-			if (!PMS.get().getMediaDatabase().isScanLibraryRunning()) {
+			if (!LibraryScanner.isScanLibraryRunning()) {
 				Runnable scan = () -> {
 					File file = new File(filename);
 					if (file.isFile()) {
@@ -1642,7 +1657,15 @@ public class RootFolder extends DLNAResource {
 					DLNAResource dir = new RealFile(file);
 					dir.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 					dir.doRefreshChildren();
-					PMS.get().getRootFolder(null).scan(dir);
+					Connection connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							PMS.get().getRootFolder(null).scan(connection, dir);
+						}
+					} finally {
+						MediaDatabase.close(connection);
+					}
 				};
 				Thread scanThread = new Thread(scan, "rescanLibraryFileOrFolder");
 				scanThread.start();
