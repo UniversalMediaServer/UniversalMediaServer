@@ -351,15 +351,19 @@ public class MediaMonitor extends VirtualFolder {
 			}
 
 			// Add the entry to the cache
-			Connection connection =  MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				if (isFileOrTVSeries) {
-					fullyPlayed = MediaTableFilesStatus.isFullyPlayed(connection, fullPathToFile);
-				} else {
-					fullyPlayed = MediaTableTVSeries.isFullyPlayed(connection, fullPathToFile);
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					if (isFileOrTVSeries) {
+						fullyPlayed = MediaTableFilesStatus.isFullyPlayed(connection, fullPathToFile);
+					} else {
+						fullyPlayed = MediaTableTVSeries.isFullyPlayed(connection, fullPathToFile);
+					}
 				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
-			MediaDatabase.close(connection);
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}

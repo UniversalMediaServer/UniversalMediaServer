@@ -230,8 +230,8 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	}
 
 	/**
-	 * Looks up cover in the table based on the given MBID.Never returns
- 	<code>null</code>
+	 * Looks up cover in the table based on the given MBID.
+	 * Never returns <code>null</code>
 	 *
 	 * @param connection the db connection
 	 * @param mBID the MBID {@link String} to search with

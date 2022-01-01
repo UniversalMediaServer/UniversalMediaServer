@@ -488,8 +488,9 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				// Couldn't reserve exclusive access, giving up
 				return null;
 			}
-			Connection connection = MediaDatabase.getConnectionIfAvailable();
+			Connection connection = null;
 			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
 				// Check if it's cached first
 				if (connection != null) {
 					CoverArtArchiveResult result = MediaTableCoverArtArchive.findMBID(connection, mBID);

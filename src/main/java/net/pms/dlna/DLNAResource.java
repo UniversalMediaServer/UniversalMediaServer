@@ -2595,8 +2595,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private void addBookmark(StringBuilder sb, String title) {
-		Connection connection =  MediaDatabase.getConnectionIfAvailable();
+		Connection connection = null;
 		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
 				File file = new File(getFileName());
 				String path = file.getCanonicalPath();

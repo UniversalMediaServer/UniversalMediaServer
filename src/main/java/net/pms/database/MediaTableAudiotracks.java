@@ -80,11 +80,7 @@ public class MediaTableAudiotracks extends MediaTable {
 				if (version < TABLE_VERSION) {
 					upgradeTable(connection, version);
 				} else if (version > TABLE_VERSION) {
-					LOGGER.warn(
-						LOG_TABLE_NEWER_VERSION,
-						DATABASE_NAME,
-						TABLE_NAME
-					);
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION, DATABASE_NAME, TABLE_NAME);
 				}
 			} else {
 				createTable(connection);

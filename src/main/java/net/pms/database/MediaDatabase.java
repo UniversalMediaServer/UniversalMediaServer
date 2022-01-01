@@ -212,16 +212,17 @@ public class MediaDatabase extends Database {
 	 * Check the MediaDatabase instance.
 	 *
 	 * @return <code>true</code> if the MediaDatabase is instanciated
+	 * , <code>false</code> otherwise
 	 */
 	public static boolean isInstanciated() {
 		return instance != null;
 	}
 
 	/**
-	 * Check the MediaDatabase instance.
+	 * Check the MediaDatabase instance availability.
 	 *
-	 * @return {@code true } if the MediaDatabase is instanciated and the
-	 * database is opened, <code>false</code> otherwise
+	 * @return {@code true } if the MediaDatabase is instanciated and opened
+	 * , <code>false</code> otherwise
 	 */
 	public static boolean isAvailable() {
 		return isInstanciated() && instance.isOpened();
@@ -234,7 +235,7 @@ public class MediaDatabase extends Database {
 	 *
 	 * Prevent for init or giving a connection on db closing
 	 *
-	 * @return A {@link java.sql.Connection} if the MediaDatabase is available, <code>false</code> otherwise
+	 * @return A {@link java.sql.Connection} if the MediaDatabase is available, <code>null</code> otherwise
 	 */
 	public static Connection getConnectionIfAvailable() {
 		if (isAvailable()) {

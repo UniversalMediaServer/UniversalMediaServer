@@ -283,8 +283,8 @@ public final class MediaTableFailedLookups extends MediaTable {
 	}
 
 	/**
-	 * Removes an entry or entries based on its FILENAME.If {@code useLike}is
- 	{@code true} {@code filename}must be properly escaped.
+	 * Removes an entry or entries based on its FILENAME.
+	 * If {@code useLike} is {@code true} {@code filename} must be properly escaped.
 	 *
 	 * @param connection the db connection
 	 * @see Tables#sqlLikeEscape(String)
