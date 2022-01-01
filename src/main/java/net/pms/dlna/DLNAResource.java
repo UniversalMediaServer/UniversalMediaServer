@@ -4258,14 +4258,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 					hasFetchedSystemUpdateIdFromDatabase = true;
 				}
-				
+
 				systemUpdateId++;
-				
+
 				// if we exceeded the maximum value for a UI4, start again at 0
 				if (systemUpdateId > MAX_UI4_VALUE) {
 					systemUpdateId = 0;
 				}
-				
+
 				// Persist the new value to the database
 				if (connection != null) {
 					MediaTableMetadata.setOrUpdateMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
