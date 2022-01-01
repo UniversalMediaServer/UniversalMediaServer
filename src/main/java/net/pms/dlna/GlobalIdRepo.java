@@ -1,6 +1,6 @@
 package net.pms.dlna;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -20,7 +20,7 @@ public class GlobalIdRepo {
 	private class ID {
 		int id;
 		boolean scope;
-		WeakDLNARef dlnaRef;
+		SoftDLNARef dlnaRef;
 
 		private ID(DLNAResource dlnaResource, int id) {
 			this.id = id;
@@ -32,7 +32,7 @@ public class GlobalIdRepo {
 			if (dlnaRef != null) {
 				dlnaRef.cancel();
 			}
-			dlnaRef = new WeakDLNARef(dlnaResource, id);
+			dlnaRef = new SoftDLNARef(dlnaResource, id);
 			dlnaResource.setIndexId(id);
 		}
 	}
@@ -46,6 +46,7 @@ public class GlobalIdRepo {
 		try {
 			if (dlnaResource.getId() == null || get(dlnaResource.getId()) != dlnaResource) {
 				ids.add(new ID(dlnaResource, curGlobalId++));
+				DLNAResource.bumpSystemUpdateId();
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -53,14 +54,15 @@ public class GlobalIdRepo {
 	}
 
 	private void delete(int index) {
-		lock.readLock().lock();
+		lock.writeLock().lock();
 		try {
 			if (index > -1 && index < ids.size()) {
 				ids.remove(index);
+				DLNAResource.bumpSystemUpdateId();
 				deletionsCount++;
 			}
 		} finally {
-			lock.readLock().unlock();
+			lock.writeLock().unlock();
 		}
 	}
 
@@ -103,6 +105,7 @@ public class GlobalIdRepo {
 				lock.writeLock().lock();
 				try {
 					item.setRef(b);
+					DLNAResource.bumpSystemUpdateId();
 				} finally {
 					lock.writeLock().unlock();
 				}
@@ -174,10 +177,10 @@ public class GlobalIdRepo {
 
 	ReferenceQueue<DLNAResource> idCleanupQueue;
 
-	class WeakDLNARef extends WeakReference<DLNAResource> {
+	class SoftDLNARef extends SoftReference<DLNAResource> {
 		int id;
 
-		WeakDLNARef(DLNAResource dlnaResource, int id) {
+		SoftDLNARef(DLNAResource dlnaResource, int id) {
 			super(dlnaResource, idCleanupQueue);
 			this.id = id;
 		}
@@ -196,7 +199,7 @@ public class GlobalIdRepo {
 				try {
 					// Once an underlying DLNAResource is ready for garbage
 					// collection, its weak reference will pop out here
-					WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
+					SoftDLNARef ref = (SoftDLNARef) idCleanupQueue.remove();
 					if (ref.id > 0) {
 						// Delete the associated id from our repo list
 						LOGGER.debug("deleting invalid id {}", ref.id);
