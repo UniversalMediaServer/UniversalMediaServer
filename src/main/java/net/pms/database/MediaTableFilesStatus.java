@@ -536,7 +536,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		try (Connection connection = DATABASE.getConnection()) {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
-				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before update", query);
+				LOGGER.trace("Searching for file in {} with \"{}\" before update", TABLE_NAME, query);
 			}
 
 			TABLE_LOCK.writeLock().lock();
@@ -547,6 +547,9 @@ public final class MediaTableFilesStatus extends MediaTable {
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 						result.updateInt("BOOKMARK", bookmark);
 						result.updateRow();
+						if (trace) {
+							LOGGER.trace("Updating existing bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
+						}
 					} else {
 						result.moveToInsertRow();
 						result.updateString("FILENAME", fullPathToFile);
@@ -554,6 +557,9 @@ public final class MediaTableFilesStatus extends MediaTable {
 						result.updateBoolean("ISFULLYPLAYED", false);
 						result.updateInt("BOOKMARK", bookmark);
 						result.insertRow();
+						if (trace) {
+							LOGGER.trace("Inserting bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
+						}
 					}
 				} finally {
 					connection.commit();

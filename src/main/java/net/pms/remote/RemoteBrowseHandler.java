@@ -91,7 +91,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		if (
 			resource.isFolder() ||
 			resource.isResume() ||
-			dlna instanceof VirtualVideoAction ||
+			resource instanceof VirtualVideoAction ||
 			(
 				resource.getFormat() != null &&
 				(
