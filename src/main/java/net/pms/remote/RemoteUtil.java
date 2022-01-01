@@ -175,6 +175,15 @@ public class RemoteUtil {
 		dump(in, os);
 	}
 
+	/**
+	 * Whether the MIME type is supported by all browsers.
+	 * Note: This is a flawed approach because while browsers
+	 * may support the container format, they may not support
+	 * the codecs within. For example, most browsers support
+	 * MP4 with H.264, but do not support it with H.265 (HEVC)
+	 *
+	 * @todo refactor to be more specific
+	 */
 	public static boolean directmime(String mime) {
 		if (
 			mime != null &&

@@ -90,7 +90,18 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		item.put("actions", bumpHTML.toString());
 
-		if (resource.isFolder() || WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
+        if (
+			resource.isFolder() ||
+			resource.isResume() ||
+			(
+				resource.getFormat() != null &&
+				(
+					resource.getFormat().isVideo() ||
+					resource.getFormat().isAudio() ||
+					resource.getFormat().isImage()
+				)
+			)
+		) {
 			StringBuilder thumbHTML = new StringBuilder();
 			thumbHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
 				.append("\" title=\"").append(name).append("\">")
@@ -103,19 +114,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 				.append("\" title=\"").append(name).append("\">")
 				.append("<span class=\"caption\">").append(name).append("</span>")
 				.append("</a>");
-			item.put("caption", captionHTML.toString());
-		} else if (upnpControl && upnpAllowed) {
-			// Include it as a web-disabled item so it can be thrown via upnp
-			StringBuilder thumbHTML = new StringBuilder();
-			thumbHTML.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
-				.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
-				.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
-				.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
-				.append("</a>");
-			item.put("thumb", thumbHTML.toString());
-
-			StringBuilder captionHTML = new StringBuilder();
-			captionHTML.append("<span class=\"webdisabled caption\">").append(name).append("</span>");
 			item.put("caption", captionHTML.toString());
 		}
 

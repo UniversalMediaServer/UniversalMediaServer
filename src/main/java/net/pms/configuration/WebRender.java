@@ -491,17 +491,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	public static boolean supports(DLNAResource dlna) {
-		if (dlna instanceof VirtualVideoAction) {
-			return true;
-		}
-		DLNAMediaInfo media = dlna.getMedia();
-		return
-			media != null && RemoteUtil.directmime(media.getMimeType()) ||
-			supportedFormat(dlna.getFormat()) ||
-			dlna.getPlayer() instanceof FFMpegVideo;
-	}
-
 	/**
 	 * libvorbis transcodes very slowly, so we scale the video down to
 	 * speed it up.
