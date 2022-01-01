@@ -419,7 +419,7 @@ public class PMS {
 		}
 
 		// Initialize mediaDatabase
-		MediaDatabase.get();
+		MediaDatabase.init();
 
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have
@@ -793,9 +793,9 @@ public class PMS {
 				}
 
 				if (MediaDatabase.isInstanciated()) {
-					MediaDatabase.get().close();
+					MediaDatabase.shutdown();
 					if (configuration.getDatabaseLogging()) {
-						MediaDatabase.get().createDatabaseReport();
+						MediaDatabase.createReport();
 					}
 				}
 			}

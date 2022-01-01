@@ -172,24 +172,70 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
 	}
 
+	/**
+	 * Returns the MediaDatabase instance.
+	 * Will create the database instance as needed.
+	 *
+	 * @return {@link net.pms.database.MediaDatabase}
+	 */
 	public static MediaDatabase get() {
 		synchronized (DATABASE_LOCK) {
 			if (instance == null) {
 				instance = new MediaDatabase();
-				instance.init(false);
 			}
 			return instance;
 		}
 	}
 
+	/**
+	 * Initialize the MediaDatabase instance.
+	 * Will initialize the database instance as needed.
+	 */
+	public static void init() {
+		synchronized (DATABASE_LOCK) {
+			get().init(false);
+		}
+	}
+
+	/**
+	 * Initialize the MediaDatabase instance.
+	 * Will initialize the database instance as needed.
+	 * Will check all tables.
+	 */
+	public static void initForce() {
+		synchronized (DATABASE_LOCK) {
+			get().init(true);
+		}
+	}
+
+	/**
+	 * Check the MediaDatabase instance.
+	 *
+	 * @return <code>true</code> if the MediaDatabase is instanciated
+	 */
 	public static boolean isInstanciated() {
 		return instance != null;
 	}
 
+	/**
+	 * Check the MediaDatabase instance.
+	 *
+	 * @return {@code true } if the MediaDatabase is instanciated and the
+	 * database is opened, <code>false</code> otherwise
+	 */
 	public static boolean isAvailable() {
 		return isInstanciated() && instance.isOpened();
 	}
 
+	/**
+	 * Get a MediaDatabase connection.
+	 * Will not try to init the database.
+	 * Give a connection only if the database status is OPENED.
+	 *
+	 * Prevent for init or giving a connection on db closing
+	 *
+	 * @return A {@link java.sql.Connection} if the MediaDatabase is available, <code>false</code> otherwise
+	 */
 	public static Connection getConnectionIfAvailable() {
 		if (isAvailable()) {
 			try {
@@ -198,4 +244,41 @@ public class MediaDatabase extends Database {
 		}
 		return null;
 	}
+
+	/**
+	 * Create the database report.Use an automatic H2database profiling tool
+	 * to make a report at the end of the logging file converted to the
+	 * "logging_report.txt" in the database directory.
+	 * @throws java.sql.SQLException
+	 */
+	public static void resetCache() throws SQLException {
+		synchronized (DATABASE_LOCK) {
+			if (instance != null) {
+				instance.reInitTablesExceptFilesStatus();
+			}
+		}
+	}
+
+	/**
+	 * Create the database report.
+	 * Use an automatic H2database profiling tool to make a report at the end of the logging file
+	 * converted to the "logging_report.txt" in the database directory.
+	 */
+	public static void createReport() {
+		if (instance != null) {
+			instance.createDatabaseReport();
+		}
+	}
+
+	/**
+	 * Shutdown the MediaDatabase database.
+	 */
+	public static void shutdown() {
+		synchronized (DATABASE_LOCK) {
+			if (instance != null) {
+				instance.close();
+			}
+		}
+	}
+
 }

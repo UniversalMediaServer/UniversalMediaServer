@@ -202,8 +202,12 @@ public class APIUtils {
 				return;
 			}
 
-			try (Connection connection = MediaDatabase.get().getConnection()) {
-
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection == null) {
+					return;
+				}
 				if (MediaTableFiles.doesLatestApiMetadataExist(connection, file.getAbsolutePath(), file.lastModified())) {
 					LOGGER.trace("The latest metadata already exists for {}", file.getName());
 					return;
@@ -408,6 +412,7 @@ public class APIUtils {
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
+				MediaDatabase.close(connection);
 				frame.setSecondaryStatusLine(null);
 			}
 		};
