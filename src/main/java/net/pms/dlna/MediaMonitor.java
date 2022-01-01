@@ -220,15 +220,7 @@ public class MediaMonitor extends VirtualFolder {
 		) {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null && !isFullyPlayed(fullPathToFile, true)) {
-				// Only set fully played if the file will stay where it is
-				if (
-					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
-					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
-					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
-				) {
-					setFullyPlayed(fullPathToFile, true, elapsed);
-				}
-
+				setFullyPlayed(fullPathToFile, true, elapsed);
 				setDiscovered(false);
 				getChildren().clear();
 
