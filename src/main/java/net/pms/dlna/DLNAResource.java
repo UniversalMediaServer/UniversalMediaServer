@@ -4241,36 +4241,38 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * changed this id should be bumped, debounced by 300ms
 	 */
 	public static void bumpSystemUpdateId() {
-		DEBOUNCER.debounce(Void.class, new Runnable() {
-			@Override
-			public void run() {
-				LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
-				try {
-					// Get the current value from the database if we haven't yet since UMS was started
-					if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
-						String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
-						try {
-							systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
-						} catch (Exception ex) {
-							LOGGER.debug("" + ex);
-						}
-						hasFetchedSystemUpdateIdFromDatabase = true;
-					}
-
-					systemUpdateId++;
-
-					// if we exceeded the maximum value for a UI4, start again at 0
-					if (systemUpdateId > MAX_UI4_VALUE) {
-						systemUpdateId = 0;
-					}
-
-					// Persist the new value to the database
-					if (PMS.getConfiguration().getUseCache()) {
-						MediaTableMetadata.setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
-					}
-				} finally {
-					LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
+		DEBOUNCER.debounce(Void.class, () -> {
+			LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
+			Connection connection = null;
+			try {
+				if (PMS.getConfiguration().getUseCache()) {
+					connection = MediaDatabase.getConnectionIfAvailable();
 				}
+				// Get the current value from the database if we haven't yet since UMS was started
+				if (connection != null && !hasFetchedSystemUpdateIdFromDatabase) {
+					String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID);
+					try {
+						systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
+					} catch (NumberFormatException ex) {
+						LOGGER.debug("" + ex);
+					}
+					hasFetchedSystemUpdateIdFromDatabase = true;
+				}
+				
+				systemUpdateId++;
+				
+				// if we exceeded the maximum value for a UI4, start again at 0
+				if (systemUpdateId > MAX_UI4_VALUE) {
+					systemUpdateId = 0;
+				}
+				
+				// Persist the new value to the database
+				if (connection != null) {
+					MediaTableMetadata.setOrUpdateMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+				}
+			} finally {
+				MediaDatabase.close(connection);
+				LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
 			}
 		}, 300, TimeUnit.MILLISECONDS);
 	}
