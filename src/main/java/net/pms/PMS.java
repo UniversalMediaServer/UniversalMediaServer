@@ -421,6 +421,13 @@ public class PMS {
 		// Initialize mediaDatabase
 		MediaDatabase.get();
 
+		/**
+		 * Bump the SystemUpdateID state variable because now we will have
+		 * different resource IDs than last time UMS ran. It also populates our
+		 * in-memory value with the database value if the database is enabled.
+		 */
+		DLNAResource.bumpSystemUpdateId();
+
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("");

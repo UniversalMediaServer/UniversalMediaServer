@@ -468,11 +468,12 @@ public final class MediaTableFilesStatus extends MediaTable {
 			}
 
 			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						result = resultSet.getBoolean("ISFULLYPLAYED");
-					}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query)
+			) {
+				if (resultSet.next()) {
+					result = resultSet.getBoolean("ISFULLYPLAYED");
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();

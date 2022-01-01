@@ -53,6 +53,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -68,6 +69,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
@@ -101,6 +103,7 @@ import net.pms.network.UPNPControl.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
+import net.pms.util.Debouncer;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.GenericIcons;
@@ -130,6 +133,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 	protected static final double CONTAINER_OVERHEAD = 1.04;
 
+	// maximum characters for UI4 (Unsigned Integer 4-bytes)
+	protected static final int MAX_UI4_VALUE = 2147483647;
+
+	protected static final String METADATA_TABLE_KEY_SYSTEMUPDATEID = "SystemUpdateID";
+
+	private static boolean hasFetchedSystemUpdateIdFromDatabase = false;
+
+	private static final Debouncer DEBOUNCER = new Debouncer();
+
+	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
+
 	private int specificType;
 	private String id;
 	private String pathId;
@@ -158,7 +172,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-	private static int systemUpdateId = 1;
+	private static int systemUpdateId = 0;
 	private boolean noName;
 	private int nametruncate;
 	private DLNAResource first;
@@ -942,10 +956,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return transcodeFolder;
 	}
 
-	public void updateChild(DLNAResource child) {
-		updateChild(child, true);
-	}
-
 	/**
 	 * (Re)sets the given DLNA resource as follows: - if it's already one of our
 	 * children, renew it - or if we have another child with the same name,
@@ -953,7 +963,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param child the DLNA resource to update
 	 */
-	public void updateChild(DLNAResource child, boolean isAddGlobally) {
+	public void updateChild(DLNAResource child) {
 		DLNAResource found = children.contains(child) ? child : searchByName(child.getName());
 		if (found != null) {
 			if (child != found) {
@@ -963,10 +973,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
-			addChild(child, false, isAddGlobally);
+			addChild(child, false, true);
 		} else {
 			// Not found, it's new
-			addChild(child, true, isAddGlobally);
+			addChild(child, true, true);
 		}
 	}
 
@@ -1224,7 +1234,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		systemUpdateId += 1;
+		DLNAResource.bumpSystemUpdateId();
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
@@ -4218,15 +4228,51 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.50
 	 */
 	public static int getSystemUpdateId() {
-		return systemUpdateId;
+		LOCK_SYSTEM_UPDATE_ID.readLock().lock();
+		try {
+			return systemUpdateId;
+		} finally {
+			LOCK_SYSTEM_UPDATE_ID.readLock().unlock();
+		}
 	}
 
 	/**
 	 * Bumps the updated id for all resources. When any resources has been
-	 * changed this id should be bumped.
+	 * changed this id should be bumped, debounced by 300ms
 	 */
 	public static void bumpSystemUpdateId() {
-		systemUpdateId++;
+		DEBOUNCER.debounce(Void.class, new Runnable() {
+			@Override
+			public void run() {
+				LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
+				try {
+					// Get the current value from the database if we haven't yet since UMS was started
+					if (PMS.getConfiguration().getUseCache() && !hasFetchedSystemUpdateIdFromDatabase) {
+						String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID);
+						try {
+							systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
+						} catch (Exception ex) {
+							LOGGER.debug("" + ex);
+						}
+						hasFetchedSystemUpdateIdFromDatabase = true;
+					}
+
+					systemUpdateId++;
+
+					// if we exceeded the maximum value for a UI4, start again at 0
+					if (systemUpdateId > MAX_UI4_VALUE) {
+						systemUpdateId = 0;
+					}
+
+					// Persist the new value to the database
+					if (PMS.getConfiguration().getUseCache()) {
+						MediaTableMetadata.setOrUpdateMetadataValue(METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+					}
+				} finally {
+					LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
+				}
+			}
+		}, 300, TimeUnit.MILLISECONDS);
 	}
 
 	/**
