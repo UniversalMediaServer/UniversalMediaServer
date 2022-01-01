@@ -13,14 +13,12 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -90,9 +88,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		item.put("actions", bumpHTML.toString());
 
-        if (
+		if (
 			resource.isFolder() ||
 			resource.isResume() ||
+			dlna instanceof VirtualVideoAction ||
 			(
 				resource.getFormat() != null &&
 				(
