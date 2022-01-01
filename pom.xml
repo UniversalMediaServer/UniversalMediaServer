@@ -601,6 +601,12 @@
 			<version>${com.sun.xml.bind-version}</version>
 		</dependency>
 		<!-- end of JAXB dependencies -->
+	 <dependency>
+	  <groupId>javax.servlet</groupId>
+	  <artifactId>javax.servlet-api</artifactId>
+	  <version>4.0.1</version>
+	  <type>jar</type>
+	 </dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
