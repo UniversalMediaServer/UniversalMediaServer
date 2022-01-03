@@ -562,9 +562,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void start(DLNAResource dlna) {
-		if (getPlayingRes() != dlna) {
+		// Stop playing any previous media on the renderer
+		if (getPlayingRes() != null && getPlayingRes() != dlna) {
 			stop();
 		}
+
 		setPlayingRes(dlna);
 		if (startStop == null) {
 			startStop = new StartStopListenerDelegate(ip);
