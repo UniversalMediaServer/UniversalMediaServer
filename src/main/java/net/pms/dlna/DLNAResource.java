@@ -721,13 +721,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
+				if (isNew) {
+					addChildInternal(child, isAddGlobally);
+				}
+
 				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
-				}
-
-				if (isNew) {
-					addChildInternal(child, isAddGlobally);
 				}
 			}
 		} catch (Throwable t) {
