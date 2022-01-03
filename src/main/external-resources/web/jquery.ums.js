@@ -463,7 +463,7 @@ function populateMetadataDisplayFromGlobalVars() {
 		img.src = poster;
 		$('.posterContainer').html(img);
 	}
-	if (rated) {
+	if (rated && rated.id) {
 		$('.rated').html('<strong>' + ratedTranslation + ':</strong> <a href="/browse/' + rated.id + '" class="badge ' + badgeClass + '">' + rated.name + '</a>');
 	}
 	if (ratings && ratings[0]) {

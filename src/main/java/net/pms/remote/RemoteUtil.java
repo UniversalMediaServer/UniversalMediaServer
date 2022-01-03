@@ -84,12 +84,7 @@ public class RemoteUtil {
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-
 	public static void dump(final InputStream in, final OutputStream os) {
-		dump(in, os, null);
-	}
-
-	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
 		Runnable r = () -> {
 			byte[] buffer = new byte[32 * 1024];
 			int bytes;
@@ -109,12 +104,10 @@ public class RemoteUtil {
 				} catch (IOException e) {
 				}
 			}
+
 			try {
 				os.close();
 			} catch (IOException e) {
-			}
-			if (renderer != null) {
-				renderer.stop();
 			}
 		};
 		new Thread(r).start();
@@ -177,6 +170,15 @@ public class RemoteUtil {
 		dump(in, os);
 	}
 
+	/**
+	 * Whether the MIME type is supported by all browsers.
+	 * Note: This is a flawed approach because while browsers
+	 * may support the container format, they may not support
+	 * the codecs within. For example, most browsers support
+	 * MP4 with H.264, but do not support it with H.265 (HEVC)
+	 *
+	 * @todo refactor to be more specific
+	 */
 	public static boolean directmime(String mime) {
 		if (
 			mime != null &&

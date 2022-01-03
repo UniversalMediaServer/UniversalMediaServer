@@ -582,14 +582,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 								}
 								nameToDisplay = "Unknown";
 							}
-							LOGGER.trace("2 sqls2: " + Arrays.toString(sqls2));
 						}
 					}
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
-//					LOGGER.info("33 " + virtualFolderName);
-//					LOGGER.info("34 " + Arrays.toString(sqls2));
-//					LOGGER.info("35 " + Arrays.toString(expectedOutputs2));
 					addChild(new MediaLibraryFolder(virtualFolderName, sqls2, expectedOutputs2, nameToDisplay, isExpectedTVSeries, isExpectedMovieFolder));
 				}
 			}
