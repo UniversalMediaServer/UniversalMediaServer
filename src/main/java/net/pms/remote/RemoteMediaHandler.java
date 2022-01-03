@@ -148,7 +148,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			if (sid != null) {
 				resource.setMediaSubtitle(sid);
 			}
-			RemoteUtil.dump(in, os, render);
+			RemoteUtil.dump(in, os);
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {
