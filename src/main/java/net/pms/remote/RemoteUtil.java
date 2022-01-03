@@ -82,12 +82,7 @@ public class RemoteUtil {
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-
 	public static void dump(final InputStream in, final OutputStream os) {
-		dump(in, os, null);
-	}
-
-	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
 		Runnable r = () -> {
 			byte[] buffer = new byte[32 * 1024];
 			int bytes;
@@ -107,12 +102,10 @@ public class RemoteUtil {
 				} catch (IOException e) {
 				}
 			}
+
 			try {
 				os.close();
 			} catch (IOException e) {
-			}
-			if (renderer != null) {
-				renderer.stop();
 			}
 		};
 		new Thread(r).start();
