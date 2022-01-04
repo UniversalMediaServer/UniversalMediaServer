@@ -147,6 +147,28 @@ public final class MediaTableThumbnails extends MediaTable {
 	 * Finally, it writes the ID from this table as the THUMBID in the FILES
 	 * table.
 	 *
+	 * @param thumbnail
+	 * @param fullPathToFile
+	 * @param tvSeriesID
+	 */
+	public static void setThumbnail(final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableThumbnails.setThumbnail(connection, thumbnail, fullPathToFile, tvSeriesID);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Attempts to find a thumbnail in this table by MD5 hash. If not found,
+	 * it writes the new thumbnail to this table.
+	 * Finally, it writes the ID from this table as the THUMBID in the FILES
+	 * table.
+	 *
 	 * @param connection the db connection
 	 * @param thumbnail
 	 * @param fullPathToFile
