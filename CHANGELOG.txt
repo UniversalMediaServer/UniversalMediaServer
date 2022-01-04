@@ -1,3 +1,34 @@
+10.15.0 - 2022-01-03
+
+	General:
+		Vast speed improvements
+		Added ability to overlay text under the renderer icon (thanks, SurfaceS!)
+		Web interface initially loads 3 seconds faster
+		Fixed network speed detection on Docker
+		Improved communicating changes with devices (like fully played status)
+		Fixed broken file playback, especially with large collections
+		Fixed undefined "Rated" field with some videos on web interface
+		Fixed media not marked as fully played if the file action failed
+		Fixed resume files not being created on the web interface
+		Fixed files marked as stopped when they are still playing on the web interface (#2766)
+		Fixed "not playable" message on web interface (#2258)
+	Renderers:
+		Added detection of more Roku TVs
+		Added detection of Samsung Soundbars
+		Added detection of Sony X Series TVs
+		Added detection of TCL TVs
+	Translation updates via Crowdin:
+		German (100%) (thanks, pipin!)
+		Italian (100%) (thanks, Oscar Zambotti!)
+	Dependencies:
+		Bump checkstyle from 9.2 to 9.2.1
+		Bump h2database from 1.4.197 to 2.0.204 (thanks, SurfaceS!)
+		Bump icu4j from 69.1 to 70.1
+		Bump logback-version from 1.2.9 to 1.2.10
+		Bump maven-site-plugin from 3.9.1 to 3.10.0
+		Bump rome from 1.16.0 to 1.18.0
+		Bump twelvemonkeys-imageio-version from 3.8.0 to 3.8.1
+
 10.14.1 - 2021-12-24
 
 	General:

@@ -13,14 +13,12 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -90,7 +88,19 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 		item.put("actions", bumpHTML.toString());
 
-		if (resource.isFolder() || WebRender.supports(resource) || resource.isResume() || resource.getType() == Format.IMAGE) {
+		if (
+			resource.isFolder() ||
+			resource.isResume() ||
+			resource instanceof VirtualVideoAction ||
+			(
+				resource.getFormat() != null &&
+				(
+					resource.getFormat().isVideo() ||
+					resource.getFormat().isAudio() ||
+					resource.getFormat().isImage()
+				)
+			)
+		) {
 			StringBuilder thumbHTML = new StringBuilder();
 			thumbHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
 				.append("\" title=\"").append(name).append("\">")
@@ -103,19 +113,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 				.append("\" title=\"").append(name).append("\">")
 				.append("<span class=\"caption\">").append(name).append("</span>")
 				.append("</a>");
-			item.put("caption", captionHTML.toString());
-		} else if (upnpControl && upnpAllowed) {
-			// Include it as a web-disabled item so it can be thrown via upnp
-			StringBuilder thumbHTML = new StringBuilder();
-			thumbHTML.append("<a class=\"webdisabled\" href=\"javascript:notify('warn','")
-				.append(RemoteUtil.getMsgString("Web.6", t)).append("')\"")
-				.append(" title=\"").append(name).append(' ').append(RemoteUtil.getMsgString("Web.7", t)).append("\">")
-				.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
-				.append("</a>");
-			item.put("thumb", thumbHTML.toString());
-
-			StringBuilder captionHTML = new StringBuilder();
-			captionHTML.append("<span class=\"webdisabled caption\">").append(name).append("</span>");
 			item.put("caption", captionHTML.toString());
 		}
 
