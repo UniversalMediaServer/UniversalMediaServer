@@ -232,14 +232,24 @@ public abstract class Database extends DatabaseHelper {
 	public void close() {
 		status = DatabaseStatus.CLOSING;
 		try {
-			Thread.sleep(500);
-			while (getActiveConnections() > 0) {
+			Thread.sleep(50);
+			int activeConnections = getActiveConnections();
+			int maxAttempts = 10;
+			int curAttempts = 1;
+			//allow threads to finish
+			while (activeConnections > 0 && curAttempts <= maxAttempts) {
+				LOGGER.trace("Database shutdown waiting 500 ms ({}/{}) for {} connections to close", curAttempts, maxAttempts, activeConnections);
 				Thread.sleep(500);
+				activeConnections = getActiveConnections();
+				curAttempts++;
+			}
+			if (activeConnections > 0) {
+				LOGGER.debug("Database shutdown will kill remaining connections ({}), db errors may occurs", activeConnections);
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Waiting DB connections", e);
 		} catch (InterruptedException e) {
-			LOGGER.debug("Interrupted while shutting down..");
+			LOGGER.debug("Interrupted while shutting down database..");
 			LOGGER.trace("", e);
 		}
 
