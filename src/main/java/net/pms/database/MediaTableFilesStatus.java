@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -80,15 +80,10 @@ public final class MediaTableFilesStatus extends MediaTable {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 					}
 				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
 					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -114,11 +109,11 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 */
 	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
@@ -221,7 +216,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
 							}
 						} catch (SQLException e) {
-							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+							LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
 							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 							throw new SQLException(e);
 						}
@@ -229,8 +224,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -250,38 +244,35 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID                     IDENTITY PRIMARY KEY, " +
-					"FILENAME               VARCHAR2(1024)        NOT NULL, " +
-					"MODIFIED               DATETIME, " +
-					"ISFULLYPLAYED          BOOLEAN                          DEFAULT false, " +
-					"BOOKMARK               INTEGER                          DEFAULT 0, " +
-					"DATELASTPLAY           DATETIME, " +
-					"PLAYCOUNT              INTEGER                          DEFAULT 0, " +
-					"LASTPLAYBACKPOSITION   DOUBLE                           DEFAULT 0.0" +
-				")"
-			);
-
-			statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-			statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID                     IDENTITY              PRIMARY KEY	, " +
+				"FILENAME               VARCHAR2(1024)        NOT NULL		, " +
+				"MODIFIED               DATETIME							, " +
+				"ISFULLYPLAYED          BOOLEAN               DEFAULT false	, " +
+				"BOOKMARK               INTEGER               DEFAULT 0		, " +
+				"DATELASTPLAY           DATETIME							, " +
+				"PLAYCOUNT              INTEGER               DEFAULT 0		, " +
+				"LASTPLAYBACKPOSITION   DOUBLE                DEFAULT 0.0	  " +
+			")",
+			"CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
+			"CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)"
+		);
 	}
 
 	/**
 	 * Sets whether the file has been fully played.
 	 *
+	 * @param connection the db connection
 	 * @param fullPathToFile
 	 * @param isFullyPlayed
 	 */
-	public static void setFullyPlayed(final String fullPathToFile, final boolean isFullyPlayed) {
+	public static void setFullyPlayed(final Connection connection, final String fullPathToFile, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
-		String query;
 
-		try (Connection connection = DATABASE.getConnection()) {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
+		try {
+			String query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setFullyPlayed", query);
 			}
@@ -328,12 +319,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
-				isFullyPlayed,
-				fullPathToFile,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing status", isFullyPlayed, TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
@@ -341,14 +327,15 @@ public final class MediaTableFilesStatus extends MediaTable {
 	/**
 	 * Sets the last played date and increments the play count.
 	 *
+	 * @param connection the db connection
 	 * @param fullPathToFile
 	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	public static void setLastPlayed(final String fullPathToFile, final Double lastPlaybackPosition) {
+	public static void setLastPlayed(final Connection connection, final String fullPathToFile, final Double lastPlaybackPosition) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setLastPlayed", query);
@@ -389,11 +376,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing last played date to " + TABLE_NAME + " for \"{}\": {}",
-				fullPathToFile,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing last played date", TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
@@ -401,17 +384,18 @@ public final class MediaTableFilesStatus extends MediaTable {
 	/**
 	 * Sets whether each file within the folder is fully played.
 	 *
+	 * @param connection the db connection
 	 * @param fullPathToFolder the full path to the folder.
 	 * @param isFullyPlayed whether to mark the folder content as fully played
 	 *            or not fully played.
 	 */
-	public static void setDirectoryFullyPlayed(final String fullPathToFolder, final boolean isFullyPlayed) {
+	public static void setDirectoryFullyPlayed(final Connection connection, final String fullPathToFolder, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String pathWithWildcard = sqlLikeEscape(fullPathToFolder) + "%";
 		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
 		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setDirectoryFullyPlayed", query);
@@ -429,8 +413,11 @@ public final class MediaTableFilesStatus extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while writing status \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
+				LOG_ERROR_WHILE_VAR_IN_FOR,
+				DATABASE_NAME,
+				"writing status",
 				isFullyPlayed,
+				TABLE_NAME,
 				pathWithWildcard,
 				e.getMessage()
 			);
@@ -446,12 +433,13 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 *
 	 * @see Tables#sqlLikeEscape(String)
 	 *
+	 * @param connection the db connection
 	 * @param filename the filename to remove
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
-	public static void remove(final String filename, boolean useLike) {
-		try (Connection connection = DATABASE.getConnection()) {
+	public static void remove(final Connection connection, final String filename, boolean useLike) {
+		try {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
@@ -463,20 +451,16 @@ public final class MediaTableFilesStatus extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while removing entries from " + TABLE_NAME + " for \"{}\": {}",
-				filename,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
-	public static Boolean isFullyPlayed(final String fullPathToFile) {
+	public static Boolean isFullyPlayed(final Connection connection, final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 		Boolean result = null;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
 			if (trace) {
@@ -495,18 +479,18 @@ public final class MediaTableFilesStatus extends MediaTable {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up file status in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file status", TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
 		return result;
 	}
 
-	public static int getBookmark(final String fullPathToFile) {
+	public static int getBookmark(final Connection connection, final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 		int result = 0;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
 			if (trace) {
@@ -523,17 +507,17 @@ public final class MediaTableFilesStatus extends MediaTable {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up file bookmark in " + TABLE_NAME + " for \"{}\": {}", fullPathToFile, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file bookmark", TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;
 	}
 
-	public static void setBookmark(final String fullPathToFile, final int bookmark) {
+	public static void setBookmark(final Connection connection, final String fullPathToFile, final int bookmark) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in {} with \"{}\" before setBookmark", TABLE_NAME, query);
@@ -568,12 +552,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing bookmark \"{}\" to " + TABLE_NAME + " for \"{}\": {}",
-				bookmark,
-				fullPathToFile,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing bookmark", bookmark, TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

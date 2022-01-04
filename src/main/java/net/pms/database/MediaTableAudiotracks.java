@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -80,7 +80,7 @@ public class MediaTableAudiotracks extends MediaTable {
 				if (version < TABLE_VERSION) {
 					upgradeTable(connection, version);
 				} else if (version > TABLE_VERSION) {
-					LOGGER.warn("Database table \"" + TABLE_NAME + "\" is from a newer version of UMS.");
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION, DATABASE_NAME, TABLE_NAME);
 				}
 			} else {
 				createTable(connection);
@@ -92,11 +92,11 @@ public class MediaTableAudiotracks extends MediaTable {
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
@@ -123,8 +123,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -144,7 +143,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
@@ -175,22 +174,22 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append("    ON DELETE CASCADE");
 			sb.append(')');
 
-			statement.execute(sb.toString());
+			executeUpdate(statement, sb.toString());
 
 			LOGGER.trace("Creating index IDXARTIST");
-			executeUpdate(connection, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
+			executeUpdate(statement, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
 
 			LOGGER.trace("Creating index IDXALBUMARTIST");
-			executeUpdate(connection, "CREATE INDEX IDXALBUMARTIST on AUDIOTRACKS (ALBUMARTIST asc);");
+			executeUpdate(statement, "CREATE INDEX IDXALBUMARTIST on AUDIOTRACKS (ALBUMARTIST asc);");
 
 			LOGGER.trace("Creating index IDXALBUM");
-			executeUpdate(connection, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
+			executeUpdate(statement, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
 
 			LOGGER.trace("Creating index IDXGENRE");
-			executeUpdate(connection, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
+			executeUpdate(statement, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
 
 			LOGGER.trace("Creating index IDX_AUDIO_YEAR");
-			executeUpdate(connection, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
+			executeUpdate(statement, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
 		}
 	}
 
@@ -204,7 +203,8 @@ public class MediaTableAudiotracks extends MediaTable {
 
 		TABLE_LOCK.writeLock().lock();
 		try (
-			PreparedStatement updateStatment = connection.prepareStatement("SELECT " +
+			PreparedStatement updateStatment = connection.prepareStatement(
+				"SELECT " +
 					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
 					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, MEDIA_YEAR, TRACK, DISC, " +
 					"DELAY, MUXINGMODE, BITRATE " +

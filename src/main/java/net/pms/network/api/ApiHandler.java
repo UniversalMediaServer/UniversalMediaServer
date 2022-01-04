@@ -12,7 +12,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.database.MediaDatabase;
+import net.pms.dlna.LibraryScanner;
 import net.pms.dlna.RootFolder;
 
 /**
@@ -20,8 +20,6 @@ import net.pms.dlna.RootFolder;
  */
 public class ApiHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
-
-	private MediaDatabase database = PMS.get().getMediaDatabase();
 
 	public ApiHandler() {
 	}
@@ -114,8 +112,8 @@ public class ApiHandler {
 	 * rescan library
 	 */
 	private void rescanLibrary() {
-		if (!database.isScanLibraryRunning()) {
-			database.scanLibrary();
+		if (!LibraryScanner.isScanLibraryRunning()) {
+			LibraryScanner.scanLibrary();
 		} else {
 			LOGGER.warn("library scan already in progress");
 		}

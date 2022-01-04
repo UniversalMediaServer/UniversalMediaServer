@@ -21,10 +21,10 @@ package net.pms.dlna;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.*;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.formats.Format;
@@ -209,86 +209,87 @@ public class RealFile extends MapFile {
 			if (getSplitTrack() > 0) {
 				fileName += "#SplitTrack" + getSplitTrack();
 			}
-
-			if (configuration.getUseCache()) {
-				MediaDatabase database = PMS.get().getMediaDatabase();
-
-				if (database != null) {
-					DLNAMediaInfo media;
-					try {
-						media = MediaTableFiles.getData(fileName, file.lastModified());
-
-						setExternalSubtitlesParsed();
-						if (media != null) {
-							setMedia(media);
-							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
-								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
-								getMedia().setSubtitlesTracks(new ArrayList<>());
-								resetSubtitlesStatus();
-							}
-
-							getMedia().postParse(getType(), input);
-							found = true;
-						}
-					} catch (InvalidClassException e) {
-						LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
-						LOGGER.trace("", e);
-					} catch (IOException | SQLException e) {
-						LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
-						LOGGER.trace("", e);
-					}
-
-				}
-			}
-
-			if (!found) {
-				if (getMedia() == null) {
-					setMedia(new DLNAMediaInfo());
-				}
-
-				if (getFormat() != null) {
-					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
-				} else {
-					// Don't think that will ever happen
-					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
-				}
-
-				if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
-					MediaDatabase database = PMS.get().getMediaDatabase();
-
-					if (database != null) {
+			Connection connection = null;
+			try {
+				if (configuration.getUseCache()) {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						DLNAMediaInfo media;
 						try {
-							/*
-							 * Even though subtitles will be resolved later in
-							 * DLNAResource.syncResolve, we must make sure that
-							 * they are resolved before insertion into the
-							 * database
-							 */
-							if (getMedia() != null && getMedia().isVideo()) {
-								registerExternalSubtitles(false);
-							}
-							MediaTableFiles.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
-						} catch (SQLException e) {
-							LOGGER.error(
-								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
-								fileName,
-								e.getMessage());
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("SQL error code: {}", e.getErrorCode());
-								if (
-									e.getCause() instanceof SQLException &&
-									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
-								) {
-									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+							media = MediaTableFiles.getData(connection, fileName, file.lastModified());
+
+							setExternalSubtitlesParsed();
+							if (media != null) {
+								setMedia(media);
+								if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
+									// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
+									getMedia().setSubtitlesTracks(new ArrayList<>());
+									resetSubtitlesStatus();
 								}
-								LOGGER.trace("", e);
+
+								getMedia().postParse(getType(), input);
+								found = true;
+							}
+						} catch (InvalidClassException e) {
+							LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
+							LOGGER.trace("", e);
+						} catch (IOException | SQLException e) {
+							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
+							LOGGER.trace("", e);
+						}
+
+					}
+				}
+
+				if (!found) {
+					if (getMedia() == null) {
+						setMedia(new DLNAMediaInfo());
+					}
+
+					if (getFormat() != null) {
+						getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
+					} else {
+						// Don't think that will ever happen
+						getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
+					}
+
+					if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
+						if (connection != null) {
+							try {
+								/*
+								 * Even though subtitles will be resolved later in
+								 * DLNAResource.syncResolve, we must make sure that
+								 * they are resolved before insertion into the
+								 * database
+								 */
+								if (getMedia() != null && getMedia().isVideo()) {
+									registerExternalSubtitles(false);
+								}
+								MediaTableFiles.insertOrUpdateData(connection, fileName, file.lastModified(), getType(), getMedia());
+							} catch (SQLException e) {
+								LOGGER.error(
+									"Database error while trying to add parsed information for \"{}\" to the cache: {}",
+									fileName,
+									e.getMessage());
+								if (LOGGER.isTraceEnabled()) {
+									LOGGER.trace("SQL error code: {}", e.getErrorCode());
+									if (
+										e.getCause() instanceof SQLException &&
+										((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
+									) {
+										LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+									}
+									LOGGER.trace("", e);
+								}
 							}
 						}
 					}
 				}
-			}
-			if (getMedia() != null && getMedia().isSLS()) {
-				setFormat(getMedia().getAudioVariantFormat());
+				if (getMedia() != null && getMedia().isSLS()) {
+					setFormat(getMedia().getAudioVariantFormat());
+				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
 		}
 	}

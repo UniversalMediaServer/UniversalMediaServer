@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -19,8 +19,7 @@
  */
 package net.pms.database;
 
-import net.pms.PMS;
-
 public abstract class MediaTable extends DatabaseHelper {
-	protected static final MediaDatabase DATABASE = PMS.get().getMediaDatabase();
+	protected static final MediaDatabase DATABASE = MediaDatabase.get();
+	protected static final String DATABASE_NAME = MediaDatabase.DATABASE_NAME;
 }

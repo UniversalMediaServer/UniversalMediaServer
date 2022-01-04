@@ -32,6 +32,7 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,6 +48,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
@@ -1334,13 +1336,19 @@ public class RequestV2 extends HTTPResource {
 			// No need to update database in such case.
 			LOGGER.debug("Skipping \"set bookmark\". Position=0");
 		} else {
+			Connection connection = null;
 			try {
-				DLNAResource dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(payload.getObjectId(), mediaRenderer);
-				File file = new File(dlna.getFileName());
-				String path = file.getCanonicalPath();
-				MediaTableFilesStatus.setBookmark(path, payload.getPosSecond());
-			} catch (Exception e) {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					DLNAResource dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(payload.getObjectId(), mediaRenderer);
+					File file = new File(dlna.getFileName());
+					String path = file.getCanonicalPath();
+					MediaTableFilesStatus.setBookmark(connection, path, payload.getPosSecond());
+				}
+			} catch (IOException e) {
 				LOGGER.error("Cannot set bookmark", e);
+			} finally {
+				MediaDatabase.close(connection);
 			}
 		}
 		return createResponse(HTTPXMLHelper.SETBOOKMARK_RESPONSE);

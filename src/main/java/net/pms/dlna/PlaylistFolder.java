@@ -256,7 +256,7 @@ public class PlaylistFolder extends DLNAResource {
 			}
 		}
 		if (!isweb) {
-			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
+			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());

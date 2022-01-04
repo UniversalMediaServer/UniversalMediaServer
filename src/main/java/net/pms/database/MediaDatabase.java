@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import net.pms.newgui.SharedContentTab;
+import net.pms.dlna.RootFolder;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -33,12 +33,14 @@ import net.pms.newgui.SharedContentTab;
  * intensive, so the database is used to cache scanned information to be reused
  * later.
  */
-public class MediaDatabase extends Database implements Runnable {
+public class MediaDatabase extends Database {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
 	private static final ReadWriteLock DATABASE_LOCK = new ReentrantReadWriteLock(true);
-
-	private Thread scanner;
-
+	public static final String DATABASE_NAME = "medias";
+	/**
+	 * Pointer to the instanciated MediaDatabase.
+	 */
+	private static MediaDatabase instance = null;
 	private static boolean tablesChecked = false;
 
 	/**
@@ -49,58 +51,28 @@ public class MediaDatabase extends Database implements Runnable {
 	 * real databases.
 	 */
 	public MediaDatabase() {
-		super("medias");
+		super(DATABASE_NAME);
 	}
 
-	/**
-	 * Initialized the database for use, performing checks and creating a new
-	 * database if necessary.
-	 *
-	 * @param force whether to recreate the database regardless of necessity.
-	 */
 	@Override
-	public synchronized void init(boolean force) {
-		super.init(force);
+	void onOpening(boolean force) {
 		try {
-			checkTables(true);
+			checkTables(force);
 		} catch (SQLException se) {
 			LOGGER.error("Error checking tables: " + se.getMessage());
 			LOGGER.trace("", se);
-		}
-	}
-
-	public boolean isScanLibraryRunning() {
-		return scanner != null && scanner.isAlive();
-	}
-
-	public void scanLibrary() {
-		if (isScanLibraryRunning()) {
-			LOGGER.info("Cannot start library scanner: A scan is already in progress");
-		} else {
-			scanner = new Thread(this, "Library Scanner");
-			scanner.setPriority(Thread.MIN_PRIORITY);
-			scanner.start();
-			SharedContentTab.setScanLibraryBusy();
-		}
-	}
-
-	public void stopScanLibrary() {
-		if (isScanLibraryRunning()) {
-			PMS.get().getRootFolder(null).stopScan();
+			status = DatabaseStatus.CLOSED;
 		}
 	}
 
 	@Override
-	public void run() {
-		try {
-			PMS.get().getRootFolder(null).scan();
-		} catch (Exception e) {
-			LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
-			LOGGER.trace("", e);
+	void onOpeningFail(boolean force) {
+		RootFolder rootFolder = PMS.get().getRootFolder(null);
+		if (rootFolder != null) {
+			rootFolder.stopScan();
 		}
 	}
 
-	//table related functions
 	/**
 	 * Checks all child tables for their existence and version and creates or
 	 * upgrades as needed.Access to this method is serialized.
@@ -152,12 +124,12 @@ public class MediaDatabase extends Database implements Runnable {
 			}
 		}
 	}
+
 	/**
 	 * Re-initializes all child tables except files status.
 	 *
 	 * @throws SQLException
 	 */
-
 	public final void reInitTablesExceptFilesStatus() throws SQLException {
 		LOGGER.debug("Re-initializing tables");
 		try (Connection connection = getConnection()) {
@@ -198,6 +170,115 @@ public class MediaDatabase extends Database implements Runnable {
 
 		// Audio Metadata
 		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
+	}
+
+	/**
+	 * Returns the MediaDatabase instance.
+	 * Will create the database instance as needed.
+	 *
+	 * @return {@link net.pms.database.MediaDatabase}
+	 */
+	public static MediaDatabase get() {
+		synchronized (DATABASE_LOCK) {
+			if (instance == null) {
+				instance = new MediaDatabase();
+			}
+			return instance;
+		}
+	}
+
+	/**
+	 * Initialize the MediaDatabase instance.
+	 * Will initialize the database instance as needed.
+	 */
+	public static void init() {
+		synchronized (DATABASE_LOCK) {
+			get().init(false);
+		}
+	}
+
+	/**
+	 * Initialize the MediaDatabase instance.
+	 * Will initialize the database instance as needed.
+	 * Will check all tables.
+	 */
+	public static void initForce() {
+		synchronized (DATABASE_LOCK) {
+			get().init(true);
+		}
+	}
+
+	/**
+	 * Check the MediaDatabase instance.
+	 *
+	 * @return <code>true</code> if the MediaDatabase is instantiated
+	 * , <code>false</code> otherwise
+	 */
+	public static boolean isInstantiated() {
+		return instance != null;
+	}
+
+	/**
+	 * Check the MediaDatabase instance availability.
+	 *
+	 * @return {@code true } if the MediaDatabase is instanciated and opened
+	 * , <code>false</code> otherwise
+	 */
+	public static boolean isAvailable() {
+		return isInstantiated() && instance.isOpened();
+	}
+
+	/**
+	 * Get a MediaDatabase connection.
+	 * Will not try to init the database.
+	 * Give a connection only if the database status is OPENED.
+	 *
+	 * Prevent for init or giving a connection on db closing
+	 *
+	 * @return A {@link java.sql.Connection} if the MediaDatabase is available, <code>null</code> otherwise
+	 */
+	public static Connection getConnectionIfAvailable() {
+		if (isAvailable()) {
+			try {
+				return instance.getConnection();
+			} catch (SQLException ex) {}
+		}
+		return null;
+	}
+
+	/**
+	 * Reset the media database cache.
+	 * Recreate all tables related to media cache except files status.
+	 * @throws java.sql.SQLException
+	 */
+	public static void resetCache() throws SQLException {
+		synchronized (DATABASE_LOCK) {
+			if (instance != null) {
+				instance.reInitTablesExceptFilesStatus();
+			}
+		}
+	}
+
+	/**
+	 * Create the database report.
+	 * Use an automatic H2database profiling tool to make a report at the end of the logging file
+	 * converted to the "logging_report.txt" in the database directory.
+	 */
+	public static void createReport() {
+		if (instance != null) {
+			instance.createDatabaseReport();
+		}
+	}
+
+	/**
+	 * Shutdown the MediaDatabase database.
+	 */
+	public static void shutdown() {
+		synchronized (DATABASE_LOCK) {
+			if (instance != null) {
+				instance.close();
+			}
+		}
 	}
 
 }
