@@ -211,10 +211,10 @@ public class MediaDatabase extends Database {
 	/**
 	 * Check the MediaDatabase instance.
 	 *
-	 * @return <code>true</code> if the MediaDatabase is instanciated
+	 * @return <code>true</code> if the MediaDatabase is instantiated
 	 * , <code>false</code> otherwise
 	 */
-	public static boolean isInstanciated() {
+	public static boolean isInstantiated() {
 		return instance != null;
 	}
 
@@ -225,7 +225,7 @@ public class MediaDatabase extends Database {
 	 * , <code>false</code> otherwise
 	 */
 	public static boolean isAvailable() {
-		return isInstanciated() && instance.isOpened();
+		return isInstantiated() && instance.isOpened();
 	}
 
 	/**
@@ -247,9 +247,8 @@ public class MediaDatabase extends Database {
 	}
 
 	/**
-	 * Create the database report.Use an automatic H2database profiling tool
-	 * to make a report at the end of the logging file converted to the
-	 * "logging_report.txt" in the database directory.
+	 * Reset the media database cache.
+	 * Recreate all tables related to media cache except files status.
 	 * @throws java.sql.SQLException
 	 */
 	public static void resetCache() throws SQLException {

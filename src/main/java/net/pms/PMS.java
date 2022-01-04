@@ -792,7 +792,7 @@ public class PMS {
 					}
 				}
 
-				if (MediaDatabase.isInstanciated()) {
+				if (MediaDatabase.isInstantiated()) {
 					MediaDatabase.shutdown();
 					if (configuration.getDatabaseLogging()) {
 						MediaDatabase.createReport();

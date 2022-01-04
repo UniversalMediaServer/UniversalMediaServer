@@ -1657,8 +1657,8 @@ public class FileUtil {
 
 	/**
 	 * Tries to detect the {@link Charset}/encoding for the specified file.If
- no valid {@link Charset} is detected or the confidence of the best match
- is below the threshold, {@code null}will be returned.
+	 * no valid {@link Charset} is detected or the confidence of the best match
+	 * is below the threshold, {@code null}will be returned.
 	 *
 	 * @param file the text file whose {@link Charset} to detect.
 	 * @param confidenceThreshold
