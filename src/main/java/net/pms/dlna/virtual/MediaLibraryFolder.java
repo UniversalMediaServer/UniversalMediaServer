@@ -129,7 +129,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	public boolean isRefreshNeeded() {
 		Connection connection = null;
 		try {
-			connection =  MediaDatabase.getConnectionIfAvailable();
+			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null && sqls.length > 0) {
 				String sql = sqls[0];
 				int expectedOutput = expectedOutputs[0];
@@ -760,6 +760,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 		if (MediaDatabase.isAvailable()) {
 			Connection connection = null;
 			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+
 				if (this.isTVSeries) {
 					DLNAThumbnail tvSeriesCover = MediaTableTVSeries.getThumbnailByTitle(connection, this.getDisplayName());
 					if (tvSeriesCover != null) {
