@@ -17,6 +17,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +33,7 @@ import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.WindowsProgramPaths;
+import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.FormatFactory;
@@ -734,10 +737,16 @@ public class FileUtil {
 
 		// Attempt to get API metadata from the database if it wasn't passed via the media parameter
 		if (media == null && absolutePath != null && getConfiguration().getUseCache()) {
+			Connection connection = null;
 			try {
-				media = MediaTableFiles.getFileMetadata(absolutePath);
-			} catch (Exception e) {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					media = MediaTableFiles.getFileMetadata(connection, absolutePath);
+				}
+			} catch (IOException | SQLException e) {
 				LOGGER.debug("Error while fetching metadata from database for prettifying: {}", e);
+			} finally {
+				MediaDatabase.close(connection);
 			}
 		}
 
@@ -854,6 +863,7 @@ public class FileUtil {
 	 * validity of online lookups.
 	 *
 	 * @param filename The filename to extract metadata from
+	 * @param absolutePath
 	 *
 	 * @return The metadata
 	 */
@@ -1658,11 +1668,12 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tries to detect the {@link Charset}/encoding for the specified file. If
+	 * Tries to detect the {@link Charset}/encoding for the specified file.If
 	 * no valid {@link Charset} is detected or the confidence of the best match
-	 * is below the threshold, {@code null} will be returned.
+	 * is below the threshold, {@code null}will be returned.
 	 *
 	 * @param file the text file whose {@link Charset} to detect.
+	 * @param confidenceThreshold
 	 * @return The most confidently detected {@link Charset} or {@code null}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
@@ -1930,6 +1941,9 @@ public class FileUtil {
 	 * Like {@link #getFilePermissions(File)} but returns {@code null} instead
 	 * of throwing {@link FileNotFoundException} if the file or folder isn't
 	 * found.
+	 *
+	 * @param file the file to check permissions for.
+	 * @return A {@link FilePermissions} object holding the permissions.
 	 */
 	public static FilePermissions getFilePermissionsNoThrow(File file) {
 		try {
@@ -1977,6 +1991,9 @@ public class FileUtil {
 	 * Like {@link #getFilePermissions(String)} but returns {@code null} instead
 	 * of throwing {@link FileNotFoundException} if the file or folder isn't
 	 * found.
+	 *
+	 * @param path the file or folder name to check permissions for.
+	 * @return A {@link FilePermissions} object holding the permissions.
 	 */
 	public static FilePermissions getFilePermissionsNoThrow(String path) {
 		if (path != null) {
@@ -2211,6 +2228,8 @@ public class FileUtil {
 
 	/**
 	 * Determines whether or not the program has admin/root permissions.
+	 *
+	 * @return true if the program has admin/root permissions
 	 */
 	public static boolean isAdmin() {
 		synchronized (isAdminLock) {

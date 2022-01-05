@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -72,15 +72,10 @@ public final class MediaTableTVSeries extends MediaTable {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 					}
 				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
 					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -105,11 +100,11 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @throws SQLException
 	 */
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						try (Statement statement = connection.createStatement()) {
@@ -132,8 +127,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -153,39 +147,38 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID       IDENTITY PRIMARY KEY, " +
-					"ENDYEAR    VARCHAR2(1024), " +
-					"IMDBID    VARCHAR2(1024), " +
-					"THUMBID    BIGINT, " +
-					"PLOT    VARCHAR2(20000), " +
-					"STARTYEAR    VARCHAR2(1024), " +
-					"TITLE    VARCHAR2(1024) NOT NULL, " +
-					"SIMPLIFIEDTITLE    VARCHAR2(1024) NOT NULL, " +
-					"TOTALSEASONS    DOUBLE, " +
-					"VERSION    VARCHAR2(1024), " +
-					"VOTES    VARCHAR2(1024), " +
-					"MEDIA_YEAR    VARCHAR2(1024) " +
-				")"
-			);
-			statement.execute("CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)");
-			statement.execute("CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)");
-			statement.execute("CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)");
-			statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID					IDENTITY			PRIMARY KEY	, " +
+				"ENDYEAR			VARCHAR2(1024)					, " +
+				"IMDBID				VARCHAR2(1024)					, " +
+				"THUMBID			BIGINT							, " +
+				"PLOT				VARCHAR2(20000)					, " +
+				"STARTYEAR			VARCHAR2(1024)					, " +
+				"TITLE				VARCHAR2(1024)		NOT NULL	, " +
+				"SIMPLIFIEDTITLE    VARCHAR2(1024)		NOT NULL	, " +
+				"TOTALSEASONS		DOUBLE							, " +
+				"VERSION			VARCHAR2(1024)					, " +
+				"VOTES				VARCHAR2(1024)					, " +
+				"MEDIA_YEAR			VARCHAR2(1024)					  " +
+			")",
+			"CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)",
+			"CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)",
+			"CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)",
+			"CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)"
+		);
 	}
 
 	/**
 	 * Sets a new entry and returns the row ID.
 	 *
+	 * @param connection the db connection
 	 * @param tvSeries data about this series from the API
 	 * @param seriesName the name of the series, for when we don't have API data yet
 	 * @return the new row ID
 	 */
-	public static long set(final HashMap tvSeries, final String seriesName) {
+	public static long set(final Connection connection, final HashMap tvSeries, final String seriesName) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 		String condition;
@@ -202,7 +195,7 @@ public final class MediaTableTVSeries extends MediaTable {
 			return -1;
 		}
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			query = "SELECT * FROM " + TABLE_NAME + " WHERE " + condition + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching in " + TABLE_NAME + " with \"{}\" before set", query);
@@ -252,7 +245,7 @@ public final class MediaTableTVSeries extends MediaTable {
 
 								insertStatement.setString(8, (String) tvSeries.get("votes"));
 								insertStatement.setString(9, (String) tvSeries.get("year"));
-								insertStatement.setString(10, APIUtils.getApiDataSeriesVersion().toString());
+								insertStatement.setString(10, APIUtils.getApiDataSeriesVersion());
 							}
 							insertStatement.executeUpdate();
 
@@ -272,10 +265,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing to " + TABLE_NAME,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, "tv Series", e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -286,10 +276,11 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * Get TV series by IMDb ID.
 	 * If we have the latest version number from the
 	 * API, narrow the result to that version.
+	 * @param connection the db connection
 	 * @param imdbID
 	 * @return
 	 */
-	public static HashMap<String, Object> getByIMDbID(final String imdbID) {
+	public static HashMap<String, Object> getByIMDbID(final Connection connection, final String imdbID) {
 		boolean trace = LOGGER.isTraceEnabled();
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT * FROM ").append(TABLE_NAME).append(" WHERE IMDBID = ").append(sqlQuote(imdbID)).append(" ");
@@ -299,7 +290,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		}
 		sql.append("LIMIT 1");
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
@@ -315,8 +306,8 @@ public final class MediaTableTVSeries extends MediaTable {
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (Exception e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", imdbID, e.getMessage());
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie from imdbID", imdbID, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -326,15 +317,16 @@ public final class MediaTableTVSeries extends MediaTable {
 	/**
 	 * Returns a row based on title.
 	 *
+	 * @param connection the db connection
 	 * @param title
 	 * @return
 	 */
-	public static HashMap<String, Object> getByTitle(final String title) {
+	public static HashMap<String, Object> getByTitle(final Connection connection, final String title) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String sql = "SELECT * FROM " + TABLE_NAME + " WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {
@@ -352,8 +344,8 @@ public final class MediaTableTVSeries extends MediaTable {
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (Exception e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie from title", title, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -361,15 +353,16 @@ public final class MediaTableTVSeries extends MediaTable {
 	}
 
 	/**
+	 * @param connection the db connection
 	 * @param title
 	 * @return a thumbnail based on title.
 	 */
-	public static DLNAThumbnail getThumbnailByTitle(final String title) {
+	public static DLNAThumbnail getThumbnailByTitle(final Connection connection, final String title) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String sql = "SELECT THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
@@ -390,19 +383,19 @@ public final class MediaTableTVSeries extends MediaTable {
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (Exception e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie thumbnail from title", title, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
 		return null;
 	}
 
-	public static void updateThumbnailId(long id, int thumbId) {
-		try (Connection conn = DATABASE.getConnection()) {
+	public static void updateThumbnailId(final Connection connection, long id, int thumbId) {
+		try {
 			TABLE_LOCK.writeLock().lock();
 			try (
-				PreparedStatement ps = conn.prepareStatement(
+				PreparedStatement ps = connection.prepareStatement(
 					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE ID = ?"
 				);
 			) {
@@ -413,20 +406,21 @@ public final class MediaTableTVSeries extends MediaTable {
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}
-		} catch (SQLException se) {
-			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
-			LOGGER.trace("", se);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "updating cached thumbnail", TABLE_NAME, id, e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
 	/**
+	 * @param connection the db connection
 	 * @param simplifiedTitle
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static List<HashMap<String, Object>> getAPIResultsBySimplifiedTitleIncludingExternalTables(final String simplifiedTitle) {
+	public static List<HashMap<String, Object>> getAPIResultsBySimplifiedTitleIncludingExternalTables(final Connection connection, final String simplifiedTitle) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String sql = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediaTableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataActors.TABLE_NAME + ".TVSERIESID " +
@@ -454,8 +448,8 @@ public final class MediaTableTVSeries extends MediaTable {
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (Exception e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", simplifiedTitle, e.getMessage());
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading API results", TABLE_NAME, simplifiedTitle, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -465,10 +459,11 @@ public final class MediaTableTVSeries extends MediaTable {
 	/**
 	 * Returns a similar TV series name from the database.
 	 *
+	 * @param connection the db connection
 	 * @param title
 	 * @return
 	 */
-	public static String getSimilarTVSeriesName(String title) {
+	public static String getSimilarTVSeriesName(final Connection connection, String title) {
 		if (title == null) {
 			return title;
 		}
@@ -476,7 +471,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 		simplifiedTitle = StringEscapeUtils.escapeSql(simplifiedTitle);
 
-		ArrayList<String> titleList = MediaTableFiles.getStrings("SELECT TITLE FROM " + MediaTableTVSeries.TABLE_NAME + " WHERE SIMPLIFIEDTITLE='" + simplifiedTitle + "' LIMIT 1");
+		ArrayList<String> titleList = MediaTableFiles.getStrings(connection, "SELECT TITLE FROM " + TABLE_NAME + " WHERE SIMPLIFIEDTITLE='" + simplifiedTitle + "' LIMIT 1");
 		if (!titleList.isEmpty()) {
 			return titleList.get(0);
 		}
@@ -487,16 +482,17 @@ public final class MediaTableTVSeries extends MediaTable {
 	/**
 	 * Updates an existing row with information from our API.
 	 *
+	 * @param connection the db connection
 	 * @param tvSeries
 	 */
-	public static void insertAPIMetadata(final HashMap tvSeries) {
+	public static void insertAPIMetadata(final Connection connection, final HashMap tvSeries) {
 		if (tvSeries == null) {
 			LOGGER.warn("Couldn't write API data for \"{}\" to the database because there is no media information");
 			return;
 		}
 		String simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.writeLock().lock();
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement("SELECT " +
@@ -532,18 +528,19 @@ public final class MediaTableTVSeries extends MediaTable {
 				}
 			}
 			connection.commit();
-		} catch (Exception e) {
-			LOGGER.debug("Error when attempting to insert API data to TV series entry: \"{}\"", e.getMessage());
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting API data to TV series entry", simplifiedTitle, TABLE_NAME, e.getMessage());
 		}
 	}
 
 	/**
 	 * Removes an entry or entries.
 	 *
+	 * @param connection the db connection
 	 * @param imdbID the IMDb ID to remove
 	 */
-	public static void remove(final String imdbID) {
-		try (Connection connection = DATABASE.getConnection()) {
+	public static void remove(final Connection connection, final String imdbID) {
+		try {
 			String query = "DELETE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID);
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
@@ -552,21 +549,17 @@ public final class MediaTableTVSeries extends MediaTable {
 			} finally {
 				TABLE_LOCK.writeLock().unlock();
 			}
-		} catch (Exception e) {
-			LOGGER.error(
-				"Database error while removing entries from " + TABLE_NAME + " for \"{}\": {}",
-				imdbID,
-				e.getMessage()
-			);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, imdbID, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
-	public static Boolean isFullyPlayed(final String title) {
+	public static Boolean isFullyPlayed(final Connection connection, final String title) {
 		boolean trace = LOGGER.isTraceEnabled();
 		Boolean result = true;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			/*
 			 * If there is one file for this TV series where ISFULLYPLAYED is
 			 * not true, then this series is not fully played, otherwise it is.
@@ -600,8 +593,8 @@ public final class MediaTableTVSeries extends MediaTable {
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (Exception e) {
-			LOGGER.error("Database error while looking up TV series status in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up TV series status", TABLE_NAME, title, e.getMessage());
 			LOGGER.trace("", e);
 		}
 

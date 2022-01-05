@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -27,10 +27,12 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -41,6 +43,22 @@ public class DatabaseHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
 	private static final String ESCAPE_CHARACTER = "\\";
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
+	protected static final String LOG_CREATING_TABLE = "Creating database \"{}\" table: \"{}\"";
+	protected static final String LOG_UPGRADING_TABLE = "Upgrading database \"{}\" table \"{}\" from version {} to {}";
+	protected static final String LOG_UPGRADED_TABLE = "Updated database \"{}\" table \"{}\" from version {} to {}";
+	protected static final String LOG_UPGRADING_TABLE_FAILED = "Failed upgrading database \"{}\" table {} for {}";
+	protected static final String LOG_UPGRADING_TABLE_MISSING = "Database \"{}\" table \"{}\" is missing table upgrade commands from version {} to {}";
+
+	protected static final String LOG_TABLE_NEWER_VERSION = "Database \"{}\" table \"{}\" is from a newer version of UMS.";
+	protected static final String LOG_TABLE_NEWER_VERSION_DELETEDB = "Database \"{}\" table \"{}\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"{}\" before starting UMS";
+	protected static final String LOG_TABLE_UNKNOWN_VERSION_RECREATE = "Database \"{}\" table \"{}\" has an unknown version and cannot be used. Dropping and recreating table";
+
+	protected static final String LOG_CONNECTION_GET_ERROR = "Database \"{}\" error while getting connection: {}";
+	protected static final String LOG_ERROR_WHILE_IN = "Database \"{}\" error while {} in \"{}\": {}";
+	protected static final String LOG_ERROR_WHILE_VAR_IN = "Database \"{}\" error while {} \"{}\" in \"{}\": {}";
+	protected static final String LOG_ERROR_WHILE_IN_FOR = "Database \"{}\" error while {} in \"{}\" for \"{}\": {}";
+	protected static final String LOG_ERROR_WHILE_VAR_IN_FOR = "Database \"{}\" error while {} \"{}\" in \"{}\" for \"{}\": {}";
 
 	// Generic constant for the maximum string size: 255 chars
 	protected static final int SIZE_MAX = 255;
@@ -328,6 +346,20 @@ public class DatabaseHelper {
 		}
 	}
 
+	protected static void executeUpdate(Statement stmt, String sql) throws SQLException {
+		stmt.executeUpdate(sql);
+	}
+
+	protected static void execute(Connection conn, String... sqls) throws SQLException {
+		if (conn != null) {
+			try (Statement stmt = conn.createStatement()) {
+				for (String sql : sqls) {
+					stmt.execute(sql);
+				}
+			}
+		}
+	}
+
 	protected static void updateSerialized(ResultSet rs, Object x, String columnLabel) throws SQLException {
 		if (x != null) {
 			rs.updateObject(columnLabel, x);
@@ -376,7 +408,7 @@ public class DatabaseHelper {
 		return null;
 	}
 
-	protected static void close(ResultSet rs) {
+	public static void close(ResultSet rs) {
 		try {
 			if (rs != null) {
 				rs.close();
@@ -386,7 +418,7 @@ public class DatabaseHelper {
 		}
 	}
 
-	protected static void close(Statement ps) {
+	public static void close(Statement ps) {
 		try {
 			if (ps != null) {
 				ps.close();
@@ -396,7 +428,7 @@ public class DatabaseHelper {
 		}
 	}
 
-	protected static void close(Connection conn) {
+	public static void close(Connection conn) {
 		try {
 			if (conn != null) {
 				conn.close();
@@ -404,5 +436,13 @@ public class DatabaseHelper {
 		} catch (SQLException e) {
 			LOGGER.error("error during closing:" + e.getMessage(), e);
 		}
+	}
+
+	protected static String getMessage(String pattern, Object... arguments) {
+		int i = 0;
+		while (pattern.contains("{}")) {
+			pattern = pattern.replaceFirst(Pattern.quote("{}"), "{" + i++ + "}");
+		}
+		return MessageFormat.format(pattern, arguments);
 	}
 }

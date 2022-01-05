@@ -77,15 +77,10 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 					}
 				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
 					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -110,11 +105,11 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * @throws SQLException
 	 */
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
@@ -129,7 +124,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
 						);
 						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` VARCHAR(20)"
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
 						);
 						break;
 					case 2:
@@ -140,8 +135,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -155,23 +149,22 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID IDENTITY PRIMARY KEY, " +
-					"MODIFIED DATETIME, " +
-					"MBID VARCHAR(36), " +
-					"ARTIST VARCHAR(1000), " +
-					"ALBUM VARCHAR(1000), " +
-					"TITLE VARCHAR(1000), " +
-					"MEDIA_YEAR VARCHAR(20), " +
-					"ARTIST_ID VARCHAR(36), " +
-					"TRACK_ID VARCHAR(36)" +
-				")");
-			statement.execute("CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)");
-			statement.execute("CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)");
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID				IDENTITY		PRIMARY KEY	, " +
+				"MODIFIED		DATETIME					, " +
+				"MBID			VARCHAR(36)					, " +
+				"ARTIST			VARCHAR(1000)				, " +
+				"ALBUM			VARCHAR(1000)				, " +
+				"TITLE			VARCHAR(1000)				, " +
+				"MEDIA_YEAR		VARCHAR(20)					, " +
+				"ARTIST_ID		VARCHAR(36)					, " +
+				"TRACK_ID		VARCHAR(36)					  " +
+			")",
+			"CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)",
+			"CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)"
+		);
 	}
 
 	/**
@@ -268,14 +261,15 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	/**
 	 * Stores the MBID with information from this {@link Tag} in the database
 	 *
+	 * @param connection the db connection
 	 * @param mBID the MBID to store
 	 * @param tagInfo the {@link Tag} who's information should be associated with
 	 *        the given MBID
 	 */
-	public static void writeMBID(final String mBID, final CoverArtArchiveTagInfo tagInfo) {
+	public static void writeMBID(final Connection connection, final String mBID, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
@@ -348,12 +342,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing Music Brainz ID \"{}\" for \"{}\": {}",
-				mBID,
-				tagInfo,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing Music Brainz ID", mBID, TABLE_NAME, tagInfo, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
@@ -362,15 +351,16 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * Looks up MBID in the table based on the given {@link Tag}. Never returns
 	 * <code>null</code>
 	 *
+	 * @param connection the db connection
 	 * @param tagInfo the {@link Tag} for whose values should be used in the search
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static MusicBrainzReleasesResult findMBID(final CoverArtArchiveTagInfo tagInfo) {
+	public static MusicBrainzReleasesResult findMBID(final Connection connection, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 		MusicBrainzReleasesResult result;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false) + " LIMIT 1";
 
 			if (trace) {
@@ -390,7 +380,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up Music Brainz ID for \"{}\": {}", tagInfo, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up Music Brainz ID", TABLE_NAME, tagInfo, e.getMessage());
 			LOGGER.trace("", e);
 			result = new MusicBrainzReleasesResult();
 		}

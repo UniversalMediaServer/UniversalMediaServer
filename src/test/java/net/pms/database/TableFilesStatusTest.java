@@ -22,7 +22,6 @@ package net.pms.database;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import java.sql.Connection;
-import java.sql.Statement;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -56,34 +55,27 @@ public class TableFilesStatusTest {
 	 */
 	@Test
 	public void testUpgrade() throws Exception {
-		MediaDatabase database = PMS.get().getMediaDatabase();
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
 		try (Connection connection = database.getConnection()) {
 			//remove all tables to cleanup db
 			MediaDatabase.dropAllTables(connection);
 			database.checkTables(true);
-			try (Statement statement = connection.createStatement()) {
-				MediaDatabase.dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
-
-				// Create version 7 of this table to start with
-				statement.execute(
-					"CREATE TABLE " + MediaTableFilesStatus.TABLE_NAME + "(" +
-						"ID            IDENTITY PRIMARY KEY, " +
-						"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
-						"MODIFIED      DATETIME, " +
-						"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
-						"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
-							"REFERENCES " + MediaTableFiles.TABLE_NAME + "(FILENAME) " +
-							"ON DELETE CASCADE" +
-					")"
-				);
-
-				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + MediaTableFilesStatus.TABLE_NAME + "(FILENAME)");
-				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + MediaTableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
-
-				MediaTableTablesVersions.setTableVersion(connection, MediaTableFilesStatus.TABLE_NAME, 7);
-			} catch (Exception e) {
-				System.out.println("Error: " + e);
-			}
+			MediaDatabase.dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
+			MediaDatabase.execute(connection,
+				"CREATE TABLE " + MediaTableFilesStatus.TABLE_NAME + "(" +
+					"ID            IDENTITY PRIMARY KEY, " +
+					"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
+					"MODIFIED      DATETIME, " +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+					"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
+						"REFERENCES " + MediaTableFiles.TABLE_NAME + "(FILENAME) " +
+						"ON DELETE CASCADE" +
+				")",
+				"CREATE UNIQUE INDEX FILENAME_IDX ON " + MediaTableFilesStatus.TABLE_NAME + "(FILENAME)",
+				"CREATE INDEX ISFULLYPLAYED_IDX ON " + MediaTableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)"
+			);
+			MediaTableTablesVersions.setTableVersion(connection, MediaTableFilesStatus.TABLE_NAME, 7);
 
 			/*
 			 * Version 7 is created, so now we can update to the latest version
@@ -97,10 +89,16 @@ public class TableFilesStatusTest {
 
 	@Test
 	public void testIsFullyPlayed() throws Exception {
-		MediaTableFilesStatus.setFullyPlayed("FileThatHasBeenPlayed", true);
-		MediaTableFilesStatus.setFullyPlayed("FileThatHasBeenMarkedNotPlayed", false);
-		assertThat(MediaTableFilesStatus.isFullyPlayed("FileThatDoesntExist")).isNull();
-		assertThat(MediaTableFilesStatus.isFullyPlayed("FileThatHasBeenPlayed")).isTrue();
-		assertThat(MediaTableFilesStatus.isFullyPlayed("FileThatHasBeenMarkedNotPlayed")).isFalse();
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenPlayed", true);
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", false);
+			assertThat(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatDoesntExist")).isNull();
+			assertThat(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed")).isTrue();
+			assertThat(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed")).isFalse();
+		} finally {
+			MediaDatabase.close(connection);
+		}
 	}
 }

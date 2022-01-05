@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -115,7 +115,7 @@ public class MediaTableFiles extends MediaTable {
 				if (version < TABLE_VERSION) {
 					upgradeTable(connection, version);
 				} else if (version > TABLE_VERSION) {
-					LOGGER.warn("Database table \"" + TABLE_NAME + "\" is from a newer version of UMS.");
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION, DATABASE_NAME, TABLE_NAME);
 				}
 			} else {
 				createTable(connection);
@@ -138,12 +138,12 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		boolean force = false;
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 23:
 						try (Statement statement = connection.createStatement()) {
@@ -176,7 +176,7 @@ public class MediaTableFiles extends MediaTable {
 							statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on FILES (FILENAME, MODIFIED, VERSION, IMDBID)");
 						}
 						version++;
-						LOGGER.trace("Updated {} table from version {} to {}", TABLE_NAME, currentVersion, version);
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 24:
 						//Rename sql reserved words
@@ -234,8 +234,8 @@ public class MediaTableFiles extends MediaTable {
 				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
 				throw new SQLException(e);
 			}
-		} catch (Exception se) {
-			LOGGER.error("Error updating tables: " + se.getMessage());
+		} catch (SQLException se) {
+			LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, se.getMessage());
 			LOGGER.trace("", se);
 			force = true;
 		} finally {
@@ -258,7 +258,7 @@ public class MediaTableFiles extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
@@ -343,31 +343,18 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	/**
-	 * Drops (deletes) the current table. Use with caution, there is no undo.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void dropTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
-		}
-	}
-
-	/**
 	 * Checks whether a row representing a {@link DLNAMediaInfo} instance for
 	 * the given media exists in the database.
 	 *
+	 * @param connection the db connection
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @return {@code true} if the data exists for this media, {@code false}
 	 *         otherwise.
 	 */
-	public static boolean isDataExists(String name, long modified) {
+	public static boolean isDataExists(final Connection connection, String name, long modified) {
 		boolean found = false;
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.readLock().lock();
 			try (PreparedStatement statement = connection.prepareStatement("SELECT ID FROM " + TABLE_NAME + " WHERE FILENAME = ? AND MODIFIED = ? LIMIT 1")) {
 				statement.setString(1, name);
@@ -381,7 +368,7 @@ public class MediaTableFiles extends MediaTable {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException se) {
-			LOGGER.error("An SQL error occurred when trying to check if data exists for \"{}\": {}", name, se.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if data exists", TABLE_NAME, name, se.getMessage());
 			LOGGER.trace("", se);
 			return false;
 		}
@@ -394,11 +381,12 @@ public class MediaTableFiles extends MediaTable {
 	 * If we could not fetch the latest version from the API, it will check
 	 * whether any version exists in the database.
 	 *
+	 * @param connection the db connection
 	 * @param name the full path of the video.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @return whether the latest API metadata exists for this video.
 	 */
-	public static boolean doesLatestApiMetadataExist(String name, long modified) {
+	public static boolean doesLatestApiMetadataExist(final Connection connection, String name, long modified) {
 		boolean found = false;
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT ID FROM " + TABLE_NAME + " WHERE FILENAME = ? AND MODIFIED = ? ");
@@ -411,7 +399,7 @@ public class MediaTableFiles extends MediaTable {
 		}
 		sql.append("AND IMDBID IS NOT NULL LIMIT 1");
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.readLock().lock();
 			try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
 				statement.setString(1, name);
@@ -427,12 +415,8 @@ public class MediaTableFiles extends MediaTable {
 			} finally {
 				TABLE_LOCK.readLock().unlock();
 			}
-		} catch (Exception se) {
-			LOGGER.error(
-				"An error occurred when trying to check if API metadata exists for \"{}\": {}",
-				name,
-				se.getMessage()
-			);
+		} catch (SQLException se) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if API metadata exists for", TABLE_NAME, name, se.getMessage());
 			LOGGER.trace("", se);
 			return false;
 		}
@@ -444,6 +428,7 @@ public class MediaTableFiles extends MediaTable {
 	 * Gets a row of {@link MediaDatabase} from the database and returns it
 	 * as a {@link DLNAMediaInfo} instance, along with thumbnails, status and tracks.
 	 *
+	 * @param connection the db connection
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @return The {@link DLNAMediaInfo} instance matching
@@ -451,13 +436,13 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public static DLNAMediaInfo getData(String name, long modified) throws IOException, SQLException {
+	public static DLNAMediaInfo getData(final Connection connection, String name, long modified) throws IOException, SQLException {
 		DLNAMediaInfo media = null;
 		ArrayList<String> externalFileReferencesToRemove = new ArrayList();
-		try (Connection conn = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.readLock().lock();
 			try (
-				PreparedStatement stmt = conn.prepareStatement(
+				PreparedStatement stmt = connection.prepareStatement(
 					"SELECT * FROM " + TABLE_NAME + " " +
 					"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + MediaTableThumbnails.TABLE_NAME + ".ID " +
 					"WHERE " + TABLE_NAME + ".FILENAME = ? AND " + TABLE_NAME + ".MODIFIED = ? " +
@@ -468,9 +453,9 @@ public class MediaTableFiles extends MediaTable {
 				stmt.setTimestamp(2, new Timestamp(modified));
 				try (
 					ResultSet rs = stmt.executeQuery();
-					PreparedStatement audios = conn.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
-					PreparedStatement subs = conn.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
-					PreparedStatement status = conn.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
+					PreparedStatement audios = connection.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
+					PreparedStatement subs = connection.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
+					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
@@ -584,7 +569,7 @@ public class MediaTableFiles extends MediaTable {
 				if (!externalFileReferencesToRemove.isEmpty()) {
 					for (String externalFileReferenceToRemove : externalFileReferencesToRemove) {
 						LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFileReferenceToRemove);
-						deleteRowsInTable(MediaTableSubtracks.TABLE_NAME, "EXTERNALFILE", externalFileReferenceToRemove, false);
+						deleteRowsInTable(connection, MediaTableSubtracks.TABLE_NAME, "EXTERNALFILE", externalFileReferenceToRemove, false);
 						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
 					}
 				}
@@ -606,18 +591,19 @@ public class MediaTableFiles extends MediaTable {
 	 * modified value to be passed, which means we can avoid touching the filesystem
 	 * in the caller.
 	 *
+	 * @param connection the db connection
 	 * @param name the full path of the media.
 	 * @return The {@link DLNAMediaInfo} instance matching
 	 *         {@code name} and {@code modified}.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public static DLNAMediaInfo getFileMetadata(String name) throws IOException, SQLException {
+	public static DLNAMediaInfo getFileMetadata(final Connection connection, String name) throws IOException, SQLException {
 		DLNAMediaInfo media = null;
-		try (Connection conn = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.readLock().lock();
 			try (
-				PreparedStatement stmt = conn.prepareStatement(
+				PreparedStatement stmt = connection.prepareStatement(
 					"SELECT * FROM " + TABLE_NAME + " " +
 					"WHERE " + TABLE_NAME + ".FILENAME = ? " +
 					"LIMIT 1"
@@ -664,6 +650,7 @@ public class MediaTableFiles extends MediaTable {
 	 * information given in {@code media}. If it doesn't exist, a new will row
 	 * be created using the same information.
 	 *
+	 * @param connection the db connection
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param type the integer constant from {@link Format} indicating the type
@@ -671,10 +658,8 @@ public class MediaTableFiles extends MediaTable {
 	 * @param media the {@link DLNAMediaInfo} row to update.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertOrUpdateData(String name, long modified, int type, DLNAMediaInfo media) throws SQLException {
-		try (
-			Connection connection = DATABASE.getConnection()
-		) {
+	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, DLNAMediaInfo media) throws SQLException {
+		try {
 			connection.setAutoCommit(false);
 			long fileId = -1;
 			TABLE_LOCK.writeLock().lock();
@@ -897,7 +882,7 @@ public class MediaTableFiles extends MediaTable {
 			throw se;
 		} finally {
 			if (media != null && media.getThumb() != null) {
-				MediaTableThumbnails.setThumbnail(media.getThumb(), name, -1);
+				MediaTableThumbnails.setThumbnail(connection, media.getThumb(), name, -1);
 			}
 		}
 	}
@@ -905,12 +890,13 @@ public class MediaTableFiles extends MediaTable {
 	/**
 	 * Updates the name of a movie or TV series for existing entries in the database.
 	 *
+	 * @param connection the db connection
 	 * @param oldName the existing movie or show name.
 	 * @param newName the new movie or show name.
 	 */
-	public static void updateMovieOrShowName(String oldName, String newName) {
+	public static void updateMovieOrShowName(final Connection connection, String oldName, String newName) {
 		try {
-			updateRowsInFilesTable(oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
+			updateRowsInFilesTable(connection, oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",
@@ -926,12 +912,13 @@ public class MediaTableFiles extends MediaTable {
 	 * Updates an existing row with information either extracted from the filename
 	 * or from our API.
 	 *
+	 * @param connection the db connection
 	 * @param path the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param media the {@link DLNAMediaInfo} row to update.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(String path, long modified, DLNAMediaInfo media) throws SQLException {
+	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;
@@ -941,9 +928,9 @@ public class MediaTableFiles extends MediaTable {
 			return;
 		}
 
-		try (Connection connection = DATABASE.getConnection()) {
-			connection.setAutoCommit(false);
+		try {
 			TABLE_LOCK.writeLock().lock();
+			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
 					"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
@@ -974,16 +961,17 @@ public class MediaTableFiles extends MediaTable {
 						return;
 					}
 				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
+				connection.commit();
 			}
-			connection.commit();
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
 	/**
 	 * Updates a row or rows in the FILES table.
 	 *
+	 * @param connection the db connection
 	 * @param oldValue the value to match, can be {@code null}.
 	 * @param newValue the value to store, can be {@code null}.
 	 * @param columnName the column to update.
@@ -993,7 +981,7 @@ public class MediaTableFiles extends MediaTable {
 	 *            be quoted and length limited.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void updateRowsInFilesTable(String oldValue, String newValue, String columnName, int size, boolean isString) throws SQLException {
+	public static void updateRowsInFilesTable(final Connection connection, String oldValue, String newValue, String columnName, int size, boolean isString) throws SQLException {
 		if (isString && size < 1) {
 			throw new IllegalArgumentException("size must be positive");
 		}
@@ -1012,7 +1000,7 @@ public class MediaTableFiles extends MediaTable {
 			newValue,
 			columnName
 		);
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				int rows = statement.executeUpdate(
@@ -1022,20 +1010,21 @@ public class MediaTableFiles extends MediaTable {
 						columnName + (oldValue == null ? " IS NULL" : " = " + (isString ? left(oldValue, size) : oldValue))
 				);
 				LOGGER.trace("Updated {} rows in " + TABLE_NAME + " table", rows);
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
 	/**
 	 * Removes a single media file from the database.
 	 *
+	 * @param connection the db connection
 	 * @param pathToFile the full path to the file to remove.
 	 */
-	public static void removeMediaEntry(String pathToFile) {
+	public static void removeMediaEntry(final Connection connection, String pathToFile) {
 		try {
-			removeMedia(pathToFile, false);
+			removeMedia(connection, pathToFile, false);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"An error occurred while trying to remove \"{}\" from the database: {}",
@@ -1049,12 +1038,13 @@ public class MediaTableFiles extends MediaTable {
 	/**
 	 * Removes all media files in a folder from the database.
 	 *
+	 * @param connection the db connection
 	 * @param pathToFolder the full path to the folder whose children should be
 	 *            removed.
 	 */
-	public static void removeMediaEntriesInFolder(String pathToFolder) {
+	public static void removeMediaEntriesInFolder(final Connection connection, String pathToFolder) {
 		try {
-			removeMedia(sqlLikeEscape(pathToFolder) + "%", true);
+			removeMedia(connection, sqlLikeEscape(pathToFolder) + "%", true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"An error occurred while trying to remove files matching \"{}\" from the database: {}",
@@ -1071,28 +1061,29 @@ public class MediaTableFiles extends MediaTable {
 	 *
 	 * @see TableTables#sqlLikeEscape(String)
 	 *
+	 * @param connection the db connection
 	 * @param filename the filename(s) to remove.
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void removeMedia(String filename, boolean useLike) throws SQLException {
+	public static void removeMedia(final Connection connection, String filename, boolean useLike) throws SQLException {
 		if (StringUtils.isEmpty(filename)) {
 			return;
 		}
 
-		deleteRowsInFilesTable(filename, useLike);
-		MediaTableFilesStatus.remove(filename, useLike);
-		MediaTableVideoMetadataActors.remove(filename, useLike);
-		MediaTableVideoMetadataAwards.remove(filename, useLike);
-		MediaTableVideoMetadataCountries.remove(filename, useLike);
-		MediaTableVideoMetadataDirectors.remove(filename, useLike);
-		MediaTableVideoMetadataGenres.remove(filename, useLike);
-		MediaTableVideoMetadataPosters.remove(filename, useLike);
-		MediaTableVideoMetadataProduction.remove(filename, useLike);
-		MediaTableVideoMetadataRated.remove(filename, useLike);
-		MediaTableVideoMetadataRatings.remove(filename, useLike);
-		MediaTableVideoMetadataReleased.remove(filename, useLike);
+		deleteRowsInFilesTable(connection, filename, useLike);
+		MediaTableFilesStatus.remove(connection, filename, useLike);
+		MediaTableVideoMetadataActors.remove(connection, filename, useLike);
+		MediaTableVideoMetadataAwards.remove(connection, filename, useLike);
+		MediaTableVideoMetadataCountries.remove(connection, filename, useLike);
+		MediaTableVideoMetadataDirectors.remove(connection, filename, useLike);
+		MediaTableVideoMetadataGenres.remove(connection, filename, useLike);
+		MediaTableVideoMetadataPosters.remove(connection, filename, useLike);
+		MediaTableVideoMetadataProduction.remove(connection, filename, useLike);
+		MediaTableVideoMetadataRated.remove(connection, filename, useLike);
+		MediaTableVideoMetadataRatings.remove(connection, filename, useLike);
+		MediaTableVideoMetadataReleased.remove(connection, filename, useLike);
 	}
 
 	/**
@@ -1101,18 +1092,19 @@ public class MediaTableFiles extends MediaTable {
 	 *
 	 * @see TableTables#sqlLikeEscape(String)
 	 *
+	 * @param connection the db connection
 	 * @param filename the filename to delete
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void deleteRowsInFilesTable(String filename, boolean useLike) throws SQLException {
+	public static void deleteRowsInFilesTable(final Connection connection, String filename, boolean useLike) throws SQLException {
 		if (StringUtils.isEmpty(filename)) {
 			return;
 		}
 
 		LOGGER.trace("Deleting rows from " + TABLE_NAME + " table where the filename is \"{}\"", filename);
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				int rows;
@@ -1122,9 +1114,9 @@ public class MediaTableFiles extends MediaTable {
 					rows = statement.executeUpdate("DELETE FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(filename));
 				}
 				LOGGER.trace("Deleted {} rows from " + TABLE_NAME, rows);
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -1134,6 +1126,7 @@ public class MediaTableFiles extends MediaTable {
 	 *
 	 * @see TableTables#sqlLikeEscape(String)
 	 *
+	 * @param connection the db connection
 	 * @param tableName the table name in which a row or rows will be deleted
 	 * @param column the column where the {@code condition} will be queried
 	 * @param condition the condition for which rows will be deleted
@@ -1141,13 +1134,13 @@ public class MediaTableFiles extends MediaTable {
 	 *            operator, {@code false} if {@code =} should be used.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void deleteRowsInTable(String tableName, String column, String condition, boolean useLike) throws SQLException {
+	public static void deleteRowsInTable(final Connection connection, String tableName, String column, String condition, boolean useLike) throws SQLException {
 		if (StringUtils.isEmpty(condition)) {
 			return;
 		}
 
 		LOGGER.trace("Deleting rows from \"{}\" table for given column \"{}\" and condition \"{}\"", tableName, column, condition);
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				int rows;
@@ -1157,17 +1150,17 @@ public class MediaTableFiles extends MediaTable {
 					rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " = " + sqlQuote(condition));
 				}
 				LOGGER.trace("Deleted {} rows from " + tableName, rows);
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
-	public static void updateThumbnailId(String fullPathToFile, int thumbId) {
-		try (Connection conn = DATABASE.getConnection()) {
+	public static void updateThumbnailId(final Connection connection, String fullPathToFile, int thumbId) {
+		try {
 			TABLE_LOCK.writeLock().lock();
 			try (
-				PreparedStatement ps = conn.prepareStatement(
+				PreparedStatement ps = connection.prepareStatement(
 					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE FILENAME = ?"
 				);
 			) {
@@ -1184,10 +1177,10 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static ArrayList<String> getStrings(String sql) {
+	public static ArrayList<String> getStrings(final Connection connection, String sql) {
 		ArrayList<String> list = new ArrayList<>();
 		HashSet<String> set = new HashSet<>();
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.readLock().lock();
 			try (
 				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + " WHERE " + sql));
@@ -1212,21 +1205,18 @@ public class MediaTableFiles extends MediaTable {
 		return list;
 	}
 
-	public static synchronized void cleanup() {
-		Connection conn = null;
+	public static synchronized void cleanup(final Connection connection) {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
 		try {
-			conn = DATABASE.getConnection();
-
 			/*
 			 * Cleanup of FILES table
 			 *
 			 * Removes entries that are not on the hard drive anymore, and
 			 * ones that are no longer shared.
 			 */
-			ps = conn.prepareStatement("SELECT COUNT(*) FROM " + TABLE_NAME);
+			ps = connection.prepareStatement("SELECT COUNT(*) FROM " + TABLE_NAME);
 			rs = ps.executeQuery();
 			int dbCount = 0;
 
@@ -1241,7 +1231,7 @@ public class MediaTableFiles extends MediaTable {
 			int oldpercent = 0;
 
 			if (dbCount > 0) {
-				ps = conn.prepareStatement("SELECT FILENAME, MODIFIED, ID FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+				ps = connection.prepareStatement("SELECT FILENAME, MODIFIED, ID FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 				rs = ps.executeQuery();
 
 				List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
@@ -1285,7 +1275,7 @@ public class MediaTableFiles extends MediaTable {
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = conn.prepareStatement(
+			ps = connection.prepareStatement(
 				"DELETE FROM " + MediaTableThumbnails.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT ID FROM " + TABLE_NAME + " " +
@@ -1304,7 +1294,7 @@ public class MediaTableFiles extends MediaTable {
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = conn.prepareStatement(
+			ps = connection.prepareStatement(
 				"DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT ID FROM " + TABLE_NAME + " " +
@@ -1318,7 +1308,7 @@ public class MediaTableFiles extends MediaTable {
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = conn.prepareStatement(
+			ps = connection.prepareStatement(
 				"DELETE FROM " + MediaTableTVSeries.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT MOVIEORSHOWNAMESIMPLE FROM " + TABLE_NAME + " " +
@@ -1348,7 +1338,7 @@ public class MediaTableFiles extends MediaTable {
 				MediaTableVideoMetadataReleased.TABLE_NAME
 			};
 			for (String table : metadataTables) {
-				ps = conn.prepareStatement(
+				ps = connection.prepareStatement(
 					"DELETE FROM " + table + " " +
 					"WHERE NOT EXISTS (" +
 						"SELECT FILENAME FROM " + TABLE_NAME + " " +
@@ -1367,14 +1357,13 @@ public class MediaTableFiles extends MediaTable {
 		} finally {
 			close(rs);
 			close(ps);
-			close(conn);
 			PMS.get().getFrame().setStatusLine(null);
 		}
 	}
 
-	public static ArrayList<File> getFiles(String sql) {
+	public static ArrayList<File> getFiles(final Connection connection, String sql) {
 		ArrayList<File> list = new ArrayList<>();
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			TABLE_LOCK.readLock().lock();
 			try (
 				PreparedStatement ps = connection.prepareStatement(
@@ -1401,13 +1390,14 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	/**
+	 * @param connection the db connection
 	 * @param filename
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static List<HashMap<String, Object>> getAPIResultsByFilenameIncludingExternalTables(final String filename) {
+	public static List<HashMap<String, Object>> getAPIResultsByFilenameIncludingExternalTables(final Connection connection, final String filename) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediaTableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataActors.TABLE_NAME + ".FILENAME " +
@@ -1443,15 +1433,16 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	/**
+	 * @param connection the db connection
 	 * @param title
 	 * @return a thumbnail based on title.
 	 */
-	public static DLNAThumbnail getThumbnailByTitle(final String title) {
+	public static DLNAThumbnail getThumbnailByTitle(final Connection connection, final String title) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +

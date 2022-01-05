@@ -12,12 +12,14 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.dlna.DLNAMediaInfo;
@@ -511,13 +513,21 @@ public class RemoteUtil {
 	 *         when there is no metadata
 	 */
 	public static String getAPIMetadataAsJavaScriptVars(DLNAResource resource, HttpExchange t, boolean isTVSeries, RootFolder rootFolder) throws UnsupportedEncodingException {
-		List<HashMap<String, Object>> resourceMetadataFromDatabase;
+		List<HashMap<String, Object>> resourceMetadataFromDatabase = null;
 
-		if (isTVSeries) {
-			String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-			resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
-		} else {
-			resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(resource.getFileName());
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				if (isTVSeries) {
+					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
+					resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedTitle);
+				} else {
+					resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
 		}
 
 		if (resourceMetadataFromDatabase == null) {

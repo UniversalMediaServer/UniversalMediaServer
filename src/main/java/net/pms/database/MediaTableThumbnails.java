@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -22,7 +22,6 @@ package net.pms.database;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -77,15 +76,10 @@ public final class MediaTableThumbnails extends MediaTable {
 					if (version < TABLE_VERSION) {
 						upgradeTable(connection, version);
 					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 					}
 				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
 					dropTable(connection, TABLE_NAME);
 					createTable(connection);
 					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -111,19 +105,18 @@ public final class MediaTableThumbnails extends MediaTable {
 	 */
 	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
 					case 1:
 						version = 2;
 						break;
 					default:
 						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "\" is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 						);
 				}
 			}
@@ -137,19 +130,15 @@ public final class MediaTableThumbnails extends MediaTable {
 	 * Must be called from inside a table lock
 	 */
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table: \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID          IDENTITY PRIMARY KEY, " +
-					"THUMBNAIL   OTHER         NOT NULL, " +
-					"MODIFIED    DATETIME, " +
-					"MD5         VARCHAR UNIQUE NOT NULL" +
-				")"
-			);
-
-			statement.execute("CREATE UNIQUE INDEX MD5_IDX ON " + TABLE_NAME + "(MD5)");
-		}
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID				IDENTITY		PRIMARY KEY		, " +
+				"THUMBNAIL		OTHER			NOT NULL		, " +
+				"MODIFIED		DATETIME						, " +
+				"MD5			VARCHAR			UNIQUE NOT NULL" +
+			")"
+		);
 	}
 
 	/**
@@ -163,6 +152,29 @@ public final class MediaTableThumbnails extends MediaTable {
 	 * @param tvSeriesID
 	 */
 	public static void setThumbnail(final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableThumbnails.setThumbnail(connection, thumbnail, fullPathToFile, tvSeriesID);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Attempts to find a thumbnail in this table by MD5 hash. If not found,
+	 * it writes the new thumbnail to this table.
+	 * Finally, it writes the ID from this table as the THUMBID in the FILES
+	 * table.
+	 *
+	 * @param connection the db connection
+	 * @param thumbnail
+	 * @param fullPathToFile
+	 * @param tvSeriesID
+	 */
+	public static void setThumbnail(final Connection connection, final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID) {
 		if (fullPathToFile == null && tvSeriesID == -1) {
 			LOGGER.trace("Either fullPathToFile or tvSeriesID are required for setThumbnail, returning early");
 			return;
@@ -171,7 +183,7 @@ public final class MediaTableThumbnails extends MediaTable {
 		String selectQuery;
 		String md5Hash = DigestUtils.md5Hex(thumbnail.getBytes(false));
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			selectQuery = "SELECT ID FROM " + TABLE_NAME + " WHERE MD5 = " + sqlQuote(md5Hash) + " LIMIT 1";
 			LOGGER.trace("Searching for thumbnail in {} with \"{}\" before update", TABLE_NAME, selectQuery);
 
@@ -182,10 +194,10 @@ public final class MediaTableThumbnails extends MediaTable {
 					if (result.next()) {
 						if (fullPathToFile != null) {
 							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
-							MediaTableFiles.updateThumbnailId(fullPathToFile, result.getInt("ID"));
+							MediaTableFiles.updateThumbnailId(connection, fullPathToFile, result.getInt("ID"));
 						} else {
 							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
-							MediaTableTVSeries.updateThumbnailId(tvSeriesID, result.getInt("ID"));
+							MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, result.getInt("ID"));
 						}
 					} else {
 						LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
@@ -201,10 +213,10 @@ public final class MediaTableThumbnails extends MediaTable {
 								if (generatedKeys.next()) {
 									if (fullPathToFile != null) {
 										LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
-										MediaTableFiles.updateThumbnailId(fullPathToFile, generatedKeys.getInt(1));
+										MediaTableFiles.updateThumbnailId(connection, fullPathToFile, generatedKeys.getInt(1));
 									} else {
 										LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
-										MediaTableTVSeries.updateThumbnailId(tvSeriesID, generatedKeys.getInt(1));
+										MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, generatedKeys.getInt(1));
 									}
 								} else {
 									LOGGER.trace("Generated key not returned in " + TABLE_NAME);
@@ -219,7 +231,7 @@ public final class MediaTableThumbnails extends MediaTable {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while writing \"{}\" to {}: {}", md5Hash, TABLE_NAME, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing md5", md5Hash, TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
