@@ -232,7 +232,7 @@ public class MediaTableFiles extends MediaTable {
 							 * Since the last release, 10.15.0, we fixed some bugs with TV episode and sport
 							 * filename parsing so here we clear any cached data for non-episodes.
 							 */
-							sb = new StringBuilder();
+							StringBuilder sb = new StringBuilder();
 							sb
 								.append("UPDATE ")
 									.append("FILES ")
