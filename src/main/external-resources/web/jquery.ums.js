@@ -1,5 +1,5 @@
-if('undefined'===typeof jQuery)throw new Error('requires jQuery');
-if('undefined'===typeof Cookies)throw new Error('requires js.cookie');
+if(typeof jQuery==='undefined')throw new Error('requires jQuery');
+if(typeof Cookies==='undefined')throw new Error('requires js.cookie');
 
 var viewType = 'grid';
 var fontSize = 'small';
