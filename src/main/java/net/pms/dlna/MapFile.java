@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import net.pms.configuration.MapFileConfiguration;
@@ -314,7 +315,13 @@ public class MapFile extends DLNAResource {
 				File[] files = directory.listFiles(
 					new FilenameFilter() {
 						@Override
-						public boolean accept(File f, String name) {
+						public boolean accept(File parentDirectory, String name) {
+							// Accept any directory
+							Path path = Paths.get(parentDirectory + File.separator + name);
+							if (Files.isDirectory(path)) {
+								return true;
+							}
+
 							// We want to find only media files
 							return isPotentialMediaFile(name);
 						}
