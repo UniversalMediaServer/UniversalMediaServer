@@ -66,10 +66,14 @@ public class PlayListServlet extends WebServerServlet {
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
 				if (op.equals("add")) {
 					PMS.get().getDynamicPls().add(r);
-					renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+					synchronized(renderer) {
+						renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+					}
 				} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 					((Playlist) r.getParent()).remove(r);
-					renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+					synchronized(renderer) {
+						renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+					}
 				}
 			}
 			RemoteUtil.respondHtml(response, RETURN_PAGE);

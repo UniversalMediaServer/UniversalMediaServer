@@ -117,10 +117,12 @@ public class PlayServlet extends WebServerServlet {
 		if (rootResource instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
-			if (((VirtualVideoAction) rootResource).enable()) {
-				renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
-			} else {
-				renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
+			synchronized(renderer) {
+				if (((VirtualVideoAction) rootResource).enable()) {
+					renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
+				} else {
+					renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
+				}
 			}
 			return RETURN_PAGE;
 		}
