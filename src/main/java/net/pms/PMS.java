@@ -23,7 +23,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
-import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
@@ -74,11 +73,11 @@ import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
-import net.pms.remote.RemoteWeb;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
+import net.pms.webserver.WebServer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -573,7 +572,7 @@ public class PMS {
 		// Web stuff
 		if (configuration.useWebInterface()) {
 			try {
-				web = new RemoteWeb(configuration.getWebPort());
+				web = WebServer.createServer(configuration.getWebPort());
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
@@ -1137,7 +1136,7 @@ public class PMS {
 		return server;
 	}
 
-	public HttpServer getWebServer() {
+	public Object getWebServer() {
 		return web == null ? null : web.getServer();
 	}
 
@@ -1521,10 +1520,10 @@ public class PMS {
 		setLocale(language, "", "");
 	}
 
-	private RemoteWeb web;
+	private WebServer web;
 
 	@Nullable
-	public RemoteWeb getWebInterface() {
+	public WebServer getWebInterface() {
 		return web;
 	}
 

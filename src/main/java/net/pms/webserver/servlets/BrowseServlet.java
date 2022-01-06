@@ -1,17 +1,36 @@
-package net.pms.remote;
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package net.pms.webserver.servlets;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
@@ -21,22 +40,38 @@ import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
+import net.pms.webserver.RemoteUtil;
+import net.pms.webserver.WebServerServlets;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
-public class RemoteBrowseHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
-	private final RemoteWeb parent;
-	private final static PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+public class BrowseServlet extends WebServerServlet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseServlet.class);
 
-	public RemoteBrowseHandler(RemoteWeb parent) {
-		this.parent = parent;
+	public BrowseServlet(WebServerServlets parent) {
+		super(parent);
 	}
 
-	private final HashMap<String, Object> mustacheVars = new HashMap<>();
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		try {
+			URI uri = URI.create(request.getRequestURI());
+			String id = RemoteUtil.getId("browse/", uri);
+			LOGGER.debug("Got a browse request found id {}", id);
+
+			String responseString = mkBrowsePage(id, request, response);
+			LOGGER.trace("Browse page:\n{}", responseString);
+			RemoteUtil.respondHtml(response, responseString);
+		} catch (IOException e) {
+			throw e;
+		} catch (InterruptedException e) {
+			// Nothing should get here, this is just to avoid crashing the thread
+			LOGGER.error("Unexpected error in BrowseServlet.doGet(): {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
 
 	/**
 	 * @param resource
@@ -47,13 +82,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 	 * @param isFolder
 	 * @return a set of HTML strings to display a clickable thumbnail
 	 */
-	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
-		boolean upnpAllowed = RemoteUtil.bumpAllowed(t);
+	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, InetAddress inetAddress, String language) {
+		boolean upnpAllowed = RemoteUtil.bumpAllowed(inetAddress);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
-		String pageTypeUri = "/play/";
-		if (resource.isFolder()) {
-			pageTypeUri = "/browse/";
-		}
+		String pageTypeUri = resource.isFolder() ? "/browse/" : "/play/";
 
 		StringBuilder bumpHTML = new StringBuilder();
 		HashMap<String, String> item = new HashMap<>();
@@ -62,21 +94,21 @@ public class RemoteBrowseHandler implements HttpHandler {
 				bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 					.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 					.append(name.replace("'", "\\'")).append("')\" title=\"")
-					.append(RemoteUtil.getMsgString("Web.1", t)).append("\"></a>");
+					.append(RemoteUtil.getMsgString("Web.1", language)).append("\"></a>");
 			} else {
 				bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
-					.append(RemoteUtil.getMsgString("Web.2", t))
-					.append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", t)).append("\"></a>");
+					.append(RemoteUtil.getMsgString("Web.2", language))
+					.append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", language)).append("\"></a>");
 			}
 
 			if (resource.getParent() instanceof Playlist) {
 				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 					.append(idForWeb).append("', true);return false;\" title=\"")
-					.append(RemoteUtil.getMsgString("Web.4", t)).append("\"></a>");
+					.append(RemoteUtil.getMsgString("Web.4", language)).append("\"></a>");
 			} else {
 				bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
 					.append(idForWeb).append("', false);return false;\" title=\"")
-					.append(RemoteUtil.getMsgString("Web.5", t)).append("\"></a>");
+					.append(RemoteUtil.getMsgString("Web.5", language)).append("\"></a>");
 			}
 		} else {
 			// ensure that we got a string
@@ -84,7 +116,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 
 		bumpHTML.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
-			.append(RemoteUtil.getMsgString("Web.DownloadAsPlaylist", t)).append("\"></a>");
+			.append(RemoteUtil.getMsgString("Web.DownloadAsPlaylist", language)).append("\"></a>");
 
 		item.put("actions", bumpHTML.toString());
 
@@ -119,14 +151,16 @@ public class RemoteBrowseHandler implements HttpHandler {
 		return item;
 	}
 
-	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
+	private String mkBrowsePage(String id, HttpServletRequest request, HttpServletResponse response) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
-		String user = RemoteUtil.userName(t);
-		RootFolder root = parent.getRoot(user, true, t);
+		String user = RemoteUtil.userName(request);
+		String language = RemoteUtil.getFirstSupportedLanguage(request);
+		InetAddress inetAddress = InetAddress.getByName(request.getRemoteAddr());
+		RootFolder root = parent.getRoot(user, true, request, response);
 		DLNAResource rootResource = id.equals("0") ? null : root.getDLNAResource(id, null);
-		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
+		String search = request.getParameter("str");
 
-		String enterSearchStringText = RemoteUtil.getMsgString("Web.8", t);
+		String enterSearchStringText = RemoteUtil.getMsgString("Web.8", language);
 
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		if (
@@ -144,16 +178,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 			DLNAResource real = ce.getResource();
 			if (!real.isFolder()) {
 				// no folder   -> redirect
-				Headers hdr = t.getResponseHeaders();
-				hdr.add("Location", "/play/" + real.getId());
-				RemoteUtil.respond(t, "", 302, "text/html");
-				// return null here to avoid multiple responses
+				response.sendRedirect("/play/" + real.getId());
 				return null;
 			}
 			// redirect to ourself
-			Headers hdr = t.getResponseHeaders();
-			hdr.add("Location", "/browse/" + real.getResourceId());
-			RemoteUtil.respond(t, "", 302, "text/html");
+			response.sendRedirect("/browse/" + real.getResourceId());
 			return null;
 		}
 		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
@@ -234,14 +263,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 				String parentID = parentFromResources.getResourceId();
 				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 				String backUri = "/browse/" + parentIDForWeb;
-				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
-				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
+				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", language)).append("\">");
+				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(RemoteUtil.getMsgString("Web.10", language)).append("</span>");
 				backLinkHTML.append("</a>");
 				folders.add(backLinkHTML.toString());
 			} else {
 				folders.add("");
 			}
 		}
+		final HashMap<String, Object> mustacheVars = new HashMap<>();
 		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
 		mustacheVars.put("breadcrumbs", breadcrumbs);
 		mustacheVars.put("javascriptVarsScript", "");
@@ -337,10 +367,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 						mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(audioFolder, enterSearchStringText));
 						mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(imagesFolder, enterSearchStringText));
 
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAdded", t);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayed", t);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgress", t);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayed", t);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAdded", inetAddress, language, mustacheVars);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayed", inetAddress, language, mustacheVars);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgress", inetAddress, language, mustacheVars);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayed", inetAddress, language, mustacheVars);
 
 						addFolderToFoldersListOnLeft = false;
 					}
@@ -351,7 +381,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						String resourceUri = "/browse/" + idForWeb;
 						boolean code = (resource instanceof CodeEnter);
 						if (code) {
-							enterSearchStringText = RemoteUtil.getMsgString("Web.9", t);
+							enterSearchStringText = RemoteUtil.getMsgString("Web.9", language);
 						}
 						if (resource.getClass().getName().contains("SearchFolder") || code) {
 							// search folder add a prompt
@@ -372,7 +402,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				}
 			} else {
 				// The resource is a media file
-				media.add(getMediaHTML(resource, idForWeb, name, thumbnailUri, t));
+				media.add(getMediaHTML(resource, idForWeb, name, thumbnailUri, inetAddress, language));
 				hasFile = true;
 			}
 		}
@@ -383,7 +413,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				folder.isTVSeries() &&
 				CONFIGURATION.getUseCache()
 			) {
-				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, true, root);
+				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
 				if (apiMetadataAsJavaScriptVars != null) {
 					mustacheVars.put("isTVSeriesWithAPIData", true);
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
@@ -411,7 +441,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						String thumb = "/thumb/" + idForWeb;
 						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 
-						media.add(getMediaHTML(resource, idForWeb, name, thumb, t));
+						media.add(getMediaHTML(resource, idForWeb, name, thumb, inetAddress, language));
 						hasFile = true;
 					}
 				}
@@ -423,7 +453,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 		if (hasFile) {
 			mustacheVars.put("folderId", id);
-			mustacheVars.put("downloadFolderTooltip", RemoteUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
+			mustacheVars.put("downloadFolderTooltip", RemoteUtil.getMsgString("Web.DownloadFolderAsPlaylist", language));
 		}
 
 		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
@@ -436,26 +466,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
 	}
 
-	@Override
-	public void handle(HttpExchange t) throws IOException {
-		try {
-			if (RemoteUtil.deny(t)) {
-				throw new IOException("Access denied");
-			}
-			String id = RemoteUtil.getId("browse/", t);
-			LOGGER.debug("Got a browse request found id " + id);
-			String response = mkBrowsePage(id, t);
-			LOGGER.trace("Browse page:\n{}", response);
-			RemoteUtil.respond(t, response, 200, "text/html");
-		} catch (IOException e) {
-			throw e;
-		} catch (Exception e) {
-			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in RemoteBrowseHandler.handle(): {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
-	}
-
 	private void addMediaLibraryFolderToFrontPage(
 		DLNAResource videoFolder,
 		RootFolder root,
@@ -463,7 +473,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String headingKey,
 		String hasFolderVarName,
 		String childrenVarName,
-		HttpExchange t
+		InetAddress inetAddress,
+		String language,
+		final HashMap<String, Object> mustacheVars
 	) throws IOException {
 		int i = 0;
 		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString(folderNameKey));
@@ -488,7 +500,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				continue;
 			}
 
-			recentlyPlayedVideosHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedIdForWeb, recentlyPlayedName, recentlyPlayedThumb, t));
+			recentlyPlayedVideosHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedIdForWeb, recentlyPlayedName, recentlyPlayedThumb, inetAddress, language));
 			i++;
 
 			if (i == 1) {

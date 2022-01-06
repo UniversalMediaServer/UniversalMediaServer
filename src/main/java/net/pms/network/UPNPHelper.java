@@ -95,7 +95,7 @@ public class UPNPHelper extends UPNPControl {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final UPNPHelper INSTANCE = new UPNPHelper();
-	private static PlayerControlHandler httpControlHandler;
+	private static boolean httpControlHandled;
 	private static final String UUID = "uuid:";
 
 	private static MulticastSocket multicastSocket;
@@ -121,16 +121,16 @@ public class UPNPHelper extends UPNPControl {
 		getHttpControlHandler();
 	}
 
-	public static PlayerControlHandler getHttpControlHandler() {
+	public static void getHttpControlHandler() {
 		if (
-			httpControlHandler == null &&
-			PMS.get().getWebServer() != null &&
+			!httpControlHandled &&
+			PMS.get().getWebInterface() != null &&
 			!"false".equals(CONFIGURATION.getBumpAddress().toLowerCase())
 		) {
-			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
+			httpControlHandled = true;
+			PMS.get().getWebInterface().setPlayerControlService();
 			LOGGER.debug("Attached http player control handler to web server");
 		}
-		return httpControlHandler;
 	}
 
 	private static String lastSearch = null;

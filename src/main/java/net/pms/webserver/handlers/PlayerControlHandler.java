@@ -1,11 +1,11 @@
-package net.pms.network;
+package net.pms.webserver.handlers;
 
 import com.sun.net.httpserver.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -14,10 +14,11 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
-import net.pms.remote.RemoteUtil;
-import net.pms.remote.RemoteWeb;
+import net.pms.network.UPNPHelper;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
+import net.pms.webserver.RemoteUtil;
+import net.pms.webserver.WebServer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -26,31 +27,20 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class PlayerControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
+	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private int port;
-	private String protocol;
-	private RemoteWeb parent = null;
-	private HashMap<String, Logical> players;
-	private HashMap<InetAddress, Logical> selectedPlayers;
-	private String bumpAddress;
+	private final WebServer parent;
+	private final HashMap<String, Logical> players;
+	private final HashMap<InetAddress, Logical> selectedPlayers;
+	private final String bumpAddress;
 	private RendererConfiguration defaultRenderer;
-	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
-	@SuppressWarnings("unused")
-	private File bumpjs, skindir;
+	@SuppressWarnings(value = "unused")
+	private final File bumpjs;
+	private final File skindir;
 
-	public PlayerControlHandler(RemoteWeb web) {
-		this(web.getServer());
-		parent = web;
-	}
-
-	public PlayerControlHandler(HttpServer server) {
-		if (server == null) {
-			server = createServer(9009);
-		}
-		server.createContext("/bump", this);
-		port = server.getAddress().getPort();
-		protocol = server instanceof HttpsServer ? "https://" : "http://";
+	public PlayerControlHandler(WebServer parent) {
+		this.parent = parent;
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
 		String basepath = CONFIGURATION.getWebPath().getPath();
@@ -128,7 +118,7 @@ public class PlayerControlHandler implements HttpHandler {
 			selectedPlayers.put(httpExchange.getRemoteAddress().getAddress(), player);
 		} else if (p.length == 2) {
 			response = parent.getResources().read("bump/bump.html")
-				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
+				.replace("http://127.0.0.1:9001", parent.getUrl());
 		} else if (p[2].equals("bump.js")) {
 			response = getBumpJS();
 			mime = "text/javascript";
@@ -139,7 +129,7 @@ public class PlayerControlHandler implements HttpHandler {
 			return;
 		}
 
-		if (json.size() > 0) {
+		if (!json.isEmpty()) {
 			if (player != null) {
 				json.add("\"uuid\":\"" + uuid + "\"");
 			}
@@ -162,8 +152,20 @@ public class PlayerControlHandler implements HttpHandler {
 		}
 	}
 
-	public String getAddress() {
-		return PMS.get().getServer().getHost() + ":" + port;
+	public static Map<String, String> parseQuery(HttpExchange x) {
+		Map<String, String> vars = new LinkedHashMap<>();
+		String raw = x.getRequestURI().getRawQuery();
+		if (!StringUtils.isBlank(raw)) {
+			try {
+				String[] q = raw.split("&|=");
+				for (int i = 0; i < q.length; i += 2) {
+					vars.put(URLDecoder.decode(q[i], "UTF-8"), UPNPHelper.unescape(URLDecoder.decode(q[i + 1], "UTF-8")));
+				}
+			} catch (UnsupportedEncodingException e) {
+				LOGGER.debug("Error parsing query string '" + x.getRequestURI().getQuery() + "' :" + e);
+			}
+		}
+		return vars;
 	}
 
 	public Logical getPlayer(String uuid) {
@@ -186,7 +188,7 @@ public class PlayerControlHandler implements HttpHandler {
 	public String getPlayerState(Logical player) {
 		if (player != null) {
 			Logical.State state = player.getState();
-			return String.format(jsonState, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
+			return String.format(JSON_STATE, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
 		}
 		return "";
 	}
@@ -234,22 +236,6 @@ public class PlayerControlHandler implements HttpHandler {
 			"\n}";
 	}
 
-	public static Map<String, String> parseQuery(HttpExchange x) {
-		Map<String, String> vars = new LinkedHashMap<>();
-		String raw = x.getRequestURI().getRawQuery();
-		if (!StringUtils.isBlank(raw)) {
-			try {
-				String[] q = raw.split("&|=");
-				for (int i = 0; i < q.length; i += 2) {
-					vars.put(URLDecoder.decode(q[i], "UTF-8"), UPNPHelper.unescape(URLDecoder.decode(q[i + 1], "UTF-8")));
-				}
-			} catch (Exception e) {
-				LOGGER.debug("Error parsing query string '" + x.getRequestURI().getQuery() + "' :" + e);
-			}
-		}
-		return vars;
-	}
-
 	public static String translate(String uri) {
 		return uri.startsWith("/play/") ?
 			(PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
@@ -258,17 +244,5 @@ public class PlayerControlHandler implements HttpHandler {
 	@SuppressWarnings("unused")
 	private static String getId(String uri) {
 		return uri.startsWith("/play/") ? uri.substring(6) : "";
-	}
-
-	// For standalone service, if required
-	private static HttpServer createServer(int socket) {
-		HttpServer server = null;
-		try {
-			server = HttpServer.create(new InetSocketAddress(socket), 0);
-			server.start();
-		} catch (IOException e) {
-			LOGGER.debug("Error creating bump server: " + e);
-		}
-		return server;
 	}
 }

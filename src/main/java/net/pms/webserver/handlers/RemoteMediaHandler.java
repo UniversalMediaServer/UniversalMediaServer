@@ -1,4 +1,23 @@
-package net.pms.remote;
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package net.pms.webserver.handlers;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -15,27 +34,29 @@ import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.util.FileUtil;
+import net.pms.webserver.RemoteUtil;
+import net.pms.webserver.WebServerSun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
 public class RemoteMediaHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteMediaHandler.class);
-	private RemoteWeb parent;
+	private WebServerSun parent;
 	private String path;
 	private RendererConfiguration renderer;
 	private boolean flash;
 
-	public RemoteMediaHandler(RemoteWeb parent) {
+	public RemoteMediaHandler(WebServerSun parent) {
 		this(parent, "media/", null);
 	}
 
-	public RemoteMediaHandler(RemoteWeb parent, boolean flash) {
+	public RemoteMediaHandler(WebServerSun parent, boolean flash) {
 		this(parent, "fmedia/", null);
 		this.flash = flash;
 	}
 
-	public RemoteMediaHandler(RemoteWeb parent, String path, RendererConfiguration renderer) {
+	public RemoteMediaHandler(WebServerSun parent, String path, RendererConfiguration renderer) {
 		this.flash = false;
 		this.parent = parent;
 		this.path = path;

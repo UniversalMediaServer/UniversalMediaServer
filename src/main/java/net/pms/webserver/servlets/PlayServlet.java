@@ -1,55 +1,62 @@
-package net.pms.remote;
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package net.pms.webserver.servlets;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Player;
-import net.pms.external.ExternalFactory;
-import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
 import net.pms.util.SubtitleUtils;
-import org.apache.commons.io.IOUtils;
+import net.pms.webserver.HttpServletHelper;
+import net.pms.webserver.RemoteUtil;
+import net.pms.webserver.WebServerServlets;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
-public class RemotePlayHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RemotePlayHandler.class);
-	private RemoteWeb parent;
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+public class PlayServlet extends WebServerServlet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PlayServlet.class);
+	private static final String RETURN_PAGE = "<html><head><script>window.refresh=true;history.back()</script></head></html>";
 
-	public RemotePlayHandler(RemoteWeb parent) {
-		this.parent = parent;
-	}
-
-	private static String returnPage() {
-		// special page to return
-		return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+	public PlayServlet(WebServerServlets parent) {
+		super(parent);
 	}
 
 	private static void addNextByType(DLNAResource d, HashMap<String, Object> vars) {
@@ -80,37 +87,42 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 	}
 
-	private String mkPage(String id, HttpExchange t) throws IOException, InterruptedException {
+	private String mkPage(String id, HttpServletRequest request, HttpServletResponse response) throws IOException, InterruptedException {
 		HashMap<String, Object> mustacheVars = new HashMap<>();
+		String user = RemoteUtil.userName(request);
 		mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
 
 		LOGGER.debug("Make play page " + id);
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
+		String language = RemoteUtil.getFirstSupportedLanguage(request);
+		RootFolder root = parent.getRoot(user, request, response);
 		if (root == null) {
 			LOGGER.debug("root not found");
-			throw new IOException("Unknown root");
+			response.sendError(401, "Unknown root");
+			return null;
 		}
 		WebRender renderer = (WebRender) root.getDefaultRenderer();
-		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+		renderer.setBrowserInfo(HttpServletHelper.getCookie("UMSINFO", request), request.getHeader("User-agent"));
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		DLNAResource rootResource = root.getDLNAResource(id, renderer);
 		if (rootResource == null) {
 			LOGGER.debug("Bad web play id: " + id);
-			throw new IOException("Bad Id");
+			response.sendError(404, "Bad web play id: " + id);
+			return null;
 		}
 		if (!rootResource.isCodeValid(rootResource)) {
 			LOGGER.debug("coded object with invalid code");
-			throw new IOException("Bad code");
+			response.sendError(403, "coded object with invalid code");
+			return null;
 		}
 		if (rootResource instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
 			if (((VirtualVideoAction) rootResource).enable()) {
-				renderer.notify(renderer.INFO, rootResource.getName() + " enabled");
+				renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
 			} else {
-				renderer.notify(renderer.INFO, rootResource.getName() + " disabled");
+				renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
 			}
-			return returnPage();
+			return RETURN_PAGE;
 		}
 
 		String name = StringEscapeUtils.escapeHtml(rootResource.resumeName());
@@ -143,8 +155,8 @@ public class RemotePlayHandler implements HttpHandler {
 			String parentID = parentFromResources.getResourceId();
 			String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 			String backUri = "/browse/" + parentIDForWeb;
-			backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", t)).append("\">");
-			backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(RemoteUtil.getMsgString("Web.10", t)).append("</span>");
+			backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", language)).append("\">");
+			backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(RemoteUtil.getMsgString("Web.10", language)).append("</span>");
 			backLinkHTML.append("</a>");
 			folders.add(backLinkHTML.toString());
 		}
@@ -156,9 +168,8 @@ public class RemotePlayHandler implements HttpHandler {
 		boolean isImage = format.isImage();
 		boolean isVideo = format.isVideo();
 		boolean isAudio = format.isAudio();
-		String query = t.getRequestURI().getQuery();
-		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
-		boolean forcehtml5 = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "html5"));
+		boolean forceFlash = StringUtils.isNotEmpty(request.getParameter("flash"));
+		boolean forcehtml5 = StringUtils.isNotEmpty(request.getParameter("html5"));
 		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && CONFIGURATION.getWebFlash()));
 
 		// hack here to ensure we got a root folder to use for recently played etc.
@@ -173,7 +184,7 @@ public class RemotePlayHandler implements HttpHandler {
 		mustacheVars.put("javascriptVarsScript", "");
 		if (isVideo) {
 			if (CONFIGURATION.getUseCache()) {
-				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, t, false, root);
+				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, false, root);
 				if (apiMetadataAsJavaScriptVars != null) {
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 					mustacheVars.put("isVideoWithAPIData", true);
@@ -211,11 +222,11 @@ public class RemotePlayHandler implements HttpHandler {
 			if (rootResource.getParent() instanceof Playlist) {
 				mustacheVars.put("plsOp", "del");
 				mustacheVars.put("plsSign", "-");
-				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.4", t));
+				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.4", language));
 			} else {
 				mustacheVars.put("plsOp", "add");
 				mustacheVars.put("plsSign", "+");
-				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.5", t));
+				mustacheVars.put("plsAttr", RemoteUtil.getMsgString("Web.5", language));
 			}
 		}
 		addNextByType(rootResource, mustacheVars);
@@ -265,7 +276,7 @@ public class RemotePlayHandler implements HttpHandler {
 					if (subFile != null) {
 						mustacheVars.put("sub", parent.getResources().add(subFile));
 					}
-				} catch (Exception e) {
+				} catch (IOException e) {
 					LOGGER.debug("error when doing sub file " + e);
 				}
 			}
@@ -276,123 +287,19 @@ public class RemotePlayHandler implements HttpHandler {
 		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(mustacheVars);
 	}
 
-	private String mkM3u8(DLNAResource dlna) {
-		if (dlna != null) {
-			return makeM3u8(dlna.isFolder() ? dlna.getChildren() : Arrays.asList(new DLNAResource[]{dlna}));
-		}
-		return null;
-	}
-
-	private String makeM3u8(List<DLNAResource> resources) {
-		ArrayList<Map<String, Object>> items = new ArrayList<>();
-		double targetDuration = 1;
-		for (DLNAResource dlna : resources) {
-			if (dlna != null && !dlna.isFolder() && !dlna.isResume() && !(dlna instanceof VirtualVideoAction)) {
-				double duration = dlna.getMedia() != null ? dlna.getMedia().getDurationInSeconds() : -1;
-				if (duration > targetDuration) {
-					targetDuration = duration + 1;
-				}
-				String url = null;
-
-				if (!FileUtil.isUrl(dlna.getSystemName())) {
-					// Get the resource url
-					boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
-					// If the resource is not a transcode folder item, tag its url for forced streaming
-					url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
-
-				} else {
-					// It's a WEB.conf item or plugin-provided url, make sure it's resolved
-					url = dlna.getSystemName();
-					if (!dlna.isURLResolved()) {
-						URLResult r = ExternalFactory.resolveURL(url);
-						if (r != null && StringUtils.isNotEmpty(r.url)) {
-							url = r.url;
-						}
-					}
-				}
-
-				Map<String, Object> item = new HashMap<>();
-				item.put("duration", duration != 0 ? duration : -1);
-				item.put("title", dlna.resumeName());
-				item.put("url", url);
-				items.add(item);
-			}
-		}
-
-		if (!items.isEmpty()) {
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("targetDuration", targetDuration != 0 ? targetDuration : -1);
-			vars.put("items", items);
-			return parent.getResources().getTemplate("play.m3u8").execute(vars);
-		}
-		return null;
-	}
-
 	@Override
-	public void handle(HttpExchange t) throws IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
-			if (RemoteUtil.deny(t)) {
-				throw new IOException("Access denied");
-			}
-			String p = t.getRequestURI().getPath();
-			if (p.contains("/play/")) {
-				LOGGER.debug("got a play request " + t.getRequestURI());
-				String id = RemoteUtil.getId("play/", t);
-				String response = mkPage(id, t);
-				//LOGGER.trace("play page " + response);
-				RemoteUtil.respond(t, response, 200, "text/html");
-			} else if (p.contains("/playerstatus/")) {
-				String json = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
-				LOGGER.trace("got player status: " + json);
-				RemoteUtil.respond(t, "", 200, "text/html");
-
-				RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-				if (root == null) {
-					LOGGER.debug("root not found");
-					throw new IOException("Unknown root");
-				}
-				WebRender renderer = (WebRender) root.getDefaultRenderer();
-				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
-			} else if (p.contains("/playlist/")) {
-				String[] tmp = p.split("/");
-				// sanity
-				if (tmp.length < 3) {
-					throw new IOException("Bad request");
-				}
-				String op = tmp[tmp.length - 2];
-				String id = tmp[tmp.length - 1];
-				DLNAResource r = PMS.getGlobalRepo().get(id);
-				if (r != null) {
-					RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
-					if (root == null) {
-						LOGGER.debug("root not found");
-						throw new IOException("Unknown root");
-					}
-					WebRender renderer = (WebRender) root.getDefaultRenderer();
-					if (op.equals("add")) {
-						PMS.get().getDynamicPls().add(r);
-						renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
-					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
-						((Playlist) r.getParent()).remove(r);
-						renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
-					}
-				}
-				RemoteUtil.respond(t, returnPage(), 200, "text/html");
-			}  else if (p.contains("/m3u8/")) {
-				String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
-				String response = mkM3u8(PMS.getGlobalRepo().get(id));
-				if (response != null) {
-					LOGGER.debug("sending m3u8:\n" + response);
-					RemoteUtil.respond(t, response, 200, "application/x-mpegURL");
-				} else {
-					RemoteUtil.respond(t, "<html><body>404 - File Not Found: " + p + "</body></html>", 404, "text/html");
-				}
-			}
+			URI uri = URI.create(request.getRequestURI());
+			LOGGER.debug("got a play request " + uri);
+			String id = RemoteUtil.getId("play/", uri);
+			String responseString = mkPage(id, request, response);
+			RemoteUtil.respondHtml(response, responseString);
 		} catch (IOException e) {
 			throw e;
-		} catch (Exception e) {
+		} catch (InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in RemotePlayHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in PlayServlet.doGet(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
