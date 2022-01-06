@@ -337,13 +337,13 @@ public class RemoteUtil {
 		return p.getName();
 	}
 
-	public static String getQueryVars(String query, String var) {
+	public static String getQueryVars(String query, String str) {
 		if (StringUtils.isEmpty(query)) {
 			return null;
 		}
 		for (String p : query.split("&")) {
 			String[] pair = p.split("=");
-			if (pair[0].equalsIgnoreCase(var)) {
+			if (pair[0].equalsIgnoreCase(str)) {
 				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
 					return pair[1];
 				}

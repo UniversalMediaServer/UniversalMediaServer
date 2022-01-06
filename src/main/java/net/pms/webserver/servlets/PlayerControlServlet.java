@@ -197,7 +197,7 @@ public class PlayerControlServlet extends WebServerServlet {
 		return "";
 	}
 
-	public RendererConfiguration getDefaultRenderer() {
+	public synchronized RendererConfiguration getDefaultRenderer() {
 		if (defaultRenderer == null && bumpAddress != null) {
 			try {
 				InetAddress ia = InetAddress.getByName(bumpAddress);
@@ -208,7 +208,7 @@ public class PlayerControlServlet extends WebServerServlet {
 		return (defaultRenderer != null && !defaultRenderer.isOffline()) ? defaultRenderer : null;
 	}
 
-	public String getRenderers(InetAddress client) {
+	public synchronized String getRenderers(InetAddress client) {
 		Logical player = selectedPlayers.get(client);
 		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();

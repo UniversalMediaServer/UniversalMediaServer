@@ -38,7 +38,7 @@ public class PlayersStatusServlet extends WebServerServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			String json = IOUtils.toString(request.getReader());
 			LOGGER.trace("got player status: " + json);
@@ -56,7 +56,7 @@ public class PlayersStatusServlet extends WebServerServlet {
 			throw e;
 		} catch (InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in PlayersStatusServlet.doGet(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in PlayersStatusServlet.doPost(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
