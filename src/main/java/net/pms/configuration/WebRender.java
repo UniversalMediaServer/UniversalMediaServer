@@ -47,7 +47,7 @@ import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
-import net.pms.remote.RemoteUtil;
+import net.pms.webserver.RemoteUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;

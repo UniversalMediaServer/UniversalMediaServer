@@ -604,7 +604,19 @@
 	 <dependency>
 	  <groupId>javax.servlet</groupId>
 	  <artifactId>javax.servlet-api</artifactId>
-	  <version>4.0.1</version>
+	  <version>3.1.0</version>
+	  <type>jar</type>
+	 </dependency>
+	 <dependency>
+	  <groupId>org.eclipse.jetty</groupId>
+	  <artifactId>jetty-server</artifactId>
+	  <version>9.4.44.v20210927</version>
+	  <type>jar</type>
+	 </dependency>
+	 <dependency>
+	  <groupId>org.eclipse.jetty</groupId>
+	  <artifactId>jetty-servlet</artifactId>
+	  <version>9.4.44.v20210927</version>
 	  <type>jar</type>
 	 </dependency>
 	</dependencies>

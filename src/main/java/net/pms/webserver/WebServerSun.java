@@ -1,5 +1,25 @@
-package net.pms.remote;
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package net.pms.webserver;
 
+import net.pms.webserver.handlers.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,10 +37,8 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +62,8 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
+import java.security.NoSuchAlgorithmException;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
@@ -65,41 +83,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class RemoteWeb {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteWeb.class);
+public class WebServerSun extends WebServer implements WebServerInterface {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebServerSun.class);
 	private KeyStore keyStore;
 	private KeyManagerFactory keyManagerFactory;
 	private TrustManagerFactory trustManagerFactory;
 	private HttpServer server;
 	private SSLContext sslContext;
-	private Map<String, RootFolder> roots;
-	private RemoteUtil.ResourceManager resources;
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final int DEFAULT_PORT = CONFIGURATION.getWebPort();
 
-	public RemoteWeb() throws IOException {
+	public WebServerSun() throws IOException {
 		this(DEFAULT_PORT);
 	}
-
-	public RemoteWeb(int port) throws IOException {
+	public WebServerSun(int port) throws IOException {
 		if (port <= 0) {
 			port = DEFAULT_PORT;
 		}
-
-		roots = new HashMap<>();
-		// Add "classpaths" for resolving web resources
-		resources = AccessController.doPrivileged(new PrivilegedAction<RemoteUtil.ResourceManager>() {
-
-			@Override
-			public RemoteUtil.ResourceManager run() {
-				return new RemoteUtil.ResourceManager(
-					"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
-					"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
-					"file:" + CONFIGURATION.getWebPath() + "/"
-				);
-			}
-		});
-
 
 		// Setup the socket address
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
@@ -184,24 +182,12 @@ public class RemoteWeb {
 					// get the default parameters
 					SSLParameters defaultSSLParameters = c.getDefaultSSLParameters();
 					params.setSSLParameters(defaultSSLParameters);
-				} catch (Exception e) {
+				} catch (NoSuchAlgorithmException e) {
 					LOGGER.debug("https configure error  " + e);
 				}
 			}
 		});
 		return httpsServer;
-	}
-
-	public String getTag(String user) {
-		String tag = PMS.getCredTag("web", user);
-		if (tag == null) {
-			return user;
-		}
-		return tag;
-	}
-
-	public String getAddress() {
-		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
 	public RootFolder getRoot(String user, HttpExchange t) throws InterruptedException {
@@ -282,14 +268,47 @@ public class RemoteWeb {
 		}
 	}
 
+	@Override
 	public HttpServer getServer() {
 		return server;
 	}
 
-	static class RemoteThumbHandler implements HttpHandler {
-		private RemoteWeb parent;
+	@Override
+	public int getPort() {
+		return server.getAddress().getPort();
+	}
 
-		public RemoteThumbHandler(RemoteWeb parent) {
+	@Override
+	public String getAddress() {
+		return PMS.get().getServer().getHost() + ":" + getPort();
+	}
+
+	@Override
+	public String getUrl() {
+		if (server != null) {
+			return (isSecure() ? "https://" : "http://") + getAddress();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean isSecure() {
+		return server instanceof HttpsServer;
+	}
+
+	@Override
+	public boolean setPlayerControlService() {
+		if (server != null) {
+			server.createContext("/bump", new PlayerControlHandler(this));
+			return true;
+		}
+		return false;
+	}
+
+	static class RemoteThumbHandler implements HttpHandler {
+		private final WebServerSun parent;
+
+		public RemoteThumbHandler(WebServerSun parent) {
 			this.parent = parent;
 		}
 
@@ -361,7 +380,7 @@ public class RemoteWeb {
 				RemoteUtil.dump(in, os);
 			} catch (IOException e) {
 				throw e;
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				// Nothing should get here, this is just to avoid crashing the thread
 				LOGGER.error("Unexpected error in RemoteThumbHandler.handle(): {}", e.getMessage());
 				LOGGER.trace("", e);
@@ -370,9 +389,9 @@ public class RemoteWeb {
 	}
 
 	static class RemoteFileHandler implements HttpHandler {
-		private RemoteWeb parent;
+		private final WebServerSun parent;
 
-		public RemoteFileHandler(RemoteWeb parent) {
+		public RemoteFileHandler(WebServerSun parent) {
 			this.parent = parent;
 		}
 
@@ -425,7 +444,7 @@ public class RemoteWeb {
 						url = url.substring(2);
 					}
 
-					InputStream in = null;
+					InputStream in;
 					CookieManager cookieManager = (CookieManager) CookieHandler.getDefault();
 					if (cookieManager == null) {
 						cookieManager = new CookieManager();
@@ -515,9 +534,9 @@ public class RemoteWeb {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
-		private RemoteWeb parent;
+		private WebServerSun parent;
 
-		public RemoteStartHandler(RemoteWeb parent) {
+		public RemoteStartHandler(WebServerSun parent) {
 			this.parent = parent;
 		}
 
@@ -563,9 +582,9 @@ public class RemoteWeb {
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
-		private RemoteWeb parent;
+		private WebServerSun parent;
 
-		public RemoteDocHandler(RemoteWeb parent) {
+		public RemoteDocHandler(WebServerSun parent) {
 			this.parent = parent;
 			// Make sure logs are available right away
 			getLogs(false);
@@ -622,27 +641,14 @@ public class RemoteWeb {
 		}
 	}
 
-	public RemoteUtil.ResourceManager getResources() {
-		return resources;
-	}
-
-	public String getUrl() {
-		if (server != null) {
-			return (server instanceof HttpsServer ?
-					"https://" :
-					"http://") + PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
-		}
-		return null;
-	}
-
 	static class RemotePollHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemotePollHandler.class);
 		@SuppressWarnings("unused")
 		private final static String CRLF = "\r\n";
 
-		private RemoteWeb parent;
+		private WebServerSun parent;
 
-		public RemotePollHandler(RemoteWeb parent) {
+		public RemotePollHandler(WebServerSun parent) {
 			this.parent = parent;
 		}
 
