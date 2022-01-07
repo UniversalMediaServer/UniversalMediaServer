@@ -76,8 +76,11 @@ public class MediaTableFiles extends MediaTable {
 	 * - 23: Store aspect ratios as strings again
 	 * - 24: Added VERSION column to FILES table which keeps track of which
 	 *       API metadata version is saved for that file
+	 * - 25: Renamed columns to avoid reserved SQL and H2 keywords (part of
+	 *       updating H2Database to v2)
+	 * - 26: No db changes, improved filename parsing
 	 */
-	private static final int TABLE_VERSION = 25;
+	private static final int TABLE_VERSION = 26;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -222,6 +225,33 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_WIDTH_HEIGHT on FILES (FORMAT_TYPE, WIDTH, HEIGHT)");
 						LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
 						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_MODIFIED on FILES (FORMAT_TYPE, MODIFIED)");
+						break;
+					case 25:
+						try (Statement statement = connection.createStatement()) {
+							/*
+							 * Since the last release, 10.15.0, we fixed some bugs with TV episode and sport
+							 * filename parsing so here we clear any cached data for non-episodes.
+							 */
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append("UPDATE ")
+									.append("FILES ")
+								.append("SET ")
+									.append("IMDBID = NULL, ")
+									.append("MEDIA_YEAR = NULL, ")
+									.append("MOVIEORSHOWNAME = NULL, ")
+									.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
+									.append("TVSEASON = NULL, ")
+									.append("TVEPISODENUMBER = NULL, ")
+									.append("TVEPISODENAME = NULL, ")
+									.append("ISTVEPISODE = NULL, ")
+									.append("EXTRAINFORMATION = NULL ")
+								.append("WHERE ")
+									.append("NOT ISTVEPISODE");
+							statement.execute(sb.toString());
+						}
+						version++;
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					default:
 						// Do the dumb way
