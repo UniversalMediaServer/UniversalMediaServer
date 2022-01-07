@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -48,7 +47,6 @@ import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
@@ -1232,6 +1230,7 @@ public class FFMpegVideo extends Player {
 			// } catch (InterruptedException e) {
 			// 	return null;
 			// }
+			LOGGER.trace("HLS request happened");
 		} else if (!dtsRemux) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
