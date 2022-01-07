@@ -321,7 +321,7 @@ public class FileUtilTest {
 						}
 						if (isNotBlank(range)) {
 							try {
-								assertThat(tvEpisodeNumber).isEqualTo(range.substring(1));
+								assertThat(range.substring(1)).isEqualTo(tvEpisodeNumber);
 							} catch (AssertionError err) {
 								if (todo) {
 									logger.warn("testGetFileNameMetadata/episodes would fail for TODO test " + original);
@@ -367,6 +367,12 @@ public class FileUtilTest {
 								}
 							}
 						}
+					}
+				} else if ("sport".equals(metadata.get("type").getAsString())) {
+					// We do not do anything with sport videos at the moment, so here we make sure it does NOT match
+					logger.debug("Doing sport " + original);
+					if (movieOrShowName != null) {
+						throw (new AssertionError("Sport videos should not match: " + metadata));
 					}
 				} else {
 					logger.error("Unknown content type in " + original);
