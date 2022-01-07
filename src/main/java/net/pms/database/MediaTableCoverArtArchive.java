@@ -39,7 +39,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @author Nadahar
  */
 
-public final class TableCoverArtArchive extends Tables {
+public final class MediaTableCoverArtArchive extends MediaTable {
 
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
@@ -49,8 +49,8 @@ public final class TableCoverArtArchive extends Tables {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableCoverArtArchive.class);
-	private static final String TABLE_NAME = "COVER_ART_ARCHIVE";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableCoverArtArchive.class);
+	public static final String TABLE_NAME = "COVER_ART_ARCHIVE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -59,8 +59,84 @@ public final class TableCoverArtArchive extends Tables {
 	 */
 	private static final int TABLE_VERSION = 1;
 
-	// No instantiation
-	private TableCoverArtArchive() {
+	/**
+	 * Checks and creates or upgrades the table as needed.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static void checkTable(final Connection connection) throws SQLException {
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (tableExists(connection, TABLE_NAME)) {
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				if (version != null) {
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
+					}
+				} else {
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
+					dropTable(connection, TABLE_NAME);
+					createTable(connection);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				}
+			} else {
+				createTable(connection);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * This method <strong>MUST</strong> be updated if the table definition are
+	 * altered. The changes for each version in the form of
+	 * <code>ALTER TABLE</code> must be implemented here.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param currentVersion the version to upgrade <strong>from</strong>
+	 *
+	 * @throws SQLException
+	 */
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+				switch (version) {
+					//case 1: Alter table to version 2
+					default:
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, TABLE_VERSION);
+						throw new IllegalStateException(
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+						);
+				}
+			}
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Must be called from inside a table lock
+	 */
+	private static void createTable(final Connection connection) throws SQLException {
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID				IDENTITY		PRIMARY KEY, " +
+				"MODIFIED		DATETIME, " +
+				"MBID			VARCHAR(36), " +
+				"COVER			BLOB" +
+			")",
+			"CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)"
+		);
 	}
 
 	/**
@@ -89,13 +165,14 @@ public final class TableCoverArtArchive extends Tables {
 	/**
 	 * Stores the cover {@link Blob} with the given mBID in the database
 	 *
+	 * @param connection the db connection
 	 * @param mBID the MBID to store
 	 * @param cover the cover as a {@link Blob}
 	 */
-	public static void writeMBID(final String mBID, final byte[] cover) {
+	public static void writeMBID(final Connection connection, final String mBID, final byte[] cover) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
@@ -140,24 +217,32 @@ public final class TableCoverArtArchive extends Tables {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while writing Cover Art Archive cover for MBID \"{}\": {}", mBID, e.getMessage());
+			LOGGER.error(
+				LOG_ERROR_WHILE_VAR_IN,
+				DATABASE_NAME,
+				"writing Cover Art Archive cover for MBID",
+				mBID,
+				TABLE_NAME,
+				e.getMessage()
+			);
 			LOGGER.trace("", e);
 		}
 	}
 
 	/**
-	 * Looks up cover in the table based on the given MBID. Never returns
-	 * <code>null</code>
+	 * Looks up cover in the table based on the given MBID.
+	 * Never returns <code>null</code>
 	 *
+	 * @param connection the db connection
 	 * @param mBID the MBID {@link String} to search with
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static CoverArtArchiveResult findMBID(final String mBID) {
+	public static CoverArtArchiveResult findMBID(final Connection connection, final String mBID) {
 		boolean trace = LOGGER.isTraceEnabled();
 		CoverArtArchiveResult result;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 
 			if (trace) {
@@ -178,8 +263,11 @@ public final class TableCoverArtArchive extends Tables {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				"Database error while looking up Cover Art Archive cover for MBID \"{}\": {}",
+				LOG_ERROR_WHILE_VAR_IN,
+				DATABASE_NAME,
+				"looking up Cover Art Archive cover for MBID",
 				mBID,
+				TABLE_NAME,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -187,106 +275,5 @@ public final class TableCoverArtArchive extends Tables {
 		}
 
 		return result;
-	}
-
-	/**
-	 * Checks and creates or upgrades the table as needed.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version < TABLE_VERSION) {
-						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
-					}
-				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createCoverArtArchiveTable(connection);
-					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				}
-			} else {
-				createCoverArtArchiveTable(connection);
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * This method <strong>MUST</strong> be updated if the table definition are
-	 * altered. The changes for each version in the form of
-	 * <code>ALTER TABLE</code> must be implemented here.
-	 *
-	 * @param connection the {@link Connection} to use
-	 * @param currentVersion the version to upgrade <strong>from</strong>
-	 *
-	 * @throws SQLException
-	 */
-	@SuppressWarnings("unused")
-	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
-		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
-				switch (version) {
-					//case 1: Alter table to version 2
-					default:
-						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
-						);
-				}
-			}
-			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Must be called from inside a table lock
-	 */
-	private static void createCoverArtArchiveTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID IDENTITY PRIMARY KEY, " +
-					"MODIFIED DATETIME, " +
-					"MBID VARCHAR(36), " +
-					"COVER BLOB" +
-				")");
-			statement.execute("CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
-		}
-	}
-
-	/**
-	 * Drops (deletes) the current table. Use with caution, there is no undo.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void dropTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
-		}
 	}
 }

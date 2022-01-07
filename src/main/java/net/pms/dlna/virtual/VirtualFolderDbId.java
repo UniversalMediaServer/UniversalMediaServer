@@ -2,6 +2,7 @@ package net.pms.dlna.virtual;
 
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 
@@ -14,18 +15,10 @@ public class VirtualFolderDbId extends VirtualFolder {
 
 	private DbidMediaType mediaType;
 
-	public VirtualFolderDbId(DbidMediaType type, String name, String thumbnailIcon) {
-		super(name, thumbnailIcon);
-		this.mediaType = type;
-		String id = dbIdResourceLocator.encodeDbid(name, type);
-		setId(id);
-		setDefaultRenderer(RendererConfiguration.getDefaultConf());
-	}
-
-	public VirtualFolderDbId(DbidMediaType type, String name, String id, String thumbnailIcon) {
-		super(name, thumbnailIcon);
-		this.mediaType = type;
-		id = dbIdResourceLocator.encodeDbid(id, type);
+	public VirtualFolderDbId(String folderName, DbidTypeAndIdent typeIdent, String thumbnailIcon) {
+		super(folderName, thumbnailIcon);
+		this.mediaType = typeIdent.type;
+		String id = dbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 	}

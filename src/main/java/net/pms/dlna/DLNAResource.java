@@ -53,20 +53,25 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.sql.Connection;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.TableFilesStatus;
-import net.pms.database.TableTVSeries;
-import net.pms.database.TableThumbnails;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableMetadata;
+import net.pms.database.MediaTableTVSeries;
+import net.pms.database.MediaTableThumbnails;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -98,6 +103,7 @@ import net.pms.network.UPNPControl.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
+import net.pms.util.Debouncer;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.GenericIcons;
@@ -127,6 +133,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 	protected static final double CONTAINER_OVERHEAD = 1.04;
 
+	// maximum characters for UI4 (Unsigned Integer 4-bytes)
+	protected static final int MAX_UI4_VALUE = 2147483647;
+
+	protected static final String METADATA_TABLE_KEY_SYSTEMUPDATEID = "SystemUpdateID";
+
+	private static boolean hasFetchedSystemUpdateIdFromDatabase = false;
+
+	private static final Debouncer DEBOUNCER = new Debouncer();
+
+	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
+
 	private int specificType;
 	private String id;
 	private String pathId;
@@ -155,7 +172,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
-	private static int systemUpdateId = 1;
+	private static int systemUpdateId = 0;
 	private boolean noName;
 	private int nametruncate;
 	private DLNAResource first;
@@ -706,13 +723,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
+				if (isNew) {
+					addChildInternal(child, isAddGlobally);
+				}
+
 				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
-				}
-
-				if (isNew) {
-					addChildInternal(child, isAddGlobally);
 				}
 			}
 		} catch (Throwable t) {
@@ -939,10 +956,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return transcodeFolder;
 	}
 
-	public void updateChild(DLNAResource child) {
-		updateChild(child, true);
-	}
-
 	/**
 	 * (Re)sets the given DLNA resource as follows: - if it's already one of our
 	 * children, renew it - or if we have another child with the same name,
@@ -950,7 +963,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param child the DLNA resource to update
 	 */
-	public void updateChild(DLNAResource child, boolean isAddGlobally) {
+	public void updateChild(DLNAResource child) {
 		DLNAResource found = children.contains(child) ? child : searchByName(child.getName());
 		if (found != null) {
 			if (child != found) {
@@ -960,10 +973,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
-			addChild(child, false, isAddGlobally);
+			addChild(child, false, true);
 		} else {
 			// Not found, it's new
-			addChild(child, true, isAddGlobally);
+			addChild(child, true, true);
 		}
 	}
 
@@ -1221,7 +1234,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		systemUpdateId += 1;
+		DLNAResource.bumpSystemUpdateId();
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
@@ -1732,6 +1745,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * @param profile
 	 * @return Returns an URL pointing to an image representing the item. If
 	 *         none is available, "thumbnail0000.png" is used.
 	 */
@@ -2581,14 +2595,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private void addBookmark(StringBuilder sb, String title) {
+		Connection connection = null;
 		try {
-			File file = new File(getFileName());
-			String path = file.getCanonicalPath();
-			int bookmark = TableFilesStatus.getBookmark(path);
-			LOGGER.debug("Setting bookmark for " + path + " => " + bookmark);
-			addXMLTagAndAttribute(sb, "sec:dcmInfo", encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, bookmark)));
-		} catch (Exception e) {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				File file = new File(getFileName());
+				String path = file.getCanonicalPath();
+				int bookmark = MediaTableFilesStatus.getBookmark(connection, path);
+				LOGGER.debug("Setting bookmark for " + path + " => " + bookmark);
+				addXMLTagAndAttribute(sb, "sec:dcmInfo", encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, bookmark)));
+			}
+		} catch (IOException e) {
 			LOGGER.error("Cannot set bookmark tag for " + title, e);
+		} finally {
+			MediaDatabase.close(connection);
 		}
 	}
 
@@ -3349,7 +3369,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume(), renderer);
 			if (!isResume() && media.getThumb() != null && configurationSpecificToRenderer.getUseCache() && inputFile.getFile() != null) {
-				TableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
+				MediaTableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
 			}
 		}
 	}
@@ -3891,23 +3911,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				SubtitleUtils.searchAndAttachExternalSubtitles(file, media, forceRefresh);
 				// update the database if enabled
 				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
-					DLNAMediaDatabase database = PMS.get().getDatabase();
-
-					if (database != null) {
-						try {
-							database.insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), getType(), media);
-						} catch (SQLException e) {
-							LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
-								e.getMessage());
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("SQL error code: {}", e.getErrorCode());
-								if (e.getCause() instanceof SQLException &&
-									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()) {
-									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
-								}
-								LOGGER.trace("", e);
-							}
+					Connection connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), getType(), media);
 						}
+					} catch (SQLException e) {
+						LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
+							e.getMessage());
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("SQL error code: {}", e.getErrorCode());
+							if (e.getCause() instanceof SQLException &&
+								((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()) {
+								LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+							}
+							LOGGER.trace("", e);
+						}
+					} finally {
+						MediaDatabase.close(connection);
 					}
 				}
 			}
@@ -4199,15 +4221,53 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.50
 	 */
 	public static int getSystemUpdateId() {
-		return systemUpdateId;
+		LOCK_SYSTEM_UPDATE_ID.readLock().lock();
+		try {
+			return systemUpdateId;
+		} finally {
+			LOCK_SYSTEM_UPDATE_ID.readLock().unlock();
+		}
 	}
 
 	/**
 	 * Bumps the updated id for all resources. When any resources has been
-	 * changed this id should be bumped.
+	 * changed this id should be bumped, debounced by 300ms
 	 */
 	public static void bumpSystemUpdateId() {
-		systemUpdateId++;
+		DEBOUNCER.debounce(Void.class, () -> {
+			LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
+			Connection connection = null;
+			try {
+				if (PMS.getConfiguration().getUseCache()) {
+					connection = MediaDatabase.getConnectionIfAvailable();
+				}
+				// Get the current value from the database if we haven't yet since UMS was started
+				if (connection != null && !hasFetchedSystemUpdateIdFromDatabase) {
+					String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID);
+					try {
+						systemUpdateId = Integer.parseInt(systemUpdateIdFromDb);
+					} catch (NumberFormatException ex) {
+						LOGGER.debug("" + ex);
+					}
+					hasFetchedSystemUpdateIdFromDatabase = true;
+				}
+
+				systemUpdateId++;
+
+				// if we exceeded the maximum value for a UI4, start again at 0
+				if (systemUpdateId > MAX_UI4_VALUE) {
+					systemUpdateId = 0;
+				}
+
+				// Persist the new value to the database
+				if (connection != null) {
+					MediaTableMetadata.setOrUpdateMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID, Integer.toString(systemUpdateId));
+				}
+			} finally {
+				MediaDatabase.close(connection);
+				LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
+			}
+		}, 300, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -4907,23 +4967,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				media.setMovieOrShowName(titleFromFilename);
 				media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
-				String titleFromDatabase;
-				String titleFromDatabaseSimplified;
 
 				// Apply the metadata from the filename.
 				if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
-					/**
-					* Overwrite the title from the filename if it's very similar to one
-					* we already have in our database. This is to avoid minor
-					* grammatical differences like "Word and Word" vs. "Word & Word"
-					* from creating two virtual folders.
-					*/
-					titleFromDatabase = TableTVSeries.getSimilarTVSeriesName(titleFromFilename);
-					titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
-					if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
-						media.setMovieOrShowName(titleFromDatabase);
-					}
-
 					media.setTVSeason(tvSeasonFromFilename);
 					if (isNotBlank(tvEpisodeNumberFromFilename)) {
 						media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
@@ -4943,15 +4989,36 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					media.setExtraInformation(extraInformationFromFilename);
 				}
 
-				if (configuration.getUseCache()) {
-					// TODO: Make sure this does not happen if ANY version already exists, before doing this
-					PMS.get().getDatabase().insertVideoMetadata(file.getAbsolutePath(), file.lastModified(), media);
+				if (configuration.getUseCache() && MediaDatabase.isAvailable()) {
+					Connection connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							if (media.isTVEpisode()) {
+								/**
+								* Overwrite the title from the filename if it's very similar to one
+								* we already have in our database. This is to avoid minor
+								* grammatical differences like "Word and Word" vs. "Word & Word"
+								* from creating two virtual folders.
+								*/
+								String titleFromDatabase = MediaTableTVSeries.getSimilarTVSeriesName(connection, titleFromFilename);
+								String titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
+								if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
+									media.setMovieOrShowName(titleFromDatabase);
+								}
+							}
+							// TODO: Make sure this does not happen if ANY version already exists, before doing this
+							MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
 
-					// Creates a minimal TV series row with just the title, that
-					// might be enhanced later by the API
-					if (media.isTVEpisode()) {
-						// TODO: Make this check if it already exists instead of always setting it
-						TableTVSeries.set(null, media.getMovieOrShowName());
+							// Creates a minimal TV series row with just the title, that
+							// might be enhanced later by the API
+							if (media.isTVEpisode()) {
+								// TODO: Make this check if it already exists instead of always setting it
+								MediaTableTVSeries.set(connection, null, media.getMovieOrShowName());
+							}
+						}
+					} finally {
+						MediaDatabase.close(connection);
 					}
 				}
 			}
@@ -4964,6 +5031,29 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} finally {
 			// Attempt to enhance the metadata via our API.
 			APIUtils.backgroundLookupAndAddMetadata(file, media);
+		}
+	}
+
+	/**
+	 * Stores the file in the cache if it doesn't already exist.
+	 *
+	 * @param file the full path to the file.
+	 * @param formatType the type constant defined in {@link Format}.
+	 */
+	protected void storeFileInCache(File file, int formatType) {
+		if (configuration.getUseCache() && MediaDatabase.isAvailable()) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (!MediaTableFiles.isDataExists(connection, file.getAbsolutePath(), file.lastModified())) {
+					MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), formatType, null);
+				}
+			} catch (SQLException e) {
+				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
+				LOGGER.trace("", e);
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
 	}
 

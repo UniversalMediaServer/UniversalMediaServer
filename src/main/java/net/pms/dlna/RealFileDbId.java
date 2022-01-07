@@ -5,7 +5,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.PLAYLIST;
 import net.pms.network.DbIdResourceLocator;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
 
 /**
  * This RealFile implementation uses database IDs as unique identifiers and does
@@ -19,14 +18,14 @@ public class RealFileDbId extends RealFile {
 		super(file);
 	}
 
-	public RealFileDbId(DbidMediaType mediaType, File file, String id) {
+	public RealFileDbId(DbidTypeAndIdent typeIdent, File file) {
 		super(file);
-		setId(dbid.encodeDbid(id, mediaType));
+		setId(dbid.encodeDbid(typeIdent));
 	}
 
-	public RealFileDbId(DbidMediaType mediaType, File file, String name, String id) {
+	public RealFileDbId(DbidTypeAndIdent typeIdent, File file, String name) {
 		super(file, name);
-		setId(dbid.encodeDbid(id, mediaType));
+		setId(dbid.encodeDbid(typeIdent));
 	}
 
 	@Override
@@ -47,6 +46,6 @@ public class RealFileDbId extends RealFile {
 	@Override
 	public boolean isFolder() {
 		Format f = getFormat();
-		return f instanceof PLAYLIST ? true : false;
+		return f instanceof PLAYLIST;
 	}
 }

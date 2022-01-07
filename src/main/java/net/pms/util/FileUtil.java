@@ -17,6 +17,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +33,8 @@ import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.WindowsProgramPaths;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.FormatFactory;
 import net.pms.io.BasicSystemUtils;
@@ -593,16 +597,15 @@ public class FileUtil {
 	 * one of these strings, the string and everything after them will be
 	 * removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "\\sAC3.*|\\sTVNZ\\s.*|\\sFP\\s.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\sAC3.*|.*\\sTVNZ.*|.*\\sFP.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|\\sDUBBED.*|\\sAC3.*|\\sNTSC.*|\\sTVNZ\\s.*|\\sFP\\s.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*\\sDUBBED.*|.*\\sAC3.*|.*\\sNTSC.*|.*\\sTVNZ.*|.*\\sFP.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
 
 	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s[\\[\\(]\\d{3,4}p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|[\\s_]\\(Dual\\sAudio.*|\\s\\[VOSTFR\\].*|\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 
 	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,})";
 	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
-
-	private static final String MIXED_EPISODE_CONVENTION = "\\s-\\sEp.\\s(\\d{1,4})\\s-\\s";
+	private static final String MIXED_EPISODE_CONVENTION = "\\s(?:Ep|e)(?:\\s{1,2}|)(\\d{1,4})(?:\\s|$)";
 	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
 	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
 
@@ -734,10 +737,16 @@ public class FileUtil {
 
 		// Attempt to get API metadata from the database if it wasn't passed via the media parameter
 		if (media == null && absolutePath != null && getConfiguration().getUseCache()) {
+			Connection connection = null;
 			try {
-				media = PMS.get().getDatabase().getFileMetadata(absolutePath);
-			} catch (Exception e) {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					media = MediaTableFiles.getFileMetadata(connection, absolutePath);
+				}
+			} catch (IOException | SQLException e) {
 				LOGGER.debug("Error while fetching metadata from database for prettifying: {}", e);
+			} finally {
+				MediaDatabase.close(connection);
 			}
 		}
 
@@ -854,6 +863,7 @@ public class FileUtil {
 	 * validity of online lookups.
 	 *
 	 * @param filename The filename to extract metadata from
+	 * @param absolutePath
 	 *
 	 * @return The metadata
 	 */
@@ -1035,7 +1045,15 @@ public class FileUtil {
 			// Then strip the end of the episode if it does not have the episode name in the title
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
 			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
-			formattedName = formattedName.replaceAll(MIXED_EPISODE_CONVENTION, " S" + tvSeason + "E" + tvEpisodeNumber + " - ");
+
+			// Here we match existing case, otherwise we risk breaking the Title Case conversion later
+			String seasonLetterReplace = "S";
+			String episodeLetterReplace = "E";
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				seasonLetterReplace = "s";
+				episodeLetterReplace = "e";
+			}
+			formattedName = formattedName.replaceAll(MIXED_EPISODE_CONVENTION, " " + seasonLetterReplace + tvSeason + episodeLetterReplace + tvEpisodeNumber + " - ");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(".*\\s(19|20)\\d{2}\\s[0-1]\\d\\s[0-3]\\d\\s.*")) {
@@ -1062,7 +1080,7 @@ public class FileUtil {
 
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
-		} else if (formattedName.matches(".*\\s(19|20)\\d{2}.*")) {
+		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}.*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
@@ -1165,7 +1183,8 @@ public class FileUtil {
 			if (tvSeason.length() > 1 && tvSeason.startsWith("0")) {
 				tvSeason = tvSeason.substring(1);
 			}
-			pattern = Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2}) - (.*)");
+			String showNameIndexMatcher = "(?i) (S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})";
+			pattern = Pattern.compile(showNameIndexMatcher + " - (.*)");
 			int showNameIndex = indexOf(pattern, formattedName);
 			if (isEmpty(movieOrShowName)) {
 				if (showNameIndex != -1) {
@@ -1182,8 +1201,12 @@ public class FileUtil {
 							}
 						}
 					}
+
+					if (!isEmpty(tvEpisodeName)) {
+						tvEpisodeName = convertFormattedNameToTitleCase(tvEpisodeName);
+					}
 				} else {
-					showNameIndex = indexOf(Pattern.compile("(?i) (S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})"), formattedName);
+					showNameIndex = indexOf(Pattern.compile(showNameIndexMatcher), formattedName);
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
@@ -1645,11 +1668,12 @@ public class FileUtil {
 	}
 
 	/**
-	 * Tries to detect the {@link Charset}/encoding for the specified file. If
+	 * Tries to detect the {@link Charset}/encoding for the specified file.If
 	 * no valid {@link Charset} is detected or the confidence of the best match
-	 * is below the threshold, {@code null} will be returned.
+	 * is below the threshold, {@code null}will be returned.
 	 *
 	 * @param file the text file whose {@link Charset} to detect.
+	 * @param confidenceThreshold
 	 * @return The most confidently detected {@link Charset} or {@code null}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
@@ -1917,6 +1941,9 @@ public class FileUtil {
 	 * Like {@link #getFilePermissions(File)} but returns {@code null} instead
 	 * of throwing {@link FileNotFoundException} if the file or folder isn't
 	 * found.
+	 *
+	 * @param file the file to check permissions for.
+	 * @return A {@link FilePermissions} object holding the permissions.
 	 */
 	public static FilePermissions getFilePermissionsNoThrow(File file) {
 		try {
@@ -1964,6 +1991,9 @@ public class FileUtil {
 	 * Like {@link #getFilePermissions(String)} but returns {@code null} instead
 	 * of throwing {@link FileNotFoundException} if the file or folder isn't
 	 * found.
+	 *
+	 * @param path the file or folder name to check permissions for.
+	 * @return A {@link FilePermissions} object holding the permissions.
 	 */
 	public static FilePermissions getFilePermissionsNoThrow(String path) {
 		if (path != null) {
@@ -2198,6 +2228,8 @@ public class FileUtil {
 
 	/**
 	 * Determines whether or not the program has admin/root permissions.
+	 *
+	 * @return true if the program has admin/root permissions
 	 */
 	public static boolean isAdmin() {
 		synchronized (isAdminLock) {

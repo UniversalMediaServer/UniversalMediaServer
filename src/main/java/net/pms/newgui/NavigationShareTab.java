@@ -27,12 +27,13 @@ import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.*;
+import java.sql.SQLException;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
-import net.pms.database.Tables;
+import net.pms.database.MediaDatabase;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
@@ -237,7 +238,7 @@ public class NavigationShareTab {
 					int ab = Integer.parseInt(seekPosition.getText());
 					configuration.setThumbnailSeekPos(ab);
 					if (configuration.getUseCache()) {
-						PMS.get().getDatabase().init(true);
+						MediaDatabase.initForce();
 					}
 				} catch (NumberFormatException nfe) {
 					LOGGER.debug("Could not parse thumbnail seek position from \"" + seekPosition.getText() + "\"");
@@ -379,10 +380,10 @@ public class NavigationShareTab {
 				Messages.getString("Dialog.Question"),
 				JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {
-				PMS.get().getDatabase().init(true);
+				MediaDatabase.initForce();
 				try {
-					Tables.reInitTablesExceptFilesStatus();
-				} catch (Exception e2) {
+					MediaDatabase.resetCache();
+				} catch (SQLException e2) {
 					LOGGER.debug("Error when re-initializing after manual cache reset:", e2);
 				}
 			}
@@ -611,7 +612,7 @@ public class NavigationShareTab {
 					);
 
 					if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
-						PMS.get().getDatabase().init(true);
+						MediaDatabase.initForce();
 					}
 				}
 			}

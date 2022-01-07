@@ -44,6 +44,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,8 +56,10 @@ import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.database.TableFilesStatus;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.dlna.LibraryScanner;
 import net.pms.network.HTTPResource;
 import static net.pms.dlna.RootFolder.parseFeedKey;
 import static net.pms.dlna.RootFolder.parseFeedValue;
@@ -128,60 +131,56 @@ public class SharedContentTab {
 	public static long lastWebContentUpdate = 1L;
 
 	private void updateWebContentModel() {
-		if (webContentTableModel.getRowCount() == 0) {
-			configuration.writeWebConfigurationFile();
-		} else {
-			List<String> entries = new ArrayList<>();
+		List<String> entries = new ArrayList<>();
 
-			for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
-				String readableType = (String) webContentTableModel.getValueAt(i, 1);
-				String folders = (String) webContentTableModel.getValueAt(i, 2);
-				String configType;
+		for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
+			String readableType = (String) webContentTableModel.getValueAt(i, 1);
+			String folders = (String) webContentTableModel.getValueAt(i, 2);
+			String configType;
 
-				if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
-					configType = "imagefeed";
-				} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
-					configType = "videofeed";
-				} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
-					configType = "audiofeed";
-				} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
-					configType = "audiostream";
-				} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
-					configType = "videostream";
-				} else {
-					// Skip the whole row if another value was used
-					continue;
-				}
-
-				String source = (String) webContentTableModel.getValueAt(i, 3);
-				String resourceName = (String) webContentTableModel.getValueAt(i, 0);
-
-				StringBuilder entryToAdd = new StringBuilder();
-				entryToAdd.append(configType).append(".").append(folders).append("=");
-
-				switch (configType) {
-					case "imagefeed":
-					case "videofeed":
-					case "audiofeed":
-						entryToAdd.append(source);
-
-						if (resourceName != null) {
-							entryToAdd.append(",,,").append(resourceName);
-						}
-						break;
-					default:
-						if (resourceName != null) {
-							entryToAdd.append(resourceName).append(",").append(source);
-						}
-						break;
-				}
-
-				entries.add(entryToAdd.toString());
+			if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
+				configType = "imagefeed";
+			} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
+				configType = "videofeed";
+			} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
+				configType = "audiofeed";
+			} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
+				configType = "audiostream";
+			} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
+				configType = "videostream";
+			} else {
+				// Skip the whole row if another value was used
+				continue;
 			}
 
-			configuration.writeWebConfigurationFile(entries);
-			lastWebContentUpdate = System.currentTimeMillis();
+			String source = (String) webContentTableModel.getValueAt(i, 3);
+			String resourceName = (String) webContentTableModel.getValueAt(i, 0);
+
+			StringBuilder entryToAdd = new StringBuilder();
+			entryToAdd.append(configType).append(".").append(folders).append("=");
+
+			switch (configType) {
+				case "imagefeed":
+				case "videofeed":
+				case "audiofeed":
+					entryToAdd.append(source);
+
+					if (resourceName != null) {
+						entryToAdd.append(",,,").append(resourceName);
+					}
+					break;
+				default:
+					if (resourceName != null) {
+						entryToAdd.append(resourceName).append(",").append(source);
+					}
+					break;
+			}
+
+			entries.add(entryToAdd.toString());
 		}
+
+		configuration.writeWebConfigurationFile(entries);
+		lastWebContentUpdate = System.currentTimeMillis();
 	}
 
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
@@ -255,13 +254,29 @@ public class SharedContentTab {
 		JMenuItem menuItemMarkUnplayed = new JMenuItem(Messages.getString("FoldTab.76"));
 
 		menuItemMarkPlayed.addActionListener((ActionEvent e) -> {
-			String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
-			TableFilesStatus.setDirectoryFullyPlayed(path, true);
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
+					MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, true);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		});
 
 		menuItemMarkUnplayed.addActionListener((ActionEvent e) -> {
-			String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
-			TableFilesStatus.setDirectoryFullyPlayed(path, false);
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
+					MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, false);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		});
 
 		popupMenu.add(menuItemMarkPlayed);
@@ -326,9 +341,17 @@ public class SharedContentTab {
 						return;
 					}
 				}
-				for (int i = rows.length - 1; i >= 0; i--) {
-					PMS.get().getDatabase().removeMediaEntriesInFolder((String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
-					((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					for (int i = rows.length - 1; i >= 0; i--) {
+						if (connection != null) {
+							MediaTableFiles.removeMediaEntriesInFolder(connection, (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
+						}
+						((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
+					}
+				} finally {
+					MediaDatabase.close(connection);
 				}
 			}
 		});
@@ -378,29 +401,25 @@ public class SharedContentTab {
 		SCAN_BUSY_DISABLED_ICON.start();
 		SCAN_BUTTON.addActionListener((ActionEvent e) -> {
 			if (configuration.getUseCache()) {
-				DLNAMediaDatabase database = PMS.get().getDatabase();
-
-				if (database != null) {
-					if (database.isScanLibraryRunning()) {
-						int option = JOptionPane.showConfirmDialog(
-							looksFrame,
-							Messages.getString("FoldTab.10"),
-							Messages.getString("Dialog.Question"),
-							JOptionPane.YES_NO_OPTION);
-						if (option == JOptionPane.YES_OPTION) {
-							database.stopScanLibrary();
-							looksFrame.setStatusLine(Messages.getString("FoldTab.41"));
-							SCAN_BUTTON.setEnabled(false);
-							SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.41"));
-						}
-					} else {
-						database.scanLibrary();
-						SCAN_BUTTON.setIcon(SCAN_BUSY_ICON);
-						SCAN_BUTTON.setRolloverIcon(SCAN_BUSY_ROLLOVER_ICON);
-						SCAN_BUTTON.setPressedIcon(SCAN_BUSY_PRESSED_ICON);
-						SCAN_BUTTON.setDisabledIcon(SCAN_BUSY_DISABLED_ICON);
-						SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.40"));
+				if (LibraryScanner.isScanLibraryRunning()) {
+					int option = JOptionPane.showConfirmDialog(
+						looksFrame,
+						Messages.getString("FoldTab.10"),
+						Messages.getString("Dialog.Question"),
+						JOptionPane.YES_NO_OPTION);
+					if (option == JOptionPane.YES_OPTION) {
+						LibraryScanner.stopScanLibrary();
+						looksFrame.setStatusLine(Messages.getString("FoldTab.41"));
+						SCAN_BUTTON.setEnabled(false);
+						SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.41"));
 					}
+				} else {
+					LibraryScanner.scanLibrary();
+					SCAN_BUTTON.setIcon(SCAN_BUSY_ICON);
+					SCAN_BUTTON.setRolloverIcon(SCAN_BUSY_ROLLOVER_ICON);
+					SCAN_BUTTON.setPressedIcon(SCAN_BUSY_PRESSED_ICON);
+					SCAN_BUTTON.setDisabledIcon(SCAN_BUSY_DISABLED_ICON);
+					SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.40"));
 				}
 			}
 		});

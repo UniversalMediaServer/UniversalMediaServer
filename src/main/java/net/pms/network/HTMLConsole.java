@@ -20,7 +20,7 @@ package net.pms.network;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.LibraryScanner;
 import net.pms.util.PropertiesUtil;
 
 public class HTMLConsole {
@@ -28,20 +28,19 @@ public class HTMLConsole {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html><head><meta charset=\"utf-8\"><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");
 
-		DLNAMediaDatabase database = PMS.get().getDatabase();
 		PmsConfiguration configuration = PMS.getConfiguration();
 
 		if (resource.equals("scan") && configuration.getUseCache()) {
-			if (!database.isScanLibraryRunning()) {
-				database.scanLibrary();
+			if (!LibraryScanner.isScanLibraryRunning()) {
+				LibraryScanner.scanLibrary();
 			}
-			if (database.isScanLibraryRunning()) {
+			if (LibraryScanner.isScanLibraryRunning()) {
 				sb.append("<p style=\"margin: 0 auto; text-align: center;\"><b>Scan in progress! you can also <a href=\"stop\">stop it</a></b></p><br>");
 			}
 		}
 
-		if (resource.equals("stop") && configuration.getUseCache() && database.isScanLibraryRunning()) {
-			database.stopScanLibrary();
+		if (resource.equals("stop") && configuration.getUseCache() && LibraryScanner.isScanLibraryRunning()) {
+			LibraryScanner.stopScanLibrary();
 			sb.append("<p style=\"margin: 0 auto; text-align: center;\"><b>Scan stopped!</b></p><br>");
 		}
 

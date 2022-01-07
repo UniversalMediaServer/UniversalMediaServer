@@ -159,7 +159,7 @@ public class RemoteMediaHandler implements HttpHandler {
 				resource.setMediaSubtitle(sid);
 			}
 			if (render.getVideoMimeType() != HTTPResource.HLS_TYPEMIME) {
-				RemoteUtil.dump(in, os, render);
+				RemoteUtil.dump(in, os);
 			}
 
 			if (render.getVideoMimeType() == HTTPResource.HLS_TYPEMIME) {
