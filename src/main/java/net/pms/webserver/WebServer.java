@@ -31,17 +31,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class WebServer implements WebServerInterface {
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebServerJetty.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPort();
 	private WebServerInterface webServer;
 	protected final Map<String, RootFolder> roots;
-	protected final RemoteUtil.ResourceManager resources;
+	protected final WebServerUtil.ResourceManager resources;
 
 	public WebServer() throws IOException {
 		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
-		resources = AccessController.doPrivileged((PrivilegedAction<RemoteUtil.ResourceManager>) () -> new RemoteUtil.ResourceManager(
+		resources = AccessController.doPrivileged((PrivilegedAction<WebServerUtil.ResourceManager>) () -> new WebServerUtil.ResourceManager(
 				"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
 				"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
 				"file:" + CONFIGURATION.getWebPath() + "/"
@@ -56,7 +56,7 @@ public abstract class WebServer implements WebServerInterface {
 		return tag;
 	}
 
-	public RemoteUtil.ResourceManager getResources() {
+	public WebServerUtil.ResourceManager getResources() {
 		return resources;
 	}
 
@@ -86,12 +86,7 @@ public abstract class WebServer implements WebServerInterface {
 	}
 
 	public static WebServer createServer(int port) throws IOException {
-		if ("jetty".equals(CONFIGURATION.getWebType(""))) {
-			LOGGER.debug("Using jetty as web server");
-			return new WebServerJetty(port);
-		} else {
-			LOGGER.debug("Using httpserver as web server");
-			return new WebServerSun(port);
-		}
+		LOGGER.debug("Using httpserver as web server");
+		return new WebServerHttpServer(port);
 	}
 }

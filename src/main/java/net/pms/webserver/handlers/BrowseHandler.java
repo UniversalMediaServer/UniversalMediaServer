@@ -17,20 +17,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.servlets;
+package net.pms.webserver.handlers;
 
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
@@ -40,127 +40,53 @@ import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
-import net.pms.webserver.RemoteUtil;
-import net.pms.webserver.WebServerServlets;
+import net.pms.webserver.WebServerUtil;
+import net.pms.webserver.WebServerHttpServer;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BrowseServlet extends WebServerServlet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseServlet.class);
+@SuppressWarnings("restriction")
+public class BrowseHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseHandler.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	public BrowseServlet(WebServerServlets parent) {
-		super(parent);
+	private final WebServerHttpServer parent;
+
+	public BrowseHandler(WebServerHttpServer parent) {
+		this.parent = parent;
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void handle(HttpExchange t) throws IOException {
 		try {
-			URI uri = URI.create(request.getRequestURI());
-			String id = RemoteUtil.getId("browse/", uri);
-			LOGGER.debug("Got a browse request found id {}", id);
-
-			String responseString = mkBrowsePage(id, request, response);
-			LOGGER.trace("Browse page:\n{}", responseString);
-			RemoteUtil.respondHtml(response, responseString);
+			if (WebServerUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String id = WebServerUtil.getId("browse/", t);
+			LOGGER.debug("Got a browse request found id " + id);
+			String response = mkBrowsePage(id, t);
+			LOGGER.trace("Browse page:\n{}", response);
+			WebServerUtil.respond(t, response, 200, "text/html");
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in BrowseServlet.doGet(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in BrowseHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
-	/**
-	 * @param resource
-	 * @param idForWeb
-	 * @param name
-	 * @param thumb
-	 * @param t
-	 * @param isFolder
-	 * @return a set of HTML strings to display a clickable thumbnail
-	 */
-	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, InetAddress inetAddress, String language) {
-		boolean upnpAllowed = RemoteUtil.bumpAllowed(inetAddress);
-		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
-		String pageTypeUri = resource.isFolder() ? "/browse/" : "/play/";
-
-		StringBuilder bumpHTML = new StringBuilder();
-		HashMap<String, String> item = new HashMap<>();
-		if (!resource.isFolder() && upnpAllowed) {
-			if (upnpControl) {
-				bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
-					.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-					.append(name.replace("'", "\\'")).append("')\" title=\"")
-					.append(RemoteUtil.getMsgString("Web.1", language)).append("\"></a>");
-			} else {
-				bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
-					.append(RemoteUtil.getMsgString("Web.2", language))
-					.append("')\" title=\"").append(RemoteUtil.getMsgString("Web.3", language)).append("\"></a>");
-			}
-
-			if (resource.getParent() instanceof Playlist) {
-				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
-					.append(idForWeb).append("', true);return false;\" title=\"")
-					.append(RemoteUtil.getMsgString("Web.4", language)).append("\"></a>");
-			} else {
-				bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
-					.append(idForWeb).append("', false);return false;\" title=\"")
-					.append(RemoteUtil.getMsgString("Web.5", language)).append("\"></a>");
-			}
-		} else {
-			// ensure that we got a string
-			bumpHTML.append("");
-		}
-
-		bumpHTML.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
-			.append(RemoteUtil.getMsgString("Web.DownloadAsPlaylist", language)).append("\"></a>");
-
-		item.put("actions", bumpHTML.toString());
-
-		if (
-			resource.isFolder() ||
-			resource.isResume() ||
-			resource instanceof VirtualVideoAction ||
-			(
-				resource.getFormat() != null &&
-				(
-					resource.getFormat().isVideo() ||
-					resource.getFormat().isAudio() ||
-					resource.getFormat().isImage()
-				)
-			)
-		) {
-			StringBuilder thumbHTML = new StringBuilder();
-			thumbHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
-				.append("\" title=\"").append(name).append("\">")
-				.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
-				.append("</a>");
-			item.put("thumb", thumbHTML.toString());
-
-			StringBuilder captionHTML = new StringBuilder();
-			captionHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
-				.append("\" title=\"").append(name).append("\">")
-				.append("<span class=\"caption\">").append(name).append("</span>")
-				.append("</a>");
-			item.put("caption", captionHTML.toString());
-		}
-
-		return item;
-	}
-
-	private String mkBrowsePage(String id, HttpServletRequest request, HttpServletResponse response) throws IOException, InterruptedException {
+	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
-		String user = RemoteUtil.userName(request);
-		String language = RemoteUtil.getFirstSupportedLanguage(request);
-		InetAddress inetAddress = InetAddress.getByName(request.getRemoteAddr());
-		RootFolder root = parent.getRoot(user, true, request, response);
+		String user = WebServerUtil.userName(t);
+		RootFolder root = parent.getRoot(user, true, t);
 		DLNAResource rootResource = id.equals("0") ? null : root.getDLNAResource(id, null);
-		String search = request.getParameter("str");
+		String search = WebServerUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
+		String language = WebServerUtil.getFirstSupportedLanguage(t);
 
-		String enterSearchStringText = RemoteUtil.getMsgString("Web.8", language);
+		String enterSearchStringText = WebServerUtil.getMsgString("Web.8", language);
 
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		if (
@@ -178,11 +104,16 @@ public class BrowseServlet extends WebServerServlet {
 			DLNAResource real = ce.getResource();
 			if (!real.isFolder()) {
 				// no folder   -> redirect
-				response.sendRedirect("/play/" + real.getId());
+				Headers hdr = t.getResponseHeaders();
+				hdr.add("Location", "/play/" + real.getId());
+				WebServerUtil.respond(t, "", 302, "text/html");
+				// return null here to avoid multiple responses
 				return null;
 			}
 			// redirect to ourself
-			response.sendRedirect("/browse/" + real.getResourceId());
+			Headers hdr = t.getResponseHeaders();
+			hdr.add("Location", "/browse/" + real.getResourceId());
+			WebServerUtil.respond(t, "", 302, "text/html");
 			return null;
 		}
 		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
@@ -263,15 +194,15 @@ public class BrowseServlet extends WebServerServlet {
 				String parentID = parentFromResources.getResourceId();
 				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 				String backUri = "/browse/" + parentIDForWeb;
-				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(RemoteUtil.getMsgString("Web.10", language)).append("\">");
-				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(RemoteUtil.getMsgString("Web.10", language)).append("</span>");
+				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebServerUtil.getMsgString("Web.10", t)).append("\">");
+				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebServerUtil.getMsgString("Web.10", t)).append("</span>");
 				backLinkHTML.append("</a>");
 				folders.add(backLinkHTML.toString());
 			} else {
 				folders.add("");
 			}
 		}
-		final HashMap<String, Object> mustacheVars = new HashMap<>();
+		HashMap<String, Object> mustacheVars = new HashMap<>();
 		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
 		mustacheVars.put("breadcrumbs", breadcrumbs);
 		mustacheVars.put("javascriptVarsScript", "");
@@ -367,10 +298,10 @@ public class BrowseServlet extends WebServerServlet {
 						mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(audioFolder, enterSearchStringText));
 						mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(imagesFolder, enterSearchStringText));
 
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAdded", inetAddress, language, mustacheVars);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayed", inetAddress, language, mustacheVars);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgress", inetAddress, language, mustacheVars);
-						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayed", inetAddress, language, mustacheVars);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAdded", t, mustacheVars);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayed", t, mustacheVars);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgress", t, mustacheVars);
+						addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayed", t, mustacheVars);
 
 						addFolderToFoldersListOnLeft = false;
 					}
@@ -381,7 +312,7 @@ public class BrowseServlet extends WebServerServlet {
 						String resourceUri = "/browse/" + idForWeb;
 						boolean code = (resource instanceof CodeEnter);
 						if (code) {
-							enterSearchStringText = RemoteUtil.getMsgString("Web.9", language);
+							enterSearchStringText = WebServerUtil.getMsgString("Web.9", t);
 						}
 						if (resource.getClass().getName().contains("SearchFolder") || code) {
 							// search folder add a prompt
@@ -402,7 +333,7 @@ public class BrowseServlet extends WebServerServlet {
 				}
 			} else {
 				// The resource is a media file
-				media.add(getMediaHTML(resource, idForWeb, name, thumbnailUri, inetAddress, language));
+				media.add(getMediaHTML(resource, idForWeb, name, thumbnailUri, t));
 				hasFile = true;
 			}
 		}
@@ -413,7 +344,7 @@ public class BrowseServlet extends WebServerServlet {
 				folder.isTVSeries() &&
 				CONFIGURATION.getUseCache()
 			) {
-				String apiMetadataAsJavaScriptVars = RemoteUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
+				String apiMetadataAsJavaScriptVars = WebServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
 				if (apiMetadataAsJavaScriptVars != null) {
 					mustacheVars.put("isTVSeriesWithAPIData", true);
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
@@ -441,7 +372,7 @@ public class BrowseServlet extends WebServerServlet {
 						String thumb = "/thumb/" + idForWeb;
 						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 
-						media.add(getMediaHTML(resource, idForWeb, name, thumb, inetAddress, language));
+						media.add(getMediaHTML(resource, idForWeb, name, thumb, t));
 						hasFile = true;
 					}
 				}
@@ -453,7 +384,7 @@ public class BrowseServlet extends WebServerServlet {
 		}
 		if (hasFile) {
 			mustacheVars.put("folderId", id);
-			mustacheVars.put("downloadFolderTooltip", RemoteUtil.getMsgString("Web.DownloadFolderAsPlaylist", language));
+			mustacheVars.put("downloadFolderTooltip", WebServerUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
 		}
 
 		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
@@ -466,6 +397,87 @@ public class BrowseServlet extends WebServerServlet {
 		return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
 	}
 
+	/**
+	 * @param resource
+	 * @param idForWeb
+	 * @param name
+	 * @param thumb
+	 * @param t
+	 * @param isFolder
+	 * @return a set of HTML strings to display a clickable thumbnail
+	 */
+	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
+		boolean upnpAllowed = WebServerUtil.bumpAllowed(t);
+		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		String pageTypeUri = "/play/";
+		if (resource.isFolder()) {
+			pageTypeUri = "/browse/";
+		}
+
+		StringBuilder bumpHTML = new StringBuilder();
+		HashMap<String, String> item = new HashMap<>();
+		if (!resource.isFolder() && upnpAllowed) {
+			if (upnpControl) {
+				bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
+					.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
+					.append(name.replace("'", "\\'")).append("')\" title=\"")
+					.append(WebServerUtil.getMsgString("Web.1", t)).append("\"></a>");
+			} else {
+				bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
+					.append(WebServerUtil.getMsgString("Web.2", t))
+					.append("')\" title=\"").append(WebServerUtil.getMsgString("Web.3", t)).append("\"></a>");
+			}
+
+			if (resource.getParent() instanceof Playlist) {
+				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
+					.append(idForWeb).append("', true);return false;\" title=\"")
+					.append(WebServerUtil.getMsgString("Web.4", t)).append("\"></a>");
+			} else {
+				bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
+					.append(idForWeb).append("', false);return false;\" title=\"")
+					.append(WebServerUtil.getMsgString("Web.5", t)).append("\"></a>");
+			}
+		} else {
+			// ensure that we got a string
+			bumpHTML.append("");
+		}
+
+		bumpHTML.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
+			.append(WebServerUtil.getMsgString("Web.DownloadAsPlaylist", t)).append("\"></a>");
+
+		item.put("actions", bumpHTML.toString());
+
+		if (
+			resource.isFolder() ||
+			resource.isResume() ||
+			resource instanceof VirtualVideoAction ||
+			(
+				resource.getFormat() != null &&
+				(
+					resource.getFormat().isVideo() ||
+					resource.getFormat().isAudio() ||
+					resource.getFormat().isImage()
+				)
+			)
+		) {
+			StringBuilder thumbHTML = new StringBuilder();
+			thumbHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
+				.append("\" title=\"").append(name).append("\">")
+				.append("<img class=\"thumb\" loading=\"lazy\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+				.append("</a>");
+			item.put("thumb", thumbHTML.toString());
+
+			StringBuilder captionHTML = new StringBuilder();
+			captionHTML.append("<a href=\"").append(pageTypeUri).append(idForWeb)
+				.append("\" title=\"").append(name).append("\">")
+				.append("<span class=\"caption\">").append(name).append("</span>")
+				.append("</a>");
+			item.put("caption", captionHTML.toString());
+		}
+
+		return item;
+	}
+
 	private void addMediaLibraryFolderToFrontPage(
 		DLNAResource videoFolder,
 		RootFolder root,
@@ -473,8 +485,7 @@ public class BrowseServlet extends WebServerServlet {
 		String headingKey,
 		String hasFolderVarName,
 		String childrenVarName,
-		InetAddress inetAddress,
-		String language,
+		HttpExchange t,
 		final HashMap<String, Object> mustacheVars
 	) throws IOException {
 		int i = 0;
@@ -500,7 +511,7 @@ public class BrowseServlet extends WebServerServlet {
 				continue;
 			}
 
-			recentlyPlayedVideosHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedIdForWeb, recentlyPlayedName, recentlyPlayedThumb, inetAddress, language));
+			recentlyPlayedVideosHTML.add(getMediaHTML(recentlyPlayedResource, recentlyPlayedIdForWeb, recentlyPlayedName, recentlyPlayedThumb, t));
 			i++;
 
 			if (i == 1) {
@@ -519,7 +530,7 @@ public class BrowseServlet extends WebServerServlet {
 		mustacheVars.put(childrenVarName, recentlyPlayedVideosHTML);
 	}
 
-	private String addMediaLibraryChildToMustacheVars(
+	private static String addMediaLibraryChildToMustacheVars(
 		DLNAResource childFolder,
 		String enterSearchStringText
 	) throws UnsupportedEncodingException {

@@ -46,7 +46,7 @@ import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
-import net.pms.webserver.RemoteUtil;
+import net.pms.webserver.WebServerUtil;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -104,7 +104,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		ua = "";
 		fileless = true;
 		String userFmt = CONFIGURATION.getWebTranscode();
-		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
+		defaultMime = userFmt != null ? ("video/" + userFmt) : WebServerUtil.transMime();
 		startStop = null;
 		subLang = "";
 		if (CONFIGURATION.useWebControl()) {
@@ -257,16 +257,16 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public boolean isScreenSizeConstrained() {
-		return (screenWidth != 0 && RemoteUtil.getWidth() > screenWidth) ||
-			(screenHeight != 0 && RemoteUtil.getHeight() > screenHeight);
+		return (screenWidth != 0 && WebServerUtil.getWidth() > screenWidth) ||
+			(screenHeight != 0 && WebServerUtil.getHeight() > screenHeight);
 	}
 
 	public int getVideoWidth() {
-		return isScreenSizeConstrained() ? screenWidth : RemoteUtil.getWidth();
+		return isScreenSizeConstrained() ? screenWidth : WebServerUtil.getWidth();
 	}
 
 	public int getVideoHeight() {
-		return isScreenSizeConstrained() ? screenHeight : RemoteUtil.getHeight();
+		return isScreenSizeConstrained() ? screenHeight : WebServerUtil.getHeight();
 	}
 
 	public String getVideoMimeType() {

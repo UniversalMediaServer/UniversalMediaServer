@@ -17,38 +17,40 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.servlets;
+package net.pms.webserver.handlers;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
-import net.pms.webserver.RemoteUtil;
-import net.pms.webserver.WebServerServlets;
+import net.pms.webserver.WebServerUtil;
+import net.pms.webserver.WebServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PoolServlet extends WebServerServlet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PoolServlet.class);
+public class PollHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PollHandler.class);
+	@SuppressWarnings("unused")
+	private static final String CRLF = "\r\n";
 
-	public PoolServlet(WebServerServlets parent) {
-		super(parent);
+	private final WebServerHttpServer parent;
+
+	public PollHandler(WebServerHttpServer parent) {
+		this.parent = parent;
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void handle(HttpExchange t) throws IOException {
 		try {
-			RootFolder root = parent.getRoot(request, response);
-			if (root == null) {
-				LOGGER.debug("root not found");
-				response.sendError(401, "Unknown root");
-				return;
+			// LOGGER.debug("poll req " + t.getRequestURI());
+			if (WebServerUtil.deny(t)) {
+				throw new IOException("Access denied");
 			}
+			RootFolder root = parent.getRoot(WebServerUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			String json = renderer.getPushData();
-			RemoteUtil.respond(response, json, "application/json");
+			WebServerUtil.respond(t, json, 200, "application/json");
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {
@@ -58,5 +60,4 @@ public class PoolServlet extends WebServerServlet {
 			LOGGER.debug("", e);
 		}
 	}
-
 }

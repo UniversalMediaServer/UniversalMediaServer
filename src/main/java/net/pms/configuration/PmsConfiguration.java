@@ -346,7 +346,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
-	protected static final String KEY_WEB_TYPE = "web_type";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
 	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
@@ -4692,10 +4691,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean useWebInterface() {
 		return getBoolean(KEY_WEB_ENABLE, true);
-	}
-
-	public String getWebType(String fallback) {
-		return getString(KEY_WEB_TYPE, fallback);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {

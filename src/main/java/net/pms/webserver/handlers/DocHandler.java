@@ -17,44 +17,47 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.servlets;
+package net.pms.webserver.handlers;
 
 import com.samskivert.mustache.MustacheException;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.newgui.DbgPacker;
-import net.pms.webserver.RemoteUtil;
-import net.pms.webserver.WebServerServlets;
+import net.pms.webserver.WebServerUtil;
+import net.pms.webserver.WebServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DocServlet extends WebServerServlet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DocServlet.class);
+public class DocHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DocHandler.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	@SuppressWarnings("unused")
+	private static final String CRLF = "\r\n";
 
-	public DocServlet(WebServerServlets parent) {
-		super(parent);
+	private final WebServerHttpServer parent;
+
+	public DocHandler(final WebServerHttpServer parent) {
+		this.parent = parent;
+		// Make sure logs are available right away
+		getLogs(false);
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void handle(HttpExchange t) throws IOException {
 		try {
-			InetAddress inetAddress = InetAddress.getByName(request.getRemoteAddr());
-			URI uri = URI.create(request.getRequestURI());
-			LOGGER.debug("root req " + uri);
-			if (RemoteUtil.deny(inetAddress)) {
+			LOGGER.debug("root req " + t.getRequestURI());
+			if (WebServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
-			if (uri.getPath().contains("favicon")) {
-				RemoteUtil.sendLogo(response);
+			if (t.getRequestURI().getPath().contains("favicon")) {
+				WebServerUtil.sendLogo(t);
 				return;
 			}
 
@@ -65,18 +68,18 @@ public class DocServlet extends WebServerServlet {
 					"http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
 			}
 
-			String responseString = parent.getResources().getTemplate("doc.html").execute(vars);
-			RemoteUtil.respondHtml(response, responseString);
+			String response = parent.getResources().getTemplate("doc.html").execute(vars);
+			WebServerUtil.respond(t, response, 200, "text/html");
 		} catch (IOException e) {
 			throw e;
 		} catch (MustacheException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in DocServlet.doGet(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in DocHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
-	private ArrayList<HashMap<String, String>> getLogs(boolean asList) {
+	private ArrayList<HashMap<String, String>> getLogs(final boolean asList) {
 		Set<File> files = new DbgPacker().getItems();
 		if (!asList) {
 			return null;
@@ -95,5 +98,4 @@ public class DocServlet extends WebServerServlet {
 		}
 		return logs;
 	}
-
 }

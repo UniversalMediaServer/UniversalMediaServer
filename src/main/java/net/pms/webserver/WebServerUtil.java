@@ -32,13 +32,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.security.Principal;
 import java.sql.Connection;
 import java.util.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
@@ -65,8 +61,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class RemoteUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteUtil.class);
+public class WebServerUtil {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebServerUtil.class);
 
 	//public static final String MIME_TRANS = MIME_MP4;
 	public static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
@@ -94,38 +90,6 @@ public class RemoteUtil {
 		}
 	}
 
-	public static void respondHtml(HttpServletResponse response, String html) {
-		respond(response, html, 200, "text/html");
-	}
-
-	public static void respond(HttpServletResponse response, String responseStr, String mime) {
-		respond(response, responseStr, 200, mime);
-	}
-
-	public static void respond(HttpServletResponse response, String responseStr, int status, String mime) {
-		if (response != null) {
-			respond(response, responseStr.getBytes(), status, mime);
-		}
-	}
-
-	public static void respond(HttpServletResponse response, byte[] bytes, int status, String mime) {
-		if (response != null) {
-			response.setStatus(status);
-			if (mime != null) {
-				response.setContentType(mime);
-			}
-			if (bytes != null) {
-				try (OutputStream os = response.getOutputStream()) {
-					response.setContentLengthLong(bytes.length);
-					os.write(bytes);
-					os.flush();
-				} catch (Exception e) {
-					LOGGER.debug("Error sending response: " + e);
-				}
-			}
-		}
-	}
-
 	public static void dumpFile(String file, HttpExchange t) throws IOException {
 		File f = new File(file);
 		dumpFile(f, t);
@@ -141,44 +105,6 @@ public class RemoteUtil {
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-	public static void dumpFile(File f, HttpServletResponse response) throws IOException {
-		LOGGER.debug("file " + f + " " + f.length());
-		if (!f.exists()) {
-			throw new IOException("no file");
-		}
-		response.setStatus(200);
-		response.setContentLengthLong(f.length());
-		dumpDirect(new FileInputStream(f), response.getOutputStream());
-		//response.getOutputStream().write(new FileInputStream(f).readAllBytes());
-		LOGGER.debug("dump of " + f.getName() + " done");
-	}
-
-	public static void dumpDirect(final InputStream in, final HttpServletResponse response) throws IOException {
-		response.setContentLengthLong(in.available());
-		dumpDirect(in, response.getOutputStream());
-	}
-
-	public static void dumpDirect(final InputStream in, final OutputStream os) {
-		long sendBytes = 0;
-		try {
-			//sendBytes = in.transferTo(os);
-			int bytes;
-			byte[] buffer = new byte[16 * 1024];
-			while ((bytes = in.read(buffer)) != -1) {
-				sendBytes += bytes;
-				os.write(buffer, 0, bytes);
-			}
-			//sendBytes = IOUtils.copy(in, os);
-		} catch (IOException e) {
-			LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
-		} finally {
-			try {
-				in.close();
-			} catch (IOException e) {
-			}
-		}
-	}
-
 	public static void dump(final InputStream in, final OutputStream os) {
 		Runnable r = () -> {
 			byte[] buffer = new byte[32 * 1024];
@@ -189,6 +115,7 @@ public class RemoteUtil {
 				while ((bytes = in.read(buffer)) != -1) {
 					sendBytes += bytes;
 					os.write(buffer, 0, bytes);
+					os.flush();
 				}
 			} catch (IOException e) {
 				LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
@@ -198,8 +125,8 @@ public class RemoteUtil {
 				} catch (IOException e) {
 				}
 			}
+
 			try {
-				os.flush();
 				os.close();
 			} catch (IOException e) {
 			}
@@ -243,7 +170,7 @@ public class RemoteUtil {
 	}
 
 	public static boolean deny(HttpExchange t) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) || !PMS.isReady();
+		return deny(t.getRemoteAddress().getAddress());
 	}
 
 	public static boolean deny(InetAddress inetAddress) {
@@ -281,12 +208,6 @@ public class RemoteUtil {
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
 		dump(in, os);
-	}
-
-	public static void sendLogo(HttpServletResponse response) throws IOException {
-		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
-		OutputStream os = response.getOutputStream();
-		dumpDirect(in, os);
 	}
 
 	/**
@@ -329,14 +250,6 @@ public class RemoteUtil {
 		return p.getUsername();
 	}
 
-	public static String userName(HttpServletRequest request) {
-		Principal p = request.getUserPrincipal();
-		if (p == null) {
-			return "";
-		}
-		return p.getName();
-	}
-
 	public static String getQueryVars(String query, String str) {
 		if (StringUtils.isEmpty(query)) {
 			return null;
@@ -360,19 +273,6 @@ public class RemoteUtil {
 			(WebRender) r : null;
 	}
 
-	public static WebRender matchRenderer(String user, HttpServletRequest request) {
-		try {
-			int browser = WebRender.getBrowser(request.getHeader("User-agent"));
-			String confName = WebRender.getBrowserName(browser);
-			InetAddress inetAddress = InetAddress.getByName(request.getRemoteAddr());
-			RendererConfiguration r = RendererConfiguration.find(confName, inetAddress);
-			return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ?
-					(WebRender) r : null;
-		} catch (UnknownHostException ex) {
-			return null;
-		}
-	}
-
 	public static String getCookie(String name, HttpExchange t) {
 		String cstr = t.getRequestHeaders().getFirst("Cookie");
 		if (!StringUtils.isEmpty(cstr)) {
@@ -386,7 +286,6 @@ public class RemoteUtil {
 		LOGGER.debug("Cookie '{}' not found: {}", name, t.getRequestHeaders().get("Cookie"));
 		return null;
 	}
-
 
 	private static final int WIDTH = 0;
 	private static final int HEIGHT = 1;
@@ -480,34 +379,8 @@ public class RemoteUtil {
 		return result;
 	}
 
-	public static LinkedHashSet<String> getLangs(HttpServletRequest request) {
-		String hdr = request.getHeader("Accept-language");
-		LinkedHashSet<String> result = new LinkedHashSet<>();
-		if (StringUtils.isEmpty(hdr)) {
-			return result;
-		}
-
-		String[] tmp = hdr.split(",");
-		for (String language : tmp) {
-			String[] l1 = language.split(";");
-			result.add(l1[0]);
-		}
-		return result;
-	}
-
 	public static String getFirstSupportedLanguage(HttpExchange t) {
 		LinkedHashSet<String> languages = getLangs(t);
-		for (String language : languages) {
-			String code = Languages.toLanguageTag(language);
-			if (code != null) {
-				return code;
-			}
-		}
-		return "";
-	}
-
-	public static String getFirstSupportedLanguage(HttpServletRequest request) {
-		LinkedHashSet<String> languages = getLangs(request);
 		for (String language : languages) {
 			String code = Languages.toLanguageTag(language);
 			if (code != null) {
@@ -640,30 +513,6 @@ public class RemoteUtil {
 				// stream length but effectively seems to do so in our context.
 				t.sendResponseHeaders(200, stream.available());
 				dump(stream, t.getResponseBody());
-				return true;
-			}
-			return false;
-		}
-
-		/**
-		 * Write the given resource as an http response body.
-		 * @param filename
-		 * @param response
-		 * @return
-		 * @throws java.io.IOException
-		 */
-		public boolean write(String filename, HttpServletResponse response) throws IOException {
-			InputStream stream = getInputStream(filename);
-			if (stream != null) {
-				if (response.getContentType() == null) {
-					String mime = getContentType(filename);
-					if (mime != null) {
-						response.setContentType(mime);
-					}
-				}
-				// Note: available() isn't officially guaranteed to return the full
-				// stream length but effectively seems to do so in our context.
-				dumpDirect(stream, response);
 				return true;
 			}
 			return false;
@@ -941,23 +790,23 @@ public class RemoteUtil {
 
 		String javascriptVarsScript = "";
 		javascriptVarsScript += "var awards = \"" + StringEscapeUtils.escapeEcmaScript(awards) + "\";";
-		javascriptVarsScript += "var awardsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Awards", language) + "\";";
+		javascriptVarsScript += "var awardsTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Awards", language) + "\";";
 		javascriptVarsScript += "var country = " + country + ";";
-		javascriptVarsScript += "var countryTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Country", language) + "\";";
+		javascriptVarsScript += "var countryTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Country", language) + "\";";
 		javascriptVarsScript += "var director = " + director + ";";
-		javascriptVarsScript += "var directorTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Director", language) + "\";";
+		javascriptVarsScript += "var directorTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Director", language) + "\";";
 		javascriptVarsScript += "var imdbID = \"" + StringEscapeUtils.escapeEcmaScript(imdbID) + "\";";
 		javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
-		javascriptVarsScript += "var plotTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Plot", language) + "\";";
+		javascriptVarsScript += "var plotTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Plot", language) + "\";";
 		javascriptVarsScript += "var poster = \"" + StringEscapeUtils.escapeEcmaScript(poster) + "\";";
 		javascriptVarsScript += "var rated = " + rated + ";";
-		javascriptVarsScript += "var ratedTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Rated", language) + "\";";
+		javascriptVarsScript += "var ratedTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Rated", language) + "\";";
 		javascriptVarsScript += "var startYear = \"" + StringEscapeUtils.escapeEcmaScript(startYear) + "\";";
-		javascriptVarsScript += "var yearStartedTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.YearStarted", language) + "\";";
+		javascriptVarsScript += "var yearStartedTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.YearStarted", language) + "\";";
 		javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
-		javascriptVarsScript += "var totalSeasonsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.TotalSeasons", language) + "\";";
+		javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.TotalSeasons", language) + "\";";
 
-		javascriptVarsScript += "var actorsTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
+		javascriptVarsScript += "var actorsTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
 		String actorsArrayJavaScript = "var actors = [";
 		for (String actor : actors) {
 			actorsArrayJavaScript += actor + ",";
@@ -965,7 +814,7 @@ public class RemoteUtil {
 		actorsArrayJavaScript += "];";
 		javascriptVarsScript += actorsArrayJavaScript;
 
-		javascriptVarsScript += "var genresTranslation = \"" + RemoteUtil.getMsgString("VirtualFolder.Genres", language) + "\";";
+		javascriptVarsScript += "var genresTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Genres", language) + "\";";
 		String genresArrayJavaScript = "var genres = [";
 		for (String genre : genres) {
 			genresArrayJavaScript += genre + ",";
@@ -974,7 +823,7 @@ public class RemoteUtil {
 		javascriptVarsScript += genresArrayJavaScript;
 
 		String ratingsArrayJavaScript = "var ratings = [";
-		javascriptVarsScript += "var ratingsTranslation= \"" + RemoteUtil.getMsgString("VirtualFolder.Ratings", language) + "\";";
+		javascriptVarsScript += "var ratingsTranslation= \"" + WebServerUtil.getMsgString("VirtualFolder.Ratings", language) + "\";";
 		if (!ratings.isEmpty()) {
 			Iterator<HashMap<String, String>> ratingsIterator = ratings.iterator();
 			while (ratingsIterator.hasNext()) {
@@ -987,5 +836,4 @@ public class RemoteUtil {
 
 		return javascriptVarsScript;
 	}
-
 }

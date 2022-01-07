@@ -34,42 +34,44 @@ import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.util.FileUtil;
-import net.pms.webserver.RemoteUtil;
-import net.pms.webserver.WebServerSun;
+import net.pms.webserver.WebServerUtil;
+import net.pms.webserver.WebServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
-public class RemoteMediaHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteMediaHandler.class);
-	private WebServerSun parent;
-	private String path;
-	private RendererConfiguration renderer;
-	private boolean flash;
+public class MediaHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaHandler.class);
 
-	public RemoteMediaHandler(WebServerSun parent) {
-		this(parent, "media/", null);
+	private final WebServerHttpServer parent;
+	private final String path;
+	private final RendererConfiguration renderer;
+	private final boolean flash;
+
+	public MediaHandler(WebServerHttpServer parent) {
+		this(parent, "media/", null, false);
 	}
 
-	public RemoteMediaHandler(WebServerSun parent, boolean flash) {
-		this(parent, "fmedia/", null);
-		this.flash = flash;
+	public MediaHandler(WebServerHttpServer parent, boolean flash) {
+		this(parent, "fmedia/", null, flash);
 	}
 
-	public RemoteMediaHandler(WebServerSun parent, String path, RendererConfiguration renderer) {
-		this.flash = false;
+	public MediaHandler(WebServerHttpServer parent, String path, RendererConfiguration renderer) {
+		this(parent, path, renderer, false);
+	}
+
+	public MediaHandler(WebServerHttpServer parent, String path, RendererConfiguration renderer, boolean flash) {
 		this.parent = parent;
 		this.path = path;
 		this.renderer = renderer;
+		this.flash = flash;
 	}
-
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 		try {
-			if (RemoteUtil.deny(httpExchange)) {
+			if (WebServerUtil.deny(httpExchange)) {
 				throw new IOException("Access denied");
 			}
-			RootFolder root = parent.getRoot(RemoteUtil.userName(httpExchange), httpExchange);
+			RootFolder root = parent.getRoot(WebServerUtil.userName(httpExchange), httpExchange);
 			if (root == null) {
 				throw new IOException("Unknown root");
 			}
@@ -77,8 +79,8 @@ public class RemoteMediaHandler implements HttpHandler {
 			for (String h1 : h.keySet()) {
 				LOGGER.debug("key " + h1 + "=" + h.get(h1));
 			}
-			String id = RemoteUtil.getId(path, httpExchange);
-			id = RemoteUtil.strip(id);
+			String id = WebServerUtil.getId(path, httpExchange);
+			id = WebServerUtil.strip(id);
 			RendererConfiguration defaultRenderer = renderer;
 			if (renderer == null) {
 				defaultRenderer = root.getDefaultRenderer();
@@ -110,8 +112,8 @@ public class RemoteMediaHandler implements HttpHandler {
 			if (resource.getFormat().isVideo()) {
 				if (flash) {
 					mimeType = "video/flash";
-				} else if (!RemoteUtil.directmime(mimeType) || RemoteUtil.transMp4(mimeType, media)) {
-					mimeType = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
+				} else if (!WebServerUtil.directmime(mimeType) || WebServerUtil.transMp4(mimeType, media)) {
+					mimeType = render != null ? render.getVideoMimeType() : WebServerUtil.transMime();
 					// TODO: Use normal engine priorities instead of the following hacks
 					if (FileUtil.isUrl(resource.getSystemName())) {
 						if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
@@ -135,13 +137,13 @@ public class RemoteMediaHandler implements HttpHandler {
 				}
 			}
 
-			if (!RemoteUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
+			if (!WebServerUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
 				resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
 				code = 206;
 			}
 
 			media.setMimeType(mimeType);
-			Range.Byte range = RemoteUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
+			Range.Byte range = WebServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 			if (range.getEnd() == 0) {
@@ -169,12 +171,12 @@ public class RemoteMediaHandler implements HttpHandler {
 			if (sid != null) {
 				resource.setMediaSubtitle(sid);
 			}
-			RemoteUtil.dump(in, os);
+			WebServerUtil.dump(in, os);
 		} catch (IOException e) {
 			throw e;
-		} catch (Exception e) {
+		} catch (InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in RemoteMediaHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in MediaHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

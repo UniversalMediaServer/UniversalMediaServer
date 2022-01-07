@@ -1,3 +1,22 @@
+/*
+ * Universal Media Server, for streaming any medias to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.webserver.handlers;
 
 import com.sun.net.httpserver.*;
@@ -17,7 +36,7 @@ import net.pms.configuration.WebRender;
 import net.pms.network.UPNPHelper;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
-import net.pms.webserver.RemoteUtil;
+import net.pms.webserver.WebServerUtil;
 import net.pms.webserver.WebServer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -25,8 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class PlayerControlHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
+public class ControlHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControlHandler.class);
 	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
@@ -39,7 +58,7 @@ public class PlayerControlHandler implements HttpHandler {
 	private final File bumpjs;
 	private final File skindir;
 
-	public PlayerControlHandler(WebServer parent) {
+	public ControlHandler(WebServer parent) {
 		this.parent = parent;
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
@@ -53,7 +72,7 @@ public class PlayerControlHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 
-		if (RemoteUtil.deny(httpExchange) && !RemoteUtil.bumpAllowed(httpExchange)) {
+		if (WebServerUtil.deny(httpExchange) && !WebServerUtil.bumpAllowed(httpExchange)) {
 			LOGGER.debug("Denying {}", httpExchange);
 			throw new IOException("Denied");
 		}
@@ -125,7 +144,7 @@ public class PlayerControlHandler implements HttpHandler {
 		} else if (p[2].equals("renderers")) {
 			json.add(getRenderers(httpExchange.getRemoteAddress().getAddress()));
 		} else if (p[2].startsWith("skin.")) {
-			RemoteUtil.dumpFile(new File(skindir, p[2].substring(5)), httpExchange);
+			WebServerUtil.dumpFile(new File(skindir, p[2].substring(5)), httpExchange);
 			return;
 		}
 
@@ -229,7 +248,7 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public String getBumpJS() {
-		RemoteUtil.ResourceManager resources = parent.getResources();
+		WebServerUtil.ResourceManager resources = parent.getResources();
 		return resources.read("bump/bump.js") +
 			"\nvar bumpskin = function() {\n" +
 			resources.read("bump/skin/skin.js") +

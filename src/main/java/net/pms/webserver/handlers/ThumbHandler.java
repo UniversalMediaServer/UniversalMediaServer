@@ -17,14 +17,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.servlets;
+package net.pms.webserver.handlers;
 
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.RealFile;
@@ -34,41 +35,45 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.util.FullyPlayed;
-import net.pms.webserver.RemoteUtil;
-import net.pms.webserver.WebServerServlets;
+import net.pms.webserver.WebServerUtil;
+import net.pms.webserver.WebServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThumbServlet extends WebServerServlet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbServlet.class);
+public class ThumbHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	public ThumbServlet(WebServerServlets parent) {
-		super(parent);
+	private final WebServerHttpServer parent;
+
+	public ThumbHandler(WebServerHttpServer parent) {
+		this.parent = parent;
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void handle(HttpExchange t) throws IOException {
 		try {
-			URI uri = URI.create(request.getRequestURI());
-			String id = RemoteUtil.getId("thumb/", uri);
+			if (WebServerUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			String id = WebServerUtil.getId("thumb/", t);
 			LOGGER.trace("web thumb req " + id);
 			if (id.contains("logo")) {
-				RemoteUtil.sendLogo(response);
+				WebServerUtil.sendLogo(t);
 				return;
 			}
-			RootFolder root = parent.getRoot(request, response);
+
+			RootFolder root = parent.getRoot(WebServerUtil.userName(t), t);
 			if (root == null) {
-				LOGGER.debug("root not found");
-				response.sendError(401, "Unknown root");
-				return;
+				LOGGER.debug("weird root in thumb req");
+				throw new IOException("Unknown root");
 			}
 
 			final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
 			if (r == null) {
 				// another error
-				LOGGER.debug("media unkonwn");
-				response.sendError(400, "Bad id");
-				return;
+				LOGGER.debug("media unknown");
+				throw new IOException("Bad id");
 			}
 
 			DLNAThumbnailInputStream in;
@@ -103,19 +108,19 @@ public class ThumbServlet extends WebServerServlet {
 			if (filterChain != null) {
 				in = in.transcode(in.getDLNAImageProfile(), false, filterChain);
 			}
-			response.setContentType(ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
-			response.addHeader("Accept-Ranges", "bytes");
-			response.addHeader("Connection", "keep-alive");
-			response.setContentLengthLong(in.getSize());
-
-			OutputStream os = response.getOutputStream();
+			Headers hdr = t.getResponseHeaders();
+			hdr.add("Content-Type", ImageFormat.PNG.equals(in.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
+			hdr.add("Accept-Ranges", "bytes");
+			hdr.add("Connection", "keep-alive");
+			t.sendResponseHeaders(200, in.getSize());
+			OutputStream os = t.getResponseBody();
 			LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
-			RemoteUtil.dumpDirect(in, os);
+			WebServerUtil.dump(in, os);
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ThumbServlet.doGet(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in ThumbHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
