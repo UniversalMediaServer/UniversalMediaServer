@@ -16,8 +16,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network;
+package net.pms.network.mediaserver.nettyserver;
 
+import net.pms.network.mediaserver.handlers.SearchRequestHandler;
+import net.pms.network.mediaserver.HTTPXMLHelper;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.MessageFactory;
@@ -70,12 +72,15 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
-import net.pms.network.api.ApiHandler;
-import net.pms.network.message.BrowseRequest;
-import net.pms.network.message.BrowseSearchRequest;
-import net.pms.network.message.SamsungBookmark;
-import net.pms.network.message.SearchRequest;
+import net.pms.network.mediaserver.handlers.HTMLConsole;
+import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.handlers.ApiHandler;
+import net.pms.network.mediaserver.handlers.message.BrowseRequest;
+import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
+import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;

@@ -16,8 +16,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network;
+package net.pms.network.mediaserver.socketchannelserver;
 
+import net.pms.network.mediaserver.HTTPXMLHelper;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
@@ -55,6 +56,8 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.network.mediaserver.handlers.HTMLConsole;
+import net.pms.network.HTTPResource;
 import net.pms.service.Services;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;

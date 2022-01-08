@@ -1,4 +1,4 @@
-package net.pms.network;
+package net.pms.network.mediaserver.handlers;
 
 import java.io.File;
 import java.sql.Connection;
@@ -21,7 +21,8 @@ import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.formats.Format;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
-import net.pms.network.message.SearchRequest;
+import net.pms.network.mediaserver.HTTPXMLHelper;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
 
 /**
  * <pre>

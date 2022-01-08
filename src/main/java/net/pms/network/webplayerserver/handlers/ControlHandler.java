@@ -33,7 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
-import net.pms.network.UPNPHelper;
+import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
 import net.pms.network.webplayerserver.WebPlayerServerUtil;

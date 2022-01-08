@@ -1,4 +1,4 @@
-package net.pms.network.message;
+package net.pms.network.mediaserver.handlers.message;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;

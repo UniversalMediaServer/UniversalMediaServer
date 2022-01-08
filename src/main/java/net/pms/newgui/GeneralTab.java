@@ -34,7 +34,7 @@ import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.network.NetworkConfiguration;
+import net.pms.network.mediaserver.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.SleepManager;

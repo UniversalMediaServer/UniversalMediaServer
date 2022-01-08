@@ -1,4 +1,4 @@
-package net.pms.network;
+package net.pms.network.mediaserver;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
 import net.pms.PMS;
-import static net.pms.network.UPNPHelper.sleep;
+import static net.pms.network.mediaserver.UPNPHelper.sleep;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;

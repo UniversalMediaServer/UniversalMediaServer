@@ -1,4 +1,4 @@
-package net.pms.network.api;
+package net.pms.network.mediaserver.handlers;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map.Entry;

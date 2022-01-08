@@ -16,7 +16,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import static net.pms.network.UPNPHelper.unescape;
+import static net.pms.network.mediaserver.UPNPHelper.unescape;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

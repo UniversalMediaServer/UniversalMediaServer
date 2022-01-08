@@ -16,8 +16,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network;
+package net.pms.network.mediaserver;
 
+import net.pms.network.mediaserver.nettyserver.HttpServerPipelineFactory;
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.ClosedByInterruptException;
@@ -27,6 +28,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.mediaserver.socketchannelserver.RequestHandler;
 import net.pms.newgui.StatusTab.ConnectionState;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;

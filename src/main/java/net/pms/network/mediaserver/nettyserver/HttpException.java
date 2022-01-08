@@ -1,4 +1,4 @@
-package net.pms.network;
+package net.pms.network.mediaserver.nettyserver;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 

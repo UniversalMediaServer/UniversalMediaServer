@@ -1,4 +1,4 @@
-package net.pms.network;
+package net.pms.network.mediaserver.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.apache.commons.configuration.ConfigurationException;
@@ -11,7 +11,7 @@ import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.network.message.SearchRequest;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 
 /**
