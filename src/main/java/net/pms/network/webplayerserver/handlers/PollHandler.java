@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.handlers;
+package net.pms.network.webplayerserver.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
-import net.pms.webserver.WebServerUtil;
-import net.pms.webserver.WebServerHttpServer;
+import net.pms.network.webplayerserver.WebPlayerServerUtil;
+import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +34,9 @@ public class PollHandler implements HttpHandler {
 	@SuppressWarnings("unused")
 	private static final String CRLF = "\r\n";
 
-	private final WebServerHttpServer parent;
+	private final WebPlayerServerHttpServer parent;
 
-	public PollHandler(WebServerHttpServer parent) {
+	public PollHandler(WebPlayerServerHttpServer parent) {
 		this.parent = parent;
 	}
 
@@ -44,13 +44,13 @@ public class PollHandler implements HttpHandler {
 	public void handle(HttpExchange t) throws IOException {
 		try {
 			// LOGGER.debug("poll req " + t.getRequestURI());
-			if (WebServerUtil.deny(t)) {
+			if (WebPlayerServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
-			RootFolder root = parent.getRoot(WebServerUtil.userName(t), t);
+			RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			String json = renderer.getPushData();
-			WebServerUtil.respond(t, json, 200, "application/json");
+			WebPlayerServerUtil.respond(t, json, 200, "application/json");
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {

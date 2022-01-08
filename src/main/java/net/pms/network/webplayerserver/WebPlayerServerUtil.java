@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver;
+package net.pms.network.webplayerserver;
 
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
@@ -61,8 +61,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class WebServerUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebServerUtil.class);
+public class WebPlayerServerUtil {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServerUtil.class);
 
 	//public static final String MIME_TRANS = MIME_MP4;
 	public static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
@@ -790,23 +790,23 @@ public class WebServerUtil {
 
 		String javascriptVarsScript = "";
 		javascriptVarsScript += "var awards = \"" + StringEscapeUtils.escapeEcmaScript(awards) + "\";";
-		javascriptVarsScript += "var awardsTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Awards", language) + "\";";
+		javascriptVarsScript += "var awardsTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Awards", language) + "\";";
 		javascriptVarsScript += "var country = " + country + ";";
-		javascriptVarsScript += "var countryTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Country", language) + "\";";
+		javascriptVarsScript += "var countryTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Country", language) + "\";";
 		javascriptVarsScript += "var director = " + director + ";";
-		javascriptVarsScript += "var directorTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Director", language) + "\";";
+		javascriptVarsScript += "var directorTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Director", language) + "\";";
 		javascriptVarsScript += "var imdbID = \"" + StringEscapeUtils.escapeEcmaScript(imdbID) + "\";";
 		javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
-		javascriptVarsScript += "var plotTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Plot", language) + "\";";
+		javascriptVarsScript += "var plotTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Plot", language) + "\";";
 		javascriptVarsScript += "var poster = \"" + StringEscapeUtils.escapeEcmaScript(poster) + "\";";
 		javascriptVarsScript += "var rated = " + rated + ";";
-		javascriptVarsScript += "var ratedTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Rated", language) + "\";";
+		javascriptVarsScript += "var ratedTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Rated", language) + "\";";
 		javascriptVarsScript += "var startYear = \"" + StringEscapeUtils.escapeEcmaScript(startYear) + "\";";
-		javascriptVarsScript += "var yearStartedTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.YearStarted", language) + "\";";
+		javascriptVarsScript += "var yearStartedTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.YearStarted", language) + "\";";
 		javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
-		javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.TotalSeasons", language) + "\";";
+		javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.TotalSeasons", language) + "\";";
 
-		javascriptVarsScript += "var actorsTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
+		javascriptVarsScript += "var actorsTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
 		String actorsArrayJavaScript = "var actors = [";
 		for (String actor : actors) {
 			actorsArrayJavaScript += actor + ",";
@@ -814,7 +814,7 @@ public class WebServerUtil {
 		actorsArrayJavaScript += "];";
 		javascriptVarsScript += actorsArrayJavaScript;
 
-		javascriptVarsScript += "var genresTranslation = \"" + WebServerUtil.getMsgString("VirtualFolder.Genres", language) + "\";";
+		javascriptVarsScript += "var genresTranslation = \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Genres", language) + "\";";
 		String genresArrayJavaScript = "var genres = [";
 		for (String genre : genres) {
 			genresArrayJavaScript += genre + ",";
@@ -823,7 +823,7 @@ public class WebServerUtil {
 		javascriptVarsScript += genresArrayJavaScript;
 
 		String ratingsArrayJavaScript = "var ratings = [";
-		javascriptVarsScript += "var ratingsTranslation= \"" + WebServerUtil.getMsgString("VirtualFolder.Ratings", language) + "\";";
+		javascriptVarsScript += "var ratingsTranslation= \"" + WebPlayerServerUtil.getMsgString("VirtualFolder.Ratings", language) + "\";";
 		if (!ratings.isEmpty()) {
 			Iterator<HashMap<String, String>> ratingsIterator = ratings.iterator();
 			while (ratingsIterator.hasNext()) {

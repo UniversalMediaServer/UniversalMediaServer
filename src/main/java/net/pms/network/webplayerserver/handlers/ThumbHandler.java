@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.handlers;
+package net.pms.network.webplayerserver.handlers;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -35,8 +35,8 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.util.FullyPlayed;
-import net.pms.webserver.WebServerUtil;
-import net.pms.webserver.WebServerHttpServer;
+import net.pms.network.webplayerserver.WebPlayerServerUtil;
+import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,26 +44,26 @@ public class ThumbHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final WebServerHttpServer parent;
+	private final WebPlayerServerHttpServer parent;
 
-	public ThumbHandler(WebServerHttpServer parent) {
+	public ThumbHandler(WebPlayerServerHttpServer parent) {
 		this.parent = parent;
 	}
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		try {
-			if (WebServerUtil.deny(t)) {
+			if (WebPlayerServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
-			String id = WebServerUtil.getId("thumb/", t);
+			String id = WebPlayerServerUtil.getId("thumb/", t);
 			LOGGER.trace("web thumb req " + id);
 			if (id.contains("logo")) {
-				WebServerUtil.sendLogo(t);
+				WebPlayerServerUtil.sendLogo(t);
 				return;
 			}
 
-			RootFolder root = parent.getRoot(WebServerUtil.userName(t), t);
+			RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(t), t);
 			if (root == null) {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
@@ -115,7 +115,7 @@ public class ThumbHandler implements HttpHandler {
 			t.sendResponseHeaders(200, in.getSize());
 			OutputStream os = t.getResponseBody();
 			LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
-			WebServerUtil.dump(in, os);
+			WebPlayerServerUtil.dump(in, os);
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {

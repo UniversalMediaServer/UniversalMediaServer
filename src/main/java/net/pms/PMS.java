@@ -77,7 +77,7 @@ import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
-import net.pms.webserver.WebServer;
+import net.pms.network.webplayerserver.WebPlayerServer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -572,7 +572,7 @@ public class PMS {
 		// Web stuff
 		if (configuration.useWebInterface()) {
 			try {
-				web = WebServer.createServer(configuration.getWebPort());
+				web = WebPlayerServer.createServer(configuration.getWebPort());
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
@@ -1520,10 +1520,10 @@ public class PMS {
 		setLocale(language, "", "");
 	}
 
-	private WebServer web;
+	private WebPlayerServer web;
 
 	@Nullable
-	public WebServer getWebInterface() {
+	public WebPlayerServer getWebInterface() {
 		return web;
 	}
 

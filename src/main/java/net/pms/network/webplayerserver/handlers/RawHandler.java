@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.handlers;
+package net.pms.network.webplayerserver.handlers;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -40,17 +40,17 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.webserver.WebServerUtil;
-import net.pms.webserver.WebServerHttpServer;
+import net.pms.network.webplayerserver.WebPlayerServerUtil;
+import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RawHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RawHandler.class);
 
-	private final WebServerHttpServer parent;
+	private final WebPlayerServerHttpServer parent;
 
-	public RawHandler(WebServerHttpServer parent) {
+	public RawHandler(WebPlayerServerHttpServer parent) {
 		this.parent = parent;
 	}
 
@@ -58,16 +58,16 @@ public class RawHandler implements HttpHandler {
 	public void handle(HttpExchange t) throws IOException {
 		try {
 			LOGGER.debug("got a raw request " + t.getRequestURI());
-			if (WebServerUtil.deny(t)) {
+			if (WebPlayerServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
 
-			RootFolder root = parent.getRoot(WebServerUtil.userName(t), t);
+			RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(t), t);
 			if (root == null) {
 				throw new IOException("Unknown root");
 			}
 			String id;
-			id = WebServerUtil.strip(WebServerUtil.getId("raw/", t));
+			id = WebPlayerServerUtil.strip(WebPlayerServerUtil.getId("raw/", t));
 			LOGGER.debug("raw id " + id);
 			List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 			if (res.size() != 1) {
@@ -114,7 +114,7 @@ public class RawHandler implements HttpHandler {
 			} else {
 				len = dlna.length();
 				dlna.setPlayer(null);
-				range = WebServerUtil.parseRange(t.getRequestHeaders(), len);
+				range = WebPlayerServerUtil.parseRange(t.getRequestHeaders(), len);
 				in = dlna.getInputStream(range, root.getDefaultRenderer());
 				if (len == 0) {
 					// For web resources actual length may be unknown until we open the stream
@@ -138,7 +138,7 @@ public class RawHandler implements HttpHandler {
 			}
 			OutputStream os = new BufferedOutputStream(t.getResponseBody(), 512 * 1024);
 			LOGGER.debug("start raw dump");
-			WebServerUtil.dump(in, os);
+			WebPlayerServerUtil.dump(in, os);
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {

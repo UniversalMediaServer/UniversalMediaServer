@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.handlers;
+package net.pms.network.webplayerserver.handlers;
 
 import com.sun.net.httpserver.*;
 import java.io.File;
@@ -36,29 +36,29 @@ import net.pms.configuration.WebRender;
 import net.pms.network.UPNPHelper;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
-import net.pms.webserver.WebServerUtil;
-import net.pms.webserver.WebServer;
+import net.pms.network.webplayerserver.WebPlayerServerUtil;
+import net.pms.network.webplayerserver.WebPlayerServer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("restriction")
 public class ControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControlHandler.class);
-	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
-	private final WebServer parent;
+	private final WebPlayerServer parent;
 	private final HashMap<String, Logical> players;
 	private final HashMap<InetAddress, Logical> selectedPlayers;
 	private final String bumpAddress;
-	private RendererConfiguration defaultRenderer;
 	@SuppressWarnings(value = "unused")
 	private final File bumpjs;
 	private final File skindir;
 
-	public ControlHandler(WebServer parent) {
+	private RendererConfiguration defaultRenderer;
+
+	public ControlHandler(WebPlayerServer parent) {
 		this.parent = parent;
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
@@ -72,7 +72,7 @@ public class ControlHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 
-		if (WebServerUtil.deny(httpExchange) && !WebServerUtil.bumpAllowed(httpExchange)) {
+		if (WebPlayerServerUtil.deny(httpExchange) && !WebPlayerServerUtil.bumpAllowed(httpExchange)) {
 			LOGGER.debug("Denying {}", httpExchange);
 			throw new IOException("Denied");
 		}
@@ -144,7 +144,7 @@ public class ControlHandler implements HttpHandler {
 		} else if (p[2].equals("renderers")) {
 			json.add(getRenderers(httpExchange.getRemoteAddress().getAddress()));
 		} else if (p[2].startsWith("skin.")) {
-			WebServerUtil.dumpFile(new File(skindir, p[2].substring(5)), httpExchange);
+			WebPlayerServerUtil.dumpFile(new File(skindir, p[2].substring(5)), httpExchange);
 			return;
 		}
 
@@ -248,7 +248,7 @@ public class ControlHandler implements HttpHandler {
 	}
 
 	public String getBumpJS() {
-		WebServerUtil.ResourceManager resources = parent.getResources();
+		WebPlayerServerUtil.ResourceManager resources = parent.getResources();
 		return resources.read("bump/bump.js") +
 			"\nvar bumpskin = function() {\n" +
 			resources.read("bump/skin/skin.js") +

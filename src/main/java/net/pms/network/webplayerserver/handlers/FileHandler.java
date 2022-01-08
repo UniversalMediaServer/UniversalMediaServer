@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver.handlers;
+package net.pms.network.webplayerserver.handlers;
 
 import com.samskivert.mustache.MustacheException;
 import com.sun.net.httpserver.Headers;
@@ -41,8 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.network.HTTPResource;
-import net.pms.webserver.WebServerUtil;
-import net.pms.webserver.WebServerHttpServer;
+import net.pms.network.webplayerserver.WebPlayerServerUtil;
+import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +51,9 @@ public class FileHandler implements HttpHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 
-	private final WebServerHttpServer parent;
+	private final WebPlayerServerHttpServer parent;
 
-	public FileHandler(WebServerHttpServer parent) {
+	public FileHandler(WebPlayerServerHttpServer parent) {
 		this.parent = parent;
 	}
 
@@ -93,7 +93,7 @@ public class FileHandler implements HttpHandler {
 						HashMap<String, Object> vars = new HashMap<>();
 						vars.put("title", filename);
 						vars.put("brush", filename.endsWith("debug.log") ? "debug_log" : filename.endsWith(".log") ? "log" : "conf");
-						vars.put("log", WebServerUtil.read(file).replace("<", "&lt;"));
+						vars.put("log", WebPlayerServerUtil.read(file).replace("<", "&lt;"));
 						response = parent.getResources().getTemplate("util/log.html").execute(vars);
 					} else {
 						status = 404;
@@ -165,7 +165,7 @@ public class FileHandler implements HttpHandler {
 
 				OutputStream os = t.getResponseBody();
 				LOGGER.trace("input is {} output is {}", in, os);
-				WebServerUtil.dump(in, os);
+				WebPlayerServerUtil.dump(in, os);
 				return;
 			} else if (parent.getResources().write(path.substring(7), t)) {
 				// The resource manager found and sent the file, all done.
@@ -180,7 +180,7 @@ public class FileHandler implements HttpHandler {
 				mime = "text/html";
 			}
 
-			WebServerUtil.respond(t, response, status, mime);
+			WebPlayerServerUtil.respond(t, response, status, mime);
 		} catch (IOException e) {
 			throw e;
 		} catch (MustacheException e) {

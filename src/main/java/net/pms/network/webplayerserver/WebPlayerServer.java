@@ -1,5 +1,5 @@
 /*
- * Universal Media Server, for streaming any medias to DLNA
+ * Universal Media Server, for streaming any media to DLNA
  * compatible renderers based on the http://www.ps3mediaserver.org.
  * Copyright (C) 2012 UMS developers.
  *
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.webserver;
+package net.pms.network.webplayerserver;
 
 import java.io.IOException;
 import java.security.AccessController;
@@ -30,18 +30,18 @@ import net.pms.dlna.RootFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class WebServer implements WebServerInterface {
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebServer.class);
+public abstract class WebPlayerServer implements WebPlayerServerInterface {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPort();
-	private WebServerInterface webServer;
+	private WebPlayerServerInterface webServer;
 	protected final Map<String, RootFolder> roots;
-	protected final WebServerUtil.ResourceManager resources;
+	protected final WebPlayerServerUtil.ResourceManager resources;
 
-	public WebServer() throws IOException {
+	public WebPlayerServer() throws IOException {
 		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
-		resources = AccessController.doPrivileged((PrivilegedAction<WebServerUtil.ResourceManager>) () -> new WebServerUtil.ResourceManager(
+		resources = AccessController.doPrivileged((PrivilegedAction<WebPlayerServerUtil.ResourceManager>) () -> new WebPlayerServerUtil.ResourceManager(
 				"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
 				"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
 				"file:" + CONFIGURATION.getWebPath() + "/"
@@ -56,7 +56,7 @@ public abstract class WebServer implements WebServerInterface {
 		return tag;
 	}
 
-	public WebServerUtil.ResourceManager getResources() {
+	public WebPlayerServerUtil.ResourceManager getResources() {
 		return resources;
 	}
 
@@ -85,8 +85,8 @@ public abstract class WebServer implements WebServerInterface {
 		return webServer.isSecure();
 	}
 
-	public static WebServer createServer(int port) throws IOException {
+	public static WebPlayerServer createServer(int port) throws IOException {
 		LOGGER.debug("Using httpserver as web server");
-		return new WebServerHttpServer(port);
+		return new WebPlayerServerHttpServer(port);
 	}
 }
