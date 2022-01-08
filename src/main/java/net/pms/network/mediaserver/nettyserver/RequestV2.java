@@ -76,6 +76,7 @@ import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.ApiHandler;
 import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
@@ -112,14 +113,16 @@ import org.xml.sax.SAXException;
  */
 public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
-	private final static String CRLF = "\r\n";
+	private static final String CRLF = "\r\n";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
-	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
+
 	private final HttpMethod method;
-	private PmsConfiguration configuration = PMS.getConfiguration();
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
 	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
+
+	private PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * A {@link String} that contains the uri with which this {@link RequestV2} was
@@ -556,8 +559,7 @@ public class RequestV2 extends HTTPResource {
 									if (isNotBlank(subExtension)) {
 										subExtension = "." + subExtension;
 									}
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
+									subtitleUrl = MediaServer.getURL() + "/get/" +
 										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 										output.headers().set(subtitleHttpHeader, subtitleUrl);
@@ -874,9 +876,9 @@ public class RequestV2 extends HTTPResource {
 	private String prepareUmsSpec(String umsXml) {
 		String result = umsXml.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 
-		if (PMS.get().getServer().getHost() != null) {
-			result = result.replace("[host]", PMS.get().getServer().getHost());
-			result = result.replace("[port]", "" + PMS.get().getServer().getPort());
+		if (MediaServer.isStarted()) {
+			result = result.replace("[host]", MediaServer.getHost());
+			result = result.replace("[port]", "" + MediaServer.getPort());
 		}
 
 		String friendlyName = configuration.getServerDisplayName();
@@ -1014,7 +1016,7 @@ public class RequestV2 extends HTTPResource {
 					formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
 				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
+					formattedResponse += "    " + response.toString().replace("\n", "\n    ");
 				}
 			}
 			if (isNotBlank(formattedResponse)) {
@@ -1377,8 +1379,8 @@ public class RequestV2 extends HTTPResource {
 	 * @return The {@link String} containing the date
 	 */
 	private String getFutureDate() {
-		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-		return sdf.format(new Date(10000000000L + System.currentTimeMillis()));
+		SDF.setTimeZone(TimeZone.getTimeZone("GMT"));
+		return SDF.format(new Date(10000000000L + System.currentTimeMillis()));
 	}
 
 	/**

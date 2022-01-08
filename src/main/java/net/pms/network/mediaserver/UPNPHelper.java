@@ -1,19 +1,21 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3. Copyright (C) 2008
- * A.Brochard
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; version 2 of the License only.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.network.mediaserver;
 
@@ -29,9 +31,9 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
-import static net.pms.dlna.DLNAResource.TEMP;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.fourthline.cling.model.meta.Device;
@@ -146,8 +148,7 @@ public class UPNPHelper extends UPNPControl {
 	 */
 	private static void sendDiscover(String host, int port, String searchTarget) throws IOException {
 		String usn = PMS.get().usn();
-		String serverHost = PMS.get().getServer().getHost();
-		int serverPort = PMS.get().getServer().getPort();
+		String serverURL = MediaServer.getURL();
 		SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 
 		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -163,7 +164,7 @@ public class UPNPHelper extends UPNPControl {
 		discovery.append("HTTP/1.1 200 OK").append(CRLF);
 		discovery.append("CACHE-CONTROL: max-age=1800").append(CRLF);
 		discovery.append("DATE: ").append(sdf.format(new Date(System.currentTimeMillis()))).append(" GMT").append(CRLF);
-		discovery.append("LOCATION: http://").append(serverHost).append(':').append(serverPort).append("/description/fetch").append(CRLF);
+		discovery.append("LOCATION: ").append(serverURL).append("/description/fetch").append(CRLF);
 		discovery.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
 		discovery.append("ST: ").append(searchTarget).append(CRLF);
 		discovery.append("EXT: ").append(CRLF);
@@ -242,7 +243,7 @@ public class UPNPHelper extends UPNPControl {
 
 		if (networkInterface == null) {
 			try {
-				networkInterface = PMS.get().getServer().getNetworkInterface();
+				networkInterface = MediaServer.getNetworkInterface();
 			} catch (NullPointerException e) {
 				LOGGER.debug("Couldn't get server network interface. Trying again in 5 seconds.");
 
@@ -252,7 +253,7 @@ public class UPNPHelper extends UPNPControl {
 				}
 
 				try {
-					networkInterface = PMS.get().getServer().getNetworkInterface();
+					networkInterface = MediaServer.getNetworkInterface();
 				} catch (NullPointerException e3) {
 					LOGGER.debug("Couldn't get server network interface.");
 				}
@@ -435,7 +436,7 @@ public class UPNPHelper extends UPNPControl {
 							currentTime < (lastValidPacketReceivedTime + 10 * 1000);
 						// Is the request from our own server, i.e.
 						// self-originating?
-						boolean isSelf = address.getHostAddress().equals(PMS.get().getServer().getHost()) && s.contains("UMS/");
+						boolean isSelf = address.getHostAddress().equals(MediaServer.getHost()) && s.contains("UMS/");
 
 						if (CONFIGURATION.getIpFiltering().allowed(address) && !isSelf && isNotIgnoredDevice(s)) {
 							String remoteAddr = address.getHostAddress();
@@ -532,10 +533,8 @@ public class UPNPHelper extends UPNPControl {
 
 		if (message.equals(ALIVE)) {
 			sb
-				.append("LOCATION: http://")
-				.append(PMS.get().getServer().getHost())
-				.append(':')
-				.append(PMS.get().getServer().getPort())
+				.append("LOCATION: ")
+				.append(MediaServer.getURL())
 				.append("/description/fetch")
 				.append(CRLF);
 		}
@@ -658,7 +657,7 @@ public class UPNPHelper extends UPNPControl {
 					// server receives a request.
 					// This is to allow initiation of upnp playback before http
 					// recognition has occurred.
-					r.inherit(r.getDefaultConf());
+					r.inherit(RendererConfiguration.getDefaultConf());
 					r.loaded = false;
 					LOGGER.debug("Marking upnp renderer \"{}\" at {} as unrecognized", r, socket);
 				}
@@ -669,7 +668,7 @@ public class UPNPHelper extends UPNPControl {
 				}
 			}
 			return r;
-		} catch (Exception e) {
+		} catch (UnknownHostException | ConfigurationException e) {
 			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
 			e.printStackTrace();
 		}
@@ -679,7 +678,7 @@ public class UPNPHelper extends UPNPControl {
 	public static InetAddress getAddress(String uuid) {
 		try {
 			return InetAddress.getByName(getURL(getDevice(uuid)).getHost());
-		} catch (Exception e) {
+		} catch (UnknownHostException e) {
 		}
 		return null;
 	}
@@ -721,7 +720,7 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static void play(DLNAResource d, DeviceConfiguration r) {
-		DLNAResource d1 = d.getParent() == null ? TEMP.add(d) : d;
+		DLNAResource d1 = d.getParent() == null ? DLNAResource.TEMP.add(d) : d;
 		if (d1 != null) {
 			Device dev = getDevice(r.getUUID());
 			String id = r.getInstanceID();
@@ -866,7 +865,7 @@ public class UPNPHelper extends UPNPControl {
 	 *         devices, false otherwise.
 	 */
 	private static boolean isNotIgnoredDevice(String request) {
-		String uuid = null;
+		String uuid;
 		int uuidPosition = request.indexOf(UUID);
 		if (uuidPosition != -1) {
 			String temp = request.substring(uuidPosition);

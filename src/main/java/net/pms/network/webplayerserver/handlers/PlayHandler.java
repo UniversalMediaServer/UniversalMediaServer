@@ -112,10 +112,14 @@ public class PlayHandler implements HttpHandler {
 					WebRender renderer = (WebRender) root.getDefaultRenderer();
 					if (op.equals("add")) {
 						PMS.get().getDynamicPls().add(r);
-						renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+						synchronized (renderer) {
+							renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+						}
 					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 						((Playlist) r.getParent()).remove(r);
-						renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+						synchronized (renderer) {
+							renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+						}
 					}
 				}
 				WebPlayerServerUtil.respond(t, RETURN_PAGE, 200, "text/html");
@@ -192,10 +196,12 @@ public class PlayHandler implements HttpHandler {
 		if (rootResource instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
-			if (((VirtualVideoAction) rootResource).enable()) {
-				renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
-			} else {
-				renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
+			synchronized (renderer) {
+				if (((VirtualVideoAction) rootResource).enable()) {
+					renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
+				} else {
+					renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
+				}
 			}
 			return RETURN_PAGE;
 		}

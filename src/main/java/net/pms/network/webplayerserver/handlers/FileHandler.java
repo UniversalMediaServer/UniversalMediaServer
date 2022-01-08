@@ -79,7 +79,7 @@ public class FileHandler implements HttpHandler {
 				String filename = path.substring(11);
 				if (filename.equals("info")) {
 					String log = PMS.get().getFrame().getLog();
-					log = log.replaceAll("\n", "<br>");
+					log = log.replace("\n", "<br>");
 					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
 					String x = fullLink + log;
 					if (StringUtils.isNotEmpty(log)) {

@@ -47,6 +47,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -248,7 +249,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPla
 
 	@Override
 	public String getAddress() {
-		return PMS.get().getServer().getHost() + ":" + getPort();
+		return MediaServer.getHost() + ":" + getPort();
 	}
 
 	@Override

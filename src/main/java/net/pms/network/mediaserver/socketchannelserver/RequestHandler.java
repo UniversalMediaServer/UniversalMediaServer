@@ -38,6 +38,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -50,9 +51,9 @@ import org.xml.sax.SAXException;
 public class RequestHandler implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
 	public final static int SOCKET_BUF_SIZE = 32768;
-	private Socket socket;
-	private OutputStream output;
-	private BufferedReader br;
+	private final Socket socket;
+	private final OutputStream output;
+	private final BufferedReader br;
 
 	// Used to filter out known headers when the renderer is not recognized
 	private final static String[] KNOWN_HEADERS = {
@@ -86,12 +87,11 @@ public class RequestHandler implements Runnable {
 			int receivedContentLength = -1;
 			String userAgentString = null;
 			ArrayList<String> identifiers = new ArrayList<>();
-			RendererConfiguration renderer = null;
 
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
 			InetAddress ia = remoteAddress.getAddress();
 
-			boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost());
+			boolean isSelf = ia.getHostAddress().equals(MediaServer.getHost());
 
 			// Apply the IP filter
 			if (filterIp(ia)) {
@@ -104,7 +104,7 @@ public class RequestHandler implements Runnable {
 			// default renderer.
 
 			// Attempt 1: try to recognize the renderer by its socket address from previous requests
-			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+			RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 			// If the renderer exists but isn't marked as loaded it means it's unrecognized
 			// by upnp and we still need to attempt http recognition here.
@@ -343,7 +343,7 @@ public class RequestHandler implements Runnable {
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
+				formattedContent += "    " + content.replace("\n", "\n    ") + "\n";
 			}
 		}
 		String requestType = "";

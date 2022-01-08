@@ -40,6 +40,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -97,7 +98,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetAddress ia = remoteAddress.getAddress();
 
 		// Is the request from our own Cling service, i.e. self-originating?
-		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
+		boolean isSelf = ia.getHostAddress().equals(MediaServer.getHost()) &&
 			headers.get(HttpHeaders.Names.USER_AGENT) != null &&
 			headers.get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
 
@@ -320,7 +321,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
+				formattedContent += "    " + content.replace("\n", "\n    ") + "\n";
 			}
 		}
 		String requestType = "";

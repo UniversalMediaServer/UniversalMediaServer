@@ -67,7 +67,7 @@ import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
-import net.pms.network.mediaserver.HTTPServer;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.proxyserver.ProxyServer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.newgui.*;
@@ -117,7 +117,7 @@ public class PMS {
 	private static PmsConfiguration configuration;
 
 	/**
-	 * Universally Unique Identifier used in the UPnP server.
+	 * Universally Unique Identifier used in the UPnP mediaServer.
 	 */
 	private String uuid;
 
@@ -160,7 +160,7 @@ public class PMS {
 	}
 
 	/**
-	 * Pointer to a running DMS server.
+	 * Pointer to a running DMS mediaServer.
 	 */
 	private static PMS instance = null;
 
@@ -171,7 +171,7 @@ public class PMS {
 	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
 	 * {@link List} itself</b>.
 	 */
-	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<RendererConfiguration>());
+	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * The returned <code>List</code> itself is thread safe, but the objects
@@ -213,17 +213,17 @@ public class PMS {
 	}
 
 	/**
-	 * HTTP server that serves the XML files needed by UPnP server and the media files.
+	 * HTTP mediaServer that serves the XML files needed by UPnP mediaServer and the media files.
 	 */
-	private HTTPServer server;
+	private MediaServer mediaServer;
 
 	/**
-	 * HTTP server that serves a brower/player of media files.
+	 * HTTP mediaServer that serves a brower/player of media files.
 	 */
 	private WebPlayerServer webPlayerServer;
 
 	/**
-	 * User friendly name for the server.
+	 * User friendly name for the mediaServer.
 	 */
 	private String serverName;
 
@@ -376,8 +376,8 @@ public class PMS {
 	/**
 	 * Initialization procedure.
 	 *
-	 * @return <code>true</code> if the server has been initialized correctly.
-	 *         <code>false</code> if initialization was aborted.
+	 * @return <code>true</code> if the mediaServer has been initialized correctly.
+         <code>false</code> if initialization was aborted.
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
@@ -594,7 +594,7 @@ public class PMS {
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
-		UPNPHelper.getInstance().init();
+		MediaServer.init();
 
 		// launch ChromecastMgr
 		jmDNS = null;
@@ -667,22 +667,13 @@ public class PMS {
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
-		server = new HTTPServer(configuration.getServerPort());
-
 		// Initialize a player factory to register all players
 		PlayerFactory.initialize();
 
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
 
-		boolean binding = false;
-
-		try {
-			binding = server.start();
-		} catch (BindException b) {
-			LOGGER.error("FATAL ERROR: Unable to bind on port: " + configuration.getServerPort() + ", because: " + b.getMessage());
-			LOGGER.info("Maybe another process is running or the hostname is wrong.");
-		}
+		boolean binding = MediaServer.start();
 
 		new Thread("Connection Checker") {
 			@Override
@@ -712,7 +703,7 @@ public class PMS {
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			mediaLibrary = new MediaLibrary();
-			LOGGER.info("A tiny cache admin interface is available at: http://" + server.getHost() + ":" + server.getPort() + "/console/home");
+			LOGGER.info("A tiny cache admin interface is available at: " + MediaServer.getURL() + "/console/home");
 		}
 
 		// XXX: this must be called:
@@ -728,9 +719,6 @@ public class PMS {
 		frame.serverReady();
 		ready = true;
 
-		UPNPHelper.getInstance().createMulticastSocket();
-
-		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
 			@Override
 			public void run() {
@@ -738,11 +726,8 @@ public class PMS {
 					// force to save the configuration to file before stopping the UMS
 					saveConfiguration();
 
-					UPNPHelper.shutDownListener();
-					UPNPHelper.sendByeBye();
-
-					LOGGER.debug("Shutting down the HTTP server");
-					get().getServer().stop();
+					LOGGER.debug("Shutting down the media server");
+					MediaServer.stop();
 					Thread.sleep(500);
 
 					if (configuration.getDatabaseLogging()) {
@@ -839,36 +824,24 @@ public class PMS {
 	 * Restarts the server. The trigger is either a button on the main DMS
 	 * window or via an action item.
 	 */
-	// XXX: don't try to optimize this by reusing the same server instance.
+	// XXX: don't try to optimize this by reusing the same mediaServer instance.
 	// see the comment above HTTPServer.stop()
 	public void reset() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
+			MediaServer.stop();
+			RendererConfiguration.loadRendererConfigurations(configuration);
+
+			LOGGER.trace("Waiting 1 second...");
 			try {
-				LOGGER.trace("Waiting 1 second...");
-				UPNPHelper.sendByeBye();
-				if (server != null) {
-					server.stop();
-				}
-				server = null;
-				RendererConfiguration.loadRendererConfigurations(configuration);
-
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					LOGGER.trace("Caught exception", e);
-				}
-
-				server = new HTTPServer(configuration.getServerPort());
-				server.start();
-
-				// re-create the multicast socked because may happened the
-				// change of the used interface
-				UPNPHelper.getInstance().createMulticastSocket();
-				UPNPHelper.sendAlive();
-				frame.setReloadable(false);
-			} catch (IOException e) {
-				LOGGER.error("error during restart :" + e.getMessage(), e);
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				LOGGER.trace("Caught exception", e);
 			}
+			// re-create the server because may happened the
+			// change of the used interface
+			MediaServer.start();
+
+			frame.setReloadable(false);
 		});
 	}
 
@@ -900,7 +873,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the user friendly name of the UPnP server.
+	 * Returns the user friendly name of the UPnP mediaServer.
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -1137,8 +1110,8 @@ public class PMS {
 		}
 	}
 
-	public HTTPServer getServer() {
-		return server;
+	public MediaServer getMediaServer() {
+		return mediaServer;
 	}
 
 	@Nullable
@@ -1386,25 +1359,26 @@ public class PMS {
 		tfm.add(f, cleanTime);
 	}
 
-	private static ReadWriteLock headlessLock = new ReentrantReadWriteLock();
+	private static final ReadWriteLock HEADLESS_LOCK = new ReentrantReadWriteLock();
 	private static Boolean headless = null;
 
 	/**
 	 * Checks if DMS is running in headless (console) mode, since some Linux
 	 * distributions seem to not use java.awt.GraphicsEnvironment.isHeadless()
 	 * properly.
+	 * @return true if DMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
-		headlessLock.readLock().lock();
+		HEADLESS_LOCK.readLock().lock();
 		try {
 			if (headless != null) {
 				return headless;
 			}
 		} finally {
-			headlessLock.readLock().unlock();
+			HEADLESS_LOCK.readLock().unlock();
 		}
 
-		headlessLock.writeLock().lock();
+		HEADLESS_LOCK.writeLock().lock();
 		try {
 			JDialog d = new JDialog();
 			d.dispose();
@@ -1414,7 +1388,7 @@ public class PMS {
 			headless = true;
 			return headless;
 		} finally {
-			headlessLock.writeLock().unlock();
+			HEADLESS_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -1423,32 +1397,32 @@ public class PMS {
 	 * environment is available or not.
 	 */
 	public static void forceHeadless() {
-		headlessLock.writeLock().lock();
+		HEADLESS_LOCK.writeLock().lock();
 		try {
 			headless = true;
 		} finally {
-			headlessLock.writeLock().unlock();
+			HEADLESS_LOCK.writeLock().unlock();
 		}
 	}
 
 	private static Locale locale = null;
-	private static ReadWriteLock localeLock = new ReentrantReadWriteLock();
+	private static final ReadWriteLock LOCALE_LOCK = new ReentrantReadWriteLock();
 
 	/**
 	 * Gets DMS' current {@link Locale} to be used in any {@link Locale}
-	 * sensitive operations. If <code>null</code> the default {@link Locale}
+	 * sensitive operations.If <code>null</code> the default {@link Locale}
 	 * is returned.
+	 * @return current {@link Locale} or default {@link Locale}
 	 */
-
 	public static Locale getLocale() {
-		localeLock.readLock().lock();
+		LOCALE_LOCK.readLock().lock();
 		try {
 			if (locale != null) {
 				return locale;
 			}
 			return Locale.getDefault();
 		} finally {
-			localeLock.readLock().unlock();
+			LOCALE_LOCK.readLock().unlock();
 		}
 	}
 
@@ -1456,14 +1430,13 @@ public class PMS {
 	 * Sets DMS' {@link Locale}.
 	 * @param aLocale the {@link Locale} to set
 	 */
-
 	public static void setLocale(Locale aLocale) {
-		localeLock.writeLock().lock();
+		LOCALE_LOCK.writeLock().lock();
 		try {
 			locale = (Locale) aLocale.clone();
 			Messages.setLocaleBundle(locale);
 		} finally {
-			localeLock.writeLock().unlock();
+			LOCALE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -1489,11 +1462,11 @@ public class PMS {
 		if (variant == null) {
 			variant = "";
 		}
-		localeLock.writeLock().lock();
+		LOCALE_LOCK.writeLock().lock();
 		try {
 			locale = new Locale(language, country, variant);
 		} finally {
-			localeLock.writeLock().unlock();
+			LOCALE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -1574,8 +1547,8 @@ public class PMS {
 	}
 
 	public static class DynamicPlaylist extends Playlist {
+		private final String savePath;
 		private long start;
-		private String savePath;
 
 		public DynamicPlaylist(String name, String dir, int mode) {
 			super(name, null, 0, mode);

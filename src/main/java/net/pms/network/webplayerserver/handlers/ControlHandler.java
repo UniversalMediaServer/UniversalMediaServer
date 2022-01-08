@@ -33,6 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
@@ -257,7 +258,7 @@ public class ControlHandler implements HttpHandler {
 
 	public static String translate(String uri) {
 		return uri.startsWith("/play/") ?
-			(PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
+			(MediaServer.getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
 	@SuppressWarnings("unused")

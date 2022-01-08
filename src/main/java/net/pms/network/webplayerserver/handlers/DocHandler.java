@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Set;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.network.webplayerserver.WebPlayerServerUtil;
 import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
@@ -65,7 +66,7 @@ public class DocHandler implements HttpHandler {
 			vars.put("logs", getLogs(true));
 			if (CONFIGURATION.getUseCache()) {
 				vars.put("cache",
-					"http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
+					MediaServer.getURL() + "/console/home");
 			}
 
 			String response = parent.getResources().getTemplate("doc.html").execute(vars);

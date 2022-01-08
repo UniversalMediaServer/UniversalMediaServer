@@ -58,6 +58,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.service.Services;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
@@ -75,24 +76,25 @@ import org.xml.sax.SAXException;
  */
 public class Request extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
-	private PmsConfiguration configuration = PMS.getConfiguration();
-
-	private final static String CRLF = "\r\n";
-	private final static String HTTP_200_OK = "HTTP/1.1 200 OK";
-	private final static String HTTP_200_OK_10 = "HTTP/1.0 200 OK";
-	private final static String HTTP_204_NO_CONTENT = "HTTP/1.1 204 No content";
-	private final static String HTTP_204_NO_CONTENT_10 = "HTTP/1.0 204 No content";
-	private final static String HTTP_206_OK = "HTTP/1.1 206 Partial Content";
-	private final static String HTTP_206_OK_10 = "HTTP/1.0 206 Partial Content";
-	private final static String HTTP_415_UNSUPPORTED_MEDIA_TYPE = "HTTP/1.1 415 Unsupported Media Type";
-	private final static String HTTP_415_UNSUPPORTED_MEDIA_TYPE_10 = "HTTP/1.0 415 Unsupported Media Type";
-	private final static String HTTP_500 = "HTTP/1.1 500 Internal Server Error";
-	private final static String HTTP_500_10 = "HTTP/1.0 500 Internal Server Error";
-	private final static String CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
-	private final static String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
+	private static final String CRLF = "\r\n";
+	private static final String HTTP_200_OK = "HTTP/1.1 200 OK";
+	private static final String HTTP_200_OK_10 = "HTTP/1.0 200 OK";
+	private static final String HTTP_204_NO_CONTENT = "HTTP/1.1 204 No content";
+	private static final String HTTP_204_NO_CONTENT_10 = "HTTP/1.0 204 No content";
+	private static final String HTTP_206_OK = "HTTP/1.1 206 Partial Content";
+	private static final String HTTP_206_OK_10 = "HTTP/1.0 206 Partial Content";
+	private static final String HTTP_415_UNSUPPORTED_MEDIA_TYPE = "HTTP/1.1 415 Unsupported Media Type";
+	private static final String HTTP_415_UNSUPPORTED_MEDIA_TYPE_10 = "HTTP/1.0 415 Unsupported Media Type";
+	private static final String HTTP_500 = "HTTP/1.1 500 Internal Server Error";
+	private static final String HTTP_500_10 = "HTTP/1.0 500 Internal Server Error";
+	private static final String CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
+	private static final String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
-	private SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+
 	private final String method;
+
+	private PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * A {@link String} that contains the argument with which this {@link Request} was
@@ -526,8 +528,7 @@ public class Request extends HTTPResource {
 									if (isNotBlank(subExtension)) {
 										subExtension = "." + subExtension;
 									}
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
+									subtitleUrl = MediaServer.getURL() + "/get/" +
 										id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
 									appendToHeader(responseHeader, subtitleHttpHeader + ": " + subtitleUrl);
@@ -641,9 +642,9 @@ public class Request extends HTTPResource {
 				String s = new String(b, StandardCharsets.UTF_8);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 
-				if (PMS.get().getServer().getHost() != null) {
-					s = s.replace("[host]", PMS.get().getServer().getHost());
-					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
+				if (MediaServer.isStarted()) {
+					s = s.replace("[host]", MediaServer.getHost());
+					s = s.replace("[port]", "" + MediaServer.getPort());
 				}
 
 				String friendlyName = configuration.getServerDisplayName();
@@ -810,7 +811,7 @@ public class Request extends HTTPResource {
 				if (searchCriteria != null && files != null) {
 					UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
 					if (xbox360) {
-						if (files.size() > 0) {
+						if (!files.isEmpty()) {
 							files = files.get(0).getChildren();
 						}
 					}
@@ -847,7 +848,7 @@ public class Request extends HTTPResource {
 
 				response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 				response.append(CRLF);
-				DLNAResource parentFolder = null;
+				DLNAResource parentFolder;
 
 				if (files != null && filessize > 0) {
 					parentFolder = files.get(0).getParent();
@@ -1072,7 +1073,7 @@ public class Request extends HTTPResource {
 						formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 2);
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-						formattedResponse += "    " + response.toString().replaceAll("\n", "\n    ");
+						formattedResponse += "    " + response.toString().replace("\n", "\n    ");
 					}
 				}
 				if (isNotBlank(formattedResponse)) {
@@ -1122,8 +1123,8 @@ public class Request extends HTTPResource {
 	}
 
 	private String getFUTUREDATE() {
-		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-		return sdf.format(new Date(10000000000L + System.currentTimeMillis()));
+		SDF.setTimeZone(TimeZone.getTimeZone("GMT"));
+		return SDF.format(new Date(10000000000L + System.currentTimeMillis()));
 	}
 
 	// VISTA tip ?: netsh interface tcp set global autotuninglevel=disabled
