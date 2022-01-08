@@ -68,7 +68,7 @@ import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
 import net.pms.network.HTTPServer;
-import net.pms.network.ProxyServer;
+import net.pms.network.proxyserver.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;

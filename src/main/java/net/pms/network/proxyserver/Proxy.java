@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network;
+package net.pms.network.proxyserver;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -27,11 +27,14 @@ import org.slf4j.LoggerFactory;
 
 public class Proxy extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Proxy.class);
-	private Socket socket, socketToWeb;
-	private BufferedReader fromBrowser;
-	private OutputStream toBrowser;
+
+	private final Socket socket;
+	private final BufferedReader fromBrowser;
+	private final OutputStream toBrowser;
+	private final boolean writeCache;
+
+	private Socket socketToWeb;
 	private PrintWriter toWeb;
-	private boolean writeCache;
 
 	public Proxy(Socket s, boolean writeCache) throws IOException {
 		socket = s;
