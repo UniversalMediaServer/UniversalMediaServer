@@ -60,7 +60,7 @@ public class FileHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		try {
-			LOGGER.debug("Handling web interface file request \"{}\"", t.getRequestURI());
+			LOGGER.debug("Handling web player server file request \"{}\"", t.getRequestURI());
 
 			String path = t.getRequestURI().getPath();
 			String response = null;

@@ -413,7 +413,7 @@ public class WebPlayerServerUtil {
 	 * A web resource manager to act as:
 	 *
 	 * - A resource finder with native java classpath search behaviour (including in zip files)
-	 *   to allow flexible customizing/skinning of the web interface.
+	 *   to allow flexible customizing/skinning of the web player server.
 	 *
 	 * - A file manager to control access to arbitrary non-web resources, i.e. subtitles,
 	 *   logs, etc.

@@ -80,7 +80,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPla
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
-				LOGGER.error("Failed to start web interface on HTTPS: {}", e.getMessage());
+				LOGGER.error("Failed to start web player server on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info(
@@ -90,7 +90,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPla
 					);
 				}
 			} catch (GeneralSecurityException e) {
-				LOGGER.error("Failed to start web interface on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.error("Failed to start web player server on HTTPS due to a security error: {}", e.getMessage());
 				LOGGER.trace("", e);
 			}
 		} else {

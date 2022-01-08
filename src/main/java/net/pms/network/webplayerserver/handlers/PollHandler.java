@@ -56,7 +56,7 @@ public class PollHandler implements HttpHandler {
 		} catch (InterruptedException e) {
 			// This can happen if a browser is left open and our cookie changed, or something like that
 			// I'm just leaving this note here as a clue for the next person who encounters this
-			LOGGER.error("Unexpected error on web interface. Please try closing any tabs or windows that contain UMS and try again");
+			LOGGER.error("Unexpected error on web player server. Please try closing any tabs or windows that contain UMS and try again");
 			LOGGER.debug("", e);
 		}
 	}

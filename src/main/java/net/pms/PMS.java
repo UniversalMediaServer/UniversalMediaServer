@@ -218,6 +218,11 @@ public class PMS {
 	private HTTPServer server;
 
 	/**
+	 * HTTP server that serves a brower/player of media files.
+	 */
+	private WebPlayerServer webPlayerServer;
+
+	/**
 	 * User friendly name for the server.
 	 */
 	private String serverName;
@@ -339,7 +344,7 @@ public class PMS {
 		}
 		LOGGER.info("Profile name: {}", configuration.getProfileName());
 		LOGGER.info("");
-		if (configuration.useWebInterface()) {
+		if (configuration.useWebPlayerServer()) {
 			String webConfPath = configuration.getWebConfPath();
 			LOGGER.info("Web configuration file: {}", webConfPath);
 			try {
@@ -570,11 +575,11 @@ public class PMS {
 		});
 
 		// Web stuff
-		if (configuration.useWebInterface()) {
+		if (configuration.useWebPlayerServer()) {
 			try {
-				web = WebPlayerServer.createServer(configuration.getWebPort());
+				webPlayerServer = WebPlayerServer.createServer(configuration.getWebPlayerServerPort());
 			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPlayerServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			}
 		}
@@ -699,9 +704,9 @@ public class PMS {
 			return false;
 		}
 
-		if (web != null && web.getServer() != null) {
+		if (webPlayerServer != null && webPlayerServer.getServer() != null) {
 			frame.enableWebUiButton();
-			LOGGER.info("Web interface is available at: " + web.getUrl());
+			LOGGER.info("Web player is available at: " + webPlayerServer.getUrl());
 		}
 
 		// initialize the cache
@@ -1136,8 +1141,9 @@ public class PMS {
 		return server;
 	}
 
-	public Object getWebServer() {
-		return web == null ? null : web.getServer();
+	@Nullable
+	public WebPlayerServer getWebPlayerServer() {
+		return webPlayerServer;
 	}
 
 	/**
@@ -1518,13 +1524,6 @@ public class PMS {
 	 */
 	public static void setLocale(String language) {
 		setLocale(language, "", "");
-	}
-
-	private WebPlayerServer web;
-
-	@Nullable
-	public WebPlayerServer getWebInterface() {
-		return web;
 	}
 
 	/**

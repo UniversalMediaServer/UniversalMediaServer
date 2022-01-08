@@ -154,12 +154,12 @@ public class BasicSystemUtils implements SystemUtils {
 				}
 			});
 
-			if (PMS.getConfiguration().useWebInterface()) {
+			if (PMS.getConfiguration().useWebPlayerServer()) {
 				MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
 				webInterfaceItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						browseURI(PMS.get().getWebInterface().getUrl());
+						browseURI(PMS.get().getWebPlayerServer().getUrl());
 					}
 				});
 				popup.add(webInterfaceItem);

@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public abstract class WebPlayerServer implements WebPlayerServerInterface {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPort();
+	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
 	private WebPlayerServerInterface webServer;
 	protected final Map<String, RootFolder> roots;
 	protected final WebPlayerServerUtil.ResourceManager resources;
