@@ -68,8 +68,7 @@ import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.ChromecastMgr;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.proxyserver.ProxyServer;
-import net.pms.network.mediaserver.UPNPHelper;
+import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
@@ -77,7 +76,6 @@ import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -228,12 +226,14 @@ public class PMS {
 	 */
 	private String serverName;
 
-	// FIXME unused
+	/* FIXME unused
+	 * ProxyServer could also be deleted
 	private ProxyServer proxyServer;
 
 	public ProxyServer getProxy() {
 		return proxyServer;
 	}
+	*/
 
 	public ArrayList<Process> currentProcesses = new ArrayList<>();
 
@@ -792,14 +792,6 @@ public class PMS {
 		});
 
 		configuration.setAutoSave();
-
-		UPNPHelper.sendByeBye();
-		LOGGER.trace("Waiting 250 milliseconds...");
-		Thread.sleep(250);
-		UPNPHelper.sendAlive();
-		LOGGER.trace("Waiting 250 milliseconds...");
-		Thread.sleep(250);
-		UPNPHelper.listen();
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
