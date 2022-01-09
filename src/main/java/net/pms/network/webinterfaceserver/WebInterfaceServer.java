@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public abstract class WebInterfaceServer implements WebInterfaceServerInterface {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected static final int DEFAULT_PORT = CONFIGURATION.getWebinterfaceServerPort();
+	protected static final int DEFAULT_PORT = CONFIGURATION.getWebInterfaceServerPort();
 	private WebInterfaceServerInterface webServer;
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;

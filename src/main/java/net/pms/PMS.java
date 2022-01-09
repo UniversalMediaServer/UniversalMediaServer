@@ -345,7 +345,7 @@ public class PMS {
 		}
 		LOGGER.info("Profile name: {}", configuration.getProfileName());
 		LOGGER.info("");
-		if (configuration.useWebinterfaceServer()) {
+		if (configuration.useWebInterfaceServer()) {
 			String webConfPath = configuration.getWebConfPath();
 			LOGGER.info("Web configuration file: {}", webConfPath);
 			try {
@@ -576,11 +576,11 @@ public class PMS {
 		});
 
 		// Web stuff
-		if (configuration.useWebinterfaceServer()) {
+		if (configuration.useWebInterfaceServer()) {
 			try {
-				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebinterfaceServerPort());
+				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
 			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebinterfaceServerPort() + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			}
 		}
@@ -1116,7 +1116,7 @@ public class PMS {
 	}
 
 	@Nullable
-	public WebInterfaceServer getWebPlayerServer() {
+	public WebInterfaceServer getWebInterfaceServer() {
 		return webInterfaceServer;
 	}
 

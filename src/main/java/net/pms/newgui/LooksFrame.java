@@ -157,7 +157,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public void enableWebUiButton() {
-		if (PMS.getConfiguration().useWebinterfaceServer()) {
+		if (PMS.getConfiguration().useWebInterfaceServer()) {
 			webinterface.setEnabled(true);
 		}
 	}
@@ -487,15 +487,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		toolBar.add(new JPanel());
 
-		if (PMS.getConfiguration().useWebinterfaceServer()) {
+		if (PMS.getConfiguration().useWebInterfaceServer()) {
 			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png", Messages.getString("LooksFrame.30"));
 			webinterface.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					String error = null;
-					if (PMS.get().getWebPlayerServer() != null && isNotBlank(PMS.get().getWebPlayerServer().getUrl())) {
+					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
 						try {
-							URI uri = new URI(PMS.get().getWebPlayerServer().getUrl());
+							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
 							try {
 								Desktop.getDesktop().browse(uri);
 							} catch (RuntimeException | IOException be) {
@@ -506,7 +506,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 						} catch (URISyntaxException se) {
 							LOGGER.error(
 								"Could not form a valid web player server URI from \"{}\": {}",
-								PMS.get().getWebPlayerServer().getUrl(),
+								PMS.get().getWebInterfaceServer().getUrl(),
 								se.getMessage()
 							);
 							LOGGER.trace("", se);
