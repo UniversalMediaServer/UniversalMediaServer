@@ -58,26 +58,6 @@ public abstract class HttpMediaServer {
 	}
 
 	public boolean start() throws IOException {
-		hostname = CONFIGURATION.getServerHostname();
-		InetSocketAddress address;
-
-		if (StringUtils.isNotBlank(hostname)) {
-			LOGGER.info("Using forced address " + hostname);
-			InetAddress tempIA = InetAddress.getByName(hostname);
-
-			if (tempIA != null && networkInterface != null && networkInterface.equals(NetworkInterface.getByInetAddress(tempIA))) {
-				address = new InetSocketAddress(tempIA, port);
-			} else {
-				address = new InetSocketAddress(hostname, port);
-			}
-		} else if (isAddressFromInterfaceFound(CONFIGURATION.getNetworkInterface())) { // XXX sets iafinal and networkInterface
-			LOGGER.info("Using address {} found on network interface: {}", iafinal, networkInterface.toString().trim().replace('\n', ' '));
-			address = new InetSocketAddress(iafinal, port);
-		} else {
-			LOGGER.info("Using localhost address");
-			address = new InetSocketAddress(port);
-		}
-		LOGGER.info("Created socket: {}", address);
 		return true;
 	}
 

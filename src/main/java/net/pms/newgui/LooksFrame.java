@@ -157,7 +157,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public void enableWebUiButton() {
-		if (PMS.getConfiguration().useWebPlayerServer()) {
+		if (PMS.getConfiguration().useWebinterfaceServer()) {
 			webinterface.setEnabled(true);
 		}
 	}
@@ -487,7 +487,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		toolBar.add(new JPanel());
 
-		if (PMS.getConfiguration().useWebPlayerServer()) {
+		if (PMS.getConfiguration().useWebinterfaceServer()) {
 			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png", Messages.getString("LooksFrame.30"));
 			webinterface.addActionListener(new ActionListener() {
 				@Override

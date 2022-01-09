@@ -77,7 +77,7 @@ import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
-import net.pms.network.webplayerserver.WebPlayerServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -160,7 +160,7 @@ public class PMS {
 	}
 
 	/**
-	 * Pointer to a running DMS mediaServer.
+	 * Pointer to a running UMS server.
 	 */
 	private static PMS instance = null;
 
@@ -213,17 +213,18 @@ public class PMS {
 	}
 
 	/**
-	 * HTTP mediaServer that serves the XML files needed by UPnP mediaServer and the media files.
+	 * UPnP mediaServer that serves the XML files, media files and broadcast messages needed by UPnP Service.
 	 */
 	private MediaServer mediaServer;
 
 	/**
-	 * HTTP mediaServer that serves a brower/player of media files.
+	 * HTTP server that serves a brower/player of media files.
+	 * Also handle utility and other stuff
 	 */
-	private WebPlayerServer webPlayerServer;
+	private WebInterfaceServer webInterfaceServer;
 
 	/**
-	 * User friendly name for the mediaServer.
+	 * User friendly name for the server.
 	 */
 	private String serverName;
 
@@ -344,7 +345,7 @@ public class PMS {
 		}
 		LOGGER.info("Profile name: {}", configuration.getProfileName());
 		LOGGER.info("");
-		if (configuration.useWebPlayerServer()) {
+		if (configuration.useWebinterfaceServer()) {
 			String webConfPath = configuration.getWebConfPath();
 			LOGGER.info("Web configuration file: {}", webConfPath);
 			try {
@@ -376,7 +377,7 @@ public class PMS {
 	/**
 	 * Initialization procedure.
 	 *
-	 * @return <code>true</code> if the mediaServer has been initialized correctly.
+	 * @return <code>true</code> if the UMS server has been initialized correctly.
          <code>false</code> if initialization was aborted.
 	 * @throws Exception
 	 */
@@ -575,11 +576,11 @@ public class PMS {
 		});
 
 		// Web stuff
-		if (configuration.useWebPlayerServer()) {
+		if (configuration.useWebinterfaceServer()) {
 			try {
-				webPlayerServer = WebPlayerServer.createServer(configuration.getWebPlayerServerPort());
+				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebinterfaceServerPort());
 			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPlayerServerPort() + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebinterfaceServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			}
 		}
@@ -695,9 +696,9 @@ public class PMS {
 			return false;
 		}
 
-		if (webPlayerServer != null && webPlayerServer.getServer() != null) {
+		if (webInterfaceServer != null && webInterfaceServer.getServer() != null) {
 			frame.enableWebUiButton();
-			LOGGER.info("Web player is available at: " + webPlayerServer.getUrl());
+			LOGGER.info("Web interface is available at: " + webInterfaceServer.getUrl());
 		}
 
 		// initialize the cache
@@ -824,8 +825,8 @@ public class PMS {
 	 * Restarts the server. The trigger is either a button on the main DMS
 	 * window or via an action item.
 	 */
-	// XXX: don't try to optimize this by reusing the same mediaServer instance.
-	// see the comment above HTTPServer.stop()
+	// XXX: don't try to optimize this by reusing the same HttpMediaServer instance.
+	// see the comment above HttpMediaServer.stop()
 	public void reset() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
 			MediaServer.stop();
@@ -873,7 +874,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the user friendly name of the UPnP mediaServer.
+	 * Returns the user friendly name of the UMS server.
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -1115,8 +1116,8 @@ public class PMS {
 	}
 
 	@Nullable
-	public WebPlayerServer getWebPlayerServer() {
-		return webPlayerServer;
+	public WebInterfaceServer getWebPlayerServer() {
+		return webInterfaceServer;
 	}
 
 	/**

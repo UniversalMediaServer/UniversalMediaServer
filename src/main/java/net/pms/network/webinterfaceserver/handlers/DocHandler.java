@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.samskivert.mustache.MustacheException;
 import com.sun.net.httpserver.HttpExchange;
@@ -31,8 +31,8 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.DbgPacker;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +42,9 @@ public class DocHandler implements HttpHandler {
 	@SuppressWarnings("unused")
 	private static final String CRLF = "\r\n";
 
-	private final WebPlayerServerHttpServer parent;
+	private final WebInterfaceServerHttpServer parent;
 
-	public DocHandler(final WebPlayerServerHttpServer parent) {
+	public DocHandler(final WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
 		// Make sure logs are available right away
 		getLogs(false);
@@ -54,11 +54,11 @@ public class DocHandler implements HttpHandler {
 	public void handle(HttpExchange t) throws IOException {
 		try {
 			LOGGER.debug("root req " + t.getRequestURI());
-			if (WebPlayerServerUtil.deny(t)) {
+			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
 			if (t.getRequestURI().getPath().contains("favicon")) {
-				WebPlayerServerUtil.sendLogo(t);
+				WebInterfaceServerUtil.sendLogo(t);
 				return;
 			}
 
@@ -70,7 +70,7 @@ public class DocHandler implements HttpHandler {
 			}
 
 			String response = parent.getResources().getTemplate("doc.html").execute(vars);
-			WebPlayerServerUtil.respond(t, response, 200, "text/html");
+			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 		} catch (IOException e) {
 			throw e;
 		} catch (MustacheException e) {

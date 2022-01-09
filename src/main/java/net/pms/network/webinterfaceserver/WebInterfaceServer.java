@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver;
+package net.pms.network.webinterfaceserver;
 
 import java.io.IOException;
 import java.security.AccessController;
@@ -30,18 +30,18 @@ import net.pms.dlna.RootFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class WebPlayerServer implements WebPlayerServerInterface {
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServer.class);
+public abstract class WebInterfaceServer implements WebInterfaceServerInterface {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
-	private WebPlayerServerInterface webServer;
+	protected static final int DEFAULT_PORT = CONFIGURATION.getWebinterfaceServerPort();
+	private WebInterfaceServerInterface webServer;
 	protected final Map<String, RootFolder> roots;
-	protected final WebPlayerServerUtil.ResourceManager resources;
+	protected final WebInterfaceServerUtil.ResourceManager resources;
 
-	public WebPlayerServer() throws IOException {
+	public WebInterfaceServer() throws IOException {
 		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
-		resources = AccessController.doPrivileged((PrivilegedAction<WebPlayerServerUtil.ResourceManager>) () -> new WebPlayerServerUtil.ResourceManager(
+		resources = AccessController.doPrivileged((PrivilegedAction<WebInterfaceServerUtil.ResourceManager>) () -> new WebInterfaceServerUtil.ResourceManager(
 				"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
 				"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
 				"file:" + CONFIGURATION.getWebPath() + "/"
@@ -56,7 +56,7 @@ public abstract class WebPlayerServer implements WebPlayerServerInterface {
 		return tag;
 	}
 
-	public WebPlayerServerUtil.ResourceManager getResources() {
+	public WebInterfaceServerUtil.ResourceManager getResources() {
 		return resources;
 	}
 
@@ -85,8 +85,8 @@ public abstract class WebPlayerServer implements WebPlayerServerInterface {
 		return webServer.isSecure();
 	}
 
-	public static WebPlayerServer createServer(int port) throws IOException {
-		LOGGER.debug("Using httpserver as web server");
-		return new WebPlayerServerHttpServer(port);
+	public static WebInterfaceServer createServer(int port) throws IOException {
+		LOGGER.debug("Using httpserver as web interface server");
+		return new WebInterfaceServerHttpServer(port);
 	}
 }

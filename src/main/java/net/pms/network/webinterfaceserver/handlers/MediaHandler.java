@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -34,32 +34,32 @@ import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.util.FileUtil;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaHandler.class);
 
-	private final WebPlayerServerHttpServer parent;
+	private final WebInterfaceServerHttpServer parent;
 	private final String path;
 	private final RendererConfiguration renderer;
 	private final boolean flash;
 
-	public MediaHandler(WebPlayerServerHttpServer parent) {
+	public MediaHandler(WebInterfaceServerHttpServer parent) {
 		this(parent, "media/", null, false);
 	}
 
-	public MediaHandler(WebPlayerServerHttpServer parent, boolean flash) {
+	public MediaHandler(WebInterfaceServerHttpServer parent, boolean flash) {
 		this(parent, "fmedia/", null, flash);
 	}
 
-	public MediaHandler(WebPlayerServerHttpServer parent, String path, RendererConfiguration renderer) {
+	public MediaHandler(WebInterfaceServerHttpServer parent, String path, RendererConfiguration renderer) {
 		this(parent, path, renderer, false);
 	}
 
-	public MediaHandler(WebPlayerServerHttpServer parent, String path, RendererConfiguration renderer, boolean flash) {
+	public MediaHandler(WebInterfaceServerHttpServer parent, String path, RendererConfiguration renderer, boolean flash) {
 		this.parent = parent;
 		this.path = path;
 		this.renderer = renderer;
@@ -68,10 +68,10 @@ public class MediaHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 		try {
-			if (WebPlayerServerUtil.deny(httpExchange)) {
+			if (WebInterfaceServerUtil.deny(httpExchange)) {
 				throw new IOException("Access denied");
 			}
-			RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(httpExchange), httpExchange);
+			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(httpExchange), httpExchange);
 			if (root == null) {
 				throw new IOException("Unknown root");
 			}
@@ -79,8 +79,8 @@ public class MediaHandler implements HttpHandler {
 			for (String h1 : h.keySet()) {
 				LOGGER.debug("key " + h1 + "=" + h.get(h1));
 			}
-			String id = WebPlayerServerUtil.getId(path, httpExchange);
-			id = WebPlayerServerUtil.strip(id);
+			String id = WebInterfaceServerUtil.getId(path, httpExchange);
+			id = WebInterfaceServerUtil.strip(id);
 			RendererConfiguration defaultRenderer = renderer;
 			if (renderer == null) {
 				defaultRenderer = root.getDefaultRenderer();
@@ -112,8 +112,8 @@ public class MediaHandler implements HttpHandler {
 			if (resource.getFormat().isVideo()) {
 				if (flash) {
 					mimeType = "video/flash";
-				} else if (!WebPlayerServerUtil.directmime(mimeType) || WebPlayerServerUtil.transMp4(mimeType, media)) {
-					mimeType = render != null ? render.getVideoMimeType() : WebPlayerServerUtil.transMime();
+				} else if (!WebInterfaceServerUtil.directmime(mimeType) || WebInterfaceServerUtil.transMp4(mimeType, media)) {
+					mimeType = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
 					// TODO: Use normal engine priorities instead of the following hacks
 					if (FileUtil.isUrl(resource.getSystemName())) {
 						if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
@@ -137,13 +137,13 @@ public class MediaHandler implements HttpHandler {
 				}
 			}
 
-			if (!WebPlayerServerUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
+			if (!WebInterfaceServerUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
 				resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
 				code = 206;
 			}
 
 			media.setMimeType(mimeType);
-			Range.Byte range = WebPlayerServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
+			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 			if (range.getEnd() == 0) {
@@ -171,7 +171,7 @@ public class MediaHandler implements HttpHandler {
 			if (sid != null) {
 				resource.setMediaSubtitle(sid);
 			}
-			WebPlayerServerUtil.dump(in, os);
+			WebInterfaceServerUtil.dump(in, os);
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {

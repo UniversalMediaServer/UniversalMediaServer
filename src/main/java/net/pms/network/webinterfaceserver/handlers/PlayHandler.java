@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -50,8 +50,8 @@ import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.SubtitleUtils;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,31 +63,31 @@ public class PlayHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String RETURN_PAGE = "<html><head><script>window.refresh=true;history.back()</script></head></html>";
 
-	private final WebPlayerServerHttpServer parent;
+	private final WebInterfaceServerHttpServer parent;
 
-	public PlayHandler(WebPlayerServerHttpServer parent) {
+	public PlayHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
 	}
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		try {
-			if (WebPlayerServerUtil.deny(t)) {
+			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
 			String p = t.getRequestURI().getPath();
 			if (p.contains("/play/")) {
 				LOGGER.debug("got a play request " + t.getRequestURI());
-				String id = WebPlayerServerUtil.getId("play/", t);
+				String id = WebInterfaceServerUtil.getId("play/", t);
 				String response = mkPage(id, t);
 				//LOGGER.trace("play page " + response);
-				WebPlayerServerUtil.respond(t, response, 200, "text/html");
+				WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 			} else if (p.contains("/playerstatus/")) {
 				String json = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
 				LOGGER.trace("got player status: " + json);
-				WebPlayerServerUtil.respond(t, "", 200, "text/html");
+				WebInterfaceServerUtil.respond(t, "", 200, "text/html");
 
-				RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(t), t);
+				RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
 				if (root == null) {
 					LOGGER.debug("root not found");
 					throw new IOException("Unknown root");
@@ -104,7 +104,7 @@ public class PlayHandler implements HttpHandler {
 				String id = tmp[tmp.length - 1];
 				DLNAResource r = PMS.getGlobalRepo().get(id);
 				if (r != null) {
-					RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(t), t);
+					RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
 					if (root == null) {
 						LOGGER.debug("root not found");
 						throw new IOException("Unknown root");
@@ -122,15 +122,15 @@ public class PlayHandler implements HttpHandler {
 						}
 					}
 				}
-				WebPlayerServerUtil.respond(t, RETURN_PAGE, 200, "text/html");
+				WebInterfaceServerUtil.respond(t, RETURN_PAGE, 200, "text/html");
 			}  else if (p.contains("/m3u8/")) {
 				String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
 				String response = mkM3u8(PMS.getGlobalRepo().get(id));
 				if (response != null) {
 					LOGGER.debug("sending m3u8:\n" + response);
-					WebPlayerServerUtil.respond(t, response, 200, "application/x-mpegURL");
+					WebInterfaceServerUtil.respond(t, response, 200, "application/x-mpegURL");
 				} else {
-					WebPlayerServerUtil.respond(t, "<html><body>404 - File Not Found: " + p + "</body></html>", 404, "text/html");
+					WebInterfaceServerUtil.respond(t, "<html><body>404 - File Not Found: " + p + "</body></html>", 404, "text/html");
 				}
 			}
 		} catch (IOException e) {
@@ -175,14 +175,14 @@ public class PlayHandler implements HttpHandler {
 		mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
 
 		LOGGER.debug("Make play page " + id);
-		String language = WebPlayerServerUtil.getFirstSupportedLanguage(t);
-		RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(t), t);
+		String language = WebInterfaceServerUtil.getFirstSupportedLanguage(t);
+		RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
 		if (root == null) {
 			LOGGER.debug("root not found");
 			throw new IOException("Unknown root");
 		}
 		WebRender renderer = (WebRender) root.getDefaultRenderer();
-		renderer.setBrowserInfo(WebPlayerServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+		renderer.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		DLNAResource rootResource = root.getDLNAResource(id, renderer);
 		if (rootResource == null) {
@@ -236,8 +236,8 @@ public class PlayHandler implements HttpHandler {
 			String parentID = parentFromResources.getResourceId();
 			String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 			String backUri = "/browse/" + parentIDForWeb;
-			backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebPlayerServerUtil.getMsgString("Web.10", t)).append("\">");
-			backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebPlayerServerUtil.getMsgString("Web.10", t)).append("</span>");
+			backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("\">");
+			backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("</span>");
 			backLinkHTML.append("</a>");
 			folders.add(backLinkHTML.toString());
 		}
@@ -250,8 +250,8 @@ public class PlayHandler implements HttpHandler {
 		boolean isVideo = format.isVideo();
 		boolean isAudio = format.isAudio();
 		String query = t.getRequestURI().getQuery();
-		boolean forceFlash = StringUtils.isNotEmpty(WebPlayerServerUtil.getQueryVars(query, "flash"));
-		boolean forcehtml5 = StringUtils.isNotEmpty(WebPlayerServerUtil.getQueryVars(query, "html5"));
+		boolean forceFlash = StringUtils.isNotEmpty(WebInterfaceServerUtil.getQueryVars(query, "flash"));
+		boolean forcehtml5 = StringUtils.isNotEmpty(WebInterfaceServerUtil.getQueryVars(query, "html5"));
 		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && CONFIGURATION.getWebFlash()));
 
 		// hack here to ensure we got a root folder to use for recently played etc.
@@ -264,7 +264,7 @@ public class PlayHandler implements HttpHandler {
 		mustacheVars.put("javascriptVarsScript", "");
 		if (isVideo) {
 			if (CONFIGURATION.getUseCache()) {
-				String apiMetadataAsJavaScriptVars = WebPlayerServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, false, root);
+				String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, false, root);
 				if (apiMetadataAsJavaScriptVars != null) {
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
 					mustacheVars.put("isVideoWithAPIData", true);
@@ -277,9 +277,9 @@ public class PlayHandler implements HttpHandler {
 				}
 			}
 			if (!flowplayer) {
-				if (!WebPlayerServerUtil.directmime(mime) || WebPlayerServerUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
+				if (!WebInterfaceServerUtil.directmime(mime) || WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
 					WebRender render = (WebRender) rootResource.getDefaultRenderer();
-					mime = render != null ? render.getVideoMimeType() : WebPlayerServerUtil.transMime();
+					mime = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
 				}
 			}
 		}
@@ -302,11 +302,11 @@ public class PlayHandler implements HttpHandler {
 			if (rootResource.getParent() instanceof Playlist) {
 				mustacheVars.put("plsOp", "del");
 				mustacheVars.put("plsSign", "-");
-				mustacheVars.put("plsAttr", WebPlayerServerUtil.getMsgString("Web.4", t));
+				mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.4", t));
 			} else {
 				mustacheVars.put("plsOp", "add");
 				mustacheVars.put("plsSign", "+");
-				mustacheVars.put("plsAttr", WebPlayerServerUtil.getMsgString("Web.5", t));
+				mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.5", t));
 			}
 		}
 		addNextByType(rootResource, mustacheVars);
@@ -323,8 +323,8 @@ public class PlayHandler implements HttpHandler {
 			mustacheVars.put("mime", mime);
 			if (flowplayer) {
 				if (
-					WebPlayerServerUtil.directmime(mime) &&
-					!WebPlayerServerUtil.transMp4(mime, rootResource.getMedia()) &&
+					WebInterfaceServerUtil.directmime(mime) &&
+					!WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) &&
 					!rootResource.isResume() &&
 					!forceFlash
 				) {

@@ -4685,11 +4685,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Default port for the web player server.
 	 */
-	public int getWebPlayerServerPort() {
+	public int getWebinterfaceServerPort() {
 		return getInt(KEY_WEB_PORT, 9001);
 	}
 
-	public boolean useWebPlayerServer() {
+	public boolean useWebinterfaceServer() {
 		return getBoolean(KEY_WEB_ENABLE, true);
 	}
 

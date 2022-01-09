@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.samskivert.mustache.MustacheException;
 import com.sun.net.httpserver.Headers;
@@ -41,8 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.network.HTTPResource;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +51,9 @@ public class FileHandler implements HttpHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 
-	private final WebPlayerServerHttpServer parent;
+	private final WebInterfaceServerHttpServer parent;
 
-	public FileHandler(WebPlayerServerHttpServer parent) {
+	public FileHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
 	}
 
@@ -93,7 +93,7 @@ public class FileHandler implements HttpHandler {
 						HashMap<String, Object> vars = new HashMap<>();
 						vars.put("title", filename);
 						vars.put("brush", filename.endsWith("debug.log") ? "debug_log" : filename.endsWith(".log") ? "log" : "conf");
-						vars.put("log", WebPlayerServerUtil.read(file).replace("<", "&lt;"));
+						vars.put("log", WebInterfaceServerUtil.read(file).replace("<", "&lt;"));
 						response = parent.getResources().getTemplate("util/log.html").execute(vars);
 					} else {
 						status = 404;
@@ -165,7 +165,7 @@ public class FileHandler implements HttpHandler {
 
 				OutputStream os = t.getResponseBody();
 				LOGGER.trace("input is {} output is {}", in, os);
-				WebPlayerServerUtil.dump(in, os);
+				WebInterfaceServerUtil.dump(in, os);
 				return;
 			} else if (parent.getResources().write(path.substring(7), t)) {
 				// The resource manager found and sent the file, all done.
@@ -180,7 +180,7 @@ public class FileHandler implements HttpHandler {
 				mime = "text/html";
 			}
 
-			WebPlayerServerUtil.respond(t, response, status, mime);
+			WebInterfaceServerUtil.respond(t, response, status, mime);
 		} catch (IOException e) {
 			throw e;
 		} catch (MustacheException e) {

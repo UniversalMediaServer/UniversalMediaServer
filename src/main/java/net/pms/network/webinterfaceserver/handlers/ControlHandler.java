@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.sun.net.httpserver.*;
 import java.io.File;
@@ -37,8 +37,8 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class ControlHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
-	private final WebPlayerServer parent;
+	private final WebInterfaceServer parent;
 	private final HashMap<String, Logical> players;
 	private final HashMap<InetAddress, Logical> selectedPlayers;
 	private final String bumpAddress;
@@ -59,7 +59,7 @@ public class ControlHandler implements HttpHandler {
 
 	private RendererConfiguration defaultRenderer;
 
-	public ControlHandler(WebPlayerServer parent) {
+	public ControlHandler(WebInterfaceServer parent) {
 		this.parent = parent;
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
@@ -73,7 +73,7 @@ public class ControlHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 
-		if (WebPlayerServerUtil.deny(httpExchange) && !WebPlayerServerUtil.bumpAllowed(httpExchange)) {
+		if (WebInterfaceServerUtil.deny(httpExchange) && !WebInterfaceServerUtil.bumpAllowed(httpExchange)) {
 			LOGGER.debug("Denying {}", httpExchange);
 			throw new IOException("Denied");
 		}
@@ -145,7 +145,7 @@ public class ControlHandler implements HttpHandler {
 		} else if (p[2].equals("renderers")) {
 			json.add(getRenderers(httpExchange.getRemoteAddress().getAddress()));
 		} else if (p[2].startsWith("skin.")) {
-			WebPlayerServerUtil.dumpFile(new File(skindir, p[2].substring(5)), httpExchange);
+			WebInterfaceServerUtil.dumpFile(new File(skindir, p[2].substring(5)), httpExchange);
 			return;
 		}
 
@@ -249,7 +249,7 @@ public class ControlHandler implements HttpHandler {
 	}
 
 	public String getBumpJS() {
-		WebPlayerServerUtil.ResourceManager resources = parent.getResources();
+		WebInterfaceServerUtil.ResourceManager resources = parent.getResources();
 		return resources.read("bump/bump.js") +
 			"\nvar bumpskin = function() {\n" +
 			resources.read("bump/skin/skin.js") +

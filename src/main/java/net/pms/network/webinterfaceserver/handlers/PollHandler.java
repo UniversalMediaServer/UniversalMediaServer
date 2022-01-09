@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +34,9 @@ public class PollHandler implements HttpHandler {
 	@SuppressWarnings("unused")
 	private static final String CRLF = "\r\n";
 
-	private final WebPlayerServerHttpServer parent;
+	private final WebInterfaceServerHttpServer parent;
 
-	public PollHandler(WebPlayerServerHttpServer parent) {
+	public PollHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
 	}
 
@@ -44,13 +44,13 @@ public class PollHandler implements HttpHandler {
 	public void handle(HttpExchange t) throws IOException {
 		try {
 			// LOGGER.debug("poll req " + t.getRequestURI());
-			if (WebPlayerServerUtil.deny(t)) {
+			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
-			RootFolder root = parent.getRoot(WebPlayerServerUtil.userName(t), t);
+			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			String json = renderer.getPushData();
-			WebPlayerServerUtil.respond(t, json, 200, "application/json");
+			WebInterfaceServerUtil.respond(t, json, 200, "application/json");
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {

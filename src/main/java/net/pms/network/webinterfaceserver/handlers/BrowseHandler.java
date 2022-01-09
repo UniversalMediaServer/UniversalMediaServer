@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -40,8 +40,8 @@ import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,23 +51,23 @@ public class BrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final WebPlayerServerHttpServer parent;
+	private final WebInterfaceServerHttpServer parent;
 
-	public BrowseHandler(WebPlayerServerHttpServer parent) {
+	public BrowseHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
 	}
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		try {
-			if (WebPlayerServerUtil.deny(t)) {
+			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
-			String id = WebPlayerServerUtil.getId("browse/", t);
+			String id = WebInterfaceServerUtil.getId("browse/", t);
 			LOGGER.debug("Got a browse request found id " + id);
 			String response = mkBrowsePage(id, t);
 			LOGGER.trace("Browse page:\n{}", response);
-			WebPlayerServerUtil.respond(t, response, 200, "text/html");
+			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {
@@ -79,13 +79,13 @@ public class BrowseHandler implements HttpHandler {
 
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
-		String user = WebPlayerServerUtil.userName(t);
+		String user = WebInterfaceServerUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		DLNAResource rootResource = id.equals("0") ? null : root.getDLNAResource(id, null);
-		String search = WebPlayerServerUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
-		String language = WebPlayerServerUtil.getFirstSupportedLanguage(t);
+		String search = WebInterfaceServerUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
+		String language = WebInterfaceServerUtil.getFirstSupportedLanguage(t);
 
-		String enterSearchStringText = WebPlayerServerUtil.getMsgString("Web.8", language);
+		String enterSearchStringText = WebInterfaceServerUtil.getMsgString("Web.8", language);
 
 		List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		if (
@@ -105,14 +105,14 @@ public class BrowseHandler implements HttpHandler {
 				// no folder   -> redirect
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Location", "/play/" + real.getId());
-				WebPlayerServerUtil.respond(t, "", 302, "text/html");
+				WebInterfaceServerUtil.respond(t, "", 302, "text/html");
 				// return null here to avoid multiple responses
 				return null;
 			}
 			// redirect to ourself
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Location", "/browse/" + real.getResourceId());
-			WebPlayerServerUtil.respond(t, "", 302, "text/html");
+			WebInterfaceServerUtil.respond(t, "", 302, "text/html");
 			return null;
 		}
 		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
@@ -193,8 +193,8 @@ public class BrowseHandler implements HttpHandler {
 				String parentID = parentFromResources.getResourceId();
 				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 				String backUri = "/browse/" + parentIDForWeb;
-				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebPlayerServerUtil.getMsgString("Web.10", t)).append("\">");
-				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebPlayerServerUtil.getMsgString("Web.10", t)).append("</span>");
+				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("\">");
+				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("</span>");
 				backLinkHTML.append("</a>");
 				folders.add(backLinkHTML.toString());
 			} else {
@@ -311,7 +311,7 @@ public class BrowseHandler implements HttpHandler {
 						String resourceUri = "/browse/" + idForWeb;
 						boolean code = (resource instanceof CodeEnter);
 						if (code) {
-							enterSearchStringText = WebPlayerServerUtil.getMsgString("Web.9", t);
+							enterSearchStringText = WebInterfaceServerUtil.getMsgString("Web.9", t);
 						}
 						if (resource.getClass().getName().contains("SearchFolder") || code) {
 							// search folder add a prompt
@@ -343,7 +343,7 @@ public class BrowseHandler implements HttpHandler {
 				folder.isTVSeries() &&
 				CONFIGURATION.getUseCache()
 			) {
-				String apiMetadataAsJavaScriptVars = WebPlayerServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
+				String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
 				if (apiMetadataAsJavaScriptVars != null) {
 					mustacheVars.put("isTVSeriesWithAPIData", true);
 					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
@@ -383,7 +383,7 @@ public class BrowseHandler implements HttpHandler {
 		}
 		if (hasFile) {
 			mustacheVars.put("folderId", id);
-			mustacheVars.put("downloadFolderTooltip", WebPlayerServerUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
+			mustacheVars.put("downloadFolderTooltip", WebInterfaceServerUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
 		}
 
 		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
@@ -406,7 +406,7 @@ public class BrowseHandler implements HttpHandler {
 	 * @return a set of HTML strings to display a clickable thumbnail
 	 */
 	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
-		boolean upnpAllowed = WebPlayerServerUtil.bumpAllowed(t);
+		boolean upnpAllowed = WebInterfaceServerUtil.bumpAllowed(t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		String pageTypeUri = "/play/";
 		if (resource.isFolder()) {
@@ -420,21 +420,21 @@ public class BrowseHandler implements HttpHandler {
 				bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 					.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 					.append(name.replace("'", "\\'")).append("')\" title=\"")
-					.append(WebPlayerServerUtil.getMsgString("Web.1", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("Web.1", t)).append("\"></a>");
 			} else {
 				bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
-					.append(WebPlayerServerUtil.getMsgString("Web.2", t))
-					.append("')\" title=\"").append(WebPlayerServerUtil.getMsgString("Web.3", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("Web.2", t))
+					.append("')\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.3", t)).append("\"></a>");
 			}
 
 			if (resource.getParent() instanceof Playlist) {
 				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 					.append(idForWeb).append("', true);return false;\" title=\"")
-					.append(WebPlayerServerUtil.getMsgString("Web.4", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("Web.4", t)).append("\"></a>");
 			} else {
 				bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
 					.append(idForWeb).append("', false);return false;\" title=\"")
-					.append(WebPlayerServerUtil.getMsgString("Web.5", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("Web.5", t)).append("\"></a>");
 			}
 		} else {
 			// ensure that we got a string
@@ -442,7 +442,7 @@ public class BrowseHandler implements HttpHandler {
 		}
 
 		bumpHTML.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
-			.append(WebPlayerServerUtil.getMsgString("Web.DownloadAsPlaylist", t)).append("\"></a>");
+			.append(WebInterfaceServerUtil.getMsgString("Web.DownloadAsPlaylist", t)).append("\"></a>");
 
 		item.put("actions", bumpHTML.toString());
 

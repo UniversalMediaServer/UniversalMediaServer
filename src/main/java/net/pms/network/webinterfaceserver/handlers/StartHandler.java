@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver.handlers;
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.samskivert.mustache.MustacheException;
 import com.samskivert.mustache.Template;
@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.webplayerserver.WebPlayerServerUtil;
-import net.pms.network.webplayerserver.WebPlayerServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +38,9 @@ public class StartHandler implements HttpHandler {
 	@SuppressWarnings("unused")
 	private static final String CRLF = "\r\n";
 
-	private final WebPlayerServerHttpServer parent;
+	private final WebInterfaceServerHttpServer parent;
 
-	public StartHandler(WebPlayerServerHttpServer parent) {
+	public StartHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
 	}
 
@@ -48,11 +48,11 @@ public class StartHandler implements HttpHandler {
 	public void handle(HttpExchange t) throws IOException {
 		try {
 			LOGGER.debug("root req " + t.getRequestURI());
-			if (WebPlayerServerUtil.deny(t)) {
+			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
 			if (t.getRequestURI().getPath().contains("favicon")) {
-				WebPlayerServerUtil.sendLogo(t);
+				WebInterfaceServerUtil.sendLogo(t);
 				return;
 			}
 
@@ -63,7 +63,7 @@ public class StartHandler implements HttpHandler {
 				Template template = parent.getResources().getTemplate("start.html");
 				if (template != null) {
 					String response = template.execute(vars);
-					WebPlayerServerUtil.respond(t, response, 200, "text/html");
+					WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 				} else {
 					throw new IOException("Web template \"start.html\" not found");
 				}

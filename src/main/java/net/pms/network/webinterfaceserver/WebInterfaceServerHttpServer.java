@@ -17,9 +17,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webplayerserver;
+package net.pms.network.webinterfaceserver;
 
-import net.pms.network.webplayerserver.handlers.*;
+import net.pms.network.webinterfaceserver.handlers.StartHandler;
+import net.pms.network.webinterfaceserver.handlers.DocHandler;
+import net.pms.network.webinterfaceserver.handlers.ThumbHandler;
+import net.pms.network.webinterfaceserver.handlers.FileHandler;
+import net.pms.network.webinterfaceserver.handlers.PollHandler;
+import net.pms.network.webinterfaceserver.handlers.ControlHandler;
+import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
+import net.pms.network.webinterfaceserver.handlers.RawHandler;
+import net.pms.network.webinterfaceserver.handlers.MediaHandler;
+import net.pms.network.webinterfaceserver.handlers.PlayHandler;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -55,20 +64,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPlayerServerInterface {
+public class WebInterfaceServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServerHttpServer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServerHttpServer.class);
 	private KeyStore keyStore;
 	private KeyManagerFactory keyManagerFactory;
 	private TrustManagerFactory trustManagerFactory;
 	private HttpServer server;
 	private SSLContext sslContext;
 
-	public WebPlayerServerHttpServer() throws IOException {
+	public WebInterfaceServerHttpServer() throws IOException {
 		this(DEFAULT_PORT);
 	}
 
-	public WebPlayerServerHttpServer(int port) throws IOException {
+	public WebInterfaceServerHttpServer(int port) throws IOException {
 		if (port <= 0) {
 			port = DEFAULT_PORT;
 		}
@@ -81,7 +90,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPla
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
-				LOGGER.error("Failed to start web player server on HTTPS: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface server on HTTPS: {}", e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info(
@@ -91,7 +100,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPla
 					);
 				}
 			} catch (GeneralSecurityException e) {
-				LOGGER.error("Failed to start web player server on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.error("Failed to start web interface server on HTTPS due to a security error: {}", e.getMessage());
 				LOGGER.trace("", e);
 			}
 		} else {
@@ -169,13 +178,13 @@ public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPla
 	}
 
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
-		String cookie = WebPlayerServerUtil.getCookie("UMS", t);
+		String cookie = WebInterfaceServerUtil.getCookie("UMS", t);
 		RootFolder root;
 		synchronized (roots) {
 			root = roots.get(cookie);
 			if (root == null) {
 				// Double-check for cookie errors
-				WebRender valid = WebPlayerServerUtil.matchRenderer(user, t);
+				WebRender valid = WebInterfaceServerUtil.matchRenderer(user, t);
 				if (valid != null) {
 					// A browser of the same type and user is already connected
 					// at
@@ -208,9 +217,9 @@ public class WebPlayerServerHttpServer extends WebPlayerServer implements WebPla
 				render.associateIP(t.getRemoteAddress().getAddress());
 				render.associatePort(t.getRemoteAddress().getPort());
 				if (CONFIGURATION.useWebSubLang()) {
-					render.setSubLang(StringUtils.join(WebPlayerServerUtil.getLangs(t), ","));
+					render.setSubLang(StringUtils.join(WebInterfaceServerUtil.getLangs(t), ","));
 				}
-				render.setBrowserInfo(WebPlayerServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
 			} catch (ConfigurationException e) {
 				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
