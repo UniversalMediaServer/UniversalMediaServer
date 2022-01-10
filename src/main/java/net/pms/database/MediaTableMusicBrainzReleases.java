@@ -41,7 +41,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  *
  * @author Nadahar
  */
-public final class TableMusicBrainzReleases extends Tables {
+public final class MediaTableMusicBrainzReleases extends MediaTable {
 	/**
 	 * TABLE_LOCK is used to synchronize database access on table level.
 	 * H2 calls are thread safe, but the database's multithreading support is
@@ -50,18 +50,121 @@ public final class TableMusicBrainzReleases extends Tables {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
-	private static final Logger LOGGER = LoggerFactory.getLogger(TableMusicBrainzReleases.class);
-	private static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASES";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMusicBrainzReleases.class);
+	public static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASES";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
-	// No instantiation
-	private TableMusicBrainzReleases() {
+
+	/**
+	 * Checks and creates or upgrades the table as needed.
+	 *
+	 * @param connection the {@link Connection} to use
+	 *
+	 * @throws SQLException
+	 */
+	protected static void checkTable(final Connection connection) throws SQLException {
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (tableExists(connection, TABLE_NAME)) {
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				if (version != null) {
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
+					}
+				} else {
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
+					dropTable(connection, TABLE_NAME);
+					createTable(connection);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				}
+			} else {
+				createTable(connection);
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * This method <strong>MUST</strong> be updated if the table definition are
+	 * altered. The changes for each version in the form of
+	 * <code>ALTER TABLE</code> must be implemented here.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param currentVersion the version to upgrade <strong>from</strong>
+	 *
+	 * @throws SQLException
+	 */
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+				switch (version) {
+					case 1:
+						// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
+						Statement statement = connection.createStatement();
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
+						);
+						break;
+					case 2:
+						if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
+							LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
+							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
+						}
+						break;
+					default:
+						throw new IllegalStateException(
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+						);
+				}
+			}
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Must be called from inside a table lock
+	 */
+	private static void createTable(final Connection connection) throws SQLException {
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			"CREATE TABLE " + TABLE_NAME + "(" +
+				"ID				IDENTITY		PRIMARY KEY	, " +
+				"MODIFIED		DATETIME					, " +
+				"MBID			VARCHAR(36)					, " +
+				"ARTIST			VARCHAR(1000)				, " +
+				"ALBUM			VARCHAR(1000)				, " +
+				"TITLE			VARCHAR(1000)				, " +
+				"MEDIA_YEAR		VARCHAR(20)					, " +
+				"ARTIST_ID		VARCHAR(36)					, " +
+				"TRACK_ID		VARCHAR(36)					  " +
+			")",
+			"CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)",
+			"CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)"
+		);
 	}
 
 	/**
@@ -149,7 +252,7 @@ public final class TableMusicBrainzReleases extends Tables {
 			if (added) {
 				where.append(and);
 			}
-			where.append("YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
+			where.append("MEDIA_YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
 		}
 
 		return where.toString();
@@ -158,14 +261,15 @@ public final class TableMusicBrainzReleases extends Tables {
 	/**
 	 * Stores the MBID with information from this {@link Tag} in the database
 	 *
+	 * @param connection the db connection
 	 * @param mBID the MBID to store
 	 * @param tagInfo the {@link Tag} who's information should be associated with
 	 *        the given MBID
 	 */
-	public static void writeMBID(final String mBID, final CoverArtArchiveTagInfo tagInfo) {
+	public static void writeMBID(final Connection connection, final String mBID, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
@@ -221,7 +325,7 @@ public final class TableMusicBrainzReleases extends Tables {
 							result.updateString("TITLE", left(tagInfo.title, 1000));
 						}
 						if (StringUtil.hasValue(tagInfo.year)) {
-							result.updateString("YEAR", left(tagInfo.year, 20));
+							result.updateString("MEDIA_YEAR", left(tagInfo.year, 20));
 						}
 						if (StringUtil.hasValue(tagInfo.artistId)) {
 							result.updateString("ARTIST_ID", tagInfo.artistId);
@@ -238,12 +342,7 @@ public final class TableMusicBrainzReleases extends Tables {
 				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error(
-				"Database error while writing Music Brainz ID \"{}\" for \"{}\": {}",
-				mBID,
-				tagInfo,
-				e.getMessage()
-			);
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing Music Brainz ID", mBID, TABLE_NAME, tagInfo, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
@@ -252,15 +351,16 @@ public final class TableMusicBrainzReleases extends Tables {
 	 * Looks up MBID in the table based on the given {@link Tag}. Never returns
 	 * <code>null</code>
 	 *
+	 * @param connection the db connection
 	 * @param tagInfo the {@link Tag} for whose values should be used in the search
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static MusicBrainzReleasesResult findMBID(final CoverArtArchiveTagInfo tagInfo) {
+	public static MusicBrainzReleasesResult findMBID(final Connection connection, final CoverArtArchiveTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 		MusicBrainzReleasesResult result;
 
-		try (Connection connection = DATABASE.getConnection()) {
+		try {
 			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false) + " LIMIT 1";
 
 			if (trace) {
@@ -280,7 +380,7 @@ public final class TableMusicBrainzReleases extends Tables {
 				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error while looking up Music Brainz ID for \"{}\": {}", tagInfo, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up Music Brainz ID", TABLE_NAME, tagInfo, e.getMessage());
 			LOGGER.trace("", e);
 			result = new MusicBrainzReleasesResult();
 		}
@@ -288,124 +388,4 @@ public final class TableMusicBrainzReleases extends Tables {
 		return result;
 	}
 
-	/**
-	 * Checks and creates or upgrades the table as needed.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version < TABLE_VERSION) {
-						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(
-							"Database table \"" + TABLE_NAME +
-							"\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"" +
-							DATABASE.getDatabaseFilename() +
-							"\" before starting UMS"
-						);
-					}
-				} else {
-					LOGGER.warn("Database table \"{}\" has an unknown version and cannot be used. Dropping and recreating table", TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createMusicBrainzReleasesTable(connection);
-					setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				}
-			} else {
-				createMusicBrainzReleasesTable(connection);
-				setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * This method <strong>MUST</strong> be updated if the table definition are
-	 * altered. The changes for each version in the form of
-	 * <code>ALTER TABLE</code> must be implemented here.
-	 *
-	 * @param connection the {@link Connection} to use
-	 * @param currentVersion the version to upgrade <strong>from</strong>
-	 *
-	 * @throws SQLException
-	 */
-	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
-		LOGGER.info("Upgrading database table \"{}\" from version {} to {}", TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
-		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace("Upgrading table {} from version {} to {}", TABLE_NAME, version, version + 1);
-				switch (version) {
-					case 1:
-						// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
-						Statement statement = connection.createStatement();
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
-						);
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
-						);
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
-						);
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN YEAR VARCHAR(20)"
-						);
-						break;
-					default:
-						throw new IllegalStateException(
-							"Table \"" + TABLE_NAME + "is missing table upgrade commands from version " +
-							version + " to " + TABLE_VERSION
-						);
-				}
-			}
-			setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Must be called from inside a table lock
-	 */
-	private static void createMusicBrainzReleasesTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute(
-				"CREATE TABLE " + TABLE_NAME + "(" +
-					"ID IDENTITY PRIMARY KEY, " +
-					"MODIFIED DATETIME, " +
-					"MBID VARCHAR(36), " +
-					"ARTIST VARCHAR(1000), " +
-					"ALBUM VARCHAR(1000), " +
-					"TITLE VARCHAR(1000), " +
-					"YEAR VARCHAR(20), " +
-					"ARTIST_ID VARCHAR(36), " +
-					"TRACK_ID VARCHAR(36)" +
-				")");
-			statement.execute("CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)");
-			statement.execute("CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)");
-		}
-	}
-
-	/**
-	 * Drops (deletes) the current table. Use with caution, there is no undo.
-	 *
-	 * @param connection the {@link Connection} to use
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void dropTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Dropping database table if it exists \"{}\"", TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + TABLE_NAME);
-		}
-	}
 }

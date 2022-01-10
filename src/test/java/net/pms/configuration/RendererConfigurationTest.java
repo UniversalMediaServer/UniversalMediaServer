@@ -198,15 +198,29 @@ public class RendererConfigurationTest {
 		);
 
 		testHeaders(
+			"Roku (DVP 10)",
+			"User-Agent: Roku/DVP-10.5"
+		);
+
+		testHeaders(
 			"Roku 3 (NSP 6-7)",
 			"User-Agent: Roku/DVP-6.x",
 			"User-Agent: Roku/DVP-7.x"
 		);
 
+		testHeaders("Roku TV", "User-Agent: Roku/5000X-7");
+
 		testHeaders(
 			"Roku TV (NSP 8)",
 			"User-Agent: Roku/DVP-8.0 (308.00E04156A)",
 			"User-Agent: Roku/DVP-8.1 (508.01E04018A)"
+		);
+
+		testHeaders(
+			"Roku TV 4K",
+			"User-Agent: Roku/6000X-7",
+			"User-Agent: Roku/7000X-7",
+			"User-Agent: Roku/8000X-7"
 		);
 
 		testHeaders(
@@ -233,9 +247,12 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
+		testUPNPDetails("Samsung Soundbar", "friendlyName=[AV] Samsung Soundbar Q90R");
+		testUPNPDetails("Samsung Soundbar", "modelDescription=Samsung SOUNDBAR DMR");
+
 		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
-		
+
 		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
@@ -297,6 +314,12 @@ public class RendererConfigurationTest {
 		testUPNPDetails(
 			"Sony Bravia XBR OLED",
 			"modelName=XBR-65A1E"
+		);
+
+		testHeaders("Sony X Series TV", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-50X80J\"; mv=\"3.0\";");
+		testUPNPDetails(
+			"Sony X Series TV",
+			"{friendlyName=Security TV, address=192.168.50.183, udn=uuid:96c90ee4-6768-460a-ad31-090018db9149, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}"
 		);
 
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");

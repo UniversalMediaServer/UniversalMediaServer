@@ -12,14 +12,16 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
-import net.pms.database.TableTVSeries;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableTVSeries;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
@@ -82,12 +84,7 @@ public class RemoteUtil {
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-
 	public static void dump(final InputStream in, final OutputStream os) {
-		dump(in, os, null);
-	}
-
-	public static void dump(final InputStream in, final OutputStream os, final WebRender renderer) {
 		Runnable r = () -> {
 			byte[] buffer = new byte[32 * 1024];
 			int bytes;
@@ -107,12 +104,10 @@ public class RemoteUtil {
 				} catch (IOException e) {
 				}
 			}
+
 			try {
 				os.close();
 			} catch (IOException e) {
-			}
-			if (renderer != null) {
-				renderer.stop();
 			}
 		};
 		new Thread(r).start();
@@ -175,6 +170,15 @@ public class RemoteUtil {
 		dump(in, os);
 	}
 
+	/**
+	 * Whether the MIME type is supported by all browsers.
+	 * Note: This is a flawed approach because while browsers
+	 * may support the container format, they may not support
+	 * the codecs within. For example, most browsers support
+	 * MP4 with H.264, but do not support it with H.265 (HEVC)
+	 *
+	 * @todo refactor to be more specific
+	 */
 	public static boolean directmime(String mime) {
 		if (
 			mime != null &&
@@ -509,13 +513,21 @@ public class RemoteUtil {
 	 *         when there is no metadata
 	 */
 	public static String getAPIMetadataAsJavaScriptVars(DLNAResource resource, HttpExchange t, boolean isTVSeries, RootFolder rootFolder) throws UnsupportedEncodingException {
-		List<HashMap<String, Object>> resourceMetadataFromDatabase;
+		List<HashMap<String, Object>> resourceMetadataFromDatabase = null;
 
-		if (isTVSeries) {
-			String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-			resourceMetadataFromDatabase = TableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(simplifiedTitle);
-		} else {
-			resourceMetadataFromDatabase = DLNAMediaDatabase.getAPIResultsByFilenameIncludingExternalTables(resource.getFileName());
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				if (isTVSeries) {
+					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
+					resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedTitle);
+				} else {
+					resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
 		}
 
 		if (resourceMetadataFromDatabase == null) {

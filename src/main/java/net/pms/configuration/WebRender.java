@@ -32,7 +32,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.external.StartStopListenerDelegate;
@@ -491,17 +490,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	public static boolean supports(DLNAResource dlna) {
-		if (dlna instanceof VirtualVideoAction) {
-			return true;
-		}
-		DLNAMediaInfo media = dlna.getMedia();
-		return
-			media != null && RemoteUtil.directmime(media.getMimeType()) ||
-			supportedFormat(dlna.getFormat()) ||
-			dlna.getPlayer() instanceof FFMpegVideo;
-	}
-
 	/**
 	 * libvorbis transcodes very slowly, so we scale the video down to
 	 * speed it up.
@@ -574,9 +562,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void start(DLNAResource dlna) {
-		if (getPlayingRes() != dlna) {
+		// Stop playing any previous media on the renderer
+		if (getPlayingRes() != null && getPlayingRes() != dlna) {
 			stop();
 		}
+
 		setPlayingRes(dlna);
 		if (startStop == null) {
 			startStop = new StartStopListenerDelegate(ip);
@@ -662,7 +652,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
 				"PAUSED".equals(s) ? PAUSED : -1;
-			state.mute = "0".equals(data.get("mute")) ? false : true;
+			state.mute = !"0".equals(data.get("mute"));
 			s = data.get("volume");
 			try {
 				state.volume = StringUtil.hasValue(s) ? Integer.parseInt(s) : 0;

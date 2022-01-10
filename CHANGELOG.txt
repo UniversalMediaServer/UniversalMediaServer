@@ -1,4 +1,82 @@
-10.13.0 - 2021-11-
+10.15.0 - 2022-01-03
+
+	General:
+		Vast speed improvements
+		Added ability to overlay text under the renderer icon (thanks, SurfaceS!)
+		Web interface initially loads 3 seconds faster
+		Fixed network speed detection on Docker
+		Improved communicating changes with devices (like fully played status)
+		Fixed broken file playback, especially with large collections
+		Fixed undefined "Rated" field with some videos on web interface
+		Fixed media not marked as fully played if the file action failed
+		Fixed resume files not being created on the web interface
+		Fixed files marked as stopped when they are still playing on the web interface (#2766)
+		Fixed "not playable" message on web interface (#2258)
+	Renderers:
+		Added detection of more Roku TVs
+		Added detection of Samsung Soundbars
+		Added detection of Sony X Series TVs
+		Added detection of TCL TVs
+	Translation updates via Crowdin:
+		German (100%) (thanks, pipin!)
+		Italian (100%) (thanks, Oscar Zambotti!)
+	Dependencies:
+		Bump checkstyle from 9.2 to 9.2.1
+		Bump h2database from 1.4.197 to 2.0.204 (thanks, SurfaceS!)
+		Bump icu4j from 69.1 to 70.1
+		Bump logback-version from 1.2.9 to 1.2.10
+		Bump maven-site-plugin from 3.9.1 to 3.10.0
+		Bump rome from 1.16.0 to 1.18.0
+		Bump twelvemonkeys-imageio-version from 3.8.0 to 3.8.1
+
+10.14.1 - 2021-12-24
+
+	General:
+		Fixed broken logging characters with some languages (thanks, SurfaceS!)
+	Translation updates via Crowdin:
+		Danish (100%) (thanks, NCAA!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (100%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+		Slovak (93%) (thanks, Lukáš Praznovec!)
+		Swedish (97%) (thanks, Lorien aka the First One)
+		Turkish (100%) (thanks, Burak Yavuz!)
+	Dependencies:
+		Bump logback from 1.2.8 to 1.2.9
+		Bump spotbugs-maven-plugin from 4.5.0.0 to 4.5.2.0
+
+10.14.0 - 2021-12-19
+
+	General:
+		Added the Contributor Covenant Code of Conduct to reflect and inspire our ideals and practices (thanks, Shubham Rauthan!)
+		Added "Browse by album" feature to UPnP person/artist searches (thanks, ik666!)
+		Added a debug configuration for VS Code (thanks, A2va!)
+		Allow users to have no shared content (both remote or local), instead of setting defaults (thanks, Andy Griffiths!)
+		Fixed tsMuxeR not working on macOS, again (thanks, DetectiveKenobi!)
+	Renderers:
+		Fixed support for H.264 level 5.x video on Panasonic VT60 TVs
+	Translation updates via Crowdin:
+		Bulgarian (96%) (thanks, Radoslav Ignatov!)
+		Hungarian (96%) (thanks, Poliziotto!)
+		Persian (34%) (thanks, Aydin Noori!)
+	Dependencies:
+		Bump checkstyle from 9.1 to 9.2
+		Bump doxia-module-docbook-simple from 1.10 to 1.11.1
+		Bump FFmpeg from 2021-07-22 to 2021-12-16
+		Bump JNA from 5.9.0 to 5.10.0
+		Bump junit5 from 5.8.1 to 5.8.2
+		Bump logback from 1.2.7 to 1.2.8
+		Bump oshi-core from 5.8.5 to 5.8.6
+		Bump spotbugs-maven-plugin from 4.4.2.2 to 4.5.0.0
+		Bump thumbnailator from 0.4.14 to 0.4.15
+		Bump tsMuxeR from 2021-09-02-01-59-46 to 2021-11-14-02-03-07
+		Bump twelvemonkeys-imageio-version from 3.7.0 to 3.8.0
+		Bump youtube-dl from 2021.06.06 to 2021.12.17
+
+10.13.0 - 2021-11-16
 
 	General:
 		Improved matching and prettifying of TV episodes, especially anime and TV episodes

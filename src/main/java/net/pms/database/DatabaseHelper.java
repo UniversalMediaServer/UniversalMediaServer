@@ -19,124 +19,49 @@
  */
 package net.pms.database;
 
+import com.google.common.base.CharMatcher;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.configuration.PmsConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This class is the super class of all database table classes. It has the
- * responsibility to check or create the <code>TABLES<code> table, and to call
- * <code>checkTable</code> for each database table implementation.
- *
- * This class also has some utility methods that's likely to be useful to most
- * child classes.
- *
- * @author Nadahar
- */
-public class Tables {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Tables.class);
-	private static final Object CHECK_TABLES_LOCK = new Object();
-	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
-	private static boolean tablesChecked = false;
+public class DatabaseHelper {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
 	private static final String ESCAPE_CHARACTER = "\\";
-	public static final String TABLE_NAME = "TABLES";
+	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	// No instantiation
-	protected Tables() {
-	}
+	protected static final String LOG_CREATING_TABLE = "Creating database \"{}\" table: \"{}\"";
+	protected static final String LOG_UPGRADING_TABLE = "Upgrading database \"{}\" table \"{}\" from version {} to {}";
+	protected static final String LOG_UPGRADED_TABLE = "Updated database \"{}\" table \"{}\" from version {} to {}";
+	protected static final String LOG_UPGRADING_TABLE_FAILED = "Failed upgrading database \"{}\" table {} for {}";
+	protected static final String LOG_UPGRADING_TABLE_MISSING = "Database \"{}\" table \"{}\" is missing table upgrade commands from version {} to {}";
 
-	/**
-	 * Checks all child tables for their existence and version and creates or
-	 * upgrades as needed.Access to this method is serialized.
-	 *
-	 * @param force do the check even if it has already happened
-	 * @throws SQLException
-	 */
-	public static final void checkTables(boolean force) throws SQLException {
-		synchronized (CHECK_TABLES_LOCK) {
-			if (tablesChecked && !force) {
-				LOGGER.debug("Database tables have already been checked, aborting check");
-			} else {
-				LOGGER.debug("Starting check of database tables");
-				try (Connection connection = DATABASE.getConnection()) {
-					if (!tableExists(connection, TABLE_NAME)) {
-						createTablesTable(connection);
-					}
+	protected static final String LOG_TABLE_NEWER_VERSION = "Database \"{}\" table \"{}\" is from a newer version of UMS.";
+	protected static final String LOG_TABLE_NEWER_VERSION_DELETEDB = "Database \"{}\" table \"{}\" is from a newer version of UMS. If you experience problems, you could try to move, rename or delete database file \"{}\" before starting UMS";
+	protected static final String LOG_TABLE_UNKNOWN_VERSION_RECREATE = "Database \"{}\" table \"{}\" has an unknown version and cannot be used. Dropping and recreating table";
 
-					TableMusicBrainzReleases.checkTable(connection);
-					TableCoverArtArchive.checkTable(connection);
-					TableFilesStatus.checkTable(connection);
-					TableThumbnails.checkTable(connection);
+	protected static final String LOG_CONNECTION_GET_ERROR = "Database \"{}\" error while getting connection: {}";
+	protected static final String LOG_ERROR_WHILE_IN = "Database \"{}\" error while {} in \"{}\": {}";
+	protected static final String LOG_ERROR_WHILE_VAR_IN = "Database \"{}\" error while {} \"{}\" in \"{}\": {}";
+	protected static final String LOG_ERROR_WHILE_IN_FOR = "Database \"{}\" error while {} in \"{}\" for \"{}\": {}";
+	protected static final String LOG_ERROR_WHILE_VAR_IN_FOR = "Database \"{}\" error while {} \"{}\" in \"{}\" for \"{}\": {}";
 
-					TableTVSeries.checkTable(connection);
-					TableFailedLookups.checkTable(connection);
-
-					// Video metadata tables
-					TableVideoMetadataActors.checkTable(connection);
-					TableVideoMetadataAwards.checkTable(connection);
-					TableVideoMetadataCountries.checkTable(connection);
-					TableVideoMetadataDirectors.checkTable(connection);
-					TableVideoMetadataIMDbRating.checkTable(connection);
-					TableVideoMetadataGenres.checkTable(connection);
-					TableVideoMetadataPosters.checkTable(connection);
-					TableVideoMetadataProduction.checkTable(connection);
-					TableVideoMetadataRated.checkTable(connection);
-					TableVideoMetadataRatings.checkTable(connection);
-					TableVideoMetadataReleased.checkTable(connection);
-
-					// Audio Metadata
-					TableAudiotracks.checkTable(connection);
-				}
-				tablesChecked = true;
-			}
-		}
-	}
-
-	/**
-	 * Re-initializes all child tables except files status.
-	 *
-	 * @throws SQLException
-	 */
-	public static final void reInitTablesExceptFilesStatus() throws SQLException {
-		LOGGER.debug("Re-initializing tables");
-		try (Connection connection = DATABASE.getConnection()) {
-			TableMusicBrainzReleases.dropTable(connection);
-			TableCoverArtArchive.dropTable(connection);
-			TableThumbnails.dropTable(connection);
-
-			TableTVSeries.dropTable(connection);
-			TableFailedLookups.dropTable(connection);
-
-			// Video metadata tables
-			TableVideoMetadataActors.dropTable(connection);
-			TableVideoMetadataAwards.dropTable(connection);
-			TableVideoMetadataCountries.dropTable(connection);
-			TableVideoMetadataDirectors.dropTable(connection);
-			TableVideoMetadataIMDbRating.dropTable(connection);
-			TableVideoMetadataGenres.dropTable(connection);
-			TableVideoMetadataPosters.dropTable(connection);
-			TableVideoMetadataProduction.dropTable(connection);
-			TableVideoMetadataRated.dropTable(connection);
-			TableVideoMetadataRatings.dropTable(connection);
-			TableVideoMetadataReleased.dropTable(connection);
-
-			// Audio Metadata
-			TableAudiotracks.dropTable(connection);
-		}
-
-		checkTables(true);
-	}
+	// Generic constant for the maximum string size: 255 chars
+	protected static final int SIZE_MAX = 255;
 
 	/**
 	 * Checks if a named table exists
@@ -188,81 +113,6 @@ public class Tables {
 	}
 
 	/**
-	 * Gets the version of a named table from the <code>TABLES</code> table
-	 *
-	 * @param connection the {@link Connection} to use
-	 * @param tableName the name of the table for which to find the version
-	 *
-	 * @return The version number if found or <code>null</code> if the table
-	 *         isn't listed in <code>TABLES</code>
-	 *
-	 * @throws SQLException
-	 */
-	protected static final Integer getTableVersion(final Connection connection, final String tableName) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT VERSION FROM TABLES " +
-				"WHERE NAME = ?"
-		)) {
-			statement.setString(1, tableName);
-			try (ResultSet result = statement.executeQuery()) {
-				if (result.next()) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Table version for database table \"{}\" is {}", tableName, result.getInt("VERSION"));
-					}
-					return result.getInt("VERSION");
-				} else {
-					LOGGER.trace("Table version for database table \"{}\" not found", tableName);
-					return null;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Sets the version of a named table in the <code>TABLES</code> table.
-	 * Creates a row for the given table name if needed.
-	 *
-	 * @param connection the {@link Connection} to use
-	 * @param tableName the name of the table for which to set the version
-	 * @param version the version number to set
-	 *
-	 * @throws SQLException
-	 */
-	protected static final void setTableVersion(final Connection connection, final String tableName, final int version) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT VERSION FROM TABLES WHERE NAME = ?"
-		)) {
-			statement.setString(1, tableName);
-			try (ResultSet result = statement.executeQuery()) {
-				if (result.next()) {
-					int currentVersion = result.getInt("VERSION");
-					if (version != currentVersion) {
-						try (PreparedStatement updateStatement = connection.prepareStatement(
-							"UPDATE TABLES SET VERSION = ? WHERE NAME = ?"
-						)) {
-							LOGGER.trace("Updating table version for database table \"{}\" from {} to {}", tableName, currentVersion, version);
-							updateStatement.setInt(1, version);
-							updateStatement.setString(2, tableName);
-							updateStatement.executeUpdate();
-						}
-					} else {
-						LOGGER.trace("Table version for database table \"{}\" is already {}, aborting set", tableName, version);
-					}
-				} else {
-					try (PreparedStatement insertStatement = connection.prepareStatement(
-						"INSERT INTO TABLES VALUES(?, ?)"
-					)) {
-						LOGGER.trace("Setting table version for database table \"{}\" to {}", tableName, version);
-						insertStatement.setString(1, tableName);
-						insertStatement.setInt(2, version);
-						insertStatement.executeUpdate();
-					}
-				}
-			}
-		}
-	}
-
-	/**
 	 * Drops (deletes) the named table. Use with caution, there is no undo.
 	 *
 	 * @param connection the {@link Connection} to use
@@ -277,10 +127,54 @@ public class Tables {
 		}
 	}
 
-	protected static final void createTablesTable(final Connection connection) throws SQLException {
-		LOGGER.debug("Creating database table \"TABLES\"");
-		try (Statement statement = connection.createStatement()) {
-			statement.execute("CREATE TABLE TABLES(NAME VARCHAR(50) PRIMARY KEY, VERSION INT NOT NULL)");
+	/**
+	 * Drops (deletes) the named table and its constaints. Use with caution, there is no undo.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param tableName the name of the table to delete
+	 */
+	protected static final void dropTableAndConstraint(final Connection connection, final String tableName) {
+		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
+		try {
+			if (tableExists(connection, tableName)) {
+				dropReferentialsConstraint(connection, tableName);
+				executeUpdate(connection, "DROP TABLE IF EXISTS " + tableName + " CASCADE");
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during dropping table\"" + tableName + "\":" + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Drops referentials constraints on the named table.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param tableName the name of the table to delete
+	 */
+	protected static final void dropReferentialsConstraint(final Connection connection, final String tableName) {
+		LOGGER.debug("Dropping table \"{}\" constraints if it exists", tableName);
+		try {
+			String sql;
+			ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
+			if (rs.next()) {
+				sql = "SELECT CONSTRAINT_NAME " +
+					"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
+					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
+			} else {
+				sql = "SELECT CONSTRAINT_NAME " +
+					"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
+					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
+			}
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				try (Statement statement = connection.createStatement()) {
+					statement.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during dropping table\"" + tableName + "\" constraints:" + e.getMessage(), e);
 		}
 	}
 
@@ -385,7 +279,7 @@ public class Tables {
 	 * @throws SQLException
 	 */
 	public static HashSet<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
-		HashSet<String> list = new HashSet<String>();
+		HashSet<String> list = new HashSet<>();
 
 		while (rs.next()) {
 			list.add(rs.getString(1));
@@ -442,5 +336,113 @@ public class Tables {
 				}
 			}
 		}
+	}
+
+	protected static void executeUpdate(Connection conn, String sql) throws SQLException {
+		if (conn != null) {
+			try (Statement stmt = conn.createStatement()) {
+				stmt.executeUpdate(sql);
+			}
+		}
+	}
+
+	protected static void executeUpdate(Statement stmt, String sql) throws SQLException {
+		stmt.executeUpdate(sql);
+	}
+
+	protected static void execute(Connection conn, String... sqls) throws SQLException {
+		if (conn != null) {
+			try (Statement stmt = conn.createStatement()) {
+				for (String sql : sqls) {
+					stmt.execute(sql);
+				}
+			}
+		}
+	}
+
+	protected static void updateSerialized(ResultSet rs, Object x, String columnLabel) throws SQLException {
+		if (x != null) {
+			rs.updateObject(columnLabel, x);
+		} else {
+			rs.updateNull(columnLabel);
+		}
+	}
+
+	protected static void insertSerialized(PreparedStatement ps, Object x, int parameterIndex) throws SQLException {
+		if (x != null) {
+			ps.setObject(parameterIndex, x);
+		} else {
+			ps.setNull(parameterIndex, Types.OTHER);
+		}
+	}
+	/**
+	 * Returns the VALUES {@link String} for the SQL request.
+	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p>
+	 * The number of the "?" is calculated from the columns and not need to be hardcoded which
+	 * often causes mistakes when columns are deleted or added.<p>
+	 * Possible implementation:
+	 * <blockquote><pre>
+	 * String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS";
+	 * PreparedStatement insertStatement = connection.prepareStatement(
+	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" +
+	 *    createDefaultValueForInsertStatement(columns)
+	 * );
+	 * </pre></blockquote><p
+	 *
+	 * @param columns the SQL parameters string
+	 * @return The " VALUES (?,?,?, ...)" string
+	 *
+	 */
+	protected static String createDefaultValueForInsertStatement(String columns) {
+		int count = CharMatcher.is(',').countIn(columns);
+		StringBuilder sb = new StringBuilder();
+		sb.append(" VALUES (").append(StringUtils.repeat("?,", count)).append("?)");
+		return sb.toString();
+	}
+
+	protected static Double toDouble(ResultSet rs, String column) throws SQLException {
+		Object obj = rs.getObject(column);
+		if (obj instanceof Double) {
+			return (Double) obj;
+		}
+		return null;
+	}
+
+	public static void close(ResultSet rs) {
+		try {
+			if (rs != null) {
+				rs.close();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during closing:" + e.getMessage(), e);
+		}
+	}
+
+	public static void close(Statement ps) {
+		try {
+			if (ps != null) {
+				ps.close();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during closing:" + e.getMessage(), e);
+		}
+	}
+
+	public static void close(Connection conn) {
+		try {
+			if (conn != null) {
+				conn.close();
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during closing:" + e.getMessage(), e);
+		}
+	}
+
+	protected static String getMessage(String pattern, Object... arguments) {
+		int i = 0;
+		while (pattern.contains("{}")) {
+			pattern = pattern.replaceFirst(Pattern.quote("{}"), "{" + i++ + "}");
+		}
+		return MessageFormat.format(pattern, arguments);
 	}
 }

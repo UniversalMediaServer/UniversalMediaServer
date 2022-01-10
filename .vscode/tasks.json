@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "copy website",
+			"type": "shell",
+			"windows": {
+				// Default terminal profile must be Powershell
+				"command": "Copy-Item -Path ${workspaceFolder}/src/main/external-resources/web -Destination ${workspaceFolder} -Recurse -Force"
+			},
+			"linux": {
+				"command": "cp -a ${workspaceFolder}/src/main/external-resources/web/. ${workspaceFolder}/web"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"group": "build"
+		}
+	]
+}

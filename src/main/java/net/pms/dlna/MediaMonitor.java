@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,8 +18,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.database.TableFilesStatus;
-import net.pms.database.TableTVSeries;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableTVSeries;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.FileUtil;
@@ -220,15 +222,11 @@ public class MediaMonitor extends VirtualFolder {
 		) {
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent != null && !isFullyPlayed(fullPathToFile, true)) {
-				// Only set fully played if the file will stay where it is
-				if (
-					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
-					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
-					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
-				) {
-					setFullyPlayed(fullPathToFile, true, elapsed);
-				}
-
+				/*
+				 * Set to fully played even if it will be deleted or moved, because
+				 * the entry will be cleaned up later in those cases.
+				 */
+				setFullyPlayed(fullPathToFile, true, elapsed);
 				setDiscovered(false);
 				getChildren().clear();
 
@@ -312,7 +310,7 @@ public class MediaMonitor extends VirtualFolder {
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
-			TableFilesStatus.setLastPlayed(fullPathToFile, elapsed);
+			setLastPlayed(fullPathToFile, elapsed);
 			LOGGER.trace("final decision: not fully played");
 		}
 	}
@@ -349,12 +347,19 @@ public class MediaMonitor extends VirtualFolder {
 			}
 
 			// Add the entry to the cache
-			if (isFileOrTVSeries) {
-				fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
-			} else {
-				fullyPlayed = TableTVSeries.isFullyPlayed(fullPathToFile);
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					if (isFileOrTVSeries) {
+						fullyPlayed = MediaTableFilesStatus.isFullyPlayed(connection, fullPathToFile);
+					} else {
+						fullyPlayed = MediaTableTVSeries.isFullyPlayed(connection, fullPathToFile);
+					}
+				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
-
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
@@ -376,14 +381,40 @@ public class MediaMonitor extends VirtualFolder {
 	 */
 	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, Double lastPlaybackPosition) {
 		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
+		Connection connection = null;
 		try {
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
-			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
-			if (lastPlaybackPosition != null) {
-				TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableFilesStatus.setFullyPlayed(connection, fullPathToFile, isFullyPlayed);
+				if (lastPlaybackPosition != null) {
+					MediaTableFilesStatus.setLastPlayed(connection, fullPathToFile, lastPlaybackPosition);
+				}
 			}
 		} finally {
+			MediaDatabase.close(connection);
 			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Sets the last played position of the given {@code fullPathToFile} both in
+	 * the database.
+	 *
+	 * @param fullPathToFile the full path to the file in question.
+	 * @param lastPlaybackPosition how many seconds were played
+	 */
+	public static void setLastPlayed(String fullPathToFile, Double lastPlaybackPosition) {
+		if (lastPlaybackPosition != null) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFilesStatus.setLastPlayed(connection, fullPathToFile, lastPlaybackPosition);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
 	}
 
