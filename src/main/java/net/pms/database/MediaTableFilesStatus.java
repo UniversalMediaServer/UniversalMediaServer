@@ -474,8 +474,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 			) {
 				if (resultSet.next()) {
 					result = resultSet.getBoolean("ISFULLYPLAYED");
-				} else {
-					return false;
 				}
 			} finally {
 				TABLE_LOCK.readLock().unlock();
