@@ -467,7 +467,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
 
-			TABLE_LOCK.readLock().lock();
+			TABLE_LOCK.writeLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(query)
@@ -476,7 +476,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					result = resultSet.getBoolean("ISFULLYPLAYED");
 				}
 			} finally {
-				TABLE_LOCK.readLock().unlock();
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file status", TABLE_NAME, fullPathToFile, e.getMessage());
@@ -496,7 +496,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
-			TABLE_LOCK.readLock().lock();
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
@@ -504,7 +504,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					}
 				}
 			} finally {
-				TABLE_LOCK.readLock().unlock();
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file bookmark", TABLE_NAME, fullPathToFile, e.getMessage());
