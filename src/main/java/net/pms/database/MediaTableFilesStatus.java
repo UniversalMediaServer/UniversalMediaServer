@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * lock. The lock allows parallel reads.
 	 */
 	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
+	private static final Lock WRITE_LOCK = TABLE_LOCK.writeLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFilesStatus.class);
 	public static final String TABLE_NAME = "FILES_STATUS";
 
@@ -72,7 +74,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
+		WRITE_LOCK.lock();
 		try {
 			if (tableExists(connection, TABLE_NAME)) {
 				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
@@ -93,7 +95,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
 		} finally {
-			TABLE_LOCK.writeLock().unlock();
+			WRITE_LOCK.unlock();
 		}
 	}
 
@@ -110,7 +112,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
+		WRITE_LOCK.lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
@@ -236,7 +238,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				throw new SQLException(e);
 			}
 		} finally {
-			TABLE_LOCK.writeLock().unlock();
+			WRITE_LOCK.unlock();
 		}
 	}
 
@@ -277,7 +279,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setFullyPlayed", query);
 			}
 
-			TABLE_LOCK.writeLock().lock();
+			WRITE_LOCK.lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -316,7 +318,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					connection.commit();
 				}
 			} finally {
-				TABLE_LOCK.writeLock().unlock();
+				WRITE_LOCK.unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing status", isFullyPlayed, TABLE_NAME, fullPathToFile, e.getMessage());
@@ -341,7 +343,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setLastPlayed", query);
 			}
 
-			TABLE_LOCK.writeLock().lock();
+			WRITE_LOCK.lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -373,7 +375,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					connection.commit();
 				}
 			} finally {
-				TABLE_LOCK.writeLock().unlock();
+				WRITE_LOCK.unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing last played date", TABLE_NAME, fullPathToFile, e.getMessage());
@@ -401,7 +403,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setDirectoryFullyPlayed", query);
 			}
 
-			TABLE_LOCK.writeLock().lock();
+			WRITE_LOCK.lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet result = statement.executeQuery(query)) {
 					while (result.next()) {
@@ -409,7 +411,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					}
 				}
 			} finally {
-				TABLE_LOCK.writeLock().unlock();
+				WRITE_LOCK.unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -443,12 +445,12 @@ public final class MediaTableFilesStatus extends MediaTable {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
-			TABLE_LOCK.writeLock().lock();
+			WRITE_LOCK.lock();
 			try (Statement statement = connection.createStatement()) {
 				int rows = statement.executeUpdate(query);
 				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
 			} finally {
-				TABLE_LOCK.writeLock().unlock();
+				WRITE_LOCK.unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
@@ -523,7 +525,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in {} with \"{}\" before setBookmark", TABLE_NAME, query);
 			}
 
-			TABLE_LOCK.writeLock().lock();
+			WRITE_LOCK.lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -549,7 +551,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					connection.commit();
 				}
 			} finally {
-				TABLE_LOCK.writeLock().unlock();
+				WRITE_LOCK.unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing bookmark", bookmark, TABLE_NAME, fullPathToFile, e.getMessage());
