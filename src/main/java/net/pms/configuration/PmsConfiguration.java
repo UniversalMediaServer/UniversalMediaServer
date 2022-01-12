@@ -150,7 +150,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
-	public    static final String KEY_DISABLE_AUDIO_TRACK_SORTING = "disable_audio_track_sorting";
+	public    static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
 	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
