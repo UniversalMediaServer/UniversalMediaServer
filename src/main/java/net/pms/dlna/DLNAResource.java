@@ -733,7 +733,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		} catch (Throwable t) {
-			LOGGER.debug("Error adding child: \"{}\"", child.getName(), t);
+			LOGGER.debug("Error adding child {}: {}", child.getName(), t);
 
 			child.parent = null;
 			children.remove(child);
