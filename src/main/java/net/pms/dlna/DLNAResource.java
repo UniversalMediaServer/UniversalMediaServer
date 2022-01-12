@@ -1128,7 +1128,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
 						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
 
-					if (hasAudioFilesSameAlbum(dlna)) {
+					if (shouldDoAudioTrackSorting(dlna)) {
 						sortChildrenWithAudioElements(dlna);
 					}
 					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
@@ -1158,32 +1158,45 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
-	 * implementaion could match the MBID record id (not implemented).
+	 * implementation could match the MBID record id (not implemented).
 	 *
 	 * @param dlna Folder containing child objects of any kind
 	 *
 	 * @return
-	 * 	TRUE, if all audio child objects belong to the same album.
+	 * 	TRUE, if AudioTrackSorting is not disabled, all audio child objects belong to the same album and the majority of files are audio.
 	 */
-	private boolean hasAudioFilesSameAlbum(DLNAResource dlna) {
+	private boolean shouldDoAudioTrackSorting(DLNAResource dlna) {
+		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
+			return false;
+		}
+
 		String album = null;
+		int numberOfAudioFiles = 0;
+		int numberOfOtherFiles = 0;
+
 		boolean audioExists = false;
 		for (DLNAResource res : dlna.getChildren()) {
 			if (res.getFormat() != null && res.getFormat().isAudio()) {
+				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
 					if (res.getMedia().getFirstAudioTrack() == null) {
 						return false;
 					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
+					if (StringUtils.isAllBlank(album)) {
+						return false;
+					}
 				} else {
 					if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
 						return false;
 					}
 				}
+			} else {
+				numberOfOtherFiles++;
 			}
 		}
-		return audioExists;
+		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
 	}
 
 	private void sortChildrenWithAudioElements(DLNAResource dlna) {
