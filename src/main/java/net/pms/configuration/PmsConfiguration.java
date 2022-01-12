@@ -4814,8 +4814,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		return cs;
 	}
 
-	public boolean getDisableAudioTrackSorting() {
-		return getBoolean(KEY_DISABLE_AUDIO_TRACK_SORTING, false);
+	public boolean isSortAudioTracksByAlbumPosition() {
+		return getBoolean(KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION, true);
 	}
 
 	public boolean isDynamicPls() {
