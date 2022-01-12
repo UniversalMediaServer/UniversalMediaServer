@@ -159,6 +159,10 @@ public class RealFile extends MapFile {
 	}
 
 	public File getFile() {
+		if (getConf().getFiles().isEmpty()) {
+			return null;
+		}
+
 		return getConf().getFiles().get(0);
 	}
 
@@ -167,6 +171,12 @@ public class RealFile extends MapFile {
 		if (this.getConf().getName() == null) {
 			String name = null;
 			File file = getFile();
+
+			// this probably happened because the file was removed after it could not be parsed by isValid()
+			if (file == null) {
+				return null;
+			}
+
 			if (file.getName().trim().isEmpty()) {
 				if (Platform.isWindows()) {
 					name = BasicSystemUtils.instance.getDiskLabel(file);
