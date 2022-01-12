@@ -1166,7 +1166,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * 	TRUE, if AudioTrackSorting is not disabled, all audio child objects belong to the same album and the majority of files are audio.
 	 */
 	private boolean shouldDoAudioTrackSorting(DLNAResource dlna) {
-		if (PMS.getConfiguration().getDisableAudioTrackSorting()) {
+		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
 			return false;
 		}
 
