@@ -82,7 +82,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.network.DbIdResourceLocator;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.handlers.ApiHandler;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.BrowseRequest;
@@ -184,7 +183,7 @@ public class RequestHandlerV3 implements HttpHandler {
 
 			if (uri.startsWith("api/")) {
 				ApiHandler api = new ApiHandler();
-				api.handleApiRequest(exchange, requestBody);
+				api.handle(exchange);
 			} else if (uri.startsWith("console/") && GET.equals(method) || HEAD.equals(method)) {
 				sendResponse(exchange, 200, HTMLConsole.servePage(uri.substring(8)), CONTENT_TYPE_HTML);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
