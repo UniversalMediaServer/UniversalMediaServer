@@ -271,7 +271,9 @@ public final class MediaTableFilesStatus extends MediaTable {
 	public static void setFullyPlayed(final Connection connection, final String fullPathToFile, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
 
+		System.out.println("acquiring write lock");
 		TABLE_LOCK.writeLock().lock();
+		System.out.println("acquired write lock");
 		try {
 			String query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
@@ -285,6 +287,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 						if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
 							if (trace) {
 								LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
+								System.out.println("found and already matches");
 							}
 						} else {
 							if (trace) {
@@ -297,6 +300,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 							result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
 							result.updateRow();
+							System.out.println("updating existing result to " + isFullyPlayed);
 						}
 					} else {
 						if (trace) {
@@ -311,6 +315,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 						result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
 						result.insertRow();
+						System.out.println("inserting result to " + isFullyPlayed);
 					}
 				} finally {
 					connection.commit();
@@ -321,6 +326,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 			LOGGER.trace("", e);
 		} finally {
 			TABLE_LOCK.writeLock().unlock();
+			System.out.println("unlocked write lock");
 		}
 	}
 
@@ -459,7 +465,9 @@ public final class MediaTableFilesStatus extends MediaTable {
 	public static Boolean isFullyPlayed(final Connection connection, final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 
+		System.out.println("acquiring read lock");
 		TABLE_LOCK.readLock().lock();
+		System.out.println("acquired read lock");
 		try {
 			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 
@@ -472,16 +480,21 @@ public final class MediaTableFilesStatus extends MediaTable {
 				ResultSet resultSet = statement.executeQuery(query)
 			) {
 				if (resultSet.next()) {
+					System.out.println("test debug got a result");
 					return resultSet.getBoolean("ISFULLYPLAYED");
+				} else {
+					System.out.println("test debug no result");
 				}
 			}
 		} catch (Exception e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file status", TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		} finally {
+			System.out.println("unlocked read lock");
 			TABLE_LOCK.readLock().unlock();
 		}
 
+		System.out.println("reached end");
 		return null;
 	}
 
