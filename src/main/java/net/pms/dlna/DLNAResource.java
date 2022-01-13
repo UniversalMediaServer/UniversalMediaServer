@@ -99,7 +99,8 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.HTTPResource;
-import net.pms.network.UPNPControl.Renderer;
+import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.UPNPControl.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
@@ -1763,7 +1764,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         none is available, "thumbnail0000.png" is used.
 	 */
 	protected String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = new StringBuilder(PMS.get().getServer().getURL());
+		StringBuilder sb = new StringBuilder(MediaServer.getURL());
 		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
@@ -1799,7 +1800,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public String getURL(String prefix, boolean useSystemName, boolean urlEncode) {
 		String uri = useSystemName ? getSystemName() : getName();
 		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
+		sb.append(MediaServer.getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); // id
 		sb.append('/');
@@ -1815,7 +1816,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected String getSubsURL(DLNAMediaSubtitle subs) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
+		sb.append(MediaServer.getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); // id
 		sb.append('/');
@@ -4788,7 +4789,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {
-		return url != null && url.startsWith(PMS.get().getServer().getURL() + "/get/");
+		return url != null && url.startsWith(MediaServer.getURL() + "/get/");
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if

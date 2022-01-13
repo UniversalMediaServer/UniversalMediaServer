@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import net.pms.PMS;
-import net.pms.network.UPNPHelper;
+import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
