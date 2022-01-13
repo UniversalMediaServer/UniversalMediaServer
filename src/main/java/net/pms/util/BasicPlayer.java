@@ -16,7 +16,8 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import static net.pms.network.UPNPHelper.unescape;
+import net.pms.network.mediaserver.MediaServer;
+import static net.pms.network.mediaserver.UPNPHelper.unescape;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -417,7 +418,7 @@ public interface BasicPlayer extends ActionListener {
 				}
 				final String folder = tmp[1];
 				Runnable r = () -> {
-					while (PMS.get().getServer().getHost() == null) {
+					while (!MediaServer.isStarted()) {
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
