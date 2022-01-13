@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
 import net.pms.network.mediaserver.nettyserver.NettyServer;
 import net.pms.network.mediaserver.socketchannelserver.SocketChannelServer;
 import org.slf4j.Logger;
