@@ -472,10 +472,8 @@ public final class MediaTableFilesStatus extends MediaTable {
 				ResultSet resultSet = statement.executeQuery(query)
 			) {
 				if (resultSet.next()) {
-					System.out.println("test debug got a result");
 					return resultSet.getBoolean("ISFULLYPLAYED");
 				} else {
-					System.out.println("test debug no result");
 				}
 			}
 		} catch (Exception e) {
