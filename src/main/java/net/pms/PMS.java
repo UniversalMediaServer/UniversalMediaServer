@@ -226,15 +226,6 @@ public class PMS {
 	 */
 	private String serverName;
 
-	/* FIXME unused
-	 * ProxyServer could also be deleted
-	private ProxyServer proxyServer;
-
-	public ProxyServer getProxy() {
-		return proxyServer;
-	}
-	*/
-
 	public ArrayList<Process> currentProcesses = new ArrayList<>();
 
 	private PMS() {
