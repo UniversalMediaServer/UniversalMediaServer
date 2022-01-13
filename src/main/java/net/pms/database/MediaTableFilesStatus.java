@@ -473,7 +473,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 			) {
 				if (resultSet.next()) {
 					return resultSet.getBoolean("ISFULLYPLAYED");
-				} else {
 				}
 			}
 		} catch (Exception e) {
