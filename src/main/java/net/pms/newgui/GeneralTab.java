@@ -28,12 +28,14 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.Map.Entry;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.service.PreventSleepMode;
@@ -55,7 +57,7 @@ public class GeneralTab {
 	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox hideAdvancedOptions;
-	private JCheckBox newHTTPEngine;
+	private JComboBox<String> renderers;
 	private JComboBox<String> preventSleep;
 	private JTextField host;
 	private JTextField port;
@@ -64,7 +66,7 @@ public class GeneralTab {
 	private JTextField ipFilter;
 	public JTextField maxbitrate;
 	private JCheckBox adaptBitrate;
-	private JComboBox<String> renderers;
+	private JComboBox<String> serverEngine;
 	private final PmsConfiguration configuration;
 	private JCheckBox forceDefaultRenderer;
 	private JCheckBox extNetBox;
@@ -403,6 +405,30 @@ public class GeneralTab {
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
+			builder.addLabel(Messages.getString("NetworkTab.MediaServerEngine"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			final KeyedComboBoxModel<Integer, String> mediaServerEngineKcbm = new KeyedComboBoxModel<>();
+			mediaServerEngineKcbm.add(0, Messages.getString("Generic.Default"));
+			for (Entry<Integer, String> upnpEngineVersion : MediaServer.VERSIONS.entrySet()) {
+				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
+			}
+			serverEngine = new JComboBox<>(mediaServerEngineKcbm);
+			serverEngine.setEditable(false);
+			mediaServerEngineKcbm.setSelectedKey(configuration.getServerEngine());
+			if (serverEngine.getSelectedIndex() == -1) {
+				serverEngine.setSelectedIndex(0);
+			}
+			serverEngine.addItemListener((ItemEvent e) -> {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					configuration.setServerEngine((int) mediaServerEngineKcbm.getSelectedKey());
+					LOGGER.info(
+						"Setting default media server engine version to \"{}\"",
+						mediaServerEngineKcbm.getSelectedValue()
+					);
+				}
+			});
+			builder.add(serverEngine, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			ypos += 2;
+
 			boolean preventSleepSupported = SleepManager.isPreventSleepSupported();
 			if (preventSleepSupported) {
 				builder.addLabel(Messages.getString("NetworkTab.PreventSleepLabel"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
@@ -416,14 +442,8 @@ public class GeneralTab {
 					}
 				});
 				builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+				ypos += 2;
 			}
-
-			newHTTPEngine = new JCheckBox(Messages.getString("NetworkTab.32"), configuration.isHTTPEngineV2());
-			newHTTPEngine.addItemListener((ItemEvent e) -> {
-				configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
-			});
-			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(preventSleepSupported ? 7 : 1, ypos), colSpec, orientation));
-			ypos += 2;
 
 			final SelectRenderers selectRenderers = new SelectRenderers();
 

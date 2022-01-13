@@ -21,6 +21,9 @@ package net.pms.network.mediaserver;
 
 import java.io.IOException;
 import java.net.NetworkInterface;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.nettyserver.NettyServer;
@@ -31,6 +34,12 @@ import org.slf4j.LoggerFactory;
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	public static final Map<Integer, String> VERSIONS = Stream.of(new Object[][] {
+			{1, "Sockets"},
+			{2, "Netty"},
+			{3, "Java"},
+		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
+	public static final int DEFAULT_VERSION = 2;
 
 	private static HttpMediaServer httpMediaServer;
 	private static boolean isStarted = false;
@@ -41,14 +50,25 @@ public class MediaServer {
 
 	public static boolean start() {
 		if (!isStarted) {
+			int engineVersion = CONFIGURATION.getServerEngine();
+			if (engineVersion == 0 || !VERSIONS.containsKey(engineVersion)) {
+				engineVersion = DEFAULT_VERSION;
+			}
 			//first start the http server
 			try {
-				if (CONFIGURATION.isHTTPEngineV2()) {
-					httpMediaServer = new NettyServer(CONFIGURATION.getServerPort());
-					isStarted = httpMediaServer.start();
-				} else {
-					httpMediaServer = new SocketChannelServer(CONFIGURATION.getServerPort());
-					isStarted = httpMediaServer.start();
+				switch (engineVersion) {
+					case 1:
+						httpMediaServer = new SocketChannelServer(CONFIGURATION.getServerPort());
+						isStarted = httpMediaServer.start();
+						break;
+					case 2:
+						httpMediaServer = new NettyServer(CONFIGURATION.getServerPort());
+						isStarted = httpMediaServer.start();
+						break;
+					case 3:
+						httpMediaServer = new JavaHttpServer(CONFIGURATION.getServerPort());
+						isStarted = httpMediaServer.start();
+						break;
 				}
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to bind on port: " + CONFIGURATION.getServerPort() + ", because: " + ex.getMessage());
