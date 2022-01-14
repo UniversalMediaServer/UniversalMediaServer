@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
-import net.pms.PMS;
 import static net.pms.network.mediaserver.UPNPHelper.sleep;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
@@ -39,26 +38,19 @@ import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jupnp.DefaultUpnpServiceConfiguration;
 import org.jupnp.UpnpService;
-import org.jupnp.UpnpServiceImpl;
 import org.jupnp.controlpoint.ActionCallback;
 import org.jupnp.controlpoint.SubscriptionCallback;
-import org.jupnp.model.ServerClientTokens;
 import org.jupnp.model.action.*;
 import org.jupnp.model.gena.*;
 import org.jupnp.model.message.UpnpHeaders;
 import org.jupnp.model.message.UpnpResponse;
 import org.jupnp.model.message.header.DeviceTypeHeader;
-import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.model.meta.*;
 import org.jupnp.model.types.DeviceType;
 import org.jupnp.model.types.ServiceId;
 import org.jupnp.model.types.UDADeviceType;
 import org.jupnp.model.types.UDN;
-import org.jupnp.registry.DefaultRegistryListener;
-import org.jupnp.registry.Registry;
-import org.jupnp.registry.RegistryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -339,7 +331,7 @@ public class UPNPControl {
 	 * List of ignored devices (non-Renderers) from the network infrastructure
 	 * e.g. gateways, routers, printers etc.
 	 */
-	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<RemoteDevice>();
+	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<>();
 
 	/**
 	 * Add device to the list of ignored devices when not exists on the list.
@@ -382,6 +374,34 @@ public class UPNPControl {
 				upnpService.shutdown();
 			}
 		}).start();
+	}
+
+	public void remoteDeviceAdded(RemoteDevice device) {
+		if (isBlocked(getUUID(device)) || !addRenderer(device)) {
+			LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
+			addIgnoredDeviceToList(device);
+		}
+		// This may be unnecessary, but we might as well be thorough
+		if (device.hasEmbeddedDevices()) {
+			for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
+				if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
+					LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+					addIgnoredDeviceToList((RemoteDevice) embedded);
+				}
+			}
+		}
+	}
+
+	public void remoteDeviceUpdated(RemoteDevice device) {
+		rendererUpdated(device);
+	}
+
+	public void remoteDeviceRemoved(RemoteDevice device) {
+		String uuid = getUUID(device);
+		if (rendererMap.containsKey(uuid)) {
+			rendererMap.mark(uuid, ACTIVE, false);
+			rendererRemoved(device);
+		}
 	}
 
 	public static boolean isMediaRenderer(Device d) {
