@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
@@ -82,7 +84,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.network.DbIdResourceLocator;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
@@ -100,9 +101,9 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-public class RequestHandlerV3 implements HttpHandler {
+public class RequestHandler implements HttpHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV3.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final String GET = "GET";
@@ -112,8 +113,8 @@ public class RequestHandlerV3 implements HttpHandler {
 	private static final String NOTIFY = "NOTIFY";
 	private static final String CRLF = "\r\n";
 	private static final String CONTENT_TYPE_XML_UTF8 = "text/xml; charset=\"utf-8\"";
-	private static final String CONTENT_TYPE_HTML = "text/html";
 	private static final int BUFFER_SIZE = 8 * 1024;
+	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 
 	private static final DbIdResourceLocator DB_ID_RESOURCE_LOCATOR = new DbIdResourceLocator();
 
@@ -124,7 +125,7 @@ public class RequestHandlerV3 implements HttpHandler {
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			String userAgentString = exchange.getRequestHeaders().getFirst("User-Agent");
 			// Is the request from our own Cling service, i.e. self-originating?
-			boolean isSelf = ia.getHostAddress().equals(exchange.getRequestURI().getHost()) &&
+			boolean isSelf = ia.getHostAddress().equals(MediaServer.getHost()) &&
 					userAgentString != null &&
 					userAgentString.contains("UMS/");
 			// Filter if required
@@ -181,48 +182,43 @@ public class RequestHandlerV3 implements HttpHandler {
 				uri = uri.substring(1);
 			}
 
-			if (uri.startsWith("api/")) {
-				ApiHandler api = new ApiHandler();
-				api.handle(exchange);
-			} else if (uri.startsWith("console/") && GET.equals(method) || HEAD.equals(method)) {
-				sendResponse(exchange, 200, HTMLConsole.servePage(uri.substring(8)), CONTENT_TYPE_HTML);
-			} else if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
-				sendGetResponse(exchange, uri, renderer);
+			if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
+				sendGetResponse(exchange, renderer, uri);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
-				sendResponse(exchange, 200, imageHandler(exchange, uri));
+				sendResponse(exchange, renderer, 200, imageHandler(exchange, uri));
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
-				sendResponse(exchange, 200, serverSpecHandler(exchange, uri, renderer), CONTENT_TYPE_XML_UTF8);
+				sendResponse(exchange, renderer, 200, serverSpecHandler(exchange, uri, renderer), CONTENT_TYPE_XML_UTF8);
 			} else if (POST.equals(method) && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("control/x_ms_mediareceiverregistrar"))) {
-				sendResponse(exchange, 200, msMediaReceiverRegistrarHandler(soapaction), CONTENT_TYPE_XML_UTF8);
+				sendResponse(exchange, renderer, 200, msMediaReceiverRegistrarHandler(soapaction), CONTENT_TYPE_XML_UTF8);
 			} else if (POST.equals(method) && uri.endsWith("upnp/control/connection_manager")) {
 				if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
-					sendResponse(exchange, 200, getProtocolInfoHandler(), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, getProtocolInfoHandler(), CONTENT_TYPE_XML_UTF8);
 				} else {
 					//should never fall there
-					sendResponse(exchange, 200, "", CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, "", CONTENT_TYPE_XML_UTF8);
 				}
 			} else if (POST.equals(method) && uri.endsWith("upnp/control/content_directory")) {
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
-					sendResponse(exchange, 200, getSystemUpdateIdHandler(), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, getSystemUpdateIdHandler(), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
-					sendResponse(exchange, 200, samsungSetBookmarkHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, samsungSetBookmarkHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
-					sendResponse(exchange, 200, samsungGetFeaturesListHandler(renderer), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, samsungGetFeaturesListHandler(renderer), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
-					sendResponse(exchange, 200, getSortCapabilitiesHandler(), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, getSortCapabilitiesHandler(), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
-					sendResponse(exchange, 200, getSearchCapabilitiesHandler(), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, getSearchCapabilitiesHandler(), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Browse")) {
-					sendResponse(exchange, 200, browseHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, browseHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
-					sendResponse(exchange, 200, searchHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, searchHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
 				} else {
 					LOGGER.debug("Unsupported action received: " + requestBody);
 				}
 			} else if (SUBSCRIBE.equals(method)) {
-				sendResponse(exchange, 200, subscribeHandler(exchange, uri, soapaction), "text/xml");
+				sendResponse(exchange, renderer, 200, subscribeHandler(exchange, uri, soapaction), "text/xml");
 			} else if (NOTIFY.equals(method)) {
-				sendResponse(exchange, 200, notifyHandler(exchange), "text/xml");
+				sendResponse(exchange, renderer, 200, notifyHandler(exchange), "text/xml");
 			}
 		} catch (IOException e) {
 			String message = e.getMessage();
@@ -236,12 +232,15 @@ public class RequestHandlerV3 implements HttpHandler {
 		}
 	}
 
-	public static void sendResponse(HttpExchange exchange, int code, String message, String contentType) throws IOException {
+	public static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, String message, String contentType) throws IOException {
 		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
 		exchange.getResponseHeaders().set("Content-Type", contentType);
 		if (message == null || message.length() == 0) {
 			// No response data. Seems we are merely serving up headers.
 			exchange.sendResponseHeaders(204, 0);
+			if (LOGGER.isTraceEnabled()) {
+				logMessageSent(exchange, null, null, renderer);
+			}
 			return;
 		}
 		// A response message was constructed; convert it to data ready to be sent.
@@ -256,28 +255,34 @@ public class RequestHandlerV3 implements HttpHandler {
 			}
 		}
 		exchange.close();
+		if (LOGGER.isTraceEnabled()) {
+			logMessageSent(exchange, message, null, renderer);
+		}
 	}
 
-	public static void sendResponse(final HttpExchange exchange, int code, InputStream inputStream) throws IOException {
-		sendResponse(exchange, code, inputStream, -2, true);
+	public static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream) throws IOException {
+		sendResponse(exchange, renderer, code, inputStream, -2, true);
 	}
 
-	public static void sendResponse(final HttpExchange exchange, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
+	public static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
 		// There is an input stream to send as a response.
 		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
 		if (inputStream == null) {
 			// No input stream. Seems we are merely serving up headers.
 			exchange.sendResponseHeaders(204, 0);
+			if (LOGGER.isTraceEnabled()) {
+				logMessageSent(exchange, null, null, renderer);
+			}
 			return;
 		}
-		int contentLength = 0;
+		long contentLength = 0;
 		if (cLoverride > -2) {
 			// Content-Length override has been set, send or omit as appropriate
 			if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
 				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 				// as the PS3 will display a network error and request the last seconds of the
 				// transcoded video. Better to send no Content-Length at all.
-				contentLength = (int) cLoverride;
+				contentLength = cLoverride;
 			}
 		} else {
 			contentLength = inputStream.available();
@@ -286,6 +291,9 @@ public class RequestHandlerV3 implements HttpHandler {
 
 		// Send the response headers to the client.
 		exchange.sendResponseHeaders(code, contentLength);
+		if (LOGGER.isTraceEnabled()) {
+			logMessageSent(exchange, null, inputStream, renderer);
+		}
 		// send only if no HEAD method is being used.
 		if (writeStream && !HEAD.equals(exchange.getRequestMethod().toUpperCase())) {
 			// Send the response body to the client in chunks.
@@ -308,7 +316,7 @@ public class RequestHandlerV3 implements HttpHandler {
 		exchange.close();
 	}
 
-	public static void sendGetResponse(final HttpExchange exchange, String uri, final RendererConfiguration renderer) throws IOException {
+	public static void sendGetResponse(final HttpExchange exchange, final RendererConfiguration renderer, String uri) throws IOException {
 		// Request to retrieve a file
 		Range.Time timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
 		Range.Byte range = getRange(exchange.getRequestHeaders().getFirst("Range"));
@@ -676,7 +684,7 @@ public class RequestHandlerV3 implements HttpHandler {
 		}
 		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		try {
-			sendResponse(exchange, status, inputStream, cLoverride, (range.getStart() != DLNAMediaInfo.ENDFILE_POS));
+			sendResponse(exchange, renderer, status, inputStream, cLoverride, (range.getStart() != DLNAMediaInfo.ENDFILE_POS));
 		} finally {
 			if (startStopListenerDelegate != null) {
 				startStopListenerDelegate.stop();
@@ -761,7 +769,7 @@ public class RequestHandlerV3 implements HttpHandler {
 	private static InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
 		fileName = fileName.replaceAll("//", "/");
-		ClassLoader cll = RequestHandlerV3.class.getClassLoader();
+		ClassLoader cll = RequestHandler.class.getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
 		while (is == null && cll.getParent() != null) {
@@ -1355,6 +1363,80 @@ public class RequestHandlerV3 implements HttpHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
+	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, RendererConfiguration renderer) {
+		StringBuilder header = new StringBuilder();
+		for (Map.Entry<String, List<String>> headers : exchange.getRequestHeaders().entrySet()) {
+			String name = headers.getKey();
+			if (StringUtils.isNotBlank(name)) {
+				for (String value : headers.getValue()) {
+					header.append("  ").append(name).append(": ").append(value).append("\n");
+				}
+			}
+		}
+
+		String rendererName = getRendererName(exchange, renderer);
+
+		if (HEAD.equals(exchange.getRequestMethod().toUpperCase())) {
+			LOGGER.trace(
+				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+				rendererName,
+				exchange.getProtocol(),
+				exchange.getResponseCode(),
+				header
+			);
+		} else {
+			String formattedResponse = null;
+			if (StringUtils.isNotBlank(response)) {
+				try {
+					formattedResponse = StringUtil.prettifyXML(response, StandardCharsets.UTF_8, 4);
+				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+					formattedResponse += "    " + response.replace("\n", "\n    ");
+				}
+			}
+			if (StringUtils.isNotBlank(formattedResponse)) {
+				LOGGER.trace(
+					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+					rendererName,
+					exchange.getProtocol(),
+					exchange.getResponseCode(),
+					header,
+					formattedResponse
+				);
+				Matcher matcher = DIDL_PATTERN.matcher(response);
+				if (matcher.find()) {
+					try {
+						LOGGER.trace(
+							"The unescaped <Result> sent to {} is:\n{}",
+							rendererName,
+							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), StandardCharsets.UTF_8, 2)
+						);
+					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+						LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
+						LOGGER.trace("", e);
+					}
+				}
+			} else if (iStream != null && !"0".equals(exchange.getResponseHeaders().getFirst("Content-Length"))) {
+				LOGGER.trace(
+					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+					rendererName,
+					exchange.getProtocol(),
+					exchange.getResponseCode(),
+					getResponseIsChunked(exchange) ? "chunked" : "non-chunked",
+					header
+				);
+			} else {
+				LOGGER.trace(
+					"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+					rendererName,
+					exchange.getProtocol(),
+					exchange.getResponseCode(),
+					header
+				);
+			}
+		}
+	}
+
 	private static void logMessageReceived(HttpExchange exchange, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
@@ -1416,6 +1498,11 @@ public class RequestHandlerV3 implements HttpHandler {
 					renderer != null ? renderer.uuid : "null"
 			);
 		}
+	}
+
+	private static boolean getResponseIsChunked(HttpExchange exchange) {
+		return exchange.getResponseHeaders().containsKey("Transfer-Encoding") &&
+				exchange.getResponseHeaders().getFirst("Transfer-Encoding").toLowerCase().equals("chunked");
 	}
 
 	private static String getRendererName(HttpExchange exchange, RendererConfiguration renderer) {

@@ -29,7 +29,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.network.mediaserver.HttpMediaServer;
 
-
 public class JavaHttpServer extends HttpMediaServer {
 	private HttpServer server;
 	private ExecutorService executorService;
@@ -43,7 +42,9 @@ public class JavaHttpServer extends HttpMediaServer {
 		InetSocketAddress address = getSocketAddress();
 		server = HttpServer.create(address, 0);
 		if (server != null) {
-			server.createContext("/", new RequestHandlerV3());
+			server.createContext("/", new RequestHandler());
+			server.createContext("/api", new ApiHandler());
+			server.createContext("/console", new ConsoleHandler());
 			executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
 			server.setExecutor(executorService);
 			server.start();
