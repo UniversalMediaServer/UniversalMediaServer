@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
 	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
-	private static final HashMap<String, boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
+	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -113,7 +113,7 @@ public class MediaMonitor extends VirtualFolder {
 				fullyPlayedPaths = new HashSet<>();
 				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 				try {
-					for (Entry<String, boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
+					for (Entry<String, Boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
 						if (entry.getValue()) {
 							fullyPlayedPaths.add(entry.getKey());
 						}
