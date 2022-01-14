@@ -19,6 +19,7 @@
  */
 package net.pms.network.mediaserver.jupnp;
 
+import net.pms.network.mediaserver.UPNPControl;
 import org.jupnp.UpnpServiceImpl;
 import org.jupnp.protocol.ProtocolFactory;
 import org.jupnp.registry.Registry;
@@ -37,10 +38,12 @@ import org.jupnp.util.SpecificationViolationReporter;
  */
 public class CustomUpnpServiceImpl extends UpnpServiceImpl {
 
-	public CustomUpnpServiceImpl() {
+	private final UPNPControl upnpControl;
+	public CustomUpnpServiceImpl(UPNPControl upnpControl) {
 		//disable reports violations again UPnP specification (we don't need to see other upnp device violation).
 		SpecificationViolationReporter.disableReporting();
 		this.configuration = new CustomUpnpServiceConfiguration();
+		this.upnpControl = upnpControl;
 	}
 
 	@Override
@@ -48,4 +51,8 @@ public class CustomUpnpServiceImpl extends UpnpServiceImpl {
 		return new CustomRouterImpl(getConfiguration(), protocolFactory);
 	}
 
+	@Override
+	protected Registry createRegistry(ProtocolFactory protocolFactory) {
+		return new CustomRegistryImpl(this, upnpControl);
+	}
 }

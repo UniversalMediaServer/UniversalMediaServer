@@ -37,6 +37,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.execchain.RequestAbortedException;
 import org.jupnp.http.Headers;
 import org.jupnp.model.message.StreamRequestMessage;
 import org.jupnp.model.message.StreamResponseMessage;
@@ -197,10 +198,10 @@ public class ApacheStreamClientImpl extends AbstractStreamClient<StreamClientCon
 
 				return responseMessage;
 			} catch (IOException | UnsupportedOperationException e) {
-				if (e instanceof NoHttpResponseException) {
-					LOGGER.error("Request: {} failed : {}", request, e.getMessage());
+				if (e instanceof NoHttpResponseException || e instanceof RequestAbortedException) {
+					LOGGER.trace("Request: {} failed : {}", request, e.getMessage());
 				} else if (e instanceof ClientProtocolException) {
-					LOGGER.error("Request: {} failed : {}", request, "ClientProtocolException");
+					LOGGER.trace("Request: {} failed : {}", request, "ClientProtocolException");
 				} else {
 					LOGGER.error("Request: {} failed", request, e);
 				}

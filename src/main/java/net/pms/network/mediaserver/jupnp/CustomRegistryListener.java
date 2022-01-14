@@ -47,7 +47,7 @@ public class CustomRegistryListener extends DefaultRegistryListener {
 			LOGGER.info("local device Added");
 			return;
 		}
-		super.remoteDeviceAdded(registry, device);
+		//super.remoteDeviceAdded(registry, device);
 		upnpControl.remoteDeviceAdded(device);
 	}
 
@@ -57,7 +57,7 @@ public class CustomRegistryListener extends DefaultRegistryListener {
 			LOGGER.info("local device Updated");
 			return;
 		}
-		super.remoteDeviceUpdated(registry, device);
+		//super.remoteDeviceUpdated(registry, device);
 		upnpControl.remoteDeviceAdded(device);
 	}
 
@@ -67,7 +67,7 @@ public class CustomRegistryListener extends DefaultRegistryListener {
 			LOGGER.info("local device Removed");
 			return;
 		}
-		super.remoteDeviceRemoved(registry, device);
+		//super.remoteDeviceRemoved(registry, device);
 		upnpControl.remoteDeviceRemoved(device);
 	}
 

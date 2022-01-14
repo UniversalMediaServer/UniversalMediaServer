@@ -32,7 +32,6 @@ import static net.pms.network.mediaserver.UPNPHelper.sleep;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.network.mediaserver.jupnp.CustomRegistryListener;
 import net.pms.network.mediaserver.jupnp.CustomUpnpServiceImpl;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
@@ -43,7 +42,6 @@ import org.jupnp.controlpoint.ActionCallback;
 import org.jupnp.controlpoint.SubscriptionCallback;
 import org.jupnp.model.action.*;
 import org.jupnp.model.gena.*;
-import org.jupnp.model.message.UpnpHeaders;
 import org.jupnp.model.message.UpnpResponse;
 import org.jupnp.model.message.header.DeviceTypeHeader;
 import org.jupnp.model.meta.*;
@@ -69,7 +67,6 @@ public class UPNPControl {
 	};
 
 	private static UpnpService upnpService;
-	private static UpnpHeaders umsHeaders;
 	private static DocumentBuilder db;
 
 	public static final int ACTIVE = 0;
@@ -350,11 +347,8 @@ public class UPNPControl {
 	public void init() {
 		try {
 			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
-			upnpService = new CustomUpnpServiceImpl();
+			upnpService = new CustomUpnpServiceImpl(this);
 			upnpService.startup();
-
-			CustomRegistryListener rl = new CustomRegistryListener(this);
-			upnpService.getRegistry().addListener(rl);
 
 			// Broadcast a search message for all devices
 			for (DeviceType t : MEDIA_RENDERER_TYPES) {
@@ -845,8 +839,8 @@ public class UPNPControl {
 						LOGGER.debug(
 							"GetProtocolInfo from \"{}\" failed with status code {}: {} ({})",
 							name,
-							operation.getStatusCode(),
-							operation.getStatusMessage(),
+							operation != null ? operation.getStatusCode() : "null",
+							operation != null ? operation.getStatusMessage() : "null",
 							defaultMsg
 						);
 					}
