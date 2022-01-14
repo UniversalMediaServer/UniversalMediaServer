@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
-import org.fourthline.cling.support.model.Protocol;
+import org.jupnp.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
