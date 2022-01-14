@@ -90,6 +90,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
+import net.pms.service.SleepManager;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -416,7 +417,10 @@ public class RequestHandler implements HttpHandler {
 				}
 			} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 				// This is a request for an image
-				Services.sleepManager().postponeSleep();
+				SleepManager sleepManager = Services.sleepManager();
+				if (sleepManager != null) {
+					sleepManager.postponeSleep();
+				}
 
 				DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
 				if (imageProfile == null) {
@@ -1365,7 +1369,7 @@ public class RequestHandler implements HttpHandler {
 
 	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
-		for (Map.Entry<String, List<String>> headers : exchange.getRequestHeaders().entrySet()) {
+		for (Map.Entry<String, List<String>> headers : exchange.getResponseHeaders().entrySet()) {
 			String name = headers.getKey();
 			if (StringUtils.isNotBlank(name)) {
 				for (String value : headers.getValue()) {
