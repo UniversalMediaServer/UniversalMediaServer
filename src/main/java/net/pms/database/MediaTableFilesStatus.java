@@ -484,7 +484,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 			TABLE_LOCK.readLock().unlock();
 		}
 
-		System.out.println("TESTING1 reached end");
 		return false;
 	}
 
