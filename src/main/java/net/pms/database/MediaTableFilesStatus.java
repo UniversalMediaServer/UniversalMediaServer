@@ -456,7 +456,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		}
 	}
 
-	public static Boolean isFullyPlayed(final Connection connection, final String fullPathToFile) {
+	public static boolean isFullyPlayed(final Connection connection, final String fullPathToFile) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		TABLE_LOCK.readLock().lock();
@@ -483,7 +483,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		}
 
 		System.out.println("reached end");
-		return null;
+		return false;
 	}
 
 	public static int getBookmark(final Connection connection, final String fullPathToFile) {

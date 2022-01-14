@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
 	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
-	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
+	private static final HashMap<String, boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private File[] dirs;
 	private PmsConfiguration config;
 
@@ -113,7 +113,7 @@ public class MediaMonitor extends VirtualFolder {
 				fullyPlayedPaths = new HashSet<>();
 				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 				try {
-					for (Entry<String, Boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
+					for (Entry<String, boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
 						if (entry.getValue()) {
 							fullyPlayedPaths.add(entry.getKey());
 						}
@@ -327,27 +327,27 @@ public class MediaMonitor extends VirtualFolder {
 	 */
 	public static boolean isFullyPlayed(String fullPathToFile, boolean isFileOrTVSeries) {
 		FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
-		Boolean fullyPlayed;
 		try {
-			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
+			Boolean valueFromMemory = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
+			if (valueFromMemory != null) {
+				return valueFromMemory;
+			}
 		} finally {
 			FULLY_PLAYED_ENTRIES_LOCK.readLock().unlock();
-		}
-		if (fullyPlayed != null) {
-			return fullyPlayed;
 		}
 
 		// The status isn't cached, add it
 		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
 		try {
 			// It could have been added between the locks, check again
-			fullyPlayed = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
-			if (fullyPlayed != null) {
-				return fullyPlayed;
+			Boolean valueFromMemory = FULLY_PLAYED_ENTRIES.get(fullPathToFile);
+			if (valueFromMemory != null) {
+				return valueFromMemory;
 			}
 
 			// Add the entry to the cache
 			Connection connection = null;
+			boolean fullyPlayed = false;
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
@@ -359,9 +359,6 @@ public class MediaMonitor extends VirtualFolder {
 				}
 			} finally {
 				MediaDatabase.close(connection);
-			}
-			if (fullyPlayed == null) {
-				fullyPlayed = false;
 			}
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, fullyPlayed);
 			return fullyPlayed;

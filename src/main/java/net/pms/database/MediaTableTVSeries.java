@@ -555,10 +555,10 @@ public final class MediaTableTVSeries extends MediaTable {
 		}
 	}
 
-	public static Boolean isFullyPlayed(final Connection connection, final String title) {
+	public static boolean isFullyPlayed(final Connection connection, final String title) {
 		boolean trace = LOGGER.isTraceEnabled();
-		Boolean result = true;
 
+		TABLE_LOCK.readLock().lock();
 		try {
 			/*
 			 * If there is one file for this TV series where ISFULLYPLAYED is
@@ -582,23 +582,20 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
-			TABLE_LOCK.readLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql)
 			) {
-				if (resultSet.next()) {
-					result = false;
-				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
+				return !resultSet.next();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up TV series status", TABLE_NAME, title, e.getMessage());
 			LOGGER.trace("", e);
+		} finally {
+			TABLE_LOCK.readLock().unlock();
 		}
 
-		return result;
+		return false;
 	}
 
 }
