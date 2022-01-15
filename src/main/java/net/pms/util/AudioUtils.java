@@ -310,7 +310,6 @@ public final class AudioUtils {
 				}
 				media.setDuration((double) dataSize / audio.getBitRate() * 8);
 			}
-
 		} catch (IOException e) {
 			LOGGER.debug("Error while trying to parse RealAudio version 1 or 2: {}", e.getMessage());
 			LOGGER.trace("", e);
