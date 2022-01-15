@@ -171,6 +171,7 @@ public final class AudioUtils {
 				}
 				return false;
 			}
+
 			media.setContainer(FormatConfiguration.RA);
 			short version = buffer.getShort();
 			int reportedHeaderSize = 0;
