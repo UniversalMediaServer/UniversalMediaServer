@@ -74,7 +74,7 @@ public class DLNAMediaInfoTest {
 			PMS.killOld();
 		}
 
-		Services.create();
+		if (Services.get() == null) { Services.create(); }
 
 		// Create a new instance
 		PMS.getNewInstance();

@@ -46,6 +46,8 @@ import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.network.HTTPResource;
+import net.pms.service.Services;
+
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -65,6 +67,9 @@ public class FormatRecognitionTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
+		if (Services.get() == null) { Services.create(); }
+
+		PMS.forceHeadless();
 		PMS.getNewInstance();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.configureJNA();
