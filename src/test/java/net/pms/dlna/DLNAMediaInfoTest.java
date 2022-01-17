@@ -61,21 +61,6 @@ public class DLNAMediaInfoTest {
 		// force unbuffered if in trace mode
 		LoggingConfig.setBuffered(false);
 
-		Logger LOGGER = LoggerFactory.getLogger(CLASS);
-
-		try {
-			PMS.getConfiguration().initCred();
-		} catch (Exception ex) {
-			LOGGER.warn("Failed to write credentials configuration", ex);
-		}
-
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
-		}
-		PMS.get();
-
-		// Create a new PMS instance
-
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
 		assertThat(LibMediaInfoParser.isValid())

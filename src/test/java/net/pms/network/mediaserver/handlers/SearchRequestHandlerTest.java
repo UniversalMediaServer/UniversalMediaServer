@@ -34,15 +34,6 @@ public class SearchRequestHandlerTest {
 		PMS.forceHeadless();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
-		}
-
-		if (Services.get() == null) {
-			Services.create();
-		}
-
-		PMS.get();
 	}
 
 	@Test
