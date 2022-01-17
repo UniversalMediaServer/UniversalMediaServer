@@ -65,7 +65,7 @@ public class FormatRecognitionTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
-		PMS.get();
+		PMS.getNewInstance();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.configureJNA();
 		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
@@ -78,17 +78,17 @@ public class FormatRecognitionTest {
 		configuration = new PmsConfiguration(false);
 	}
 
-    /**
-     * Test some basic functionality of {@link RendererConfiguration#isCompatible(DLNAMediaInfo, Format)}
-     */
-    @Test
-    public void testRendererConfigurationBasics() {
-    	// This test is only useful if the MediaInfo library is available
+	/**
+	 * Test some basic functionality of {@link RendererConfiguration#isCompatible(DLNAMediaInfo, Format)}
+	 */
+	@Test
+	public void testRendererConfigurationBasics() {
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
 		assertNotNull("Renderer named \"Playstation 3\" not found.", conf);
 		assertEquals("With nothing provided isCompatible() should return false", false,
-				conf.isCompatible(null, null, configuration));
+			conf.isCompatible(null, null, configuration));
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPlaystationAudioMp3Compatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
@@ -129,7 +129,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPlaystationVideoMpgCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
@@ -163,7 +163,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPlaystationVideoMkvCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
@@ -194,7 +194,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPS3Compatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
@@ -325,7 +325,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testSubtitlesRecognition() throws FileNotFoundException {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByName("Panasonic TX-L32V10E");
 		assertNotNull("Renderer named \"Panasonic TX-L32V10E\" not found.", renderer);
