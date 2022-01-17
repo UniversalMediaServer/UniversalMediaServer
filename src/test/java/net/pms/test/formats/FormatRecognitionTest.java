@@ -68,7 +68,7 @@ public class FormatRecognitionTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
 		PMS.forceHeadless();
-		PMS.getNewInstance();
+		PMS.get();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.configureJNA();
 		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
