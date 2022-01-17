@@ -202,7 +202,23 @@ function umsAjax(u, reload) {
 	});
 }
 
-var polling, refused;
+var polling, refused, streamevent;
+
+function serverDataHandler(data) {
+	switch (data[0]) {
+		case 'seturl':
+			window.location.replace(data[1]);
+			break;
+		case 'control':
+			if (typeof control === 'function') {
+				control(data[1], data[2]);
+			}
+			break;
+		case 'notify':
+			notify(data[1], data[2]);
+			break;
+	}
+}
 
 function poll() {
 	$('body').append('<div id="notices"><div/></div>');
@@ -212,20 +228,7 @@ function poll() {
 				refused = 0;
 				if (!$.isEmptyObject(json)) {
 					for (i = 0; i < json.length; i++) {
-						var args = json[i];
-						switch (args[0]) {
-							case 'seturl':
-								window.location.replace(args[1]);
-								break;
-							case 'control':
-								if (typeof control === 'function') {
-									control(args[1], args[2]);
-								}
-								break;
-							case 'notify':
-								notify(args[1], args[2]);
-								break;
-						}
+						serverDataHandler(json[i]);
 					}
 				}
 			},
@@ -236,6 +239,29 @@ function poll() {
 			}
 		});
 	}, 1000);
+}
+
+function stream() {
+	streamevent = new EventSource("/event-stream");
+	streamevent.addEventListener('message', function(event) {
+		refused = 0;
+		if (event.data) {
+			var data = JSON.parse(event.data);
+			serverDataHandler(data);
+		}
+	});
+	streamevent.addEventListener('ping', function() {
+		refused = 0;
+	});
+	streamevent.onerror = function() {
+		if (++refused > 10) {
+			console.error("UMS Server unreachable");
+			streamevent.close();
+		}
+	};
+	window.addEventListener("beforeunload", function (e) {
+		streamevent.close();
+	});
 }
 
 function notify(icon, msg) {
@@ -506,5 +532,9 @@ $(document).ready(function () {
 		$(window).bind('load resize scroll', scrollActions);
 	}
 
-	poll();
+	if (typeof (EventSource) !== "undefined") {
+		stream();
+	} else {
+		poll();
+	}
 });
