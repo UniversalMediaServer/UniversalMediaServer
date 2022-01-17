@@ -30,13 +30,13 @@ public class SearchRequestHandlerTest {
 	public static final void setUp() throws ConfigurationException, InterruptedException {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
-		}
 
 		PMS.forceHeadless();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
 
 		if (Services.get() == null) {
 			Services.create();
