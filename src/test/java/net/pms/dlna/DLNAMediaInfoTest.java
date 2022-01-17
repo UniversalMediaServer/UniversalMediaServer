@@ -77,7 +77,7 @@ public class DLNAMediaInfoTest {
 		Services.create();
 
 		// Create a new instance
-		PMS.get();
+		PMS.getNewInstance();
 
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
