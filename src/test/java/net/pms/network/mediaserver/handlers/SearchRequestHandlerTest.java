@@ -14,7 +14,11 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 
+/**
+ *
+ */
 public class SearchRequestHandlerTest {
+
 	private static final Logger LOG = LoggerFactory.getLogger(SearchRequestHandlerTest.class.getName());
 
 	/**
@@ -26,17 +30,19 @@ public class SearchRequestHandlerTest {
 	public static final void setUp() throws ConfigurationException, InterruptedException {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
+
 		PMS.forceHeadless();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
 
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
+		if (Services.get() == null) {
+			Services.create();
 		}
-		Services.create();
 
-		// Create a new instance
-		PMS.getNewInstance();
+		PMS.get();
 	}
 
 	@Test
