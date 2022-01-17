@@ -69,6 +69,13 @@ public class DLNAMediaInfoTest {
 			LOGGER.warn("Failed to write credentials configuration", ex);
 		}
 
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
+
+		// Create a new instance
+		PMS.get();
+
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
 		assertThat(LibMediaInfoParser.isValid())
