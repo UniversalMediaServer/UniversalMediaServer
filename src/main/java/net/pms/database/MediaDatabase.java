@@ -80,48 +80,46 @@ public class MediaDatabase extends Database {
 	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public final void checkTables(boolean force) throws SQLException {
-		synchronized (DATABASE_LOCK) {
-			if (tablesChecked && !force) {
-				LOGGER.debug("Database tables have already been checked, aborting check");
-			} else {
-				LOGGER.debug("Starting check of database tables");
-				try (Connection connection = getConnection()) {
-					//Tables Versions (need to be first)
-					MediaTableTablesVersions.checkTable(connection);
+	public synchronized final void checkTables(boolean force) throws SQLException {
+		if (tablesChecked && !force) {
+			LOGGER.debug("Database tables have already been checked, aborting check");
+		} else {
+			LOGGER.debug("Starting check of database tables");
+			try (Connection connection = getConnection()) {
+				//Tables Versions (need to be first)
+				MediaTableTablesVersions.checkTable(connection);
 
-					// Files and metadata
-					MediaTableMetadata.checkTable(connection);
-					MediaTableFiles.checkTable(connection);
-					MediaTableSubtracks.checkTable(connection);
-					MediaTableRegexpRules.checkTable(connection);
+				// Files and metadata
+				MediaTableMetadata.checkTable(connection);
+				MediaTableFiles.checkTable(connection);
+				MediaTableSubtracks.checkTable(connection);
+				MediaTableRegexpRules.checkTable(connection);
 
-					MediaTableMusicBrainzReleases.checkTable(connection);
-					MediaTableCoverArtArchive.checkTable(connection);
-					MediaTableFilesStatus.checkTable(connection);
-					MediaTableThumbnails.checkTable(connection);
+				MediaTableMusicBrainzReleases.checkTable(connection);
+				MediaTableCoverArtArchive.checkTable(connection);
+				MediaTableFilesStatus.checkTable(connection);
+				MediaTableThumbnails.checkTable(connection);
 
-					MediaTableTVSeries.checkTable(connection);
-					MediaTableFailedLookups.checkTable(connection);
+				MediaTableTVSeries.checkTable(connection);
+				MediaTableFailedLookups.checkTable(connection);
 
-					// Video metadata tables
-					MediaTableVideoMetadataActors.checkTable(connection);
-					MediaTableVideoMetadataAwards.checkTable(connection);
-					MediaTableVideoMetadataCountries.checkTable(connection);
-					MediaTableVideoMetadataDirectors.checkTable(connection);
-					MediaTableVideoMetadataIMDbRating.checkTable(connection);
-					MediaTableVideoMetadataGenres.checkTable(connection);
-					MediaTableVideoMetadataPosters.checkTable(connection);
-					MediaTableVideoMetadataProduction.checkTable(connection);
-					MediaTableVideoMetadataRated.checkTable(connection);
-					MediaTableVideoMetadataRatings.checkTable(connection);
-					MediaTableVideoMetadataReleased.checkTable(connection);
+				// Video metadata tables
+				MediaTableVideoMetadataActors.checkTable(connection);
+				MediaTableVideoMetadataAwards.checkTable(connection);
+				MediaTableVideoMetadataCountries.checkTable(connection);
+				MediaTableVideoMetadataDirectors.checkTable(connection);
+				MediaTableVideoMetadataIMDbRating.checkTable(connection);
+				MediaTableVideoMetadataGenres.checkTable(connection);
+				MediaTableVideoMetadataPosters.checkTable(connection);
+				MediaTableVideoMetadataProduction.checkTable(connection);
+				MediaTableVideoMetadataRated.checkTable(connection);
+				MediaTableVideoMetadataRatings.checkTable(connection);
+				MediaTableVideoMetadataReleased.checkTable(connection);
 
-					// Audio Metadata
-					MediaTableAudiotracks.checkTable(connection);
-				}
-				tablesChecked = true;
+				// Audio Metadata
+				MediaTableAudiotracks.checkTable(connection);
 			}
+			tablesChecked = true;
 		}
 	}
 
