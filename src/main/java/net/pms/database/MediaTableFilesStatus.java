@@ -24,6 +24,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -51,6 +53,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * transaction locks. All access to this table must be guarded with this
 	 * lock. The lock allows parallel reads.
 	 */
+	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFilesStatus.class);
 	public static final String TABLE_NAME = "FILES_STATUS";
 
@@ -69,23 +72,28 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		if (tableExists(connection, TABLE_NAME)) {
-			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
-			if (version != null) {
-				if (version < TABLE_VERSION) {
-					upgradeTable(connection, version);
-				} else if (version > TABLE_VERSION) {
-					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
+		TABLE_LOCK.writeLock().lock();
+		try {
+			if (tableExists(connection, TABLE_NAME)) {
+				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+				if (version != null) {
+					if (version < TABLE_VERSION) {
+						upgradeTable(connection, version);
+					} else if (version > TABLE_VERSION) {
+						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
+					}
+				} else {
+					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
+					dropTable(connection, TABLE_NAME);
+					createTable(connection);
+					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				}
 			} else {
-				LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
-				dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
-		} else {
-			createTable(connection);
-			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -102,128 +110,133 @@ public final class MediaTableFilesStatus extends MediaTable {
 	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		for (int version = currentVersion; version < TABLE_VERSION; version++) {
-			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
-			switch (version) {
-				case 1:
-					// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
+		TABLE_LOCK.writeLock().lock();
+		try {
+			for (int version = currentVersion; version < TABLE_VERSION; version++) {
+				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+				switch (version) {
+					case 1:
+						// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
-						Set<String> fileStatusEntries = new HashSet<>();
-						PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
-						ResultSet rs = stmt.executeQuery();
-						String filename;
+							Set<String> fileStatusEntries = new HashSet<>();
+							PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
+							ResultSet rs = stmt.executeQuery();
+							String filename;
+							while (rs.next()) {
+								filename = rs.getString("FILES_FILENAME");
+
+								// Ensure we don't attempt add the same filename twice
+								if (!fileStatusEntries.contains(filename)) {
+									fileStatusEntries.add(filename);
+									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
+									Statement statement2 = connection.createStatement();
+									statement2.execute(query);
+									LOGGER.info("Updating fully played entry for " + filename);
+								}
+							}
+							stmt.close();
+							rs.close();
+
+							statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
+							statement.execute("DROP INDEX IF EXISTS FILEID_IDX");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
+							statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
+						}
+						version = 2;
+						break;
+					case 2:
+					case 3:
+						// From version 2 to 3, we added an index for the ISFULLYPLAYED column
+						// From version 3 to 4, we make sure the previous index was created correctly
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("DROP INDEX IF EXISTS ISFULLYPLAYED_IDX");
+							statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
+						}
+						version = 4;
+						break;
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+						// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
+						String sql;
+						ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
+						if (rs.next()) {
+							sql = "SELECT CONSTRAINT_NAME " +
+								"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
+						} else {
+							sql = "SELECT CONSTRAINT_NAME " +
+								"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
+								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
+						}
+
+						PreparedStatement stmt = connection.prepareStatement(sql);
+						rs = stmt.executeQuery();
+
 						while (rs.next()) {
-							filename = rs.getString("FILES_FILENAME");
-
-							// Ensure we don't attempt add the same filename twice
-							if (!fileStatusEntries.contains(filename)) {
-								fileStatusEntries.add(filename);
-								String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
-								Statement statement2 = connection.createStatement();
-								statement2.execute(query);
-								LOGGER.info("Updating fully played entry for " + filename);
+							try (Statement statement = connection.createStatement()) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
 							}
 						}
+
+						stmt = connection.prepareStatement(sql);
+						rs = stmt.executeQuery();
+
+						while (rs.next()) {
+							throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
+						}
+
 						stmt.close();
 						rs.close();
 
-						statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
-						statement.execute("DROP INDEX IF EXISTS FILEID_IDX");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
-						statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
-					}
-					version = 2;
-					break;
-				case 2:
-				case 3:
-					// From version 2 to 3, we added an index for the ISFULLYPLAYED column
-					// From version 3 to 4, we make sure the previous index was created correctly
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("DROP INDEX IF EXISTS ISFULLYPLAYED_IDX");
-						statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
-					}
-					version = 4;
-					break;
-				case 4:
-				case 5:
-				case 6:
-				case 7:
-					// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
-					String sql;
-					ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
-					if (rs.next()) {
-						sql = "SELECT CONSTRAINT_NAME " +
-							"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
-							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
-					} else {
-						sql = "SELECT CONSTRAINT_NAME " +
-							"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
-							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
-					}
-
-					PreparedStatement stmt = connection.prepareStatement(sql);
-					rs = stmt.executeQuery();
-
-					while (rs.next()) {
+						version = 8;
+						break;
+					case 8:
 						try (Statement statement = connection.createStatement()) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD BOOKMARK INTEGER DEFAULT 0");
 						}
-					}
-
-					stmt = connection.prepareStatement(sql);
-					rs = stmt.executeQuery();
-
-					while (rs.next()) {
-						throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
-					}
-
-					stmt.close();
-					rs.close();
-
-					version = 8;
-					break;
-				case 8:
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD BOOKMARK INTEGER DEFAULT 0");
-					}
-					version = 9;
-					break;
-				case 9:
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
-					}
-					version = 10;
-					break;
-				case 10:
-				case 11:
-					try (Statement statement = connection.createStatement()) {
-						if (!isColumnExist(connection, TABLE_NAME, "LASTPLAYBACKPOSITION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
+						version = 9;
+						break;
+					case 9:
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
 						}
-					} catch (SQLException e) {
-						LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
-						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-						throw new SQLException(e);
-					}
-					version = 12;
-					break;
-				default:
-					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-					);
+						version = 10;
+						break;
+					case 10:
+					case 11:
+						try (Statement statement = connection.createStatement()) {
+							if (!isColumnExist(connection, TABLE_NAME, "LASTPLAYBACKPOSITION")) {
+								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
+							}
+						} catch (SQLException e) {
+							LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
+							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+							throw new SQLException(e);
+						}
+						version = 12;
+						break;
+					default:
+						throw new IllegalStateException(
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+						);
+				}
 			}
-		}
 
-		try {
-			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-		} catch (SQLException e) {
-			LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
-			throw new SQLException(e);
+			try {
+				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+			} catch (SQLException e) {
+				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+				throw new SQLException(e);
+			}
+		} finally {
+			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -264,6 +277,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setFullyPlayed", query);
 			}
 
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -301,6 +315,8 @@ public final class MediaTableFilesStatus extends MediaTable {
 				} finally {
 					connection.commit();
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing status", isFullyPlayed, TABLE_NAME, fullPathToFile, e.getMessage());
@@ -325,6 +341,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setLastPlayed", query);
 			}
 
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -355,6 +372,8 @@ public final class MediaTableFilesStatus extends MediaTable {
 				} finally {
 					connection.commit();
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing last played date", TABLE_NAME, fullPathToFile, e.getMessage());
@@ -382,12 +401,15 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setDirectoryFullyPlayed", query);
 			}
 
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet result = statement.executeQuery(query)) {
 					while (result.next()) {
 						MediaMonitor.setFullyPlayed(result.getString("FILENAME"), isFullyPlayed, null);
 					}
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
@@ -421,9 +443,12 @@ public final class MediaTableFilesStatus extends MediaTable {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
 				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				int rows = statement.executeUpdate(query);
 				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
@@ -442,6 +467,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
 
+			TABLE_LOCK.writeLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(query)
@@ -449,6 +475,8 @@ public final class MediaTableFilesStatus extends MediaTable {
 				if (resultSet.next()) {
 					result = resultSet.getBoolean("ISFULLYPLAYED");
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file status", TABLE_NAME, fullPathToFile, e.getMessage());
@@ -468,12 +496,15 @@ public final class MediaTableFilesStatus extends MediaTable {
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
 			}
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				try (ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
 						result = resultSet.getInt("BOOKMARK");
 					}
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file bookmark", TABLE_NAME, fullPathToFile, e.getMessage());
@@ -492,6 +523,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in {} with \"{}\" before setBookmark", TABLE_NAME, query);
 			}
 
+			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -516,6 +548,8 @@ public final class MediaTableFilesStatus extends MediaTable {
 				} finally {
 					connection.commit();
 				}
+			} finally {
+				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing bookmark", bookmark, TABLE_NAME, fullPathToFile, e.getMessage());
