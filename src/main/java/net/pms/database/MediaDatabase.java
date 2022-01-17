@@ -176,23 +176,19 @@ public class MediaDatabase extends Database {
 	 *
 	 * @return {@link net.pms.database.MediaDatabase}
 	 */
-	public static MediaDatabase get() {
-		synchronized (DATABASE_LOCK) {
-			if (instance == null) {
-				instance = new MediaDatabase();
-			}
-			return instance;
+	public synchronized static MediaDatabase get() {
+		if (instance == null) {
+			instance = new MediaDatabase();
 		}
+		return instance;
 	}
 
 	/**
 	 * Initialize the MediaDatabase instance.
 	 * Will initialize the database instance as needed.
 	 */
-	public static void init() {
-		synchronized (DATABASE_LOCK) {
-			get().init(false);
-		}
+	public synchronized static void init() {
+		get().init(false);
 	}
 
 	/**
@@ -200,10 +196,8 @@ public class MediaDatabase extends Database {
 	 * Will initialize the database instance as needed.
 	 * Will check all tables.
 	 */
-	public static void initForce() {
-		synchronized (DATABASE_LOCK) {
-			get().init(true);
-		}
+	public synchronized static void initForce() {
+		get().init(true);
 	}
 
 	/**
@@ -249,11 +243,9 @@ public class MediaDatabase extends Database {
 	 * Recreate all tables related to media cache except files status.
 	 * @throws java.sql.SQLException
 	 */
-	public static void resetCache() throws SQLException {
-		synchronized (DATABASE_LOCK) {
-			if (instance != null) {
-				instance.reInitTablesExceptFilesStatus();
-			}
+	public synchronized static void resetCache() throws SQLException {
+		if (instance != null) {
+			instance.reInitTablesExceptFilesStatus();
 		}
 	}
 
@@ -271,11 +263,9 @@ public class MediaDatabase extends Database {
 	/**
 	 * Shutdown the MediaDatabase database.
 	 */
-	public static void shutdown() {
-		synchronized (DATABASE_LOCK) {
-			if (instance != null) {
-				instance.close();
-			}
+	public synchronized static void shutdown() {
+		if (instance != null) {
+			instance.close();
 		}
 	}
 
