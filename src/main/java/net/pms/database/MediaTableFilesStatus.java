@@ -100,7 +100,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @throws SQLException
 	 */
 	@SuppressFBWarnings("IIL_PREPARE_STATEMENT_IN_LOOP")
-	private synchronized static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
+	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
@@ -230,7 +230,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	/**
 	 * Must be called from inside a table lock
 	 */
-	private synchronized static void createTable(final Connection connection) throws SQLException {
+	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
@@ -255,7 +255,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @param fullPathToFile
 	 * @param isFullyPlayed
 	 */
-	public synchronized static void setFullyPlayed(final Connection connection, final String fullPathToFile, final boolean isFullyPlayed) {
+	public static void setFullyPlayed(final Connection connection, final String fullPathToFile, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
@@ -315,7 +315,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @param fullPathToFile
 	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	public synchronized static void setLastPlayed(final Connection connection, final String fullPathToFile, final Double lastPlaybackPosition) {
+	public static void setLastPlayed(final Connection connection, final String fullPathToFile, final Double lastPlaybackPosition) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
@@ -370,7 +370,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @param isFullyPlayed whether to mark the folder content as fully played
 	 *            or not fully played.
 	 */
-	public synchronized static void setDirectoryFullyPlayed(final Connection connection, final String fullPathToFolder, final boolean isFullyPlayed) {
+	public static void setDirectoryFullyPlayed(final Connection connection, final String fullPathToFolder, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String pathWithWildcard = sqlLikeEscape(fullPathToFolder) + "%";
 		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
@@ -416,7 +416,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
-	public synchronized static void remove(final Connection connection, final String filename, boolean useLike) {
+	public static void remove(final Connection connection, final String filename, boolean useLike) {
 		try {
 			String query =
 				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
@@ -482,7 +482,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		return result;
 	}
 
-	public synchronized static void setBookmark(final Connection connection, final String fullPathToFile, final int bookmark) {
+	public static void setBookmark(final Connection connection, final String fullPathToFile, final int bookmark) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 
