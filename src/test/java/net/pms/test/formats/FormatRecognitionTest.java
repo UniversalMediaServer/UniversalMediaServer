@@ -67,8 +67,6 @@ public class FormatRecognitionTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
-		if (Services.get() == null) { Services.create(); }
-
 		PMS.forceHeadless();
 		PMS.getNewInstance();
 		PMS.setConfiguration(new PmsConfiguration(false));
