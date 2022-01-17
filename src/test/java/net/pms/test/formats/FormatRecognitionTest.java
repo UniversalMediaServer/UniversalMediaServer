@@ -19,7 +19,7 @@
 
 package net.pms.test.formats;
 
-import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.Level;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -45,6 +45,7 @@ import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.logging.LoggingConfig;
 import net.pms.network.HTTPResource;
 import net.pms.service.Services;
 
@@ -56,26 +57,54 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test the recognition of formats using the MediaInfo and renderer configuration.
  */
 public class FormatRecognitionTest {
+	private static final Class<?> CLASS = FormatRecognitionTest.class;
+
 	private static boolean mediaInfoParserIsValid;
 	private static PmsConfiguration configuration;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
-		PMS.forceHeadless();
-		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.configureJNA();
-		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
+		PMS.forceHeadless();
+		try {
+			PMS.setConfiguration(new PmsConfiguration(false));
+		} catch (Exception ex) {
+			throw new AssertionError(ex);
+		}
+		assert PMS.getConfiguration() != null;
+		PMS.getConfiguration().setSharedFolders(null);
+		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
+		PMS.getConfiguration().setUseCache(false);
 
-		// Silence all log messages from the DMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		LoggingConfig.setRootLevel(Level.TRACE);
+		// force unbuffered if in trace mode
+		LoggingConfig.setBuffered(false);
+
+		Logger LOGGER = LoggerFactory.getLogger(CLASS);
+
+		try {
+			PMS.getConfiguration().initCred();
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to write credentials configuration", ex);
+		}
+
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
+
+		if (Services.get() == null) { Services.create(); }
+
+		// Create a new instance
+		PMS.getNewInstance();
+
+		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
 
 		// Initialize the RendererConfiguration
 		configuration = new PmsConfiguration(false);
