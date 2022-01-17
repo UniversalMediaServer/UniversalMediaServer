@@ -14,11 +14,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 
-/**
- *
- */
 public class SearchRequestHandlerTest {
-
 	private static final Logger LOG = LoggerFactory.getLogger(SearchRequestHandlerTest.class.getName());
 
 	/**
@@ -33,8 +29,14 @@ public class SearchRequestHandlerTest {
 		PMS.forceHeadless();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
+
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
 		Services.create();
-		PMS.get();
+
+		// Create a new instance
+		PMS.getNewInstance();
 	}
 
 	@Test
