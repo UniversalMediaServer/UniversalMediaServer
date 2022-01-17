@@ -1,6 +1,7 @@
 package net.pms.network;
 
 
+import net.pms.network.mediaserver.UPNPControl;
 import ch.qos.logback.classic.Level;
 import java.io.IOException;
 import java.net.InetAddress;

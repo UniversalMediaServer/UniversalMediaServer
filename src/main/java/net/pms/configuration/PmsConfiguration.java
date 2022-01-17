@@ -150,7 +150,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
-	public    static final String KEY_DISABLE_AUDIO_TRACK_SORTING = "disable_audio_track_sorting";
+	public    static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
 	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
@@ -203,6 +203,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 
+	/**
+	 * @deprecated, replaced by {@link #KEY_SERVER_ENGINE}
+	 */
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
@@ -289,6 +292,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
 	protected static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	protected static final String KEY_SELECTED_RENDERERS = "selected_renderers";
+	protected static final String KEY_SERVER_ENGINE = "server_engine";
 	protected static final String KEY_SERVER_HOSTNAME = "hostname";
 	protected static final String KEY_SERVER_NAME = "server_name";
 	protected static final String KEY_SERVER_PORT = "port";
@@ -413,6 +417,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_NETWORK_INTERFACE,
 			KEY_OPEN_ARCHIVES,
 			KEY_PRETTIFY_FILENAMES,
+			KEY_SERVER_ENGINE,
 			KEY_SERVER_HOSTNAME,
 			KEY_SERVER_NAME,
 			KEY_SERVER_PORT,
@@ -1230,6 +1235,28 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setTsmuxerForceFps(boolean value) {
 		configuration.setProperty(KEY_TSMUXER_FORCEFPS, value);
+	}
+
+	/**
+	 * Get the MediaServer Engine version.
+	 * @return the MediaServer engine version selected, or 0 for default.
+	 */
+	public int getServerEngine() {
+		int value = getInt(KEY_SERVER_ENGINE, -1);
+		if (value == -1) {
+			//check old isHTTPEngineV2
+			if (getBoolean(KEY_HTTP_ENGINE_V2, true)) {
+				value = 0;
+			} else {
+				value = 1;
+			}
+			configuration.setProperty(KEY_SERVER_ENGINE, value);
+		}
+		return value;
+	}
+
+	public void setServerEngine(int value) {
+		configuration.setProperty(KEY_SERVER_ENGINE, value);
 	}
 
 	/**
@@ -3739,10 +3766,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		return PreventSleepMode.typeOf(getString(KEY_PREVENT_SLEEP, PreventSleepMode.PLAYBACK.getValue()));
 	}
 
+	@Deprecated
 	public void setHTTPEngineV2(boolean value) {
 		configuration.setProperty(KEY_HTTP_ENGINE_V2, value);
 	}
 
+	@Deprecated
 	public boolean isHTTPEngineV2() {
 		return getBoolean(KEY_HTTP_ENGINE_V2, true);
 	}
@@ -4684,13 +4713,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Default port for the web interface.
+	 * Default port for the web player server.
 	 */
-	public int getWebPort() {
+	public int getWebInterfaceServerPort() {
 		return getInt(KEY_WEB_PORT, 9001);
 	}
 
-	public boolean useWebInterface() {
+	public boolean useWebInterfaceServer() {
 		return getBoolean(KEY_WEB_ENABLE, true);
 	}
 
@@ -4814,8 +4843,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		return cs;
 	}
 
-	public boolean getDisableAudioTrackSorting() {
-		return getBoolean(KEY_DISABLE_AUDIO_TRACK_SORTING, false);
+	public boolean isSortAudioTracksByAlbumPosition() {
+		return getBoolean(KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION, true);
 	}
 
 	public boolean isDynamicPls() {
