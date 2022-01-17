@@ -7,6 +7,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.logging.LoggingConfig;
+import net.pms.service.Services;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -72,6 +73,8 @@ public class DLNAMediaInfoTest {
 		if (PMS.getConfiguration().isRunSingleInstance()) {
 			PMS.killOld();
 		}
+
+		Services.create();
 
 		// Create a new instance
 		PMS.get();
