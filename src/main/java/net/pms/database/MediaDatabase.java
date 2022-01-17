@@ -23,6 +23,7 @@ import java.sql.*;
 import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.dlna.RootFolder;
@@ -36,6 +37,8 @@ import net.pms.dlna.RootFolder;
 public class MediaDatabase extends Database {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
 	private static final ReadWriteLock DATABASE_LOCK = new ReentrantReadWriteLock(true);
+	private static final Lock WRITE_LOCK = DATABASE_LOCK.writeLock();
+
 	public static final String DATABASE_NAME = "medias";
 	/**
 	 * Pointer to the instanciated MediaDatabase.
@@ -80,46 +83,51 @@ public class MediaDatabase extends Database {
 	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public synchronized final void checkTables(boolean force) throws SQLException {
-		if (tablesChecked && !force) {
-			LOGGER.debug("Database tables have already been checked, aborting check");
-		} else {
-			LOGGER.debug("Starting check of database tables");
-			try (Connection connection = getConnection()) {
-				//Tables Versions (need to be first)
-				MediaTableTablesVersions.checkTable(connection);
+	public final void checkTables(boolean force) throws SQLException {
+		try {
+			WRITE_LOCK.lock();
+			if (tablesChecked && !force) {
+				LOGGER.debug("Database tables have already been checked, aborting check");
+			} else {
+				LOGGER.debug("Starting check of database tables");
+				try (Connection connection = getConnection()) {
+					//Tables Versions (need to be first)
+					MediaTableTablesVersions.checkTable(connection);
 
-				// Files and metadata
-				MediaTableMetadata.checkTable(connection);
-				MediaTableFiles.checkTable(connection);
-				MediaTableSubtracks.checkTable(connection);
-				MediaTableRegexpRules.checkTable(connection);
+					// Files and metadata
+					MediaTableMetadata.checkTable(connection);
+					MediaTableFiles.checkTable(connection);
+					MediaTableSubtracks.checkTable(connection);
+					MediaTableRegexpRules.checkTable(connection);
 
-				MediaTableMusicBrainzReleases.checkTable(connection);
-				MediaTableCoverArtArchive.checkTable(connection);
-				MediaTableFilesStatus.checkTable(connection);
-				MediaTableThumbnails.checkTable(connection);
+					MediaTableMusicBrainzReleases.checkTable(connection);
+					MediaTableCoverArtArchive.checkTable(connection);
+					MediaTableFilesStatus.checkTable(connection);
+					MediaTableThumbnails.checkTable(connection);
 
-				MediaTableTVSeries.checkTable(connection);
-				MediaTableFailedLookups.checkTable(connection);
+					MediaTableTVSeries.checkTable(connection);
+					MediaTableFailedLookups.checkTable(connection);
 
-				// Video metadata tables
-				MediaTableVideoMetadataActors.checkTable(connection);
-				MediaTableVideoMetadataAwards.checkTable(connection);
-				MediaTableVideoMetadataCountries.checkTable(connection);
-				MediaTableVideoMetadataDirectors.checkTable(connection);
-				MediaTableVideoMetadataIMDbRating.checkTable(connection);
-				MediaTableVideoMetadataGenres.checkTable(connection);
-				MediaTableVideoMetadataPosters.checkTable(connection);
-				MediaTableVideoMetadataProduction.checkTable(connection);
-				MediaTableVideoMetadataRated.checkTable(connection);
-				MediaTableVideoMetadataRatings.checkTable(connection);
-				MediaTableVideoMetadataReleased.checkTable(connection);
+					// Video metadata tables
+					MediaTableVideoMetadataActors.checkTable(connection);
+					MediaTableVideoMetadataAwards.checkTable(connection);
+					MediaTableVideoMetadataCountries.checkTable(connection);
+					MediaTableVideoMetadataDirectors.checkTable(connection);
+					MediaTableVideoMetadataIMDbRating.checkTable(connection);
+					MediaTableVideoMetadataGenres.checkTable(connection);
+					MediaTableVideoMetadataPosters.checkTable(connection);
+					MediaTableVideoMetadataProduction.checkTable(connection);
+					MediaTableVideoMetadataRated.checkTable(connection);
+					MediaTableVideoMetadataRatings.checkTable(connection);
+					MediaTableVideoMetadataReleased.checkTable(connection);
 
-				// Audio Metadata
-				MediaTableAudiotracks.checkTable(connection);
+					// Audio Metadata
+					MediaTableAudiotracks.checkTable(connection);
+				}
+				tablesChecked = true;
 			}
-			tablesChecked = true;
+		} finally {
+			WRITE_LOCK.unlock();
 		}
 	}
 
@@ -136,38 +144,48 @@ public class MediaDatabase extends Database {
 		checkTables(true);
 	}
 
-	public static synchronized void dropAllTables(Connection connection) {
-		dropAllTablesExceptFilesStatus(connection);
-		dropTableAndConstraint(connection, MediaTableRegexpRules.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableMetadata.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableFiles.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
+	public static void dropAllTables(Connection connection) {
+		try {
+			WRITE_LOCK.lock();
+			dropAllTablesExceptFilesStatus(connection);
+			dropTableAndConstraint(connection, MediaTableRegexpRules.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableMetadata.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableFiles.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableTablesVersions.TABLE_NAME);
+		} finally {
+			WRITE_LOCK.unlock();
+		}
 	}
 
-	public static synchronized void dropAllTablesExceptFilesStatus(Connection connection) {
-		dropTableAndConstraint(connection, MediaTableMusicBrainzReleases.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableCoverArtArchive.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableThumbnails.TABLE_NAME);
+	public static void dropAllTablesExceptFilesStatus(Connection connection) {
+		try {
+			WRITE_LOCK.lock();
+			dropTableAndConstraint(connection, MediaTableMusicBrainzReleases.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableCoverArtArchive.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableThumbnails.TABLE_NAME);
 
-		dropTableAndConstraint(connection, MediaTableTVSeries.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableFailedLookups.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableTVSeries.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableFailedLookups.TABLE_NAME);
 
-		// Video metadata tables
-		dropTableAndConstraint(connection, MediaTableVideoMetadataActors.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataAwards.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataCountries.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataDirectors.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataIMDbRating.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataPosters.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataProduction.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataRated.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataReleased.TABLE_NAME);
+			// Video metadata tables
+			dropTableAndConstraint(connection, MediaTableVideoMetadataActors.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataAwards.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataCountries.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataDirectors.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataIMDbRating.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataPosters.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataProduction.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataRated.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
+			dropTableAndConstraint(connection, MediaTableVideoMetadataReleased.TABLE_NAME);
 
-		// Audio Metadata
-		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
+			// Audio Metadata
+			dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
+		} finally {
+			WRITE_LOCK.unlock();
+		}
 	}
 
 	/**
@@ -176,19 +194,29 @@ public class MediaDatabase extends Database {
 	 *
 	 * @return {@link net.pms.database.MediaDatabase}
 	 */
-	public synchronized static MediaDatabase get() {
-		if (instance == null) {
-			instance = new MediaDatabase();
+	public static MediaDatabase get() {
+		try {
+			WRITE_LOCK.lock();
+			if (instance == null) {
+				instance = new MediaDatabase();
+			}
+			return instance;
+		} finally {
+			WRITE_LOCK.unlock();
 		}
-		return instance;
 	}
 
 	/**
 	 * Initialize the MediaDatabase instance.
 	 * Will initialize the database instance as needed.
 	 */
-	public synchronized static void init() {
-		get().init(false);
+	public static void init() {
+		try {
+			WRITE_LOCK.lock();
+			get().init(false);
+		} finally {
+			WRITE_LOCK.unlock();
+		}
 	}
 
 	/**
@@ -196,8 +224,13 @@ public class MediaDatabase extends Database {
 	 * Will initialize the database instance as needed.
 	 * Will check all tables.
 	 */
-	public synchronized static void initForce() {
-		get().init(true);
+	public static void initForce() {
+		try {
+			WRITE_LOCK.lock();
+			get().init(true);
+		} finally {
+			WRITE_LOCK.unlock();
+		}
 	}
 
 	/**
@@ -243,9 +276,14 @@ public class MediaDatabase extends Database {
 	 * Recreate all tables related to media cache except files status.
 	 * @throws java.sql.SQLException
 	 */
-	public synchronized static void resetCache() throws SQLException {
-		if (instance != null) {
-			instance.reInitTablesExceptFilesStatus();
+	public static void resetCache() throws SQLException {
+		try {
+			WRITE_LOCK.lock();
+			if (instance != null) {
+				instance.reInitTablesExceptFilesStatus();
+			}
+		} finally {
+			WRITE_LOCK.unlock();
 		}
 	}
 
@@ -263,9 +301,14 @@ public class MediaDatabase extends Database {
 	/**
 	 * Shutdown the MediaDatabase database.
 	 */
-	public synchronized static void shutdown() {
-		if (instance != null) {
-			instance.close();
+	public static void shutdown() {
+		try {
+			WRITE_LOCK.lock();
+			if (instance != null) {
+				instance.close();
+			}
+		} finally {
+			WRITE_LOCK.unlock();
 		}
 	}
 
