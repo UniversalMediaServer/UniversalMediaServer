@@ -368,7 +368,7 @@ function isDarkColorNeededOnThisColor(rgbColor) {
 function setBackgroundColorFromPoster() {
 	var poster = document.getElementById('poster');
 	if (!poster || !poster.src) {
-		console.log('poster was not ready to analyze')
+		// console.log('poster was not ready to analyze')
 		return;
 	}
 	var rgb = getAverageRGB(poster);
