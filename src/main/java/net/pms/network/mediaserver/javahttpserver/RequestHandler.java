@@ -772,7 +772,7 @@ public class RequestHandler implements HttpHandler {
 	 */
 	private static InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
-		fileName = fileName.replaceAll("//", "/");
+		fileName = fileName.replace("//", "/");
 		ClassLoader cll = RequestHandler.class.getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
@@ -1470,7 +1470,7 @@ public class RequestHandler implements HttpHandler {
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage() + "\n";
-				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
+				formattedContent += "    " + content.replace("\n", "\n    ") + "\n";
 			}
 		}
 		String requestType = "";
