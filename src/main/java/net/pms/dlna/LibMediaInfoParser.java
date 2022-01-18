@@ -88,7 +88,7 @@ public class LibMediaInfoParser {
 
 	public static void close() {
 		try {
-			mI.finalize();
+			// mI.finalize();
 		} catch (Throwable e) {
 			LOGGER.debug("Caught exception", e);
 		}
