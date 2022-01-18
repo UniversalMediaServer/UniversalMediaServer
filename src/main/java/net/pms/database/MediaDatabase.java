@@ -43,7 +43,7 @@ public class MediaDatabase extends Database {
 	/**
 	 * Pointer to the instanciated MediaDatabase.
 	 */
-	private static MediaDatabase instance = null;
+	private volatile static MediaDatabase instance = null;
 	private static boolean tablesChecked = false;
 
 	/**
