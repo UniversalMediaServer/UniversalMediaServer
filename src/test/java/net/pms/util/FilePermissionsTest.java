@@ -36,7 +36,8 @@ import org.junit.rules.ExpectedException;
 
 public class FilePermissionsTest {
 	private final Class<?> CLASS = FilePermissionsTest.class;
-
+	// for random number generation
+	Random rndm = new Random();
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
@@ -99,7 +100,7 @@ public class FilePermissionsTest {
 		assertTrue("ParentIsFolder", permissions.isFolder());
 		assertTrue("ParentIsBrowsable", permissions.isBrowsable());
 
-		File file = new File(System.getProperty("java.io.tmpdir"), String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000)));
+		File file = new File(System.getProperty("java.io.tmpdir"), String.format("UMS_temp_writable_file_%d.tmp", rndm.nextInt(10000)));
 		if (file.createNewFile()) {
 			try {
 				assertTrue("TempFileIsReadable", new FilePermissions(file).isReadable());
@@ -111,7 +112,7 @@ public class FilePermissionsTest {
 			}
 		}
 
-		Path path = Paths.get(System.getProperty("java.io.tmpdir"), String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000)));
+		Path path = Paths.get(System.getProperty("java.io.tmpdir"), String.format("UMS_temp_writable_file_%d.tmp", rndm.nextInt(10000)));
 		Files.createFile(path);
 		try {
 			assertTrue("TempFileIsReadable", new FilePermissions(path).isReadable());
