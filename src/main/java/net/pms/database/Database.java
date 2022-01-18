@@ -137,7 +137,9 @@ public abstract class Database extends DatabaseHelper {
 	 * @throws SQLException
 	 */
 	public Connection getConnection() throws SQLException {
-		return cp.getConnection();
+		Connection c = cp.getConnection();
+		c.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+		return c;
 	}
 
 	public int getActiveConnections() throws SQLException {
