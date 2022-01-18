@@ -46,6 +46,9 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
+	
+	// random number generation
+	Random rndm = new Random();
 
 	@BeforeClass
 	public static void SetUPClass() throws ConfigurationException, InterruptedException {
@@ -612,7 +615,7 @@ public class FileUtilTest {
 		}
 		assertNull("NoSuchFileIsNull", FileUtil.getFilePermissionsNoThrow(new File(file.getParentFile(), "No such file")));
 
-		path = String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000));
+		path = String.format("UMS_temp_writable_file_%d.tmp", rndm.nextInt(10000));
 		file = new File(System.getProperty("java.io.tmpdir"), path);
 		try {
 			if (file.createNewFile()) {
