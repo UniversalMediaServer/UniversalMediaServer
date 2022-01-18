@@ -2970,7 +2970,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						String rendererName = "unknown renderer";
 						try {
 							renderer.setPlayingRes(self);
-							rendererName = renderer.getRendererName().replaceAll("\n", "");
+							rendererName = renderer.getRendererName().replace("\n", "");
 						} catch (NullPointerException e) {
 						}
 						if (isLogPlayEvents()) {
