@@ -259,7 +259,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
-			String query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " FOR UPDATE ";
+			String query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setFullyPlayed", query);
 			}
