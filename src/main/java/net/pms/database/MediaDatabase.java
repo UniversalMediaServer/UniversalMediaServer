@@ -195,15 +195,17 @@ public class MediaDatabase extends Database {
 	 * @return {@link net.pms.database.MediaDatabase}
 	 */
 	public static MediaDatabase get() {
-		try {
-			WRITE_LOCK.lock();
-			if (instance == null) {
-				instance = new MediaDatabase();
+		if (instance == null) {
+			try {
+				WRITE_LOCK.lock();
+				if (instance == null) {
+					instance = new MediaDatabase();
+				}
+			} finally {
+				WRITE_LOCK.unlock();
 			}
-			return instance;
-		} finally {
-			WRITE_LOCK.unlock();
 		}
+		return instance;
 	}
 
 	/**
