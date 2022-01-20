@@ -28,35 +28,27 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
-import net.pms.PMS;
 import static net.pms.network.mediaserver.UPNPHelper.sleep;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
+import net.pms.network.mediaserver.cling.UmsUpnpService;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
-import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.UpnpService;
-import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.controlpoint.ActionCallback;
 import org.fourthline.cling.controlpoint.SubscriptionCallback;
-import org.fourthline.cling.model.ServerClientTokens;
 import org.fourthline.cling.model.action.*;
 import org.fourthline.cling.model.gena.*;
-import org.fourthline.cling.model.message.UpnpHeaders;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.message.header.DeviceTypeHeader;
-import org.fourthline.cling.model.message.header.UpnpHeader;
 import org.fourthline.cling.model.meta.*;
 import org.fourthline.cling.model.types.DeviceType;
 import org.fourthline.cling.model.types.ServiceId;
 import org.fourthline.cling.model.types.UDADeviceType;
 import org.fourthline.cling.model.types.UDN;
-import org.fourthline.cling.registry.DefaultRegistryListener;
-import org.fourthline.cling.registry.Registry;
-import org.fourthline.cling.registry.RegistryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -75,7 +67,6 @@ public class UPNPControl {
 	};
 
 	private static UpnpService upnpService;
-	private static UpnpHeaders umsHeaders;
 	private static DocumentBuilder db;
 
 	public static final int ACTIVE = 0;
@@ -356,58 +347,8 @@ public class UPNPControl {
 	public void init() {
 		try {
 			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
-			umsHeaders = new UpnpHeaders();
-			umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 
-			DefaultUpnpServiceConfiguration sc = new DefaultUpnpServiceConfiguration() {
-				@Override
-				public UpnpHeaders getDescriptorRetrievalHeaders(RemoteDeviceIdentity identity) {
-					return umsHeaders;
-				}
-
-				@Override
-				public int getAliveIntervalMillis() {
-					return 10000;
-				}
-			};
-
-			RegistryListener rl = new DefaultRegistryListener() {
-				@Override
-				public void remoteDeviceAdded(Registry registry, RemoteDevice device) {
-					super.remoteDeviceAdded(registry, device);
-					if (isBlocked(getUUID(device)) || !addRenderer(device)) {
-						LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
-						addIgnoredDeviceToList(device);
-					}
-					// This may be unnecessary, but we might as well be thorough
-					if (device.hasEmbeddedDevices()) {
-						for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
-							if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
-								LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
-								addIgnoredDeviceToList((RemoteDevice) embedded);
-							}
-						}
-					}
-				}
-
-				@Override
-				public void remoteDeviceRemoved(Registry registry, RemoteDevice d) {
-					super.remoteDeviceRemoved(registry, d);
-					String uuid = getUUID(d);
-					if (rendererMap.containsKey(uuid)) {
-						rendererMap.mark(uuid, ACTIVE, false);
-						rendererRemoved(d);
-					}
-				}
-
-				@Override
-				public void remoteDeviceUpdated(Registry registry, RemoteDevice d) {
-					super.remoteDeviceUpdated(registry, d);
-					rendererUpdated(d);
-				}
-			};
-
-			upnpService = new UpnpServiceImpl(sc, rl);
+			upnpService = new UmsUpnpService(this);
 			for (DeviceType t : MEDIA_RENDERER_TYPES) {
 				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 			}
@@ -425,6 +366,34 @@ public class UPNPControl {
 				upnpService.shutdown();
 			}
 		}).start();
+	}
+
+	public void remoteDeviceAdded(RemoteDevice device) {
+		if (isBlocked(getUUID(device)) || !addRenderer(device)) {
+			LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
+			addIgnoredDeviceToList(device);
+		}
+		// This may be unnecessary, but we might as well be thorough
+		if (device.hasEmbeddedDevices()) {
+			for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
+				if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
+					LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+					addIgnoredDeviceToList((RemoteDevice) embedded);
+				}
+			}
+		}
+	}
+
+	public void remoteDeviceRemoved(RemoteDevice d) {
+		String uuid = getUUID(d);
+		if (rendererMap.containsKey(uuid)) {
+			rendererMap.mark(uuid, ACTIVE, false);
+			rendererRemoved(d);
+		}
+	}
+
+	public void remoteDeviceUpdated(RemoteDevice d) {
+		rendererUpdated(d);
 	}
 
 	public static boolean isMediaRenderer(Device d) {
