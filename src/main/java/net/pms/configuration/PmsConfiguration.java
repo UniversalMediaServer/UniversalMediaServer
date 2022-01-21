@@ -527,6 +527,12 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 		}
 
+		// ensure that the SYSTEM_PROFILE_DIRECTORY exists
+		File systemProfileDirectory = new File(SYSTEM_PROFILE_DIRECTORY);
+		if (!systemProfileDirectory.exists()) {
+			systemProfileDirectory.mkdirs();
+		}
+
 		// now set the profile path. first: check for a custom setting.
 		// try the system property, typically set via the profile chooser
 		String customProfilePath = System.getProperty(PROPERTY_PROFILE_PATH);
