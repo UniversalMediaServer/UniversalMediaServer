@@ -33,8 +33,21 @@ public class SearchRequestHandlerTest {
 		PMS.forceHeadless();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
+
 		Services.create();
-		PMS.get();
+
+		try {
+			PMS.getConfiguration().initCred();
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to write credentials configuration", ex);
+		}
+
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
+
+		// Create a new PMS instance
+		PMS.getNewInstance();
 	}
 
 	@Test
