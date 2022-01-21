@@ -20,7 +20,10 @@
 package net.pms.network.mediaserver.cling;
 
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.cling.transport.impl.ApacheStreamClient;
+import net.pms.network.mediaserver.cling.transport.impl.EmptyStreamServer;
+import net.pms.network.mediaserver.cling.transport.impl.UmsNetworkAddressFactory;
 import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.model.ServerClientTokens;
 import org.fourthline.cling.model.message.UpnpHeaders;
@@ -28,14 +31,15 @@ import org.fourthline.cling.model.message.header.UpnpHeader;
 import org.fourthline.cling.model.meta.RemoteDeviceIdentity;
 import org.fourthline.cling.transport.impl.StreamClientConfigurationImpl;
 import org.fourthline.cling.transport.impl.StreamServerConfigurationImpl;
-import org.fourthline.cling.transport.impl.StreamServerImpl;
 import org.fourthline.cling.transport.spi.NetworkAddressFactory;
 import org.fourthline.cling.transport.spi.StreamClient;
 import org.fourthline.cling.transport.spi.StreamServer;
 
 public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
 
-	UpnpHeaders umsHeaders;
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
+	private final UpnpHeaders umsHeaders;
 
 	public UmsUpnpServiceConfiguration() {
 		super();
@@ -50,7 +54,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public int getAliveIntervalMillis() {
-		return 10000;
+		return CONFIGURATION.getAliveDelay() != 0 ? CONFIGURATION.getAliveDelay() : 30000;
 	}
 
 	@Override
@@ -64,10 +68,15 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
-		return new StreamServerImpl(
+		return new EmptyStreamServer(
 				new StreamServerConfigurationImpl(
 						networkAddressFactory.getStreamListenPort()
 				)
 		);
+	}
+
+	@Override
+	public NetworkAddressFactory createNetworkAddressFactory() {
+		return new UmsNetworkAddressFactory();
 	}
 }
