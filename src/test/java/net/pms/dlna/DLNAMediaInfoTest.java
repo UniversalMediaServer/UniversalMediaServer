@@ -1,6 +1,7 @@
 package net.pms.dlna;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -8,13 +9,18 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.logging.LoggingConfig;
 import net.pms.service.Services;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DLNAMediaInfoTest {
 	private static final Class<?> CLASS = DLNAMediaInfoTest.class;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfoTest.class.getName());
 
 	// Look for more formats at https://samples.ffmpeg.org/
 	private static final String[] test_files = {
@@ -44,8 +50,15 @@ public class DLNAMediaInfoTest {
 		"video-h265_dolbyvision_p08.05-eac3_atmos.mkv",
 	};
 
-	@Test
-	public void testContainerProperties() throws Exception {
+	/**
+	 * Set up testing conditions before running the tests.
+	 *
+	 * @throws ConfigurationException
+	 */
+	@BeforeAll
+	public static final void setUp() throws ConfigurationException, InterruptedException {
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
 		PMS.configureJNA();
 		PMS.forceHeadless();
 		try {
@@ -54,15 +67,10 @@ public class DLNAMediaInfoTest {
 			throw new AssertionError(ex);
 		}
 		assert PMS.getConfiguration() != null;
+		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
 		PMS.getConfiguration().setSharedFolders(null);
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
-
-		LoggingConfig.setRootLevel(Level.TRACE);
-		// force unbuffered if in trace mode
-		LoggingConfig.setBuffered(false);
-
-		Logger LOGGER = LoggerFactory.getLogger(CLASS);
 
 		Services.create();
 
@@ -78,7 +86,10 @@ public class DLNAMediaInfoTest {
 
 		// Create a new PMS instance
 		PMS.getNewInstance();
+	}
 
+	@Test
+	public void testContainerProperties() throws Exception {
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
 		assertThat(LibMediaInfoParser.isValid())
@@ -256,4 +267,11 @@ public class DLNAMediaInfoTest {
 		// 	System.out.println(p.getClass().getName());
 		// }
 //	}
+
+	@AfterAll
+	public static final void tearDown() throws ConfigurationException, InterruptedException {
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
+	}
 }
