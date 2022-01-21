@@ -11,6 +11,7 @@ public class ServerSentEvents {
 
 	private final Object osLock = new Object();
 	private Thread pingThread;
+	private OutputStream os;
 
 	public ServerSentEvents() {
 	}
@@ -19,7 +20,6 @@ public class ServerSentEvents {
 		addEventStream(os);
 	}
 
-	OutputStream os;
 	public final void addEventStream(OutputStream os) {
 		//clean current OutputStream in case of....
 		stopPing();
@@ -38,6 +38,17 @@ public class ServerSentEvents {
 		response += "data: " + message + "\n\n";
 		LOGGER.trace("ServerSentEvents send message: {}", message);
 		return send(response);
+	}
+
+	public void close() {
+		if (os != null) {
+			LOGGER.debug("ServerSentEvents close OutputStream");
+			try {
+				os.close();
+			} catch (IOException ex1) {
+			}
+			os = null;
+		}
 	}
 
 	private boolean send(String response) {
@@ -59,17 +70,6 @@ public class ServerSentEvents {
 			close();
 		}
 		return false;
-	}
-
-	public void close() {
-		if (os != null) {
-			LOGGER.debug("ServerSentEvents close OutputStream");
-			try {
-				os.close();
-			} catch (IOException ex1) {
-			}
-			os = null;
-		}
 	}
 
 	private void startPing() {

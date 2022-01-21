@@ -217,11 +217,15 @@ function serverDataHandler(data) {
 		case 'notify':
 			notify(data[1], data[2]);
 			break;
+		case 'close':
+			notifyClose(data[1], data[2]);
+			streamevent.close();
+			break;
 	}
 }
 
 function poll() {
-	$('body').append('<div id="notices"><div/></div>');
+	$('body').append('<div id="notices"><div/>');
 	polling = setInterval(function () {
 		$.ajax({url: '/poll',
 			success: function (json) {
@@ -242,6 +246,7 @@ function poll() {
 }
 
 function stream() {
+	$('body').append('<div id="notices"><div/>');
 	streamevent = new EventSource("/event-stream");
 	streamevent.addEventListener('message', function(event) {
 		refused = 0;
@@ -266,13 +271,18 @@ function stream() {
 
 function notify(icon, msg) {
 	//console.log('notify: '+icon+': '+msg);
-	var notice = $('<div class="notice"><span class="icon ' + icon + '"></span><span class="msg">' + msg + '</msg></div>');
+	var notice = $('<div class="notice"><span class="icon ' + icon + '"></span><span class="msg">' + msg + '</span></div>');
 	notice.insertAfter($('#notices').children(':last'));
 	setTimeout(function () {
 		notice.fadeOut('slow', function () {
 			notice.remove();
 		});
 	}, 5000);
+}
+
+function notifyClose(icon, msg) {
+	var notice = $('<div class="notice"><span class="icon ' + icon + '"></span><span class="msg">' + msg + '</span><button class="btn btn-sm" onclick="$(\'#notices\').html(\'\');window.close();">OK</button></div>');
+	notice.insertAfter($('#notices').children(':last'));
 }
 
 function chooseView(view) {

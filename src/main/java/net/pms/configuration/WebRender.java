@@ -563,9 +563,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return json;
 	}
 
-	ServerSentEvents sse;
+	private ServerSentEvents sse;
 	public void addServerSentEvents(ServerSentEvents sse) {
 		if (this.sse != null && this.sse.isOpened()) {
+			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", "Another tab is browsing the interface"}));
 			this.sse.close();
 		}
 		synchronized (push) {
