@@ -39,7 +39,7 @@ public class SearchRequestHandlerTest {
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
-			LOGGER.warn("Failed to write credentials configuration", ex);
+			LOG.warn("Failed to write credentials configuration", ex);
 		}
 
 		if (PMS.getConfiguration().isRunSingleInstance()) {
