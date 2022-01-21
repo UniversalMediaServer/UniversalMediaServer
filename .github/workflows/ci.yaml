@@ -54,8 +54,206 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Run linter and tests
-        run: mvn verify -P linter
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
+      - name: Run tests
+        run: mvn verify -P testing-windows
 
   linux-bionic:
     runs-on: ubuntu-18.04
