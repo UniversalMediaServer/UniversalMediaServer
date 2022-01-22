@@ -55,7 +55,7 @@ public class EventStreamHandler implements HttpHandler {
 			hdr.add("Connection", "keep-alive");
 			hdr.add("Charset", "UTF-8");
 			t.sendResponseHeaders(200, 0);
-			ServerSentEvents sse = new ServerSentEvents(t.getResponseBody());
+			ServerSentEvents sse = new ServerSentEvents(t.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(t));
 			renderer.addServerSentEvents(sse);
 		} catch (IOException e) {
 			throw e;

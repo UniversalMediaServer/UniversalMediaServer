@@ -10,14 +10,14 @@ public class ServerSentEvents {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerSentEvents.class);
 
 	private final Object osLock = new Object();
+	private final String language;
+
 	private Thread pingThread;
 	private OutputStream os;
 
-	public ServerSentEvents() {
-	}
-
-	public ServerSentEvents(OutputStream os) {
+	public ServerSentEvents(OutputStream os, String language) {
 		addEventStream(os);
+		this.language = language;
 	}
 
 	public final void addEventStream(OutputStream os) {
@@ -104,4 +104,7 @@ public class ServerSentEvents {
 		return send(response);
 	}
 
+	public String getMsgString(String key) {
+		return WebInterfaceServerUtil.getMsgString(key, language);
+	}
 }
