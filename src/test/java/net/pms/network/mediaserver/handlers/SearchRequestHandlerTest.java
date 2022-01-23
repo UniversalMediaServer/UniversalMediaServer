@@ -2,6 +2,7 @@ package net.pms.network.mediaserver.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.apache.commons.configuration.ConfigurationException;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -14,11 +15,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 
-/**
- *
- */
 public class SearchRequestHandlerTest {
-
 	private static final Logger LOG = LoggerFactory.getLogger(SearchRequestHandlerTest.class.getName());
 
 	/**
@@ -31,10 +28,31 @@ public class SearchRequestHandlerTest {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
 		PMS.forceHeadless();
-		PMS.setConfiguration(new PmsConfiguration(false));
+		try {
+			PMS.setConfiguration(new PmsConfiguration(false));
+		} catch (Exception ex) {
+			throw new AssertionError(ex);
+		}
+		assert PMS.getConfiguration() != null;
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
+		PMS.getConfiguration().setSharedFolders(null);
+		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
+		PMS.getConfiguration().setUseCache(false);
+
 		Services.create();
-		PMS.get();
+
+		try {
+			PMS.getConfiguration().initCred();
+		} catch (Exception ex) {
+			LOG.warn("Failed to write credentials configuration", ex);
+		}
+
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
+
+		// Create a new PMS instance
+		PMS.getNewInstance();
 	}
 
 	@Test
@@ -68,5 +86,12 @@ public class SearchRequestHandlerTest {
 		LOG.info("testVideoFileUpnpSearch");
 		LOG.info("===================================================================");
 		LOG.info("\r\n" + response.toString());
+	}
+
+	@AfterAll
+	public static final void tearDown() throws ConfigurationException, InterruptedException {
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
 	}
 }
