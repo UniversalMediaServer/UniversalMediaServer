@@ -679,4 +679,17 @@ public class UMSUtils {
 
 		return a.equals(b);
 	}
+
+	/**
+	 * Utility method to call {@link Thread#sleep(long)} without having to catch
+	 * the InterruptedException.
+	 *
+	 * @param delay the delay
+	 */
+	public static void sleep(int delay) {
+		try {
+			Thread.sleep(delay);
+		} catch (InterruptedException e) {
+		}
+	}
 }

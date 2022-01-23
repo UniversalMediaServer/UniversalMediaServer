@@ -100,7 +100,7 @@ import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.UPNPControl.Renderer;
+import net.pms.network.mediaserver.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;

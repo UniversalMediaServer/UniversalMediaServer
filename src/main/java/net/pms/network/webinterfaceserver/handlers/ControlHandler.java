@@ -39,6 +39,7 @@ import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -93,7 +94,7 @@ public class ControlHandler implements HttpHandler {
 			switch (p[2]) {
 				case "status":
 					// limit status updates to one per second
-					UPNPHelper.sleep(1000);
+					UMSUtils.sleep(1000);
 					log = false;
 					break;
 				case "play":
