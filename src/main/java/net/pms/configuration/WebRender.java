@@ -47,6 +47,7 @@ import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -541,19 +542,42 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
-	private ArrayList<String[]> push;
+	private final ArrayList<String[]> push;
 
 	public void push(String... args) {
-		push.add(args);
+		if (sse == null || !sse.isOpened() || !sse.sendMessage(gson.toJson(args))) {
+			synchronized (push) {
+				push.add(args);
+			}
+		}
 	}
 
 	public String getPushData() {
 		String json = "{}";
-		if (push.size() > 0) {
-			json = gson.toJson(push);
-			push.clear();
+		synchronized (push) {
+			if (!push.isEmpty()) {
+				json = gson.toJson(push);
+				push.clear();
+			}
 		}
 		return json;
+	}
+
+	private ServerSentEvents sse;
+	public void addServerSentEvents(ServerSentEvents sse) {
+		if (this.sse != null && this.sse.isOpened()) {
+			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", this.sse.getMsgString("Web.MultipleTabOpened"), this.sse.getMsgString("Dialog.OK")}));
+			this.sse.close();
+		}
+		synchronized (push) {
+			this.sse = sse;
+			//empty current push datas
+			while (!push.isEmpty() && this.sse != null && this.sse.isOpened()) {
+				if (this.sse.sendMessage(gson.toJson(push.get(0)))) {
+					push.remove(0);
+				}
+			}
+		}
 	}
 
 	@Override
