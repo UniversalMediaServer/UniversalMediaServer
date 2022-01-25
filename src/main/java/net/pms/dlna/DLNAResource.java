@@ -96,8 +96,6 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
-import net.pms.network.DbIdResourceLocator;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.Renderer;
@@ -1082,7 +1080,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
-			if (objectId.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
 					dlna = dbIdResourceLocator.locateResource(objectId);
 				} catch (Exception e) {

@@ -45,7 +45,6 @@ import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
-import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
@@ -66,7 +65,6 @@ import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
-import net.pms.network.ChromecastMgr;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.*;
@@ -124,8 +122,6 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
-
-	private JmDNS jmDNS;
 
 	/**
 	 * Returns a pointer to the DMS GUI's main window.
@@ -585,12 +581,6 @@ public class PMS {
 		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
-		// Now that renderer confs are all loaded, we can start searching for renderers
-		MediaServer.init();
-
-		// launch ChromecastMgr
-		jmDNS = null;
-		launchJmDNSRenderers();
 
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
 		if (!configuration.isDisableSubtitles()) {
@@ -665,6 +655,7 @@ public class PMS {
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
 
+		// Now that renderer confs are all loaded, we can start searching for renderers
 		boolean binding = MediaServer.start();
 
 		new Thread("Connection Checker") {
@@ -719,7 +710,7 @@ public class PMS {
 					saveConfiguration();
 
 					LOGGER.debug("Shutting down the media server");
-					MediaServer.stop();
+					MediaServer.shutdown();
 					Thread.sleep(500);
 
 					if (configuration.getDatabaseLogging()) {
@@ -836,7 +827,11 @@ public class PMS {
 	 */
 	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles:
 	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&p=75542#p75542
-	public synchronized String usn() {
+	public String usn() {
+		return "uuid:" + udn();
+	}
+
+	public synchronized String udn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
 			uuid = configuration.getUuid();
@@ -853,7 +848,7 @@ public class PMS {
 			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
 		}
 
-		return "uuid:" + uuid;
+		return uuid;
 	}
 
 	/**
@@ -1566,27 +1561,6 @@ public class PMS {
 				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
 		}
 		return dynamicPls;
-	}
-
-	private void launchJmDNSRenderers() {
-		if (configuration.useChromecastExt()) {
-			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
-				try {
-					startjmDNS();
-					new ChromecastMgr(jmDNS);
-				} catch (Exception e) {
-					LOGGER.debug("Can't create chromecast mgr");
-				}
-			} else {
-				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
-			}
-		}
-	}
-
-	private void startjmDNS() throws IOException {
-		if (jmDNS == null) {
-			jmDNS = JmDNS.create();
-		}
 	}
 
 	private static int traceMode = 0;

@@ -299,6 +299,11 @@ public class Request extends HTTPResource {
 			argument = argument.substring(1);
 		}
 
+		//to enable multiple device, cling use dev desc location format http://host:port/dev/<udn>/desc
+		if (argument.startsWith("dev/") && argument.endsWith("/desc")) {
+			argument = "description/fetch";
+		}
+
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
 			// Request to output a page to the HTML console.
 			appendToHeader(responseHeader, "Content-Type: text/html");

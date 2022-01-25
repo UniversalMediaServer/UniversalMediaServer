@@ -25,11 +25,11 @@ import org.fourthline.cling.transport.spi.InitializationException;
 import org.fourthline.cling.transport.spi.StreamServer;
 import org.fourthline.cling.transport.spi.StreamServerConfiguration;
 
-public class EmptyStreamServer implements StreamServer {
+public class DummyStreamServer implements StreamServer {
 
 	private final StreamServerConfiguration configuration;
 
-	public EmptyStreamServer(StreamServerConfiguration configuration) {
+	public DummyStreamServer(StreamServerConfiguration configuration) {
 		this.configuration = configuration;
 	}
 

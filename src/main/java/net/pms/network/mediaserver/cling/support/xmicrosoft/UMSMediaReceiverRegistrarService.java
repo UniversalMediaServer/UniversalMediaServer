@@ -17,12 +17,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver;
+package net.pms.network.mediaserver.cling.support.xmicrosoft;
 
-public interface WebInterfaceServerInterface {
-	Object getServer();
-	int getPort();
-	String getAddress();
-	String getUrl();
-	boolean isSecure();
+import org.fourthline.cling.support.xmicrosoft.AbstractMediaReceiverRegistrarService;
+
+public class UMSMediaReceiverRegistrarService extends AbstractMediaReceiverRegistrarService {
+
 }

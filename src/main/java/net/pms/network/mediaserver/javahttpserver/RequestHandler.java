@@ -81,7 +81,8 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.network.DbIdResourceLocator;
+import net.pms.dlna.DbIdMediaType;
+import net.pms.dlna.DbIdResourceLocator;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
@@ -187,6 +188,9 @@ public class RequestHandler implements HttpHandler {
 				sendGetResponse(exchange, renderer, uri);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 				sendResponse(exchange, renderer, 200, imageHandler(exchange, uri));
+			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.startsWith("dev") && uri.endsWith("/desc"))) {
+				//from cling
+				sendResponse(exchange, renderer, 200, deviceDescHandler(exchange, renderer), CONTENT_TYPE_XML_UTF8);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 				sendResponse(exchange, renderer, 200, serverSpecHandler(exchange, uri, renderer), CONTENT_TYPE_XML_UTF8);
 			} else if (POST.equals(method) && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("control/x_ms_mediareceiverregistrar"))) {
@@ -344,7 +348,7 @@ public class RequestHandler implements HttpHandler {
 
 		// Retrieve the DLNAresource itself.
 		String fileName;
-		if (id.startsWith(DbIdResourceLocator.DbidMediaType.GENERAL_PREFIX)) {
+		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			try {
 				dlna = DB_ID_RESOURCE_LOCATOR.locateResource(id.substring(0, id.indexOf('/')));
 			} catch (Exception e) {
@@ -772,7 +776,7 @@ public class RequestHandler implements HttpHandler {
 	 */
 	private static InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
-		fileName = fileName.replaceAll("//", "/");
+		fileName = fileName.replace("//", "/");
 		ClassLoader cll = RequestHandler.class.getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
@@ -798,6 +802,20 @@ public class RequestHandler implements HttpHandler {
 
 	private static String getProtocolInfoHandler() {
 		return createResponse(HTTPXMLHelper.PROTOCOLINFO_RESPONSE).toString();
+	}
+
+	private static String deviceDescHandler(HttpExchange exchange, RendererConfiguration renderer) throws IOException {
+		exchange.getResponseHeaders().set("Cache-Control", "no-cache");
+		exchange.getResponseHeaders().set("Expires", "0");
+		exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
+		exchange.getResponseHeaders().set("Connection", "keep-alive");
+		InputStream iStream = getResourceInputStream("PMS.xml");
+
+		byte[] b = new byte[iStream.available()];
+		iStream.read(b);
+		String s = new String(b, StandardCharsets.UTF_8);
+		s = prepareUmsSpec(s, renderer);
+		return s;
 	}
 
 	private static String serverSpecHandler(HttpExchange exchange, String uri, RendererConfiguration renderer) throws IOException {
@@ -1470,7 +1488,7 @@ public class RequestHandler implements HttpHandler {
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage() + "\n";
-				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
+				formattedContent += "    " + content.replace("\n", "\n    ") + "\n";
 			}
 		}
 		String requestType = "";

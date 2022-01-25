@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2011 G. Zsombor
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -22,7 +23,13 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -33,7 +40,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Network speed tester class. This can be used in an asynchronous way, as it returns Future objects.
  *
- * Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBits(addr);
+ * {@link Future<Integer>} speed = SpeedStats.getSpeedInMBits(addr);
  *
  * @see Future
  *
@@ -41,16 +48,11 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class SpeedStats {
-	private static SpeedStats instance = new SpeedStats();
-	private static ExecutorService executor = Executors.newCachedThreadPool();
-
-	public static SpeedStats getInstance() {
-		return instance;
-	}
+	private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
-	private final Map<String, Future<Integer>> speedStats = new HashMap<>();
+	private static final Map<String, Future<Integer>> SPEED_STATS = new HashMap<>();
 
 	/**
 	 * Returns the estimated networks throughput for the given IP address in
@@ -61,11 +63,11 @@ public class SpeedStats {
 	 * @return The {@link Future} with the estimated network throughput or
 	 *         {@code null}.
 	 */
-	public Future<Integer> getSpeedInMBitsStored(InetAddress addr) {
+	public static Future<Integer> getSpeedInMBitsStored(InetAddress addr) {
 		// only look in the store
 		// if no pings are done resort to conf values
-		synchronized (speedStats) {
-			return speedStats.get(addr.getHostAddress());
+		synchronized (SPEED_STATS) {
+			return SPEED_STATS.get(addr.getHostAddress());
 		}
 	}
 
@@ -78,21 +80,21 @@ public class SpeedStats {
 	 *
 	 * @return The network throughput
 	 */
-	public Future<Integer> getSpeedInMBits(InetAddress addr, String rendererName) {
-		synchronized (speedStats) {
-			Future<Integer> value = speedStats.get(addr.getHostAddress());
+	public static Future<Integer> getSpeedInMBits(InetAddress addr, String rendererName) {
+		synchronized (SPEED_STATS) {
+			Future<Integer> value = SPEED_STATS.get(addr.getHostAddress());
 			if (value != null) {
 				return value;
 			}
-			value = executor.submit(new MeasureSpeed(addr, rendererName));
-			speedStats.put(addr.getHostAddress(), value);
+			value = EXECUTOR.submit(new MeasureSpeed(addr, rendererName));
+			SPEED_STATS.put(addr.getHostAddress(), value);
 			return value;
 		}
 	}
 
-	class MeasureSpeed implements Callable<Integer> {
-		InetAddress addr;
-		String rendererName;
+	private static class MeasureSpeed implements Callable<Integer> {
+		private final InetAddress addr;
+		private final String rendererName;
 
 		public MeasureSpeed(InetAddress addr, String rendererName) {
 			this.addr = addr;
@@ -114,8 +116,8 @@ public class SpeedStats {
 			LOGGER.info("Checking IP: {} for {}", ip, rendererName);
 			// calling the canonical host name the first time is slow, so we call it in a separate thread
 			String hostname = addr.getCanonicalHostName();
-			synchronized (speedStats) {
-				Future<Integer> otherTask = speedStats.get(hostname);
+			synchronized (SPEED_STATS) {
+				Future<Integer> otherTask = SPEED_STATS.get(hostname);
 				if (otherTask != null) {
 					// wait a little bit
 					try {
@@ -155,11 +157,11 @@ public class SpeedStats {
 			if (speedInMbits1 < 1.0) {
 				speedInMbits = -1;
 			}
-			synchronized (speedStats) {
+			synchronized (SPEED_STATS) {
 				CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
 				// update the statistics with a computed future value
-				speedStats.put(ip, result);
-				speedStats.put(hostname, result);
+				SPEED_STATS.put(ip, result);
+				SPEED_STATS.put(hostname, result);
 			}
 			return speedInMbits;
 		}

@@ -39,19 +39,16 @@ import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
-import net.pms.network.mediaserver.cling.UmsUpnpService;
 import net.pms.network.mediaserver.cling.controlpoint.UmsSubscriptionCallback;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
-import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.controlpoint.ActionCallback;
 import org.fourthline.cling.model.action.ActionArgumentValue;
 import org.fourthline.cling.model.action.ActionInvocation;
 import org.fourthline.cling.model.message.UpnpResponse;
-import org.fourthline.cling.model.message.header.DeviceTypeHeader;
 import org.fourthline.cling.model.meta.Action;
 import org.fourthline.cling.model.meta.Device;
 import org.fourthline.cling.model.meta.DeviceDetails;
@@ -118,42 +115,9 @@ public class UPNPControl {
 	 */
 	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<>();
 
-	protected static DeviceMap rendererMap;
+	protected static DeviceMap rendererMap = new DeviceMap<>(Renderer.class);
 
-	private static UpnpService upnpService;
 	private static DocumentBuilder db;
-
-	public UPNPControl() {
-		rendererMap = new DeviceMap<>(Renderer.class);
-	}
-
-	public void init() {
-		try {
-			db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
-
-			upnpService = new UmsUpnpService(this);
-			for (DeviceType t : MEDIA_RENDERER_TYPES) {
-				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-			}
-
-			LOGGER.debug("UPNP Services are online, listening for media renderers");
-		} catch (ParserConfigurationException ex) {
-			LOGGER.debug("UPNP startup Error", ex);
-		}
-	}
-
-	public void shutdown() {
-		new Thread(() -> {
-			if (upnpService != null) {
-				LOGGER.debug("Stopping UPNP Services...");
-				upnpService.shutdown();
-			}
-		}).start();
-	}
-
-	public UpnpService getService() {
-		return upnpService;
-	}
 
 	public void remoteDeviceAdded(RemoteDevice device) {
 		if (isBlocked(getUUID(device)) || !addRenderer(device)) {
@@ -214,7 +178,7 @@ public class UPNPControl {
 			} else if (sid.contains("RenderingControl")) {
 				ctrl |= RC;
 			}
-			upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
+			MediaServer.upnpService.getControlPoint().execute(new UmsSubscriptionCallback(s));
 		}
 		rendererMap.mark(uuid, RENEW, false);
 		rendererMap.mark(uuid, CONTROLS, ctrl);
@@ -287,7 +251,7 @@ public class UPNPControl {
 	 * @return the device registered in the UpnpService.Registry, null otherwise
 	 */
 	public static Device getDevice(String uuid) {
-		return uuid != null && upnpService != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
+		return uuid != null && MediaServer.upnpService != null ? MediaServer.upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
 	}
 
 	public static void markRenderer(String uuid, int property, Object value) {
@@ -440,8 +404,8 @@ public class UPNPControl {
 	 * @return Device
 	 */
 	public static Device getAnyDevice(InetAddress socket) {
-		if (upnpService != null) {
-			for (Device d : upnpService.getRegistry().getDevices()) {
+		if (MediaServer.upnpService != null) {
+			for (Device d : MediaServer.upnpService.getRegistry().getDevices()) {
 				try {
 					InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
 					if (devsocket.equals(socket)) {
@@ -461,9 +425,9 @@ public class UPNPControl {
 	 * @return Device
 	 */
 	public static Device getDevice(InetAddress socket) {
-		if (upnpService != null) {
+		if (MediaServer.upnpService != null) {
 			for (DeviceType r : MEDIA_RENDERER_TYPES) {
-				for (Device d : upnpService.getRegistry().getDevices(r)) {
+				for (Device d : MediaServer.upnpService.getRegistry().getDevices(r)) {
 					try {
 						InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
 						if (devsocket.equals(socket)) {
@@ -526,7 +490,7 @@ public class UPNPControl {
 					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
 				}
 
-				new ActionCallback(a, upnpService.getControlPoint()) {
+				new ActionCallback(a, MediaServer.upnpService.getControlPoint()) {
 					@Override
 					public void success(ActionInvocation invocation) {
 						rendererMap.mark(uuid, ACTIVE, true);
@@ -587,7 +551,7 @@ public class UPNPControl {
 				final String uuid = getUUID(device);
 				ActionInvocation<RemoteService> actionInvocation = new ActionInvocation<>(action);
 
-				new ActionCallback(actionInvocation, upnpService.getControlPoint()) {
+				new ActionCallback(actionInvocation, MediaServer.upnpService.getControlPoint()) {
 					@Override
 					public void success(ActionInvocation invocation) {
 						Map<String, ActionArgumentValue<RemoteService>> outputs = invocation.getOutputMap();
@@ -779,6 +743,13 @@ public class UPNPControl {
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
 		try {
+			if (db == null) {
+				try {
+					db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
+				} catch (ParserConfigurationException ex) {
+					return;
+				}
+			}
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 //			doc.getDocumentElement().normalize();
 			NodeList ids = doc.getElementsByTagName(Renderer.INSTANCE_ID);

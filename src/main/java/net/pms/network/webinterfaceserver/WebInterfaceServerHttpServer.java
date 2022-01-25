@@ -127,6 +127,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/doc", new DocHandler(this));
 			addCtx("/poll", new PollHandler(this));
 			addCtx("/event-stream", new EventStreamHandler(this));
+			addCtx("/bump", new ControlHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		}
@@ -274,15 +275,6 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 	@Override
 	public boolean isSecure() {
 		return server instanceof HttpsServer;
-	}
-
-	@Override
-	public boolean setPlayerControlService() {
-		if (server != null) {
-			server.createContext("/bump", new ControlHandler(this));
-			return true;
-		}
-		return false;
 	}
 
 	public static void associate(HttpExchange t, WebRender webRenderer) {

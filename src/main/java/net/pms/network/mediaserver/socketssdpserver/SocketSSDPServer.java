@@ -28,7 +28,6 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,7 +37,7 @@ import java.util.TimeZone;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.NetworkConfiguration;
+import net.pms.network.NetworkConfiguration;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -96,10 +95,17 @@ public class SocketSSDPServer {
 	private static MulticastSocket multicastSocket;
 	private static SocketAddress socketAddress;
 	private static NetworkInterface networkInterface;
+	private static ServerStatus serverStatus = ServerStatus.STOPPED;
 
-	public static boolean start() {
+	public static boolean start(NetworkInterface networkIface) {
+		if (serverStatus != ServerStatus.STOPPED) {
+			LOGGER.trace("SSDP Server not stopped when trying to start it");
+			return serverStatus == ServerStatus.STARTED;
+		}
+		LOGGER.info("Starting the SSDP Service");
+		serverStatus = ServerStatus.STARTING;
 		try {
-			createMulticastSocket();
+			createMulticastSocket(networkIface);
 			sendAlive();
 			sendByeBye();
 			LOGGER.trace("Waiting 250 milliseconds...");
@@ -108,17 +114,27 @@ public class SocketSSDPServer {
 			LOGGER.trace("Waiting 250 milliseconds...");
 			UMSUtils.sleep(250);
 			listen();
+			serverStatus = ServerStatus.STARTED;
+			LOGGER.info("SSDP Service started");
+			return true;
 		} catch (IOException ex) {
+			LOGGER.info("SSDP Service failed to start: {}", ex.getMessage());
+			LOGGER.trace("The error was: " + ex);
 			stop();
 			return false;
 		}
-		return true;
 	}
 
 	public static void stop() {
-		shutDownListener();
-		sendByeBye();
-		destroyMulticastSocket();
+		if (serverStatus != ServerStatus.STOPPED && serverStatus != ServerStatus.STOPPING) {
+			LOGGER.info("Stopping the SSDP Service");
+			serverStatus = ServerStatus.STOPPING;
+			shutDownListener();
+			sendByeBye();
+			destroyMulticastSocket();
+			serverStatus = ServerStatus.STOPPED;
+			LOGGER.info("SSDP Service stopped");
+		}
 	}
 
 	/**
@@ -127,50 +143,13 @@ public class SocketSSDPServer {
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static void createMulticastSocket() throws IOException {
-		networkInterface = getNetworkInterface();
+	private static void createMulticastSocket(NetworkInterface networkIface) throws IOException {
+		networkInterface = networkIface;
 		multicastSocket = getNewMulticastSocket();
 		socketAddress = new InetSocketAddress(getIPv4MulticastAddress(), UPNP_PORT);
 		multicastSocket.setTimeToLive(4);
 		multicastSocket.setReuseAddress(true);
 		multicastSocket.joinGroup(socketAddress, networkInterface);
-	}
-
-	/**
-	 * Gets the new multicast socket.
-	 *
-	 * @return the new multicast socket
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	private static NetworkInterface getNetworkInterface() throws IOException {
-		NetworkInterface result = null;
-		try {
-			result = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-		} catch (SocketException | UnknownHostException e) {
-		}
-
-		if (result == null) {
-			try {
-				result = MediaServer.getNetworkInterface();
-			} catch (NullPointerException e) {
-				LOGGER.debug("Couldn't get server network interface. Trying again in 5 seconds.");
-
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e2) {
-				}
-
-				try {
-					result = MediaServer.getNetworkInterface();
-				} catch (NullPointerException e3) {
-					LOGGER.debug("Couldn't get server network interface.");
-				}
-			}
-		}
-		if (result == null) {
-			throw new IOException("No usable network interface found for UPnP multicast");
-		}
-		return result;
 	}
 
 	/**
@@ -248,13 +227,18 @@ public class SocketSSDPServer {
 				networkInterface = null;
 			}
 			multicastSocket.close();
+			multicastSocket = null;
 		}
 	}
 
 	/**
 	 * Send alive.
 	 */
-	public static void sendAlive() {
+	private static void sendAlive() {
+		if (multicastSocket == null || multicastSocket.isClosed()) {
+			LOGGER.trace("Multicast socket closed when sending the ALIVE message");
+			return;
+		}
 		LOGGER.debug("Sending ALIVE...");
 		for (String nt : NT_LIST) {
 			try {
@@ -268,9 +252,10 @@ public class SocketSSDPServer {
 	/**
 	 * Send the UPnP BYEBYE message.
 	 */
-	public static void sendByeBye() {
+	private static void sendByeBye() {
 		if (multicastSocket == null || multicastSocket.isClosed()) {
 			LOGGER.trace("Multicast socket closed when sending the BYEBYE message");
+			return;
 		}
 		LOGGER.debug("Sending BYEBYE...");
 		for (String nt : NT_LIST) {
@@ -472,14 +457,15 @@ public class SocketSSDPServer {
 	 */
 	private static void listen() throws IOException {
 		Runnable rAlive = () -> {
-			while (true) {
+			while (multicastSocket != null && !multicastSocket.isClosed()) {
 				UMSUtils.sleep(ALIVE_DELAY);
 				sendAlive();
 			}
 		};
-
-		aliveThread = new Thread(rAlive, "UPNP-AliveMessageSender");
-		aliveThread.start();
+		if (aliveThread == null) {
+			aliveThread = new Thread(rAlive, "SSDP Alive Service");
+			aliveThread.start();
+		}
 
 		Runnable r = () -> {
 			while (true) {
@@ -490,7 +476,7 @@ public class SocketSSDPServer {
 					int lastPacketType = 0;
 					long lastValidPacketReceivedTime = System.currentTimeMillis();
 
-					while (true) {
+					while (multicastSocket != null && !multicastSocket.isClosed()) {
 						byte[] buf = new byte[1024];
 						DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 						multicastSocket.receive(receivePacket);
@@ -559,7 +545,7 @@ public class SocketSSDPServer {
 					LOGGER.trace("", e);
 					UMSUtils.sleep(1000);
 				} finally {
-					if (multicastSocket != null) {
+					if (multicastSocket != null && !multicastSocket.isClosed()) {
 					// Clean up the multicast socket nicely
 						try {
 							multicastSocket.leaveGroup(socketAddress, networkInterface);
@@ -574,9 +560,10 @@ public class SocketSSDPServer {
 				}
 			}
 		};
-
-		listenerThread = new Thread(r, "UPNPHelper");
-		listenerThread.start();
+		if (listenerThread == null) {
+			listenerThread = new Thread(r, "SSDP Service");
+			listenerThread.start();
+		}
 	}
 
 	/**
@@ -585,10 +572,12 @@ public class SocketSSDPServer {
 	private static void shutDownListener() {
 		if (listenerThread != null) {
 			listenerThread.interrupt();
+			listenerThread = null;
 		}
 		if (aliveThread != null) {
 			aliveThread.interrupt();
+			aliveThread = null;
 		}
 	}
-
+	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED };
 }

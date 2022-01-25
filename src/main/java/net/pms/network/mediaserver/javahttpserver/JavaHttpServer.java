@@ -28,33 +28,47 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.network.mediaserver.HttpMediaServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JavaHttpServer extends HttpMediaServer {
+	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHttpServer.class);
+
 	private HttpServer server;
 	private ExecutorService executorService;
 
-	public JavaHttpServer(int port) {
-		super(port);
+	public JavaHttpServer(InetAddress inetAddress, int port) {
+		super(inetAddress, port);
 	}
 
 	@Override
-	public boolean start() throws IOException {
-		InetSocketAddress address = getSocketAddress();
+	public synchronized boolean start() throws IOException {
+		LOGGER.info("Starting HTTP server (JDK HttpServer) on host {} and port {}", hostname, port);
+		InetSocketAddress address = new InetSocketAddress(serverInetAddress, port);
 		server = HttpServer.create(address, 0);
 		if (server != null) {
+			hostname = server.getAddress().getAddress().getHostAddress();
+			localPort = server.getAddress().getPort();
 			server.createContext("/", new RequestHandler());
 			server.createContext("/api", new ApiHandler());
 			server.createContext("/console", new ConsoleHandler());
 			executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
 			server.setExecutor(executorService);
 			server.start();
+			LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);
+			return true;
 		}
-		if (hostname == null && iafinal != null) {
-			hostname = iafinal.getHostAddress();
-		} else if (hostname == null) {
-			hostname = InetAddress.getLocalHost().getHostAddress();
+		return false;
+	}
+
+	@Override
+	public synchronized void stop() {
+		LOGGER.info("Stopping HTTP server (JDK HttpServer) on host {} and port {}...", hostname, localPort);
+		if (server != null) {
+			server.stop(1000);
+			server = null;
 		}
-		return true;
+		LOGGER.info("HTTP server stopped");
 	}
 
 	/**

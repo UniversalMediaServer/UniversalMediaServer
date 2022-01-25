@@ -21,8 +21,10 @@ package net.pms.network.mediaserver.nettyserver;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -72,8 +74,8 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.network.DbIdResourceLocator;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
+import net.pms.dlna.DbIdResourceLocator;
+import net.pms.dlna.DbIdMediaType;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -317,8 +319,7 @@ public class RequestV2 extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			String fileName = null;
-			if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
 					dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 				} catch (Exception e) {
@@ -327,7 +328,7 @@ public class RequestV2 extends HTTPResource {
 			} else {
 				dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
 			}
-			fileName = id.substring(id.indexOf('/') + 1);
+			String fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -670,6 +671,10 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 			inputStream = imageHandler(output);
+		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.startsWith("dev") && uri.endsWith("/desc"))) {
+			//from cling
+			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+			response.append(deviceDescHandler(output));
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(serverSpecHandler(output));
@@ -870,6 +875,20 @@ public class RequestV2 extends HTTPResource {
 		if (uri.equals("description/fetch")) {
 			s = prepareUmsSpec(s);
 		}
+		return s;
+	}
+
+	private String deviceDescHandler(HttpResponse output) throws IOException {
+		output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
+		output.headers().set(HttpHeaders.Names.EXPIRES, "0");
+		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		InputStream iStream = getResourceInputStream("PMS.xml");
+
+		byte[] b = new byte[iStream.available()];
+		iStream.read(b);
+		String s = new String(b, StandardCharsets.UTF_8);
+		s = prepareUmsSpec(s);
 		return s;
 	}
 
@@ -1198,7 +1217,7 @@ public class RequestV2 extends HTTPResource {
 
 		if (searchCriteria != null && files != null) {
 			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
-			if (xbox360 && files.size() > 0) {
+			if (xbox360 && !files.isEmpty()) {
 				files = files.get(0).getChildren();
 			}
 		}
@@ -1214,16 +1233,17 @@ public class RequestV2 extends HTTPResource {
 					}
 				}
 
-				if (xbox360 && containerID != null) {
+				if (xbox360 && containerID != null && uf != null) {
 					uf.setFakeParentId(containerID);
 				}
 
 				if (
-					uf.isCompatible(mediaRenderer) &&
+					uf != null &&
+					(uf.isCompatible(mediaRenderer) &&
 					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).isInsideTranscodeFolder()
+					files.get(0).isInsideTranscodeFolder())
 				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {
@@ -1368,7 +1388,7 @@ public class RequestV2 extends HTTPResource {
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 			Document body = message.getSOAPBody().extractContentAsDocument();
 			return unmarshaller.unmarshal(body, clazz).getValue();
-		} catch (Exception e) {
+		} catch (JAXBException | SOAPException | IOException e) {
 			LOGGER.error("Unmarshalling error", e);
 			return null;
 		}

@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -34,6 +35,7 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
+import org.jboss.netty.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,13 +48,14 @@ public class NettyServer extends HttpMediaServer {
 	private Channel channel;
 	private ServerBootstrap bootstrap;
 
-	public NettyServer(int port) {
-		super(port);
+	public NettyServer(InetAddress inetAddress, int port) {
+		super(inetAddress, port);
 	}
 
 	@Override
 	public boolean start() throws IOException {
-		InetSocketAddress address = getSocketAddress();
+		LOGGER.info("Starting HTTP server (Netty {}) on host {} and port {}", Version.ID, hostname, port);
+		InetSocketAddress address = new InetSocketAddress(serverInetAddress, port);
 		ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
 		allChannels = new DefaultChannelGroup("HTTPServer");
 		factory = new NioServerSocketChannelFactory(
@@ -72,6 +75,9 @@ public class NettyServer extends HttpMediaServer {
 
 		try {
 			channel = bootstrap.bind(address);
+			//if port == 0, it's ephemeral port, so let's MediaServer know the port.
+			hostname = ((InetSocketAddress) channel.getLocalAddress()).getAddress().getHostAddress();
+			localPort = ((InetSocketAddress) channel.getLocalAddress()).getPort();
 
 			allChannels.add(channel);
 		} catch (Exception e) {
@@ -81,18 +87,13 @@ public class NettyServer extends HttpMediaServer {
 			PMS.get().getFrame().setConnectionState(ConnectionState.BLOCKED);
 		}
 
-		if (hostname == null && iafinal != null) {
-			hostname = iafinal.getHostAddress();
-		} else if (hostname == null) {
-			hostname = InetAddress.getLocalHost().getHostAddress();
-		}
-
+		LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);
 		return true;
 	}
 
 	@Override
 	public synchronized void stop() {
-		LOGGER.info("Stopping server on host {} and port {}...", hostname, port);
+		LOGGER.info("Stopping HTTP server (Netty {}) on host {} and port {}", hostname, localPort);
 
 		/**
 		 * Netty v3 (HTTP Engine V2) shutdown approach from
@@ -102,12 +103,11 @@ public class NettyServer extends HttpMediaServer {
 			if (allChannels != null) {
 				allChannels.close().awaitUninterruptibly();
 			}
-			LOGGER.info("Confirm allChannels is empty: " + allChannels.toString());
+			LOGGER.debug("Confirm allChannels is empty: " + allChannels.toString());
 
 			bootstrap.releaseExternalResources();
 		}
-
-		NetworkConfiguration.forgetConfiguration();
+		LOGGER.info("HTTP server stopped");
 	}
 
 	/**

@@ -548,7 +548,7 @@ public class RendererConfiguration extends Renderer {
 				sa.isAnyLocalAddress()
 			)
 		) {
-			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+			SpeedStats.getSpeedInMBits(sa, getRendererName());
 		}
 		return true;
 	}
@@ -561,7 +561,7 @@ public class RendererConfiguration extends Renderer {
 			}
 			RendererConfiguration r = entry.getValue();
 			if (!r.isOffline()) {
-				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+				SpeedStats.getSpeedInMBits(sa, r.getRendererName());
 			}
 		}
 	}
@@ -766,7 +766,7 @@ public class RendererConfiguration extends Renderer {
 				conf.add("");
 				conf.add("# ============================================================================");
 				conf.add("# This renderer has sent the following string/s:");
-				if (headers != null && headers.size() > 0) {
+				if (headers != null && !headers.isEmpty()) {
 					conf.add("#");
 					for (String h : headers) {
 						conf.add("# " + h);
@@ -1087,9 +1087,8 @@ public class RendererConfiguration extends Renderer {
 			for (RendererConfiguration d : DeviceConfiguration.getInheritors(this)) {
 				PMS.get().updateRenderer(d);
 			}
-		} catch (Exception e) {
+		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
-			e.printStackTrace();
 		}
 	}
 
@@ -1252,13 +1251,10 @@ public class RendererConfiguration extends Renderer {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isVideoStreamTypeSupportedInTranscodingContainer(DLNAMediaInfo media) {
-		if (
+		return (
 			(isTranscodeToH264() && media.isH264()) ||
 			(isTranscodeToH265() && media.isH265())
-		) {
-			return true;
-		}
-		return false;
+		);
 	}
 
 	/**
@@ -1273,13 +1269,10 @@ public class RendererConfiguration extends Renderer {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isAudioStreamTypeSupportedInTranscodingContainer(DLNAMediaAudio audio) {
-		if (
+		return (
 			(isTranscodeToAAC() && audio.isAACLC()) ||
 			(isTranscodeToAC3() && audio.isAC3())
-		) {
-			return true;
-		}
-		return false;
+		);
 	}
 
 	/**
@@ -1462,7 +1455,7 @@ public class RendererConfiguration extends Renderer {
 					{
 						put(Messages.getString("RendererPanel.10"), getRendererName());
 						if (getAddress() != null) {
-							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress().toString());
+							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress());
 						}
 					}
 				};
@@ -1956,6 +1949,7 @@ public class RendererConfiguration extends Renderer {
 	/**
 	 * Converts the MEncoder's quality settings format to FFmpeg's.
 	 *
+	 * @param mpegSettings
 	 * @return The FFmpeg format.
 	 */
 	public String convertMencoderSettingToFFmpegFormat(String mpegSettings) {
@@ -2589,7 +2583,7 @@ public class RendererConfiguration extends Renderer {
 		int max = getInt(MAX_VIDEO_BITRATE, 0);
 		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == this) {
-				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey());
+				Future<Integer> speed = SpeedStats.getSpeedInMBitsStored(entry.getKey());
 				if (speed != null) {
 					if (max == 0) {
 						return speed.get();
@@ -2609,12 +2603,7 @@ public class RendererConfiguration extends Renderer {
 	/**
 	 * A case-insensitive string comparator
 	 */
-	public static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = new Comparator<String>() {
-		@Override
-		public int compare(String s1, String s2) {
-			return s1.compareToIgnoreCase(s2);
-		}
-	};
+	public static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (String s1, String s2) -> s1.compareToIgnoreCase(s2);
 
 	/**
 	 * A case-insensitive key-sorted map of headers that can join its values

@@ -22,7 +22,7 @@ package net.pms.network.mediaserver.cling;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.cling.transport.impl.ApacheStreamClient;
-import net.pms.network.mediaserver.cling.transport.impl.EmptyStreamServer;
+import net.pms.network.mediaserver.cling.transport.impl.DummyStreamServer;
 import net.pms.network.mediaserver.cling.transport.impl.UmsNetworkAddressFactory;
 import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.model.ServerClientTokens;
@@ -35,13 +35,13 @@ import org.fourthline.cling.transport.spi.NetworkAddressFactory;
 import org.fourthline.cling.transport.spi.StreamClient;
 import org.fourthline.cling.transport.spi.StreamServer;
 
-public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
+public class UmsNoServerUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
 
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final UpnpHeaders umsHeaders;
 
-	public UmsUpnpServiceConfiguration() {
+	public UmsNoServerUpnpServiceConfiguration() {
 		super();
 		umsHeaders = new UpnpHeaders();
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
@@ -68,7 +68,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
-		return new EmptyStreamServer(
+		return new DummyStreamServer(
 				new StreamServerConfigurationImpl(
 						networkAddressFactory.getStreamListenPort()
 				)
@@ -79,4 +79,5 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 	public NetworkAddressFactory createNetworkAddressFactory() {
 		return new UmsNetworkAddressFactory();
 	}
+
 }

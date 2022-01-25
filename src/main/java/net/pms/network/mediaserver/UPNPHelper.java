@@ -38,23 +38,12 @@ public class UPNPHelper extends UPNPControl {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final UPNPHelper INSTANCE = new UPNPHelper();
-	private static boolean httpControlHandled;
-
-
 
 	/**
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
 		rendererMap = new DeviceMap<>(DeviceConfiguration.class);
-	}
-
-	@Override
-	public void init() {
-		if (CONFIGURATION.isUpnpEnabled()) {
-			super.init();
-		}
-		getHttpControlHandler();
 	}
 
 	@Override
@@ -167,18 +156,6 @@ public class UPNPHelper extends UPNPControl {
 
 	public static UPNPHelper getInstance() {
 		return INSTANCE;
-	}
-
-	public static void getHttpControlHandler() {
-		if (
-			!httpControlHandled &&
-			PMS.get().getWebInterfaceServer() != null &&
-			!"false".equals(CONFIGURATION.getBumpAddress().toLowerCase())
-		) {
-			httpControlHandled = true;
-			PMS.get().getWebInterfaceServer().setPlayerControlService();
-			LOGGER.debug("Attached http player control handler to web player server");
-		}
 	}
 
 	public static boolean activate(String uuid) {

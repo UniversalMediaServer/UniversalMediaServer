@@ -1,4 +1,23 @@
-package net.pms.network;
+/*
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package net.pms.network.mediaserver.mdns.chromecast;
 
 import java.io.IOException;
 import net.pms.configuration.DeviceConfiguration;
@@ -15,7 +34,7 @@ import su.litvak.chromecast.api.v2.Status;
 public class ChromecastPlayer extends BasicPlayer.Logical {
 	private static final String MEDIA_PLAYER = "CC1AD845";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastPlayer.class);
-	private ChromeCast api;
+	private final ChromeCast api;
 	private Thread poller;
 
 	public ChromecastPlayer(DeviceConfiguration d, ChromeCast api) {
@@ -69,6 +88,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 		}
 	}
 
+	@Override
 	public void forward() {
 		try {
 			api.seek(60);
