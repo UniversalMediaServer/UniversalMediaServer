@@ -19,7 +19,7 @@
  */
 package net.pms.dlna;
 
-public class DbIdTypeAndIdent2 {
+public class DbIdTypeAndIdent {
 
 	/**
 	 * Media type
@@ -31,7 +31,7 @@ public class DbIdTypeAndIdent2 {
 	 */
 	public final String ident;
 
-	public DbIdTypeAndIdent2(DbIdMediaType type, String ident) {
+	public DbIdTypeAndIdent(DbIdMediaType type, String ident) {
 		super();
 		this.type = type;
 		this.ident = ident;

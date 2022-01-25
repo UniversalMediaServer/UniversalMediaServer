@@ -46,7 +46,7 @@ public class DbIdResourceLocator {
 		return resource;
 	}
 
-	public String encodeDbid(DbIdTypeAndIdent2 typeIdent) {
+	public String encodeDbid(DbIdTypeAndIdent typeIdent) {
 		try {
 			return String.format("%s%s%s", DbIdMediaType.GENERAL_PREFIX, typeIdent.type.dbidPrefix,
 				URLEncoder.encode(typeIdent.ident, StandardCharsets.UTF_8.toString()));
@@ -64,7 +64,7 @@ public class DbIdResourceLocator {
 	 *         and resolved. In case of a container, the container will be
 	 *         created an populated.
 	 */
-	public DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent2 typeAndIdent) {
+	public DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent typeAndIdent) {
 		DLNAResource res = null;
 		Connection connection = null;
 		try {
@@ -112,10 +112,10 @@ public class DbIdResourceLocator {
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(typeAndIdent.ident,
-									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+										new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
 										new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
@@ -133,26 +133,26 @@ public class DbIdResourceLocator {
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(typeAndIdent.ident,
-									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+										new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
 										new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
 								}
 							}
-							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident)));
+							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident)));
 							break;
 
 						case TYPE_PERSON:
-							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident),
+							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident),
 								"");
 							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("Search.AllFiles"),
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
+								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
 							DLNAResource albums = new VirtualFolderDbId(Messages.getString("Search.ByAlbum"),
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
+								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 							res.addChild(albums);
 							break;
 
@@ -161,17 +161,17 @@ public class DbIdResourceLocator {
 								typeAndIdent.ident);
 							res = new VirtualFolderDbId(
 								typeAndIdent.ident,
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident),
+								new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident),
 								""
 							);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									String album = resultSet.getString(1);
-									res.addChild(new VirtualFolderDbId(album, new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM_FILES,
+									res.addChild(new VirtualFolderDbId(album, new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM_FILES,
 										typeAndIdent.ident + DbIdMediaType.SPLIT_CHARS + album), ""));
 								}
 							}
-							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident)));
+							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident)));
 							break;
 
 						case TYPE_PERSON_ALBUM_FILES:
@@ -182,16 +182,16 @@ public class DbIdResourceLocator {
 								identSplitted[1], identSplitted[0], identSplitted[0]);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(identSplitted[1],
-									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+										new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
 										new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
 								}
 							}
-							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, identSplitted[0])));
+							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, identSplitted[0])));
 							break;
 						default:
 							throw new RuntimeException("Unknown Type");

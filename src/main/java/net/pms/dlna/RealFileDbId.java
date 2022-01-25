@@ -36,12 +36,12 @@ public final class RealFileDbId extends RealFile {
 		super(file);
 	}
 
-	public RealFileDbId(DbIdTypeAndIdent2 typeIdent, File file) {
+	public RealFileDbId(DbIdTypeAndIdent typeIdent, File file) {
 		super(file);
 		setId(dbid.encodeDbid(typeIdent));
 	}
 
-	public RealFileDbId(DbIdTypeAndIdent2 typeIdent, File file, String name) {
+	public RealFileDbId(DbIdTypeAndIdent typeIdent, File file, String name) {
 		super(file, name);
 		setId(dbid.encodeDbid(typeIdent));
 	}

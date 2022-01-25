@@ -17,7 +17,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
-import net.pms.dlna.DbIdTypeAndIdent2;
+import net.pms.dlna.DbIdTypeAndIdent;
 import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.formats.Format;
@@ -80,7 +80,7 @@ public class SearchRequestHandler {
 
 		int totalMatches = getDLNAResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbIdTypeAndIdent2(requestType, ""), "");
+		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbIdTypeAndIdent(requestType, ""), "");
 		if (requestType == DbIdMediaType.TYPE_AUDIO || requestType == DbIdMediaType.TYPE_PLAYLIST) {
 			String sqlFiles = convertToFilesSql(requestMessage, requestType);
 			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
@@ -343,18 +343,18 @@ public class SearchRequestHandler {
 							switch (type) {
 								case TYPE_ALBUM:
 								case TYPE_PERSON:
-									filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, filenameField), ""));
+									filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
 									break;
 								case TYPE_PLAYLIST:
 									filesList.add(new VirtualFolderDbId(
 											filenameField,
-											new DbIdTypeAndIdent2(type, resultSet.getString("FID")),
+											new DbIdTypeAndIdent(type, resultSet.getString("FID")),
 											""
 										)
 									);
 									break;
 								default:
-									filesList.add(new RealFileDbId(new DbIdTypeAndIdent2(type, resultSet.getString("FID")),
+									filesList.add(new RealFileDbId(new DbIdTypeAndIdent(type, resultSet.getString("FID")),
 										new File(resultSet.getString("FILENAME"))));
 									break;
 							}
