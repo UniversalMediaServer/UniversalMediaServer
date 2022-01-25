@@ -23,14 +23,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaTableMetadata extends MediaTable {
-
-	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMetadata.class);
 	public static final String TABLE_NAME = "METADATA";
 
@@ -49,31 +45,25 @@ public class MediaTableMetadata extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
-				if (version == null) {
-					// Moving sql from DLNAMediaDatabase to this class.
-					version = 1;
-				}
-				if (version < TABLE_VERSION) {
-					upgradeTable(connection, version);
-				} else if (version > TABLE_VERSION) {
-					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
-				}
-			} else {
-				createTable(connection);
-				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		if (tableExists(connection, TABLE_NAME)) {
+			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+			if (version == null) {
+				// Moving sql from DLNAMediaDatabase to this class.
+				version = 1;
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+			if (version < TABLE_VERSION) {
+				upgradeTable(connection, version);
+			} else if (version > TABLE_VERSION) {
+				LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
+			}
+		} else {
+			createTable(connection);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
 		try {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
@@ -100,14 +90,9 @@ public class MediaTableMetadata extends MediaTable {
 		} catch (SQLException e) {
 			LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
 			throw new SQLException(e);
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
-	/**
-	 * Must be called from inside a table lock
-	 */
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
@@ -126,7 +111,6 @@ public class MediaTableMetadata extends MediaTable {
 	 * @return value
 	 */
 	public static String getMetadataValue(final Connection connection, String key) {
-		TABLE_LOCK.readLock().lock();
 		try (
 			Statement stmt = connection.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT M_VALUE FROM " + TABLE_NAME + " WHERE M_KEY = '" + key + "'")
@@ -137,8 +121,6 @@ public class MediaTableMetadata extends MediaTable {
 		} catch (Exception se) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading value", key, TABLE_NAME, se.getMessage());
 			LOGGER.error(null, se);
-		} finally {
-			TABLE_LOCK.readLock().unlock();
 		}
 		return null;
 	}
@@ -159,7 +141,6 @@ public class MediaTableMetadata extends MediaTable {
 				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", query);
 			}
 
-			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -181,8 +162,6 @@ public class MediaTableMetadata extends MediaTable {
 				} finally {
 					connection.commit();
 				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException se) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "writing value", key, TABLE_NAME, se.getMessage());
