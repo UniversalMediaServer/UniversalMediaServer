@@ -225,7 +225,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(query)
-			 ) {
+			) {
 				if (resultSet.next()) {
 					result = new CoverArtArchiveResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getBytes("COVER"));
 				} else {
