@@ -27,8 +27,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +36,6 @@ import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public final class MediaTableTVSeries extends MediaTable {
-	/**
-	 * TABLE_LOCK is used to synchronize database access on table level.
-	 * H2 calls are thread safe, but the database's multithreading support is
-	 * described as experimental. This lock therefore used in addition to SQL
-	 * transaction locks. All access to this table must be guarded with this
-	 * lock. The lock allows parallel reads.
-	 */
-	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTVSeries.class);
 	public static final String TABLE_NAME = "TV_SERIES";
 
@@ -64,28 +54,23 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version < TABLE_VERSION) {
-						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
-					}
-				} else {
-					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createTable(connection);
-					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		if (tableExists(connection, TABLE_NAME)) {
+			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+			if (version != null) {
+				if (version < TABLE_VERSION) {
+					upgradeTable(connection, version);
+				} else if (version > TABLE_VERSION) {
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 				}
 			} else {
+				LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
+				dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+		} else {
+			createTable(connection);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
 
@@ -101,51 +86,43 @@ public final class MediaTableTVSeries extends MediaTable {
 	 */
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
-		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
-				switch (version) {
-					case 1:
-						try (Statement statement = connection.createStatement()) {
-							if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
-								statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
-								statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
-							}
-						} catch (SQLException e) {
-							LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
-							LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-							throw new SQLException(e);
+		for (int version = currentVersion; version < TABLE_VERSION; version++) {
+			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+			switch (version) {
+				case 1:
+					try (Statement statement = connection.createStatement()) {
+						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+							statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
 						}
-						version++;
-						break;
-					case 2:
-						if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
-							LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
-						}
-						break;
-					default:
-						throw new IllegalStateException(
-							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-						);
-				}
+					} catch (SQLException e) {
+						LOGGER.error("Failed upgrading database table {} for {}", TABLE_NAME, e.getMessage());
+						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+						throw new SQLException(e);
+					}
+					version++;
+					break;
+				case 2:
+					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
+						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
+					}
+					break;
+				default:
+					throw new IllegalStateException(
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+					);
 			}
+		}
 
-			try {
-				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			} catch (SQLException e) {
-				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
-				throw new SQLException(e);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+		try {
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		} catch (SQLException e) {
+			LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+			throw new SQLException(e);
 		}
 	}
 
-	/**
-	 * Must be called from inside a table lock
-	 */
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
@@ -201,7 +178,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching in " + TABLE_NAME + " with \"{}\" before set", query);
 			}
 
-			TABLE_LOCK.writeLock().lock();
 			try (PreparedStatement selectStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = selectStatement.executeQuery()) {
@@ -261,8 +237,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				} finally {
 					connection.commit();
 				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, "tv Series", e.getMessage());
@@ -295,7 +269,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
-			TABLE_LOCK.readLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql.toString())
@@ -303,8 +276,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				if (resultSet.next()) {
 					return convertSingleResultSetToList(resultSet);
 				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie from imdbID", imdbID, TABLE_NAME, e.getMessage());
@@ -333,7 +304,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
-			TABLE_LOCK.readLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql)
@@ -341,8 +311,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				if (resultSet.next()) {
 					return convertSingleResultSetToList(resultSet);
 				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie from title", title, TABLE_NAME, e.getMessage());
@@ -372,7 +340,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
-			TABLE_LOCK.readLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql)
@@ -380,8 +347,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				if (resultSet.next()) {
 					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie thumbnail from title", title, TABLE_NAME, e.getMessage());
@@ -393,7 +358,6 @@ public final class MediaTableTVSeries extends MediaTable {
 
 	public static void updateThumbnailId(final Connection connection, long id, int thumbId) {
 		try {
-			TABLE_LOCK.writeLock().lock();
 			try (
 				PreparedStatement ps = connection.prepareStatement(
 					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE ID = ?"
@@ -403,8 +367,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				ps.setLong(2, id);
 				ps.executeUpdate();
 				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "updating cached thumbnail", TABLE_NAME, id, e.getMessage());
@@ -439,14 +401,11 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
-			TABLE_LOCK.readLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql)
 			) {
 				return convertResultSetToList(resultSet);
-			} finally {
-				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading API results", TABLE_NAME, simplifiedTitle, e.getMessage());
@@ -493,7 +452,6 @@ public final class MediaTableTVSeries extends MediaTable {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 
 		try {
-			TABLE_LOCK.writeLock().lock();
 			connection.setAutoCommit(false);
 			try (PreparedStatement ps = connection.prepareStatement("SELECT " +
 					"* " +
@@ -523,8 +481,6 @@ public final class MediaTableTVSeries extends MediaTable {
 						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
 						return;
 					}
-				} finally {
-					TABLE_LOCK.writeLock().unlock();
 				}
 			}
 			connection.commit();
@@ -542,12 +498,9 @@ public final class MediaTableTVSeries extends MediaTable {
 	public static void remove(final Connection connection, final String imdbID) {
 		try {
 			String query = "DELETE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID);
-			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement()) {
 				int rows = statement.executeUpdate(query);
 				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for imdbID \"{}\"", rows, imdbID);
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, imdbID, e.getMessage());
@@ -582,7 +535,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
 			}
 
-			TABLE_LOCK.readLock().lock();
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql)
@@ -590,8 +542,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				if (resultSet.next()) {
 					result = false;
 				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up TV series status", TABLE_NAME, title, e.getMessage());
