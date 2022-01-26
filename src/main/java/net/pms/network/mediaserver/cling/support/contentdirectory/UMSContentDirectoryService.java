@@ -19,12 +19,12 @@
  */
 package net.pms.network.mediaserver.cling.support.contentdirectory;
 
-import org.fourthline.cling.support.contentdirectory.AbstractContentDirectoryService;
-import org.fourthline.cling.support.contentdirectory.ContentDirectoryErrorCode;
-import org.fourthline.cling.support.contentdirectory.ContentDirectoryException;
-import org.fourthline.cling.support.model.BrowseFlag;
-import org.fourthline.cling.support.model.BrowseResult;
-import org.fourthline.cling.support.model.SortCriterion;
+import org.jupnp.support.contentdirectory.AbstractContentDirectoryService;
+import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
+import org.jupnp.support.contentdirectory.ContentDirectoryException;
+import org.jupnp.support.model.BrowseFlag;
+import org.jupnp.support.model.BrowseResult;
+import org.jupnp.support.model.SortCriterion;
 
 public class UMSContentDirectoryService extends AbstractContentDirectoryService {
 

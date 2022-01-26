@@ -27,13 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.pms.external.StartStopListenerDelegate;
-import org.fourthline.cling.transport.Router;
-import org.fourthline.cling.transport.impl.StreamServerConfigurationImpl;
-import org.fourthline.cling.transport.spi.InitializationException;
-import org.fourthline.cling.transport.spi.StreamServer;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -62,18 +56,23 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
+import org.jupnp.transport.Router;
+import org.jupnp.transport.spi.InitializationException;
+import org.jupnp.transport.spi.StreamServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class NettyStreamServer implements StreamServer<StreamServerConfigurationImpl> {
+public class NettyStreamServer implements StreamServer<UmsStreamServerConfiguration> {
+	//base the logger inside org.jupnp.transport.spi.StreamServer to reflect old behavior
+	private static final Logger LOGGER = LoggerFactory.getLogger(StreamServer.class);
 
-	private static final Logger LOGGER = Logger.getLogger(StreamServer.class.getName());
-
-	final protected StreamServerConfigurationImpl configuration;
+	final protected UmsStreamServerConfiguration configuration;
 	private InetSocketAddress socketAddress;
 	private Channel channel;
 	private ChannelGroup allChannels;
 	private ServerBootstrap bootstrap;
 
-	public NettyStreamServer(StreamServerConfigurationImpl configuration) {
+	public NettyStreamServer(UmsStreamServerConfiguration configuration) {
 		this.configuration = configuration;
 	}
 
@@ -99,7 +98,7 @@ public class NettyStreamServer implements StreamServer<StreamServerConfiguration
 			bootstrap.setOption("child.sendBufferSize", 65536);
 			bootstrap.setOption("child.receiveBufferSize", 65536);
 
-			LOGGER.log(Level.INFO, "Created server (for receiving TCP streams) on: {0}", socketAddress);
+			LOGGER.info("Created server (for receiving TCP streams) on: {}", socketAddress);
 
 		} catch (Exception ex) {
 			throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + ex.toString(), ex);
@@ -112,31 +111,30 @@ public class NettyStreamServer implements StreamServer<StreamServerConfiguration
 	}
 
 	@Override
-	public StreamServerConfigurationImpl getConfiguration() {
+	public UmsStreamServerConfiguration getConfiguration() {
 		return configuration;
 	}
 
 	@Override
 	synchronized public void run() {
-		LOGGER.fine("Starting StreamServer...");
+		LOGGER.debug("Starting StreamServer...");
 		// Starts a new thread but inherits the properties of the calling thread
 		try {
 			channel = bootstrap.bind(socketAddress);
 			allChannels.add(channel);
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Another program is using port {0}, which upnp stream server needs.", socketAddress.getPort());
-			LOGGER.log(Level.FINE, "The error was: {0}", e);
+		} catch (Exception ex) {
+			throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + ex.toString(), ex);
 		}
 	}
 
 	@Override
 	synchronized public void stop() {
-		LOGGER.fine("Stopping StreamServer...");
+		LOGGER.debug("Stopping StreamServer...");
 		if (channel != null) {
 			if (allChannels != null) {
 				allChannels.close().awaitUninterruptibly();
 			}
-			LOGGER.log(Level.FINE, "Confirm allChannels is empty: {0}", allChannels.toString());
+			LOGGER.trace("Confirm allChannels is empty: {}", allChannels.toString());
 			bootstrap.releaseExternalResources();
 		}
 	}
@@ -155,7 +153,7 @@ public class NettyStreamServer implements StreamServer<StreamServerConfiguration
 			// And we pass control to the service, which will (hopefully) start a new thread immediately so we can
 			// continue the receiving thread ASAP
 
-			LOGGER.log(Level.FINE, "Received MessageEvent event: {0} {1}", new Object[]{((HttpRequest) event.getMessage()).getMethod(), ((HttpRequest) event.getMessage()).getUri()});
+			LOGGER.debug("Received MessageEvent event: {} {}", ((HttpRequest) event.getMessage()).getMethod(), ((HttpRequest) event.getMessage()).getUri());
 			router.received(
 				new NettyUpnpStream(router.getProtocolFactory(), event)
 			);
@@ -171,15 +169,15 @@ public class NettyStreamServer implements StreamServer<StreamServerConfiguration
 			}
 			if (cause != null) {
 				if (cause.getClass().equals(IOException.class)) {
-					LOGGER.log(Level.FINE, "Connection error: {0}", cause);
+					LOGGER.debug("Connection error: {}", cause);
 					StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate) ctx.getAttachment();
 					if (startStopListenerDelegate != null) {
-						LOGGER.fine("Premature end, stopping...");
+						LOGGER.debug("Premature end, stopping...");
 						startStopListenerDelegate.stop();
 					}
 				} else if (!cause.getClass().equals(ClosedChannelException.class)) {
-					LOGGER.log(Level.FINE, "Caught exception: {}", cause.getMessage());
-					LOGGER.log(Level.FINE, "{}", cause);
+					LOGGER.debug("Caught exception: {}", cause.getMessage());
+					LOGGER.trace("", cause);
 				}
 			}
 			Channel ch = e.getChannel();

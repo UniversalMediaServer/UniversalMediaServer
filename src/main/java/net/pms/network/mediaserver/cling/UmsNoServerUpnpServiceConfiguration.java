@@ -22,18 +22,18 @@ package net.pms.network.mediaserver.cling;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.cling.transport.impl.ApacheStreamClient;
+import net.pms.network.mediaserver.cling.transport.impl.ApacheStreamClientConfiguration;
 import net.pms.network.mediaserver.cling.transport.impl.DummyStreamServer;
 import net.pms.network.mediaserver.cling.transport.impl.UmsNetworkAddressFactory;
-import org.fourthline.cling.DefaultUpnpServiceConfiguration;
-import org.fourthline.cling.model.ServerClientTokens;
-import org.fourthline.cling.model.message.UpnpHeaders;
-import org.fourthline.cling.model.message.header.UpnpHeader;
-import org.fourthline.cling.model.meta.RemoteDeviceIdentity;
-import org.fourthline.cling.transport.impl.StreamClientConfigurationImpl;
-import org.fourthline.cling.transport.impl.StreamServerConfigurationImpl;
-import org.fourthline.cling.transport.spi.NetworkAddressFactory;
-import org.fourthline.cling.transport.spi.StreamClient;
-import org.fourthline.cling.transport.spi.StreamServer;
+import net.pms.network.mediaserver.cling.transport.impl.UmsStreamServerConfiguration;
+import org.jupnp.DefaultUpnpServiceConfiguration;
+import org.jupnp.model.ServerClientTokens;
+import org.jupnp.model.message.UpnpHeaders;
+import org.jupnp.model.message.header.UpnpHeader;
+import org.jupnp.model.meta.RemoteDeviceIdentity;
+import org.jupnp.transport.spi.NetworkAddressFactory;
+import org.jupnp.transport.spi.StreamClient;
+import org.jupnp.transport.spi.StreamServer;
 
 public class UmsNoServerUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
 
@@ -60,7 +60,7 @@ public class UmsNoServerUpnpServiceConfiguration extends DefaultUpnpServiceConfi
 	@Override
 	public StreamClient createStreamClient() {
 		return new ApacheStreamClient(
-				new StreamClientConfigurationImpl(
+				new ApacheStreamClientConfiguration(
 						getSyncProtocolExecutorService()
 				)
 		);
@@ -69,7 +69,7 @@ public class UmsNoServerUpnpServiceConfiguration extends DefaultUpnpServiceConfi
 	@Override
 	public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
 		return new DummyStreamServer(
-				new StreamServerConfigurationImpl(
+				new UmsStreamServerConfiguration(
 						networkAddressFactory.getStreamListenPort()
 				)
 		);

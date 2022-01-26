@@ -20,9 +20,9 @@
 package net.pms.network.mediaserver.cling.transport.impl;
 
 import net.pms.network.mediaserver.MediaServer;
-import org.fourthline.cling.transport.impl.NetworkAddressFactoryImpl;
-import org.fourthline.cling.transport.spi.InitializationException;
-import org.fourthline.cling.transport.spi.NoNetworkException;
+import org.jupnp.transport.impl.NetworkAddressFactoryImpl;
+import org.jupnp.transport.spi.InitializationException;
+import org.jupnp.transport.spi.NoNetworkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

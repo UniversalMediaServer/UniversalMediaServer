@@ -32,13 +32,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.fourthline.cling.support.model.Protocol;
-import org.fourthline.cling.support.model.dlna.DLNAAttribute;
-import org.fourthline.cling.support.model.dlna.DLNAProfiles;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import org.jupnp.support.model.Protocol;
+import org.jupnp.support.model.dlna.DLNAAttribute;
+import org.jupnp.support.model.dlna.DLNAProfiles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This immutable class represents a {@code protocolInfo} element.
@@ -317,11 +317,11 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	}
 
 	/**
-	 * Creates a new instance from a {@link org.fourthline.cling.support.model.ProtocolInfo} instance.
+	 * Creates a new instance from a {@link org.jupnp.support.model.ProtocolInfo} instance.
 	 *
-	 * @param template the {@link org.fourthline.cling.support.model.ProtocolInfo} instance.
+	 * @param template the {@link org.jupnp.support.model.ProtocolInfo} instance.
 	 */
-	public ProtocolInfo(org.fourthline.cling.support.model.ProtocolInfo template) {
+	public ProtocolInfo(org.jupnp.support.model.ProtocolInfo template) {
 		this(template.getProtocol(),
 			template.getNetwork(),
 			template.getContentFormat(),
@@ -680,11 +680,11 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 
 	/**
 	 * Converts an {@link EnumMap} of
-	 * {@link org.fourthline.cling.support.model.dlna.DLNAAttribute}s to a
+	 * {@link org.jupnp.support.model.dlna.DLNAAttribute}s to a
 	 * {@link TreeMap} of {@link ProtocolInfoAttribute}s.
 	 *
 	 * @param dlnaAttributes the {@link EnumMap} of
-	 *            {@link org.fourthline.cling.support.model.dlna.DLNAAttribute}s
+	 *            {@link org.jupnp.support.model.dlna.DLNAAttribute}s
 	 *            to convert.
 	 * @return A {@link TreeMap} containing the converted
 	 *         {@link ProtocolInfoAttribute}s.

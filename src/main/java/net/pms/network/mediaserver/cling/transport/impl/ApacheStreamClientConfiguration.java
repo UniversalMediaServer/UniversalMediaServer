@@ -17,10 +17,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling.support.xmicrosoft;
+package net.pms.network.mediaserver.cling.transport.impl;
 
-import org.jupnp.support.xmicrosoft.AbstractMediaReceiverRegistrarService;
+import java.util.concurrent.ExecutorService;
+import org.jupnp.transport.spi.AbstractStreamClientConfiguration;
 
-public class UMSMediaReceiverRegistrarService extends AbstractMediaReceiverRegistrarService {
+public class ApacheStreamClientConfiguration extends AbstractStreamClientConfiguration {
 
+	public ApacheStreamClientConfiguration(ExecutorService timeoutExecutorService) {
+		super(timeoutExecutorService);
+	}
+
+	public ApacheStreamClientConfiguration(ExecutorService timeoutExecutorService, int timeoutSeconds) {
+		super(timeoutExecutorService, timeoutSeconds);
+	}
 }

@@ -27,16 +27,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.fourthline.cling.model.message.Connection;
-import org.fourthline.cling.model.message.StreamRequestMessage;
-import org.fourthline.cling.model.message.StreamResponseMessage;
-import org.fourthline.cling.model.message.UpnpHeaders;
-import org.fourthline.cling.model.message.UpnpMessage;
-import org.fourthline.cling.model.message.UpnpRequest;
-import org.fourthline.cling.protocol.ProtocolFactory;
-import org.fourthline.cling.transport.spi.UpnpStream;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -47,12 +37,22 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jupnp.model.message.Connection;
+import org.jupnp.model.message.StreamRequestMessage;
+import org.jupnp.model.message.StreamResponseMessage;
+import org.jupnp.model.message.UpnpHeaders;
+import org.jupnp.model.message.UpnpMessage;
+import org.jupnp.model.message.UpnpRequest;
+import org.jupnp.protocol.ProtocolFactory;
+import org.jupnp.transport.spi.UpnpStream;
 import org.seamless.util.Exceptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class NettyUpnpStream extends UpnpStream {
-
-	private static final Logger LOGGER = Logger.getLogger(UpnpStream.class.getName());
+	//base the logger inside org.jupnp.transport.spi.UpnpStream to reflect old behavior
+	private static final Logger LOGGER = LoggerFactory.getLogger(UpnpStream.class);
 
 	private final MessageEvent event;
 
@@ -77,7 +77,7 @@ public class NettyUpnpStream extends UpnpStream {
 	public void run() {
 
 		try {
-			LOGGER.log(Level.FINE, "Processing HTTP request: {0} {1}", new Object[]{getHttpRequest().getMethod().getName(), getHttpRequest().getUri()});
+			LOGGER.debug("Processing HTTP request: {} {}", getHttpRequest().getMethod().getName(), getHttpRequest().getUri());
 			// Status
 			StreamRequestMessage requestMessage =
 					new StreamRequestMessage(
@@ -86,7 +86,7 @@ public class NettyUpnpStream extends UpnpStream {
 					);
 
 			if (requestMessage.getOperation().getMethod().equals(UpnpRequest.Method.UNKNOWN)) {
-				LOGGER.log(Level.FINE, "Method not supported by UPnP stack: {0}", getHttpRequest().getMethod().getName());
+				LOGGER.debug("Method not supported by UPnP stack: {}", getHttpRequest().getMethod().getName());
 				throw new RuntimeException("Method not supported: " + getHttpRequest().getMethod().getName());
 			}
 
@@ -95,7 +95,7 @@ public class NettyUpnpStream extends UpnpStream {
 					getHttpRequest().getProtocolVersion().getMinorVersion()
 			);
 
-			LOGGER.log(Level.FINE, "Created new request message: {0}", requestMessage);
+			LOGGER.debug("Created new request message: {}", requestMessage);
 
 			// Connection wrapper
 			requestMessage.setConnection(createConnection());
@@ -116,20 +116,20 @@ public class NettyUpnpStream extends UpnpStream {
 				bodyBytes = new byte[0];
 			}
 
-			LOGGER.log(Level.FINE, "Reading request body bytes: {0}", bodyBytes.length);
+			LOGGER.debug("Reading request body bytes: {0}", bodyBytes.length);
 
 			if (bodyBytes.length > 0 && requestMessage.isContentTypeMissingOrText()) {
 
-				LOGGER.fine("Request contains textual entity body, converting then setting string on message");
+				LOGGER.debug("Request contains textual entity body, converting then setting string on message");
 				requestMessage.setBodyCharacters(bodyBytes);
 
 			} else if (bodyBytes.length > 0) {
 
-				LOGGER.fine("Request contains binary entity body, setting bytes on message");
+				LOGGER.debug("Request contains binary entity body, setting bytes on message");
 				requestMessage.setBody(UpnpMessage.BodyType.BYTES, bodyBytes);
 
 			} else {
-				LOGGER.fine("Request did not contain entity body");
+				LOGGER.debug("Request did not contain entity body");
 			}
 
 			// Process it
@@ -137,13 +137,13 @@ public class NettyUpnpStream extends UpnpStream {
 
 			// Return the response
 			if (responseMessage != null) {
-				LOGGER.log(Level.FINE, "Preparing HTTP response message: {0}", responseMessage);
+				LOGGER.debug("Preparing HTTP response message: {}", responseMessage);
 
 				// Body
 				byte[] responseBodyBytes = responseMessage.hasBody() ? responseMessage.getBodyBytes() : null;
 				int contentLength = responseBodyBytes != null ? responseBodyBytes.length : -1;
 
-				LOGGER.log(Level.FINE, "Sending HTTP response message: {0} with content length: {1}", new Object[]{responseMessage, contentLength});
+				LOGGER.debug("Sending HTTP response message: {} with content length: {}", responseMessage, contentLength);
 				HttpResponse response = new DefaultHttpResponse(getHttpRequest().getProtocolVersion(), HttpResponseStatus.valueOf(responseMessage.getOperation().getStatusCode()));
 
 				// Headers
@@ -156,7 +156,7 @@ public class NettyUpnpStream extends UpnpStream {
 				}
 				ChannelFuture future = getMessageEvent().getChannel().write(response);
 				if (contentLength > 0) {
-					LOGGER.fine("Response message has body, writing bytes to stream...");
+					LOGGER.debug("Response message has body, writing bytes to stream...");
 					future = getMessageEvent().getChannel().write(responseBodyBytes);
 				}
 				if (HttpHeaders.Values.CLOSE.equalsIgnoreCase(getHttpRequest().headers().get(HttpHeaders.Names.CONNECTION)) ||
@@ -166,7 +166,7 @@ public class NettyUpnpStream extends UpnpStream {
 				}
 			} else {
 				// If it's null, it's 404, everything else needs a proper httpResponse
-				LOGGER.log(Level.FINE, "Sending HTTP response status: {0}", HttpResponseStatus.NOT_FOUND);
+				LOGGER.debug("Sending HTTP response status: {}", HttpResponseStatus.NOT_FOUND);
 				HttpResponse response = new DefaultHttpResponse(getHttpRequest().getProtocolVersion(), HttpResponseStatus.NOT_FOUND);
 				getMessageEvent().getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
 			}
@@ -183,9 +183,9 @@ public class NettyUpnpStream extends UpnpStream {
 			// TODO: We should only send an error if the problem was on our side
 			// You don't have to catch Throwable unless, like we do here in unit tests,
 			// you might run into Errors as well (assertions).
-			LOGGER.log(Level.FINE, "Exception occured during UPnP stream processing: {0}", t);
-			if (LOGGER.isLoggable(Level.FINE)) {
-				LOGGER.log(Level.FINE, "Cause: {0}", Exceptions.unwrap(t));
+			LOGGER.debug("Exception occured during UPnP stream processing: {}", t);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Cause: {}", Exceptions.unwrap(t));
 			}
 			HttpResponse response = new DefaultHttpResponse(getHttpRequest().getProtocolVersion(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			getMessageEvent().getChannel().write(response);

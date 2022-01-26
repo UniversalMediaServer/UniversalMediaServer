@@ -30,17 +30,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.cling.UmsNoServerUpnpService;
+import net.pms.network.mediaserver.cling.UmsUpnpService;
 import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
 import net.pms.network.mediaserver.mdns.MDNS;
 import net.pms.network.mediaserver.nettyserver.NettyServer;
 import net.pms.network.mediaserver.socketchannelserver.SocketChannelServer;
 import net.pms.network.mediaserver.socketssdpserver.SocketSSDPServer;
 import org.apache.commons.lang3.StringUtils;
-import org.fourthline.cling.UpnpService;
-import org.fourthline.cling.model.message.header.DeviceTypeHeader;
-import org.fourthline.cling.model.types.DeviceType;
-import org.fourthline.cling.transport.RouterException;
+import org.jupnp.model.message.header.DeviceTypeHeader;
+import org.jupnp.model.types.DeviceType;
+import org.jupnp.transport.RouterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,7 @@ public class MediaServer {
 		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
 	public static final int DEFAULT_VERSION = 2;
 
-	public static UpnpService upnpService;
+	public static UmsUpnpService upnpService;
 	private static HttpMediaServer httpMediaServer;
 	private static boolean isStarted = false;
 	protected static int port = CONFIGURATION.getServerPort();
@@ -162,22 +161,10 @@ public class MediaServer {
 					switch (engineVersion) {
 						case 4:
 						case 5:
-							if (!(upnpService instanceof UmsNoServerUpnpService)) {
-								upnpService.shutdown();
-								upnpService = null;
-							} else {
-								//ensure UMS devide is registered
-								((UmsNoServerUpnpService) upnpService).addMediaServerDevice();
-							}
+							upnpService.addMediaServerDevice();
 							break;
 						default:
-							if (!(upnpService instanceof UmsNoServerUpnpService)) {
-								upnpService.shutdown();
-								upnpService = null;
-							} else {
-								//ensure UMS devide is NOT registered
-								((UmsNoServerUpnpService) upnpService).removeMediaServerDevice();
-							}
+							upnpService.removeMediaServerDevice();
 							break;
 					}
 				} else {
@@ -216,10 +203,10 @@ public class MediaServer {
 					switch (engineVersion) {
 						case 4:
 						case 5:
-							upnpService = new UmsNoServerUpnpService(UPNPHelper.getInstance(), true);
+							upnpService = new UmsUpnpService(true, false);
 							break;
 						default:
-							upnpService = new UmsNoServerUpnpService(UPNPHelper.getInstance(), false);
+							upnpService = new UmsUpnpService(false, false);
 							break;
 					}
 				} else {

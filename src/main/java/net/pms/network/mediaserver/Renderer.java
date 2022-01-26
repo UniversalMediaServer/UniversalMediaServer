@@ -28,8 +28,8 @@ import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.util.BasicPlayer;
 import net.pms.util.UMSUtils;
-import org.fourthline.cling.model.action.ActionArgumentValue;
-import org.fourthline.cling.model.meta.Device;
+import org.jupnp.model.action.ActionArgumentValue;
+import org.jupnp.model.meta.Device;
 
 public class Renderer {
 	private static final String TRANSPORT_STATE = "TransportState";

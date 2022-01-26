@@ -20,11 +20,11 @@
 package net.pms.network.mediaserver.cling;
 
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.cling.transport.impl.JdkHttpServerStreamServer;
 import net.pms.network.mediaserver.cling.transport.impl.NettyStreamServer;
-import org.fourthline.cling.transport.impl.StreamServerConfigurationImpl;
-import org.fourthline.cling.transport.impl.StreamServerImpl;
-import org.fourthline.cling.transport.spi.NetworkAddressFactory;
-import org.fourthline.cling.transport.spi.StreamServer;
+import net.pms.network.mediaserver.cling.transport.impl.UmsStreamServerConfiguration;
+import org.jupnp.transport.spi.NetworkAddressFactory;
+import org.jupnp.transport.spi.StreamServer;
 
 public class UmsServerUpnpServiceConfiguration extends UmsNoServerUpnpServiceConfiguration {
 
@@ -37,13 +37,13 @@ public class UmsServerUpnpServiceConfiguration extends UmsNoServerUpnpServiceCon
 		switch (engineVersion) {
 			case 2:
 				return new NettyStreamServer(
-						new StreamServerConfigurationImpl(
+						new UmsStreamServerConfiguration(
 								networkAddressFactory.getStreamListenPort()
 						)
 				);
 			case 3:
-				return new StreamServerImpl(
-						new StreamServerConfigurationImpl(
+				return new JdkHttpServerStreamServer(
+						new UmsStreamServerConfiguration(
 								networkAddressFactory.getStreamListenPort()
 						)
 				);

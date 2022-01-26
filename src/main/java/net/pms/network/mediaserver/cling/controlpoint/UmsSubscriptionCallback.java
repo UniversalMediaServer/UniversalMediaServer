@@ -20,11 +20,11 @@
 package net.pms.network.mediaserver.cling.controlpoint;
 
 import net.pms.network.mediaserver.UPNPControl;
-import org.fourthline.cling.controlpoint.SubscriptionCallback;
-import org.fourthline.cling.model.gena.CancelReason;
-import org.fourthline.cling.model.gena.GENASubscription;
-import org.fourthline.cling.model.message.UpnpResponse;
-import org.fourthline.cling.model.meta.Service;
+import org.jupnp.controlpoint.SubscriptionCallback;
+import org.jupnp.model.gena.CancelReason;
+import org.jupnp.model.gena.GENASubscription;
+import org.jupnp.model.message.UpnpResponse;
+import org.jupnp.model.meta.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

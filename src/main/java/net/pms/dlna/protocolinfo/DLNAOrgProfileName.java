@@ -19,8 +19,8 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import org.fourthline.cling.support.model.dlna.DLNAProfiles;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
+import org.jupnp.support.model.dlna.DLNAProfiles;
 
 /**
  * This interface represents {@code DLNA.ORG_PN} attributes. This can only be

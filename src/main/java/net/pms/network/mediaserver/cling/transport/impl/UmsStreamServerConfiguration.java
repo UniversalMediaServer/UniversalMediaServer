@@ -19,40 +19,43 @@
  */
 package net.pms.network.mediaserver.cling.transport.impl;
 
-import java.net.InetAddress;
-import org.jupnp.transport.Router;
-import org.jupnp.transport.spi.InitializationException;
-import org.jupnp.transport.spi.StreamServer;
 import org.jupnp.transport.spi.StreamServerConfiguration;
 
-public class DummyStreamServer implements StreamServer {
+public class UmsStreamServerConfiguration implements StreamServerConfiguration {
 
-	private final StreamServerConfiguration configuration;
+	private int listenPort;
+	private int tcpConnectionBacklog;
 
-	public DummyStreamServer(StreamServerConfiguration configuration) {
-		this.configuration = configuration;
+	/**
+	 * Defaults to port '0', ephemeral.
+	 */
+	public UmsStreamServerConfiguration() {
+		this(0);
+	}
+
+	public UmsStreamServerConfiguration(int listenPort) {
+		this.listenPort = listenPort;
 	}
 
 	@Override
-	public void init(InetAddress bindAddress, Router router) throws InitializationException {
+	public int getListenPort() {
+		return listenPort;
 	}
 
-	@Override
-	public int getPort() {
-		return configuration.getListenPort();
+	public void setListenPort(int listenPort) {
+		this.listenPort = listenPort;
 	}
 
-	@Override
-	public void stop() {
+	/**
+	 * @return Maximum number of queued incoming connections to allow on the
+	 * listening socket, default is system default.
+	 */
+	public int getTcpConnectionBacklog() {
+		return tcpConnectionBacklog;
 	}
 
-	@Override
-	public StreamServerConfiguration getConfiguration() {
-		return configuration;
-	}
-
-	@Override
-	public void run() {
+	public void setTcpConnectionBacklog(int tcpConnectionBacklog) {
+		this.tcpConnectionBacklog = tcpConnectionBacklog;
 	}
 
 }
