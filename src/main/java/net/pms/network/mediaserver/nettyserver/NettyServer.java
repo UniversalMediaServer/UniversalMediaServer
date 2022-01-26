@@ -81,9 +81,9 @@ public class NettyServer extends HttpMediaServer {
 
 			allChannels.add(channel);
 		} catch (Exception e) {
-			LOGGER.error("Another program is using port " + port + ", which UMS needs.");
+			LOGGER.error("Another program is using port {}, which UMS needs.", port);
 			LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
-			LOGGER.trace("The error was: " + e);
+			LOGGER.trace("The error was: {}", e);
 			PMS.get().getFrame().setConnectionState(ConnectionState.BLOCKED);
 		}
 
@@ -93,7 +93,7 @@ public class NettyServer extends HttpMediaServer {
 
 	@Override
 	public synchronized void stop() {
-		LOGGER.info("Stopping HTTP server (Netty {}) on host {} and port {}", hostname, localPort);
+		LOGGER.info("Stopping HTTP server (Netty) on host {} and port {}", hostname, localPort);
 
 		/**
 		 * Netty v3 (HTTP Engine V2) shutdown approach from
