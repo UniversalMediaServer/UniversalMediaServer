@@ -672,7 +672,7 @@ public class RequestV2 extends HTTPResource {
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 			inputStream = imageHandler(output);
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.startsWith("dev") && uri.endsWith("/desc"))) {
-			//from cling
+			//from JUPnP
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(deviceDescHandler(output));
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {

@@ -39,7 +39,7 @@ import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
-import net.pms.network.mediaserver.cling.controlpoint.UmsSubscriptionCallback;
+import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;

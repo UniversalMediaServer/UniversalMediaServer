@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling.model.meta;
+package net.pms.network.mediaserver.jupnp.model.meta;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -28,8 +28,8 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.cling.support.contentdirectory.UMSContentDirectoryService;
-import net.pms.network.mediaserver.cling.support.xmicrosoft.UMSMediaReceiverRegistrarService;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UMSContentDirectoryService;
+import net.pms.network.mediaserver.jupnp.support.xmicrosoft.UMSMediaReceiverRegistrarService;
 import net.pms.util.PropertiesUtil;
 import org.jupnp.binding.annotations.AnnotationLocalServiceBinder;
 import org.jupnp.model.DefaultServiceManager;

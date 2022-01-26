@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.cling.UmsUpnpService;
 import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
+import net.pms.network.mediaserver.jupnp.UmsUpnpService;
 import net.pms.network.mediaserver.mdns.MDNS;
 import net.pms.network.mediaserver.nettyserver.NettyServer;
 import net.pms.network.mediaserver.socketchannelserver.SocketChannelServer;
@@ -50,8 +50,8 @@ public class MediaServer {
 			{1, "Sockets"},
 			{2, "Netty"},
 			{3, "Java"},
-			{4, "Netty + Cling"},
-			{5, "Java + Cling"},
+			{4, "Netty + JUPnP"},
+			{5, "Java + JUPnP"},
 		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
 	public static final int DEFAULT_VERSION = 2;
 
@@ -168,7 +168,7 @@ public class MediaServer {
 							break;
 					}
 				} else {
-					LOGGER.debug("Stopping all UPnP (Cling) services.");
+					LOGGER.debug("Stopping all UPnP (JUPnP) services.");
 					upnpService.shutdown();
 					upnpService = null;
 				}
@@ -199,20 +199,22 @@ public class MediaServer {
 			//start the upnp service
 			if (isStarted && CONFIGURATION.isUpnpEnabled()) {
 				if (upnpService == null) {
-					LOGGER.debug("Starting UPnP (Cling) services.");
+					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
 						case 4:
 						case 5:
 							upnpService = new UmsUpnpService(true, false);
+							upnpService.startup();
 							break;
 						default:
 							upnpService = new UmsUpnpService(false, false);
+							upnpService.startup();
 							break;
 					}
 				} else {
 					//come back from reset, let restart the sockets
 					try {
-						LOGGER.debug("Enabling UPnP (Cling) network services");
+						LOGGER.debug("Enabling UPnP (JUPnP) network services");
 						upnpService.getRouter().enable();
 					} catch (RouterException ex) {
 					}
@@ -228,10 +230,10 @@ public class MediaServer {
 					for (DeviceType t : UPNPHelper.MEDIA_RENDERER_TYPES) {
 						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 					}
-					LOGGER.debug("UPnP (Cling) services are online, listening for media renderers");
+					LOGGER.debug("UPnP (JUPnP) services are online, listening for media renderers");
 				}
 
-				//then start SSDP service if cling does not
+				//then start SSDP service if JUPnP does not
 				if (isStarted && upnpService.getRegistry().getLocalDevices().isEmpty()) {
 					isStarted = SocketSSDPServer.start(networkInterface);
 					if (!isStarted) {
@@ -259,7 +261,7 @@ public class MediaServer {
 		SocketSSDPServer.stop();
 		if (upnpService != null) {
 			//just disable the network router and keep the upnp registry
-			LOGGER.debug("Disabling UPnP (Cling) network services");
+			LOGGER.debug("Disabling UPnP (JUPnP) network services");
 			try {
 				upnpService.getRouter().disable();
 				LOGGER.debug("UPnP network services disabled");
@@ -278,7 +280,7 @@ public class MediaServer {
 		MDNS.stop();
 		SocketSSDPServer.stop();
 		if (upnpService != null) {
-			LOGGER.debug("Shutting down UPnP (Cling) service");
+			LOGGER.debug("Shutting down UPnP (JUPnP) service");
 			upnpService.shutdown();
 			upnpService = null;
 			LOGGER.debug("UPnP service stopped");

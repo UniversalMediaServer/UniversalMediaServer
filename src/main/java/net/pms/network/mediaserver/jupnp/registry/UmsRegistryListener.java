@@ -1,4 +1,4 @@
-package net.pms.network.mediaserver.cling.registry;
+package net.pms.network.mediaserver.jupnp.registry;
 
 import net.pms.network.mediaserver.UPNPHelper;
 import org.jupnp.model.meta.RemoteDevice;

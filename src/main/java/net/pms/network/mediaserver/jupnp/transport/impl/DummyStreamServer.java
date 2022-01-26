@@ -17,18 +17,42 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling.transport.impl;
+package net.pms.network.mediaserver.jupnp.transport.impl;
 
-import java.util.concurrent.ExecutorService;
-import org.jupnp.transport.spi.AbstractStreamClientConfiguration;
+import java.net.InetAddress;
+import org.jupnp.transport.Router;
+import org.jupnp.transport.spi.InitializationException;
+import org.jupnp.transport.spi.StreamServer;
+import org.jupnp.transport.spi.StreamServerConfiguration;
 
-public class ApacheStreamClientConfiguration extends AbstractStreamClientConfiguration {
+public class DummyStreamServer implements StreamServer {
 
-	public ApacheStreamClientConfiguration(ExecutorService timeoutExecutorService) {
-		super(timeoutExecutorService);
+	private final StreamServerConfiguration configuration;
+
+	public DummyStreamServer(StreamServerConfiguration configuration) {
+		this.configuration = configuration;
 	}
 
-	public ApacheStreamClientConfiguration(ExecutorService timeoutExecutorService, int timeoutSeconds) {
-		super(timeoutExecutorService, timeoutSeconds);
+	@Override
+	public void init(InetAddress bindAddress, Router router) throws InitializationException {
 	}
+
+	@Override
+	public int getPort() {
+		return configuration.getListenPort();
+	}
+
+	@Override
+	public void stop() {
+	}
+
+	@Override
+	public StreamServerConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	@Override
+	public void run() {
+	}
+
 }

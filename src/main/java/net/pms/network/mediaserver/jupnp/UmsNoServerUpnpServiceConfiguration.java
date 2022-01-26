@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling;
+package net.pms.network.mediaserver.jupnp;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.cling.transport.impl.ApacheStreamClient;
-import net.pms.network.mediaserver.cling.transport.impl.ApacheStreamClientConfiguration;
-import net.pms.network.mediaserver.cling.transport.impl.DummyStreamServer;
-import net.pms.network.mediaserver.cling.transport.impl.UmsNetworkAddressFactory;
-import net.pms.network.mediaserver.cling.transport.impl.UmsStreamServerConfiguration;
+import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
+import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
+import net.pms.network.mediaserver.jupnp.transport.impl.DummyStreamServer;
+import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
+import net.pms.network.mediaserver.jupnp.transport.impl.UmsStreamServerConfiguration;
 import org.jupnp.DefaultUpnpServiceConfiguration;
 import org.jupnp.model.ServerClientTokens;
 import org.jupnp.model.message.UpnpHeaders;

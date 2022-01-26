@@ -17,13 +17,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling;
+package net.pms.network.mediaserver.jupnp;
 
 import ch.qos.logback.classic.Level;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.cling.model.meta.UmsLocalDevice;
-import net.pms.network.mediaserver.cling.registry.UmsRegistryListener;
+import net.pms.network.mediaserver.jupnp.model.meta.UmsLocalDevice;
+import net.pms.network.mediaserver.jupnp.registry.UmsRegistryListener;
 import org.jupnp.UpnpServiceImpl;
 import org.jupnp.model.meta.LocalDevice;
 import org.jupnp.protocol.ProtocolFactory;
@@ -47,6 +47,7 @@ public class UmsUpnpService extends UpnpServiceImpl {
 	public UmsUpnpService(boolean addDevice, boolean ownHttpServer) {
 		super(ownHttpServer ? new UmsServerUpnpServiceConfiguration() : new UmsNoServerUpnpServiceConfiguration());
 		this.addDevice = addDevice;
+		//don't log org.jupnp by default to reflext Cling not log to UMS.
 		if (!CONFIGURATION.isUpnpDebug()) {
 			ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.jupnp");
 			logger.setLevel(Level.OFF);
@@ -92,7 +93,7 @@ public class UmsUpnpService extends UpnpServiceImpl {
 		Registry result = super.createRegistry(protocolFactory);
 		result.addListener(new UmsRegistryListener());
 		if (addDevice) {
-			registry.addDevice(mediaServerDevice);
+			result.addDevice(mediaServerDevice);
 		}
 		return result;
 	}

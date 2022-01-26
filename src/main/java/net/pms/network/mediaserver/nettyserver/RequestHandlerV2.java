@@ -97,7 +97,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		// Is the request from our own Cling service, i.e. self-originating?
+		// Is the request from our own JUPnP service, i.e. self-originating?
 		boolean isSelf = ia.getHostAddress().equals(MediaServer.getHost()) &&
 			headers.get(HttpHeaders.Names.USER_AGENT) != null &&
 			headers.get(HttpHeaders.Names.USER_AGENT).contains("UMS/");

@@ -17,42 +17,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling.transport.impl;
+package net.pms.network.mediaserver.jupnp.support.xmicrosoft;
 
-import java.net.InetAddress;
-import org.jupnp.transport.Router;
-import org.jupnp.transport.spi.InitializationException;
-import org.jupnp.transport.spi.StreamServer;
-import org.jupnp.transport.spi.StreamServerConfiguration;
+import org.jupnp.support.xmicrosoft.AbstractMediaReceiverRegistrarService;
 
-public class DummyStreamServer implements StreamServer {
-
-	private final StreamServerConfiguration configuration;
-
-	public DummyStreamServer(StreamServerConfiguration configuration) {
-		this.configuration = configuration;
-	}
-
-	@Override
-	public void init(InetAddress bindAddress, Router router) throws InitializationException {
-	}
-
-	@Override
-	public int getPort() {
-		return configuration.getListenPort();
-	}
-
-	@Override
-	public void stop() {
-	}
-
-	@Override
-	public StreamServerConfiguration getConfiguration() {
-		return configuration;
-	}
-
-	@Override
-	public void run() {
-	}
+public class UMSMediaReceiverRegistrarService extends AbstractMediaReceiverRegistrarService {
 
 }

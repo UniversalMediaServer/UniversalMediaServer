@@ -126,7 +126,7 @@ public class RequestHandler implements HttpHandler {
 		try {
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			String userAgentString = exchange.getRequestHeaders().getFirst("User-Agent");
-			// Is the request from our own Cling service, i.e. self-originating?
+			// Is the request from our own JUPnP service, i.e. self-originating?
 			boolean isSelf = ia.getHostAddress().equals(MediaServer.getHost()) &&
 					userAgentString != null &&
 					userAgentString.contains("UMS/");
@@ -189,7 +189,7 @@ public class RequestHandler implements HttpHandler {
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 				sendResponse(exchange, renderer, 200, imageHandler(exchange, uri));
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.startsWith("dev") && uri.endsWith("/desc"))) {
-				//from cling
+				//from JUPnP
 				sendResponse(exchange, renderer, 200, deviceDescHandler(exchange, renderer), CONTENT_TYPE_XML_UTF8);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 				sendResponse(exchange, renderer, 200, serverSpecHandler(exchange, uri, renderer), CONTENT_TYPE_XML_UTF8);

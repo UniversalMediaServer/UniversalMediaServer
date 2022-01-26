@@ -54,7 +54,7 @@ public interface DLNAOrgProfileName extends ProfileName {
 		 * the singleton instance.
 		 */
 		protected DLNAOrgProfileNameFactory() {
-			// Add the profiles already defined by Cling
+			// Add the profiles already defined by JUPnP
 			for (DLNAProfiles profile : DLNAProfiles.values()) {
 				if (profile != DLNAProfiles.NONE) {
 					instanceCache.add(new DefaultDLNAOrgProfileName(profile.getCode()));

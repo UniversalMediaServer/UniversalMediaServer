@@ -299,7 +299,7 @@ public class Request extends HTTPResource {
 			argument = argument.substring(1);
 		}
 
-		//to enable multiple device, cling use dev desc location format http://host:port/dev/<udn>/desc
+		//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
 		if (argument.startsWith("dev/") && argument.endsWith("/desc")) {
 			argument = "description/fetch";
 		}
