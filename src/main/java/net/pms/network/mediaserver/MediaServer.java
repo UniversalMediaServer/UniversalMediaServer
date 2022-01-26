@@ -29,6 +29,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
 import net.pms.network.mediaserver.nettyserver.NettyServer;
 import net.pms.network.mediaserver.socketchannelserver.SocketChannelServer;
+import net.pms.network.mediaserver.socketssdpserver.SocketSSDPServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,37 +80,21 @@ public class MediaServer {
 			}
 			if (isStarted) {
 				//then advise upnp
-				try {
-					UPNPHelper.getInstance().createMulticastSocket();
-					UPNPHelper.sendAlive();
-					UPNPHelper.sendByeBye();
-					LOGGER.trace("Waiting 250 milliseconds...");
-					try {
-						Thread.sleep(250);
-					} catch (InterruptedException e) {
-					}
-					UPNPHelper.sendAlive();
-					LOGGER.trace("Waiting 250 milliseconds...");
-					try {
-						Thread.sleep(250);
-					} catch (InterruptedException e) {
-					}
-					UPNPHelper.listen();
-				} catch (IOException ex) {
-					LOGGER.error("FATAL ERROR: Unable to start upnp service, because: " + ex.getMessage());
+				isStarted = SocketSSDPServer.start();
+				if (!isStarted) {
+					LOGGER.error("FATAL ERROR: Unable to start ssdp service");
 					isStarted = false;
 					stop();
 				}
 			}
 		} else {
-			LOGGER.error("try to start the media server, but it's already started");
+			LOGGER.info("try to start the media server, but it's already started");
 		}
 		return isStarted;
 	}
 
 	public static void stop() {
-		UPNPHelper.shutDownListener();
-		UPNPHelper.sendByeBye();
+		SocketSSDPServer.stop();
 		if (httpMediaServer != null) {
 			httpMediaServer.stop();
 		}

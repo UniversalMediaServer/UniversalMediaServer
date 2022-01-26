@@ -28,7 +28,9 @@ import net.pms.formats.v2.AudioProperties;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
+import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
+import net.pms.network.mediaserver.UPNPPlayer;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
@@ -47,7 +49,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererConfiguration extends UPNPHelper.Renderer {
+public class RendererConfiguration extends Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
@@ -290,7 +292,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			LOGGER.info(":   " + r);
 		}
 
-		if (enabledRendererConfs.size() > 0) {
+		if (!enabledRendererConfs.isEmpty()) {
 			// See if a different default configuration was configured
 			String rendererFallback = pmsConf.getRendererDefault();
 
@@ -1590,7 +1592,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public BasicPlayer getPlayer() {
 		if (player == null) {
-			player = isUpnpControllable() ? new UPNPHelper.Player((DeviceConfiguration) this) :
+			player = isUpnpControllable() ? new UPNPPlayer((DeviceConfiguration) this) :
 				new PlaybackTimer((DeviceConfiguration) this);
 		}
 		return player;
@@ -1601,7 +1603,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 *
 	 * @param player
 	 */
-	public void setPlayer(UPNPHelper.Player player) {
+	public void setPlayer(UPNPPlayer player) {
 		this.player = player;
 	}
 
