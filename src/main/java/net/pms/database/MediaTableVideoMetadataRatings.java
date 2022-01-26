@@ -27,21 +27,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class MediaTableVideoMetadataRatings extends MediaTable {
-	/**
-	 * TABLE_LOCK is used to synchronize database access on table level.
-	 * H2 calls are thread safe, but the database's multithreading support is
-	 * described as experimental. This lock therefore used in addition to SQL
-	 * transaction locks. All access to this table must be guarded with this
-	 * lock. The lock allows parallel reads.
-	 */
-	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataRatings.class);
 
 	public static final String TABLE_NAME = "VIDEO_METADATA_RATINGS";
@@ -61,28 +51,23 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version < TABLE_VERSION) {
-						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
-					}
-				} else {
-					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createTable(connection);
-					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		if (tableExists(connection, TABLE_NAME)) {
+			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+			if (version != null) {
+				if (version < TABLE_VERSION) {
+					upgradeTable(connection, version);
+				} else if (version > TABLE_VERSION) {
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 				}
 			} else {
+				LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
+				dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+		} else {
+			createTable(connection);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
 
@@ -98,26 +83,18 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	 */
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
-		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
-				switch (version) {
-					default:
-						throw new IllegalStateException(
-							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-						);
-				}
+		for (int version = currentVersion; version < TABLE_VERSION; version++) {
+			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+			switch (version) {
+				default:
+					throw new IllegalStateException(
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+					);
 			}
-			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
 		}
+		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 	}
 
-	/**
-	 * Must be called from inside a table lock
-	 */
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
@@ -145,7 +122,6 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 			return;
 		}
 
-		TABLE_LOCK.writeLock().lock();
 		try {
 			Iterator<LinkedTreeMap> i = ratings.iterator();
 			while (i.hasNext()) {
@@ -179,8 +155,6 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 				LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, fullPathToFile, e.getMessage());
 				LOGGER.trace("", e);
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 
@@ -196,17 +170,10 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
 	public static void remove(final Connection connection, final String filename, boolean useLike) {
-		try {
-			String query =
-				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
-				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
-			TABLE_LOCK.writeLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				int rows = statement.executeUpdate(query);
-				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
-			}
+		String query = "DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +	(useLike ? "LIKE " : "= ") + sqlQuote(filename);
+		try (Statement statement = connection.createStatement()) {
+			int rows = statement.executeUpdate(query);
+			LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
 			LOGGER.trace("", e);

@@ -23,8 +23,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import static org.apache.commons.lang3.StringUtils.left;
@@ -38,8 +36,6 @@ import org.slf4j.LoggerFactory;
  * done with this class.
  */
 public class MediaTableSubtracks extends MediaTable {
-
-	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableSubtracks.class);
 	public static final String TABLE_NAME = "SUBTRACKS";
 
@@ -61,61 +57,48 @@ public class MediaTableSubtracks extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
-				if (version == null) {
-					version = 1;
-				}
-				if (version < TABLE_VERSION) {
-					upgradeTable(connection, version);
-				} else if (version > TABLE_VERSION) {
-					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
-				}
-			} else {
-				createTable(connection);
-				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		if (tableExists(connection, TABLE_NAME)) {
+			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+			if (version == null) {
+				version = 1;
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+			if (version < TABLE_VERSION) {
+				upgradeTable(connection, version);
+			} else if (version > TABLE_VERSION) {
+				LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
+			}
+		} else {
+			createTable(connection);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
+		for (int version = currentVersion; version < TABLE_VERSION; version++) {
+			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+			switch (version) {
+				case 1:
+					if (isColumnExist(connection, TABLE_NAME, "TYPE")) {
+						LOGGER.trace("Renaming column name TYPE to FORMAT_TYPE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `TYPE` RENAME TO FORMAT_TYPE");
+					}
+					break;
+				default:
+					throw new IllegalStateException(
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+					);
+			}
+		}
 		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
-				switch (version) {
-					case 1:
-						if (isColumnExist(connection, TABLE_NAME, "TYPE")) {
-							LOGGER.trace("Renaming column name TYPE to FORMAT_TYPE");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `TYPE` RENAME TO FORMAT_TYPE");
-						}
-						break;
-					default:
-						throw new IllegalStateException(
-							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-						);
-				}
-			}
-			try {
-				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			} catch (SQLException e) {
-				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
-				LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-				throw new SQLException(e);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		} catch (SQLException e) {
+			LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+			LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+			throw new SQLException(e);
 		}
 	}
 
-	/**
-	 * Must be called from inside a table lock
-	 */
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
@@ -140,7 +123,6 @@ public class MediaTableSubtracks extends MediaTable {
 
 		String columns = "FILEID, ID, LANG, TITLE, FORMAT_TYPE, EXTERNALFILE, CHARSET ";
 
-		TABLE_LOCK.writeLock().lock();
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(
 				"SELECT " +
@@ -193,8 +175,6 @@ public class MediaTableSubtracks extends MediaTable {
 					}
 				}
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 }
