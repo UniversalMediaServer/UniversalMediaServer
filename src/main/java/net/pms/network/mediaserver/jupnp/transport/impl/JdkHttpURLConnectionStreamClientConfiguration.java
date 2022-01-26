@@ -22,13 +22,24 @@ package net.pms.network.mediaserver.jupnp.transport.impl;
 import java.util.concurrent.ExecutorService;
 import org.jupnp.transport.spi.AbstractStreamClientConfiguration;
 
-public class ApacheStreamClientConfiguration extends AbstractStreamClientConfiguration {
+public class JdkHttpURLConnectionStreamClientConfiguration extends AbstractStreamClientConfiguration {
 
-	public ApacheStreamClientConfiguration(ExecutorService timeoutExecutorService) {
+	private boolean usePersistentConnections = false;
+
+	public JdkHttpURLConnectionStreamClientConfiguration(ExecutorService timeoutExecutorService) {
 		super(timeoutExecutorService);
 	}
 
-	public ApacheStreamClientConfiguration(ExecutorService timeoutExecutorService, int timeoutSeconds) {
+	public JdkHttpURLConnectionStreamClientConfiguration(ExecutorService timeoutExecutorService, int timeoutSeconds) {
 		super(timeoutExecutorService, timeoutSeconds);
 	}
+
+	public boolean isUsePersistentConnections() {
+		return usePersistentConnections;
+	}
+
+	public void setUsePersistentConnections(boolean usePersistentConnections) {
+		this.usePersistentConnections = usePersistentConnections;
+	}
+
 }

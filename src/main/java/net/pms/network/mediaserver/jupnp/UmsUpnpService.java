@@ -20,6 +20,8 @@
 package net.pms.network.mediaserver.jupnp;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsLocalDevice;
@@ -45,32 +47,26 @@ public class UmsUpnpService extends UpnpServiceImpl {
 	private boolean addDevice = false;
 
 	public UmsUpnpService(boolean addDevice, boolean ownHttpServer) {
-		super(ownHttpServer ? new UmsServerUpnpServiceConfiguration() : new UmsNoServerUpnpServiceConfiguration());
+		super(new UmsUpnpServiceConfiguration(ownHttpServer));
 		this.addDevice = addDevice;
 		//don't log org.jupnp by default to reflext Cling not log to UMS.
 		if (!CONFIGURATION.isUpnpDebug()) {
-			ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.jupnp");
-			logger.setLevel(Level.OFF);
+			LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+			Logger rootLogger = loggerContext.getLogger("org.jupnp");
+			rootLogger.setLevel(Level.OFF);
+			rootLogger = loggerContext.getLogger("org.jupnp.support");
+			rootLogger.setLevel(Level.OFF);
 		}
 	}
 
-	protected void setOwnHttpServer(boolean addHttpServer) {
-		if (addHttpServer) {
-			if (!(this.configuration instanceof UmsServerUpnpServiceConfiguration)) {
-				this.configuration = new UmsServerUpnpServiceConfiguration();
+	protected void setOwnHttpServer(boolean ownHttpServer) {
+		if (this.configuration instanceof UmsUpnpServiceConfiguration &&
+			((UmsUpnpServiceConfiguration) this.configuration).useOwnHttpServer() != ownHttpServer) {
+				((UmsUpnpServiceConfiguration) this.configuration).setOwnHttpServer(ownHttpServer);
 				if (isRunning) {
 					shutdown();
 					startup();
 				}
-			}
-		} else {
-			if (!(this.configuration instanceof UmsNoServerUpnpServiceConfiguration)) {
-				this.configuration = new UmsNoServerUpnpServiceConfiguration();
-				if (isRunning) {
-					shutdown();
-					startup();
-				}
-			}
 		}
 	}
 

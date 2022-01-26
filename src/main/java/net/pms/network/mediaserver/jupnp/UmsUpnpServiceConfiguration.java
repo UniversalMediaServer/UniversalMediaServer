@@ -21,9 +21,12 @@ package net.pms.network.mediaserver.jupnp;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
-import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.DummyStreamServer;
+import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
+import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClient;
+import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
+import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsStreamServerConfiguration;
 import org.jupnp.DefaultUpnpServiceConfiguration;
@@ -35,14 +38,16 @@ import org.jupnp.transport.spi.NetworkAddressFactory;
 import org.jupnp.transport.spi.StreamClient;
 import org.jupnp.transport.spi.StreamServer;
 
-public class UmsNoServerUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
+public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
 
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final UpnpHeaders umsHeaders;
+	private boolean ownHttpServer = false;
 
-	public UmsNoServerUpnpServiceConfiguration() {
+	public UmsUpnpServiceConfiguration(boolean ownHttpServer) {
 		super();
+		this.ownHttpServer = ownHttpServer;
 		umsHeaders = new UpnpHeaders();
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
 	}
@@ -59,15 +64,43 @@ public class UmsNoServerUpnpServiceConfiguration extends DefaultUpnpServiceConfi
 
 	@Override
 	public StreamClient createStreamClient() {
-		return new ApacheStreamClient(
-				new ApacheStreamClientConfiguration(
+		return new JdkHttpURLConnectionStreamClient(
+				new JdkHttpURLConnectionStreamClientConfiguration(
 						getSyncProtocolExecutorService()
 				)
 		);
 	}
 
+	public boolean useOwnHttpServer() {
+		return ownHttpServer;
+	}
+
+	public void setOwnHttpServer(boolean ownHttpServer) {
+		this.ownHttpServer = ownHttpServer;
+	}
+
 	@Override
 	public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
+		if (ownHttpServer) {
+			int engineVersion = CONFIGURATION.getServerEngine();
+			if (engineVersion == 0 || !MediaServer.VERSIONS.containsKey(engineVersion)) {
+				engineVersion = MediaServer.DEFAULT_VERSION;
+			}
+			switch (engineVersion) {
+				case 2:
+					return new NettyStreamServer(
+							new UmsStreamServerConfiguration(
+									networkAddressFactory.getStreamListenPort()
+							)
+					);
+				case 3:
+					return new JdkHttpServerStreamServer(
+							new UmsStreamServerConfiguration(
+									networkAddressFactory.getStreamListenPort()
+							)
+					);
+			}
+		}
 		return new DummyStreamServer(
 				new UmsStreamServerConfiguration(
 						networkAddressFactory.getStreamListenPort()
