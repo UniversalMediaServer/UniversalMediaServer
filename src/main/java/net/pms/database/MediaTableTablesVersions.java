@@ -23,14 +23,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaTableTablesVersions extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTablesVersions.class);
-	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	protected static final String TABLE_NAME = "TABLES_VERSIONS";
 	protected static final String TABLE_NAME_OLD = "TABLES";
 
@@ -42,22 +39,17 @@ public class MediaTableTablesVersions extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (!tableExists(connection, TABLE_NAME)) {
-				//check if old table name
-				if (!tableExists(connection, TABLE_NAME_OLD)) {
-					createTable(connection);
-				} else {
-					//change to new table name, remove name and version columns (reserved sql)
-					LOGGER.trace("Changing table name from \"{}\" to \"{}\"", TABLE_NAME_OLD, TABLE_NAME);
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME_OLD + " ALTER COLUMN `NAME` RENAME TO TABLE_NAME");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME_OLD + " ALTER COLUMN `VERSION` RENAME TO TABLE_VERSION");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME_OLD + " RENAME TO " + TABLE_NAME);
-				}
+		if (!tableExists(connection, TABLE_NAME)) {
+			//check if old table name
+			if (!tableExists(connection, TABLE_NAME_OLD)) {
+				createTable(connection);
+			} else {
+				//change to new table name, remove name and version columns (reserved sql)
+				LOGGER.trace("Changing table name from \"{}\" to \"{}\"", TABLE_NAME_OLD, TABLE_NAME);
+				executeUpdate(connection, "ALTER TABLE " + TABLE_NAME_OLD + " ALTER COLUMN `NAME` RENAME TO TABLE_NAME");
+				executeUpdate(connection, "ALTER TABLE " + TABLE_NAME_OLD + " ALTER COLUMN `VERSION` RENAME TO TABLE_VERSION");
+				executeUpdate(connection, "ALTER TABLE " + TABLE_NAME_OLD + " RENAME TO " + TABLE_NAME);
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 

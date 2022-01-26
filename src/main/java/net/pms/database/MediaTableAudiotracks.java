@@ -26,8 +26,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.UUID;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import static org.apache.commons.lang3.StringUtils.left;
@@ -42,8 +40,6 @@ import org.slf4j.LoggerFactory;
  * done with this class.
  */
 public class MediaTableAudiotracks extends MediaTable {
-
-	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
 	private static final String MBID_RECORD = "MBID_RECORD";
@@ -70,78 +66,65 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
-				if (version == null) {
-					version = 1;
-				}
-				if (version < TABLE_VERSION) {
-					upgradeTable(connection, version);
-				} else if (version > TABLE_VERSION) {
-					LOGGER.warn(LOG_TABLE_NEWER_VERSION, DATABASE_NAME, TABLE_NAME);
-				}
-			} else {
-				createTable(connection);
-				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		if (tableExists(connection, TABLE_NAME)) {
+			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+			if (version == null) {
+				version = 1;
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+			if (version < TABLE_VERSION) {
+				upgradeTable(connection, version);
+			} else if (version > TABLE_VERSION) {
+				LOGGER.warn(LOG_TABLE_NEWER_VERSION, DATABASE_NAME, TABLE_NAME);
+			}
+		} else {
+			createTable(connection);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
+		for (int version = currentVersion; version < TABLE_VERSION; version++) {
+			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+			switch (version) {
+				case 1:
+					if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
+					}
+					if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
+					}
+					break;
+				case 2:
+					if (!isColumnExist(connection, TABLE_NAME, DISC)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + DISC + " INT");
+					}
+					break;
+				case 3:
+					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
+						LOGGER.trace("Deleting index IDXYEAR");
+						executeUpdate(connection, "DROP INDEX IF EXISTS IDXYEAR");
+						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
+						LOGGER.trace("Creating index IDX_AUDIO_YEAR");
+						executeUpdate(connection, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
+					}
+					break;
+				default:
+					throw new IllegalStateException(
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+					);
+			}
+		}
 		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
-				switch (version) {
-					case 1:
-						if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
-						}
-						if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
-						}
-						break;
-					case 2:
-						if (!isColumnExist(connection, TABLE_NAME, DISC)) {
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + DISC + " INT");
-						}
-						break;
-					case 3:
-						if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
-							LOGGER.trace("Deleting index IDXYEAR");
-							executeUpdate(connection, "DROP INDEX IF EXISTS IDXYEAR");
-							LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
-							LOGGER.trace("Creating index IDX_AUDIO_YEAR");
-							executeUpdate(connection, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
-						}
-						break;
-					default:
-						throw new IllegalStateException(
-							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-						);
-				}
-			}
-			try {
-				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-			} catch (SQLException e) {
-				LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
-				LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-				throw new SQLException(e);
-			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		} catch (SQLException e) {
+			LOGGER.error("Failed setting the table version of the {} for {}", TABLE_NAME, e.getMessage());
+			LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
+			throw new SQLException(e);
 		}
 	}
 
-	/**
-	 * Must be called from inside a table lock
-	 */
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
@@ -201,7 +184,6 @@ public class MediaTableAudiotracks extends MediaTable {
 		String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
 			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, MEDIA_YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK, DISC";
 
-		TABLE_LOCK.writeLock().lock();
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
@@ -311,8 +293,6 @@ public class MediaTableAudiotracks extends MediaTable {
 					}
 				}
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
 		}
 	}
 }
