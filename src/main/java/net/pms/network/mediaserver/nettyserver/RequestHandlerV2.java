@@ -332,6 +332,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			} else if (soapAction.contains("CONTENTDIRECTORY:1#SEARCH")) {
 				requestType = "search ";
 			}
+		} else {
+			soapAction = "";
 		}
 		String rendererName;
 		if (renderer != null) {
@@ -355,20 +357,22 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				":" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getPort() + ")";
 		}
 
+		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
 		if (isNotBlank(requestType)) {
 			LOGGER.trace(
 				"Received a {}request from {}:\n\n{}{}",
 				requestType,
 				rendererName,
 				header,
-				StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+				formattedContent
 				);
 		} else { // Trace not supported request type
 			LOGGER.trace(
-				"Received a {}request from {}:\n\n{}.\nRenderer UUID={}",
+				"Received a {}request from {}:\n\n{}{}\nRenderer UUID={}",
 				soapAction,
 				rendererName,
 				header,
+				formattedContent,
 				renderer.uuid
 				);
 		}

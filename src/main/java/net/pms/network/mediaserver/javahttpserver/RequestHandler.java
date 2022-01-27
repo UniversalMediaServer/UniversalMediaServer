@@ -1499,24 +1499,27 @@ public class RequestHandler implements HttpHandler {
 			} else if (soapAction.contains("CONTENTDIRECTORY:1#SEARCH")) {
 				requestType = "search ";
 			}
+		} else {
+			soapAction = "";
 		}
 
 		String rendererName = getRendererName(exchange, renderer);
-
+		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
 		if (StringUtils.isNotBlank(requestType)) {
 			LOGGER.trace(
 					"Received a {}request from {}:\n\n{}{}",
 					requestType,
 					rendererName,
 					header,
-					StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+					formattedContent
 			);
 		} else { // Trace not supported request type
 			LOGGER.trace(
-					"Received a {}request from {}:\n\n{}.\nRenderer UUID={}",
+					"Received a {}request from {}:\n\n{}{}\nRenderer UUID={}",
 					soapAction,
 					rendererName,
 					header,
+					formattedContent,
 					renderer != null ? renderer.uuid : "null"
 			);
 		}
