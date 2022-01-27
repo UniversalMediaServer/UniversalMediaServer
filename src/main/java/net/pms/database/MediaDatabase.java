@@ -23,8 +23,6 @@ import java.sql.*;
 import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.dlna.RootFolder;
 
 /**
@@ -35,7 +33,6 @@ import net.pms.dlna.RootFolder;
  */
 public class MediaDatabase extends Database {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
-	private static final ReadWriteLock DATABASE_LOCK = new ReentrantReadWriteLock(true);
 	public static final String DATABASE_NAME = "medias";
 	/**
 	 * Pointer to the instanciated MediaDatabase.
@@ -80,48 +77,46 @@ public class MediaDatabase extends Database {
 	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public final void checkTables(boolean force) throws SQLException {
-		synchronized (DATABASE_LOCK) {
-			if (tablesChecked && !force) {
-				LOGGER.debug("Database tables have already been checked, aborting check");
-			} else {
-				LOGGER.debug("Starting check of database tables");
-				try (Connection connection = getConnection()) {
-					//Tables Versions (need to be first)
-					MediaTableTablesVersions.checkTable(connection);
+	public synchronized final void checkTables(boolean force) throws SQLException {
+		if (tablesChecked && !force) {
+			LOGGER.debug("Database tables have already been checked, aborting check");
+		} else {
+			LOGGER.debug("Starting check of database tables");
+			try (Connection connection = getConnection()) {
+				//Tables Versions (need to be first)
+				MediaTableTablesVersions.checkTable(connection);
 
-					// Files and metadata
-					MediaTableMetadata.checkTable(connection);
-					MediaTableFiles.checkTable(connection);
-					MediaTableSubtracks.checkTable(connection);
-					MediaTableRegexpRules.checkTable(connection);
+				// Files and metadata
+				MediaTableMetadata.checkTable(connection);
+				MediaTableFiles.checkTable(connection);
+				MediaTableSubtracks.checkTable(connection);
+				MediaTableRegexpRules.checkTable(connection);
 
-					MediaTableMusicBrainzReleases.checkTable(connection);
-					MediaTableCoverArtArchive.checkTable(connection);
-					MediaTableFilesStatus.checkTable(connection);
-					MediaTableThumbnails.checkTable(connection);
+				MediaTableMusicBrainzReleases.checkTable(connection);
+				MediaTableCoverArtArchive.checkTable(connection);
+				MediaTableFilesStatus.checkTable(connection);
+				MediaTableThumbnails.checkTable(connection);
 
-					MediaTableTVSeries.checkTable(connection);
-					MediaTableFailedLookups.checkTable(connection);
+				MediaTableTVSeries.checkTable(connection);
+				MediaTableFailedLookups.checkTable(connection);
 
-					// Video metadata tables
-					MediaTableVideoMetadataActors.checkTable(connection);
-					MediaTableVideoMetadataAwards.checkTable(connection);
-					MediaTableVideoMetadataCountries.checkTable(connection);
-					MediaTableVideoMetadataDirectors.checkTable(connection);
-					MediaTableVideoMetadataIMDbRating.checkTable(connection);
-					MediaTableVideoMetadataGenres.checkTable(connection);
-					MediaTableVideoMetadataPosters.checkTable(connection);
-					MediaTableVideoMetadataProduction.checkTable(connection);
-					MediaTableVideoMetadataRated.checkTable(connection);
-					MediaTableVideoMetadataRatings.checkTable(connection);
-					MediaTableVideoMetadataReleased.checkTable(connection);
+				// Video metadata tables
+				MediaTableVideoMetadataActors.checkTable(connection);
+				MediaTableVideoMetadataAwards.checkTable(connection);
+				MediaTableVideoMetadataCountries.checkTable(connection);
+				MediaTableVideoMetadataDirectors.checkTable(connection);
+				MediaTableVideoMetadataIMDbRating.checkTable(connection);
+				MediaTableVideoMetadataGenres.checkTable(connection);
+				MediaTableVideoMetadataPosters.checkTable(connection);
+				MediaTableVideoMetadataProduction.checkTable(connection);
+				MediaTableVideoMetadataRated.checkTable(connection);
+				MediaTableVideoMetadataRatings.checkTable(connection);
+				MediaTableVideoMetadataReleased.checkTable(connection);
 
-					// Audio Metadata
-					MediaTableAudiotracks.checkTable(connection);
-				}
-				tablesChecked = true;
+				// Audio Metadata
+				MediaTableAudiotracks.checkTable(connection);
 			}
+			tablesChecked = true;
 		}
 	}
 
@@ -178,23 +173,19 @@ public class MediaDatabase extends Database {
 	 *
 	 * @return {@link net.pms.database.MediaDatabase}
 	 */
-	public static MediaDatabase get() {
-		synchronized (DATABASE_LOCK) {
-			if (instance == null) {
-				instance = new MediaDatabase();
-			}
-			return instance;
+	public synchronized static MediaDatabase get() {
+		if (instance == null) {
+			instance = new MediaDatabase();
 		}
+		return instance;
 	}
 
 	/**
 	 * Initialize the MediaDatabase instance.
 	 * Will initialize the database instance as needed.
 	 */
-	public static void init() {
-		synchronized (DATABASE_LOCK) {
-			get().init(false);
-		}
+	public synchronized static void init() {
+		get().init(false);
 	}
 
 	/**
@@ -202,10 +193,8 @@ public class MediaDatabase extends Database {
 	 * Will initialize the database instance as needed.
 	 * Will check all tables.
 	 */
-	public static void initForce() {
-		synchronized (DATABASE_LOCK) {
-			get().init(true);
-		}
+	public synchronized static void initForce() {
+		get().init(true);
 	}
 
 	/**
@@ -251,11 +240,9 @@ public class MediaDatabase extends Database {
 	 * Recreate all tables related to media cache except files status.
 	 * @throws java.sql.SQLException
 	 */
-	public static void resetCache() throws SQLException {
-		synchronized (DATABASE_LOCK) {
-			if (instance != null) {
-				instance.reInitTablesExceptFilesStatus();
-			}
+	public synchronized static void resetCache() throws SQLException {
+		if (instance != null) {
+			instance.reInitTablesExceptFilesStatus();
 		}
 	}
 
@@ -273,11 +260,9 @@ public class MediaDatabase extends Database {
 	/**
 	 * Shutdown the MediaDatabase database.
 	 */
-	public static void shutdown() {
-		synchronized (DATABASE_LOCK) {
-			if (instance != null) {
-				instance.close();
-			}
+	public synchronized static void shutdown() {
+		if (instance != null) {
+			instance.close();
 		}
 	}
 

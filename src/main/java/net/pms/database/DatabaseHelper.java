@@ -307,8 +307,6 @@ public class DatabaseHelper {
 	/**
 	 * Check if the column name exists in the database.
 	 *
-	 * Must be called from inside a table lock.
-	 *
 	 * @param connection the {@link Connection} to use.
 	 * @param table The table name where the column name should exist.
 	 * @param column The name of the column.

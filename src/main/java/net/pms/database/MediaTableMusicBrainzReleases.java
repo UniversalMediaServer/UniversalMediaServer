@@ -25,8 +25,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.util.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
@@ -42,14 +40,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @author Nadahar
  */
 public final class MediaTableMusicBrainzReleases extends MediaTable {
-	/**
-	 * TABLE_LOCK is used to synchronize database access on table level.
-	 * H2 calls are thread safe, but the database's multithreading support is
-	 * described as experimental. This lock therefore used in addition to SQL
-	 * transaction locks. All access to this table must be guarded with this
-	 * lock. The lock allows parallel reads.
-	 */
-	private static final ReadWriteLock TABLE_LOCK = new ReentrantReadWriteLock();
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMusicBrainzReleases.class);
 	public static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASES";
 
@@ -69,28 +59,23 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * @throws SQLException
 	 */
 	protected static void checkTable(final Connection connection) throws SQLException {
-		TABLE_LOCK.writeLock().lock();
-		try {
-			if (tableExists(connection, TABLE_NAME)) {
-				Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
-				if (version != null) {
-					if (version < TABLE_VERSION) {
-						upgradeTable(connection, version);
-					} else if (version > TABLE_VERSION) {
-						LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
-					}
-				} else {
-					LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
-					dropTable(connection, TABLE_NAME);
-					createTable(connection);
-					MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+		if (tableExists(connection, TABLE_NAME)) {
+			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
+			if (version != null) {
+				if (version < TABLE_VERSION) {
+					upgradeTable(connection, version);
+				} else if (version > TABLE_VERSION) {
+					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 				}
 			} else {
+				LOGGER.warn(LOG_TABLE_UNKNOWN_VERSION_RECREATE, DATABASE_NAME, TABLE_NAME);
+				dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 			}
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
+		} else {
+			createTable(connection);
+			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
 
@@ -106,48 +91,40 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 */
 	private static void upgradeTable(final Connection connection, final int currentVersion) throws SQLException {
 		LOGGER.info(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, TABLE_VERSION);
-		TABLE_LOCK.writeLock().lock();
-		try {
-			for (int version = currentVersion; version < TABLE_VERSION; version++) {
-				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
-				switch (version) {
-					case 1:
-						// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
-						Statement statement = connection.createStatement();
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
-						);
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
-						);
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
-						);
-						statement.executeUpdate(
-							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
-						);
-						break;
-					case 2:
-						if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
-							LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
-						}
-						break;
-					default:
-						throw new IllegalStateException(
-							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-						);
-				}
+		for (int version = currentVersion; version < TABLE_VERSION; version++) {
+			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
+			switch (version) {
+				case 1:
+					// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
+					Statement statement = connection.createStatement();
+					statement.executeUpdate(
+						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
+					);
+					statement.executeUpdate(
+						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
+					);
+					statement.executeUpdate(
+						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
+					);
+					statement.executeUpdate(
+						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
+					);
+					break;
+				case 2:
+					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
+						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
+					}
+					break;
+				default:
+					throw new IllegalStateException(
+						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+					);
 			}
-			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-		} finally {
-			TABLE_LOCK.writeLock().unlock();
 		}
+		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 	}
 
-	/**
-	 * Must be called from inside a table lock
-	 */
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
@@ -275,7 +252,6 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
 
-			TABLE_LOCK.writeLock().lock();
 			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				connection.setAutoCommit(false);
 				try (ResultSet result = statement.executeQuery(query)) {
@@ -338,8 +314,6 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				} finally {
 					connection.commit();
 				}
-			} finally {
-				TABLE_LOCK.writeLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing Music Brainz ID", mBID, TABLE_NAME, tagInfo, e.getMessage());
@@ -367,17 +341,15 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				LOGGER.trace("Searching for release MBID with \"{}\"", query);
 			}
 
-			TABLE_LOCK.readLock().lock();
-			try (Statement statement = connection.createStatement()) {
-				try (ResultSet resultSet = statement.executeQuery(query)) {
-					if (resultSet.next()) {
-						result = new MusicBrainzReleasesResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getString("MBID"));
-					} else {
-						result = new MusicBrainzReleasesResult(false, null, null);
-					}
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query)
+			) {
+				if (resultSet.next()) {
+					result = new MusicBrainzReleasesResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getString("MBID"));
+				} else {
+					result = new MusicBrainzReleasesResult(false, null, null);
 				}
-			} finally {
-				TABLE_LOCK.readLock().unlock();
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up Music Brainz ID", TABLE_NAME, tagInfo, e.getMessage());
