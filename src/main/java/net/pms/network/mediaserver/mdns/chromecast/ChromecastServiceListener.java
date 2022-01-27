@@ -105,6 +105,7 @@ public class ChromecastServiceListener implements ServiceListener {
 
 	@Override
 	public void serviceResolved(ServiceEvent event) {
+		//ChromeCast service does not resolve.
 	}
 
 	public static void addService(JmDNS mDNS) throws IOException {

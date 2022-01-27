@@ -48,7 +48,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 	}
 
 	public RestrictedFileSystemView(File defaultDirectory) {
-		defaultDirectory = defaultDirectory;
+		this.defaultDirectory = defaultDirectory;
 	}
 
 	/**
@@ -317,7 +317,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 			}
 		}
 
-		return files.toArray(new File[files.size()]);
+		return files.toArray(new File[0]);
 	}
 
 	/**

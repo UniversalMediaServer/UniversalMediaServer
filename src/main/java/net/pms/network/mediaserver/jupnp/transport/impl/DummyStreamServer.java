@@ -35,6 +35,7 @@ public class DummyStreamServer implements StreamServer {
 
 	@Override
 	public void init(InetAddress bindAddress, Router router) throws InitializationException {
+		//DummyStreamServer have nothing to init.
 	}
 
 	@Override
@@ -44,6 +45,7 @@ public class DummyStreamServer implements StreamServer {
 
 	@Override
 	public void stop() {
+		//DummyStreamServer have nothing to stop.
 	}
 
 	@Override
@@ -53,6 +55,7 @@ public class DummyStreamServer implements StreamServer {
 
 	@Override
 	public void run() {
+		//DummyStreamServer have nothing to run.
 	}
 
 }

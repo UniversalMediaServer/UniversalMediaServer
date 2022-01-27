@@ -32,7 +32,7 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 
 	private ServerSocketChannel serverSocketChannel;
 	private ServerSocket serverSocket;
-	private boolean stop;
+	private boolean shouldStop;
 	private Thread runnable;
 
 	public SocketChannelServer(InetAddress inetAddress, int port) {
@@ -41,6 +41,7 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 
 	@Override
 	public boolean start() throws IOException {
+		shouldStop = false;
 		LOGGER.info("Starting HTTP server (SocketChannel) on host {} and port {}...", hostname, port);
 		InetSocketAddress address = new InetSocketAddress(serverInetAddress, port);
 
@@ -70,6 +71,7 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 	@Override
 	public synchronized void stop() {
 		LOGGER.info("Stopping HTTP server (SocketChannel) on host {} and port {}", hostname, localPort);
+		shouldStop = true;
 
 		if (runnable != null) { // HTTP Engine V1
 			runnable.interrupt();
@@ -91,7 +93,7 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 	public void run() {
 		LOGGER.trace("Starting Runnable for HTTP server (SocketChannel) on host {} and port {}", hostname, localPort);
 		int count = 0;
-		while (!stop) {
+		while (!shouldStop) {
 			try {
 				Socket socket = serverSocket.accept();
 				InetAddress inetAddress = socket.getInetAddress();
@@ -116,16 +118,16 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 					thread.start();
 				}
 			} catch (ClosedByInterruptException e) {
-				stop = true;
+				shouldStop = true;
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			} finally {
 				try {
-					if (stop && serverSocket != null) {
+					if (shouldStop && serverSocket != null) {
 						serverSocket.close();
 					}
 
-					if (stop && serverSocketChannel != null) {
+					if (shouldStop && serverSocketChannel != null) {
 						serverSocketChannel.close();
 					}
 				} catch (IOException e) {

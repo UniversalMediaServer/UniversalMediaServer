@@ -46,7 +46,7 @@ public class Renderer {
 	public final HashMap<String, String> data;
 	public Map<String, String> details;
 	public LinkedHashSet<ActionListener> listeners;
-	private Thread monitor;
+	private Thread monitorThread;
 	public volatile boolean active, renew;
 	public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
 	public volatile PanasonicDmpProfiles panasonicDmpProfiles;
@@ -65,7 +65,7 @@ public class Renderer {
 		details = null;
 		listeners = new LinkedHashSet<>();
 		event = new ActionEvent(this, 0, null);
-		monitor = null;
+		monitorThread = null;
 		renew = false;
 		data.put(TRANSPORT_STATE, STOPPED);
 	}
@@ -73,7 +73,7 @@ public class Renderer {
 	public void alert() {
 		String transportState = data.get(TRANSPORT_STATE);
 		if (UPNPControl.isUpnpDevice(uuid) &&
-				(monitor == null || !monitor.isAlive()) &&
+				(monitorThread == null || !monitorThread.isAlive()) &&
 				(PLAYING.equals(transportState) ||
 				RECORDING.equals(transportState) ||
 				TRANSITIONING.equals(transportState))) {
@@ -95,7 +95,7 @@ public class Renderer {
 
 	public void monitor() {
 		final Device d = UPNPControl.getDevice(uuid);
-		monitor = new Thread(() -> {
+		monitorThread = new Thread(() -> {
 			String id = data.get(INSTANCE_ID);
 			String transportState = data.get(TRANSPORT_STATE);
 			while (active &&
@@ -119,7 +119,7 @@ public class Renderer {
 				alert();
 			}
 		}, "UPNP-" + d.getDetails().getFriendlyName());
-		monitor.start();
+		monitorThread.start();
 	}
 
 	public boolean hasPlayControls() {
