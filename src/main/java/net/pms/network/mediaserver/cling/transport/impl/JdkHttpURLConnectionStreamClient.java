@@ -48,7 +48,7 @@ import org.seamless.util.io.IO;
 
 public class JdkHttpURLConnectionStreamClient implements StreamClient {
 
-	private static final Logger LOGGER = Logger.getLogger(UpnpServiceImpl.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(StreamClient.class.getName());
 
 	protected final JdkHttpURLConnectionStreamClientConfiguration configuration;
 
