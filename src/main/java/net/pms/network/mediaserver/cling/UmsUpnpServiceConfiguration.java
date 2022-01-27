@@ -21,15 +21,15 @@ package net.pms.network.mediaserver.cling;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.cling.transport.impl.ApacheStreamClient;
+import net.pms.network.mediaserver.cling.transport.impl.JdkHttpURLConnectionStreamClient;
 import net.pms.network.mediaserver.cling.transport.impl.EmptyStreamServer;
+import net.pms.network.mediaserver.cling.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
 import net.pms.network.mediaserver.cling.transport.impl.UmsNetworkAddressFactory;
 import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.model.ServerClientTokens;
 import org.fourthline.cling.model.message.UpnpHeaders;
 import org.fourthline.cling.model.message.header.UpnpHeader;
 import org.fourthline.cling.model.meta.RemoteDeviceIdentity;
-import org.fourthline.cling.transport.impl.StreamClientConfigurationImpl;
 import org.fourthline.cling.transport.impl.StreamServerConfigurationImpl;
 import org.fourthline.cling.transport.spi.NetworkAddressFactory;
 import org.fourthline.cling.transport.spi.StreamClient;
@@ -59,8 +59,8 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public StreamClient createStreamClient() {
-		return new ApacheStreamClient(
-				new StreamClientConfigurationImpl(
+		return new JdkHttpURLConnectionStreamClient(
+				new JdkHttpURLConnectionStreamClientConfiguration(
 						getSyncProtocolExecutorService()
 				)
 		);
