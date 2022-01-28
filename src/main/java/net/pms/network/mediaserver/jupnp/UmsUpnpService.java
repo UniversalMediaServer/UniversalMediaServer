@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UmsUpnpService extends UpnpServiceImpl {
 
+	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UmsUpnpService.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final LocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
@@ -50,7 +51,8 @@ public class UmsUpnpService extends UpnpServiceImpl {
 		super(new UmsUpnpServiceConfiguration(ownHttpServer));
 		this.addDevice = addDevice;
 		//don't log org.jupnp by default to reflext Cling not log to UMS.
-		if (!CONFIGURATION.isUpnpDebug()) {
+		if (!LOGGER.isTraceEnabled() && !CONFIGURATION.isUpnpDebug()) {
+			LOGGER.debug("Upnp set in silent log mode");
 			LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 			Logger rootLogger = loggerContext.getLogger("org.jupnp");
 			rootLogger.setLevel(Level.OFF);
