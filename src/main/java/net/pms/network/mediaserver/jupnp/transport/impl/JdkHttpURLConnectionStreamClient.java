@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.Proxy;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -100,6 +101,12 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 			if (ex instanceof SocketTimeoutException) {
 				LOGGER.info(
 						"Timeout of {} seconds while waiting for HTTP request to complete, aborting: {}", getConfiguration().getTimeoutSeconds(), requestMessage);
+				return null;
+			}
+
+			if (ex instanceof SocketException) {
+				LOGGER.info(
+						"SocketException while HTTP request {} was not complete: {}", requestMessage, ex.getMessage());
 				return null;
 			}
 

@@ -27,13 +27,14 @@ import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServe
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
+import net.pms.network.mediaserver.jupnp.transport.impl.UMSDatagramProcessor;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsStreamServerConfiguration;
 import org.jupnp.DefaultUpnpServiceConfiguration;
-import org.jupnp.model.ServerClientTokens;
 import org.jupnp.model.message.UpnpHeaders;
 import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.model.meta.RemoteDeviceIdentity;
+import org.jupnp.transport.spi.DatagramProcessor;
 import org.jupnp.transport.spi.NetworkAddressFactory;
 import org.jupnp.transport.spi.StreamClient;
 import org.jupnp.transport.spi.StreamServer;
@@ -49,7 +50,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		super();
 		this.ownHttpServer = ownHttpServer;
 		umsHeaders = new UpnpHeaders();
-		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " " + new ServerClientTokens());
+		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " UPnP/1.0 DLNADOC/1.50 (" + System.getProperty("os.name").replace(" ", "_") + ")");
 	}
 
 	@Override
@@ -113,4 +114,8 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		return new UmsNetworkAddressFactory();
 	}
 
+	@Override
+	protected DatagramProcessor createDatagramProcessor() {
+		return new UMSDatagramProcessor();
+	}
 }
