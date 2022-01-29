@@ -22,17 +22,22 @@ package net.pms.network.webinterfaceserver.handlers;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
+import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
@@ -41,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public class MediaHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaHandler.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServer parent;
 	private final String path;
@@ -88,7 +94,7 @@ public class MediaHandler implements HttpHandler {
 			DLNAResource resource = root.getDLNAResource(id, defaultRenderer);
 			if (resource == null) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
 			if (!resource.isCodeValid(resource)) {
@@ -146,24 +152,25 @@ public class MediaHandler implements HttpHandler {
 			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
-			if (range.getEnd() == 0) {
-				// For web resources actual length may be unknown until we open the stream
-				range.setEnd(resource.length());
+			if (!HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
+				if (range.getEnd() == 0) {
+					// For web resources actual length may be unknown until we open the stream
+					range.setEnd(resource.length());
+				}
+				Headers headers = httpExchange.getResponseHeaders();
+				headers.add("Content-Type", mimeType);
+				headers.add("Accept-Ranges", "bytes");
+				long end = range.getEnd();
+				long start = range.getStart();
+				String rStr = start + "-" + end + "/*";
+				headers.add("Content-Range", "bytes " + rStr);
+				if (start != 0) {
+					code = 206;
+				}
+				headers.add("Server", PMS.get().getServerName());
+				headers.add("Connection", "keep-alive");
+				httpExchange.sendResponseHeaders(code, 0);
 			}
-			Headers headers = httpExchange.getResponseHeaders();
-			headers.add("Content-Type", mimeType);
-			headers.add("Accept-Ranges", "bytes");
-			long end = range.getEnd();
-			long start = range.getStart();
-			String rStr = start + "-" + end + "/*";
-			headers.add("Content-Range", "bytes " + rStr);
-			if (start != 0) {
-				code = 206;
-			}
-
-			headers.add("Server", PMS.get().getServerName());
-			headers.add("Connection", "keep-alive");
-			httpExchange.sendResponseHeaders(code, 0);
 			OutputStream os = httpExchange.getResponseBody();
 			if (render != null) {
 				render.start(resource);
@@ -171,7 +178,22 @@ public class MediaHandler implements HttpHandler {
 			if (sid != null) {
 				resource.setMediaSubtitle(sid);
 			}
-			WebInterfaceServerUtil.dump(in, os);
+			if (!render.getVideoMimeType().equals(HTTPResource.HLS_TYPEMIME)) {
+				WebInterfaceServerUtil.dump(in, os);
+			} else {
+				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + id + "-playlist.m3u8";
+				File playlist = new File(playlistPath);
+
+				StringBuilder resultStringBuilder = new StringBuilder();
+				try (BufferedReader br = new BufferedReader(new FileReader(playlist))) {
+					String line;
+					while ((line = br.readLine()) != null) {
+						resultStringBuilder.append(line).append("\n");
+					}
+				}
+				String response = resultStringBuilder.toString();
+				WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
+			}
 		} catch (IOException e) {
 			throw e;
 		} catch (InterruptedException e) {

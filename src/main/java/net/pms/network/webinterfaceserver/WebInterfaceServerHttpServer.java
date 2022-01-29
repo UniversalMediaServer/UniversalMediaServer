@@ -52,6 +52,7 @@ import net.pms.network.webinterfaceserver.handlers.ControlHandler;
 import net.pms.network.webinterfaceserver.handlers.DocHandler;
 import net.pms.network.webinterfaceserver.handlers.EventStreamHandler;
 import net.pms.network.webinterfaceserver.handlers.FileHandler;
+import net.pms.network.webinterfaceserver.handlers.LocalTransportStreamHandler;
 import net.pms.network.webinterfaceserver.handlers.MediaHandler;
 import net.pms.network.webinterfaceserver.handlers.PlayHandler;
 import net.pms.network.webinterfaceserver.handlers.PollHandler;
@@ -115,6 +116,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/", new StartHandler(this));
 			addCtx("/browse", new BrowseHandler(this));
 			PlayHandler playHandler = new PlayHandler(this);
+			addCtx("/hls", playHandler);
 			addCtx("/play", playHandler);
 			addCtx("/playstatus", playHandler);
 			addCtx("/playlist", playHandler);
@@ -123,6 +125,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/fmedia", new MediaHandler(this, true));
 			addCtx("/thumb", new ThumbHandler(this));
 			addCtx("/raw", new RawHandler(this));
+			addCtx("/ts", new LocalTransportStreamHandler());
 			addCtx("/files", new FileHandler(this));
 			addCtx("/doc", new DocHandler(this));
 			addCtx("/poll", new PollHandler(this));
