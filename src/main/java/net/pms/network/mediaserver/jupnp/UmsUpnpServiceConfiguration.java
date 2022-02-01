@@ -22,7 +22,6 @@ package net.pms.network.mediaserver.jupnp;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.jupnp.transport.impl.DummyStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
