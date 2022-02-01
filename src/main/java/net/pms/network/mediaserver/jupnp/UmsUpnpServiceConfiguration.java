@@ -102,10 +102,8 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 					);
 			}
 		}
-		return new DummyStreamServer(
-				new UmsStreamServerConfiguration(
-						networkAddressFactory.getStreamListenPort()
-				)
+		return new JdkHttpServerStreamServer(
+				new UmsStreamServerConfiguration()
 		);
 	}
 

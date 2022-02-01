@@ -747,6 +747,7 @@ public class UPNPControl {
 				try {
 					db = XmlUtils.xxeDisabledDocumentBuilderFactory().newDocumentBuilder();
 				} catch (ParserConfigurationException ex) {
+					LOGGER.debug("Error creating xml2d parser " + ex);
 					return;
 				}
 			}
