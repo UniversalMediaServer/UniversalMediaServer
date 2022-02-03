@@ -82,11 +82,11 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 			socketAddress = new InetSocketAddress(bindAddress, configuration.getListenPort());
 
 			ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
-			allChannels = new DefaultChannelGroup("HTTPServer");
+			allChannels = new DefaultChannelGroup("JUPnP-HTTPServer");
 			ChannelFactory factory = new NioServerSocketChannelFactory(
-				Executors.newCachedThreadPool(new NettyBossThreadFactory()),
-				Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
-			);
+					Executors.newCachedThreadPool(new NettyBossThreadFactory()),
+					Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
+					);
 
 			bootstrap = new ServerBootstrap(factory);
 			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(router);
@@ -107,6 +107,9 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 	@Override
 	synchronized public int getPort() {
+		if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress) {
+			return ((InetSocketAddress) channel.getLocalAddress()).getPort();
+		}
 		return socketAddress.getPort();
 	}
 
@@ -208,13 +211,13 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		private final AtomicInteger threadNumber = new AtomicInteger(1);
 
 		NettyWorkerThreadFactory() {
-			group = new ThreadGroup("Netty worker group");
+			group = new ThreadGroup("JUPnP Netty worker group");
 			group.setDaemon(false);
 		}
 
 		@Override
 		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "HTTPv2 Request Worker " + threadNumber.getAndIncrement());
+			Thread thread = new Thread(group, runnable, "jupnp-netty-worker-" + threadNumber.getAndIncrement());
 			if (thread.isDaemon()) {
 				thread.setDaemon(false);
 			}
@@ -233,13 +236,13 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		private final AtomicInteger threadNumber = new AtomicInteger(1);
 
 		NettyBossThreadFactory() {
-			group = new ThreadGroup("Netty boss group");
+			group = new ThreadGroup("JUPnP Netty boss group");
 			group.setDaemon(false);
 		}
 
 		@Override
 		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "HTTPv2 Request Handler " + threadNumber.getAndIncrement());
+			Thread thread = new Thread(group, runnable, "jupnp-netty-handler-" + threadNumber.getAndIncrement());
 			if (thread.isDaemon()) {
 				thread.setDaemon(false);
 			}

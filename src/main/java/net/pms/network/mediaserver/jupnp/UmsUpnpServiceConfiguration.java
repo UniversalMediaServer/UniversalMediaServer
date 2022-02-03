@@ -19,6 +19,14 @@
  */
 package net.pms.network.mediaserver.jupnp;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
@@ -37,12 +45,27 @@ import org.jupnp.transport.spi.DatagramProcessor;
 import org.jupnp.transport.spi.NetworkAddressFactory;
 import org.jupnp.transport.spi.StreamClient;
 import org.jupnp.transport.spi.StreamServer;
+import org.jupnp.util.Exceptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final int CORE_THREAD_POOL_SIZE = 16;
+	private static final int THREAD_POOL_SIZE = 200;
+	private static final int THREAD_QUEUE_SIZE = 1000;
+	private static final boolean THREAD_POOL_CORE_TIMEOUT = true;
 
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
+	private final ExecutorService multicastReceiverExecutorService;
+	private final ExecutorService datagramIOExecutorService;
+	private final ExecutorService streamServerExecutorService;
+	private final ExecutorService syncProtocolExecutorService;
+	private final ExecutorService asyncProtocolExecutorService;
+	private final ExecutorService remoteListenerExecutorService;
+	private final ExecutorService registryListenerExecutorService;
 	private final UpnpHeaders umsHeaders;
+
 	private boolean ownHttpServer = false;
 
 	public UmsUpnpServiceConfiguration(boolean ownHttpServer) {
@@ -50,6 +73,13 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		this.ownHttpServer = ownHttpServer;
 		umsHeaders = new UpnpHeaders();
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " UPnP/1.0 DLNADOC/1.50 (" + System.getProperty("os.name").replace(" ", "_") + ")");
+		multicastReceiverExecutorService = createDefaultExecutorService("multicast-receiver");
+		datagramIOExecutorService = createDefaultExecutorService("datagram-io");
+		streamServerExecutorService = createDefaultExecutorService("stream-server");
+		syncProtocolExecutorService = createDefaultExecutorService("sync-protocol");
+		asyncProtocolExecutorService = createDefaultExecutorService("async-protocol");
+		remoteListenerExecutorService = createDefaultExecutorService("remote-listener");
+		registryListenerExecutorService = createDefaultExecutorService("registry-listener");
 	}
 
 	@Override
@@ -115,4 +145,156 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 	protected DatagramProcessor createDatagramProcessor() {
 		return new UMSDatagramProcessor();
 	}
+
+	//use defaultExecutorService for registryMaintainer
+	protected ExecutorService createDefaultExecutorService() {
+		return new JUPnPExecutor("registry-maintainer");
+	}
+
+	private ExecutorService createDefaultExecutorService(String name) {
+		return new JUPnPExecutor(name);
+	}
+
+	@Override
+	public ExecutorService getMulticastReceiverExecutor() {
+		return multicastReceiverExecutorService;
+	}
+
+	@Override
+	public ExecutorService getDatagramIOExecutor() {
+		return datagramIOExecutorService;
+	}
+
+	@Override
+	public ExecutorService getAsyncProtocolExecutor() {
+		return asyncProtocolExecutorService;
+	}
+
+	@Override
+	public ExecutorService getSyncProtocolExecutorService() {
+		return syncProtocolExecutorService;
+	}
+
+	@Override
+	public ExecutorService getStreamServerExecutorService() {
+		return streamServerExecutorService;
+	}
+
+	@Override
+	public Executor getRegistryMaintainerExecutor() {
+		return getDefaultExecutorService();
+	}
+
+	@Override
+	public Executor getRegistryListenerExecutor() {
+		return registryListenerExecutorService;
+	}
+
+	@Override
+	public Executor getRemoteListenerExecutor() {
+		return remoteListenerExecutorService;
+	}
+
+	@Override
+	public void shutdown() {
+		LOGGER.trace("Shutting down registry maintainer executor service");
+		getDefaultExecutorService().shutdownNow();
+		LOGGER.trace("Shutting down multicast receiver executor service");
+		multicastReceiverExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down registry maintainer executor service");
+		datagramIOExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down datagram IO executor service");
+		streamServerExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down sync protocol executor service");
+		syncProtocolExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down async protocol executor service");
+		asyncProtocolExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down remote listener executor service");
+		remoteListenerExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down registry listener executor service");
+		registryListenerExecutorService.shutdownNow();
+	}
+
+	public static class JUPnPExecutor extends ThreadPoolExecutor {
+
+		public JUPnPExecutor(String name) {
+			this(new JUPnPThreadFactory(name),
+					new ThreadPoolExecutor.DiscardPolicy() {
+				// The pool is bounded and rejections will happen during shutdown
+				@Override
+				public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
+					// Log and discard
+					LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class).warn("Thread pool rejected execution of " + runnable.getClass());
+					super.rejectedExecution(runnable, threadPoolExecutor);
+				}
+			}
+			);
+		}
+
+		public JUPnPExecutor(ThreadFactory threadFactory, RejectedExecutionHandler rejectedHandler) {
+			// This is the same as Executors.newCachedThreadPool
+			super(CORE_THREAD_POOL_SIZE,
+					THREAD_POOL_SIZE,
+					10L,
+					TimeUnit.SECONDS,
+					new ArrayBlockingQueue<Runnable>(THREAD_QUEUE_SIZE),
+					threadFactory,
+					rejectedHandler
+			);
+			allowCoreThreadTimeOut();
+		}
+
+		private void allowCoreThreadTimeOut() {
+			allowCoreThreadTimeOut(THREAD_POOL_CORE_TIMEOUT);
+		}
+
+		@Override
+		protected void afterExecute(Runnable runnable, Throwable throwable) {
+			super.afterExecute(runnable, throwable);
+			if (throwable != null) {
+				Throwable cause = Exceptions.unwrap(throwable);
+				if (cause instanceof InterruptedException) {
+					// Ignore this, might happen when we shutdownNow() the executor. We can't
+					// log at this point as the logging system might be stopped already (e.g.
+					// if it's a CDI component).
+					return;
+				}
+				// Log only
+				LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class).warn("Thread terminated " + runnable + " abruptly with exception: " + throwable);
+				LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class).warn("Root cause: " + cause);
+			}
+		}
+	}
+
+	// Executors.DefaultThreadFactory is package visibility (...no touching, you unworthy JDK user!)
+	public static class JUPnPThreadFactory implements ThreadFactory {
+
+		protected final ThreadGroup group;
+		protected final AtomicInteger threadNumber = new AtomicInteger(1);
+		protected final String namePrefix;
+
+		public JUPnPThreadFactory(String name) {
+			namePrefix = "jupnp-" + name + "-";
+			SecurityManager s = System.getSecurityManager();
+			group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+		}
+
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread t = new Thread(
+					group, r,
+					namePrefix + threadNumber.getAndIncrement(),
+					0
+			);
+			if (t.isDaemon()) {
+				t.setDaemon(false);
+			}
+			if (t.getPriority() != Thread.NORM_PRIORITY) {
+				t.setPriority(Thread.NORM_PRIORITY);
+			}
+
+			return t;
+		}
+	}
+
 }
