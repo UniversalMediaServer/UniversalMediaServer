@@ -475,18 +475,18 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link org.seamless.util.MimeType} from the
+	 * Creates a new {@link org.jupnp.util.MimeType} from the
 	 * {@link MimeType} of this {@link ProtocolInfo}. To get the
 	 * {@link MimeType}, use {@link #getMimeType()} instead.
 	 *
-	 * @return The corresponding {@link org.seamless.util.MimeType}.
+	 * @return The corresponding {@link org.jupnp.util.MimeType}.
 	 * @throws IllegalArgumentException if
-	 *             {@link org.seamless.util.MimeType#valueOf()} can't parse this
+	 *             {@link org.jupnp.util.MimeType#valueOf()} can't parse this
 	 *             {@link MimeType}.
 	 * @see #getMimeType()
 	 */
-	public org.seamless.util.MimeType getSeamlessMimeType() throws IllegalArgumentException {
-		return org.seamless.util.MimeType.valueOf(mimeType.toString());
+	public org.jupnp.util.MimeType getSeamlessMimeType() throws IllegalArgumentException {
+		return org.jupnp.util.MimeType.valueOf(mimeType.toString());
 	}
 
 	/**

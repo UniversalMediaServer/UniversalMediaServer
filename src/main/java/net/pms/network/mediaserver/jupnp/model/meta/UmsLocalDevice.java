@@ -49,7 +49,7 @@ import org.jupnp.support.model.Protocol;
 import org.jupnp.support.model.ProtocolInfo;
 import org.jupnp.support.model.ProtocolInfos;
 import org.jupnp.support.xmicrosoft.AbstractMediaReceiverRegistrarService;
-import org.seamless.util.MimeType;
+import org.jupnp.util.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

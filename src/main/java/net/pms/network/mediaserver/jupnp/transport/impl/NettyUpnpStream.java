@@ -45,10 +45,9 @@ import org.jupnp.model.message.UpnpMessage;
 import org.jupnp.model.message.UpnpRequest;
 import org.jupnp.protocol.ProtocolFactory;
 import org.jupnp.transport.spi.UpnpStream;
-import org.seamless.util.Exceptions;
+import org.jupnp.util.Exceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class NettyUpnpStream extends UpnpStream {
 	//base the logger inside org.jupnp.transport.spi.UpnpStream to reflect old behavior
