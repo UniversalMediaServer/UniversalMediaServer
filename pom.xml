@@ -123,11 +123,6 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-		<!-- jaudiotagger repository made by goxr3plus -->
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-		</repository>
 	</repositories>
 	<dependencies>
 		<!-- TODO this can be removed when MEncoder is removed -->
@@ -345,9 +340,9 @@
 			<version>2.16.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.goxr3plus</groupId>
+			<groupId>net.jthink</groupId>
 			<artifactId>jaudiotagger</artifactId>
-			<version>2.2.7</version>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>
