@@ -60,9 +60,11 @@ public class UMSDatagramProcessor extends DatagramProcessorImpl {
 		try {
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("===================================== DATAGRAM BEGIN ============================================");
-				LOGGER.trace(new String(datagram.getData()).trim());
-				LOGGER.trace("-===================================== DATAGRAM END =============================================");
+				LOGGER.trace("\n{}\n{}\n{}",
+						"===================================== DATAGRAM BEGIN ============================================",
+						new String(datagram.getData()).trim(),
+						"-===================================== DATAGRAM END ============================================="
+				);
 			}
 
 			ByteArrayInputStream is = new ByteArrayInputStream(datagram.getData());
