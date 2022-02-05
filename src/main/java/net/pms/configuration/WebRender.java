@@ -24,9 +24,11 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -47,7 +49,8 @@ import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
-import net.pms.remote.RemoteUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileUtil;
 import net.pms.util.StringUtil;
@@ -58,18 +61,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride {
-	private String user;
-	private String ip;
-	@SuppressWarnings("unused")
-	private int port;
-	private String ua;
-	private int browser = 0;
-	private String platform = null;
-	private int screenWidth = 0;
-	private int screenHeight = 0;
-	private boolean isTouchDevice = false;
-	private String subLang;
-	private Gson gson;
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] SUPPORTED_FORMATS = {
@@ -95,7 +86,20 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int CHROMIUM = 9;
 	protected static final int VIVALDI = 10;
 
+	private final String user;
+	private final Gson gson;
+
+	private String ip;
+	private String ua;
+	private int browser = 0;
+	private String platform = null;
+	private int screenWidth = 0;
+	private int screenHeight = 0;
+	private boolean isTouchDevice = false;
+	private String subLang;
 	private StartStopListenerDelegate startStop;
+	@SuppressWarnings("unused")
+	private int port;
 
 	public WebRender(String user) throws ConfigurationException, InterruptedException {
 		super(NOFILE, null);
@@ -140,7 +144,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public InetAddress getAddress() {
 		try {
 			return InetAddress.getByName(ip);
-		} catch (Exception e) {
+		} catch (UnknownHostException e) {
 			return null;
 		}
 	}
@@ -256,16 +260,16 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public boolean isScreenSizeConstrained() {
-		return (screenWidth != 0 && RemoteUtil.getWidth() > screenWidth) ||
-			(screenHeight != 0 && RemoteUtil.getHeight() > screenHeight);
+		return (screenWidth != 0 && WebInterfaceServerUtil.getWidth() > screenWidth) ||
+			(screenHeight != 0 && WebInterfaceServerUtil.getHeight() > screenHeight);
 	}
 
 	public int getVideoWidth() {
-		return isScreenSizeConstrained() ? screenWidth : RemoteUtil.getWidth();
+		return isScreenSizeConstrained() ? screenWidth : WebInterfaceServerUtil.getWidth();
 	}
 
 	public int getVideoHeight() {
-		return isScreenSizeConstrained() ? screenHeight : RemoteUtil.getHeight();
+		return isScreenSizeConstrained() ? screenHeight : WebInterfaceServerUtil.getHeight();
 	}
 
 	public String getVideoMimeType() {
@@ -289,7 +293,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
 			slow = calculatedSpeed() < pmsConfiguration.getWebLowSpeed();
-		} catch (Exception e) {
+		} catch (InterruptedException | ExecutionException e) {
 		}
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
@@ -326,7 +330,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							} catch (IOException e) {
 								LOGGER.debug("Could not read temp folder:" + e.getMessage());
 							}
-							break;
 					default:
 						break;
 					}
@@ -519,7 +522,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	/**
 	 * This is unused but may be useful as a reference.
 	 */
-	private static void ffHlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -586,7 +589,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	 */
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return getVideoMimeType() == HTTPResource.OGG_TYPEMIME ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
+		return getVideoMimeType().equals(HTTPResource.OGG_TYPEMIME) ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
 	}
 
 	@Override
@@ -629,19 +632,42 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
-	private ArrayList<String[]> push;
+	private final ArrayList<String[]> push;
 
 	public void push(String... args) {
-		push.add(args);
+		if (sse == null || !sse.isOpened() || !sse.sendMessage(gson.toJson(args))) {
+			synchronized (push) {
+				push.add(args);
+			}
+		}
 	}
 
 	public String getPushData() {
 		String json = "{}";
-		if (push.size() > 0) {
-			json = gson.toJson(push);
-			push.clear();
+		synchronized (push) {
+			if (!push.isEmpty()) {
+				json = gson.toJson(push);
+				push.clear();
+			}
 		}
 		return json;
+	}
+
+	private ServerSentEvents sse;
+	public void addServerSentEvents(ServerSentEvents sse) {
+		if (this.sse != null && this.sse.isOpened()) {
+			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", this.sse.getMsgString("Web.MultipleTabOpened"), this.sse.getMsgString("Dialog.OK")}));
+			this.sse.close();
+		}
+		synchronized (push) {
+			this.sse = sse;
+			//empty current push datas
+			while (!push.isEmpty() && this.sse != null && this.sse.isOpened()) {
+				if (this.sse.sendMessage(gson.toJson(push.get(0)))) {
+					push.remove(0);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -672,8 +698,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public static class WebPlayer extends BasicPlayer.Logical {
+		private final Gson gson;
 		private HashMap<String, String> data;
-		private Gson gson;
 
 		public WebPlayer(WebRender renderer) {
 			super(renderer);

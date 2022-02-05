@@ -99,7 +99,8 @@ import net.pms.io.SizeLimitInputStream;
 import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.HTTPResource;
-import net.pms.network.UPNPControl.Renderer;
+import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
@@ -733,7 +734,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		} catch (Throwable t) {
-			LOGGER.debug("Error adding child: \"{}\"", child.getName(), t);
+			LOGGER.debug("Error adding child {}: {}", child.getName(), t);
 
 			child.parent = null;
 			children.remove(child);
@@ -1128,7 +1129,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
 						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
 
-					if (hasAudioFilesSameAlbum(dlna)) {
+					if (shouldDoAudioTrackSorting(dlna)) {
 						sortChildrenWithAudioElements(dlna);
 					}
 					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
@@ -1158,32 +1159,45 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
-	 * implementaion could match the MBID record id (not implemented).
+	 * implementation could match the MBID record id (not implemented).
 	 *
 	 * @param dlna Folder containing child objects of any kind
 	 *
 	 * @return
-	 * 	TRUE, if all audio child objects belong to the same album.
+	 * 	TRUE, if AudioTrackSorting is not disabled, all audio child objects belong to the same album and the majority of files are audio.
 	 */
-	private boolean hasAudioFilesSameAlbum(DLNAResource dlna) {
+	private boolean shouldDoAudioTrackSorting(DLNAResource dlna) {
+		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
+			return false;
+		}
+
 		String album = null;
+		int numberOfAudioFiles = 0;
+		int numberOfOtherFiles = 0;
+
 		boolean audioExists = false;
 		for (DLNAResource res : dlna.getChildren()) {
 			if (res.getFormat() != null && res.getFormat().isAudio()) {
+				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
 					if (res.getMedia().getFirstAudioTrack() == null) {
 						return false;
 					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
+					if (StringUtils.isAllBlank(album)) {
+						return false;
+					}
 				} else {
 					if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
 						return false;
 					}
 				}
+			} else {
+				numberOfOtherFiles++;
 			}
 		}
-		return audioExists;
+		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
 	}
 
 	private void sortChildrenWithAudioElements(DLNAResource dlna) {
@@ -1750,7 +1764,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         none is available, "thumbnail0000.png" is used.
 	 */
 	protected String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = new StringBuilder(PMS.get().getServer().getURL());
+		StringBuilder sb = new StringBuilder(MediaServer.getURL());
 		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
@@ -1786,7 +1800,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public String getURL(String prefix, boolean useSystemName, boolean urlEncode) {
 		String uri = useSystemName ? getSystemName() : getName();
 		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
+		sb.append(MediaServer.getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); // id
 		sb.append('/');
@@ -1802,7 +1816,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected String getSubsURL(DLNAMediaSubtitle subs) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
+		sb.append(MediaServer.getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); // id
 		sb.append('/');
@@ -2491,7 +2505,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// DESC Metadata support: add ability for control point to identify
 			// song by MusicBrainz TrackID
-			if (media.isAudio() && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
+			if (media != null && media.isAudio() && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
@@ -4775,7 +4789,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {
-		return url != null && url.startsWith(PMS.get().getServer().getURL() + "/get/");
+		return url != null && url.startsWith(MediaServer.getURL() + "/get/");
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if

@@ -202,30 +202,37 @@ function umsAjax(u, reload) {
 	});
 }
 
-var polling, refused;
+var polling, refused, streamevent;
+
+function serverDataHandler(data) {
+	switch (data[0]) {
+		case 'seturl':
+			window.location.replace(data[1]);
+			break;
+		case 'control':
+			if (typeof control === 'function') {
+				control(data[1], data[2]);
+			}
+			break;
+		case 'notify':
+			notify(data[1], data[2]);
+			break;
+		case 'close':
+			warn(data[1], data[2], data[3]);
+			streamevent.close();
+			break;
+	}
+}
 
 function poll() {
-	$('body').append('<div id="notices"><div/></div>');
+	$('body').append('<div id="notices"><div/>');
 	polling = setInterval(function () {
 		$.ajax({url: '/poll',
 			success: function (json) {
 				refused = 0;
 				if (!$.isEmptyObject(json)) {
 					for (i = 0; i < json.length; i++) {
-						var args = json[i];
-						switch (args[0]) {
-							case 'seturl':
-								window.location.replace(args[1]);
-								break;
-							case 'control':
-								if (typeof control === 'function') {
-									control(args[1], args[2]);
-								}
-								break;
-							case 'notify':
-								notify(args[1], args[2]);
-								break;
-						}
+						serverDataHandler(json[i]);
 					}
 				}
 			},
@@ -238,15 +245,44 @@ function poll() {
 	}, 1000);
 }
 
+function stream() {
+	$('body').append('<div id="notices"><div/>');
+	streamevent = new EventSource("/event-stream");
+	streamevent.addEventListener('message', function(event) {
+		refused = 0;
+		if (event.data) {
+			var data = JSON.parse(event.data);
+			serverDataHandler(data);
+		}
+	});
+	streamevent.addEventListener('ping', function() {
+		refused = 0;
+	});
+	streamevent.onerror = function() {
+		if (++refused > 10) {
+			console.error("UMS Server unreachable");
+			streamevent.close();
+		}
+	};
+	window.addEventListener("beforeunload", function (e) {
+		streamevent.close();
+	});
+}
+
 function notify(icon, msg) {
 	//console.log('notify: '+icon+': '+msg);
-	var notice = $('<div class="notice"><span class="icon ' + icon + '"></span><span class="msg">' + msg + '</msg></div>');
+	var notice = $('<div class="notice"><span class="icon ' + icon + '"></span><span class="msg">' + msg + '</span></div>');
 	notice.insertAfter($('#notices').children(':last'));
 	setTimeout(function () {
 		notice.fadeOut('slow', function () {
 			notice.remove();
 		});
 	}, 5000);
+}
+
+function warn(icon, msg, btn) {
+	var notice = $('<div class="notice"><span class="icon ' + icon + '"></span><span class="msg">' + msg + '</span><button class="btn btn-sm" onclick="$(\'#notices\').html(\'\');">' + btn + '</button></div>');
+	notice.insertAfter($('#notices').children(':last'));
 }
 
 function chooseView(view) {
@@ -368,7 +404,7 @@ function isDarkColorNeededOnThisColor(rgbColor) {
 function setBackgroundColorFromPoster() {
 	var poster = document.getElementById('poster');
 	if (!poster || !poster.src) {
-		console.log('poster was not ready to analyze')
+		// console.log('poster was not ready to analyze')
 		return;
 	}
 	var rgb = getAverageRGB(poster);
@@ -506,5 +542,9 @@ $(document).ready(function () {
 		$(window).bind('load resize scroll', scrollActions);
 	}
 
-	poll();
+	if (typeof (EventSource) !== "undefined") {
+		stream();
+	} else {
+		poll();
+	}
 });

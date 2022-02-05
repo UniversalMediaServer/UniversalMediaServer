@@ -18,7 +18,6 @@
  */
 package net.pms.network;
 
-import static net.pms.util.StringUtil.convertURLToFileName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,6 +39,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
@@ -118,26 +118,6 @@ public class HTTPResource {
 	}
 
 	/**
-	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
-	 * as in the client might do different things for different MIME types.
-	 * @param type Type for which the default MIME type is needed.
-	 * @return Default MIME associated with the file type.
-	 */
-	public static String getDefaultMimeType(int type) {
-		String mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-
-		if (type == Format.VIDEO) {
-			mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-		} else if (type == Format.IMAGE) {
-			mimeType = HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
-		} else if (type == Format.AUDIO) {
-			mimeType = HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
-		}
-
-		return mimeType;
-	}
-
-	/**
 	 * Returns an InputStream associated with the fileName.
 	 * @param fileName TODO Absolute or relative file path.
 	 * @return If found, an InputStream associated with the fileName. null otherwise.
@@ -157,6 +137,25 @@ public class HTTPResource {
 	}
 
 	/**
+	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
+	 * as in the client might do different things for different MIME types.
+	 * @param type Type for which the default MIME type is needed.
+	 * @return Default MIME associated with the file type.
+	 */
+	public static String getDefaultMimeType(int type) {
+		switch (type) {
+			case Format.VIDEO:
+				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+			case Format.IMAGE:
+				return HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
+			case Format.AUDIO:
+				return HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
+			default:
+				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+		}
+	}
+
+	/**
 	 * Creates an InputStream based on a URL. This is used while accessing external resources
 	 * like online radio stations.
 	 * @param u URL.
@@ -171,9 +170,9 @@ public class HTTPResource {
 
 		if (saveOnDisk) {
 			String host = url.getHost();
-			String hostName = convertURLToFileName(host);
+			String hostName = StringUtil.convertURLToFileName(host);
 			String fileName = url.getFile();
-			fileName = convertURLToFileName(fileName);
+			fileName = StringUtil.convertURLToFileName(fileName);
 			File hostDir = new File(PMS.getConfiguration().getTempFolder(), hostName);
 
 			if (!hostDir.isDirectory()) {
@@ -231,7 +230,7 @@ public class HTTPResource {
 			cookieManager != null &&
 			cookieManager.getCookieStore() != null &&
 			cookieManager.getCookieStore().getCookies() != null &&
-			cookieManager.getCookieStore().getCookies().size() > 0
+			!cookieManager.getCookieStore().getCookies().isEmpty()
 		) {
 			// While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
 			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
@@ -268,15 +267,15 @@ public class HTTPResource {
 	 * @param resource the resource
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+	public static String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
 		return renderer.getMimeType(resource);
 	}
 
-	public int getDLNALocalesCount() {
+	public static int getDLNALocalesCount() {
 		return 3;
 	}
 
-	public final String getMpegPsOrgPN(int index) {
+	public static final String getMpegPsOrgPN(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -284,7 +283,7 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HD";
@@ -311,7 +310,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_TS";
 
 		switch (index) {
@@ -333,7 +332,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_MKV";
 
 		if (media == null || "high".equals(media.getH264Profile())) {
@@ -386,7 +385,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "WMV";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HIGH";
