@@ -119,6 +119,8 @@ public class RequestV2 extends HTTPResource {
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
+	private static final String HTTP_RESPONSE_BEGIN = "===================================== HTTP RESPONSE BEGIN =======================================";
+	private static final String HTTP_RESPONSE_END = "===================================== HTTP RESPONSE END =========================================";
 
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
@@ -1022,11 +1024,13 @@ public class RequestV2 extends HTTPResource {
 
 		if (HEAD.equals(method)) {
 			LOGGER.trace(
-				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+				"HEAD only response sent to {}:\n{}\nHEADER:\n  {} {}\n{}\n{}",
 				rendererName,
+				HTTP_RESPONSE_BEGIN,
 				output.getProtocolVersion(),
 				output.getStatus(),
-				header
+				header,
+				HTTP_RESPONSE_END
 			);
 		} else {
 			String formattedResponse = null;
@@ -1040,12 +1044,14 @@ public class RequestV2 extends HTTPResource {
 			}
 			if (isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+					"Response sent to {}:\n{}\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}\n{}",
 					rendererName,
+					HTTP_RESPONSE_BEGIN,
 					output.getProtocolVersion(),
 					output.getStatus(),
 					header,
-					formattedResponse
+					formattedResponse,
+					HTTP_RESPONSE_END
 				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
 				if (matcher.find()) {
@@ -1062,20 +1068,24 @@ public class RequestV2 extends HTTPResource {
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+					"Transfer response sent to {}:\n{}\nHEADER:\n  {} {} ({})\n{}\n{}",
 					rendererName,
+					HTTP_RESPONSE_BEGIN,
 					output.getProtocolVersion(),
 					output.getStatus(),
 					output.isChunked() ? "chunked" : "non-chunked",
-					header
+					header,
+					HTTP_RESPONSE_END
 				);
 			} else {
 				LOGGER.trace(
-					"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+					"Empty response sent to {}:\n{}\nHEADER:\n  {} {}\n{}\n{}",
 					rendererName,
+					HTTP_RESPONSE_BEGIN,
 					output.getProtocolVersion(),
 					output.getStatus(),
-					header
+					header,
+					HTTP_RESPONSE_END
 				);
 			}
 		}

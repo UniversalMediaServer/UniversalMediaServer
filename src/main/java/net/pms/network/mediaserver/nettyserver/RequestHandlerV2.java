@@ -61,6 +61,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		Pattern.CASE_INSENSITIVE
 	);
 
+	private static final String HTTP_REQUEST_BEGIN = "===================================== HTTP REQUEST BEGIN ========================================";
+	private static final String HTTP_REQUEST_END = "===================================== HTTP REQUEST END ==========================================";
+
 	private final ChannelGroup group;
 
 	public RequestHandlerV2(ChannelGroup group) {
@@ -360,20 +363,24 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
 		if (isNotBlank(requestType)) {
 			LOGGER.trace(
-				"Received a {}request from {}:\n\n{}{}",
+				"Received a {}request from {}:\n{}\n{}{}\n{}",
 				requestType,
 				rendererName,
+				HTTP_REQUEST_BEGIN,
 				header,
-				formattedContent
+				formattedContent,
+				HTTP_REQUEST_END
 				);
 		} else { // Trace not supported request type
 			LOGGER.trace(
-				"Received a {}request from {}:\n\n{}{}\nRenderer UUID={}",
+				"Received a {}request from {}:\n{}\n{}{}\n{}\nRenderer UUID={}",
 				soapAction,
 				rendererName,
+				HTTP_REQUEST_BEGIN,
 				header,
 				formattedContent,
-				renderer.uuid
+				HTTP_REQUEST_END,
+				renderer != null ? renderer.uuid : "null"
 				);
 		}
 	}
