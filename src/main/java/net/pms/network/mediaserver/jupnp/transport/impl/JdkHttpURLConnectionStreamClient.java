@@ -99,13 +99,13 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 			}
 
 			if (ex instanceof SocketTimeoutException) {
-				LOGGER.info(
+				LOGGER.debug(
 						"Timeout of {} seconds while waiting for HTTP request to complete, aborting: {}", getConfiguration().getTimeoutSeconds(), requestMessage);
 				return null;
 			}
 
 			if (ex instanceof SocketException) {
-				LOGGER.info(
+				LOGGER.debug(
 						"SocketException while HTTP request {} was not complete: {}", requestMessage, ex.getMessage());
 				return null;
 			}

@@ -20,6 +20,7 @@
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import net.pms.PMS;
@@ -28,6 +29,9 @@ import org.jupnp.model.ServerClientTokens;
 import org.jupnp.model.UnsupportedDataException;
 import org.jupnp.model.message.IncomingDatagramMessage;
 import org.jupnp.model.message.OutgoingDatagramMessage;
+import org.jupnp.model.message.UpnpOperation;
+import org.jupnp.model.message.UpnpRequest;
+import org.jupnp.model.message.UpnpResponse;
 import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.transport.impl.DatagramProcessorImpl;
 import org.jupnp.transport.spi.DatagramProcessor;
@@ -60,7 +64,9 @@ public class UMSDatagramProcessor extends DatagramProcessorImpl {
 		try {
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("\n{}\n{}\n{}",
+				LOGGER.trace("Reading message data from: {}:{}\n{}\n{}\n{}",
+						datagram.getAddress(),
+						datagram.getPort(),
 						"===================================== DATAGRAM BEGIN ============================================",
 						new String(datagram.getData()).trim(),
 						"-===================================== DATAGRAM END ============================================="
@@ -82,7 +88,8 @@ public class UMSDatagramProcessor extends DatagramProcessorImpl {
 	}
 
 	/**
-	 * Overrided as there is no simple way to change the product/version for datagrams message
+	 * Overrided as there is no simple way to change the product/version for datagrams message.
+	 *
 	 * @param message
 	 * @return
 	 * @throws UnsupportedDataException
@@ -92,6 +99,57 @@ public class UMSDatagramProcessor extends DatagramProcessorImpl {
 		if (message.getHeaders().containsKey(UpnpHeader.Type.SERVER)) {
 			message.getHeaders().set(UpnpHeader.Type.SERVER.getHttpName(), SERVER_HTTP_TOKEN);
 		}
-		return super.write(message);
+
+		StringBuilder statusLine = new StringBuilder();
+
+		UpnpOperation operation = message.getOperation();
+
+		if (operation instanceof UpnpRequest) {
+
+			UpnpRequest requestOperation = (UpnpRequest) operation;
+			statusLine.append(requestOperation.getHttpMethodName()).append(" * ");
+			statusLine.append("HTTP/1.").append(operation.getHttpMinorVersion()).append("\r\n");
+
+		} else if (operation instanceof UpnpResponse) {
+			UpnpResponse responseOperation = (UpnpResponse) operation;
+			statusLine.append("HTTP/1.").append(operation.getHttpMinorVersion()).append(" ");
+			statusLine.append(responseOperation.getStatusCode()).append(" ").append(responseOperation.getStatusMessage());
+			statusLine.append("\r\n");
+		} else {
+			throw new UnsupportedDataException(
+					"Message operation is not request or response, don't know how to process: " + message
+			);
+		}
+
+		// UDA 1.0, 1.1.2: No body but message must have a blank line after header
+		StringBuilder messageData = new StringBuilder();
+		messageData.append(statusLine);
+
+		messageData.append(message.getHeaders().toString()).append("\r\n");
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Writing message data for {} to: {}:{}\n{}\n{}\n{}",
+					message,
+					message.getDestinationAddress(),
+					message.getDestinationPort(),
+					"===================================== DATAGRAM BEGIN ============================================",
+					messageData.toString().substring(0, messageData.length() - 2),
+					"-===================================== DATAGRAM END ============================================="
+			);
+		}
+
+		try {
+			// According to HTTP 1.0 RFC, headers and their values are US-ASCII
+			// TODO: Probably should look into escaping rules, too
+			byte[] data = messageData.toString().getBytes("US-ASCII");
+
+			LOGGER.trace("Writing new datagram packet with " + data.length + " bytes for: " + message);
+			return new DatagramPacket(data, data.length, message.getDestinationAddress(), message.getDestinationPort());
+
+		} catch (UnsupportedEncodingException ex) {
+			throw new UnsupportedDataException(
+					"Can't convert message content to US-ASCII: " + ex.getMessage(), ex, messageData
+			);
+		}
 	}
 }
