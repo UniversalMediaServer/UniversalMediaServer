@@ -30,6 +30,7 @@ import org.jupnp.UpnpServiceImpl;
 import org.jupnp.model.meta.LocalDevice;
 import org.jupnp.protocol.ProtocolFactory;
 import org.jupnp.registry.Registry;
+import org.jupnp.util.SpecificationViolationReporter;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -58,6 +59,7 @@ public class UmsUpnpService extends UpnpServiceImpl {
 			rootLogger.setLevel(Level.OFF);
 			rootLogger = loggerContext.getLogger("org.jupnp.support");
 			rootLogger.setLevel(Level.OFF);
+			SpecificationViolationReporter.disableReporting();
 		}
 	}
 

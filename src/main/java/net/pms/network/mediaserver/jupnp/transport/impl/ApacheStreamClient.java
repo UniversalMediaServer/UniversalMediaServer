@@ -237,19 +237,7 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 				}
 			}
 		}
-		String formattedContent;
-		if (requestMessage.isBodyNonEmptyString()) {
-			try {
-				formattedContent = StringUtil.prettifyXML(requestMessage.getBodyString(), StandardCharsets.UTF_8, 2);
-			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
-				LOGGER.trace("XML parsing failed with:\n{}", e);
-				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-				formattedContent += "    " + requestMessage.getBodyString().replace("\n", "\n    ") + "\n";
-			}
-		} else {
-			formattedContent = requestMessage.getBodyString();
-		}
-		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
+		String formattedContent = getFormattedBody(requestMessage);
 		LOGGER.trace(
 				"Send a request:\n{}\n{}{}\n{}",
 				HTTP_REQUEST_BEGIN,
@@ -268,27 +256,14 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 				}
 			}
 		}
-		String formattedResponse = null;
-		if (responseMessage.isBodyNonEmptyString()) {
-			try {
-				formattedResponse = StringUtil.prettifyXML(responseMessage.getBodyString(), StandardCharsets.UTF_8, 4);
-			} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-				formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-				formattedResponse += "    " + responseMessage.getBodyString().replace("\n", "\n    ");
-			}
-		} else {
-			formattedResponse = responseMessage.getBodyString();
-		}
-		if (formattedResponse != null) {
-			formattedResponse = "CONTENT:\n" + formattedResponse;
-		}
+		String formattedResponse = getFormattedBody(responseMessage);
 		LOGGER.trace(
 			"Received a response:\n{}\nHEADER:\n  HTTP/1.{} {}\n{}{}\n{}",
 			HTTP_RESPONSE_BEGIN,
 			responseMessage.getOperation().getHttpMinorVersion(),
 			responseMessage.getOperation().getResponseDetails(),
 			header,
-			formattedResponse != null ? formattedResponse : "",
+			formattedResponse,
 			HTTP_RESPONSE_END
 		);
 	}
@@ -350,6 +325,32 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 			}
 			return responseMessage;
 		};
+	}
+
+	private static String getFormattedBody(UpnpMessage message) {
+		String formattedBody;
+		//message.isBodyNonEmptyString throw StringIndexOutOfBoundsException if string is empty
+		try {
+			boolean bodyNonEmpty = message.getBody() != null &&
+					((message.getBody() instanceof String && ((String) message.getBody()).length() > 0) ||
+					(message.getBody() instanceof byte[] && ((byte[]) message.getBody()).length > 0));
+			if (bodyNonEmpty && message.isBodyNonEmptyString()) {
+				try {
+					formattedBody = StringUtil.prettifyXML(message.getBodyString(), StandardCharsets.UTF_8, 4);
+				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+					formattedBody = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+					formattedBody += "    " + message.getBodyString().replace("\n", "\n    ");
+				}
+			} else {
+				formattedBody = message.getBodyString();
+			}
+		} catch (Exception e) {
+			formattedBody = "";
+		}
+		if (StringUtils.isNotEmpty(formattedBody)) {
+			formattedBody = "CONTENT:\n" + formattedBody;
+		}
+		return formattedBody;
 	}
 
 	private static void addHeaders(HttpMessage httpMessage, Headers headers) {
