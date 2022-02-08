@@ -20,10 +20,17 @@
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
+import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
@@ -61,6 +68,7 @@ import org.jupnp.transport.spi.InitializationException;
 import org.jupnp.transport.spi.StreamClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Implementation based on org.jupnp.transport.impl.apache
@@ -181,6 +189,9 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 	protected Callable<StreamResponseMessage> createCallable(final StreamRequestMessage requestMessage, final HttpRequestBase request) {
 		return () -> {
 			LOGGER.trace("Sending HTTP request: " + requestMessage);
+			if (LOGGER.isTraceEnabled()) {
+				logStreamRequestMessage(requestMessage);
+			}
 			return httpClient.execute(request, createResponseHandler());
 		};
 	}
@@ -197,6 +208,9 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 			// logging rules of the StreamClient#sendRequest() method
 			LOGGER.trace("Illegal state: " + t.getMessage());
 			return true;
+		} else if (t instanceof NoHttpResponseException) {
+			LOGGER.trace("No Http Response: " + t.getMessage());
+			return true;
 		}
 		return false;
 	}
@@ -205,6 +219,78 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 	public void stop() {
 		LOGGER.trace("Shutting down HTTP client connection manager/pool");
 		clientConnectionManager.shutdown();
+	}
+
+	private static final String HTTP_REQUEST_BEGIN = "==================================== HTTPCLIENT REQUEST BEGIN ====================================";
+	private static final String HTTP_REQUEST_END = "==================================== HTTPCLIENT REQUEST END ======================================";
+	private static final String HTTP_RESPONSE_BEGIN = "==================================== HTTPCLIENT RESPONSE BEGIN ===================================";
+	private static final String HTTP_RESPONSE_END = "==================================== HTTPCLIENT RESPONSE END =====================================";
+	private static void logStreamRequestMessage(StreamRequestMessage requestMessage) {
+		StringBuilder header = new StringBuilder();
+		header.append(requestMessage.getOperation().getHttpMethodName()).append(" ").append(requestMessage.getUri().getPath());
+		header.append(" HTTP/1.").append(requestMessage.getOperation().getHttpMinorVersion()).append("\n\n");
+		header.append("HEADER:\n");
+		for (Map.Entry<String, List<String>> entry : requestMessage.getHeaders().entrySet()) {
+			if (StringUtils.isNotBlank(entry.getKey())) {
+				for (String value : entry.getValue()) {
+					header.append("  ").append(entry.getKey()).append(": ").append(value).append("\n");
+				}
+			}
+		}
+		String formattedContent;
+		if (requestMessage.isBodyNonEmptyString()) {
+			try {
+				formattedContent = StringUtil.prettifyXML(requestMessage.getBodyString(), StandardCharsets.UTF_8, 2);
+			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
+				LOGGER.trace("XML parsing failed with:\n{}", e);
+				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+				formattedContent += "    " + requestMessage.getBodyString().replace("\n", "\n    ") + "\n";
+			}
+		} else {
+			formattedContent = requestMessage.getBodyString();
+		}
+		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
+		LOGGER.trace(
+				"Send a request:\n{}\n{}{}\n{}",
+				HTTP_REQUEST_BEGIN,
+				header,
+				formattedContent,
+				HTTP_REQUEST_END
+				);
+	}
+
+	private static void logStreamResponseMessage(StreamResponseMessage responseMessage) {
+		StringBuilder header = new StringBuilder();
+		for (Map.Entry<String, List<String>> entry : responseMessage.getHeaders().entrySet()) {
+			if (StringUtils.isNotBlank(entry.getKey())) {
+				for (String value : entry.getValue()) {
+					header.append("  ").append(entry.getKey()).append(": ").append(value).append("\n");
+				}
+			}
+		}
+		String formattedResponse = null;
+		if (responseMessage.isBodyNonEmptyString()) {
+			try {
+				formattedResponse = StringUtil.prettifyXML(responseMessage.getBodyString(), StandardCharsets.UTF_8, 4);
+			} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+				formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+				formattedResponse += "    " + responseMessage.getBodyString().replace("\n", "\n    ");
+			}
+		} else {
+			formattedResponse = responseMessage.getBodyString();
+		}
+		if (formattedResponse != null) {
+			formattedResponse = "CONTENT:\n" + formattedResponse;
+		}
+		LOGGER.trace(
+			"Received a response:\n{}\nHEADER:\n  HTTP/1.{} {}\n{}{}\n{}",
+			HTTP_RESPONSE_BEGIN,
+			responseMessage.getOperation().getHttpMinorVersion(),
+			responseMessage.getOperation().getResponseDetails(),
+			header,
+			formattedResponse != null ? formattedResponse : "",
+			HTTP_RESPONSE_END
+		);
 	}
 
 	protected HttpEntity createHttpRequestEntity(UpnpMessage upnpMessage) {
@@ -259,7 +345,9 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 			} else {
 				LOGGER.trace("HTTP response message has no entity");
 			}
-
+			if (LOGGER.isTraceEnabled()) {
+				logStreamResponseMessage(responseMessage);
+			}
 			return responseMessage;
 		};
 	}

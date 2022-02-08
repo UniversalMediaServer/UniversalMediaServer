@@ -115,14 +115,23 @@ public class NettyUpnpStream extends UpnpStream {
 
 			// Body
 			byte[] bodyBytes;
+			long requestContentLength = HttpHeaders.getContentLength(getHttpRequest(), 0);
 			try {
 				ChannelBuffer content = getHttpRequest().getContent();
-				bodyBytes = content.array();
+				if (content.hasArray()) {
+					bodyBytes = content.array();
+				} else if (requestContentLength > 0) {
+					bodyBytes = new byte[(int) requestContentLength];
+					content.readBytes(bodyBytes);
+				} else {
+					bodyBytes = new byte[0];
+				}
 			} catch (UnsupportedOperationException t) {
+				LOGGER.trace("Reading request body failed: {}", t);
 				bodyBytes = new byte[0];
 			}
 
-			LOGGER.debug("Reading request body bytes: {0}", bodyBytes.length);
+			LOGGER.debug("Reading request body bytes: {}", bodyBytes.length);
 
 			if (bodyBytes.length > 0 && requestMessage.isContentTypeMissingOrText()) {
 
@@ -207,10 +216,10 @@ public class NettyUpnpStream extends UpnpStream {
 		}
 	}
 
-	private static final String HTTP_REQUEST_BEGIN = "===================================== HTTP REQUEST BEGIN ========================================";
-	private static final String HTTP_REQUEST_END = "===================================== HTTP REQUEST END ==========================================";
-	private static final String HTTP_RESPONSE_BEGIN = "===================================== HTTP RESPONSE BEGIN =======================================";
-	private static final String HTTP_RESPONSE_END = "===================================== HTTP RESPONSE END =========================================";
+	private static final String HTTP_REQUEST_BEGIN = "================================== HTTPSERVER REQUEST BEGIN =====================================";
+	private static final String HTTP_REQUEST_END = "================================== HTTPSERVER REQUEST END =======================================";
+	private static final String HTTP_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
+	private static final String HTTP_RESPONSE_END = "================================== HTTPSERVER RESPONSE END ======================================";
 	private static void logStreamRequestMessage(StreamRequestMessage requestMessage) {
 		StringBuilder header = new StringBuilder();
 		header.append(requestMessage.getOperation().getHttpMethodName()).append(" ").append(requestMessage.getUri().getPath());
@@ -223,7 +232,7 @@ public class NettyUpnpStream extends UpnpStream {
 				}
 			}
 		}
-		String formattedContent = null;
+		String formattedContent;
 		if (requestMessage.isBodyNonEmptyString()) {
 			try {
 				formattedContent = StringUtil.prettifyXML(requestMessage.getBodyString(), StandardCharsets.UTF_8, 2);
@@ -232,6 +241,8 @@ public class NettyUpnpStream extends UpnpStream {
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
 				formattedContent += "    " + requestMessage.getBodyString().replace("\n", "\n    ") + "\n";
 			}
+		} else {
+			formattedContent = requestMessage.getBodyString();
 		}
 		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
 		LOGGER.trace(
