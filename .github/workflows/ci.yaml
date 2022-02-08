@@ -15,7 +15,7 @@ jobs:
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
+          distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
@@ -41,7 +41,7 @@ jobs:
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
+          distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
@@ -68,7 +68,7 @@ jobs:
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
+          distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
@@ -101,7 +101,7 @@ jobs:
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
+          distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4
