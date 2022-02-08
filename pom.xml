@@ -68,7 +68,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>147</binary-revision>
+		<binary-revision>148</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
@@ -1185,6 +1185,47 @@
 										<get src="${project.binaries-base}/win32/jre8-x64/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/LICENSE" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/release?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/release" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/awt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/awt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-console-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-console-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-console-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-console-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-datetime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-datetime-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-debug-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-debug-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-errorhandling-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-errorhandling-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-file-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-console-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-file-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-file-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-file-l2-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-file-l2-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-handle-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-handle-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-heap-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-interlocked-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-interlocked-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-libraryloader-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-libraryloader-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-localization-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-localization-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-memory-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-memory-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-namedpipe-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-namedpipe-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-processenvironment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-processenvironment-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-processthreads-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-processthreads-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-processthreads-l1-1-1.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-processthreads-l1-1-1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-profile-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-profile-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-rtlsupport-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-rtlsupport-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-string-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-synch-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-synch-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-synch-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-synch-l1-2-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-sysinfo-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-sysinfo-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-timezone-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-timezone-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-core-util-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-core-util-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-conio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-conio-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-convert-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-convert-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-environment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-environment-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-filesystem-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-filesystem-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-heap-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-locale-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-locale-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-math-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-math-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-multibyte-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-multibyte-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-private-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-private-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-process-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-process-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-runtime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-runtime-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-stdio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-stdio-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-string-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-time-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-time-l1-1-0.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/api-ms-win-crt-utility-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/api-ms-win-crt-utility-l1-1-0.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/dt_shmem.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/dt_socket.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/freetype.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/freetype.dll" usetimestamp="true" />
@@ -1217,8 +1258,7 @@
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/lcms.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/management.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/mlib_image.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/mlib_image.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/msvcp120.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/msvcp120.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/msvcr120.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/msvcr120.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/msvcp140.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/msvcp140.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/net.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/net.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/nio.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/nio.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/npt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/npt.dll" usetimestamp="true" />
@@ -1232,8 +1272,10 @@
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/sunec.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/sunec.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/sunmscapi.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/sunmscapi.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/tnameserv.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/tnameserv.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/ucrtbase.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/ucrtbase.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/unpack.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/unpack.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/unpack200.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/unpack200.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre8-x64/bin/vcruntime140.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/vcruntime140.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/verify.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/w2k_lsa_auth.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre8-x64/bin/WindowsAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/WindowsAccessBridge-64.dll" usetimestamp="true" />
@@ -2264,6 +2306,7 @@
 										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libawt_xawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libawt_xawt.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libdt_socket.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libdt_socket.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libfontmanager.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libfontmanager.so" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libfreetype.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libfreetype.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libhprof.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libhprof.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libinstrument.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libinstrument.so" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libj2gss.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libj2gss.so" usetimestamp="true" />
