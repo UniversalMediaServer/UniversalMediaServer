@@ -218,7 +218,7 @@ function serverDataHandler(data) {
 			notify(data[1], data[2]);
 			break;
 		case 'close':
-			warn(data[1], data[2], data[3]);
+			//warn(data[1], data[2], data[3]);
 			streamevent.close();
 			break;
 	}
