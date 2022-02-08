@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
+import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
@@ -100,11 +102,22 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public StreamClient createStreamClient() {
-		return new JdkHttpURLConnectionStreamClient(
-				new JdkHttpURLConnectionStreamClientConfiguration(
-						getSyncProtocolExecutorService()
-				)
-		);
+		if (ownHttpServer) {
+			//this will allow us to test the ApacheStreamClient that should been fixed
+			//then we can remove the JdkHttpURLConnectionStreamClient that use
+			//internal proprietary API
+			return new ApacheStreamClient(
+					new ApacheStreamClientConfiguration(
+							getSyncProtocolExecutorService()
+					)
+			);
+		} else {
+			return new JdkHttpURLConnectionStreamClient(
+					new JdkHttpURLConnectionStreamClientConfiguration(
+							getSyncProtocolExecutorService()
+					)
+			);
+		}
 	}
 
 	public boolean useOwnHttpServer() {
