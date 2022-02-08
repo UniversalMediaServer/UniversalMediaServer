@@ -26,7 +26,7 @@ import org.jupnp.support.model.BrowseFlag;
 import org.jupnp.support.model.BrowseResult;
 import org.jupnp.support.model.SortCriterion;
 
-public class Ums2ContentDirectoryService extends AbstractContentDirectoryService {
+public class UmsContentDirectoryService extends AbstractContentDirectoryService {
 
 	@Override
 	public BrowseResult browse(String objectID, BrowseFlag browseFlag, String filter, long firstResult, long maxResults, SortCriterion[] orderby) throws ContentDirectoryException {

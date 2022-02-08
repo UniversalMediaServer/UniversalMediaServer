@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.network.mediaserver.jupnp.support.connectionmanager.UmsConnectionManagerService;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.Ums2ContentDirectoryService;
-import net.pms.network.mediaserver.jupnp.support.xmicrosoft.Ums2MediaReceiverRegistrarService;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
+import net.pms.network.mediaserver.jupnp.support.xmicrosoft.UmsMediaReceiverRegistrarService;
 import org.jupnp.binding.annotations.AnnotationLocalServiceBinder;
 import org.jupnp.model.DefaultServiceManager;
 import org.jupnp.model.ValidationException;
@@ -132,9 +132,9 @@ public class UmsLocalDevice extends LocalDevice {
 	 * Creates the upnp ContentDirectoryService.
 	 * @return The ContenDirectoryService.
 	 */
-	private static LocalService<Ums2ContentDirectoryService> createContentDirectoryService() {
-		LocalService<Ums2ContentDirectoryService> contentDirectoryService = new AnnotationLocalServiceBinder().read(Ums2ContentDirectoryService.class);
-		contentDirectoryService.setManager(new DefaultServiceManager<Ums2ContentDirectoryService>(contentDirectoryService, null) {
+	private static LocalService<UmsContentDirectoryService> createContentDirectoryService() {
+		LocalService<UmsContentDirectoryService> contentDirectoryService = new AnnotationLocalServiceBinder().read(UmsContentDirectoryService.class);
+		contentDirectoryService.setManager(new DefaultServiceManager<UmsContentDirectoryService>(contentDirectoryService, null) {
 
 			@Override
 			protected int getLockTimeoutMillis() {
@@ -142,8 +142,8 @@ public class UmsLocalDevice extends LocalDevice {
 			}
 
 			@Override
-			protected Ums2ContentDirectoryService createServiceInstance() throws Exception {
-				return new Ums2ContentDirectoryService();
+			protected UmsContentDirectoryService createServiceInstance() throws Exception {
+				return new UmsContentDirectoryService();
 			}
 		});
 		return contentDirectoryService;
@@ -177,17 +177,17 @@ public class UmsLocalDevice extends LocalDevice {
 	 *
 	 * @return the service
 	 */
-	private static LocalService<Ums2MediaReceiverRegistrarService> createMediaReceiverRegistrarService() {
-		LocalService<Ums2MediaReceiverRegistrarService> mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(Ums2MediaReceiverRegistrarService.class);
-		mediaReceiverRegistrarService.setManager(new DefaultServiceManager<Ums2MediaReceiverRegistrarService>(mediaReceiverRegistrarService, null) {
+	private static LocalService<UmsMediaReceiverRegistrarService> createMediaReceiverRegistrarService() {
+		LocalService<UmsMediaReceiverRegistrarService> mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(UmsMediaReceiverRegistrarService.class);
+		mediaReceiverRegistrarService.setManager(new DefaultServiceManager<UmsMediaReceiverRegistrarService>(mediaReceiverRegistrarService, null) {
 			@Override
 			protected int getLockTimeoutMillis() {
 				return 1000;
 			}
 
 			@Override
-			protected Ums2MediaReceiverRegistrarService createServiceInstance() throws Exception {
-				return new Ums2MediaReceiverRegistrarService();
+			protected UmsMediaReceiverRegistrarService createServiceInstance() throws Exception {
+				return new UmsMediaReceiverRegistrarService();
 			}
 		});
 		return mediaReceiverRegistrarService;

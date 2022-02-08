@@ -34,7 +34,7 @@ import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServe
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
-import net.pms.network.mediaserver.jupnp.transport.impl.Ums2DatagramProcessor;
+import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramIO;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsMulticastReceiver;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
@@ -149,7 +149,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	protected DatagramProcessor createDatagramProcessor() {
-		return new Ums2DatagramProcessor();
+		return new UmsDatagramProcessor();
 	}
 
 	@Override

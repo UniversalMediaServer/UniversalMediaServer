@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * directly (check on JUPnP update if it's corrected).
  * Set our server header.
  */
-public class Ums2DatagramProcessor extends DatagramProcessorImpl {
+public class UmsDatagramProcessor extends DatagramProcessorImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatagramProcessor.class);
 	private static final String SERVER_HTTP_TOKEN = new ServerClientTokens("UMS", PMS.getVersion()).getHttpToken();
